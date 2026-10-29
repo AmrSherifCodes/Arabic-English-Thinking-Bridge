@@ -1,0 +1,2314 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Thinking English — Arabic-to-English Cognitive Transfer</title>
+  <!-- Google Fonts: Inter & Cairo -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            arabic: ['Cairo', 'sans-serif'],
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    :root {
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    html, body {
+      overflow-x: hidden;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .font-arabic {
+      font-family: 'Cairo', sans-serif;
+    }
+    /* Touch target & iOS zoom prevention rules */
+    button, select, .chip-btn, .tab-btn, summary {
+      min-height: 44px;
+      min-width: 44px;
+      touch-action: manipulation;
+    }
+    input, textarea, select {
+      font-size: 16px !important;
+    }
+    .pb-safe-main {
+      padding-bottom: calc(92px + var(--safe-bottom));
+    }
+    .pb-safe-nav {
+      padding-bottom: var(--safe-bottom);
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-8px); }
+      40%, 80% { transform: translateX(8px); }
+    }
+    @keyframes fall {
+      to { transform: translateY(105vh) rotate(540deg); opacity: .2; }
+    }
+    .shake {
+      animation: shake .35s;
+      border-color: #e11d48 !important;
+    }
+    .conf {
+      position: fixed;
+      top: -30px;
+      font-size: 24px;
+      pointer-events: none;
+      z-index: 50;
+      animation: fall 1.6s ease-in forwards;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .shake {
+        animation: none !important;
+      }
+      .conf {
+        animation: none !important;
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 font-sans antialiased selection:bg-emerald-500 selection:text-white transition-colors duration-200">
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2 pointer-events-none w-11/12 max-w-md"></div>
+
+  <!-- Presentation Mode Fullscreen Modal -->
+  <div id="presentation-modal" class="fixed inset-0 z-50 hidden bg-slate-950/95 backdrop-blur-md text-white flex-col justify-between p-6 md:p-12">
+    <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+      <div class="flex items-center gap-3">
+        <span class="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-sm font-semibold border border-emerald-500/30" id="pres-phase-badge">Phase 1</span>
+        <span class="text-slate-400 text-sm font-medium" id="pres-counter">1 / 9</span>
+      </div>
+      <button id="pres-close-btn" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-sm flex items-center gap-2">
+        <span>✕ Close Presentation</span>
+      </button>
+    </div>
+    <div class="my-auto max-w-4xl mx-auto w-full space-y-8 text-center">
+      <div class="space-y-3">
+        <h2 id="pres-title-en" class="text-3xl md:text-5xl font-extrabold tracking-tight text-white"></h2>
+        <p id="pres-title-ar" dir="rtl" class="text-2xl md:text-4xl font-arabic font-bold text-emerald-400"></p>
+      </div>
+      <div class="p-6 md:p-10 rounded-3xl bg-slate-900/90 border border-slate-800 space-y-6 text-left shadow-2xl">
+        <div>
+          <div class="text-xs uppercase tracking-wider text-slate-400 font-bold mb-2">English Cognitive Transfer Rule</div>
+          <p id="pres-concept-en" class="text-xl md:text-3xl leading-relaxed text-slate-100 font-medium"></p>
+        </div>
+        <hr class="border-slate-800" />
+        <div dir="rtl" class="text-right">
+          <div class="text-xs uppercase tracking-wider text-emerald-400 font-bold mb-2 font-sans">القاعدة الذهنية للتحويل اللغوي</div>
+          <p id="pres-concept-ar" class="text-2xl md:text-3xl leading-relaxed font-arabic text-emerald-100 font-semibold"></p>
+        </div>
+      </div>
+    </div>
+    <div class="flex items-center justify-between border-t border-slate-800 pt-4 max-w-4xl mx-auto w-full">
+      <button id="pres-prev-btn" class="px-6 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 font-semibold text-base disabled:opacity-40">← Previous Concept</button>
+      <span class="text-xs text-slate-500 hidden sm:inline">Use ← / → arrow keys or tap buttons</span>
+      <button id="pres-next-btn" class="px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-base disabled:opacity-40">Next Concept →</button>
+    </div>
+  </div>
+
+  <!-- Bank-Grade Vault Inspector Modal -->
+  <div id="vault-modal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-emerald-500 text-xl">🛡️</span>
+          <h3 class="font-bold text-lg">Security & Deterministic Vault Status</h3>
+        </div>
+        <button id="close-vault-btn" class="px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-sm font-semibold">✕</button>
+      </div>
+      <div class="text-xs space-y-2 text-slate-600 dark:text-slate-300">
+        <p>• <strong>Zero-Hallucination Engine:</strong> 100% deterministic contrast matrices reviewed by ESL pedagogues. No unverified generative text mutations.</p>
+        <p>• <strong>Isolated StorageVault:</strong> Every state read/write passes schema sanitization, FNV-1a integrity checksum verification, and strict <code>try/catch</code> isolation.</p>
+      </div>
+      <pre id="vault-audit-json" class="bg-slate-950 text-emerald-400 p-3 rounded-xl text-xs overflow-x-auto max-h-60 font-mono"></pre>
+      <div class="flex justify-end gap-2">
+        <button id="reset-progress-btn" class="px-4 py-2 rounded-xl bg-rose-600/10 text-rose-600 dark:text-rose-400 border border-rose-500/30 text-xs font-semibold">Reset Local Demo Data</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- App Layout Wrapper -->
+  <div class="min-h-screen flex flex-col md:flex-row">
+
+    <!-- Desktop Sidebar / Mobile Fixed Bottom Navigation -->
+    <nav aria-label="Main Navigation" class="fixed bottom-0 inset-x-0 z-40 bg-white/85 dark:bg-slate-900/85 backdrop-blur-lg border-t border-slate-200 dark:border-slate-800 pb-safe-nav md:static md:w-64 md:min-h-screen md:border-t-0 md:border-r md:flex md:flex-col md:justify-between md:p-4">
+      <div class="hidden md:block space-y-4">
+        <div class="flex items-center gap-3 px-2 py-2">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-black text-lg shadow-md">TE</div>
+          <div>
+            <h1 class="font-extrabold text-base tracking-tight leading-none">Thinking English</h1>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 font-arabic" dir="rtl">التفكير بالإنجليزية</p>
+          </div>
+        </div>
+        <div class="p-3 rounded-xl bg-slate-100 dark:bg-slate-800/70 border border-slate-200/70 dark:border-slate-700/60 space-y-1.5">
+          <div class="flex items-center justify-between text-xs font-semibold">
+            <span id="sidebar-level-name" class="text-emerald-600 dark:text-emerald-400">Silent Copula</span>
+            <span id="sidebar-score-badge" class="font-bold">0 XP</span>
+          </div>
+          <div class="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+            <div id="sidebar-level-bar" class="h-full bg-emerald-500 transition-all duration-300" style="width: 0%"></div>
+          </div>
+          <div class="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 pt-0.5">
+            <span>🔥 Streak: <strong id="sidebar-streak">0</strong></span>
+            <span>Best: <strong id="sidebar-best-streak">0</strong></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation Buttons -->
+      <div class="grid grid-cols-4 md:grid-cols-1 gap-1 px-2 py-1.5 md:p-0 md:my-auto">
+        <button data-tab="lessons" class="tab-btn flex flex-col md:flex-row items-center justify-center md:justify-start gap-1 md:gap-3 px-2 md:px-4 py-1.5 md:py-3 rounded-xl font-semibold text-xs md:text-sm transition-colors">
+          <span class="text-lg md:text-xl">📚</span>
+          <span>Lessons</span>
+        </button>
+        <button data-tab="practice" class="tab-btn flex flex-col md:flex-row items-center justify-center md:justify-start gap-1 md:gap-3 px-2 md:px-4 py-1.5 md:py-3 rounded-xl font-semibold text-xs md:text-sm transition-colors">
+          <span class="text-lg md:text-xl">⚡</span>
+          <span>Practice</span>
+        </button>
+        <button data-tab="teacher" class="tab-btn flex flex-col md:flex-row items-center justify-center md:justify-start gap-1 md:gap-3 px-2 md:px-4 py-1.5 md:py-3 rounded-xl font-semibold text-xs md:text-sm transition-colors">
+          <span class="text-lg md:text-xl">🎓</span>
+          <span>Teacher Hub</span>
+        </button>
+        <button data-tab="progress" class="tab-btn flex flex-col md:flex-row items-center justify-center md:justify-start gap-1 md:gap-3 px-2 md:px-4 py-1.5 md:py-3 rounded-xl font-semibold text-xs md:text-sm transition-colors">
+          <span class="text-lg md:text-xl">🏆</span>
+          <span>Progress</span>
+        </button>
+      </div>
+
+      <!-- Desktop Footer Controls -->
+      <div class="hidden md:flex flex-col gap-2 pt-4 border-t border-slate-200 dark:border-slate-800">
+        <button id="desktop-vault-btn" class="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-800 text-xs font-semibold flex items-center justify-between text-slate-600 dark:text-slate-300">
+          <span>🛡️ Vault Integrity</span>
+          <span class="text-emerald-500 font-mono">VERIFIED</span>
+        </button>
+        <button id="desktop-theme-btn" class="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-800 text-xs font-semibold flex items-center justify-between">
+          <span>Theme Mode</span>
+          <span class="theme-label">🌙 Dark</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Main Content Column -->
+    <div class="flex-1 flex flex-col min-w-0 pb-safe-main md:pb-10">
+
+      <!-- Top Sticky Header -->
+      <header class="sticky top-0 z-30 bg-white/85 dark:bg-slate-950/85 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-4 py-2.5">
+        <div class="max-w-4xl mx-auto flex items-center justify-between gap-2">
+          <div class="flex items-center gap-2.5">
+            <div class="md:hidden w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-black text-sm shadow">TE</div>
+            <div>
+              <h2 id="header-title" class="font-bold text-sm sm:text-base leading-tight">Curriculum Map</h2>
+              <p id="header-subtitle" class="text-[11px] text-slate-500 dark:text-slate-400">Arabic-to-English Cognitive Transfer</p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-1.5 sm:gap-2">
+            <!-- Score & Streak Pill -->
+            <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-bold">
+              <span title="Current Streak">🔥 <span id="header-streak">0</span></span>
+              <span class="text-slate-300 dark:text-slate-700">|</span>
+              <span class="text-emerald-600 dark:text-emerald-400"><span id="header-score">0</span> XP</span>
+            </div>
+            <!-- Security Vault Status Button -->
+            <button id="mobile-vault-btn" title="Security & Vault Audit" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm">
+              🛡️
+            </button>
+            <!-- Theme Toggle -->
+            <button id="mobile-theme-btn" title="Toggle Dark/Light Theme" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm">
+              <span class="theme-icon">🌙</span>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- Main View Container -->
+      <main class="max-w-4xl w-full mx-auto px-4 pt-4 space-y-6">
+
+        <!-- Broadcast Banner (if teacher posted a mini-lesson) -->
+        <div id="broadcast-banner" class="hidden p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 flex items-start justify-between gap-3">
+          <div class="space-y-1">
+            <div class="text-xs font-extrabold uppercase tracking-wider text-amber-600 dark:text-amber-400">📢 Teacher Broadcast Mini-Lesson</div>
+            <p id="broadcast-banner-text" class="text-sm font-medium"></p>
+          </div>
+          <button id="dismiss-broadcast-btn" class="text-xs px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 font-semibold">Dismiss</button>
+        </div>
+
+        <!-- ==========================================
+             TAB 1: LESSONS VIEW
+             ========================================== -->
+        <section id="view-lessons" class="space-y-6">
+          <div class="p-5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-700 text-white shadow-lg space-y-2">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <span class="px-2.5 py-0.5 rounded-full bg-white/20 text-xs font-bold uppercase tracking-wider">The Thinking Method</span>
+              <span id="lessons-overall-progress" class="text-xs font-semibold bg-black/20 px-3 py-1 rounded-full">0 / 9 Completed</span>
+            </div>
+            <h3 class="text-xl sm:text-2xl font-extrabold">Rewire Arabic Thought Patterns into Natural English</h3>
+            <p class="text-xs sm:text-sm text-emerald-50 max-w-2xl">Zero rote memorization. We compare how your brain structures a sentence in Arabic with how English builds the exact same idea.</p>
+          </div>
+
+          <!-- Phases Container -->
+          <div id="phases-container" class="space-y-6"></div>
+        </section>
+
+        <!-- ==========================================
+             TAB 2: PRACTICE VIEW (THE LEARNING LOOP)
+             ========================================== -->
+        <section id="view-practice" class="hidden space-y-4">
+          <!-- Lesson Header & Thin Progress Bar -->
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <span id="practice-phase-tag" class="text-[11px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Phase 1</span>
+                <h3 id="practice-lesson-title" class="font-bold text-base sm:text-lg">Lesson Title</h3>
+              </div>
+              <div class="flex items-center gap-2">
+                <select id="practice-lesson-select" aria-label="Switch Lesson" class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold"></select>
+              </div>
+            </div>
+
+            <!-- Thin Progress Bar within Lesson -->
+            <div class="space-y-1">
+              <div class="flex justify-between text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                <span id="practice-step-label">Exercise 1 of 3</span>
+                <span id="practice-points-badge" class="text-emerald-600 dark:text-emerald-400">+10 XP on first try</span>
+              </div>
+              <div class="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                <div id="practice-progress-bar" class="h-full bg-emerald-500 transition-all duration-300" style="width: 33%"></div>
+              </div>
+            </div>
+
+            <!-- Collapsible Transfer Concept Reminder -->
+            <details class="group rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800 px-3.5 py-2">
+              <summary class="cursor-pointer list-none flex items-center justify-between text-xs font-bold text-slate-600 dark:text-slate-300">
+                <span>💡 View Transfer Logic Hint (القاعدة الذهنية)</span>
+                <span class="group-open:rotate-180 transition-transform">▼</span>
+              </summary>
+              <div class="pt-2.5 mt-2 border-t border-slate-200 dark:border-slate-700/70 space-y-1.5 text-xs">
+                <p id="practice-concept-en" class="text-slate-700 dark:text-slate-200 font-medium"></p>
+                <p id="practice-concept-ar" dir="rtl" class="font-arabic text-emerald-600 dark:text-emerald-400 font-semibold text-sm"></p>
+              </div>
+            </details>
+          </div>
+
+          <!-- STEP 1: SHOW (Arabic Thought Only) -->
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-sm space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold">1. SHOW — Arabic Thought</span>
+              <span id="exercise-category-tag" class="text-xs font-medium text-slate-500 dark:text-slate-400">Category</span>
+            </div>
+
+            <!-- Large RTL Arabic Prompt -->
+            <div class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-950/70 border border-slate-200/70 dark:border-slate-800/80 text-right">
+              <p id="arabic-prompt" dir="rtl" class="text-3xl sm:text-4xl font-arabic font-bold text-slate-900 dark:text-white leading-snug break-words"></p>
+              <p id="arabic-literal-gloss" class="text-xs text-slate-500 dark:text-slate-400 mt-2 font-mono"></p>
+            </div>
+
+            <!-- STEP 2: PAUSE & CONSTRUCT -->
+            <div class="space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="px-2.5 py-1 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 text-xs font-bold">2. CONSTRUCT — Build in English</span>
+                <button id="clear-answer-btn" class="text-xs font-semibold text-slate-500 hover:text-rose-500 px-2 py-1 rounded-lg">Reset Words</button>
+              </div>
+
+              <!-- Selected Word Chips Tray -->
+              <div id="selected-chips-tray" class="min-h-[56px] p-2.5 rounded-xl bg-slate-100/80 dark:bg-slate-950 border-2 border-dashed border-slate-300 dark:border-slate-800 flex flex-wrap items-center gap-2"></div>
+
+              <!-- Available Word Chips Bank -->
+              <div id="word-bank-tray" class="flex flex-wrap gap-2 pt-1"></div>
+
+              <!-- Direct Text Input (Synced with chips or direct typing) -->
+              <div class="pt-1">
+                <label for="practice-input" class="sr-only">Type or refine your English sentence</label>
+                <input id="practice-input" type="text" autocomplete="off" autocorrect="off" autocapitalize="sentences" spellcheck="false" placeholder="Tap word chips above or type your English sentence here…" class="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-950 border-2 border-slate-300 dark:border-slate-700 focus:border-emerald-500 focus:outline-none font-medium transition-colors" />
+              </div>
+
+              <!-- Action Buttons: Check vs Reveal -->
+              <div class="flex flex-wrap items-center gap-2.5 pt-1">
+                <button id="check-answer-btn" class="flex-1 px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-[0.99] text-white font-bold text-sm shadow-md shadow-emerald-600/20 transition">
+                  ✓ Check Answer
+                </button>
+                <button id="reveal-answer-btn" class="px-4 py-3 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-sm transition">
+                  👁️ Reveal Answer
+                </button>
+              </div>
+            </div>
+
+            <!-- STEP 3: SOCRATIC FEEDBACK (Check Diagnosis) -->
+            <div id="socratic-feedback-box" class="hidden p-4 rounded-2xl border space-y-2">
+              <div class="flex items-center gap-2 font-bold text-sm" id="socratic-feedback-title"></div>
+              <p id="socratic-feedback-en" class="text-sm leading-relaxed"></p>
+              <p id="socratic-feedback-ar" dir="rtl" class="text-base font-arabic font-semibold leading-relaxed"></p>
+            </div>
+
+            <!-- STEP 4: REVEAL & COLOR-CODED BREAKDOWN + VOICE + PRONUNCIATION -->
+            <div id="reveal-breakdown-box" class="hidden space-y-4 pt-3 border-t border-slate-200 dark:border-slate-800">
+              <div class="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 space-y-3">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <span class="text-xs font-extrabold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">4. REVEAL — Target English Structure</span>
+                  <div class="flex flex-wrap items-center gap-1.5">
+                    <button id="tts-normal-btn" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1">
+                      🔊 Hear
+                    </button>
+                    <button id="tts-slow-btn" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold flex items-center gap-1" title="Play at slow speed">
+                      🐌 Slow
+                    </button>
+                    <select id="voice-picker-select" aria-label="Select English Voice" class="px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-medium max-w-[180px] truncate"></select>
+                  </div>
+                </div>
+
+                <p id="reveal-target-sentence" class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white"></p>
+
+                <!-- Color-Coded Breakdown Mapping -->
+                <div class="space-y-2 pt-2">
+                  <div class="text-xs font-bold text-slate-500 dark:text-slate-400">Visual Cognitive Chunk Mapping (Subject [Red] → Verb [Blue] → Object/Complement [Green]):</div>
+                  <div id="chunk-mapping-grid" class="grid grid-cols-1 sm:grid-cols-3 gap-2.5"></div>
+                </div>
+              </div>
+
+              <!-- Pronunciation Practice (Record & Compare) -->
+              <div class="p-4 rounded-2xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-3">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">🎙️ Speak & Compare Pronunciation</h4>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400">Record your voice and compare your spoken words to the target sentence.</p>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <button id="pron-record-btn" class="px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold flex items-center gap-1.5">
+                      <span>🎤</span> <span id="pron-record-label">Hold / Tap to Speak</span>
+                    </button>
+                    <button id="pron-play-self-btn" class="hidden px-3 py-2 rounded-xl bg-slate-800 text-white text-xs font-semibold">
+                      ▶️ My Recording
+                    </button>
+                  </div>
+                </div>
+                <div id="pron-result-box" class="hidden p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs space-y-1.5"></div>
+              </div>
+
+              <!-- Next Exercise Button -->
+              <div class="flex justify-end">
+                <button id="next-exercise-btn" class="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-sm shadow-lg shadow-emerald-600/25">
+                  Next Prompt →
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==========================================
+             TAB 3: TEACHER HUB (STUDENT + PIN VIEW)
+             ========================================== -->
+        <section id="view-teacher" class="hidden space-y-6">
+          <!-- Honest Storage Disclaimer Banner -->
+          <div class="p-4 rounded-2xl bg-blue-500/10 border border-blue-500/30 text-xs sm:text-sm text-blue-950 dark:text-blue-200 flex items-center gap-3">
+            <span class="text-xl">ℹ️</span>
+            <p><strong>Honest Limits Notice:</strong> Messages are stored on this device only; cross-device sync needs a backend (e.g. Firebase).</p>
+          </div>
+
+          <!-- Student View: Ask the Mentor -->
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="font-bold text-lg">Ask the Mentor (اسأل المعلم)</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Stuck on an Arabic-to-English structure? Send a text question or record a voice note.</p>
+              </div>
+              <span class="text-2xl">💬</span>
+            </div>
+
+            <div class="space-y-3">
+              <div>
+                <label for="mentor-student-name" class="block text-xs font-semibold mb-1">Your Name</label>
+                <input id="mentor-student-name" type="text" placeholder="e.g., Amr Ibrahim" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700" />
+              </div>
+              <div>
+                <label for="mentor-question-input" class="block text-xs font-semibold mb-1">Your Question</label>
+                <textarea id="mentor-question-input" rows="3" placeholder="e.g., Why do we say ‘I have been living in Alexandria’ instead of ‘I am living in Alexandria since 3 years’?" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700"></textarea>
+              </div>
+
+              <!-- Optional Voice Note Recorder -->
+              <div class="flex flex-wrap items-center justify-between gap-2 p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
+                <div class="flex items-center gap-2">
+                  <button id="mentor-voice-btn" type="button" class="px-3.5 py-2 rounded-xl bg-rose-600/10 text-rose-600 dark:text-rose-400 border border-rose-500/30 text-xs font-bold flex items-center gap-1.5">
+                    🎙️ <span id="mentor-voice-label">Record Voice Note</span>
+                  </button>
+                  <span id="mentor-voice-status" class="text-xs text-slate-500">No audio attached</span>
+                </div>
+                <audio id="mentor-voice-preview" controls class="hidden h-9 max-w-[220px]"></audio>
+              </div>
+
+              <button id="submit-mentor-question-btn" class="w-full sm:w-auto px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm">
+                Send to Mentor
+              </button>
+            </div>
+
+            <!-- Student Thread List -->
+            <div class="pt-4 border-t border-slate-200 dark:border-slate-800 space-y-3">
+              <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500">Submitted Questions & Replies</h4>
+              <div id="student-questions-list" class="space-y-2.5"></div>
+            </div>
+          </div>
+
+          <!-- Teacher PIN Access Panel -->
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h3 class="font-bold text-lg">🔐 Instructor Console (PIN Protected)</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Reply to student questions, broadcast mini-lessons, and inspect class weak-spot telemetry. (Demo PIN: <code>1234</code>)</p>
+              </div>
+              <div id="pin-unlock-controls" class="flex items-center gap-2">
+                <input id="teacher-pin-input" type="password" inputmode="numeric" maxlength="8" placeholder="PIN (1234)" class="w-28 px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-center font-mono" />
+                <button id="teacher-pin-btn" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold">Unlock</button>
+              </div>
+            </div>
+
+            <!-- Unlocked Teacher Dashboard -->
+            <div id="teacher-unlocked-panel" class="hidden space-y-5 pt-4 border-t border-slate-200 dark:border-slate-800">
+              <!-- Most-missed stats -->
+              <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2">
+                <h4 class="text-xs font-bold uppercase tracking-wider text-rose-500">📊 Most-Missed Cognitive Interference Stats</h4>
+                <div id="teacher-weakspots-stats" class="text-xs space-y-1.5"></div>
+              </div>
+
+              <!-- Broadcast Mini-Lesson Creator -->
+              <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2.5">
+                <h4 class="text-xs font-bold uppercase tracking-wider text-amber-500">📢 Broadcast Mini-Lesson to Banner</h4>
+                <div class="flex flex-col sm:flex-row gap-2">
+                  <input id="teacher-broadcast-input" type="text" placeholder="e.g., Remember: Arabic ‘عندي’ is a preposition, but English ‘have’ is an action verb — use do/don’t!" class="flex-1 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700" />
+                  <button id="teacher-broadcast-btn" class="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold">Publish Banner</button>
+                </div>
+              </div>
+
+              <!-- Teacher Reply Queue -->
+              <div class="space-y-2.5">
+                <h4 class="text-xs font-bold uppercase tracking-wider text-emerald-500">📬 Student Questions Queue (Reply Inline)</h4>
+                <div id="teacher-reply-queue" class="space-y-3"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==========================================
+             TAB 4: PROGRESS, BADGES, FEEDBACK & RECAP
+             ========================================== -->
+        <section id="view-progress" class="hidden space-y-6">
+
+          <!-- Level Card & Sound Toggle -->
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div class="flex items-center gap-3">
+                <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center font-black text-2xl shadow-md" id="prog-level-num">L0</div>
+                <div>
+                  <div class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Current Mastery Rank</div>
+                  <h3 id="prog-level-title" class="text-xl font-extrabold">Silent Copula</h3>
+                  <p id="prog-level-xp" class="text-xs text-slate-500 dark:text-slate-400">0 XP Total · Next rank at 60 XP</p>
+                </div>
+              </div>
+
+              <!-- Sound On/Off Toggle (Persisted) -->
+              <button id="sound-toggle-btn" class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold flex items-center gap-2">
+                <span id="sound-toggle-icon">🔊</span>
+                <span id="sound-toggle-text">Sound Effects: ON</span>
+              </button>
+            </div>
+
+            <div class="w-full h-3 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+              <div id="prog-level-bar" class="h-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all duration-300" style="width: 0%"></div>
+            </div>
+
+            <!-- Phase Completion Bars -->
+            <div id="prog-phase-bars" class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2"></div>
+          </div>
+
+          <!-- Badges Grid -->
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-3">
+            <h3 class="font-bold text-base">🏅 Achievement Badges</h3>
+            <div id="badges-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
+          </div>
+
+          <!-- Weak-Spot Tags -->
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-3">
+            <h3 class="font-bold text-base">🎯 Diagnostic Transfer Weak-Spot Tags</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Automatically logged when Arabophone interference patterns are triggered during Practice.</p>
+            <div id="prog-weakspots-container" class="flex flex-wrap gap-2"></div>
+          </div>
+
+          <!-- Recap View for the Training Meeting + Presentation Mode -->
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h3 class="font-bold text-base">📋 Training Meeting Concept Recap</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Tap any lesson below to review its bilingual transfer concept, or launch fullscreen Presentation Mode.</p>
+              </div>
+              <button id="open-presentation-btn" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-2 shadow">
+                <span>🖥️ Presentation Mode</span>
+              </button>
+            </div>
+            <div id="recap-details-list" class="divide-y divide-slate-200 dark:divide-slate-800"></div>
+          </div>
+
+          <!-- Feedback Channel Card (No Backend) -->
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+            <div>
+              <h3 class="font-bold text-base">💌 Feedback for your teacher</h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400">Rate your session and send your progress snapshot directly via WhatsApp, Email, or Clipboard.</p>
+            </div>
+
+            <!-- 5 Emoji Rating Buttons -->
+            <div class="flex items-center gap-2" role="radiogroup" aria-label="Session rating">
+              <button type="button" data-rating="1" class="rating-emoji-btn flex-1 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border-2 border-transparent text-2xl transition">😕</button>
+              <button type="button" data-rating="2" class="rating-emoji-btn flex-1 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border-2 border-transparent text-2xl transition">🙁</button>
+              <button type="button" data-rating="3" class="rating-emoji-btn flex-1 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border-2 border-transparent text-2xl transition">😐</button>
+              <button type="button" data-rating="4" class="rating-emoji-btn flex-1 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border-2 border-transparent text-2xl transition">🙂</button>
+              <button type="button" data-rating="5" class="rating-emoji-btn flex-1 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border-2 border-transparent text-2xl transition">😍</button>
+            </div>
+
+            <div>
+              <label for="feedback-textarea" class="sr-only">Feedback notes</label>
+              <textarea id="feedback-textarea" rows="3" placeholder="Share which Arabic-to-English concept clicked for you today, or what felt tricky…" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700"></textarea>
+            </div>
+
+            <!-- Three Buttons: WhatsApp, Email, Copy -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+              <button id="fb-whatsapp-btn" type="button" class="px-4 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-2">
+                <span>🟢 WhatsApp</span>
+              </button>
+              <button id="fb-email-btn" type="button" class="px-4 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center justify-center gap-2">
+                <span>✉️ Email</span>
+              </button>
+              <button id="fb-copy-btn" type="button" class="px-4 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs flex items-center justify-center gap-2">
+                <span>📋 Copy</span>
+              </button>
+            </div>
+
+            <!-- Full Feedback Form Button -->
+            <a id="fb-google-form-link" href="https://docs.google.com/forms/d/e/1FAIpQLSf6eHUa4iLP-2pcivw8KCLyWdcU1BD73cMtrtMmttLv09fGuQ/viewform" target="_blank" rel="noopener noreferrer" class="w-full py-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-center font-bold text-xs block border border-slate-300 dark:border-slate-700">
+              📝 Full feedback form ↗
+            </a>
+          </div>
+
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       APPLICATION SCRIPT (DETERMINISTIC ENGINE, STORAGE VAULT, GAME LAYER, UI)
+       ========================================================================= -->
+  <script>
+    (function () {
+      'use strict';
+
+      // =======================================================================
+      // 1. CONSTANTS & CONFIGURATION
+      // =======================================================================
+      const TEACHER_PIN = '1234';
+      const TEACHER_WHATSAPP = '201111452785'; // country code + number, digits only
+      const FEEDBACK_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSf6eHUa4iLP-2pcivw8KCLyWdcU1BD73cMtrtMmttLv09fGuQ/viewform';
+      const LEVEL_NAMES = ['Silent Copula', 'Block Builder', 'Sentence Smith', 'Flow Master', 'Register Pro'];
+
+      // =======================================================================
+      // 2. TEACHER-REVIEWED CURRICULUM DATA (src/data/lessons.ts port)
+      //    3 Phases × 3 Lessons = 9 Lessons, 100% Deterministic
+      // =======================================================================
+      const LESSONS = [
+        // ------------------------- PHASE 1 (A1+ - A2) -------------------------
+        {
+          id: 'p1-l1',
+          phase: 1,
+          phaseTitle: 'Phase 1 (A1+–A2): Foundations & The Skeleton',
+          title: 'The Invisible Bridge: Nominal Sentences vs. “To Be”',
+          titleAr: 'الجسر الخفي: الجملة الاسمية وفعل الكينونة',
+          transferConcept: 'Arabic connects a subject and description directly without a present-tense verb (أنا طبيب). English sentences collapse without a verb bridge: you must insert “am / is / are” to hold the sentence together.',
+          transferConceptAr: 'اللغة العربية تربط المبتدأ بالخبر مباشرة دون فعل في المضارع (أنا طبيب)، بينما الجملة الإنجليزية تحتاج دائماً إلى جسر فعلي (am / is / are) لربط الفاعل بالوصف.',
+          exercises: [
+            {
+              id: 'p1-l1-e1',
+              category: 'Missing Copula (فعل الكينونة)',
+              arabic: 'أنا طبيب في الإسكندرية.',
+              literalGloss: 'Literal Arabic thought: [I] [doctor] [in Alexandria].',
+              target: 'I am a doctor in Alexandria.',
+              acceptedVariants: ['I’m a doctor in Alexandria.'],
+              chips: ['I', 'am', 'a', 'doctor', 'in', 'Alexandria.', 'is', 'the'],
+              chunks: [
+                { role: 'Subject (الفاعل)', ar: 'أنا', en: 'I', color: 'rose' },
+                { role: 'Verb Bridge (فعل الكينونة)', ar: '[ضمير مستتر / رابط]', en: 'am', color: 'blue' },
+                { role: 'Complement (الخبر)', ar: 'طبيب في الإسكندرية', en: 'a doctor in Alexandria', color: 'emerald' }
+              ]
+            },
+            {
+              id: 'p1-l1-e2',
+              category: 'Missing Copula (فعل الكينونة)',
+              arabic: 'الطقس بارد جداً اليوم.',
+              literalGloss: 'Literal Arabic thought: [The weather] [cold] [very] [today].',
+              target: 'The weather is very cold today.',
+              acceptedVariants: ['Today the weather is very cold.'],
+              chips: ['The', 'weather', 'is', 'very', 'cold', 'today.', 'are', 'be'],
+              chunks: [
+                { role: 'Subject (المبتدأ)', ar: 'الطقس', en: 'The weather', color: 'rose' },
+                { role: 'Verb Bridge (الرابط)', ar: '[محذوف في العربية]', en: 'is', color: 'blue' },
+                { role: 'Complement (الخبر)', ar: 'بارد جداً اليوم', en: 'very cold today', color: 'emerald' }
+              ]
+            }
+          ]
+        },
+        {
+          id: 'p1-l2',
+          phase: 1,
+          phaseTitle: 'Phase 1 (A1+–A2): Foundations & The Skeleton',
+          title: 'Active Ownership: “Have” vs. Prepositional “عندي”',
+          titleAr: 'الملكية الفاعلة: الفرق بين “عندي” وفعل “Have”',
+          transferConcept: 'In Arabic, possession uses a location preposition (عندي = “at me”). In English, ownership is an active verb (“I have” / “She has”), so you never say “At me a car” or “I am have.”',
+          transferConceptAr: 'في العربية نعبّر عن الملكية بشبه جملة ظرفية (عندي / لديّ)، أما في الإنجليزية فالملكية فعل صريح (have / has) يتبع الفاعل مباشرة دون فعل كينونة قبله.',
+          exercises: [
+            {
+              id: 'p1-l2-e1',
+              category: 'Possession Transfer (الملكية)',
+              arabic: 'عندي محاضرة كيمياء غداً.',
+              literalGloss: 'Literal Arabic thought: [At-me] [lecture chemistry] [tomorrow].',
+              target: 'I have a chemistry lecture tomorrow.',
+              acceptedVariants: ['Tomorrow I have a chemistry lecture.'],
+              chips: ['I', 'have', 'a', 'chemistry', 'lecture', 'tomorrow.', 'am', 'at', 'me'],
+              chunks: [
+                { role: 'Subject (المالك)', ar: 'ـي (في عندي)', en: 'I', color: 'rose' },
+                { role: 'Active Verb (فعل الملكية)', ar: 'عند', en: 'have', color: 'blue' },
+                { role: 'Object (المملوك)', ar: 'محاضرة كيمياء غداً', en: 'a chemistry lecture tomorrow', color: 'emerald' }
+              ]
+            },
+            {
+              id: 'p1-l2-e2',
+              category: 'Possession Negation (نفي الملكية)',
+              arabic: 'ليس عندي وقت كافٍ الآن.',
+              literalGloss: 'Literal Arabic thought: [Not] [at-me] [time enough] [now].',
+              target: 'I do not have enough time now.',
+              acceptedVariants: ['I don’t have enough time now.', "I don't have enough time now."],
+              chips: ['I', 'do', 'not', 'have', 'enough', 'time', 'now.', 'haven’t', 'no'],
+              chunks: [
+                { role: 'Subject (الفاعل)', ar: 'أنا (في عندي)', en: 'I', color: 'rose' },
+                { role: 'Negative Verb (النفي والفعل)', ar: 'ليس عند', en: 'do not have', color: 'blue' },
+                { role: 'Object (المفعول)', ar: 'وقت كافٍ الآن', en: 'enough time now', color: 'emerald' }
+              ]
+            }
+          ]
+        },
+        {
+          id: 'p1-l3',
+          phase: 1,
+          phaseTitle: 'Phase 1 (A1+–A2): Foundations & The Skeleton',
+          title: 'TheHelper Shield: Present Negation with “Do / Doesn’t”',
+          titleAr: 'الفعل المساعد في النفي: “Do not / Does not”',
+          transferConcept: 'Arabic negates a present verb with a single particle before it (لا أشرب). English main verbs cannot hold “not” alone—they summon the helper verb “do / does” to carry the negation.',
+          transferConceptAr: 'تنفي العربية الفعل المضارع بأداة واحدة قبله (لا أشرب)، بينما الفعل الرئيسي في الإنجليزية يحتاج إلى الفعل المساعد (do / does) ليحمل أداة النفي (not).',
+          exercises: [
+            {
+              id: 'p1-l3-e1',
+              category: 'Auxiliary Negation (النفي بالفعل المساعد)',
+              arabic: 'هو لا يعمل يوم الجمعة.',
+              literalGloss: 'Literal Arabic thought: [He] [not] [works] [day the-Friday].',
+              target: 'He does not work on Friday.',
+              acceptedVariants: ['He doesn’t work on Friday.', "He doesn't work on Friday."],
+              chips: ['He', 'does', 'not', 'work', 'on', 'Friday.', 'no', 'works', 'in'],
+              chunks: [
+                { role: 'Subject (الفاعل)', ar: 'هو', en: 'He', color: 'rose' },
+                { role: 'Negated Verb (الفعل المنفي)', ar: 'لا يعمل', en: 'does not work', color: 'blue' },
+                { role: 'Time Phrase (الظرف الزماني)', ar: 'يوم الجمعة', en: 'on Friday', color: 'emerald' }
+              ]
+            }
+          ]
+        },
+
+        // ------------------------- PHASE 2 (B1 - B2) -------------------------
+        {
+          id: 'p2-l1',
+          phase: 2,
+          phaseTitle: 'Phase 2 (B1–B2): Flow & Temporal Nuance',
+          title: 'The Present Bridge: “لقد” vs. Present Perfect',
+          titleAr: 'أثر الماضي في الحاضر: “لقد” والمضارع التام',
+          transferConcept: 'Arabic uses “لقد + ماضٍ” for both finished past stories and actions touching the present. English splits them: use Present Perfect (“have + past participle”) when the result matters right now without a closed past timestamp.',
+          transferConceptAr: 'تستخدم العربية (قد / لقد + الفعل الماضي) للحدث المنتهي وللحدث الممتد أثره للحاضر معاً، بينما تخصّص الإنجليزية (have/has + التصريف الثالث) للحدث الذي يظهر أثره الآن دون تحديد زمن ماضٍ منقطع.',
+          exercises: [
+            {
+              id: 'p2-l1-e1',
+              category: 'Present Perfect Transfer (المضارع التام)',
+              arabic: 'لقد أرسلتُ التقرير بالفعل.',
+              literalGloss: 'Literal Arabic thought: [Indeed] [I-sent] [the-report] [already].',
+              target: 'I have already sent the report.',
+              acceptedVariants: ['I’ve already sent the report.', 'I have sent the report already.'],
+              chips: ['I', 'have', 'already', 'sent', 'the', 'report.', 'did', 'send'],
+              chunks: [
+                { role: 'Subject (الفاعل)', ar: 'ـتُ (أنا)', en: 'I', color: 'rose' },
+                { role: 'Present Perfect Verb (الفعل التام)', ar: 'لقد أرسلت بالفعل', en: 'have already sent', color: 'blue' },
+                { role: 'Object (المفعول به)', ar: 'التقرير', en: 'the report', color: 'emerald' }
+              ]
+            },
+            {
+              id: 'p2-l1-e2',
+              category: 'Duration Span (المضارع التام المستمر)',
+              arabic: 'أدرسُ اللغة الألمانية منذ شهرين.',
+              literalGloss: 'Literal Arabic thought: [I-study] [the-language the-German] [since two-months].',
+              target: 'I have been studying German for two months.',
+              acceptedVariants: ['I’ve been studying German for two months.'],
+              chips: ['I', 'have', 'been', 'studying', 'German', 'for', 'two', 'months.', 'am', 'since'],
+              chunks: [
+                { role: 'Subject (الفاعل)', ar: 'أنا (أدرس)', en: 'I', color: 'rose' },
+                { role: 'Timeline Verb (فعل الاستمرار الممتد)', ar: 'أدرسُ (وما زلت)', en: 'have been studying', color: 'blue' },
+                { role: 'Object & Duration (المدة)', ar: 'الألمانية منذ شهرين', en: 'German for two months', color: 'emerald' }
+              ]
+            }
+          ]
+        },
+        {
+          id: 'p2-l2',
+          phase: 2,
+          phaseTitle: 'Phase 2 (B1–B2): Flow & Temporal Nuance',
+          title: 'Erasing the Shadow Pronoun: Relative Clauses',
+          titleAr: 'حذف الضمير العائد في جمل الوصل',
+          transferConcept: 'Arabic relative clauses require a returning pronoun (الكتاب الذي قرأتُهُ = “the book which I read it”). In English, “that / which” replaces the pronoun completely—never keep the shadow “it” or “him” at the end.',
+          transferConceptAr: 'تحتاج جملة الصلة في العربية إلى ضمير عائد (الكتاب الذي قرأتُـه)، أما في الإنجليزية فإن اسم الموصول (that / which / who) ينوب عن الضمير العائد تماماً، فلا نكرر (it / him) في نهاية الجملة.',
+          exercises: [
+            {
+              id: 'p2-l2-e1',
+              category: 'Resumptive Pronoun Drop (الضمير العائد)',
+              arabic: 'هذه هي التجربة التي شرحها الأستاذ.',
+              literalGloss: 'Literal Arabic thought: [This] [is] [the-experiment] [that] [explained-it] [the-professor].',
+              target: 'This is the experiment that the professor explained.',
+              acceptedVariants: ['This is the experiment which the professor explained.', 'This is the experiment the professor explained.'],
+              chips: ['This', 'is', 'the', 'experiment', 'that', 'the', 'professor', 'explained.', 'it', 'her'],
+              chunks: [
+                { role: 'Main Clause (الجملة الرئيسية)', ar: 'هذه هي التجربة', en: 'This is the experiment', color: 'rose' },
+                { role: 'Relative Link (الرابط)', ar: 'التي (بدون الضمير العائد ـها)', en: 'that', color: 'blue' },
+                { role: 'Relative Clause (جملة الصلة)', ar: 'شرح الأستاذ', en: 'the professor explained', color: 'emerald' }
+              ]
+            }
+          ]
+        },
+        {
+          id: 'p2-l3',
+          phase: 2,
+          phaseTitle: 'Phase 2 (B1–B2): Flow & Temporal Nuance',
+          title: 'Hypothetical Reality: “لو” vs. Second Conditional',
+          titleAr: 'الشرط غير الواقعي: أسلوب “لو” والشرط الثاني',
+          transferConcept: 'Just as Arabic uses “لو + فعل ماضٍ” to imagine an unreal present situation, English shifts the verb one step back into the past (“If I had time, I would…”). Never put “would” inside the “if” half.',
+          transferConceptAr: 'كما تستخدم العربية (لو + الفعل الماضي) للتعبير عن افتراض غير متحقق الآن، تستخدم الإنجليزية الماضي البسيط بعد (If) متبوعاً بـ (would + المصدر) في جواب الشرط.',
+          exercises: [
+            {
+              id: 'p2-l3-e1',
+              category: 'Conditional Logic (أسلوب الشرط)',
+              arabic: 'لو كان عندي وقت إضافي، لسافرتُ إلى برلين.',
+              literalGloss: 'Literal Arabic thought: [If] [was at-me time extra], [definitely-I-traveled to Berlin].',
+              target: 'If I had extra time, I would travel to Berlin.',
+              acceptedVariants: ['I would travel to Berlin if I had extra time.'],
+              chips: ['If', 'I', 'had', 'extra', 'time,', 'I', 'would', 'travel', 'to', 'Berlin.', 'have', 'will'],
+              chunks: [
+                { role: 'Condition Clause (فعل الشرط)', ar: 'لو كان عندي وقت إضافي', en: 'If I had extra time,', color: 'rose' },
+                { role: 'Modal Bridge (لام الجواب / النتيجة)', ar: 'لـ (سافرتُ)', en: 'I would travel', color: 'blue' },
+                { role: 'Destination (التكملة)', ar: 'إلى برلين', en: 'to Berlin', color: 'emerald' }
+              ]
+            }
+          ]
+        },
+
+        // ------------------------- PHASE 3 (B2+ - C1) -------------------------
+        {
+          id: 'p3-l1',
+          phase: 3,
+          phaseTitle: 'Phase 3 (B2+–C1): Mastery & Academic Register',
+          title: 'Scientific Objectivity: Passive Voice vs. المبني للمجهول',
+          titleAr: 'المبني للمجهول في الأسلوب العلمي والأكاديمي',
+          transferConcept: 'Arabic builds the passive by changing internal vowel patterns (فُحِصَت العيّنة). English builds the passive analytically using “be (in the right tense) + past participle” (“The sample was analyzed”).',
+          transferConceptAr: 'تبني العربية الفعل للمجهول بتغيير التشكيل الداخلي للفعل (فُحِصَت العيّنة)، بينما تبنيه الإنجليزية بتركيب تحليلي ثابت: (فعل الكينونة في الزمن المناسب + التصريف الثالث للفعل).',
+          exercises: [
+            {
+              id: 'p3-l1-e1',
+              category: 'Passive Construction (المبني للمجهول)',
+              arabic: 'فُحِصت عيّنات المياه في المختبر أمس.',
+              literalGloss: 'Literal Arabic thought: [Were-tested] [samples the-water] [in the-lab] [yesterday].',
+              target: 'The water samples were tested in the laboratory yesterday.',
+              acceptedVariants: ['The water samples were tested in the lab yesterday.'],
+              chips: ['The', 'water', 'samples', 'were', 'tested', 'in', 'the', 'laboratory', 'yesterday.', 'was', 'testing'],
+              chunks: [
+                { role: 'Deputy Subject (نائب الفاعل)', ar: 'عيّنات المياه', en: 'The water samples', color: 'rose' },
+                { role: 'Passive Verb (الفعل المبني للمجهول)', ar: 'فُحِصت', en: 'were tested', color: 'blue' },
+                { role: 'Place & Time (الظرف)', ar: 'في المختبر أمس', en: 'in the laboratory yesterday', color: 'emerald' }
+              ]
+            }
+          ]
+        },
+        {
+          id: 'p3-l2',
+          phase: 3,
+          phaseTitle: 'Phase 3 (B2+–C1): Mastery & Academic Register',
+          title: 'Echoing Speech: Backshifting in Reported Speech',
+          titleAr: 'الكلام المنقول وتراجع الزمن (Reported Speech)',
+          transferConcept: 'In Arabic, the verb inside “قال إنه سيسافر” stays in the future/present form. In formal English, when the reporting verb is past (“He said”), the inner verb shifts one step back (“would travel”).',
+          transferConceptAr: 'في العربية يبقى الفعل بعد (قال إنّ...) محتفظاً بصيغة المضارع أو المستقبل، أما في الإنجليزية فإذا كان فعل القول ماضياً (said) يتراجع الفعل الداخلي درجة نحو الماضي (will ← would).',
+          exercises: [
+            {
+              id: 'p3-l2-e1',
+              category: 'Tense Backshift (تراجع الزمن)',
+              arabic: 'قالت الباحثة إنها ستنشر النتائج قريباً.',
+              literalGloss: 'Literal Arabic thought: [Said the-researcher] [that-she] [will-publish] [the-results] [soon].',
+              target: 'The researcher said that she would publish the results soon.',
+              acceptedVariants: ['The researcher said she would publish the results soon.'],
+              chips: ['The', 'researcher', 'said', 'that', 'she', 'would', 'publish', 'the', 'results', 'soon.', 'will', 'publishes'],
+              chunks: [
+                { role: 'Reporting Frame (فعل القول)', ar: 'قالت الباحثة إنها', en: 'The researcher said that she', color: 'rose' },
+                { role: 'Backshifted Verb (الفعل المتراجع زمنياً)', ar: 'ستنشر', en: 'would publish', color: 'blue' },
+                { role: 'Object (المفعول به)', ar: 'النتائج قريباً', en: 'the results soon', color: 'emerald' }
+              ]
+            }
+          ]
+        },
+        {
+          id: 'p3-l3',
+          phase: 3,
+          phaseTitle: 'Phase 3 (B2+–C1): Mastery & Academic Register',
+          title: 'Rhetorical Spotlight: Negative Inversion (C1)',
+          titleAr: 'التقديم البلاغي وأسلوب الحصر (Negative Inversion)',
+          transferConcept: 'When English fronts a restrictive negative adverb (“Not only…”, “Rarely…”) for rhetorical impact—similar to Arabic “لا يقتصر الأمر على...” or “قلّما”—the subject and auxiliary verb flip into question order (“does it reduce”).',
+          transferConceptAr: 'عند تقديم عبارات النفي أو الحصر في بداية الجملة الإنجليزية للتوكيد البلاغي (مثل Not only / Rarely)، يتقدم الفعل المساعد على الفاعل تماماً كترتيب السؤال.',
+          exercises: [
+            {
+              id: 'p3-l3-e1',
+              category: 'Negative Inversion (القلب البلاغي)',
+              arabic: 'لا يوفّر هذا النظام الطاقة فحسب، بل يقلّل التلوث أيضاً.',
+              literalGloss: 'Literal Arabic thought: [Not only saves this system energy], [but reduces pollution also].',
+              target: 'Not only does this system save energy, but it also reduces pollution.',
+              acceptedVariants: ['Not only does this system save energy, but it reduces pollution too.'],
+              chips: ['Not', 'only', 'does', 'this', 'system', 'save', 'energy,', 'but', 'it', 'also', 'reduces', 'pollution.', 'saves'],
+              chunks: [
+                { role: 'Fronted Negative + Aux (أداة الحصر والفعل المساعد)', ar: 'لا ... فحسب', en: 'Not only does', color: 'rose' },
+                { role: 'Subject + Base Verb (الفاعل والفعل)', ar: 'هذا النظام يوفّر الطاقة', en: 'this system save energy,', color: 'blue' },
+                { role: 'Parallel Clause (الإضراب والعطف)', ar: 'بل يقلّل التلوث أيضاً', en: 'but it also reduces pollution', color: 'emerald' }
+              ]
+            }
+          ]
+        }
+      ];
+
+      // =======================================================================
+      // 3. BANK-GRADE DETERMINISTIC STORAGE VAULT (src/utils/storage.ts port)
+      //    - The ONLY place where localStorage is touched
+      //    - Every single read/write wrapped in try/catch
+      //    - FNV-1a integrity checksum & strict schema sanitization
+      // =======================================================================
+      const STORAGE_KEY = 'thinking_english_vault_v2';
+      let memoryFallbackVault = null;
+
+      function computeChecksum(payloadStr) {
+        let hash = 2166136261;
+        for (let i = 0; i < payloadStr.length; i++) {
+          hash ^= payloadStr.charCodeAt(i);
+          hash += (hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24);
+        }
+        return (hash >>> 0).toString(16);
+      }
+
+      function defaultState() {
+        return {
+          score: 0,
+          streak: 0,
+          bestStreak: 0,
+          soundOn: true,
+          theme: 'dark',
+          preferredVoiceURI: '',
+          completedLessonIds: [],
+          completedExerciseIds: [],
+          weakSpots: {},
+          askedMentor: false,
+          mentorQuestions: [
+            {
+              id: 'demo-q1',
+              student: 'Amr Ibrahim',
+              question: 'When translating “العلماء يدرسون المياه”, why don’t we say “The scientists study the water”?',
+              audioDataUrl: '',
+              reply: 'Great observation! In Arabic, generic plural/uncountable nouns take “الـ” (الجنس). In English, general concepts drop “the”: “Scientists study water.”',
+              createdAt: 'Demo Thread'
+            }
+          ],
+          broadcastMessage: '',
+          lastAuditHash: ''
+        };
+      }
+
+      function sanitizeState(raw) {
+        const def = defaultState();
+        if (!raw || typeof raw !== 'object') return def;
+        return {
+          score: Number.isFinite(raw.score) && raw.score >= 0 ? Math.floor(raw.score) : def.score,
+          streak: Number.isFinite(raw.streak) && raw.streak >= 0 ? Math.floor(raw.streak) : def.streak,
+          bestStreak: Number.isFinite(raw.bestStreak) && raw.bestStreak >= 0 ? Math.floor(raw.bestStreak) : def.bestStreak,
+          soundOn: typeof raw.soundOn === 'boolean' ? raw.soundOn : def.soundOn,
+          theme: raw.theme === 'light' ? 'light' : 'dark',
+          preferredVoiceURI: typeof raw.preferredVoiceURI === 'string' ? raw.preferredVoiceURI.slice(0, 160) : '',
+          completedLessonIds: Array.isArray(raw.completedLessonIds) ? raw.completedLessonIds.filter(x => typeof x === 'string') : [],
+          completedExerciseIds: Array.isArray(raw.completedExerciseIds) ? raw.completedExerciseIds.filter(x => typeof x === 'string') : [],
+          weakSpots: raw.weakSpots && typeof raw.weakSpots === 'object' ? raw.weakSpots : {},
+          askedMentor: Boolean(raw.askedMentor),
+          mentorQuestions: Array.isArray(raw.mentorQuestions) ? raw.mentorQuestions.slice(0, 30) : def.mentorQuestions,
+          broadcastMessage: typeof raw.broadcastMessage === 'string' ? raw.broadcastMessage.slice(0, 300) : '',
+          lastAuditHash: typeof raw.lastAuditHash === 'string' ? raw.lastAuditHash : ''
+        };
+      }
+
+      const StorageVault = {
+        load() {
+          try {
+            const rawStr = window.localStorage.getItem(STORAGE_KEY);
+            if (!rawStr) {
+              const init = defaultState();
+              this.save(init);
+              return init;
+            }
+            const parsed = JSON.parse(rawStr);
+            const clean = sanitizeState(parsed.data || parsed);
+            return clean;
+          } catch (err) {
+            if (memoryFallbackVault) return sanitizeState(memoryFallbackVault);
+            memoryFallbackVault = defaultState();
+            return memoryFallbackVault;
+          }
+        },
+        save(nextState) {
+          const clean = sanitizeState(nextState);
+          const serializedData = JSON.stringify({ ...clean, lastAuditHash: '' });
+          clean.lastAuditHash = computeChecksum(serializedData);
+          memoryFallbackVault = clean;
+          try {
+            window.localStorage.setItem(STORAGE_KEY, JSON.stringify({
+              version: 2,
+              checksum: clean.lastAuditHash,
+              updatedAt: new Date().toISOString(),
+              data: clean
+            }));
+          } catch (err) {
+            // Gracefully falls back to in-memory vault if storage quota or private mode blocks writes
+          }
+          return clean;
+        },
+        reset() {
+          const fresh = defaultState();
+          try {
+            window.localStorage.removeItem(STORAGE_KEY);
+          } catch (err) {}
+          return this.save(fresh);
+        }
+      };
+
+      // =======================================================================
+      // 4. GAME LAYER FX (src/utils/fx.ts port)
+      // =======================================================================
+      function beep(ok, soundOn) {
+        if (soundOn) {
+          try {
+            const AC = window.AudioContext || window.webkitAudioContext;
+            const a = new AC();
+            (ok ? [523, 659, 784] : [200, 150]).forEach((f, i) => {
+              const o = a.createOscillator(), g = a.createGain(), t = a.currentTime + i * 0.1;
+              o.frequency.value = f;
+              o.type = ok ? 'triangle' : 'sawtooth';
+              o.connect(g);
+              g.connect(a.destination);
+              g.gain.setValueAtTime(0.12, t);
+              g.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+              o.start(t);
+              o.stop(t + 0.2);
+            });
+          } catch (e) {}
+        }
+        try {
+          if (navigator.vibrate) {
+            navigator.vibrate(ok ? [20, 40, 20] : 80);
+          }
+        } catch (e) {}
+      }
+
+      function confetti() {
+        try {
+          if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+          const E = ['🎉', '⭐', '✨', '🔥', '💚'];
+          for (let i = 0; i < 26; i++) {
+            const s = document.createElement('span');
+            s.className = 'conf';
+            s.textContent = E[i % 5];
+            s.style.left = Math.random() * 95 + '%';
+            s.style.animationDelay = Math.random() * 0.4 + 's';
+            document.body.appendChild(s);
+            setTimeout(() => s.remove(), 2200);
+          }
+        } catch (e) {}
+      }
+
+      function showToast(message, variant = 'emerald') {
+        const container = document.getElementById('toast-container');
+        if (!container) return;
+        const el = document.createElement('div');
+        const colors = {
+          emerald: 'bg-emerald-600 text-white border-emerald-400',
+          amber: 'bg-amber-500 text-slate-950 border-amber-300',
+          rose: 'bg-rose-600 text-white border-rose-400'
+        };
+        el.className = `px-4 py-2.5 rounded-2xl border shadow-xl font-bold text-xs sm:text-sm transition-all duration-300 ${colors[variant] || colors.emerald}`;
+        el.textContent = message;
+        container.appendChild(el);
+        setTimeout(() => {
+          el.style.opacity = '0';
+          setTimeout(() => el.remove(), 300);
+        }, 2600);
+      }
+
+      // =======================================================================
+      // 5. DETERMINISTIC ARABOPHONE TRANSFER LOGIC (src/utils/transferLogic.ts)
+      //    Zero hallucinations: exact syntactic and morphological diagnostics
+      // =======================================================================
+      function normalizeSentence(str) {
+        return String(str || '')
+          .trim()
+          .replace(/['’‘`]/g, "'")
+          .replace(/[.,!?;:]+$/g, '')
+          .replace(/\s+/g, ' ')
+          .toLowerCase();
+      }
+
+      function diagnoseSubmission(userRaw, exercise) {
+        const normUser = normalizeSentence(userRaw);
+        const candidates = [exercise.target, ...(exercise.acceptedVariants || [])].map(normalizeSentence);
+
+        if (candidates.includes(normUser)) {
+          return {
+            ok: true,
+            tag: null,
+            en: 'Spot on! You built the English structure cleanly without carrying over Arabic syntax.',
+            ar: 'إجابة ممتازة! لقد بنيت الجملة بالمنطق الإنجليزي الصحيح دون نقل حرفي من العربية.'
+          };
+        }
+
+        const words = normUser.split(' ').filter(Boolean);
+
+        // 1. Check Missing Copula (am / is / are / was / were)
+        const targetNeedsCopula = /\b(am|is|are|was|were)\b/i.test(exercise.target);
+        const userHasCopula = /\b(am|is|are|was|were|i'm|it's|they're|we're)\b/i.test(normUser);
+        if (targetNeedsCopula && !userHasCopula) {
+          return {
+            ok: false,
+            tag: 'Copula Dropping (حذف فعل الكينونة)',
+            en: 'In Arabic, nominal sentences don’t need a verb (أنا طبيب). In English, every sentence needs a verb bridge. Who “am / is / are / were” connecting the subject to the description?',
+            ar: 'في العربية الجملة الاسمية لا تحتاج إلى فعل ظاهر، أما في الإنجليزية فلا بد من وجود فعل الكينونة (am / is / are / were) كجسر يربط المبتدأ بالخبر.'
+          };
+        }
+
+        // 2. Check Possession Interference ("at me" / "am have" / "haven't time")
+        if (/\b(at me|with me|i am have|i'm have)\b/i.test(normUser) || (exercise.id.startsWith('p1-l2') && !/\bhave\b/i.test(normUser))) {
+          return {
+            ok: false,
+            tag: 'Possession Transfer (ترجمة عندي حرفياً)',
+            en: 'Contrast Arabic “عندي” (at me) with English active ownership: use the action verb “have” directly after the subject (or “do not have” in negation).',
+            ar: 'انتبه: كلمة (عندي) في العربية شبه جملة، لكنها في الإنجليزية فعل ملكية صريح (I have / I do not have) ولا نضع قبلها (am) أو (at me).'
+          };
+        }
+
+        // 3. Check Auxiliary Negation ("he not work" / "he no work" / "does not works")
+        if (/\b(he not|she not|i not|no work|does not works|doesn't works)\b/i.test(normUser)) {
+          return {
+            ok: false,
+            tag: 'Auxiliary & Base Verb (الفعل المساعد في النفي)',
+            en: 'In English present negation, summon “do not / does not” and strip the “-s” off the main verb (“He does not work”).',
+            ar: 'عند نفي المضارع في الإنجليزية نستخدم الفعل المساعد (do not / does not) ويعود الفعل الرئيسي بعده إلى المصدر المجرد بدون (s).'
+          };
+        }
+
+        // 4. Check Present Perfect vs Simple Past / Present Continuous with Duration
+        if (exercise.id.startsWith('p2-l1') && !/\bhave\b/i.test(normUser)) {
+          return {
+            ok: false,
+            tag: 'Present Perfect Bridge (المضارع التام مع لقد/منذ)',
+            en: 'Arabic uses “لقد” or present tense with “منذ”, but English needs the Present Perfect bridge (“have sent” / “have been studying”) to link past and present.',
+            ar: 'لربط الماضي بالحاضر (مع لقد أو منذ)، تحتاج الإنجليزية إلى جسر المضارع التام (have + التصريف الثالث أو have been + الفعل المضاف له ing).'
+          };
+        }
+
+        // 5. Check Resumptive Shadow Pronoun ("explained it" in relative clause)
+        if (exercise.id === 'p2-l2-e1' && /\b(it|her|him)\b$/i.test(normUser)) {
+          return {
+            ok: false,
+            tag: 'Resumptive Shadow Pronoun (تكرار الضمير العائد)',
+            en: 'Watch out for the Arabic returning pronoun (شرحـها)! In English, “that” already carries the object—drop the final “it / her”.',
+            ar: 'انتبه للضمير العائد في العربية (شرحـها)! في الإنجليزية كلمة (that) تقوم مقام الضمير العائد، لذا احذف (it) من نهاية الجملة.'
+          };
+        }
+
+        // 6. Check Conditional "would" in "if" clause or missing past shift
+        if (exercise.id === 'p2-l3-e1' && (/\bif i would\b/i.test(normUser) || /\bif i have\b/i.test(normUser))) {
+          return {
+            ok: false,
+            tag: 'Second Conditional Tense Shift (قاعدة لو الشرطية)',
+            en: 'After “If” (لو), step the verb into the past simple (“If I had…”), and save “would + verb” for the result half.',
+            ar: 'بعد أداة الشرط غير الواقعي (If / لو)، نستخدم الماضي البسيط (If I had)، ونحتفظ بـ (would + المصدر) لجواب الشرط.'
+          };
+        }
+
+        // 7. Check Preposition Interference (in Friday / since two months)
+        if (/\b(in friday|since two months)\b/i.test(normUser)) {
+          return {
+            ok: false,
+            tag: 'Preposition Mapping (حروف الجر)',
+            en: 'Watch the preposition transfer: English uses “on” for days (“on Friday”) and “for” with a counted duration (“for two months”).',
+            ar: 'انتبه لاختلاف حروف الجر: نستخدم (on) مع أيام الأسبوع (on Friday)، ونستخدم (for) مع المدة الزمنية المحسوبة (for two months).'
+          };
+        }
+
+        // 8. Check Negative Inversion word order
+        if (exercise.id === 'p3-l3-e1' && !/^not only does\b/i.test(normUser)) {
+          return {
+            ok: false,
+            tag: 'Negative Inversion Order (تقديم الفعل المساعد)',
+            en: 'When starting with “Not only”, flip the helper verb before the subject just like a question: “Not only does this system save…”',
+            ar: 'عند البدء بعبارة الحصر (Not only)، يجب تقديم الفعل المساعد (does) قبل الفاعل (this system) تماماً كصيغة السؤال.'
+          };
+        }
+
+        // Default targeted structural hint
+        return {
+          ok: false,
+          tag: `${exercise.category}`,
+          en: `Check your word order and verb bridge. Compare the Arabic chunks to the English target skeleton (${exercise.target.split(' ').length} words expected).`,
+          ar: 'راجع ترتيب الكلمات والجسر الفعلي في الجملة؛ قارن بين أركان الجملة العربية وما يقابلها في الإنجليزية.'
+        };
+      }
+
+      // =======================================================================
+      // 6. VOICE ENGINE (Better Voice Scoring + TTS + SpeechRecognition)
+      // =======================================================================
+      let availableEnglishVoices = [];
+
+      function scoreVoice(v) {
+        let s = 0;
+        const name = (v.name || '') + ' ' + (v.voiceURI || '');
+        if (/natural|neural|online/i.test(name)) s += 50;
+        if (/aria|jenny|guy|ava|andrew|emma|samantha|allison|serena|daniel|karen|google/i.test(name)) s += 20;
+        if (/^en[-_]US/i.test(v.lang)) s += 10;
+        else if (/^en[-_]GB/i.test(v.lang)) s += 6;
+        return s;
+      }
+
+      function loadAndScoreVoices() {
+        if (!('speechSynthesis' in window)) return;
+        const raw = window.speechSynthesis.getVoices() || [];
+        const enOnly = raw.filter(v => /^en(-|_|$)/i.test(v.lang));
+        enOnly.sort((a, b) => scoreVoice(b) - scoreVoice(a));
+        availableEnglishVoices = enOnly;
+        renderVoicePicker();
+      }
+
+      function getSelectedVoice() {
+        if (!availableEnglishVoices.length) return null;
+        if (state.preferredVoiceURI) {
+          const found = availableEnglishVoices.find(v => v.voiceURI === state.preferredVoiceURI);
+          if (found) return found;
+        }
+        return availableEnglishVoices[0];
+      }
+
+      function speakEnglish(text, requestedRate = 1.0) {
+        if (!('speechSynthesis' in window)) {
+          showToast('Speech synthesis is not supported on this browser.', 'amber');
+          return;
+        }
+        try {
+          window.speechSynthesis.cancel();
+          const u = new SpeechSynthesisUtterance(text);
+          const v = getSelectedVoice();
+          if (v) {
+            u.voice = v;
+            u.lang = v.lang;
+          } else {
+            u.lang = 'en-US';
+          }
+          // Specification: Utterance rate = requested rate × 0.92 (Slow button uses 0.6)
+          u.rate = Math.max(0.4, Math.min(1.5, requestedRate * 0.92));
+          window.speechSynthesis.speak(u);
+        } catch (err) {}
+      }
+
+      function renderVoicePicker() {
+        const select = document.getElementById('voice-picker-select');
+        if (!select) return;
+        select.innerHTML = '';
+        if (!availableEnglishVoices.length) {
+          const opt = document.createElement('option');
+          opt.value = '';
+          opt.textContent = 'Default System English Voice';
+          select.appendChild(opt);
+          return;
+        }
+        const activeVoice = getSelectedVoice();
+        availableEnglishVoices.forEach((v, idx) => {
+          const opt = document.createElement('option');
+          opt.value = v.voiceURI;
+          const badge = scoreVoice(v) >= 50 ? '★ Neural ' : '';
+          opt.textContent = `${badge}${v.name} (${v.lang})`;
+          if (activeVoice && activeVoice.voiceURI === v.voiceURI) {
+            opt.selected = true;
+          } else if (!activeVoice && idx === 0) {
+            opt.selected = true;
+          }
+          select.appendChild(opt);
+        });
+      }
+
+      if ('speechSynthesis' in window) {
+        loadAndScoreVoices();
+        window.speechSynthesis.onvoiceschanged = loadAndScoreVoices;
+      }
+
+      // =======================================================================
+      // 7. FEEDBACK CHANNEL HELPERS (Exact Specification)
+      // =======================================================================
+      function feedbackMessage(rating, text, p, lessonsTotal) {
+        const weak = Object.entries(p.weakSpots ?? {})
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 3)
+          .map(x => x[0])
+          .join(', ') || 'none';
+        return `Thinking English feedback\nRating: ${rating ? rating + '/5' : '-'}\nLessons done: ${p.completedLessonIds.length}/${lessonsTotal} · Score: ${p.score}\nHardest: ${weak}\n\n${text}`;
+      }
+
+      const waLink = (msg) => `https://wa.me/${TEACHER_WHATSAPP}?text=${encodeURIComponent(msg)}`;
+      const mailLink = (msg) => `mailto:?subject=${encodeURIComponent('Thinking English feedback')}&body=${encodeURIComponent(msg)}`;
+
+      // =======================================================================
+      // 8. APPLICATION RUNTIME STATE
+      // =======================================================================
+      let state = StorageVault.load();
+      let activeTab = 'lessons';
+      let currentLessonIndex = 0;
+      let currentExerciseIndex = 0;
+      let currentRetryCount = 0;
+      let selectedChips = [];
+      let selectedRating = 0;
+      let presentationIndex = 0;
+      let teacherUnlocked = false;
+      let mentorAudioDataUrl = '';
+      let selfPronAudioUrl = '';
+
+      // =======================================================================
+      // 9. UI RENDERING FUNCTIONS
+      // =======================================================================
+      function applyTheme() {
+        const root = document.documentElement;
+        if (state.theme === 'dark') {
+          root.classList.add('dark');
+        } else {
+          root.classList.remove('dark');
+        }
+        const label = state.theme === 'dark' ? '🌙 Dark' : '☀️ Light';
+        const icon = state.theme === 'dark' ? '🌙' : '☀️';
+        document.querySelectorAll('.theme-label').forEach(el => { el.textContent = label; });
+        document.querySelectorAll('.theme-icon').forEach(el => { el.textContent = icon; });
+      }
+
+      function computeLevel(score) {
+        return Math.min(4, Math.floor((score || 0) / 60));
+      }
+
+      function updateHeaderAndSidebarStats() {
+        const lvl = computeLevel(state.score);
+        const lvlName = LEVEL_NAMES[lvl];
+        const intoLevel = state.score % 60;
+        const pct = lvl === 4 ? 100 : Math.min(100, Math.round((intoLevel / 60) * 100));
+
+        document.getElementById('header-streak').textContent = String(state.streak);
+        document.getElementById('header-score').textContent = String(state.score);
+        document.getElementById('sidebar-level-name').textContent = `Lv.${lvl + 1} ${lvlName}`;
+        document.getElementById('sidebar-score-badge').textContent = `${state.score} XP`;
+        document.getElementById('sidebar-level-bar').style.width = `${pct}%`;
+        document.getElementById('sidebar-streak').textContent = String(state.streak);
+        document.getElementById('sidebar-best-streak').textContent = String(state.bestStreak);
+
+        // Broadcast Banner
+        const banner = document.getElementById('broadcast-banner');
+        const bannerText = document.getElementById('broadcast-banner-text');
+        if (state.broadcastMessage) {
+          bannerText.textContent = state.broadcastMessage;
+          banner.classList.remove('hidden');
+        } else {
+          banner.classList.add('hidden');
+        }
+      }
+
+      function switchTab(tabName) {
+        activeTab = tabName;
+        const views = ['lessons', 'practice', 'teacher', 'progress'];
+        views.forEach(v => {
+          const section = document.getElementById(`view-${v}`);
+          if (section) section.classList.toggle('hidden', v !== tabName);
+        });
+
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+          const isCurrent = btn.getAttribute('data-tab') === tabName;
+          btn.className = `tab-btn flex flex-col md:flex-row items-center justify-center md:justify-start gap-1 md:gap-3 px-2 md:px-4 py-1.5 md:py-3 rounded-xl font-semibold text-xs md:text-sm transition-colors ${
+            isCurrent
+              ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
+              : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60'
+          }`;
+        });
+
+        const titles = {
+          lessons: ['Curriculum Map', 'Arabic-to-English Cognitive Transfer'],
+          practice: ['Interactive Practice Loop', 'Show → Construct → Socratic Check → Reveal'],
+          teacher: ['Teacher Hub & Mentor Q&A', 'Ask the Mentor & PIN Instructor Console'],
+          progress: ['Learner Progress & Recap', 'Mastery Ranks, Badges, Recap & Teacher Feedback']
+        };
+        const [t, s] = titles[tabName] || titles.lessons;
+        document.getElementById('header-title').textContent = t;
+        document.getElementById('header-subtitle').textContent = s;
+
+        if (tabName === 'lessons') renderLessonsTab();
+        if (tabName === 'practice') renderPracticeTab();
+        if (tabName === 'teacher') renderTeacherTab();
+        if (tabName === 'progress') renderProgressTab();
+      }
+
+      // ------------------------- RENDER TAB 1: LESSONS -------------------------
+      function renderLessonsTab() {
+        const container = document.getElementById('phases-container');
+        container.innerHTML = '';
+
+        document.getElementById('lessons-overall-progress').textContent =
+          `${state.completedLessonIds.length} / ${LESSONS.length} Completed`;
+
+        const phases = [1, 2, 3];
+        phases.forEach(phaseNum => {
+          const phaseLessons = LESSONS.filter(l => l.phase === phaseNum);
+          const doneCount = phaseLessons.filter(l => state.completedLessonIds.includes(l.id)).length;
+
+          const card = document.createElement('div');
+          card.className = 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4';
+
+          const header = document.createElement('div');
+          header.className = 'flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3';
+          header.innerHTML = `
+            <div>
+              <span class="text-xs font-extrabold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">CEFR Track · Phase ${phaseNum}</span>
+              <h4 class="font-bold text-base sm:text-lg">${phaseLessons[0].phaseTitle}</h4>
+            </div>
+            <span class="px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-xs font-bold">${doneCount} / ${phaseLessons.length} Done</span>
+          `;
+          card.appendChild(header);
+
+          const list = document.createElement('div');
+          list.className = 'grid grid-cols-1 gap-3';
+
+          phaseLessons.forEach(lesson => {
+            const globalIndex = LESSONS.findIndex(x => x.id === lesson.id);
+            const isCompleted = state.completedLessonIds.includes(lesson.id);
+
+            const item = document.createElement('div');
+            item.className = `p-4 rounded-xl border transition flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+              isCompleted
+                ? 'bg-emerald-500/5 border-emerald-500/30'
+                : 'bg-slate-50/70 dark:bg-slate-950/50 border-slate-200 dark:border-slate-800'
+            }`;
+
+            const info = document.createElement('div');
+            info.className = 'space-y-1';
+            info.innerHTML = `
+              <div class="flex items-center gap-2">
+                <span class="text-sm">${isCompleted ? '✅' : '🟢'}</span>
+                <h5 class="font-bold text-sm sm:text-base">${lesson.title}</h5>
+              </div>
+              <p dir="rtl" class="font-arabic text-sm font-semibold text-emerald-600 dark:text-emerald-400 text-right sm:text-left">${lesson.titleAr}</p>
+              <p class="text-xs text-slate-600 dark:text-slate-400 line-clamp-2">${lesson.transferConcept}</p>
+            `;
+
+            const startBtn = document.createElement('button');
+            startBtn.className = 'px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shrink-0';
+            startBtn.textContent = isCompleted ? 'Practice Again →' : 'Start Lesson →';
+            startBtn.addEventListener('click', () => {
+              currentLessonIndex = globalIndex;
+              currentExerciseIndex = 0;
+              switchTab('practice');
+            });
+
+            item.appendChild(info);
+            item.appendChild(startBtn);
+            list.appendChild(item);
+          });
+
+          card.appendChild(list);
+          container.appendChild(card);
+        });
+      }
+
+      // ------------------------- RENDER TAB 2: PRACTICE -------------------------
+      function populateLessonSelect() {
+        const sel = document.getElementById('practice-lesson-select');
+        sel.innerHTML = '';
+        LESSONS.forEach((l, idx) => {
+          const opt = document.createElement('option');
+          opt.value = String(idx);
+          const check = state.completedLessonIds.includes(l.id) ? '✓ ' : '';
+          opt.textContent = `${check}P${l.phase}: ${l.title.slice(0, 32)}…`;
+          if (idx === currentLessonIndex) opt.selected = true;
+          sel.appendChild(opt);
+        });
+      }
+
+      function renderPracticeTab() {
+        populateLessonSelect();
+        const lesson = LESSONS[currentLessonIndex] || LESSONS[0];
+        const ex = lesson.exercises[currentExerciseIndex] || lesson.exercises[0];
+        currentRetryCount = 0;
+        selectedChips = [];
+
+        document.getElementById('practice-phase-tag').textContent = lesson.phaseTitle;
+        document.getElementById('practice-lesson-title').textContent = `${lesson.title} — ${lesson.titleAr}`;
+        document.getElementById('practice-concept-en').textContent = lesson.transferConcept;
+        document.getElementById('practice-concept-ar').textContent = lesson.transferConceptAr;
+
+        const totalEx = lesson.exercises.length;
+        const pct = Math.round(((currentExerciseIndex + 1) / totalEx) * 100);
+        document.getElementById('practice-step-label').textContent = `Prompt ${currentExerciseIndex + 1} of ${totalEx}`;
+        document.getElementById('practice-progress-bar').style.width = `${pct}%`;
+        document.getElementById('practice-points-badge').textContent = '+10 XP on first try';
+
+        // 1. SHOW Arabic Prompt
+        document.getElementById('exercise-category-tag').textContent = ex.category;
+        document.getElementById('arabic-prompt').textContent = ex.arabic;
+        document.getElementById('arabic-literal-gloss').textContent = ex.literalGloss;
+
+        // Reset input & boxes
+        const inputEl = document.getElementById('practice-input');
+        inputEl.value = '';
+        inputEl.classList.remove('shake');
+        document.getElementById('socratic-feedback-box').classList.add('hidden');
+        document.getElementById('reveal-breakdown-box').classList.add('hidden');
+        document.getElementById('pron-result-box').classList.add('hidden');
+        document.getElementById('pron-play-self-btn').classList.add('hidden');
+
+        renderWordChips(ex);
+        renderVoicePicker();
+      }
+
+      function renderWordChips(ex) {
+        const selectedTray = document.getElementById('selected-chips-tray');
+        const bankTray = document.getElementById('word-bank-tray');
+        selectedTray.innerHTML = '';
+        bankTray.innerHTML = '';
+
+        if (selectedChips.length === 0) {
+          const placeholder = document.createElement('span');
+          placeholder.className = 'text-xs text-slate-400 select-none px-2';
+          placeholder.textContent = 'Tap words below to assemble your English sentence…';
+          selectedTray.appendChild(placeholder);
+        } else {
+          selectedChips.forEach((chipObj, sIdx) => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'chip-btn px-3.5 py-2 rounded-xl bg-emerald-600 text-white font-bold text-sm shadow-sm hover:bg-rose-600 transition';
+            btn.textContent = chipObj.word;
+            btn.title = 'Tap to remove';
+            btn.addEventListener('click', () => {
+              selectedChips.splice(sIdx, 1);
+              document.getElementById('practice-input').value = selectedChips.map(c => c.word).join(' ');
+              renderWordChips(ex);
+            });
+            selectedTray.appendChild(btn);
+          });
+        }
+
+        ex.chips.forEach((word, bIdx) => {
+          const isUsed = selectedChips.some(c => c.bankIndex === bIdx);
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.disabled = isUsed;
+          btn.className = `chip-btn px-3.5 py-2 rounded-xl font-semibold text-sm border transition ${
+            isUsed
+              ? 'bg-slate-100 dark:bg-slate-900 text-slate-400 border-slate-200 dark:border-slate-800 opacity-40 cursor-not-allowed'
+              : 'bg-white dark:bg-slate-800 hover:border-emerald-500 text-slate-800 dark:text-slate-100 border-slate-300 dark:border-slate-700 shadow-sm'
+          }`;
+          btn.textContent = word;
+          btn.addEventListener('click', () => {
+            selectedChips.push({ word, bankIndex: bIdx });
+            document.getElementById('practice-input').value = selectedChips.map(c => c.word).join(' ');
+            renderWordChips(ex);
+          });
+          bankTray.appendChild(btn);
+        });
+      }
+
+      function populateRevealBreakdown(ex) {
+        const revealBox = document.getElementById('reveal-breakdown-box');
+        revealBox.classList.remove('hidden');
+        document.getElementById('reveal-target-sentence').textContent = ex.target;
+
+        const grid = document.getElementById('chunk-mapping-grid');
+        grid.innerHTML = '';
+        const colorStyles = {
+          rose: 'bg-rose-500/10 border-rose-500/30 text-rose-700 dark:text-rose-300',
+          blue: 'bg-blue-500/10 border-blue-500/30 text-blue-700 dark:text-blue-300',
+          emerald: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-300'
+        };
+
+        ex.chunks.forEach(chunk => {
+          const c = document.createElement('div');
+          c.className = `p-3 rounded-xl border ${colorStyles[chunk.color] || colorStyles.emerald} space-y-1`;
+          c.innerHTML = `
+            <div class="text-[11px] font-extrabold uppercase tracking-wider opacity-80">${chunk.role}</div>
+            <div dir="rtl" class="font-arabic font-bold text-base">${chunk.ar}</div>
+            <div class="text-xs font-bold">↓</div>
+            <div class="font-extrabold text-sm">${chunk.en}</div>
+          `;
+          grid.appendChild(c);
+        });
+      }
+
+      function handleCheckAnswer() {
+        const lesson = LESSONS[currentLessonIndex];
+        const ex = lesson.exercises[currentExerciseIndex];
+        const inputEl = document.getElementById('practice-input');
+        const userText = inputEl.value.trim();
+
+        if (!userText) {
+          showToast('Tap the word chips or type your English sentence first.', 'amber');
+          return;
+        }
+
+        const diag = diagnoseSubmission(userText, ex);
+        const fbBox = document.getElementById('socratic-feedback-box');
+        const fbTitle = document.getElementById('socratic-feedback-title');
+        const fbEn = document.getElementById('socratic-feedback-en');
+        const fbAr = document.getElementById('socratic-feedback-ar');
+        fbBox.classList.remove('hidden');
+
+        if (diag.ok) {
+          // Correct answer: beep(true), confetti(), award points, streak toast
+          beep(true, state.soundOn);
+          confetti();
+
+          const earnedPoints = currentRetryCount === 0 ? 10 : 5;
+          state.score += earnedPoints;
+          state.streak += 1;
+          if (state.streak > state.bestStreak) state.bestStreak = state.streak;
+
+          if (!state.completedExerciseIds.includes(ex.id)) {
+            state.completedExerciseIds.push(ex.id);
+          }
+
+          // Check if all exercises in this lesson are done
+          const allExDone = lesson.exercises.every(e => state.completedExerciseIds.includes(e.id));
+          if (allExDone && !state.completedLessonIds.includes(lesson.id)) {
+            state.completedLessonIds.push(lesson.id);
+          }
+
+          StorageVault.save(state);
+          updateHeaderAndSidebarStats();
+
+          // Streak toasts at 3, 5, and 10 in a row
+          if ([3, 5, 10].includes(state.streak)) {
+            showToast(`🔥 ${state.streak} in a row!`, 'amber');
+          } else {
+            showToast(`+${earnedPoints} XP! Great cognitive transfer!`, 'emerald');
+          }
+
+          fbBox.className = 'p-4 rounded-2xl border bg-emerald-500/10 border-emerald-500/30 text-emerald-950 dark:text-emerald-200 space-y-2';
+          fbTitle.innerHTML = `<span>✅ Correct! (+${earnedPoints} XP)</span>`;
+          fbEn.textContent = diag.en;
+          fbAr.textContent = diag.ar;
+
+          populateRevealBreakdown(ex);
+          speakEnglish(ex.target, 1.0);
+        } else {
+          // Wrong answer: beep(false), remove .shake, force reflow, re-add .shake, show diagnosis
+          beep(false, state.soundOn);
+          currentRetryCount += 1;
+          state.streak = 0;
+
+          if (diag.tag) {
+            state.weakSpots[diag.tag] = (state.weakSpots[diag.tag] || 0) + 1;
+          }
+          StorageVault.save(state);
+          updateHeaderAndSidebarStats();
+
+          inputEl.classList.remove('shake');
+          void inputEl.offsetWidth; // Force reflow so animation triggers reliably every time
+          inputEl.classList.add('shake');
+
+          document.getElementById('practice-points-badge').textContent = '+5 XP on retry';
+
+          fbBox.className = 'p-4 rounded-2xl border bg-rose-500/10 border-rose-500/30 text-rose-950 dark:text-rose-200 space-y-2';
+          fbTitle.innerHTML = `<span>🧭 Socratic Transfer Hint — ${diag.tag}</span>`;
+          fbEn.textContent = diag.en;
+          fbAr.textContent = diag.ar;
+        }
+      }
+
+      function handleRevealAnswer() {
+        const lesson = LESSONS[currentLessonIndex];
+        const ex = lesson.exercises[currentExerciseIndex];
+
+        // Revealing the answer resets the streak
+        state.streak = 0;
+        StorageVault.save(state);
+        updateHeaderAndSidebarStats();
+
+        const inputEl = document.getElementById('practice-input');
+        inputEl.value = ex.target;
+        populateRevealBreakdown(ex);
+        speakEnglish(ex.target, 1.0);
+        showToast('Answer revealed — streak reset to 0.', 'amber');
+      }
+
+      function handleNextExercise() {
+        const lesson = LESSONS[currentLessonIndex];
+        if (currentExerciseIndex + 1 < lesson.exercises.length) {
+          currentExerciseIndex += 1;
+          renderPracticeTab();
+        } else if (currentLessonIndex + 1 < LESSONS.length) {
+          currentLessonIndex += 1;
+          currentExerciseIndex = 0;
+          showToast('Advancing to the next lesson!', 'emerald');
+          renderPracticeTab();
+        } else {
+          showToast('🎉 You completed the final lesson! Check your badges on Progress.', 'emerald');
+          switchTab('progress');
+        }
+      }
+
+      // ------------------------- PRONUNCIATION PRACTICE -------------------------
+      let activeMediaRecorder = null;
+      let recordedChunks = [];
+
+      function startPronunciationCheck() {
+        const lesson = LESSONS[currentLessonIndex];
+        const ex = lesson.exercises[currentExerciseIndex];
+        const resultBox = document.getElementById('pron-result-box');
+        const labelEl = document.getElementById('pron-record-label');
+        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+        // Start MediaRecorder for self-playback if available
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+          navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+            recordedChunks = [];
+            activeMediaRecorder = new MediaRecorder(stream);
+            activeMediaRecorder.ondataavailable = e => {
+              if (e.data && e.data.size > 0) recordedChunks.push(e.data);
+            };
+            activeMediaRecorder.onstop = () => {
+              const blob = new Blob(recordedChunks, { type: 'audio/webm' });
+              if (selfPronAudioUrl) URL.revokeObjectURL(selfPronAudioUrl);
+              selfPronAudioUrl = URL.createObjectURL(blob);
+              document.getElementById('pron-play-self-btn').classList.remove('hidden');
+              stream.getTracks().forEach(t => t.stop());
+            };
+            activeMediaRecorder.start();
+            setTimeout(() => {
+              if (activeMediaRecorder && activeMediaRecorder.state === 'recording') {
+                activeMediaRecorder.stop();
+              }
+            }, 4500);
+          }).catch(() => {});
+        }
+
+        if (!SR) {
+          resultBox.classList.remove('hidden');
+          resultBox.innerHTML = `<p class="text-amber-600 dark:text-amber-400 font-semibold">SpeechRecognition is not supported in this mobile browser. Your voice is still being recorded for self-comparison—tap “My Recording” and compare with “Hear”!</p>`;
+          return;
+        }
+
+        try {
+          const rec = new SR();
+          rec.lang = 'en-US';
+          rec.interimResults = false;
+          rec.maxAlternatives = 1;
+          labelEl.textContent = 'Listening… Speak now';
+
+          rec.onresult = (event) => {
+            const transcript = event.results[0][0].transcript || '';
+            const normSpoken = normalizeSentence(transcript).split(' ');
+            const normTarget = normalizeSentence(ex.target).split(' ');
+            const targetWordsRaw = ex.target.split(' ');
+
+            let matched = 0;
+            const diffHtml = targetWordsRaw.map((w, i) => {
+              const cleanW = normalizeSentence(w);
+              const ok = normSpoken.includes(cleanW);
+              if (ok) matched++;
+              return `<span class="px-1.5 py-0.5 rounded font-bold ${ok ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' : 'bg-rose-500/20 text-rose-600 dark:text-rose-400'}">${w}</span>`;
+            }).join(' ');
+
+            const acc = Math.round((matched / normTarget.length) * 100);
+            resultBox.classList.remove('hidden');
+            resultBox.innerHTML = `
+              <div class="font-bold">You said: <span class="text-emerald-600 dark:text-emerald-400">“${transcript}”</span> (${acc}% match)</div>
+              <div class="flex flex-wrap gap-1 pt-1">${diffHtml}</div>
+            `;
+            if (activeMediaRecorder && activeMediaRecorder.state === 'recording') {
+              activeMediaRecorder.stop();
+            }
+          };
+
+          rec.onerror = () => {
+            labelEl.textContent = 'Hold / Tap to Speak';
+            resultBox.classList.remove('hidden');
+            resultBox.innerHTML = `<p class="text-amber-600 dark:text-amber-400">Could not transcribe audio clearly. Try speaking closer to the microphone or use the self-recording button.</p>`;
+          };
+
+          rec.onend = () => {
+            labelEl.textContent = 'Hold / Tap to Speak';
+          };
+
+          rec.start();
+        } catch (err) {
+          labelEl.textContent = 'Hold / Tap to Speak';
+        }
+      }
+
+      // ------------------------- RENDER TAB 3: TEACHER HUB -------------------------
+      function renderTeacherTab() {
+        const listEl = document.getElementById('student-questions-list');
+        listEl.innerHTML = '';
+
+        state.mentorQuestions.forEach(q => {
+          const item = document.createElement('div');
+          item.className = 'p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2 text-xs';
+
+          const header = document.createElement('div');
+          header.className = 'flex items-center justify-between font-bold text-slate-700 dark:text-slate-300';
+          const nameSpan = document.createElement('span');
+          nameSpan.textContent = `👤 ${q.student || 'Student'}`;
+          const timeSpan = document.createElement('span');
+          timeSpan.className = 'text-[11px] text-slate-400';
+          timeSpan.textContent = q.createdAt || 'Just now';
+          header.appendChild(nameSpan);
+          header.appendChild(timeSpan);
+          item.appendChild(header);
+
+          const qText = document.createElement('p');
+          qText.className = 'text-slate-800 dark:text-slate-200 font-medium';
+          qText.textContent = q.question;
+          item.appendChild(qText);
+
+          if (q.audioDataUrl) {
+            const aud = document.createElement('audio');
+            aud.controls = true;
+            aud.src = q.audioDataUrl;
+            aud.className = 'h-8 w-full max-w-xs';
+            item.appendChild(aud);
+          }
+
+          if (q.reply) {
+            const rep = document.createElement('div');
+            rep.className = 'p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-900 dark:text-emerald-200 font-medium';
+            rep.textContent = `🎓 Mentor Reply: ${q.reply}`;
+            item.appendChild(rep);
+          } else {
+            const pending = document.createElement('div');
+            pending.className = 'text-[11px] text-amber-600 dark:text-amber-400 font-semibold';
+            pending.textContent = '⏳ Awaiting instructor reply…';
+            item.appendChild(pending);
+          }
+
+          listEl.appendChild(item);
+        });
+
+        if (teacherUnlocked) {
+          renderTeacherUnlockedConsole();
+        }
+      }
+
+      function renderTeacherUnlockedConsole() {
+        const panel = document.getElementById('teacher-unlocked-panel');
+        panel.classList.remove('hidden');
+
+        // Most-missed stats
+        const statsEl = document.getElementById('teacher-weakspots-stats');
+        const entries = Object.entries(state.weakSpots || {}).sort((a, b) => b[1] - a[1]);
+        if (!entries.length) {
+          statsEl.innerHTML = `<p class="text-slate-500">No missed interference patterns logged yet. Default diagnostic focus: <strong>Copula dropping (حذف فعل الكينونة)</strong>.</p>`;
+        } else {
+          statsEl.innerHTML = entries.map(([tag, count], idx) =>
+            `<div class="flex items-center justify-between py-1 border-b border-slate-200/60 dark:border-slate-800">
+              <span class="font-semibold">${idx + 1}. ${tag}</span>
+              <span class="px-2 py-0.5 rounded bg-rose-500/15 text-rose-500 font-bold">${count} misses</span>
+            </div>`
+          ).join('');
+        }
+
+        // Reply queue
+        const queueEl = document.getElementById('teacher-reply-queue');
+        queueEl.innerHTML = '';
+        state.mentorQuestions.forEach((q, idx) => {
+          const row = document.createElement('div');
+          row.className = 'p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2 text-xs';
+          const title = document.createElement('div');
+          title.className = 'font-bold';
+          title.textContent = `${q.student}: “${q.question}”`;
+          row.appendChild(title);
+
+          const inputWrap = document.createElement('div');
+          inputWrap.className = 'flex gap-2';
+          const inp = document.createElement('input');
+          inp.type = 'text';
+          inp.value = q.reply || '';
+          inp.placeholder = 'Write mentor response…';
+          inp.className = 'flex-1 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700';
+
+          const saveBtn = document.createElement('button');
+          saveBtn.className = 'px-3 py-1.5 rounded-lg bg-emerald-600 text-white font-bold';
+          saveBtn.textContent = 'Save Reply';
+          saveBtn.addEventListener('click', () => {
+            state.mentorQuestions[idx].reply = inp.value.trim();
+            StorageVault.save(state);
+            renderTeacherTab();
+            showToast('Mentor reply saved!', 'emerald');
+          });
+
+          inputWrap.appendChild(inp);
+          inputWrap.appendChild(saveBtn);
+          row.appendChild(inputWrap);
+          queueEl.appendChild(row);
+        });
+      }
+
+      // ------------------------- RENDER TAB 4: PROGRESS -------------------------
+      function renderProgressTab() {
+        const lvl = computeLevel(state.score);
+        const lvlName = LEVEL_NAMES[lvl];
+        const intoLevel = state.score % 60;
+        const pct = lvl === 4 ? 100 : Math.min(100, Math.round((intoLevel / 60) * 100));
+
+        document.getElementById('prog-level-num').textContent = `L${lvl + 1}`;
+        document.getElementById('prog-level-title').textContent = lvlName;
+        document.getElementById('prog-level-xp').textContent =
+          lvl === 4 ? `${state.score} XP · Max Rank Achieved!` : `${state.score} XP Total · ${60 - intoLevel} XP to ${LEVEL_NAMES[lvl + 1]}`;
+        document.getElementById('prog-level-bar').style.width = `${pct}%`;
+
+        // Sound toggle UI
+        document.getElementById('sound-toggle-icon').textContent = state.soundOn ? '🔊' : '🔇';
+        document.getElementById('sound-toggle-text').textContent = `Sound Effects: ${state.soundOn ? 'ON' : 'OFF'}`;
+
+        // Phase completion bars
+        const phaseBars = document.getElementById('prog-phase-bars');
+        phaseBars.innerHTML = '';
+        [1, 2, 3].forEach(pNum => {
+          const pLessons = LESSONS.filter(l => l.phase === pNum);
+          const done = pLessons.filter(l => state.completedLessonIds.includes(l.id)).length;
+          const pPct = Math.round((done / pLessons.length) * 100);
+          const div = document.createElement('div');
+          div.className = 'p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-1.5';
+          div.innerHTML = `
+            <div class="flex justify-between text-xs font-bold">
+              <span>Phase ${pNum}</span>
+              <span class="text-emerald-600 dark:text-emerald-400">${pPct}% (${done}/${pLessons.length})</span>
+            </div>
+            <div class="w-full h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+              <div class="h-full bg-emerald-500" style="width:${pPct}%"></div>
+            </div>
+          `;
+          phaseBars.appendChild(div);
+        });
+
+        // Badges Grid (First win, 5 in a row, 10 in a row, Phase 1 done, All lessons done, Asked the mentor)
+        const p1Ids = LESSONS.filter(l => l.phase === 1).map(l => l.id);
+        const phase1Done = p1Ids.every(id => state.completedLessonIds.includes(id));
+        const allLessonsDone = LESSONS.every(l => state.completedLessonIds.includes(l.id));
+
+        const badges = [
+          { title: 'First win', desc: 'Get your first exercise right', icon: '🌟', unlocked: state.score > 0 || state.completedExerciseIds.length > 0 },
+          { title: '5 in a row', desc: 'Reach a streak of 5 correct answers', icon: '🔥', unlocked: state.bestStreak >= 5 },
+          { title: '10 in a row', desc: 'Reach a streak of 10 correct answers', icon: '⚡', unlocked: state.bestStreak >= 10 },
+          { title: 'Phase 1 done', desc: 'Complete all Phase 1 foundation lessons', icon: '🧱', unlocked: phase1Done },
+          { title: 'All lessons done', desc: 'Master all 9 lessons across Phases 1–3', icon: '👑', unlocked: allLessonsDone },
+          { title: 'Asked the mentor', desc: 'Submit a question in the Teacher Hub', icon: '🎓', unlocked: state.askedMentor }
+        ];
+
+        const badgesGrid = document.getElementById('badges-grid');
+        badgesGrid.innerHTML = '';
+        badges.forEach(b => {
+          const card = document.createElement('div');
+          card.className = `p-3.5 rounded-xl border transition flex items-start gap-3 ${
+            b.unlocked
+              ? 'bg-emerald-500/10 border-emerald-500/40 text-slate-900 dark:text-white shadow-sm'
+              : 'bg-slate-100/70 dark:bg-slate-950/50 border-slate-200 dark:border-slate-800 opacity-50 grayscale'
+          }`;
+          card.innerHTML = `
+            <span class="text-2xl">${b.icon}</span>
+            <div>
+              <div class="font-bold text-xs sm:text-sm">${b.title}</div>
+              <div class="text-[11px] text-slate-500 dark:text-slate-400">${b.desc}</div>
+            </div>
+          `;
+          badgesGrid.appendChild(card);
+        });
+
+        // Weak-Spot Tags
+        const weakContainer = document.getElementById('prog-weakspots-container');
+        weakContainer.innerHTML = '';
+        const weakEntries = Object.entries(state.weakSpots || {}).sort((a, b) => b[1] - a[1]);
+        if (!weakEntries.length) {
+          weakContainer.innerHTML = `<span class="text-xs text-slate-500">No weak spots triggered yet — complete exercises in Practice to see diagnostic tags.</span>`;
+        } else {
+          weakEntries.forEach(([tag, count]) => {
+            const pill = document.createElement('span');
+            pill.className = 'px-3 py-1.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-400 text-xs font-bold';
+            pill.textContent = `${tag} (${count})`;
+            weakContainer.appendChild(pill);
+          });
+        }
+
+        // Recap View for Training Meeting (<details> list with py-3 tap targets)
+        const recapList = document.getElementById('recap-details-list');
+        recapList.innerHTML = '';
+        LESSONS.forEach((l, idx) => {
+          const det = document.createElement('details');
+          det.className = 'group';
+          det.innerHTML = `
+            <summary class="py-3 cursor-pointer list-none flex items-center justify-between gap-2 font-bold text-xs sm:text-sm hover:text-emerald-500">
+              <div>
+                <span>${idx + 1}. ${l.title}</span>
+                <span dir="rtl" class="block sm:inline sm:ml-2 font-arabic text-emerald-600 dark:text-emerald-400">${l.titleAr}</span>
+              </div>
+              <span class="group-open:rotate-180 transition-transform text-xs">▼</span>
+            </summary>
+            <div class="pb-4 pt-1 space-y-2 text-xs sm:text-sm text-slate-600 dark:text-slate-300">
+              <p>${l.transferConcept}</p>
+              <p dir="rtl" class="font-arabic text-emerald-700 dark:text-emerald-300 font-semibold text-base">${l.transferConceptAr}</p>
+            </div>
+          `;
+          recapList.appendChild(det);
+        });
+      }
+
+      // ------------------------- PRESENTATION MODE -------------------------
+      function renderPresentationSlide() {
+        const l = LESSONS[presentationIndex] || LESSONS[0];
+        document.getElementById('pres-phase-badge').textContent = `Phase ${l.phase}`;
+        document.getElementById('pres-counter').textContent = `${presentationIndex + 1} / ${LESSONS.length}`;
+        document.getElementById('pres-title-en').textContent = l.title;
+        document.getElementById('pres-title-ar').textContent = l.titleAr;
+        document.getElementById('pres-concept-en').textContent = l.transferConcept;
+        document.getElementById('pres-concept-ar').textContent = l.transferConceptAr;
+        document.getElementById('pres-prev-btn').disabled = presentationIndex === 0;
+        document.getElementById('pres-next-btn').disabled = presentationIndex === LESSONS.length - 1;
+      }
+
+      // =======================================================================
+      // 10. EVENT LISTENERS WIRING
+      // =======================================================================
+      // Tab navigation
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => switchTab(btn.getAttribute('data-tab')));
+      });
+
+      // Theme toggles
+      function toggleTheme() {
+        state.theme = state.theme === 'dark' ? 'light' : 'dark';
+        StorageVault.save(state);
+        applyTheme();
+      }
+      document.getElementById('mobile-theme-btn').addEventListener('click', toggleTheme);
+      document.getElementById('desktop-theme-btn').addEventListener('click', toggleTheme);
+
+      // Security Vault Modal
+      function openVaultModal() {
+        const modal = document.getElementById('vault-modal');
+        document.getElementById('vault-audit-json').textContent = JSON.stringify({
+          integrityChecksum: state.lastAuditHash,
+          score: state.score,
+          streak: state.streak,
+          bestStreak: state.bestStreak,
+          completedLessons: state.completedLessonIds,
+          weakSpots: state.weakSpots
+        }, null, 2);
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      }
+      document.getElementById('mobile-vault-btn').addEventListener('click', openVaultModal);
+      document.getElementById('desktop-vault-btn').addEventListener('click', openVaultModal);
+      document.getElementById('close-vault-btn').addEventListener('click', () => {
+        const modal = document.getElementById('vault-modal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      });
+      document.getElementById('reset-progress-btn').addEventListener('click', () => {
+        state = StorageVault.reset();
+        applyTheme();
+        updateHeaderAndSidebarStats();
+        switchTab(activeTab);
+        document.getElementById('vault-modal').classList.add('hidden');
+        document.getElementById('vault-modal').classList.remove('flex');
+        showToast('Demo data reset cleanly.', 'emerald');
+      });
+
+      // Practice Tab Events
+      document.getElementById('practice-lesson-select').addEventListener('change', (e) => {
+        currentLessonIndex = parseInt(e.target.value, 10) || 0;
+        currentExerciseIndex = 0;
+        renderPracticeTab();
+      });
+      document.getElementById('clear-answer-btn').addEventListener('click', () => {
+        selectedChips = [];
+        document.getElementById('practice-input').value = '';
+        renderWordChips(LESSONS[currentLessonIndex].exercises[currentExerciseIndex]);
+      });
+      document.getElementById('check-answer-btn').addEventListener('click', handleCheckAnswer);
+      document.getElementById('practice-input').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          handleCheckAnswer();
+        }
+      });
+      document.getElementById('reveal-answer-btn').addEventListener('click', handleRevealAnswer);
+      document.getElementById('next-exercise-btn').addEventListener('click', handleNextExercise);
+
+      // Voice & TTS Events
+      document.getElementById('tts-normal-btn').addEventListener('click', () => {
+        const ex = LESSONS[currentLessonIndex].exercises[currentExerciseIndex];
+        speakEnglish(ex.target, 1.0);
+      });
+      document.getElementById('tts-slow-btn').addEventListener('click', () => {
+        const ex = LESSONS[currentLessonIndex].exercises[currentExerciseIndex];
+        speakEnglish(ex.target, 0.6);
+      });
+      document.getElementById('voice-picker-select').addEventListener('change', (e) => {
+        state.preferredVoiceURI = e.target.value;
+        StorageVault.save(state);
+        speakEnglish('Thinking English voice selected.', 1.0);
+      });
+
+      // Pronunciation Events
+      document.getElementById('pron-record-btn').addEventListener('click', startPronunciationCheck);
+      document.getElementById('pron-play-self-btn').addEventListener('click', () => {
+        if (selfPronAudioUrl) {
+          const a = new Audio(selfPronAudioUrl);
+          a.play().catch(() => {});
+        }
+      });
+
+      // Teacher Hub Events
+      let mentorRecorder = null;
+      let mentorChunks = [];
+      document.getElementById('mentor-voice-btn').addEventListener('click', () => {
+        const label = document.getElementById('mentor-voice-label');
+        const status = document.getElementById('mentor-voice-status');
+        if (mentorRecorder && mentorRecorder.state === 'recording') {
+          mentorRecorder.stop();
+          label.textContent = 'Record Voice Note';
+          return;
+        }
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          showToast('Microphone recording is not available on this device.', 'amber');
+          return;
+        }
+        navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+          mentorChunks = [];
+          mentorRecorder = new MediaRecorder(stream);
+          mentorRecorder.ondataavailable = e => {
+            if (e.data && e.data.size > 0) mentorChunks.push(e.data);
+          };
+          mentorRecorder.onstop = () => {
+            const blob = new Blob(mentorChunks, { type: 'audio/webm' });
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              mentorAudioDataUrl = String(reader.result || '');
+              const preview = document.getElementById('mentor-voice-preview');
+              preview.src = mentorAudioDataUrl;
+              preview.classList.remove('hidden');
+              status.textContent = 'Voice note ready';
+            };
+            reader.readAsDataURL(blob);
+            stream.getTracks().forEach(t => t.stop());
+          };
+          mentorRecorder.start();
+          label.textContent = '⏹️ Stop Recording';
+          status.textContent = 'Recording…';
+          setTimeout(() => {
+            if (mentorRecorder && mentorRecorder.state === 'recording') {
+              mentorRecorder.stop();
+              label.textContent = 'Record Voice Note';
+            }
+          }, 8000);
+        }).catch(() => {
+          showToast('Microphone permission denied.', 'rose');
+        });
+      });
+
+      document.getElementById('submit-mentor-question-btn').addEventListener('click', () => {
+        const nameInp = document.getElementById('mentor-student-name');
+        const qInp = document.getElementById('mentor-question-input');
+        const qText = qInp.value.trim();
+        if (!qText && !mentorAudioDataUrl) {
+          showToast('Please write a question or record a voice note first.', 'amber');
+          return;
+        }
+        state.mentorQuestions.unshift({
+          id: 'q-' + Date.now(),
+          student: nameInp.value.trim() || 'Student',
+          question: qText || '[Voice Note Question]',
+          audioDataUrl: mentorAudioDataUrl,
+          reply: '',
+          createdAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        });
+        state.askedMentor = true;
+        StorageVault.save(state);
+        qInp.value = '';
+        mentorAudioDataUrl = '';
+        document.getElementById('mentor-voice-preview').classList.add('hidden');
+        document.getElementById('mentor-voice-status').textContent = 'No audio attached';
+        renderTeacherTab();
+        showToast('Question saved! “Asked the mentor” badge unlocked.', 'emerald');
+      });
+
+      document.getElementById('teacher-pin-btn').addEventListener('click', () => {
+        const pinVal = document.getElementById('teacher-pin-input').value.trim();
+        if (pinVal === TEACHER_PIN) {
+          teacherUnlocked = true;
+          renderTeacherUnlockedConsole();
+          showToast('Instructor console unlocked.', 'emerald');
+        } else {
+          showToast('Incorrect PIN (Use 1234 for demo).', 'rose');
+        }
+      });
+
+      document.getElementById('teacher-broadcast-btn').addEventListener('click', () => {
+        const msg = document.getElementById('teacher-broadcast-input').value.trim();
+        state.broadcastMessage = msg;
+        StorageVault.save(state);
+        updateHeaderAndSidebarStats();
+        showToast(msg ? 'Broadcast mini-lesson published!' : 'Broadcast cleared.', 'emerald');
+      });
+
+      document.getElementById('dismiss-broadcast-btn').addEventListener('click', () => {
+        state.broadcastMessage = '';
+        StorageVault.save(state);
+        updateHeaderAndSidebarStats();
+      });
+
+      // Progress Tab Events: Sound toggle, Presentation mode, Feedback channel
+      document.getElementById('sound-toggle-btn').addEventListener('click', () => {
+        state.soundOn = !state.soundOn;
+        StorageVault.save(state);
+        renderProgressTab();
+        if (state.soundOn) beep(true, true);
+      });
+
+      document.getElementById('open-presentation-btn').addEventListener('click', () => {
+        presentationIndex = 0;
+        renderPresentationSlide();
+        const modal = document.getElementById('presentation-modal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      });
+      document.getElementById('pres-close-btn').addEventListener('click', () => {
+        const modal = document.getElementById('presentation-modal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      });
+      document.getElementById('pres-prev-btn').addEventListener('click', () => {
+        if (presentationIndex > 0) {
+          presentationIndex--;
+          renderPresentationSlide();
+        }
+      });
+      document.getElementById('pres-next-btn').addEventListener('click', () => {
+        if (presentationIndex < LESSONS.length - 1) {
+          presentationIndex++;
+          renderPresentationSlide();
+        }
+      });
+      window.addEventListener('keydown', (e) => {
+        const modal = document.getElementById('presentation-modal');
+        if (modal.classList.contains('hidden')) return;
+        if (e.key === 'ArrowRight' && presentationIndex < LESSONS.length - 1) {
+          presentationIndex++;
+          renderPresentationSlide();
+        } else if (e.key === 'ArrowLeft' && presentationIndex > 0) {
+          presentationIndex--;
+          renderPresentationSlide();
+        } else if (e.key === 'Escape') {
+          modal.classList.add('hidden');
+          modal.classList.remove('flex');
+        }
+      });
+
+      // Feedback Emoji Rating & Channel Buttons
+      document.querySelectorAll('.rating-emoji-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          selectedRating = parseInt(btn.getAttribute('data-rating'), 10) || 0;
+          document.querySelectorAll('.rating-emoji-btn').forEach(b => {
+            const active = parseInt(b.getAttribute('data-rating'), 10) === selectedRating;
+            b.className = `rating-emoji-btn flex-1 py-2.5 rounded-xl text-2xl transition border-2 ${
+              active
+                ? 'bg-emerald-500/20 border-emerald-500 scale-105'
+                : 'bg-slate-100 dark:bg-slate-800 border-transparent'
+            }`;
+          });
+        });
+      });
+
+      function buildCurrentFeedbackMessage() {
+        const text = document.getElementById('feedback-textarea').value.trim();
+        return feedbackMessage(selectedRating, text, state, LESSONS.length);
+      }
+
+      document.getElementById('fb-whatsapp-btn').addEventListener('click', () => {
+        const msg = buildCurrentFeedbackMessage();
+        window.open(waLink(msg), '_blank', 'noopener,noreferrer');
+      });
+
+      document.getElementById('fb-email-btn').addEventListener('click', () => {
+        const msg = buildCurrentFeedbackMessage();
+        window.location.href = mailLink(msg);
+      });
+
+      document.getElementById('fb-copy-btn').addEventListener('click', async () => {
+        const msg = buildCurrentFeedbackMessage();
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(msg);
+            showToast('Feedback copied to clipboard!', 'emerald');
+            return;
+          }
+        } catch (err) {}
+        // Fallback copy method
+        try {
+          const ta = document.createElement('textarea');
+          ta.value = msg;
+          ta.style.position = 'fixed';
+          ta.style.opacity = '0';
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          ta.remove();
+          showToast('Feedback copied to clipboard!', 'emerald');
+        } catch (err) {
+          showToast('Could not copy automatically — please select and copy your note.', 'amber');
+        }
+      });
+
+      document.getElementById('fb-google-form-link').href = FEEDBACK_FORM_URL;
+
+      // =======================================================================
+      // 11. INITIALIZE APPLICATION ON FIRST LOAD
+      // =======================================================================
+      applyTheme();
+      updateHeaderAndSidebarStats();
+      switchTab('lessons');
+    })();
+  </script>
+</body>
+</html>

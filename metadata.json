@@ -1,0 +1,8 @@
+{
+  "name": "Remix Remix Remix Thinking English: Arabic-to-English Transfer",
+  "description": "An Arabic-to-English Language Transfer learning web application from CEFR A1+ to C1, replacing rote memorization with structural thought-mapping and cognitive habit awareness.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
