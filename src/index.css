@@ -141,6 +141,21 @@ details > summary {
   }
 }
 
+@keyframes practiceCardEnter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.practice-card-enter {
+  animation: practiceCardEnter 0.24s ease-out both;
+}
+
 .shake {
   animation: shake 0.35s;
   border-color: #e11d48 !important;
@@ -166,7 +181,8 @@ details > summary {
 @media (prefers-reduced-motion: reduce) {
   .shake,
   .xp-pop,
-  .cultural-toast-enter {
+  .cultural-toast-enter,
+  .practice-card-enter {
     animation: none !important;
   }
   .conf {
