@@ -79,6 +79,9 @@ export function HubView({
 
   return (
     <div>
+      <p className="text-xs opacity-70 mb-3">
+        Messages are stored on this device only; cross-device sync needs a backend (e.g. Firebase).
+      </p>
       <div className={CARD_CLASS}>
         <h3 className="font-semibold mb-2">Ask the Mentor</h3>
         <input
@@ -152,7 +155,7 @@ export function HubView({
       )}
 
       <div className={CARD_CLASS}>
-        <h3 className="font-semibold mb-2">👩‍🏫 Teacher side</h3>
+        <h3 className="font-semibold mb-2">👩‍🏫 Teacher Demo Mode (UI Toggle)</h3>
         {!teacherUnlocked ? (
           <div>
             <div className="flex gap-2">
@@ -161,15 +164,15 @@ export function HubView({
                 type="password"
                 value={pinInput}
                 onChange={e => onChangePinInput(e.target.value)}
-                placeholder="PIN"
+                placeholder="Demo PIN"
                 className="rounded-xl border border-stone-300 dark:border-stone-600 bg-transparent p-2 w-32"
               />
               <button type="button" className={BTN_PRIMARY} onClick={onUnlockTeacher}>
-                Unlock
+                Unlock Demo
               </button>
             </div>
             <p className="text-xs opacity-60 mt-2">
-              Demo PIN: {teacherPin} (configured via TEACHER_PIN constant).
+              Demo mode PIN: {teacherPin} (client-side UI toggle for local replies &amp; broadcasts, not a security boundary).
             </p>
           </div>
         ) : (

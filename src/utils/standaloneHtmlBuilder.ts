@@ -4,35 +4,127 @@ import { EXPANDED_DECKS } from '../data/expandedDecks';
 import { ARABIC_WORD_LEXICON } from './arabicWordLexicon';
 import { DEFAULT_SHARED_APP_URL, FEEDBACK_FORM_URL, TEACHER_WHATSAPP } from './fx';
 
+export const COPYRIGHT_HEADER = '<!-- Copyright (c) 2026 Amr Sherif. All rights reserved. -->';
+
+export const PROVENANCE_MD_CONTENT = `# Provenance & Authorship Record
+
+This file records the authorship and creation timeline of the
+Thinking English™ project.
+
+## Author
+
+**Amr Sherif** — Alexandria, Egypt
+GitHub: https://github.com/AmrSherifCodes
+LinkedIn: https://www.linkedin.com/in/amrsherif-abdelaal-08a287349/
+
+## Statement
+
+I, Amr Sherif, am the original author of this repository and all of its
+contents, including:
+
+- \`Thinking-English.html\` — the interactive Arabic-to-English learning app
+- \`CONSTITUTION.md\` — the channel and project constitution
+- All lesson content, exercise data, and pedagogical structure
+- All scripts, translations, and source materials
+
+The commit history of this repository constitutes a chronological,
+timestamped record of authorship. Every commit is permanently recorded
+by GitHub and cryptographically linked to its parent commits.
+
+## Timeline
+
+- **First commit:** see the repository's commit history
+- **Constitution added:** commit \`b824f249efc369b5788005df6fb7be7a9c563feb\`
+- **This file added:** the commit that introduced \`PROVENANCE.md\`
+
+## License
+
+The lesson content and source code are released under **CC0 1.0
+Universal Public Domain Dedication** (see \`CONSTITUTION.md\`).
+
+The name "Thinking English" and any associated branding are claimed
+as trademarks of the author (™).
+
+## Verification
+
+Anyone can independently verify authorship by:
+
+1. Opening the repository's commit history
+2. Confirming the commits and their timestamps
+3. Comparing the file contents at any point in history
+
+---
+
+*Recorded in good faith. The commit history is the proof.*
+`;
+
 /**
  * Generates a 100% self-contained, offline-capable single-file HTML application
  * containing all 24 lessons (72 exercises), the Anki Multi-Deck Spaced Repetition system,
  * 150 Prebuilt Master Cards + Open-Source CC BY decks, Double-Tap Arabic Word Auto-Translator,
  * Translate tab, Teacher Hub, and Review Heatmap.
  *
- * Downloaded via an in-memory Blob (URL.createObjectURL) so it NEVER hits the
- * AI Studio iframe security-cookie proxy page.
+ * Security & Privacy Hardened:
+ * - Line 1 Copyright Header for Amr Sherif
+ * - Thinking English™ trademark branding
+ * - Top-of-script CONFIG block with privacy-safe empty TEACHER_WHATSAPP default
+ * - Single-quote & HTML entity escaping in esc() + delegated data-* event listeners (zero self-XSS)
+ * - Explicit MyMemory.net privacy disclosure on the Translate tab
+ * - Subtle CSS-only Kuffiyeh & olive-knot stationery background matching the main app
  */
 export function buildStandaloneHtmlString(): string {
   const phasesJson = JSON.stringify(PHASES_DATA);
   const prebuiltJson = JSON.stringify([...EXPANDED_DECKS, ...PREBUILT_DECKS]);
   const lexiconJson = JSON.stringify(ARABIC_WORD_LEXICON);
 
-  return `<!DOCTYPE html>
+  return `${COPYRIGHT_HEADER}
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Thinking English · Arabic-to-English Transfer Journey</title>
+<title>Thinking English™ · Arabic-to-English Transfer Journey</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.tailwindcss.com/3.4.17"></script>
 <script>tailwind.config={darkMode:'class'}</script>
 <style>
-:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --kuffiyeh-line:rgba(67,90,45,0.055);
+  --kuffiyeh-node:rgba(28,25,23,0.06);
+  --sand-bg:#faf6ee;
+}
+html.dark{
+  --kuffiyeh-line:rgba(180,201,158,0.055);
+  --kuffiyeh-node:rgba(245,245,244,0.05);
+  --sand-bg:#141310;
+}
 html{scroll-padding-top:env(safe-area-inset-top,0px);-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%}
-body{font-family:Inter,system-ui,sans-serif;background:#faf7f2;color:#1c1917;margin:0}
-html.dark body{background:#1c1917;color:#f5f5f4}
+body{
+  font-family:Inter,system-ui,-apple-system,sans-serif;
+  background-color:var(--sand-bg);
+  background-image:
+    radial-gradient(circle at 50% 50%,var(--kuffiyeh-node) 1.5px,transparent 2px),
+    radial-gradient(circle at 0% 0%,var(--kuffiyeh-node) 1.5px,transparent 2px),
+    radial-gradient(circle at 100% 0%,var(--kuffiyeh-node) 1.5px,transparent 2px),
+    radial-gradient(circle at 0% 100%,var(--kuffiyeh-node) 1.5px,transparent 2px),
+    radial-gradient(circle at 100% 100%,var(--kuffiyeh-node) 1.5px,transparent 2px),
+    repeating-linear-gradient(45deg,var(--kuffiyeh-line) 0px,var(--kuffiyeh-line) 1px,transparent 1px,transparent 18px),
+    repeating-linear-gradient(-45deg,var(--kuffiyeh-line) 0px,var(--kuffiyeh-line) 1px,transparent 1px,transparent 18px);
+  background-size:36px 36px;
+  background-attachment:fixed;
+  color:#1c1917;
+  margin:0;
+}
+html.dark body{background-color:var(--sand-bg);color:#f5f5f4}
+.kuffiyeh-card-watermark{
+  background-image:
+    repeating-linear-gradient(45deg,var(--kuffiyeh-line) 0px,var(--kuffiyeh-line) 1px,transparent 1px,transparent 14px),
+    repeating-linear-gradient(-45deg,var(--kuffiyeh-line) 0px,var(--kuffiyeh-line) 1px,transparent 1px,transparent 14px);
+}
 .ar{font-family:Cairo,'Segoe UI',sans-serif}
 button,select{min-height:44px;touch-action:manipulation;cursor:pointer}
 input,textarea,select{font-size:16px}
@@ -51,7 +143,7 @@ details>summary{cursor:pointer}
   <header class="flex items-center justify-between gap-2 mb-4">
     <div>
       <div class="flex items-center gap-2 flex-wrap">
-        <h1 class="text-xl font-semibold">🧠 Thinking English</h1>
+        <h1 class="text-xl font-semibold">🧠 Thinking English™</h1>
         <span id="hdr-lvl" class="text-xs font-medium text-teal-700 dark:text-teal-300"></span>
       </div>
       <p class="text-xs opacity-70">Arabic → English transfer journey · A1+ to C1 (24 Lessons · Offline Ready)</p>
@@ -68,12 +160,22 @@ details>summary{cursor:pointer}
 <div id="attr-modal" class="fixed inset-0 z-50 bg-stone-950/80 hidden items-center justify-center p-4"></div>
 <div id="toast" class="fixed left-1/2 -translate-x-1/2 bottom-24 z-30 bg-stone-900 text-white text-sm rounded-full px-4 py-2 hidden shadow-lg"></div>
 <script>
+// ============================================================================
+// CONFIGURATION BLOCK (Safe for public release — no personal phone numbers)
+// ============================================================================
+const CONFIG = {
+  TEACHER_WHATSAPP: "${TEACHER_WHATSAPP}", // Leave empty for public release (opens WhatsApp contact picker)
+  FEEDBACK_FORM_URL: "${FEEDBACK_FORM_URL}",
+  APP_URL: "${DEFAULT_SHARED_APP_URL}",
+  DEMO_PIN: "1234" // Client-side demo mode UI toggle only (not a security boundary)
+};
+const TEACHER = CONFIG.TEACHER_WHATSAPP;
+const FORM = CONFIG.FEEDBACK_FORM_URL;
+const APP_URL = CONFIG.APP_URL;
+
 const PHASES = ${phasesJson};
 const PREBUILT_DECKS = ${prebuiltJson};
 const LEXICON = ${lexiconJson};
-const TEACHER = "${TEACHER_WHATSAPP}";
-const FORM = "${FEEDBACK_FORM_URL}";
-const APP_URL = "${DEFAULT_SHARED_APP_URL}";
 
 // Build flat lessons L compatible with both formats
 const L = [];
@@ -107,11 +209,12 @@ PHASES.forEach((p, pi) => {
 });
 
 const C={s:"bg-sky-100 dark:bg-sky-900/50 border border-sky-200 dark:border-sky-800",v:"bg-rose-100 dark:bg-rose-900/50 border border-rose-200 dark:border-rose-800",o:"bg-amber-100 dark:bg-amber-900/50 border border-amber-200 dark:border-amber-800",c:"bg-emerald-100 dark:bg-emerald-900/50 border border-emerald-200 dark:border-emerald-800"};
-const CARD="rounded-2xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 p-4 mb-3 shadow-xs";
+const CARD="rounded-2xl border border-stone-200 dark:border-stone-700 bg-white/95 dark:bg-stone-800/95 p-4 mb-3 shadow-xs";
 const BTN="rounded-full bg-teal-700 text-white px-4 py-2 text-sm font-semibold hover:bg-teal-800 disabled:opacity-45";
 const GH="rounded-full border border-stone-300 dark:border-stone-600 px-4 py-2 text-sm hover:bg-stone-100 dark:hover:bg-stone-700 disabled:opacity-40";
 const $=id=>document.getElementById(id);
-const esc=s=>String(s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+// Security Fix #1: Escape &, <, >, ", and single quote ' (&#39;) to prevent attribute/handler breakout
+const esc=s=>String(s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const D=()=>({done:{},score:0,streak:0,best:0,wrong:{},notes:"",msgs:[],bc:[],dark:null,cards:{},custom:[],importedDecks:[],reviewHistory:{},free:false});
 let S;try{S=Object.assign(D(),JSON.parse(localStorage.getItem("te_standalone_v2")||"{}"))}catch(e){S=D()}
 let SND=true, tab=0, cur=null, T=false, mvoice=null, FR=0, FT="";
@@ -129,6 +232,32 @@ const lvl=()=>Math.min(4,Math.floor((S.score||0)/60));
 
 const TABS = ["Lessons", "Practice", "Hub", "Progress", "Cards", "Translate"];
 const NAV = [0, 1, 4, 5, 2, 3];
+
+// Security Fix #2: Event delegation with data-* attributes (never interpolate user data into inline JS handlers)
+document.addEventListener("click", function(ev) {
+  const arEl = ev.target.closest("[data-ar-word]");
+  if (arEl) {
+    tapArWord(arEl.getAttribute("data-ar-word") || "", arEl.getAttribute("data-ar-key") || "");
+    return;
+  }
+  const spkEl = ev.target.closest("[data-speak]");
+  if (spkEl) {
+    speak(spkEl.getAttribute("data-speak") || "", parseFloat(spkEl.getAttribute("data-rate") || "1"));
+    return;
+  }
+  const chipEl = ev.target.closest("[data-chip]");
+  if (chipEl) {
+    add(chipEl.getAttribute("data-chip") || "");
+    return;
+  }
+});
+
+document.addEventListener("dblclick", function(ev) {
+  const arEl = ev.target.closest("[data-ar-word]");
+  if (arEl) {
+    dblArWord(arEl.getAttribute("data-ar-word") || "");
+  }
+});
 
 // Double-tap Arabic word lookup state
 let popWord = null, popEntry = null, lastTapTime = 0, lastTapKey = "";
@@ -167,16 +296,16 @@ function dblArWord(word) {
 function renderInteractiveAr(sentence, prefixKey) {
   const words = String(sentence || "").split(/\\s+/).filter(Boolean);
   let h = \`<div dir="rtl" class="ar text-3xl leading-relaxed font-semibold">\${words.map((w, idx) => {
-    const k = prefixKey + "-" + idx;
+    const k = esc(prefixKey + "-" + idx);
     const active = popWord === w;
-    return \`<span role="button" tabindex="0" onclick="tapArWord('\${esc(w)}','\${k}')" ondblclick="dblArWord('\${esc(w)}')" class="inline-block select-none cursor-pointer rounded-lg px-1.5 py-0.5 mx-0.5 transition border \${active ? 'bg-emerald-500/25 border-emerald-500 ring-2 ring-emerald-500/40' : 'border-transparent hover:bg-emerald-500/15'}">\${esc(w)}</span>\`;
+    return \`<span role="button" tabindex="0" data-ar-word="\${esc(w)}" data-ar-key="\${k}" class="inline-block select-none cursor-pointer rounded-lg px-1.5 py-0.5 mx-0.5 transition border \${active ? 'bg-emerald-500/25 border-emerald-500 ring-2 ring-emerald-500/40' : 'border-transparent hover:bg-emerald-500/15'}">\${esc(w)}</span>\`;
   }).join(" ")}</div>
   <div class="mt-1.5 text-[11px] opacity-70 flex flex-wrap items-center justify-between gap-1">
     <span>💡 Double-tap any Arabic word to translate it</span>
     <span dir="rtl" class="ar">(اضغط مرتين على أي كلمة لترجمتها)</span>
   </div>\`;
   if (popWord && popEntry) {
-    const cleanSpeak = String(popEntry.en || "").replace(/\\(.*?\\)/g, "").split("/")[0].trim().replace(/'/g, "");
+    const cleanSpeak = String(popEntry.en || "").replace(/\\(.*?\\)/g, "").split("/")[0].trim();
     h += \`<div class="mt-3 p-3.5 rounded-2xl bg-emerald-950/95 text-white border border-emerald-500/40 shadow-xl text-left">
       <div class="flex flex-wrap items-center justify-between gap-2">
         <div class="flex items-center gap-2 flex-wrap">
@@ -185,7 +314,7 @@ function renderInteractiveAr(sentence, prefixKey) {
           <span translate="no" class="font-bold text-base text-white">\${esc(popEntry.en)}</span>
         </div>
         <div class="flex items-center gap-1.5">
-          <button class="px-2.5 py-1 rounded-lg bg-emerald-600 text-xs font-bold !min-h-[34px]" onclick="speak('\${cleanSpeak}',0.95)">🔊 Listen</button>
+          <button class="px-2.5 py-1 rounded-lg bg-emerald-600 text-xs font-bold !min-h-[34px]" data-speak="\${esc(cleanSpeak)}" data-rate="0.95">🔊 Listen</button>
           <button class="px-2.5 py-1 rounded-lg bg-stone-800 text-xs !min-h-[34px]" onclick="popWord=null;popEntry=null;render()">✕</button>
         </div>
       </div>
@@ -219,8 +348,8 @@ function lessonsV(){
     <p class="text-xs sm:text-sm opacity-95 mt-1 leading-relaxed">This entire platform is the result of hours of dedicated effort by Amr Sherif to help you think in English naturally, step by step, without stress. Trust the process and take it one sentence at a time — God willing (إن شاء الله), you will succeed!</p>
     <p dir="rtl" class="ar text-xs sm:text-sm text-amber-900/90 dark:text-amber-200/90 font-semibold mt-1 text-right">هذا التطبيق ثمرة ساعات طويلة من الجهد المخلص من عمرو شريف لمساعدتك على التفكير بالإنجليزية ببساطة وبدون تعقيد. خذها خطوة بخطوة — وبإذن الله ستنجح وتتفوق!</p>
   </div>
-  <div class="\${CARD} flex flex-wrap items-center justify-between gap-3">
-    <div><div class="text-xs font-semibold uppercase tracking-wider text-teal-700 dark:text-teal-400">Interactive Thinking Journey</div>
+  <div class="\${CARD} kuffiyeh-card-watermark flex flex-wrap items-center justify-between gap-3">
+    <div><div class="text-xs font-semibold uppercase tracking-wider text-teal-700 dark:text-teal-400">Interactive Thinking Journey · Thinking English™</div>
     <div class="text-sm opacity-80 mt-0.5">⭐ \${S.score} XP · 🔥 \${S.streak} streak · \${L.filter((_,i)=>comp(i)).length}/\${L.length} lessons mastered</div></div>
     <button class="\${GH} !text-xs" onclick="S.free=!S.free;save();render()">\${S.free?"🔓 All Lessons Unlocked":"🔒 Sequential Mode (Tap to Unlock All)"}</button>
   </div>\`;
@@ -237,7 +366,7 @@ function lessonsV(){
       </div>\`;
     });
   });
-  return h+\`<p class="text-xs opacity-70 mt-4 pt-3 border-t border-stone-200 dark:border-stone-700 text-center">🌊 Crafted in <strong>Alexandria, Egypt</strong> by <strong>Amr Sherif</strong> · Gratefully inspired by <strong>Mihalis Eleftheriou</strong> &amp; <em>The Thinking Method</em> · 100% Free &amp; Ad-Free (CC0 1.0)</p>\`;
+  return h+\`<p class="text-xs opacity-70 mt-4 pt-3 border-t border-stone-200 dark:border-stone-700 text-center">🌊 Crafted in <strong>Alexandria, Egypt</strong> by <strong>Amr Sherif</strong> · Gratefully inspired by <strong>Mihalis Eleftheriou</strong> &amp; <em>The Thinking Method</em> · 100% Free &amp; Ad-Free (CC0 1.0 · Thinking English™)</p>\`;
 }
 
 function go(li){let ei=L[li].ex.findIndex((_,i)=>!S.done[li+"-"+i]);if(ei<0)ei=0;setEx(li,ei);tab=1;render()}
@@ -251,7 +380,7 @@ function practiceV(){
   <div class="\${CARD}"><div class="text-xs uppercase opacity-60 mb-1">Say this thought in English</div>\${renderInteractiveAr(e.ar, "pr-"+cur.li+"-"+cur.ei)}</div>\`;
   if(open){
     h+=\`<div class="\${CARD}"><input id="ans" translate="no" class="w-full rounded-xl border border-stone-300 dark:border-stone-600 bg-transparent p-3" placeholder="Type or tap the blocks…" autocomplete="off" onkeydown="if(event.key=='Enter')check()">
-    <div class="flex flex-wrap gap-2 mt-3">\${cur.chips.map(c=>\`<button class="\${GH} !px-4 text-base" translate="no" onclick="add('\${c.replace(/'/g,"")}')">\${esc(c)}</button>\`).join("")}</div>
+    <div class="flex flex-wrap gap-2 mt-3">\${cur.chips.map(c=>\`<button class="\${GH} !px-4 text-base" translate="no" data-chip="\${esc(c)}">\${esc(c)}</button>\`).join("")}</div>
     <div id="fb" class="mt-3 text-sm">\${cur.fb}</div>
     <div class="flex gap-2 mt-3"><button class="\${BTN} flex-1" onclick="check()">Check</button><button class="\${GH}" onclick="$('ans').value=''">Clear</button><button class="\${GH}" onclick="reveal()">Reveal</button></div></div>\`;
   }else{
@@ -259,7 +388,7 @@ function practiceV(){
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">\${e.m.map(([a,b,t])=>\`<div class="rounded-xl p-2 text-center \${C[t]}"><div dir="rtl" class="ar font-semibold">\${esc(a)}</div><div translate="no" class="font-semibold text-sm">\${esc(b)}</div></div>\`).join("")}</div>
     <p class="text-sm mt-3">💡 \${esc(l.w)}</p>
     <p dir="rtl" class="ar text-sm mt-1 opacity-85">\${esc(l.wAr)}</p>
-    <div class="flex flex-wrap gap-2 mt-3"><button class="\${GH}" onclick="speak('\${e.a[0].replace(/'/g,"")}',1)">🔊 Hear</button><button class="\${GH}" onclick="speak('\${e.a[0].replace(/'/g,"")}',.6)">🐢 Slow</button></div>
+    <div class="flex flex-wrap gap-2 mt-3"><button class="\${GH}" data-speak="\${esc(e.a[0])}" data-rate="1">🔊 Hear</button><button class="\${GH}" data-speak="\${esc(e.a[0])}" data-rate="0.6">🐢 Slow</button></div>
     <button class="\${BTN} mt-4 w-full" onclick="nextEx()">Next →</button></div>\`;
   }
   return h;
@@ -433,7 +562,7 @@ function cardsV() {
     <div class="flex items-center justify-between px-2 mb-2 text-xs font-semibold uppercase opacity-65"><span>Core Decks</span><div class="grid grid-cols-3 gap-3 text-right w-36"><span class="text-sky-600 dark:text-sky-400">New</span><span class="text-red-600 dark:text-red-400">Learn</span><span class="text-emerald-600 dark:text-emerald-400">Due</span></div></div>\`;
     core.forEach(([id, name, sub]) => {
       const st = deckStats(id);
-      h += \`<button onclick="openDeck('\${id}')" class="\${CARD} w-full text-left flex items-center justify-between gap-3 hover:border-teal-600">
+      h += \`<button onclick="openDeck('\${esc(id)}')" class="\${CARD} w-full text-left flex items-center justify-between gap-3 hover:border-teal-600">
         <div><div class="font-semibold">\${esc(name)}</div><div class="text-xs opacity-70">\${esc(sub)}</div></div>
         <div class="grid grid-cols-3 gap-3 text-right w-36 font-bold text-sm tabular-nums">
           <span class="\${st.n ? 'text-sky-600 dark:text-sky-400' : 'opacity-40'}">\${st.n}</span>
@@ -447,10 +576,10 @@ function cardsV() {
       const dl = S.importedDecks.includes(pb.id);
       const st = deckStats(pb.id);
       h += \`<div class="\${CARD} flex items-center justify-between gap-3">
-        <div class="flex-1"><div class="flex items-center gap-1.5"><span class="font-semibold">\${esc(pb.name)}</span><button class="text-xs px-2 py-0.5 rounded-lg border border-stone-300 dark:border-stone-600 !min-h-[30px]" onclick="showAttr('\${pb.id}')">ⓘ</button></div>
+        <div class="flex-1"><div class="flex items-center gap-1.5"><span class="font-semibold">\${esc(pb.name)}</span><button class="text-xs px-2 py-0.5 rounded-lg border border-stone-300 dark:border-stone-600 !min-h-[30px]" onclick="showAttr('\${esc(pb.id)}')">ⓘ</button></div>
         <p class="text-xs opacity-75 mt-0.5">\${esc(pb.description)}</p>
         <div class="text-[11px] opacity-60 mt-1">\${esc(pb.author)} · \${esc(pb.license)} · \${pb.cards.length} cards</div></div>
-        \${dl ? \`<div class="flex items-center gap-3"><div class="grid grid-cols-3 gap-2 text-right w-24 font-bold text-sm"><span class="text-sky-600 dark:text-sky-400">\${st.n}</span><span class="text-red-600 dark:text-red-400">\${st.l}</span><span class="text-emerald-600 dark:text-emerald-400">\${st.d}</span></div><button class="\${BTN}" onclick="openDeck('\${pb.id}')">Study</button></div>\` : \`<button class="\${BTN}" onclick="downloadPrebuilt('\${pb.id}')">⬇ Download</button>\`}
+        \${dl ? \`<div class="flex items-center gap-3"><div class="grid grid-cols-3 gap-2 text-right w-24 font-bold text-sm"><span class="text-sky-600 dark:text-sky-400">\${st.n}</span><span class="text-red-600 dark:text-red-400">\${st.l}</span><span class="text-emerald-600 dark:text-emerald-400">\${st.d}</span></div><button class="\${BTN}" onclick="openDeck('\${esc(pb.id)}')">Study</button></div>\` : \`<button class="\${BTN}" onclick="downloadPrebuilt('\${esc(pb.id)}')">⬇ Download</button>\`}
       </div>\`;
     });
     return h;
@@ -477,7 +606,7 @@ function cardsV() {
       .map(([a, b, t]) => \`<div class="rounded-xl p-2 \${C[t] || ""}"><div dir="rtl" class="ar font-semibold">\${esc(a)}</div><div translate="no" class="font-semibold text-sm">\${esc(b)}</div></div>\`)
       .join("")}</div>\`;
   }
-  h += \`<button class="\${GH} mt-3" onclick="speak(RCUR.en,1)">🔊 Hear</button></div>\`;
+  h += \`<button class="\${GH} mt-3" data-speak="\${esc(d.en)}" data-rate="1">🔊 Hear</button></div>\`;
   const B = [["Again", "bg-red-600"], ["Hard", "bg-amber-600"], ["Good", "bg-emerald-600"], ["Easy", "bg-sky-600"]];
   return h + \`<div class="grid grid-cols-4 gap-2">\${B.map(([n, cl], g) =>
     \`<button class="\${cl} text-white rounded-xl py-2.5 text-xs font-semibold min-h-[50px]" onclick="cardGrade(\${g})"><div class="font-bold text-sm">\${n}</div><div class="opacity-90 font-normal">\${g ? cardSched(c, g).int + "d" : "<10m"}</div></button>\`).join("")}</div>
@@ -524,6 +653,7 @@ const trIsAr = s => /[\\u0600-\\u06FF]/.test(s);
 function translateV() {
   return \`<div class="\${CARD}"><div class="text-xs uppercase opacity-60 mb-2">Type or paste Arabic or English. It detects the language and translates automatically.</div>
     <textarea id="tri" rows="3" class="w-full rounded-xl border border-stone-300 dark:border-stone-700 bg-transparent p-3" style="font-size:16px" oninput="trType(this.value)" placeholder="اكتب هنا… / Type here…">\${esc(TR.src)}</textarea>
+    <p class="text-[11px] opacity-70 mt-2">🔒 <strong>Privacy note:</strong> Translations are sent to MyMemory.net. Don’t paste anything private.</p>
     <div class="flex gap-2 mt-2"><button class="\${GH} flex-1" onclick="trPaste()">📋 Paste</button><button class="\${GH} flex-1" onclick="trClear()">Clear</button></div></div>
     <div class="\${CARD}" id="tro">\${trOut()}</div>
     <p class="text-xs opacity-60">Machine translation can be wrong. Check new sentences with your teacher before you learn them.</p>\`;
@@ -573,12 +703,12 @@ function hubV(){
   <div class="flex flex-wrap items-center gap-2 mt-2"><button class="\${BTN}" onclick="send()">Send</button></div></div>\`;
   if(S.bc.length)h+=\`<div class="\${CARD}"><h3 class="font-semibold mb-2">📢 Mini-lessons from your teacher</h3>\${S.bc.map(b=>\`<p class="text-sm mb-2">• \${esc(b)}</p>\`).join("")}</div>\`;
   if(S.msgs.length)h+=\`<div class="\${CARD}"><h3 class="font-semibold mb-2">Your questions</h3>\${S.msgs.map(m=>\`<div class="text-sm mb-3"><div>❓ \${esc(m.q)}</div><div class="mt-1 opacity-80">\${m.r?"👩‍🏫 "+esc(m.r):"⏳ awaiting reply"}</div></div>\`).join("")}</div>\`;
-  h+=\`<div class="\${CARD}"><h3 class="font-semibold mb-2">👩‍🏫 Teacher side</h3>\`;
-  if(!T)h+=\`<div class="flex gap-2"><input id="pin" type="password" placeholder="PIN" class="rounded-xl border border-stone-300 dark:border-stone-600 bg-transparent p-2 w-32"><button class="\${BTN}" onclick="if($('pin').value=='1234'){T=true;render()}else toast('Wrong PIN')">Unlock</button></div><p class="text-xs opacity-60 mt-2">Demo PIN: 1234</p>\`;
+  h+=\`<div class="\${CARD}"><h3 class="font-semibold mb-2">👩‍🏫 Teacher Demo Mode (UI Toggle)</h3>\`;
+  if(!T)h+=\`<div class="flex gap-2"><input id="pin" type="password" placeholder="Demo PIN" class="rounded-xl border border-stone-300 dark:border-stone-600 bg-transparent p-2 w-32"><button class="\${BTN}" onclick="if($('pin').value==CONFIG.DEMO_PIN){T=true;render()}else toast('Wrong demo PIN')">Unlock Demo</button></div><p class="text-xs opacity-60 mt-2">Demo mode PIN: \${CONFIG.DEMO_PIN} (client-side UI toggle for local replies &amp; broadcasts)</p>\`;
   else{
     h+=\`<h4 class="text-sm font-semibold">Open questions (\${pend.length})</h4>\`+pend.map(([m,i])=>\`<div class="my-2 text-sm"><div>\${esc(m.q)}</div><textarea id="r\${i}" rows="2" class="w-full rounded-xl border border-stone-300 dark:border-stone-600 bg-transparent p-2 mt-1" placeholder="Reply…"></textarea><button class="\${BTN} mt-1" onclick="reply(\${i})">Reply</button></div>\`).join("");
     h+=\`<h4 class="text-sm font-semibold mt-4">Broadcast a mini-lesson</h4><textarea id="bt" rows="2" class="w-full rounded-xl border border-stone-300 dark:border-stone-600 bg-transparent p-2"></textarea><button class="\${BTN} mt-1" onclick="bcast()">Broadcast</button>
-    <h4 class="text-sm font-semibold mt-4">Most-missed structures</h4>\${weakV()}<button class="\${GH} mt-3" onclick="T=false;render()">Lock</button>\`;
+    <h4 class="text-sm font-semibold mt-4">Most-missed structures</h4>\${weakV()}<button class="\${GH} mt-3" onclick="T=false;render()">Lock Demo Mode</button>\`;
   }
   return h+"</div>";
 }
@@ -612,17 +742,17 @@ function progV(){
   h+=\`<div class="mb-3"><div class="text-sm mb-1">Phase \${p.id} · \${esc(p.title)} · \${pc}%</div><div class="h-2 rounded-full bg-stone-200 dark:bg-stone-700"><div class="h-2 rounded-full bg-teal-600" style="width:\${pc}%"></div></div></div>\`});
   h+=\`</div><div class="\${CARD}"><h3 class="font-semibold mb-2">Weak spots</h3>\${weakV()}</div>
   <div class="\${CARD}"><h3 class="font-semibold mb-2">My notes</h3><textarea rows="4" class="w-full rounded-xl border border-stone-300 dark:border-stone-600 bg-transparent p-3" oninput="S.notes=this.value;save()" placeholder="Habits to watch, new ideas…">\${esc(S.notes)}</textarea></div>
-  <div class="\${CARD}"><h3 class="font-semibold mb-2">Feedback for your teacher</h3><div class="flex mb-3">\${[1,2,3,4,5].map(n=>\`<button onclick="FR=\${n};render()" class="\${n==FR?BTN:GH} flex-1 mx-0.5 !px-0">\${['😕','🙁','😐','🙂','😍'][n-1]}</button>\`).join("")}</div><textarea rows="3" class="w-full rounded-xl border border-stone-300 dark:border-stone-600 bg-transparent p-3" oninput="FT=this.value" placeholder="What helped? What was confusing?">\${esc(FT)}</textarea><div class="flex gap-2 mt-2"><button class="\${BTN} flex-1" onclick="window.open(fbLink(),'_blank')">WhatsApp</button><button class="\${GH} flex-1" onclick="window.open('mailto:?subject='+encodeURIComponent('Thinking English feedback')+'&body='+encodeURIComponent(fbMsg()))">Email</button><button class="\${GH} flex-1" onclick="copyFb()">Copy</button></div><button class="\${GH} w-full mt-2" onclick="window.open(FORM,'_blank')">📝 Full feedback form (forms.gle)</button></div>
+  <div class="\${CARD}"><h3 class="font-semibold mb-2">Feedback for your teacher</h3><div class="flex mb-3">\${[1,2,3,4,5].map(n=>\`<button onclick="FR=\${n};render()" class="\${n==FR?BTN:GH} flex-1 mx-0.5 !px-0">\${['😕','🙁','😐','🙂','😍'][n-1]}</button>\`).join("")}</div><textarea rows="3" class="w-full rounded-xl border border-stone-300 dark:border-stone-600 bg-transparent p-3" oninput="FT=this.value" placeholder="What helped? What was confusing?">\${esc(FT)}</textarea><div class="flex gap-2 mt-2"><button class="\${BTN} flex-1" onclick="window.open(fbLink(),'_blank')">WhatsApp</button><button class="\${GH} flex-1" onclick="window.open('mailto:?subject='+encodeURIComponent('Thinking English™ feedback')+'&body='+encodeURIComponent(fbMsg()))">Email</button><button class="\${GH} flex-1" onclick="copyFb()">Copy</button></div><button class="\${GH} w-full mt-2" onclick="window.open(FORM,'_blank')">📝 Full feedback form (forms.gle)</button></div>
   <div class="\${CARD}"><h3 class="font-semibold mb-1">Recap: the \${L.length} mental shifts</h3><p class="text-xs opacity-60 mb-2">Tap a shift to expand it.</p>\${L.map((l,i)=>\`<details class="border-t border-stone-200 dark:border-stone-700"><summary class="py-3 text-sm font-semibold">\${l.num}. \${esc(l.t)}</summary><p class="text-sm opacity-85 pb-2">\${esc(l.w)}</p><p dir="rtl" class="ar text-sm opacity-85 pb-3">\${esc(l.wAr)}</p></details>\`).join("")}</div>
   <button class="\${GH}" onclick="if(confirm('Reset all progress?')){S=D();save();cur=null;RQ=null;render()}">Reset progress</button>\`;
   return h;
 }
 function shareFriends(){
-  const msg=\`🧠 *Thinking English: Arabic-to-English Transfer Journey*\\nجرب تطبيق *Thinking English* لتعلم التفكير بالإنجليزية من منطق اللغة العربية بدون حفظ قوائم أو قواعد معقدة 🚀\\n\\n✨ *Try the app here / جرب التطبيق من هنا:*\\n\${APP_URL}\\n\\n📝 *Share your review & feedback / شاركنا رأيك وتقييمك بعد التجربة:*\\n\${FORM}\`;
+  const msg=\`🧠 *Thinking English™: Arabic-to-English Transfer Journey*\\nجرب تطبيق *Thinking English™* لتعلم التفكير بالإنجليزية من منطق اللغة العربية بدون حفظ قوائم أو قواعد معقدة 🚀\\n\\n✨ *Try the app here / جرب التطبيق من هنا:*\\n\${APP_URL}\\n\\n📝 *Share your review & feedback / شاركنا رأيك وتقييمك بعد التجربة:*\\n\${FORM}\`;
   window.open("https://wa.me/?text="+encodeURIComponent(msg),"_blank");
 }
-function fbMsg(){const d=L.filter((_,i)=>comp(i)).length,w=Object.entries(S.wrong).sort((a,b)=>b[1]-a[1]).slice(0,3).map(x=>x[0]).join(", ")||"none";return \`Thinking English feedback\\nRating: \${FR?FR+"/5":"-"}\\nLessons done: \${d}/\${L.length} · Score: \${S.score}\\nHardest: \${w}\\n\\n\${FT}\\n\\nReview Form: \${FORM}\`}
-function fbLink(){return "https://wa.me/"+TEACHER+"?text="+encodeURIComponent(fbMsg())}
+function fbMsg(){const d=L.filter((_,i)=>comp(i)).length,w=Object.entries(S.wrong).sort((a,b)=>b[1]-a[1]).slice(0,3).map(x=>x[0]).join(", ")||"none";return \`Thinking English™ feedback\\nRating: \${FR?FR+"/5":"-"}\\nLessons done: \${d}/\${L.length} · Score: \${S.score}\\nHardest: \${w}\\n\\n\${FT}\\n\\nReview Form: \${FORM}\`}
+function fbLink(){return (TEACHER?"https://wa.me/"+TEACHER:"https://wa.me/")+"?text="+encodeURIComponent(fbMsg())}
 function copyFb(){try{navigator.clipboard.writeText(fbMsg()).then(()=>toast("Copied. Paste it to your teacher"))}catch(e){toast("Couldn’t copy")}}
 function beep(ok){
   if(SND){try{const a=new (window.AudioContext||window.webkitAudioContext)();(ok?[523,659,784]:[200,150]).forEach((f,i)=>{const o=a.createOscillator(),g=a.createGain(),t=a.currentTime+i*.1;o.frequency.value=f;o.type=ok?"triangle":"sawtooth";o.connect(g);g.connect(a.destination);g.gain.setValueAtTime(.12,t);g.gain.exponentialRampToValueAtTime(.001,t+.18);o.start(t);o.stop(t+.2)})}catch(e){}}
@@ -652,6 +782,23 @@ export function triggerStandaloneHtmlDownload(): void {
   const a = document.createElement('a');
   a.href = url;
   a.download = 'Thinking-English.html';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => {
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, 500);
+}
+
+/**
+ * Triggers a pure client-side Blob download of PROVENANCE.md
+ */
+export function triggerProvenanceMdDownload(): void {
+  const blob = new Blob([PROVENANCE_MD_CONTENT], { type: 'text/markdown;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'PROVENANCE.md';
   document.body.appendChild(a);
   a.click();
   setTimeout(() => {

@@ -50,7 +50,11 @@ import {
 } from './utils/audio';
 import { ARABIC_WORD_LEXICON, stripTashkeel } from './utils/arabicWordLexicon';
 import { saveVoiceNoteToVault } from './utils/audioVault';
-import { triggerStandaloneHtmlDownload } from './utils/standaloneHtmlBuilder';
+import {
+  PROVENANCE_MD_CONTENT,
+  triggerProvenanceMdDownload,
+  triggerStandaloneHtmlDownload
+} from './utils/standaloneHtmlBuilder';
 import {
   applyHabitMistakeWithShield,
   applyHabitWin,
@@ -1457,7 +1461,7 @@ export default function App() {
         <div className="min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <h1 className="text-xl font-semibold flex items-center gap-1.5">
-              <span>🧠 Thinking English</span>
+              <span>🧠 Thinking English™</span>
               <OliveBranchIcon
                 size={19}
                 className="text-olive-600 dark:text-olive-400"
@@ -1523,8 +1527,8 @@ export default function App() {
           <button
             type="button"
             onClick={() => setShowVaultModal(true)}
-            aria-label="Inspect deterministic storage vault"
-            title="Security & Deterministic Vault Status"
+            aria-label="Inspect deterministic storage vault and authorship provenance"
+            title="Security, Privacy & Authorship Provenance"
             className="rounded-full border border-stone-300 dark:border-stone-600 px-3 py-1 text-sm"
           >
             🛡️
@@ -1550,19 +1554,21 @@ export default function App() {
         </div>
       </header>
 
-      {/* Security & Deterministic Vault Inspector Modal */}
+      {/* Security, Privacy & Authorship Provenance Modal */}
       {showVaultModal && (
         <div
           role="dialog"
           aria-modal="true"
-          aria-label="Security and Deterministic Vault Status"
-          className="fixed inset-0 z-50 bg-stone-950/80 backdrop-blur-xs flex items-center justify-center p-4"
+          aria-label="Security, Privacy and Authorship Provenance"
+          className="fixed inset-0 z-50 bg-stone-950/80 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto"
         >
-          <div className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-2xl max-w-lg w-full p-5 space-y-4 shadow-2xl">
+          <div className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-2xl max-w-lg w-full p-5 space-y-4 shadow-2xl my-auto">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="text-xl">🛡️</span>
-                <h2 className="font-bold text-base">Security & Deterministic Vault Status</h2>
+                <h2 className="font-bold text-base">
+                  Security, Privacy &amp; Authorship Provenance
+                </h2>
               </div>
               <button
                 type="button"
@@ -1574,17 +1580,57 @@ export default function App() {
             </div>
             <div className="text-xs space-y-1.5 opacity-85 leading-relaxed">
               <p>
-                • <strong>Zero-Hallucination Engine:</strong> 100% deterministic contrast matrices
-                and offline Arabic word lexicon reviewed by ESL pedagogues across 24 lessons, 72
-                exercises, and 170+ prebuilt Anki sentences.
+                • <strong>Authorship &amp; Provenance:</strong> Original work by{' '}
+                <strong>Amr Sherif</strong> (Alexandria, Egypt). Includes top-of-file copyright
+                header (<code>&lt;!-- Copyright (c) 2026 Amr Sherif. All rights reserved. --&gt;</code>),{' '}
+                <code>PROVENANCE.md</code>, and <strong>Thinking English™</strong> branding.
               </p>
               <p>
-                • <strong>Isolated Storage & IndexedDB Audio Vault:</strong> Every read/write passes
-                schema sanitization, FNV-1a integrity checksum verification, IndexedDB voice-note
-                offloading, and strict <code>try/catch</code> isolation.
+                • <strong>Public Release Security Hardened:</strong> Zero personal phone numbers in
+                source code, single-quote &amp; HTML entity escaping (<code>esc()</code>) +{' '}
+                <code>data-*</code> event delegation (zero self-XSS), and explicit MyMemory.net
+                privacy disclosure.
+              </p>
+              <p>
+                • <strong>Isolated Storage &amp; IndexedDB Audio Vault:</strong> Every read/write
+                passes schema sanitization, FNV-1a integrity checksum verification, and strict{' '}
+                <code>try/catch</code> isolation.
               </p>
             </div>
-            <pre className="bg-stone-950 text-teal-400 p-3 rounded-xl text-xs overflow-x-auto font-mono">
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                id="download-provenance-btn"
+                onClick={() => {
+                  triggerProvenanceMdDownload();
+                  showToast('Downloaded PROVENANCE.md ✓');
+                }}
+                className={BTN_PRIMARY + ' !text-xs flex-1'}
+              >
+                📜 Download PROVENANCE.md
+              </button>
+              <button
+                type="button"
+                id="copy-provenance-btn"
+                onClick={() => {
+                  navigator.clipboard
+                    ?.writeText(PROVENANCE_MD_CONTENT)
+                    .then(() => showToast('Copied PROVENANCE.md to clipboard ✓'))
+                    .catch(() => showToast('Copy not supported here'));
+                }}
+                className={BTN_GHOST + ' !text-xs flex-1'}
+              >
+                📋 Copy PROVENANCE.md
+              </button>
+              <button
+                type="button"
+                onClick={handleDownloadOfflineHtml}
+                className={BTN_GHOST + ' !text-xs w-full'}
+              >
+                📥 Download Patched Thinking-English.html
+              </button>
+            </div>
+            <pre className="bg-stone-950 text-teal-400 p-3 rounded-xl text-xs overflow-x-auto font-mono max-h-40">
               {JSON.stringify(vaultAudit, null, 2)}
             </pre>
             <div className="flex justify-end gap-2">
@@ -1900,7 +1946,8 @@ export default function App() {
           className="mt-6 pt-4 border-t border-stone-200/80 dark:border-stone-800 text-center text-xs opacity-75 space-y-1"
         >
           <p>
-            🌊 Crafted in <strong>Alexandria, Egypt</strong> by <strong>Amr Sherif</strong> · 100% Free, Ad-Free &amp; Public Domain (CC0 1.0)
+            🌊 Crafted in <strong>Alexandria, Egypt</strong> by <strong>Amr Sherif</strong> ·{' '}
+            <strong>Thinking English™</strong> · 100% Free, Ad-Free &amp; Public Domain (CC0 1.0)
           </p>
           <p>
             💡 Pedagogical approach gratefully inspired by{' '}

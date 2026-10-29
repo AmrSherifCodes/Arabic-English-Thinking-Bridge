@@ -92,10 +92,10 @@ export function evaluateBadges(
   ];
 }
 
-export const TEACHER_WHATSAPP = '201111452785'; // country code + number, digits only
+export const TEACHER_WHATSAPP = ''; // Optional: set country code + digits locally; empty opens WhatsApp contact picker without exposing a personal number
 export const FEEDBACK_FORM_URL = 'https://forms.gle/QhXYEV3gEusYLnxf9'; // Google Form review link
 export const DEFAULT_SHARED_APP_URL =
-  'https://ais-pre-74fmo5haiiaoe46c3tfpbb-589911161083.europe-west3.run.app';
+  'https://ais-pre-qp3icj4ktcb7lwv2zyeyno-589911161083.europe-west3.run.app';
 
 export function feedbackMessage(
   rating: number,
@@ -109,7 +109,7 @@ export function feedbackMessage(
       .slice(0, 3)
       .map(x => x[0])
       .join(', ') || 'none';
-  return `Thinking English feedback\nRating: ${rating ? rating + '/5' : '-'}\nLessons done: ${p.completedLessonIds.length}/${lessonsTotal} · Score: ${p.score}\nHardest: ${weak}\n\n${text}\n\nReview Form: ${FEEDBACK_FORM_URL}`;
+  return `Thinking English™ feedback\nRating: ${rating ? rating + '/5' : '-'}\nLessons done: ${p.completedLessonIds.length}/${lessonsTotal} · Score: ${p.score}\nHardest: ${weak}\n\n${text}\n\nReview Form: ${FEEDBACK_FORM_URL}`;
 }
 
 export function buildFriendShareWhatsAppMessage(customAppUrl?: string): string {
@@ -119,21 +119,23 @@ export function buildFriendShareWhatsAppMessage(customAppUrl?: string): string {
       ? window.location.origin
       : DEFAULT_SHARED_APP_URL);
   return (
-    `🧠 *Thinking English: Arabic-to-English Transfer Journey*\n` +
-    `جرب تطبيق *Thinking English* لتعلم التفكير بالإنجليزية من منطق اللغة العربية بدون حفظ قوائم أو قواعد معقدة (من A1+ إلى C1) 🚀\n\n` +
+    `🧠 *Thinking English™: Arabic-to-English Transfer Journey*\n` +
+    `جرب تطبيق *Thinking English™* لتعلم التفكير بالإنجليزية من منطق اللغة العربية بدون حفظ قوائم أو قواعد معقدة (من A1+ إلى C1) 🚀\n\n` +
     `✨ *Try the app here / جرب التطبيق من هنا:*\n${origin}\n\n` +
     `📝 *Share your review & feedback / شاركنا رأيك وتقييمك بعد التجربة:*\n${FEEDBACK_FORM_URL}`
   );
 }
 
 export const waLink = (msg: string) =>
-  `https://wa.me/${TEACHER_WHATSAPP}?text=${encodeURIComponent(msg)}`;
+  TEACHER_WHATSAPP
+    ? `https://wa.me/${TEACHER_WHATSAPP}?text=${encodeURIComponent(msg)}`
+    : `https://wa.me/?text=${encodeURIComponent(msg)}`;
 
 export const waFriendShareLink = (msg: string) =>
   `https://wa.me/?text=${encodeURIComponent(msg)}`;
 
 export const mailLink = (msg: string) =>
-  `mailto:?subject=${encodeURIComponent('Thinking English feedback')}&body=${encodeURIComponent(msg)}`;
+  `mailto:?subject=${encodeURIComponent('Thinking English™ feedback')}&body=${encodeURIComponent(msg)}`;
 
 export function beep(ok: boolean, soundOn: boolean) {
   if (soundOn && typeof window !== 'undefined') {

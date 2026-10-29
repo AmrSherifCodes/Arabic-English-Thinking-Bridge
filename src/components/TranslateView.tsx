@@ -57,6 +57,9 @@ export function TranslateView({
           placeholder="اكتب هنا… / Type here…"
           className="w-full rounded-xl border border-stone-300 dark:border-stone-700 bg-transparent p-3"
         />
+        <p id="mymemory-privacy-note" className="text-[11px] opacity-75 mt-2">
+          🔒 <strong>Privacy note:</strong> Translations are sent to MyMemory.net. Don’t paste anything private.
+        </p>
         <div className="flex gap-2 mt-2">
           <button type="button" className={`${BTN_GHOST} flex-1`} onClick={onPaste}>
             📋 Paste
