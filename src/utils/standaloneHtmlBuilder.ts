@@ -23,7 +23,7 @@ I, Amr Sherif, am the original author of this repository and all of its
 contents, including:
 
 - \`Thinking-English.html\` — the interactive Arabic-to-English learning app
-- \`CONSTITUTION.md\` — the channel and project constitution
+- \`CONSTITUTION.md\` — the channel and project constitution (https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/blob/main/CONSTITUTION.md#comment-policy)
 - All lesson content, exercise data, and pedagogical structure
 - All scripts, translations, and source materials
 
@@ -31,10 +31,14 @@ The commit history of this repository constitutes a chronological,
 timestamped record of authorship. Every commit is permanently recorded
 by GitHub and cryptographically linked to its parent commits.
 
+## Privacy & Auditability
+
+No accounts. No analytics. Translation requests go to MyMemory.net only.
+
 ## Timeline
 
 - **First commit:** see the repository's commit history
-- **Constitution added:** commit \`b824f249efc369b5788005df6fb7be7a9c563feb\`
+- **Constitution added:** commit \`b824f249efc369b5788005df6fb7be7a9c563feb\` (\`blob/main/CONSTITUTION.md#comment-policy\`)
 - **This file added:** the commit that introduced \`PROVENANCE.md\`
 
 ## License
@@ -96,34 +100,37 @@ export function buildStandaloneHtmlString(): string {
   --kuffiyeh-line:rgba(67,90,45,0.055);
   --kuffiyeh-node:rgba(28,25,23,0.06);
   --sand-bg:#faf6ee;
+  --kuffiyeh-tile:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cg stroke='%231c1917' stroke-opacity='0.085' stroke-width='1.1' fill='none'%3E%3Cpath d='M0 0L64 64M64 0L0 64M-32 32L32 96M32 -32L96 32M32 -32L-32 32M96 32L32 96'/%3E%3C/g%3E%3Cg fill='%231c1917' fill-opacity='0.11'%3E%3Cellipse cx='0' cy='0' rx='2.5' ry='4.2'/%3E%3Cellipse cx='64' cy='0' rx='2.5' ry='4.2'/%3E%3Cellipse cx='0' cy='64' rx='2.5' ry='4.2'/%3E%3Cellipse cx='64' cy='64' rx='2.5' ry='4.2'/%3E%3Cellipse cx='32' cy='32' rx='2.5' ry='4.2'/%3E%3Cellipse cx='32' cy='0' rx='2.5' ry='4.2'/%3E%3Cellipse cx='32' cy='64' rx='2.5' ry='4.2'/%3E%3Cellipse cx='0' cy='32' rx='2.5' ry='4.2'/%3E%3Cellipse cx='64' cy='32' rx='2.5' ry='4.2'/%3E%3Cellipse cx='16' cy='16' rx='4.2' ry='2.4'/%3E%3Cellipse cx='48' cy='16' rx='4.2' ry='2.4'/%3E%3Cellipse cx='16' cy='48' rx='4.2' ry='2.4'/%3E%3Cellipse cx='48' cy='48' rx='4.2' ry='2.4'/%3E%3C/g%3E%3C/svg%3E");
+  --kuffiyeh-band:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='44' viewBox='0 0 32 44'%3E%3Cg fill='%231c1917' fill-opacity='0.14'%3E%3Crect x='0' y='0' width='32' height='2'/%3E%3Crect x='0' y='4' width='32' height='4'/%3E%3Crect x='0' y='10' width='32' height='1.5'/%3E%3Cpath d='M4 14 C9 17, 9 20, 4 23 C9 26, 9 29, 4 32 L8 32 C13 29, 13 26, 8 23 C13 20, 13 17, 8 14 Z'/%3E%3Cpath d='M20 14 C25 17, 25 20, 20 23 C25 26, 25 29, 20 32 L24 32 C29 29, 29 26, 24 23 C29 20, 29 17, 24 14 Z'/%3E%3Crect x='0' y='34.5' width='32' height='1.5'/%3E%3Crect x='0' y='38' width='32' height='4'/%3E%3C/g%3E%3C/svg%3E");
 }
 html.dark{
   --kuffiyeh-line:rgba(180,201,158,0.055);
   --kuffiyeh-node:rgba(245,245,244,0.05);
   --sand-bg:#141310;
+  --kuffiyeh-tile:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cg stroke='%23e7e5e4' stroke-opacity='0.07' stroke-width='1.1' fill='none'%3E%3Cpath d='M0 0L64 64M64 0L0 64M-32 32L32 96M32 -32L96 32M32 -32L-32 32M96 32L32 96'/%3E%3C/g%3E%3Cg fill='%23e7e5e4' fill-opacity='0.09'%3E%3Cellipse cx='0' cy='0' rx='2.5' ry='4.2'/%3E%3Cellipse cx='64' cy='0' rx='2.5' ry='4.2'/%3E%3Cellipse cx='0' cy='64' rx='2.5' ry='4.2'/%3E%3Cellipse cx='64' cy='64' rx='2.5' ry='4.2'/%3E%3Cellipse cx='32' cy='32' rx='2.5' ry='4.2'/%3E%3Cellipse cx='32' cy='0' rx='2.5' ry='4.2'/%3E%3Cellipse cx='32' cy='64' rx='2.5' ry='4.2'/%3E%3Cellipse cx='0' cy='32' rx='2.5' ry='4.2'/%3E%3Cellipse cx='64' cy='32' rx='2.5' ry='4.2'/%3E%3Cellipse cx='16' cy='16' rx='4.2' ry='2.4'/%3E%3Cellipse cx='48' cy='16' rx='4.2' ry='2.4'/%3E%3Cellipse cx='16' cy='48' rx='4.2' ry='2.4'/%3E%3Cellipse cx='48' cy='48' rx='4.2' ry='2.4'/%3E%3C/g%3E%3C/svg%3E");
+  --kuffiyeh-band:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='44' viewBox='0 0 32 44'%3E%3Cg fill='%23e7e5e4' fill-opacity='0.12'%3E%3Crect x='0' y='0' width='32' height='2'/%3E%3Crect x='0' y='4' width='32' height='4'/%3E%3Crect x='0' y='10' width='32' height='1.5'/%3E%3Cpath d='M4 14 C9 17, 9 20, 4 23 C9 26, 9 29, 4 32 L8 32 C13 29, 13 26, 8 23 C13 20, 13 17, 8 14 Z'/%3E%3Cpath d='M20 14 C25 17, 25 20, 20 23 C25 26, 25 29, 20 32 L24 32 C29 29, 29 26, 24 23 C29 20, 29 17, 24 14 Z'/%3E%3Crect x='0' y='34.5' width='32' height='1.5'/%3E%3Crect x='0' y='38' width='32' height='4'/%3E%3C/g%3E%3C/svg%3E");
 }
 html{scroll-padding-top:env(safe-area-inset-top,0px);-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%}
 body{
   font-family:Inter,system-ui,-apple-system,sans-serif;
   background-color:var(--sand-bg);
-  background-image:
-    radial-gradient(circle at 50% 50%,var(--kuffiyeh-node) 1.5px,transparent 2px),
-    radial-gradient(circle at 0% 0%,var(--kuffiyeh-node) 1.5px,transparent 2px),
-    radial-gradient(circle at 100% 0%,var(--kuffiyeh-node) 1.5px,transparent 2px),
-    radial-gradient(circle at 0% 100%,var(--kuffiyeh-node) 1.5px,transparent 2px),
-    radial-gradient(circle at 100% 100%,var(--kuffiyeh-node) 1.5px,transparent 2px),
-    repeating-linear-gradient(45deg,var(--kuffiyeh-line) 0px,var(--kuffiyeh-line) 1px,transparent 1px,transparent 18px),
-    repeating-linear-gradient(-45deg,var(--kuffiyeh-line) 0px,var(--kuffiyeh-line) 1px,transparent 1px,transparent 18px);
-  background-size:36px 36px;
+  background-image:var(--kuffiyeh-tile);
+  background-size:64px 64px;
   background-attachment:fixed;
   color:#1c1917;
   margin:0;
 }
 html.dark body{background-color:var(--sand-bg);color:#f5f5f4}
 .kuffiyeh-card-watermark{
-  background-image:
-    repeating-linear-gradient(45deg,var(--kuffiyeh-line) 0px,var(--kuffiyeh-line) 1px,transparent 1px,transparent 14px),
-    repeating-linear-gradient(-45deg,var(--kuffiyeh-line) 0px,var(--kuffiyeh-line) 1px,transparent 1px,transparent 14px);
+  background-image:var(--kuffiyeh-tile);
+  background-size:56px 56px;
+}
+.kuffiyeh-border-band{
+  height:44px;
+  width:100%;
+  background-image:var(--kuffiyeh-band);
+  background-repeat:repeat-x;
+  background-size:32px 44px;
 }
 .ar{font-family:Cairo,'Segoe UI',sans-serif}
 button,select{min-height:44px;touch-action:manipulation;cursor:pointer}

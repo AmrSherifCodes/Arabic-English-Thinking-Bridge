@@ -82,6 +82,11 @@ import {
   PAN_ARAB_UNITY_PHRASES,
   getNextUnityPhraseIndex
 } from './utils/culturalIdentity';
+import { useSpeech } from './hooks/useSpeech';
+import { useTimeLimit } from './hooks/useTimeLimit';
+import { useSubscriptionUnlock } from './hooks/useSubscriptionUnlock';
+import { BlockScreen } from './components/BlockScreen';
+import { PWAInstallButton } from './components/PWAInstallButton';
 
 export { CULTURAL_QUOTES, PAN_ARAB_NATIONS, CulturalToast, OliveBranchIcon };
 export const TEACHER_PIN = STORAGE_TEACHER_PIN;
@@ -234,6 +239,17 @@ async function translateSingleLine(rawLine: string): Promise<{ ar: string; en: s
 }
 
 export default function App() {
+  const { isBlocked, unlock } = useTimeLimit({ permanentUnlock: true });
+  const { verify, verifying, error } = useSubscriptionUnlock(unlock, isBlocked);
+  const speech = useSpeech({ defaultLang: 'en-US' });
+
+  useEffect(() => {
+    if (isBlocked) {
+      speech.abortListening();
+      speech.cancelSpeech();
+    }
+  }, [isBlocked, speech]);
+
   const [tab, setTab] = useState<TabIndex>(0);
   const [theme, setThemeState] = useState<'light' | 'dark'>(() => loadTheme());
   const [progress, setProgress] = useState<UserProgress>(() => loadUserProgress());
@@ -1331,7 +1347,9 @@ export default function App() {
     const slideLesson = ALL_LESSONS[presentationSlide] || ALL_LESSONS[0];
     const sampleEx = slideLesson.exercises[0];
     return (
-      <div className="min-h-screen bg-stone-950 text-stone-100 flex flex-col justify-between p-6 sm:p-12">
+      <>
+        <div inert={isBlocked}>
+          <div className="min-h-screen bg-stone-950 text-stone-100 flex flex-col justify-between p-6 sm:p-12">
         <div className="flex items-center justify-between border-b border-stone-800 pb-4">
           <div>
             <span className="text-xs uppercase tracking-widest text-teal-400 font-semibold">
@@ -1429,7 +1447,10 @@ export default function App() {
             Next Shift →
           </button>
         </div>
-      </div>
+          </div>
+        </div>
+        <BlockScreen isBlocked={isBlocked} onUnlock={verify} busy={verifying} error={error} />
+      </>
     );
   }
 
@@ -1455,65 +1476,68 @@ export default function App() {
     CULTURAL_QUOTES[cultureQuoteIdx % CULTURAL_QUOTES.length] || CULTURAL_QUOTES[0];
 
   return (
-    <div className="max-w-3xl mx-auto p-4">
-      {/* Header */}
-      <header className="flex items-center justify-between gap-2 mb-4">
-        <div className="min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h1 className="text-xl font-semibold flex items-center gap-1.5">
-              <span>🧠 Thinking English™</span>
-              <OliveBranchIcon
-                size={19}
-                className="text-olive-600 dark:text-olive-400"
-                title="Rooted like the olive tree · غصن الزيتون"
-              />
-            </h1>
-            <span className="text-xs font-medium text-olive-700 dark:text-olive-300">
-              · Lv.{levelInfo.levelNumber} {levelInfo.levelName}
-            </span>
-          </div>
-          <p className="text-xs opacity-75">
-            Arabic → English transfer journey · A1+ to C1
-          </p>
-          <p
-            id="header-pan-arab-subtext"
-            className="text-[11px] font-medium text-olive-700 dark:text-olive-300 mt-0.5 flex items-center gap-1.5 flex-wrap"
-          >
-            <span dir="rtl" className="ar font-bold">
-              {currentUnityPhrase.ar}
-            </span>
-            <span aria-hidden="true">·</span>
-            <span>{currentUnityPhrase.en}</span>
-          </p>
-        </div>
-        <div className="flex items-center gap-1.5 shrink-0">
-          <button
-            type="button"
-            id="cultural-olive-btn"
-            onClick={() => {
-              if (showCulture) {
-                setCultureQuoteIdx(prev => (prev + 1) % CULTURAL_QUOTES.length);
-              } else {
-                setShowCulture(true);
-                hasShownSessionCultureRef.current = true;
-              }
-            }}
-            aria-label="Show Pan-Arab olive heritage reflection"
-            title="Olive Tree & Pan-Arab Heritage Reflection (غصن الزيتون)"
-            className="rounded-full border border-olive-600/40 dark:border-olive-500/40 bg-olive-600/10 dark:bg-olive-500/15 px-3 py-1 text-sm flex items-center justify-center hover:bg-olive-600/20 cursor-pointer"
-          >
-            <OliveBranchIcon size={16} className="text-olive-700 dark:text-olive-300" />
-          </button>
-          <button
-            type="button"
-            id="download-html-header-btn"
-            onClick={handleDownloadOfflineHtml}
-            aria-label="Download standalone HTML file to send on WhatsApp"
-            title="Download self-contained Thinking-English.html file (works 100% offline)"
-            className="rounded-full bg-olive-700 dark:bg-olive-600 text-white px-3 py-1 text-xs font-semibold flex items-center justify-center gap-1 hover:bg-olive-800 cursor-pointer"
-          >
-            📥 HTML
-          </button>
+    <>
+      <div inert={isBlocked}>
+        <div className="max-w-3xl mx-auto p-4">
+          {/* Header */}
+          <header className="flex items-center justify-between gap-2 mb-4">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-xl font-semibold flex items-center gap-1.5">
+                  <span>🧠 Thinking English™</span>
+                  <OliveBranchIcon
+                    size={19}
+                    className="text-olive-600 dark:text-olive-400"
+                    title="Rooted like the olive tree · غصن الزيتون"
+                  />
+                </h1>
+                <span className="text-xs font-medium text-olive-700 dark:text-olive-300">
+                  · Lv.{levelInfo.levelNumber} {levelInfo.levelName}
+                </span>
+              </div>
+              <p className="text-xs opacity-75">
+                Arabic → English transfer journey · A1+ to C1
+              </p>
+              <p
+                id="header-pan-arab-subtext"
+                className="text-[11px] font-medium text-olive-700 dark:text-olive-300 mt-0.5 flex items-center gap-1.5 flex-wrap"
+              >
+                <span dir="rtl" className="ar font-bold">
+                  {currentUnityPhrase.ar}
+                </span>
+                <span aria-hidden="true">·</span>
+                <span>{currentUnityPhrase.en}</span>
+              </p>
+            </div>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <PWAInstallButton />
+              <button
+                type="button"
+                id="cultural-olive-btn"
+                onClick={() => {
+                  if (showCulture) {
+                    setCultureQuoteIdx(prev => (prev + 1) % CULTURAL_QUOTES.length);
+                  } else {
+                    setShowCulture(true);
+                    hasShownSessionCultureRef.current = true;
+                  }
+                }}
+                aria-label="Show Pan-Arab olive heritage reflection"
+                title="Olive Tree & Pan-Arab Heritage Reflection (غصن الزيتون)"
+                className="rounded-full border border-olive-600/40 dark:border-olive-500/40 bg-olive-600/10 dark:bg-olive-500/15 px-3 py-1 text-sm flex items-center justify-center hover:bg-olive-600/20 cursor-pointer"
+              >
+                <OliveBranchIcon size={16} className="text-olive-700 dark:text-olive-300" />
+              </button>
+              <button
+                type="button"
+                id="download-html-header-btn"
+                onClick={handleDownloadOfflineHtml}
+                aria-label="Download standalone HTML file to send on WhatsApp"
+                title="Download self-contained Thinking-English.html file (works 100% offline)"
+                className="rounded-full bg-olive-700 dark:bg-olive-600 text-white px-3 py-1 text-xs font-semibold flex items-center justify-center gap-1 hover:bg-olive-800 cursor-pointer"
+              >
+                📥 HTML
+              </button>
           <a
             href={waFriendShareLink(buildFriendShareWhatsAppMessage())}
             target="_blank"
@@ -1588,8 +1612,20 @@ export default function App() {
               <p>
                 • <strong>Public Release Security Hardened:</strong> Zero personal phone numbers in
                 source code, single-quote &amp; HTML entity escaping (<code>esc()</code>) +{' '}
-                <code>data-*</code> event delegation (zero self-XSS), and explicit MyMemory.net
-                privacy disclosure.
+                <code>data-*</code> event delegation (zero self-XSS), and{' '}
+                <a
+                  href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/blob/main/CONSTITUTION.md#comment-policy"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline text-olive-700 dark:text-olive-300"
+                >
+                  CONSTITUTION.md#comment-policy
+                </a>
+                .
+              </p>
+              <p>
+                • <strong>Honest Privacy Guarantee:</strong>{' '}
+                <em>No accounts. No analytics. Translation requests go to MyMemory.net only.</em>
               </p>
               <p>
                 • <strong>Isolated Storage &amp; IndexedDB Audio Vault:</strong> Every read/write
@@ -1940,14 +1976,24 @@ export default function App() {
           />
         )}
 
+        {/* Traditional Kuffiyeh Woven Olive-Leaf Border Band */}
+        <div
+          id="kuffiyeh-footer-band"
+          className="kuffiyeh-border-band mt-6 rounded-lg"
+          aria-hidden="true"
+        />
+
         {/* Inspiration & Alexandria Tribute Footer */}
         <footer
           id="tribute-footer"
-          className="mt-6 pt-4 border-t border-stone-200/80 dark:border-stone-800 text-center text-xs opacity-75 space-y-1"
+          className="mt-3 pt-4 border-t border-stone-200/80 dark:border-stone-800 text-center text-xs opacity-75 space-y-1"
         >
           <p>
             🌊 Crafted in <strong>Alexandria, Egypt</strong> by <strong>Amr Sherif</strong> ·{' '}
             <strong>Thinking English™</strong> · 100% Free, Ad-Free &amp; Public Domain (CC0 1.0)
+          </p>
+          <p>
+            🔒 <em>No accounts. No analytics. Translation requests go to MyMemory.net only.</em>
           </p>
           <p>
             💡 Pedagogical approach gratefully inspired by{' '}
@@ -2016,6 +2062,9 @@ export default function App() {
           {toastMsg}
         </div>
       )}
-    </div>
+        </div>
+      </div>
+      <BlockScreen isBlocked={isBlocked} onUnlock={verify} busy={verifying} error={error} />
+    </>
   );
 }

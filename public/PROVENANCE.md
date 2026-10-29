@@ -15,7 +15,7 @@ I, Amr Sherif, am the original author of this repository and all of its
 contents, including:
 
 - `Thinking-English.html` — the interactive Arabic-to-English learning app
-- `CONSTITUTION.md` — the channel and project constitution
+- `CONSTITUTION.md` — the channel and project constitution (https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/blob/main/CONSTITUTION.md#comment-policy)
 - All lesson content, exercise data, and pedagogical structure
 - All scripts, translations, and source materials
 
@@ -23,10 +23,14 @@ The commit history of this repository constitutes a chronological,
 timestamped record of authorship. Every commit is permanently recorded
 by GitHub and cryptographically linked to its parent commits.
 
+## Privacy & Auditability
+
+No accounts. No analytics. Translation requests go to MyMemory.net only.
+
 ## Timeline
 
 - **First commit:** see the repository's commit history
-- **Constitution added:** commit `b824f249efc369b5788005df6fb7be7a9c563feb`
+- **Constitution added:** commit `b824f249efc369b5788005df6fb7be7a9c563feb` (`blob/main/CONSTITUTION.md#comment-policy`)
 - **This file added:** the commit that introduced `PROVENANCE.md`
 
 ## License

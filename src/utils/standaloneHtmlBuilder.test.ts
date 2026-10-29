@@ -43,12 +43,25 @@ test('standalone HTML includes MyMemory.net privacy disclosure and Thinking Engl
 test('standalone HTML includes the Kuffiyeh & olive-knot stationery background variables', () => {
   const html = buildStandaloneHtmlString();
   assert.ok(html.includes('--kuffiyeh-line:rgba(67,90,45,0.055)'));
+  assert.ok(html.includes('--kuffiyeh-tile:url("data:image/svg+xml'));
+  assert.ok(html.includes('--kuffiyeh-band:url("data:image/svg+xml'));
   assert.ok(html.includes('--sand-bg:#faf6ee'));
   assert.ok(html.includes('--sand-bg:#141310'));
 });
 
-test('PROVENANCE.md includes Amr Sherif authorship, Alexandria Egypt, and constitution commit hash', () => {
+test('PROVENANCE.md includes Amr Sherif authorship, Alexandria Egypt, constitution link, and honest privacy note', () => {
   assert.ok(PROVENANCE_MD_CONTENT.includes('**Amr Sherif** — Alexandria, Egypt'));
   assert.ok(PROVENANCE_MD_CONTENT.includes('b824f249efc369b5788005df6fb7be7a9c563feb'));
+  assert.ok(
+    PROVENANCE_MD_CONTENT.includes(
+      'https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/blob/main/CONSTITUTION.md#comment-policy'
+    )
+  );
+  assert.ok(
+    PROVENANCE_MD_CONTENT.includes(
+      'No accounts. No analytics. Translation requests go to MyMemory.net only.'
+    )
+  );
   assert.ok(PROVENANCE_MD_CONTENT.includes('Thinking English™'));
 });
+
