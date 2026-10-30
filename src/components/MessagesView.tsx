@@ -78,8 +78,14 @@ export function MessagesView() {
       }
     );
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUserEmail(getSessionEmail(session));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      const nextEmail = getSessionEmail(session);
+      setUserEmail(prevEmail => {
+        if (prevEmail && !nextEmail && event === 'SIGNED_OUT') {
+          setToast('Admin session ended. Please sign in again.');
+        }
+        return nextEmail;
+      });
     });
 
     return () => {
@@ -209,11 +215,15 @@ export function MessagesView() {
     setIsLoading(true);
     setError('');
     try {
-      const { error: deleteError } = await getSupabaseClient()
+      const { data, error: deleteError } = await getSupabaseClient()
         .from('messages')
         .delete()
-        .eq('id', id);
+        .eq('id', id)
+        .select('id');
       if (deleteError) throw deleteError;
+      if (!data || data.length === 0) {
+        throw new Error('Message was not deleted (session expired or blocked by RLS).');
+      }
       setMessages(current => current.filter(item => item.id !== id));
     } catch (deleteError) {
       console.error('Could not delete message from Supabase.', deleteError);

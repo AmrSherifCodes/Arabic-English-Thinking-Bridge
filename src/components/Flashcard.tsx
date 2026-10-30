@@ -32,11 +32,11 @@ export function Flashcard({ front, back, isFlipped, onFlip }: FlashcardProps) {
 
   return (
     <div
-      className="flashcard-perspective relative mx-auto h-[320px] w-full max-w-2xl md:h-[360px]"
+      className="flashcard-perspective relative mx-auto w-full max-w-2xl"
       style={{ perspective: '1200px' }}
     >
       <div
-        className="flashcard-inner absolute inset-0"
+        className="flashcard-inner grid w-full grid-cols-1 [grid-template-areas:'card'] cursor-pointer select-none"
         role="button"
         tabIndex={0}
         aria-pressed={isFlipped}
@@ -49,30 +49,32 @@ export function Flashcard({ front, back, isFlipped, onFlip }: FlashcardProps) {
         onKeyDown={handleKeyDown}
         style={{
           transformStyle: 'preserve-3d',
-          transition: 'transform 500ms',
+          WebkitTransformStyle: 'preserve-3d',
+          transition: 'transform 500ms cubic-bezier(0.22, 1, 0.36, 1)',
           transform: `rotateY(${isFlipped ? 180 : 0}deg)`
         }}
       >
         <div
-          className="flashcard-face absolute inset-0 h-full w-full overflow-y-auto"
+          className="flashcard-face [grid-area:card] flex min-h-[240px] sm:min-h-[280px] w-full flex-col justify-center"
           aria-hidden={isFlipped}
           inert={isFlipped}
           style={{
             backfaceVisibility: 'hidden',
             WebkitBackfaceVisibility: 'hidden',
+            transform: 'rotateY(0deg) translateZ(1px)',
             pointerEvents: isFlipped ? 'none' : 'auto'
           }}
         >
           {front}
         </div>
         <div
-          className="flashcard-face flashcard-back absolute inset-0 h-full w-full overflow-y-auto"
+          className="flashcard-face flashcard-back [grid-area:card] flex min-h-[240px] sm:min-h-[280px] w-full flex-col justify-center"
           aria-hidden={!isFlipped}
           inert={!isFlipped}
           style={{
-            transform: 'rotateY(180deg)',
             backfaceVisibility: 'hidden',
             WebkitBackfaceVisibility: 'hidden',
+            transform: 'rotateY(180deg) translateZ(1px)',
             pointerEvents: isFlipped ? 'auto' : 'none'
           }}
         >

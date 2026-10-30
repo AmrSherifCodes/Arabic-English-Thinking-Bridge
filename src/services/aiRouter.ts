@@ -1,8 +1,8 @@
 import type { TutorContext } from './geminiLexicon';
-import { generateTutorResponse } from './geminiLexicon';
+import { generateTutorResponse, LexiconError } from './geminiLexicon';
 import { STATIC_DICTIONARY } from '../data/staticDictionary';
 
-function getOfflineAnswer(prompt: string, context: TutorContext): string {
+function getOfflineAnswer(prompt: string, context: TutorContext, reason?: string): string {
   const entry =
     context.currentWord ??
     STATIC_DICTIONARY.find(candidate =>
@@ -11,14 +11,18 @@ function getOfflineAnswer(prompt: string, context: TutorContext): string {
         prompt.toLocaleLowerCase().includes(candidate.englishTranslation.toLocaleLowerCase()))
     );
 
+  const prefix = reason ? `(${reason} Showing offline dictionary match:) ` : '';
+
   if (entry) {
     return (
-      `${entry.arabicWord} means “${entry.englishTranslation}”. ` +
+      `${prefix}${entry.arabicWord} means “${entry.englishTranslation}”. ` +
       `Example: ${entry.exampleSentenceArabic} — ${entry.exampleSentenceEnglish}`
     );
   }
 
-  return 'I need an internet connection and an API key to answer that right now. You can ask me about a word in your flashcards or static vocabulary.';
+  return reason
+    ? `${reason} Please try again in a minute, or ask about a flashcard word.`
+    : 'I need an internet connection and an API key to answer that right now. You can ask me about a word in your flashcards or static vocabulary.';
 }
 
 export async function askAIHelper(
@@ -36,7 +40,13 @@ export async function askAIHelper(
 
   try {
     return await generateTutorResponse(question, context);
-  } catch {
+  } catch (err) {
+    if (err instanceof LexiconError && err.code === 'rate-limited') {
+      return getOfflineAnswer(question, context, 'AI tutor is cooling down due to high traffic.');
+    }
+    if (err instanceof LexiconError && err.code === 'timeout') {
+      return getOfflineAnswer(question, context, 'AI tutor timed out.');
+    }
     return getOfflineAnswer(question, context);
   }
 }

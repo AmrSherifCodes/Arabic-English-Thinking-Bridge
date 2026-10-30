@@ -4,6 +4,8 @@ import type { UserProfile } from '../hooks/useUserProfile';
 import { isValidEntry } from '../data/staticDictionary';
 
 export const MASTER_DICTIONARY_STORAGE_KEY = 'tb.masterDictionary';
+const MAX_LOCALSTORAGE_ENTRIES = 1500;
+const DICTIONARY_FETCH_TIMEOUT_MS = 15_000;
 
 const LEVEL_RANK: Record<DifficultyLevel, number> = {
   beginner: 0,
@@ -56,7 +58,8 @@ function readCachedDictionary(): LexiconEntry[] {
 function cacheDictionary(entries: LexiconEntry[]): void {
   if (typeof window === 'undefined') return;
   try {
-    window.localStorage.setItem(MASTER_DICTIONARY_STORAGE_KEY, JSON.stringify(entries));
+    const sliceToCache = entries.slice(0, MAX_LOCALSTORAGE_ENTRIES);
+    window.localStorage.setItem(MASTER_DICTIONARY_STORAGE_KEY, JSON.stringify(sliceToCache));
   } catch (error) {
     console.warn('Could not save the master dictionary to localStorage.', error);
   }
@@ -67,6 +70,7 @@ export function useMasterDictionary(): { entries: LexiconEntry[] } {
 
   useEffect(() => {
     const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), DICTIONARY_FETCH_TIMEOUT_MS);
 
     async function loadDictionary() {
       try {
@@ -93,11 +97,16 @@ export function useMasterDictionary(): { entries: LexiconEntry[] } {
       } catch (error) {
         if (controller.signal.aborted) return;
         console.warn('Could not load the master dictionary; using cached or static entries.', error);
+      } finally {
+        window.clearTimeout(timeoutId);
       }
     }
 
     void loadDictionary();
-    return () => controller.abort();
+    return () => {
+      window.clearTimeout(timeoutId);
+      controller.abort();
+    };
   }, []);
 
   return { entries };

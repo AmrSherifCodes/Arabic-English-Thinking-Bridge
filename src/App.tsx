@@ -1307,6 +1307,11 @@ export default function App() {
         speechRecRef.current?.stop();
       } catch {}
       setIsRecordingPron(false);
+      setPronResultText(prev =>
+        prev.startsWith('Listening…')
+          ? 'Recording saved. Compare your pronunciation with the native audio below.'
+          : prev
+      );
       return;
     }
 
@@ -1340,7 +1345,14 @@ export default function App() {
           setPronWordMatches(wordDiff);
           setPronResultText(`Heard: “${rawTranscript}” · ${pct}% of target words matched`);
         };
-        sr.start();
+        sr.onerror = () => {
+          setPronResultText(
+            'Recording your voice… (Live word-matching unavailable on this device; compare by ear when stopped.)'
+          );
+        };
+        try {
+          sr.start();
+        } catch {}
       } else {
         setPronResultText(
           'Recording… (speech recognition isn’t available in this browser, so compare by ear when stopped.)'
@@ -1907,7 +1919,7 @@ export default function App() {
         id="v"
         className={`mx-auto min-h-0 w-full ${
           activeTab === 'cards' ? 'max-w-2xl' : 'max-w-md'
-        } flex-1 overflow-y-auto p-4 pb-24`}
+        } flex-1 overflow-y-auto p-4 pb-[calc(6rem+env(safe-area-inset-bottom,0px))]`}
       >
       {/* Amr Sherif Dedication & Teacher Broadcast Banner */}
       {(activeTab === 'home' || activeTab === 'lessons' || activeTab === 'hub') &&

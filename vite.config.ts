@@ -54,17 +54,26 @@ export default defineConfig(({ mode }) => {
         },
         workbox: {
           maximumFileSizeToCacheInBytes: 8 * 1024 * 1024,
-          globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+          globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,json}'],
           navigateFallback: `${BASE}index.html`,
           cleanupOutdatedCaches: true,
           runtimeCaching: [
             { urlPattern: ({ url }) => url.hostname === 'generativelanguage.googleapis.com', handler: 'NetworkOnly' },
+            {
+              urlPattern: ({ url }) =>
+                url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com',
+              handler: 'CacheFirst',
+              options: {
+                cacheName: 'google-fonts-cache',
+                expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 },
+              },
+            },
           ],
         },
         devOptions: { enabled: false },
       }),
     ],
-    resolve: { alias: { '@': path.resolve(__dirname, '.') } },
+    resolve: { alias: { '@': path.resolve(import.meta.dirname, '.') } },
     server: { port: 3000, strictPort: true },
   };
 });

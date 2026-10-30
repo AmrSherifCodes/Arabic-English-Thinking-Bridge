@@ -9,6 +9,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "generate:dictionary": "node generate-dictionary.js",
+    "build:dictionary": "node build-dictionary-from-sources.js",
     "clean:dictionary": "node clean-dictionary.js",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit"
