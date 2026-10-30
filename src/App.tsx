@@ -101,6 +101,7 @@ import { filterDictionaryForProfile, useMasterDictionary } from './services/dict
 import { WhyEnglishView } from './components/WhyEnglishView';
 import { useTheme } from './hooks/useTheme';
 import { MessagesView } from './components/MessagesView';
+import { LandingView } from './components/LandingView';
 
 export { CULTURAL_QUOTES, PAN_ARAB_NATIONS, CulturalToast, OliveBranchIcon };
 export const TEACHER_PIN = STORAGE_TEACHER_PIN;
@@ -1490,7 +1491,7 @@ export default function App() {
   const latestBroadcast = broadcasts[0];
   const vaultAudit = getVaultAuditSnapshot(progress);
 
-  if (profile === null || showOnboarding) {
+  if (showOnboarding) {
     return (
       <>
         <Onboarding
@@ -1504,6 +1505,10 @@ export default function App() {
         <BlockScreen isBlocked={isBlocked} onUnlock={verify} busy={verifying} error={error} />
       </>
     );
+  }
+
+  if (profile === null) {
+    return <LandingView onStartWebApp={() => setShowOnboarding(true)} />;
   }
 
   // Presentation Mode Modal for Training Meetings
