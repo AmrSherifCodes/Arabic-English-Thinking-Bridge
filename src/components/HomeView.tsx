@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { BookOpen, CalendarDays, Layers, MessageCircle, MessageSquare, Mic } from 'lucide-react';
+import { BookOpen, CalendarDays, Github, Heart, Layers, Linkedin, MessageCircle, MessageSquare, Mic } from 'lucide-react';
 import { UserProfile } from '../hooks/useUserProfile';
 import { isArabicUI, uiText } from '../utils/i18n';
 
@@ -242,6 +242,59 @@ export function HomeView({ profile, onNavigate, onOpenWhyEnglish }: HomeViewProp
           );
         })}
       </div>
+
+      {/* Creator Attribution & Social Footer */}
+      <footer
+        dir="ltr"
+        className="mt-6 rounded-2xl border border-slate-200/80 bg-white/80 p-4 text-xs text-slate-600 shadow-xs dark:border-slate-700/80 dark:bg-slate-800/60 dark:text-slate-300"
+      >
+        <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">
+          <div className="flex items-center gap-3">
+            <img
+              src="/amr.jpg"
+              alt="Amr Sherif"
+              className="h-10 w-10 rounded-full border-2 border-orange-500/80 object-cover object-top"
+            />
+            <div>
+              <p className="font-semibold text-slate-900 dark:text-white">
+                Built with ❤️ by Amr Sherif
+              </p>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                © 2026 Thinking English.
+              </p>
+            </div>
+          </div>
+          <nav aria-label="Creator social links" className="flex flex-wrap items-center gap-4">
+            <a
+              href="https://www.linkedin.com/in/sciamrsherif-abdelaal/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 font-semibold text-slate-700 transition hover:text-orange-600 dark:text-slate-200 dark:hover:text-orange-400"
+            >
+              <Linkedin size={14} aria-hidden="true" />
+              <span>LinkedIn</span>
+            </a>
+            <a
+              href="https://github.com/AmrSherifCodes"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 font-semibold text-slate-700 transition hover:text-orange-600 dark:text-slate-200 dark:hover:text-orange-400"
+            >
+              <Github size={14} aria-hidden="true" />
+              <span>GitHub</span>
+            </a>
+            <a
+              href="https://www.patreon.com/c/SciAmrSherif"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 font-semibold text-slate-700 transition hover:text-orange-600 dark:text-slate-200 dark:hover:text-orange-400"
+            >
+              <Heart size={14} aria-hidden="true" />
+              <span>Patreon</span>
+            </a>
+          </nav>
+        </div>
+      </footer>
     </section>
   );
 }
