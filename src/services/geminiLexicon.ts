@@ -78,12 +78,12 @@ export function normalizeEntry(raw: unknown): LexiconEntry | null {
 
 const TIMEOUT_MS = 20_000;
 const DIRECT_MODELS = [
-  'gemini-3.8-flash',
-  'gemini-3.8-flash-lite',
-  'gemini-3-flash-preview',
-  'gemini-2.5-flash-lite',
-  'gemini-2.5-flash',
-  'gemini-2.0-flash',
+  'gemini-3.5-flash-lite',
+  'gemini-flash-lite-latest',
+  'gemini-3.5-flash',
+  'gemini-3.6-flash',
+  'gemini-1.5-flash',
+  'gemini-1.5-flash-8b',
 ] as const;
 
 const directEntryProperties = {
