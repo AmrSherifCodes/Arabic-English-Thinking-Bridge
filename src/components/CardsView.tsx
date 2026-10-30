@@ -1,7 +1,9 @@
 import React from 'react';
 import confetti from 'canvas-confetti';
 import { PrebuiltDeck } from '../data/prebuiltDecks';
+import type { UserProfile } from '../hooks/useUserProfile';
 import { speakWithRate } from '../utils/audio';
+import { isArabicUI, uiText } from '../utils/i18n';
 import { InteractiveArabicSentence } from './InteractiveArabicSentence';
 import { Flashcard } from './Flashcard';
 import { OliveBranchIcon } from './CulturalToast';
@@ -17,6 +19,7 @@ import {
 } from './uiConstants';
 
 export interface DeckListViewProps {
+  profile?: UserProfile | null;
   coreDecks: DeckDefinition[];
   expandedDecks: PrebuiltDeck[];
   prebuiltDecks: PrebuiltDeck[];
@@ -35,6 +38,7 @@ export interface DeckListViewProps {
  * - Core Decks + Prebuilt Master Decks (150 Cards) + Open Source Decks (100% Copyright-Free CC0)
  */
 export function DeckListView({
+  profile,
   coreDecks,
   expandedDecks,
   prebuiltDecks,
@@ -45,6 +49,10 @@ export function DeckListView({
   onDownloadAllExpandedDecks,
   onOpenAttribution
 }: DeckListViewProps) {
+  const rtl = isArabicUI(profile?.language);
+  const t = (en: string, ar: string) => uiText(profile?.language, en, ar);
+  const isEgyptianOnly = profile?.dialect === 'egyptian';
+
   const allStats = getDeckStats('all');
   const totalDueOrNew = allStats.newCount + allStats.learningCount + allStats.dueCount;
   const customStats = getDeckStats('custom');
@@ -79,7 +87,7 @@ export function DeckListView({
               type="button"
               id={`attr-btn-${deck.id}`}
               aria-label={`Attribution info for ${deck.name}`}
-              title="Public domain license & attribution"
+              title={t('Public domain license & attribution', 'معلومات الترخيص والمصدر')}
               onClick={e => {
                 e.stopPropagation();
                 onOpenAttribution(deck);
@@ -91,12 +99,11 @@ export function DeckListView({
           </div>
           <p className="text-xs opacity-75 mt-0.5 leading-relaxed">{deck.description}</p>
           <div className="text-[11px] opacity-60 mt-1">
-            {deck.author} · {deck.license} · {deck.cards.length} cards
+            {deck.author} · {deck.license} · {deck.cards.length} {t('cards', 'بطاقة')}
           </div>
         </div>
 
         <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
-          {/* Anki 3-Column Stats always visible so user sees New (Blue) card volume */}
           <div
             onClick={() => {
               if (isDownloaded) onSelectDeck(deck.id);
@@ -118,7 +125,7 @@ export function DeckListView({
                   ? 'text-sky-700 dark:text-sky-400'
                   : 'text-slate-400 dark:text-slate-600'
               }
-              title="New cards"
+              title={t('New cards', 'بطاقات جديدة')}
             >
               {st.newCount}
             </span>
@@ -128,7 +135,7 @@ export function DeckListView({
                   ? 'text-red-700 dark:text-red-400'
                   : 'text-slate-400 dark:text-slate-600'
               }
-              title="Learning cards"
+              title={t('Learning cards', 'بطاقات قيد التعلم')}
             >
               {st.learningCount}
             </span>
@@ -138,7 +145,7 @@ export function DeckListView({
                   ? 'text-emerald-700 dark:text-emerald-400'
                   : 'text-slate-400 dark:text-slate-600'
               }
-              title="Due cards"
+              title={t('Due cards', 'بطاقات مستحقة')}
             >
               {st.dueCount}
             </span>
@@ -151,7 +158,7 @@ export function DeckListView({
               onClick={() => onSelectDeck(deck.id)}
               className={BTN_PRIMARY}
             >
-              Study
+              {t('Study', 'ادرس')}
             </button>
           ) : (
             <button
@@ -160,7 +167,7 @@ export function DeckListView({
               onClick={() => onDownloadDeck(deck)}
               className={BTN_PRIMARY + ' shrink-0'}
             >
-              ⬇ Download ({deck.cards.length})
+              ⬇ {t('Download', 'تحميل')} ({deck.cards.length})
             </button>
           )}
         </div>
@@ -169,31 +176,38 @@ export function DeckListView({
   };
 
   return (
-    <div id="anki-deck-list" className="space-y-5">
+    <div id="anki-deck-list" dir={rtl ? 'rtl' : 'ltr'} className="space-y-5">
       {/* Top Aggregated Study Banner */}
       <div className={`${CARD_CLASS} flex flex-col sm:flex-row sm:items-center justify-between gap-3`}>
         <div>
           <div className="text-xs font-semibold text-olive-800 dark:text-olive-300 flex items-center gap-1.5">
             <OliveBranchIcon size={15} className="text-olive-700 dark:text-olive-400" />
-            <span>Anki Spaced Repetition Dashboard · 100% Copyright-Free (CC0)</span>
+            <span>
+              {t(
+                'Anki Spaced Repetition Dashboard · Free & Open Source',
+                'لوحة التكرار المتباعد الذكية · مجانية ومفتوحة المصدر'
+              )}
+            </span>
           </div>
           <div className="text-sm opacity-85 mt-0.5 flex flex-wrap items-center gap-3 tabular-nums">
             <span>
-              New: <strong className="text-sky-700 dark:text-sky-400">{allStats.newCount}</strong>
+              {t('New:', 'جديد:')}{' '}
+              <strong className="text-sky-700 dark:text-sky-400">{allStats.newCount}</strong>
             </span>
             <span>·</span>
             <span>
-              Learning:{' '}
+              {t('Learning:', 'قيد التعلم:')}{' '}
               <strong className="text-red-700 dark:text-red-400">{allStats.learningCount}</strong>
             </span>
             <span>·</span>
             <span>
-              Due:{' '}
+              {t('Due:', 'مستحق:')}{' '}
               <strong className="text-emerald-700 dark:text-emerald-400">{allStats.dueCount}</strong>
             </span>
             <span>·</span>
             <span className="text-xs opacity-75">
-              Total Active Pool: <strong>{allStats.totalCards}</strong> cards
+              {t('Total Active Pool:', 'إجمالي البطاقات المتاحة:')}{' '}
+              <strong>{allStats.totalCards}</strong> {t('cards', 'بطاقة')}
             </span>
           </div>
         </div>
@@ -204,18 +218,25 @@ export function DeckListView({
           onClick={() => onSelectDeck('all')}
           className={BTN_PRIMARY + ' whitespace-nowrap'}
         >
-          ⚡ Study All Due Cards ({totalDueOrNew})
+          ⚡ {t('Study All Due Cards', 'ابدأ مراجعة البطاقات المستحقة')} ({totalDueOrNew})
         </button>
       </div>
 
       {/* Core Decks Section */}
       <div>
         <div className="flex items-center justify-between px-2 mb-2 text-xs font-semibold opacity-65">
-          <span>Core Curriculum Decks</span>
+          <span>
+            {isEgyptianOnly
+              ? t(
+                  'Egyptian Arabic (Ammiya) Decks 🇪🇬',
+                  'مجموعات العامية المصرية المخصصة 🇪🇬'
+                )
+              : t('Core Curriculum Decks', 'المجموعات الأساسية للمنهج')}
+          </span>
           <div className="grid grid-cols-3 gap-3 text-right w-36">
-            <span className="text-sky-700 dark:text-sky-400">New</span>
-            <span className="text-red-700 dark:text-red-400">Learn</span>
-            <span className="text-emerald-700 dark:text-emerald-400">Due</span>
+            <span className="text-sky-700 dark:text-sky-400">{t('New', 'جديد')}</span>
+            <span className="text-red-700 dark:text-red-400">{t('Learn', 'تعلم')}</span>
+            <span className="text-emerald-700 dark:text-emerald-400">{t('Due', 'مستحق')}</span>
           </div>
         </div>
 
@@ -229,7 +250,9 @@ export function DeckListView({
                 type="button"
                 id={`deck-card-${deck.id}`}
                 onClick={() => onSelectDeck(deck.id)}
-                className={`${CARD_CLASS} !mb-0 w-full text-left flex items-center justify-between gap-3 hover:border-olive-600 dark:hover:border-olive-500 transition-colors`}
+                className={`${CARD_CLASS} !mb-0 w-full ${
+                  rtl ? 'text-right' : 'text-left'
+                } flex items-center justify-between gap-3 hover:border-olive-600 dark:hover:border-olive-500 transition-colors`}
               >
                 <div className="min-w-0 pr-2">
                   <div className="font-semibold text-base truncate flex items-center gap-1.5">
@@ -238,13 +261,19 @@ export function DeckListView({
                       <OliveBranchIcon
                         size={15}
                         className="text-olive-700 dark:text-olive-400"
-                        title="Plant your first custom card in the Translate tab"
+                        title={t(
+                          'Plant your first custom card in the Translate tab',
+                          'أضف أول بطاقة خاصة بك من تبويب الترجمة'
+                        )}
                       />
                     )}
                   </div>
                   <div className="text-xs opacity-70 truncate mt-0.5">
                     {isEmptyCustom
-                      ? 'Empty deck · Plant your first custom translation seed in the Translate tab'
+                      ? t(
+                          'Empty deck · Plant your first custom translation seed in the Translate tab',
+                          'مجموعة فارغة · احفظ أول جملة أو كلمة خاصة بك من تبويب الترجمة'
+                        )
                       : deck.subtitle}
                   </div>
                 </div>
@@ -291,50 +320,62 @@ export function DeckListView({
           >
             <OliveBranchIcon size={18} className="text-olive-700 dark:text-olive-400" />
             <span className="opacity-85">
-              <strong>My Custom Translations</strong> is ready for your own sentences — save any phrase from the{' '}
-              <strong>Translate</strong> tab to grow your personal olive grove of cards.
+              {t(
+                'My Custom Translations is ready for your own sentences — save any phrase from the Translate tab to grow your personal olive grove of cards.',
+                'مجموعة «ترجماتي الخاصة» جاهزة لجملك المفضلة — احفظ أي عبارة من تبويب الترجمة لتبني مجموعتك الخاصة.'
+              )}
             </span>
           </div>
         )}
       </div>
 
-      {/* Prebuilt Master Decks (150 Cards across 4 Thematic Decks) */}
-      <div id="prebuilt-master-decks-section">
-        <div className="flex flex-wrap items-center justify-between gap-2 px-2 mb-2">
-          <div>
-            <span className="text-xs font-semibold opacity-75">
-              Prebuilt Master Decks (150 Cards · CEFR A1–B2 · CC0 Public Domain)
-            </span>
+      {/* Prebuilt Master Decks & Starter Decks (Shown only for MSA so Egyptian learners never see MSA cards) */}
+      {!isEgyptianOnly && (
+        <>
+          <div id="prebuilt-master-decks-section">
+            <div className="flex flex-wrap items-center justify-between gap-2 px-2 mb-2">
+              <div>
+                <span className="text-xs font-semibold opacity-75">
+                  {t(
+                    'Prebuilt Master Decks (150 Cards · CEFR A1–B2 · CC0 Public Domain)',
+                    'مجموعات الإتقان الجاهزة (150 بطاقة · المستويات A1–B2 · ملكية عامة CC0)'
+                  )}
+                </span>
+              </div>
+              {undownloadedExpandedCount > 0 && (
+                <button
+                  type="button"
+                  id="download-all-master-decks-btn"
+                  onClick={onDownloadAllExpandedDecks}
+                  className="text-xs font-semibold text-olive-800 dark:text-olive-300 underline !min-h-[32px]"
+                >
+                  ⬇ {t('Download All 4 Master Decks', 'تحميل المجموعات الأربع كاملة')} (+
+                  {undownloadedExpandedCount} {t('Cards', 'بطاقة')})
+                </button>
+              )}
+            </div>
+
+            <div className="space-y-2.5">{expandedDecks.map(renderPrebuiltDeckRow)}</div>
           </div>
-          {undownloadedExpandedCount > 0 && (
-            <button
-              type="button"
-              id="download-all-master-decks-btn"
-              onClick={onDownloadAllExpandedDecks}
-              className="text-xs font-semibold text-olive-800 dark:text-olive-300 underline !min-h-[32px]"
-            >
-              ⬇ Download All 4 Master Decks (+{undownloadedExpandedCount} Cards)
-            </button>
-          )}
-        </div>
 
-        <div className="space-y-2.5">{expandedDecks.map(renderPrebuiltDeckRow)}</div>
-      </div>
+          <div>
+            <div className="flex items-center justify-between px-2 mb-2 text-xs font-semibold opacity-65">
+              <span>
+                {t('Starter & Public Domain Community Decks', 'مجموعات البداية والمجتمع المفتوحة')}
+              </span>
+              <span className="text-[11px] font-normal">CC0 1.0 Public Domain</span>
+            </div>
 
-      {/* Open Source & Starter Public Domain Decks Section */}
-      <div>
-        <div className="flex items-center justify-between px-2 mb-2 text-xs font-semibold opacity-65">
-          <span>Starter & Public Domain Community Decks</span>
-          <span className="text-[11px] font-normal">CC0 1.0 Public Domain (100% Copyright-Free)</span>
-        </div>
-
-        <div className="space-y-2.5">{prebuiltDecks.map(renderPrebuiltDeckRow)}</div>
-      </div>
+            <div className="space-y-2.5">{prebuiltDecks.map(renderPrebuiltDeckRow)}</div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
 
 export interface ReviewViewProps {
+  profile?: UserProfile | null;
   deckName: string;
   deckStats: DeckStats;
   activeQueue: string[];
@@ -354,11 +395,9 @@ export interface ReviewViewProps {
 
 /**
  * Anki-Style Review Experience (Noob-Friendly + Addictive Dopamine Feedback)
- * - Header: Deck name, New (Blue) + Learning (Red) + Due (Green) counts, Mystery Chest progress, and Undo (↩️) button
- * - Card Area: Arabic front (with double-tap word lookup) + English back + color-coded breakdown
- * - Answer Buttons: Beginner-friendly bilingual labels + Anki intervals
  */
 export function ReviewView({
+  profile,
   deckName,
   deckStats,
   activeQueue,
@@ -377,9 +416,12 @@ export function ReviewView({
 }: ReviewViewProps) {
   const currentKey = activeQueue[0];
   const winsToChest = 3 - (comboCount % 3);
+  const rtl = isArabicUI(profile?.language);
+  const t = (en: string, ar: string) => uiText(profile?.language, en, ar);
+  const isEgyptian = profile?.dialect === 'egyptian';
 
   return (
-    <div id="anki-review-view" className="mx-auto w-full max-w-2xl">
+    <div id="anki-review-view" dir={rtl ? 'rtl' : 'ltr'} className="mx-auto w-full max-w-2xl">
       {/* Review Header */}
       <div className="flex items-center justify-between gap-2 mb-3">
         <div className="flex items-center gap-2 min-w-0">
@@ -389,25 +431,31 @@ export function ReviewView({
             onClick={onBackToDecks}
             className={BTN_GHOST + ' !px-3 !py-1.5 text-xs shrink-0'}
           >
-            ← Decks
+            {t('← Decks', '→ المجموعات')}
           </button>
           <div className="min-w-0">
             <div className="font-semibold text-sm truncate">{deckName}</div>
             <div className="text-xs font-bold tabular-nums flex items-center gap-1.5">
-              <span className="text-sky-700 dark:text-sky-400" title="New cards">
+              <span className="text-sky-700 dark:text-sky-400" title={t('New cards', 'بطاقات جديدة')}>
                 {deckStats.newCount}
               </span>
               <span className="opacity-40">+</span>
-              <span className="text-red-700 dark:text-red-400" title="Learning cards">
+              <span
+                className="text-red-700 dark:text-red-400"
+                title={t('Learning cards', 'بطاقات قيد التعلم')}
+              >
                 {deckStats.learningCount}
               </span>
               <span className="opacity-40">+</span>
-              <span className="text-emerald-700 dark:text-emerald-400" title="Due review cards">
+              <span
+                className="text-emerald-700 dark:text-emerald-400"
+                title={t('Due review cards', 'بطاقات مستحقة')}
+              >
                 {deckStats.dueCount}
               </span>
               <span className="opacity-40">·</span>
               <span className="text-amber-700 dark:text-amber-400 font-semibold">
-                🎁 {winsToChest} to Chest
+                🎁 {t(`${winsToChest} to Chest`, `باقي ${winsToChest} للصندوق`)}
               </span>
             </div>
           </div>
@@ -418,11 +466,11 @@ export function ReviewView({
           id="anki-undo-btn"
           disabled={!canUndo}
           onClick={onUndoLastGrade}
-          title="Undo last card grade"
-          aria-label="Undo last card grade"
+          title={t('Undo last card grade', 'التراجع عن آخر تقييم')}
+          aria-label={t('Undo last card grade', 'التراجع عن آخر تقييم')}
           className={BTN_GHOST + ' !px-3 !py-1.5 text-xs shrink-0'}
         >
-          ↩️ Undo
+          {t('↩️ Undo', '↩️ تراجع')}
         </button>
       </div>
 
@@ -436,21 +484,43 @@ export function ReviewView({
           </div>
           <p className="font-semibold text-lg">
             {deckStats.totalCards === 0
-              ? 'This Olive Grove Deck Is Waiting for Your First Seed'
-              : 'Congratulations! You have finished this deck for now.'}
+              ? isEgyptian
+                ? t(
+                    'No More Egyptian Arabic (Ammiya) Words in This Deck Right Now 🇪🇬',
+                    'لا توجد بطاقات بالعامية المصرية في هذه المجموعة حالياً 🇪🇬'
+                  )
+                : t(
+                    'This Olive Grove Deck Is Waiting for Your First Seed',
+                    'هذه المجموعة بانتظار أول بطاقة تضيفها'
+                  )
+              : isEgyptian
+                ? t(
+                    'You’ve Reviewed All Available Egyptian Arabic Words for Now! 🎉',
+                    'لقد راجعت كل الكلمات المتاحة بالعامية المصرية حالياً! 🎉'
+                  )
+                : t(
+                    'Congratulations! You have finished this deck for now.',
+                    'أحسنت! لقد أنهيت مراجعة هذه المجموعة في الوقت الحالي.'
+                  )}
           </p>
           <p className="text-sm opacity-75 mt-1 max-w-md mx-auto">
             {deckStats.totalCards === 0 ? (
-              <>
-                No cards are in <strong>{deckName}</strong> yet. Visit the{' '}
-                <strong>Translate</strong> tab to save custom Arabic–English sentences and grow your
-                personal deck.
-              </>
+              isEgyptian ? (
+                t(
+                  `We strictly keep your session in Egyptian Arabic (Ammiya) and never mix in MSA words. Open your Personalized Egyptian Vocabulary deck or add custom cards in the Translate tab!`,
+                  `نحن نلتزم تماماً باختيارك للعامية المصرية ولا نخلطها ببطاقات الفصحى. افتح قاموسك المخصص بالعامية المصرية أو أضف بطاقاتك الخاصة من تبويب الترجمة!`
+                )
+              ) : (
+                t(
+                  `No cards are in "${deckName}" yet. Visit the Translate tab to save custom Arabic–English sentences and grow your personal deck.`,
+                  `لا توجد بطاقات في "${deckName}" بعد. انتقل إلى تبويب الترجمة لحفظ جملك الخاصة وتوسيع مجموعتك.`
+                )
+              )
             ) : (
-              <>
-                All due cards in <strong>{deckName}</strong> have been reviewed. Like the olive
-                tree, steady daily roots yield lasting fluency.
-              </>
+              t(
+                `All due ${isEgyptian ? 'Egyptian Arabic ' : ''}cards in "${deckName}" have been reviewed. Check back soon when your next cards are due!`,
+                `تمت مراجعة جميع البطاقات المستحقة ${isEgyptian ? 'بالعامية المصرية ' : ''}في "${deckName}". عد قريباً عند حلول موعد المراجعة القادمة!`
+              )
             )}
           </p>
           <p dir="rtl" className="ar text-xs font-semibold text-olive-800 dark:text-olive-300 mt-2">
@@ -458,7 +528,7 @@ export function ReviewView({
           </p>
           <div className="mt-4 flex justify-center gap-2">
             <button type="button" onClick={onBackToDecks} className={BTN_PRIMARY}>
-              ← Back to Deck List
+              {t('← Back to Deck List', '→ العودة إلى قائمة المجموعات')}
             </button>
           </div>
         </div>
@@ -469,7 +539,10 @@ export function ReviewView({
               role="status"
               className="mb-3 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-200"
             >
-              Let&apos;s slow down and review this a bit more.
+              {t(
+                "Let's slow down and review this a bit more.",
+                'لنتمهل قليلاً ونراجع هذه البطاقة بتركيز أكبر.'
+              )}
             </p>
           )}
           <Flashcard
@@ -485,6 +558,18 @@ export function ReviewView({
                   showCaption={true}
                   resetKey={`card-${currentKey}`}
                 />
+                <div className="mt-3 flex justify-center">
+                  <button
+                    type="button"
+                    className={`${BTN_GHOST} text-xs`}
+                    onClick={e => {
+                      e.stopPropagation();
+                      speakWithRate(currentCardData.ar, 1, preferredVoice);
+                    }}
+                  >
+                    {t('🔊 Hear Arabic', '🔊 استمع للعربية')}
+                  </button>
+                </div>
               </div>
             }
             back={
@@ -510,13 +595,28 @@ export function ReviewView({
                     ))}
                   </div>
                 )}
-                <button
-                  type="button"
-                  className={`${BTN_GHOST} mt-3`}
-                  onClick={() => speakWithRate(currentCardData.en, 1, preferredVoice)}
-                >
-                  🔊 Hear Pronunciation
-                </button>
+                <div className="mt-3 flex flex-wrap justify-center gap-2">
+                  <button
+                    type="button"
+                    className={BTN_GHOST}
+                    onClick={e => {
+                      e.stopPropagation();
+                      speakWithRate(currentCardData.ar, 1, preferredVoice);
+                    }}
+                  >
+                    {t('🔊 Hear Arabic', '🔊 استمع للعربية')}
+                  </button>
+                  <button
+                    type="button"
+                    className={BTN_GHOST}
+                    onClick={e => {
+                      e.stopPropagation();
+                      speakWithRate(currentCardData.en, 1, preferredVoice);
+                    }}
+                  >
+                    {t('🔊 Hear English', '🔊 استمع للإنجليزية')}
+                  </button>
+                </div>
               </div>
             }
           />
@@ -528,17 +628,17 @@ export function ReviewView({
               className={`${BTN_PRIMARY} mt-4 w-full`}
               onClick={onShowAnswer}
             >
-              👀 Tap card to reveal English answer (إظهار الإجابة)
+              {t('👀 Tap to reveal answer', '👀 اضغط لإظهار الإجابة')}
             </button>
           ) : (
             <>
               <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
                 {(
                   [
-                    ['Again', '🔄 Forgot · نسيتها', 'bg-red-600 hover:bg-red-700'],
-                    ['Hard', '😅 Tricky · صعبة', 'bg-amber-600 hover:bg-amber-700'],
-                    ['Good', '👍 Got It! · عرفتها', 'bg-emerald-600 hover:bg-emerald-700'],
-                    ['Easy', '⚡ Easy! · سهلة', 'bg-sky-600 hover:bg-sky-700']
+                    ['Again', t('🔄 Forgot', '🔄 نسيتها'), 'bg-red-600 hover:bg-red-700'],
+                    ['Hard', t('😅 Tricky', '😅 صعبة'), 'bg-amber-600 hover:bg-amber-700'],
+                    ['Good', t('👍 Got It!', '👍 عرفتها'), 'bg-emerald-600 hover:bg-emerald-700'],
+                    ['Easy', t('⚡ Easy!', '⚡ سهلة'), 'bg-sky-600 hover:bg-sky-700']
                   ] as const
                 ).map(([idKey, friendlyLabel, bgClass], g) => {
                   const grade = g as 0 | 1 | 2 | 3;
@@ -563,19 +663,20 @@ export function ReviewView({
                       className={`${bgClass} text-white rounded-xl py-2.5 px-2 text-xs font-semibold min-h-[56px] transition-colors flex flex-col items-center justify-center`}
                     >
                       <div className="text-xs sm:text-sm font-bold whitespace-nowrap">
-                        {idKey}
+                        {friendlyLabel}
                       </div>
                       <div className="opacity-90 font-medium text-[11px] mt-0.5 tabular-nums">
-                        {friendlyLabel} · {intervalText}
+                        {idKey} · {intervalText}
                       </div>
                     </BouncyButton>
                   );
                 })}
               </div>
               <p className="mt-4 block rounded-xl p-3 text-center text-xs opacity-70">
-                No stress! Tap <strong>Forgot (نسيتها)</strong> if you want to see this card again
-                in a minute, or <strong>Got It! (عرفتها)</strong> to earn XP toward your 🎁 Mystery
-                Chest.
+                {t(
+                  'No stress! Tap Forgot if you want to see this card again in a minute, or Got It! to earn XP toward your 🎁 Mystery Chest.',
+                  'بدون توتر! اضغط «نسيتها» لرؤية البطاقة مجدداً بعد دقيقة، أو «عرفتها» لكسب نقاط الخبرة نحو 🎁 صندوق المكافآت.'
+                )}
               </p>
             </>
           )}
@@ -585,7 +686,7 @@ export function ReviewView({
             onClick={onAskAIAboutCard}
             className={`${BTN_GHOST} mt-3 w-full`}
           >
-            ✨ Ask AI about this word
+            {t('✨ Ask AI about this word', '✨ اسأل المساعد الذكي عن هذه الكلمة')}
           </BouncyButton>
         </div>
       )}

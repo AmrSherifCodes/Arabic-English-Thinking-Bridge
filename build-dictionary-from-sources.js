@@ -5,15 +5,16 @@
  * Fetches, parses, normalizes, and deduplicates open-source Arabic-English datasets
  * (Hugging Face, Kaikki.org, GitHub wordlists, and Anki CSV/TSV exports) into
  * Thinking Bridge's strict `LexiconEntry` schema at `public/dictionary.json`.
+ * Only real source entries are written; there is no synthetic/template filler.
  *
  * Usage:
  *   node build-dictionary-from-sources.js [--target=8500] [--offline-only]
+ *   --target       Maximum number of entries to collect (default 8500).
+ *   --offline-only Use only files already cached in .cache/dictionary-sources/.
  */
 
 import fs from 'node:fs';
 import path from 'node:path';
-import readline from 'node:readline';
-import { Readable } from 'node:stream';
 import { fileURLToPath } from 'node:url';
 
 const ROOT_DIR = path.dirname(fileURLToPath(import.meta.url));
@@ -800,648 +801,33 @@ function ingestLocalAnkiDropFolder(accumulator) {
 }
 
 // ============================================================================
-// 7. EXISTING PROJECT DICTIONARIES & DETERMINISTIC 8,000+ GUARANTEE ENGINE
+// 7. EXISTING HAND-REVIEWED GEMINI ENTRIES
 // ============================================================================
+// Reads the ORIGINAL Gemini-generated dictionary from the pre-sources backup when it
+// exists, so re-running this script never re-ingests entries from a previous build
+// (e.g. the removed template-generated matrix entries).
 function ingestExistingProjectDictionaries(accumulator) {
-  console.log(`\n[0] Preserving existing entries in public/dictionary.json...`);
-  if (fs.existsSync(OUTPUT_PATH)) {
-    try {
-      const existing = JSON.parse(fs.readFileSync(OUTPUT_PATH, 'utf8'));
-      if (Array.isArray(existing)) {
-        if (!fs.existsSync(BACKUP_PATH)) {
-          fs.copyFileSync(OUTPUT_PATH, BACKUP_PATH);
-          console.log(`  ✓ Backed up existing dictionary to public/dictionary.pre-sources.backup.json`);
-        }
-        existing.forEach((entry, idx) =>
-          accumulator.add(entry, 'existing-dictionary.json', entry.dialect ?? 'msa', idx)
-        );
-      }
-    } catch (err) {
-      console.warn(`  ⚠ Could not read existing public/dictionary.json: ${err.message}`);
-    }
+  const sourcePath = fs.existsSync(BACKUP_PATH) ? BACKUP_PATH : OUTPUT_PATH;
+  const label = path.relative(ROOT_DIR, sourcePath);
+  console.log(`\n[0] Preserving original Gemini entries from ${label}...`);
+  if (!fs.existsSync(sourcePath)) {
+    console.log('  ✓ No existing dictionary found; starting fresh.');
+    return;
   }
-  console.log(`  ✓ Preserved ${accumulator.size} existing entries.`);
-}
-
-/**
- * High-utility bilingual grammatical & situational matrix (MSA + Egyptian Ammiya)
- * Ensures that even if external URLs change, throttle, or run offline, the script
- * deterministically reaches the 8,000+ target with 100% real, useful Arabic-English
- * vocabulary and collocations across student, call-center, and public-matter contexts.
- */
-function fillRemainingWithCuratedLexiconMatrix(accumulator, targetCount) {
-  if (accumulator.size >= targetCount) return;
-  console.log(
-    `\n[5] Expanding vocabulary matrix to reach ${targetCount} entries (currently ${accumulator.size})...`
-  );
-
-  const msaDomains = [
-    // Nouns + Headwords (MSA)
-    { ar: 'تَقْرِير', en: 'report', pos: 'noun', sit: ['call-center', 'student'] },
-    { ar: 'اجْتِمَاع', en: 'meeting', pos: 'noun', sit: ['call-center', 'public-matter'] },
-    { ar: 'مَوْعِد', en: 'appointment', pos: 'noun', sit: ['call-center', 'public-matter', 'student'] },
-    { ar: 'فَاتُورَة', en: 'invoice', pos: 'noun', sit: ['call-center', 'public-matter'] },
-    { ar: 'حِسَاب', en: 'account', pos: 'noun', sit: ['call-center', 'public-matter'] },
-    { ar: 'خِدْمَة', en: 'service', pos: 'noun', sit: ['call-center', 'public-matter'] },
-    { ar: 'عَمِيل', en: 'client', pos: 'noun', sit: ['call-center'] },
-    { ar: 'شَكْوَى', en: 'complaint', pos: 'noun', sit: ['call-center', 'public-matter'] },
-    { ar: 'طَلَب', en: 'request', pos: 'noun', sit: ['call-center', 'public-matter', 'student'] },
-    { ar: 'مُشْكِلَة', en: 'problem', pos: 'noun', sit: ['call-center', 'public-matter', 'student'] },
-    { ar: 'حَلّ', en: 'solution', pos: 'noun', sit: ['call-center', 'student'] },
-    { ar: 'مَعْلُومَات', en: 'information', pos: 'noun', sit: ['call-center', 'public-matter', 'student'] },
-    { ar: 'بَيَانَات', en: 'data', pos: 'noun', sit: ['call-center', 'student'] },
-    { ar: 'نِظَام', en: 'system', pos: 'noun', sit: ['call-center', 'student'] },
-    { ar: 'شَبَكَة', en: 'network', pos: 'noun', sit: ['call-center', 'student'] },
-    { ar: 'اتِّصَال', en: 'connection', pos: 'noun', sit: ['call-center', 'public-matter'] },
-    { ar: 'رِسَالَة', en: 'message', pos: 'noun', sit: ['call-center', 'student'] },
-    { ar: 'بَرِيد', en: 'mail', pos: 'noun', sit: ['call-center', 'public-matter'] },
-    { ar: 'مِلَفّ', en: 'file', pos: 'noun', sit: ['call-center', 'student'] },
-    { ar: 'وَثِيقَة', en: 'document', pos: 'noun', sit: ['call-center', 'public-matter', 'student'] },
-    { ar: 'عَقْد', en: 'contract', pos: 'noun', sit: ['call-center', 'public-matter'] },
-    { ar: 'اتِّفَاق', en: 'agreement', pos: 'noun', sit: ['call-center', 'public-matter'] },
-    { ar: 'شَرِكَة', en: 'company', pos: 'noun', sit: ['call-center', 'public-matter'] },
-    { ar: 'مؤسَّسَة', en: 'institution', pos: 'noun', sit: ['public-matter', 'student'] },
-    { ar: 'جَامِعَة', en: 'university', pos: 'noun', sit: ['student'] },
-    { ar: 'مَدْرَسَة', en: 'school', pos: 'noun', sit: ['student'] },
-    { ar: 'مَكْتَبَة', en: 'library', pos: 'noun', sit: ['student', 'public-matter'] },
-    { ar: 'مُحَاضَرَة', en: 'lecture', pos: 'noun', sit: ['student'] },
-    { ar: 'امْتِحَان', en: 'examination', pos: 'noun', sit: ['student'] },
-    { ar: 'بَحْث', en: 'research', pos: 'noun', sit: ['student'] },
-    { ar: 'دِرَاسَة', en: 'study', pos: 'noun', sit: ['student'] },
-    { ar: 'مَنْهَج', en: 'curriculum', pos: 'noun', sit: ['student'] },
-    { ar: 'مَشْرُوع', en: 'project', pos: 'noun', sit: ['student', 'call-center'] },
-    { ar: 'خُطَّة', en: 'plan', pos: 'noun', sit: ['student', 'call-center'] },
-    { ar: 'هَدَف', en: 'goal', pos: 'noun', sit: ['student', 'call-center'] },
-    { ar: 'نَتِيجَة', en: 'result', pos: 'noun', sit: ['student', 'call-center'] },
-    { ar: 'تَجْرِبَة', en: 'experience', pos: 'noun', sit: ['student', 'call-center'] },
-    { ar: 'مَهَارَة', en: 'skill', pos: 'noun', sit: ['student', 'call-center'] },
-    { ar: 'مَعْرِفَة', en: 'knowledge', pos: 'noun', sit: ['student'] },
-    { ar: 'فِكْرَة', en: 'idea', pos: 'noun', sit: ['student', 'call-center'] },
-    { ar: 'سُؤَال', en: 'question', pos: 'noun', sit: ['student', 'call-center'] },
-    { ar: 'إِجَابَة', en: 'answer', pos: 'noun', sit: ['student', 'call-center'] },
-    { ar: 'مُلاحظَة', en: 'note', pos: 'noun', sit: ['student', 'call-center'] },
-    { ar: 'مَطَار', en: 'airport', pos: 'noun', sit: ['public-matter'] },
-    { ar: 'مَحَطَّة', en: 'station', pos: 'noun', sit: ['public-matter'] },
-    { ar: 'فُنْدُق', en: 'hotel', pos: 'noun', sit: ['public-matter'] },
-    { ar: 'مُسْتَشْفَى', en: 'hospital', pos: 'noun', sit: ['public-matter'] },
-    { ar: 'صَيْدَلِيَّة', en: 'pharmacy', pos: 'noun', sit: ['public-matter'] },
-    { ar: 'سَفَارَة', en: 'embassy', pos: 'noun', sit: ['public-matter'] },
-    { ar: 'جَوَاز', en: 'passport', pos: 'noun', sit: ['public-matter'] },
-    { ar: 'تَأْشِيرَة', en: 'visa', pos: 'noun', sit: ['public-matter'] },
-    { ar: 'تَذْكِرَة', en: 'ticket', pos: 'noun', sit: ['public-matter', 'call-center'] },
-    { ar: 'حَقِيبَة', en: 'luggage', pos: 'noun', sit: ['public-matter'] },
-    { ar: 'شَارِع', en: 'street', pos: 'noun', sit: ['public-matter'] },
-    { ar: 'طَرِيق', en: 'road', pos: 'noun', sit: ['public-matter'] },
-    { ar: 'مَدِينَة', en: 'city', pos: 'noun', sit: ['public-matter'] },
-    { ar: 'مِنْطَقَة', en: 'area', pos: 'noun', sit: ['public-matter'] },
-    { ar: 'مَبْنَى', en: 'building', pos: 'noun', sit: ['public-matter'] },
-    { ar: 'مَكْتَب', en: 'office', pos: 'noun', sit: ['call-center', 'public-matter'] },
-    { ar: 'قِسْم', en: 'department', pos: 'noun', sit: ['call-center', 'student', 'public-matter'] },
-    { ar: 'إِدَارَة', en: 'administration', pos: 'noun', sit: ['call-center', 'public-matter'] },
-    { ar: 'مُوظَّف', en: 'employee', pos: 'noun', sit: ['call-center', 'public-matter'] },
-    { ar: 'مُدِير', en: 'manager', pos: 'noun', sit: ['call-center', 'public-matter'] },
-    { ar: 'مَسْؤُول', en: 'official', pos: 'noun', sit: ['public-matter', 'call-center'] },
-    { ar: 'طَبِيب', en: 'doctor', pos: 'noun', sit: ['public-matter'] },
-    { ar: 'مُهَنْدِس', en: 'engineer', pos: 'noun', sit: ['call-center', 'student'] },
-    { ar: 'مُحَاسِب', en: 'accountant', pos: 'noun', sit: ['call-center'] },
-    { ar: 'مُتَرْجِم', en: 'translator', pos: 'noun', sit: ['student', 'public-matter'] },
-    { ar: 'بَرْنَامَج', en: 'program', pos: 'noun', sit: ['student', 'call-center'] },
-    { ar: 'تَطْبِيق', en: 'application', pos: 'noun', sit: ['call-center', 'student'] },
-    { ar: 'مَوْقِع', en: 'website', pos: 'noun', sit: ['call-center', 'student', 'public-matter'] },
-    { ar: 'صَفْحَة', en: 'page', pos: 'noun', sit: ['student', 'call-center'] },
-    { ar: 'قَائِمَة', en: 'list', pos: 'noun', sit: ['call-center', 'student', 'public-matter'] },
-    { ar: 'جَدْوَل', en: 'schedule', pos: 'noun', sit: ['student', 'call-center', 'public-matter'] },
-    { ar: 'مِيزَانِيَّة', en: 'budget', pos: 'noun', sit: ['call-center', 'public-matter'] },
-    { ar: 'سِعْر', en: 'price', pos: 'noun', sit: ['call-center', 'public-matter'] },
-    { ar: 'تَكْلِفَة', en: 'cost', pos: 'noun', sit: ['call-center', 'public-matter'] },
-    { ar: 'خَصْم', en: 'discount', pos: 'noun', sit: ['call-center', 'public-matter'] },
-    { ar: 'دَفْع', en: 'payment', pos: 'noun', sit: ['call-center', 'public-matter'] },
-    { ar: 'تَحْوِيل', en: 'transfer', pos: 'noun', sit: ['call-center', 'public-matter'] },
-    { ar: 'رصِيد', en: 'balance', pos: 'noun', sit: ['call-center', 'public-matter'] },
-    { ar: 'قَرْض', en: 'loan', pos: 'noun', sit: ['call-center', 'public-matter'] },
-    { ar: 'ضَرِيبَة', en: 'tax', pos: 'noun', sit: ['public-matter', 'call-center'] },
-    { ar: 'تَأْمِين', en: 'insurance', pos: 'noun', sit: ['call-center', 'public-matter'] },
-    { ar: 'ضَمَان', en: 'warranty', pos: 'noun', sit: ['call-center', 'public-matter'] },
-    { ar: 'شَحْنَة', en: 'shipment', pos: 'noun', sit: ['call-center', 'public-matter'] },
-    { ar: 'تَوْصِيل', en: 'delivery', pos: 'noun', sit: ['call-center', 'public-matter'] },
-    { ar: 'اسْتِلَام', en: 'receipt', pos: 'noun', sit: ['call-center', 'public-matter'] },
-    { ar: 'إِلْغَاء', en: 'cancellation', pos: 'noun', sit: ['call-center', 'public-matter'] },
-    { ar: 'تَأْكِيد', en: 'confirmation', pos: 'noun', sit: ['call-center', 'public-matter'] },
-    { ar: 'تَحْدِيث', en: 'update', pos: 'noun', sit: ['call-center', 'student'] },
-    { ar: 'تَسْجِيل', en: 'registration', pos: 'noun', sit: ['student', 'call-center', 'public-matter'] },
-    { ar: 'دُخُول', en: 'access', pos: 'noun', sit: ['call-center', 'public-matter'] },
-    { ar: 'كَلِمَةُ المُرُور', en: 'password', pos: 'noun', sit: ['call-center', 'student'] },
-    { ar: 'هُوِيَّة', en: 'identity card', pos: 'noun', sit: ['public-matter', 'call-center'] },
-    { ar: 'رَقْم', en: 'number', pos: 'noun', sit: ['call-center', 'public-matter', 'student'] },
-    { ar: 'عُنْوَان', en: 'address', pos: 'noun', sit: ['call-center', 'public-matter'] },
-    { ar: 'تَارِيخ', en: 'date', pos: 'noun', sit: ['call-center', 'public-matter', 'student'] },
-    { ar: 'وَقْت', en: 'time', pos: 'noun', sit: ['call-center', 'public-matter', 'student'] },
-    { ar: 'مُدَّة', en: 'duration', pos: 'noun', sit: ['call-center', 'student'] },
-  ];
-
-  const msaAdjectives = [
-    { ar: 'جَدِيد', arFem: 'جَدِيدَة', en: 'new', level: 'beginner' },
-    { ar: 'قَدِيم', arFem: 'قَدِيمَة', en: 'old', level: 'beginner' },
-    { ar: 'مُهِمّ', arFem: 'مُهِمَّة', en: 'important', level: 'beginner' },
-    { ar: 'سَرِيع', arFem: 'سَرِيعَة', en: 'fast', level: 'beginner' },
-    { ar: 'وَاضِح', arFem: 'وَاضِحَة', en: 'clear', level: 'beginner' },
-    { ar: 'كَامِل', arFem: 'كَامِلَة', en: 'complete', level: 'beginner' },
-    { ar: 'رَسْمِيّ', arFem: 'رَسْمِيَّة', en: 'official', level: 'intermediate' },
-    { ar: 'خَاصّ', arFem: 'خَاصَّة', en: 'private', level: 'beginner' },
-    { ar: 'عَامّ', arFem: 'عَامَّة', en: 'public', level: 'beginner' },
-    { ar: 'دَوْلِيّ', arFem: 'دَوْلِيَّة', en: 'international', level: 'intermediate' },
-    { ar: 'مَحَلِّيّ', arFem: 'مَحَلِّيَّة', en: 'local', level: 'intermediate' },
-    { ar: 'يَوْمِيّ', arFem: 'يَوْمِيَّة', en: 'daily', level: 'beginner' },
-    { ar: 'أُسْبُوعِيّ', arFem: 'أُسْبُوعِيَّة', en: 'weekly', level: 'intermediate' },
-    { ar: 'شَهْرِيّ', arFem: 'شَهْرِيَّة', en: 'monthly', level: 'intermediate' },
-    { ar: 'سَنَوِيّ', arFem: 'سَنَوِيَّة', en: 'annual', level: 'intermediate' },
-    { ar: 'أَسَاسِيّ', arFem: 'أَسَاسِيَّة', en: 'essential', level: 'intermediate' },
-    { ar: 'إِضَافِيّ', arFem: 'إِضَافِيَّة', en: 'additional', level: 'intermediate' },
-    { ar: 'نِهَائِيّ', arFem: 'نِهَائِيَّة', en: 'final', level: 'intermediate' },
-    { ar: 'مُؤَقَّت', arFem: 'مُؤَقَّتَة', en: 'temporary', level: 'intermediate' },
-    { ar: 'دَائِم', arFem: 'دَائِمَة', en: 'permanent', level: 'intermediate' },
-    { ar: 'مُبَاشِر', arFem: 'مُبَاشِرَة', en: 'direct', level: 'intermediate' },
-    { ar: 'إِلِكْتُرُونِيّ', arFem: 'إِلِكْتُرُونِيَّة', en: 'electronic', level: 'intermediate' },
-    { ar: 'مَالِيّ', arFem: 'مَالِيَّة', en: 'financial', level: 'intermediate' },
-    { ar: 'قَانُونِيّ', arFem: 'قَانُونِيَّة', en: 'legal', level: 'advanced' },
-    { ar: 'طِبِّيّ', arFem: 'طِبِّيَّة', en: 'medical', level: 'intermediate' },
-    { ar: 'عِلْمِيّ', arFem: 'عِلْمِيَّة', en: 'scientific', level: 'intermediate' },
-    { ar: 'عَمَلِيّ', arFem: 'عَمَلِيَّة', en: 'practical', level: 'intermediate' },
-    { ar: 'فَوْرِيّ', arFem: 'فَوْرِيَّة', en: 'immediate', level: 'advanced' },
-    { ar: 'مَجَّانِيّ', arFem: 'مَجَّانِيَّة', en: 'free', level: 'beginner' },
-    { ar: 'مُتَاح', arFem: 'مُتَاحَة', en: 'available', level: 'intermediate' },
-    { ar: 'مَطْلُوب', arFem: 'مَطْلُوبَة', en: 'required', level: 'intermediate' },
-    { ar: 'مُناسِب', arFem: 'مُناسِبَة', en: 'suitable', level: 'intermediate' },
-    { ar: 'دَقِيق', arFem: 'دَقِيقَة', en: 'accurate', level: 'advanced' },
-    { ar: 'آمِن', arFem: 'آمِنَة', en: 'secure', level: 'intermediate' },
-    { ar: 'مُفَصَّل', arFem: 'مُفَصَّلَة', en: 'detailed', level: 'advanced' },
-    { ar: 'مُسْبَق', arFem: 'مُسْبَقَة', en: 'prior', level: 'advanced' },
-    { ar: 'حَالِيّ', arFem: 'حَالِيَّة', en: 'current', level: 'intermediate' },
-    { ar: 'سَابِق', arFem: 'سَابِقَة', en: 'previous', level: 'intermediate' },
-    { ar: 'قَادِم', arFem: 'قَادِمَة', en: 'upcoming', level: 'intermediate' },
-    { ar: 'طَارِئ', arFem: 'طَارِئَة', en: 'urgent', level: 'advanced' },
-    { ar: 'مُعْتَمَد', arFem: 'مُعْتَمَدَة', en: 'certified', level: 'advanced' },
-    { ar: 'مُسَجَّل', arFem: 'مُسَجَّلَة', en: 'registered', level: 'intermediate' },
-    { ar: 'مَفْتُوح', arFem: 'مَفْتُوحَة', en: 'open', level: 'beginner' },
-    { ar: 'مُغْلَق', arFem: 'مُغْلَقَة', en: 'closed', level: 'beginner' },
-    { ar: 'صَحِيح', arFem: 'صَحِيحَة', en: 'correct', level: 'beginner' },
-  ];
-
-  const egyptianNouns = [
-    { ar: 'مُكَالْمَة', en: 'phone call', sit: ['call-center'] },
-    { ar: 'فَاتُورَة', en: 'bill', sit: ['call-center', 'public-matter'] },
-    { ar: 'حِسَاب', en: 'account', sit: ['call-center', 'public-matter'] },
-    { ar: 'طَلَب', en: 'order', sit: ['call-center', 'public-matter'] },
-    { ar: 'شَكْوَى', en: 'complaint', sit: ['call-center', 'public-matter'] },
-    { ar: 'مُشْكِلَة', en: 'issue', sit: ['call-center', 'public-matter', 'student'] },
-    { ar: 'مَعَاد', en: 'appointment', sit: ['call-center', 'public-matter', 'student'] },
-    { ar: 'تَذْكَرَة', en: 'ticket', sit: ['public-matter', 'call-center'] },
-    { ar: 'شَنْطَة', en: 'bag', sit: ['public-matter', 'student'] },
-    { ar: 'عَرَبِيَّة', en: 'car', sit: ['public-matter'] },
-    { ar: 'مَحَطَّة', en: 'station', sit: ['public-matter'] },
-    { ar: 'مَطَار', en: 'airport', sit: ['public-matter'] },
-    { ar: 'أُوتِيل', en: 'hotel', sit: ['public-matter'] },
-    { ar: 'مُسْتَشْفَى', en: 'hospital', sit: ['public-matter'] },
-    { ar: 'صَيْدَلِيَّة', en: 'pharmacy', sit: ['public-matter'] },
-    { ar: 'جَامْعَة', en: 'university', sit: ['student'] },
-    { ar: 'مُحَاضْرَة', en: 'lecture', sit: ['student'] },
-    { ar: 'امْتِحَان', en: 'exam', sit: ['student'] },
-    { ar: 'مُلَخَّص', en: 'summary', sit: ['student'] },
-    { ar: 'وَاجِب', en: 'assignment', sit: ['student'] },
-    { ar: 'مَشْرُوع', en: 'project', sit: ['student', 'call-center'] },
-    { ar: 'شَرِكَة', en: 'company', sit: ['call-center', 'public-matter'] },
-    { ar: 'مَكْتَب', en: 'office', sit: ['call-center', 'public-matter'] },
-    { ar: 'خِدْمَة', en: 'service', sit: ['call-center', 'public-matter'] },
-    { ar: 'عَمِيل', en: 'customer', sit: ['call-center'] },
-    { ar: 'مُوظَّف', en: 'staff member', sit: ['call-center', 'public-matter'] },
-    { ar: 'مُدِير', en: 'manager', sit: ['call-center', 'public-matter'] },
-    { ar: 'تَقْرِير', en: 'report', sit: ['call-center', 'student'] },
-    { ar: 'رِسَالَة', en: 'message', sit: ['call-center', 'student'] },
-    { ar: 'إِيمِيل', en: 'email', sit: ['call-center', 'student'] },
-    { ar: 'رَقَم', en: 'number', sit: ['call-center', 'public-matter'] },
-    { ar: 'عِنْوَان', en: 'address', sit: ['call-center', 'public-matter'] },
-    { ar: 'بَاسْبُور', en: 'passport', sit: ['public-matter'] },
-    { ar: 'بِطَاقَة', en: 'ID card', sit: ['public-matter', 'call-center'] },
-    { ar: 'فُلُوس', en: 'money', sit: ['public-matter', 'call-center'] },
-    { ar: 'حِسَاب بَنْكِي', en: 'bank account', sit: ['call-center', 'public-matter'] },
-    { ar: 'كَرْت', en: 'card', sit: ['call-center', 'public-matter'] },
-    { ar: 'شَحْن', en: 'delivery', sit: ['call-center', 'public-matter'] },
-    { ar: 'ضَمَان', en: 'warranty', sit: ['call-center', 'public-matter'] },
-    { ar: 'خَصْم', en: 'discount', sit: ['call-center', 'public-matter'] },
-    { ar: 'سِعْر', en: 'price', sit: ['call-center', 'public-matter'] },
-    { ar: 'مِيزَانِيَّة', en: 'budget', sit: ['call-center', 'public-matter'] },
-    { ar: 'خُطَّة', en: 'plan', sit: ['student', 'call-center'] },
-    { ar: 'فِكْرَة', en: 'idea', sit: ['student', 'call-center'] },
-    { ar: 'سُؤَال', en: 'question', sit: ['student', 'call-center'] },
-    { ar: 'إِجَابَة', en: 'answer', sit: ['student', 'call-center'] },
-    { ar: 'مَعْلُومَة', en: 'piece of info', sit: ['student', 'call-center'] },
-    { ar: 'تَفَاصِيل', en: 'details', sit: ['call-center', 'student'] },
-    { ar: 'مَوْضُوع', en: 'topic', sit: ['student', 'call-center', 'public-matter'] },
-    { ar: 'قَرَار', en: 'decision', sit: ['call-center', 'public-matter'] },
-    { ar: 'اتِّفَاق', en: 'deal', sit: ['call-center', 'public-matter'] },
-    { ar: 'عَقْد', en: 'contract', sit: ['call-center', 'public-matter'] },
-    { ar: 'تَأْمِين', en: 'insurance', sit: ['call-center', 'public-matter'] },
-    { ar: 'إِيصَال', en: 'receipt', sit: ['call-center', 'public-matter'] },
-    { ar: 'حَجْز', en: 'reservation', sit: ['call-center', 'public-matter'] },
-    { ar: 'تَأْكِيد', en: 'confirmation', sit: ['call-center', 'public-matter'] },
-    { ar: 'تَحْدِيث', en: 'update', sit: ['call-center', 'student'] },
-    { ar: 'بَرْنَامَج', en: 'program', sit: ['student', 'call-center'] },
-    { ar: 'أَبْلِيكِيشَن', en: 'app', sit: ['call-center', 'student'] },
-    { ar: 'شَبَكَة', en: 'network signal', sit: ['call-center', 'public-matter'] },
-    { ar: 'إِنْتَرْنِت', en: 'internet', sit: ['call-center', 'student'] },
-    { ar: 'كُورس', en: 'course', sit: ['student'] },
-    { ar: 'شَهَادَة', en: 'certificate', sit: ['student', 'public-matter'] },
-    { ar: 'تَدْرِيب', en: 'training', sit: ['student', 'call-center'] },
-    { ar: 'وَظِيفَة', en: 'job', sit: ['call-center', 'public-matter'] },
-    { ar: 'مُقَابْلَة', en: 'interview', sit: ['call-center', 'student'] },
-    { ar: 'مُرَتَّب', en: 'salary', sit: ['call-center', 'public-matter'] },
-    { ar: 'أَجَازَة', en: 'vacation', sit: ['call-center', 'public-matter'] },
-    { ar: 'وَرَقَة', en: 'document', sit: ['public-matter', 'student'] },
-    { ar: 'طَلَبِيَّة', en: 'shipment', sit: ['call-center', 'public-matter'] },
-    { ar: 'مَخْزَن', en: 'warehouse', sit: ['call-center', 'public-matter'] },
-    { ar: 'فَرْع', en: 'branch', sit: ['call-center', 'public-matter'] },
-    { ar: 'قِسْم الدَّعْم', en: 'support department', sit: ['call-center'] },
-    { ar: 'خِدْمَة العُمَلَا', en: 'customer service', sit: ['call-center'] },
-    { ar: 'مَرْكَز الاتِّصَالَات', en: 'call center', sit: ['call-center'] },
-    { ar: 'جَدْوَل المَوَاعِيد', en: 'timetable', sit: ['student', 'public-matter'] },
-    { ar: 'قَاعَة المُحَاضْرَات', en: 'lecture hall', sit: ['student'] },
-    { ar: 'مَكْتَب القَبُول', en: 'admissions office', sit: ['student'] },
-    { ar: 'صَالَة السَّفَر', en: 'departure lounge', sit: ['public-matter'] },
-    { ar: 'مَكْتَب الاسْتِعْلَامَات', en: 'information desk', sit: ['public-matter', 'call-center'] },
-  ];
-
-  const egyptianActionTemplates = [
-    {
-      arPrefix: 'مُمْكِن نِـرَاجِع',
-      enPrefix: 'Can we review the',
-      level: 'beginner',
-    },
-    {
-      arPrefix: 'أَنَا محتَاج أَعْرَف تَفَاصِيل',
-      enPrefix: 'I need to know the details of the',
-      level: 'beginner',
-    },
-    {
-      arPrefix: 'يَا رِيت تِبْعَتْلِي',
-      enPrefix: 'Please send me the',
-      level: 'beginner',
-    },
-    {
-      arPrefix: 'إِحْنَا خَلَّصْنَا',
-      enPrefix: 'We have finished the',
-      level: 'beginner',
-    },
-    {
-      arPrefix: 'لِسَّه بِنْشُوف موضوع',
-      enPrefix: 'We are still checking the',
-      level: 'intermediate',
-    },
-    {
-      arPrefix: 'فِيه تَعْدِيل مُهِمّ فِي',
-      enPrefix: 'There is an important change in the',
-      level: 'intermediate',
-    },
-    {
-      arPrefix: 'حَضْرِتَك تِقْدَر تِتَابِع',
-      enPrefix: 'You can track the',
-      level: 'intermediate',
-    },
-    {
-      arPrefix: 'هُوَ سَأَلْ عَنْ',
-      enPrefix: 'He asked about the',
-      level: 'beginner',
-    },
-    {
-      arPrefix: 'هِيَّ بَتْجَهِّز',
-      enPrefix: 'She is preparing the',
-      level: 'beginner',
-    },
-    {
-      arPrefix: 'لَازِم نِأَكِّد عَلَى',
-      enPrefix: 'We must confirm the',
-      level: 'intermediate',
-    },
-    {
-      arPrefix: 'عَايْزِين نِحْجِز',
-      enPrefix: 'We want to book the',
-      level: 'beginner',
-    },
-    {
-      arPrefix: 'مِشْ عَارِف أَوْصَل لـ',
-      enPrefix: 'I cannot find the',
-      level: 'beginner',
-    },
-    {
-      arPrefix: 'تَمّ تَسْجِيل',
-      enPrefix: 'We have registered the',
-      level: 'intermediate',
-    },
-    {
-      arPrefix: 'بَعْدَ إِذْنَك شُوفْلِي',
-      enPrefix: 'Excuse me, please check the',
-      level: 'beginner',
-    },
-    {
-      arPrefix: 'إِزَّاي أَقْدَر أَغَيَّر',
-      enPrefix: 'How can I change the',
-      level: 'beginner',
-    },
-    {
-      arPrefix: 'إِمْتَى هَيِجْهَز',
-      enPrefix: 'When will we receive the',
-      level: 'intermediate',
-    },
-    {
-      arPrefix: 'فِين مَكَان',
-      enPrefix: 'Where is the location of the',
-      level: 'beginner',
-    },
-    {
-      arPrefix: 'أَنَا دَفَعْت حِسَاب',
-      enPrefix: 'I paid for the',
-      level: 'beginner',
-    },
-    {
-      arPrefix: 'وَصَلْنِي إِشْعَار بِخُصُوص',
-      enPrefix: 'I received a notification regarding the',
-      level: 'advanced',
-    },
-    {
-      arPrefix: 'مَحْتَاجِين مُوَافْقَة عَلَى',
-      enPrefix: 'We need approval for the',
-      level: 'intermediate',
-    },
-    {
-      arPrefix: 'بِنْحَاوِل نِحِلّ مُشْكِلِة',
-      enPrefix: 'We are trying to solve the issue with the',
-      level: 'intermediate',
-    },
-    {
-      arPrefix: 'شُكْرًا عَلَى سُرْعَة إِرْسَال',
-      enPrefix: 'Thank you for quickly sending the',
-      level: 'intermediate',
-    },
-    {
-      arPrefix: 'هَبْعَت لِحَضْرِتَك نُسْخَة مِن',
-      enPrefix: 'I will send you a copy of the',
-      level: 'intermediate',
-    },
-    {
-      arPrefix: 'مُمْكِن نِأَجِّل مَعَاد',
-      enPrefix: 'Could we postpone the',
-      level: 'intermediate',
-    },
-    {
-      arPrefix: 'اتْأَكِّدْت مِن صِحَّة',
-      enPrefix: 'I verified the accuracy of the',
-      level: 'advanced',
-    },
-    {
-      arPrefix: 'عِنْدِي اسْتِفْسَار بَسِيط عَنْ',
-      enPrefix: 'I have a quick question about the',
-      level: 'beginner',
-    },
-    {
-      arPrefix: 'تَقْدَر تِسْتَلِم',
-      enPrefix: 'You can pick up the',
-      level: 'beginner',
-    },
-    {
-      arPrefix: 'يُفَضَّل نِبْدَأ بِـ',
-      enPrefix: 'It is better to start with the',
-      level: 'intermediate',
-    },
-    {
-      arPrefix: 'مَعْلِشّ اتْأَخَّرْنَا فِي',
-      enPrefix: 'Sorry for the delay with the',
-      level: 'intermediate',
-    },
-    {
-      arPrefix: 'كُلّ حَاجَة تَمَام بِالنِّسْبَة لـ',
-      enPrefix: 'Everything is ready regarding the',
-      level: 'intermediate',
-    },
-    {
-      arPrefix: 'مِين المَسْؤُول عَنْ',
-      enPrefix: 'Who is responsible for the',
-      level: 'beginner',
-    },
-    {
-      arPrefix: 'سَجِّلْت اسْمِي فِي',
-      enPrefix: 'I registered my name in the',
-      level: 'beginner',
-    },
-    {
-      arPrefix: 'طَبَعْت نُسْخِتِين مِن',
-      enPrefix: 'I printed two copies of the',
-      level: 'intermediate',
-    },
-    {
-      arPrefix: 'مُمْكِن تِوَضَّحْلِي أَكْتَر عَنْ',
-      enPrefix: 'Could you explain more about the',
-      level: 'intermediate',
-    },
-    {
-      arPrefix: 'رَاجَعْنَا كُلّ بَيَانَات',
-      enPrefix: 'We reviewed all the data of the',
-      level: 'advanced',
-    },
-    {
-      arPrefix: 'هَنِتْكَلم النَّهَارْدَه عَنْ',
-      enPrefix: 'Today we will talk about the',
-      level: 'beginner',
-    },
-    {
-      arPrefix: 'قَرِيت كُلّ التَّعْلِيمَات الخَاصَّة بِـ',
-      enPrefix: 'I read all the instructions for the',
-      level: 'advanced',
-    },
-    {
-      arPrefix: 'مَحْتَاج أَجَدِّد',
-      enPrefix: 'I need to renew the',
-      level: 'intermediate',
-    },
-    {
-      arPrefix: 'إِيه آخر أَخْبَار',
-      enPrefix: 'What is the latest update on the',
-      level: 'intermediate',
-    },
-    {
-      arPrefix: 'خَلِّي بَالَك مِن مَعَاد',
-      enPrefix: 'Please keep in mind the time of the',
-      level: 'intermediate',
-    },
-    {
-      arPrefix: 'بَعْدَ الاجْتِمَاع هَنِكَمِّل',
-      enPrefix: 'After the meeting we will complete the',
-      level: 'advanced',
-    },
-    {
-      arPrefix: 'فِيه خَصْم خَاصّ عَلَى',
-      enPrefix: 'There is a special discount on the',
-      level: 'intermediate',
-    },
-    {
-      arPrefix: 'تَقْدَر تِدْفَع قيمة',
-      enPrefix: 'You can pay the amount of the',
-      level: 'intermediate',
-    },
-    {
-      arPrefix: 'استَلَمْت الرَّسَالَة الخَاصَّة بِـ',
-      enPrefix: 'I received the message regarding the',
-      level: 'intermediate',
-    },
-    {
-      arPrefix: 'مُمْكِن نِفْتَح',
-      enPrefix: 'Can we open the',
-      level: 'beginner',
-    },
-    {
-      arPrefix: 'لَازِم نِحَافِظ عَلَى سِرِّيَّة',
-      enPrefix: 'We must keep confidential the',
-      level: 'advanced',
-    },
-    {
-      arPrefix: 'جَهَّزْت كُلّ الأَوْرَاق لـ',
-      enPrefix: 'I prepared all the paperwork for the',
-      level: 'intermediate',
-    },
-    {
-      arPrefix: 'هَنِتْوَاصَل مَعَاك بخصوص',
-      enPrefix: 'We will contact you regarding the',
-      level: 'intermediate',
-    },
-    {
-      arPrefix: 'تَمّ تَفْعِيل',
-      enPrefix: 'We have activated the',
-      level: 'intermediate',
-    },
-    {
-      arPrefix: 'شُفْت التَّحْدِيث الجَدِيد فِي',
-      enPrefix: 'Did you see the new update in the',
-      level: 'intermediate',
-    },
-    {
-      arPrefix: 'أَنَا مَسْؤُول عَنْ مُتَابْعِة',
-      enPrefix: 'I am in charge of following up on the',
-      level: 'advanced',
-    },
-    {
-      arPrefix: 'يَا رِيت تِتْأَكِّد مِن رَقَم',
-      enPrefix: 'Please double-check the number of the',
-      level: 'intermediate',
-    },
-    {
-      arPrefix: 'هَنِبْدَأ دِلْوَقْتِي فِي',
-      enPrefix: 'We will now begin working on the',
-      level: 'beginner',
-    },
-    {
-      arPrefix: 'العميل طَلَب تَعْدِيل فِي',
-      enPrefix: 'The customer requested an adjustment to the',
-      level: 'advanced',
-    },
-    {
-      arPrefix: 'الدُّكْتُور شَرَح فِكْرِة',
-      enPrefix: 'The professor explained the concept of the',
-      level: 'intermediate',
-    },
-  ];
-
-  // 1. Add base MSA nouns & base Egyptian nouns
-  for (const noun of msaDomains) {
-    if (accumulator.size >= targetCount) break;
-    accumulator.add(
-      {
-        arabicWord: noun.ar,
-        englishTranslation: noun.en,
-        dialect: 'msa',
-        partOfSpeech: noun.pos,
-        level: 'beginner',
-        situations: noun.sit,
-        exampleSentenceArabic: `هَذَا ${noun.ar} مُهِمٌّ جِدًّا فِي العَمَلِ وَالدِّرَاسَةِ.`,
-        exampleSentenceEnglish: `This ${noun.en} is very important in work and study.`,
-      },
-      'curated-msa-matrix',
-      'msa'
+  try {
+    const existing = JSON.parse(fs.readFileSync(sourcePath, 'utf8'));
+    if (!Array.isArray(existing)) throw new Error('root is not an array');
+    if (sourcePath === OUTPUT_PATH && !fs.existsSync(BACKUP_PATH)) {
+      fs.copyFileSync(OUTPUT_PATH, BACKUP_PATH);
+      console.log(`  ✓ Backed up existing dictionary to ${path.relative(ROOT_DIR, BACKUP_PATH)}`);
+    }
+    existing.forEach((entry, idx) =>
+      accumulator.add(entry, 'gemini-original', entry.dialect ?? 'msa', idx)
     );
+  } catch (err) {
+    console.warn(`  ⚠ Could not read ${label}: ${err.message}`);
   }
-
-  for (const noun of egyptianNouns) {
-    if (accumulator.size >= targetCount) break;
-    accumulator.add(
-      {
-        arabicWord: noun.ar,
-        englishTranslation: noun.en,
-        dialect: 'egyptian',
-        partOfSpeech: 'noun',
-        level: 'beginner',
-        situations: noun.sit,
-        exampleSentenceArabic: `إحنا محتاجين نراجع ${noun.ar} ده النهارده.`,
-        exampleSentenceEnglish: `We need to check this ${noun.en} today.`,
-      },
-      'curated-egyptian-matrix',
-      'egyptian'
-    );
-  }
-
-  // 2. Interleave MSA Noun-Adjective collocations & Egyptian conversational frames
-  const maxLen = Math.max(
-    msaDomains.length * msaAdjectives.length,
-    egyptianNouns.length * egyptianActionTemplates.length
-  );
-
-  for (let i = 0; i < maxLen && accumulator.size < targetCount; i++) {
-    // Add an MSA collocation
-    if (i < msaDomains.length * msaAdjectives.length) {
-      const noun = msaDomains[Math.floor(i / msaAdjectives.length)];
-      const adj = msaAdjectives[i % msaAdjectives.length];
-      const isFem = noun.ar.endsWith('ة') || noun.ar.endsWith('ات') || noun.ar === 'طَرِيق';
-      const adjForm = isFem ? adj.arFem : adj.ar;
-      const phraseAr = `${noun.ar} ${adjForm}`;
-      const phraseEn = `${adj.en} ${noun.en}`;
-
-      accumulator.add(
-        {
-          arabicWord: phraseAr,
-          englishTranslation: phraseEn,
-          dialect: 'msa',
-          partOfSpeech: 'phrase',
-          level: adj.level,
-          situations: noun.sit,
-          exampleSentenceArabic: `نَحْتَاجُ إِلَى ${phraseAr} قَبْلَ نِهَايَةِ الأُسْبُوعِ.`,
-          exampleSentenceEnglish: `We need a ${phraseEn} before the end of the week.`,
-        },
-        'curated-msa-matrix',
-        'msa'
-      );
-    }
-
-    if (accumulator.size >= targetCount) break;
-
-    // Add an Egyptian Arabic conversational expression
-    if (i < egyptianNouns.length * egyptianActionTemplates.length) {
-      const noun = egyptianNouns[Math.floor(i / egyptianActionTemplates.length)];
-      const tpl = egyptianActionTemplates[i % egyptianActionTemplates.length];
-      const phraseAr = `${tpl.arPrefix} ${noun.ar}`;
-      const phraseEn = `${tpl.enPrefix} ${noun.en}`;
-
-      accumulator.add(
-        {
-          arabicWord: phraseAr,
-          englishTranslation: phraseEn,
-          dialect: 'egyptian',
-          partOfSpeech: 'phrase',
-          level: tpl.level,
-          situations: noun.sit,
-          exampleSentenceArabic: `${phraseAr} علشان نخلص في المعاد.`,
-          exampleSentenceEnglish: `${phraseEn} so that we finish on time.`,
-        },
-        'curated-egyptian-matrix',
-        'egyptian'
-      );
-    }
-  }
+  console.log(`  ✓ Preserved ${accumulator.size} original entries.`);
 }
 
 // ============================================================================
@@ -1449,12 +835,12 @@ function fillRemainingWithCuratedLexiconMatrix(accumulator, targetCount) {
 // ============================================================================
 async function main() {
   console.log('==============================================================');
-  console.log(' Thinking Bridge — Open-Source Dictionary Builder (8,000+ Goal)');
+  console.log(' Thinking Bridge — Open-Source Dictionary Builder');
   console.log('==============================================================');
 
   const accumulator = new DictionaryAccumulator();
 
-  // Step 0: Keep all existing Gemini-generated words in public/dictionary.json
+  // Step 0: Keep the original Gemini-generated entries (from the pre-sources backup)
   ingestExistingProjectDictionaries(accumulator);
 
   // Step 1: Hugging Face Datasets (Amr-khaled & oddadmix Egyptian-Arabic)
@@ -1482,10 +868,8 @@ async function main() {
   // Step 4: Anki CSV/TSV Exports (Remote + Local .cache/dictionary-sources/anki/ folder)
   ingestLocalAnkiDropFolder(accumulator);
 
-  // Step 5: Guarantee 8,000+ valid entries across both dialects and all 3 situations
-  fillRemainingWithCuratedLexiconMatrix(accumulator, TARGET_COUNT);
-
-  // Step 6: Final validation & write to public/dictionary.json
+  // Step 5: Final validation & write to public/dictionary.json
+  // (No synthetic/template filler: only real source entries are written.)
   const finalEntries = accumulator.entries.filter(isValidEntry);
   fs.mkdirSync(path.dirname(OUTPUT_PATH), { recursive: true });
   const tmpPath = `${OUTPUT_PATH}.tmp`;

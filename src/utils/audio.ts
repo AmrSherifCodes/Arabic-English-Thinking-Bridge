@@ -1,6 +1,9 @@
 /**
  * Audio, Natural Voice Selection, and Speech Recognition Utilities
  */
+import { createVoiPiVoice, resolveTargetLangAndNeuralVoice } from '../hooks/useSpeech';
+
+let activeSpeakAbortController: AbortController | null = null;
 
 export function scoreEnglishVoice(v: { name: string; lang: string }): number {
   return (
@@ -10,10 +13,27 @@ export function scoreEnglishVoice(v: { name: string; lang: string }): number {
   );
 }
 
+export function scoreArabicVoice(v: { name: string; lang: string }): number {
+  return (
+    (/natural|neural|online/i.test(v.name) ? 50 : 0) +
+    (/salma|shakir|hamed|zariyah|maged|tarik|laila|google/i.test(v.name) ? 25 : 0) +
+    (/ar-EG/i.test(v.lang) ? 15 : /^ar/i.test(v.lang) ? 8 : 0)
+  );
+}
+
 export function getEnglishVoices(): SpeechSynthesisVoice[] {
   if (typeof window === 'undefined' || !('speechSynthesis' in window)) return [];
   try {
     return window.speechSynthesis.getVoices().filter(v => /^en/i.test(v.lang));
+  } catch {
+    return [];
+  }
+}
+
+export function getArabicVoices(): SpeechSynthesisVoice[] {
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return [];
+  try {
+    return window.speechSynthesis.getVoices().filter(v => /^ar/i.test(v.lang));
   } catch {
     return [];
   }
@@ -31,7 +51,14 @@ export function selectBestEnglishVoice(
   return [...voices].sort((a, b) => scoreEnglishVoice(b) - scoreEnglishVoice(a))[0];
 }
 
-export function speakWithRate(
+export function selectBestArabicVoice(
+  voices: SpeechSynthesisVoice[]
+): SpeechSynthesisVoice | undefined {
+  if (!voices || voices.length === 0) return undefined;
+  return [...voices].sort((a, b) => scoreArabicVoice(b) - scoreArabicVoice(a))[0];
+}
+
+function speakWithNativeSpeechSynthesis(
   text: string,
   requestedRate: number = 1,
   preferredVoiceName?: string
@@ -42,14 +69,28 @@ export function speakWithRate(
   try {
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
-    const voices = getEnglishVoices();
-    const chosen = selectBestEnglishVoice(voices, preferredVoiceName);
-    if (chosen) {
-      utterance.voice = chosen;
-      utterance.lang = chosen.lang;
+    const isArabic = /[\u0600-\u06FF]/.test(text);
+
+    if (isArabic) {
+      const arVoices = getArabicVoices();
+      const chosenAr = selectBestArabicVoice(arVoices);
+      if (chosenAr) {
+        utterance.voice = chosenAr;
+        utterance.lang = chosenAr.lang;
+      } else {
+        utterance.lang = 'ar-EG';
+      }
     } else {
-      utterance.lang = 'en-US';
+      const enVoices = getEnglishVoices();
+      const chosenEn = selectBestEnglishVoice(enVoices, preferredVoiceName);
+      if (chosenEn) {
+        utterance.voice = chosenEn;
+        utterance.lang = chosenEn.lang;
+      } else {
+        utterance.lang = 'en-US';
+      }
     }
+
     utterance.rate = requestedRate * 0.92;
     utterance.pitch = 1;
     window.speechSynthesis.speak(utterance);
@@ -57,6 +98,46 @@ export function speakWithRate(
   } catch {
     return false;
   }
+}
+
+export function speakWithRate(
+  text: string,
+  requestedRate: number = 1,
+  preferredVoiceName?: string
+): boolean {
+  const clean = text.trim();
+  if (!clean) return false;
+
+  activeSpeakAbortController?.abort();
+  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+    try {
+      window.speechSynthesis.cancel();
+    } catch {}
+  }
+
+  const isArabic = /[\u0600-\u06FF]/.test(clean);
+  const defaultLang = isArabic ? 'ar-EG' : 'en-US';
+  const { targetLang, neuralVoice } = resolveTargetLangAndNeuralVoice(clean, defaultLang);
+  const controller = new AbortController();
+  activeSpeakAbortController = controller;
+
+  const voipi = createVoiPiVoice();
+  void voipi
+    .speak(clean, {
+      lang: targetLang,
+      voice: neuralVoice,
+      rate: requestedRate * 0.95,
+      signal: controller.signal,
+    })
+    .catch(() => {
+      if (controller.signal.aborted) return;
+      speakWithNativeSpeechSynthesis(clean, requestedRate, preferredVoiceName);
+    });
+
+  return (
+    typeof window !== 'undefined' &&
+    ('speechSynthesis' in window || typeof Audio !== 'undefined')
+  );
 }
 
 export function speakEnglishText(text: string, isSlow: boolean = false, preferredVoiceName?: string): void {

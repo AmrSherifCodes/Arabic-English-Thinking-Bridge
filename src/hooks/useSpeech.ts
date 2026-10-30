@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { BaseVoiceProvider, VoiPi, type AudioData, type SpeakOptions } from 'voipi';
 
 interface RecAlt { transcript: string; confidence: number }
 interface RecResult { readonly length: number; readonly isFinal: boolean; [i: number]: RecAlt }
@@ -49,6 +50,99 @@ function pickVoice(voices: SpeechSynthesisVoice[], lang: string): SpeechSynthesi
   return voices.find((v) => norm(v.lang) === want) ?? voices.find((v) => norm(v.lang).split('-')[0] === primary);
 }
 
+export function resolveTargetLangAndNeuralVoice(
+  text: string,
+  requestedLang: string = 'en-US'
+): { targetLang: string; neuralVoice: string } {
+  const isArabicText = /[\u0600-\u06FF]/.test(text);
+  const normLang = requestedLang.trim().replace('_', '-');
+  const lower = normLang.toLowerCase();
+
+  if (lower.startsWith('ar') || isArabicText) {
+    const targetLang = lower.startsWith('ar-') ? normLang : 'ar-EG';
+    const neuralVoice = lower === 'ar-sa' ? 'ar-SA-HamedNeural' : 'ar-EG-SalmaNeural';
+    return { targetLang, neuralVoice };
+  }
+
+  return {
+    targetLang: normLang || 'en-US',
+    neuralVoice: lower === 'en-gb' ? 'en-GB-SoniaNeural' : 'en-US-AvaNeural',
+  };
+}
+
+/**
+ * Browser-safe VoiPi provider that routes Edge TTS neural synthesis through `/api/tts`
+ * (backed by `voipi/edge-tts` in Node) and plays the resulting MP3 via HTML5 Audio.
+ */
+class BrowserEdgeVoiPiProvider extends BaseVoiceProvider {
+  name = 'edge-tts-browser';
+
+  async synthesize(_text: string, _options?: SpeakOptions): Promise<AudioData> {
+    throw new Error('Use speak() in the browser.');
+  }
+
+  override async speak(text: string, options?: SpeakOptions): Promise<void> {
+    if (typeof window === 'undefined' || typeof Audio === 'undefined') {
+      throw new Error('Browser Audio is unavailable.');
+    }
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      throw new Error('Offline; skipping remote Edge TTS.');
+    }
+
+    const voice = typeof options?.voice === 'string' ? options.voice : '';
+    const lang = options?.lang ?? 'ar-EG';
+    const rate = options?.rate ?? 1;
+
+    const response = await fetch('/api/tts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, lang, voice, rate }),
+      signal: options?.signal,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Edge TTS endpoint returned ${response.status}`);
+    }
+
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+
+    await new Promise<void>((resolve, reject) => {
+      const audio = new Audio(url);
+      const cleanup = () => {
+        URL.revokeObjectURL(url);
+      };
+      const onAbort = () => {
+        audio.pause();
+        cleanup();
+        reject(new DOMException('Aborted', 'AbortError'));
+      };
+      options?.signal?.addEventListener('abort', onAbort, { once: true });
+      audio.onended = () => {
+        options?.signal?.removeEventListener('abort', onAbort);
+        cleanup();
+        resolve();
+      };
+      audio.onerror = () => {
+        options?.signal?.removeEventListener('abort', onAbort);
+        cleanup();
+        reject(new Error('HTML5 Audio playback failed.'));
+      };
+      audio.play().catch((err) => {
+        options?.signal?.removeEventListener('abort', onAbort);
+        cleanup();
+        reject(err);
+      });
+    });
+  }
+}
+
+export function createVoiPiVoice(): VoiPi {
+  return new VoiPi({
+    providers: [() => new BrowserEdgeVoiPiProvider(), 'edge-tts'],
+  });
+}
+
 export function useSpeech({ defaultLang = 'en-US', continuous = false }: UseSpeechOptions = {}) {
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -58,6 +152,7 @@ export function useSpeech({ defaultLang = 'en-US', continuous = false }: UseSpee
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const recRef = useRef<RecognitionLike | null>(null);
   const finalRef = useRef(''); const interimRef = useRef(''); const speakTokenRef = useRef(0);
+  const speechAbortRef = useRef<AbortController | null>(null);
   const utterancesRef = useRef(new Set<SpeechSynthesisUtterance>());
   const isSttSupported = !!getRecognitionCtor(); const isTtsSupported = hasTts();
 
@@ -67,7 +162,14 @@ export function useSpeech({ defaultLang = 'en-US', continuous = false }: UseSpee
     return () => synth.removeEventListener('voiceschanged', load);
   }, []);
 
-  const cancelSpeech = useCallback(() => { speakTokenRef.current++; if (hasTts()) window.speechSynthesis.cancel(); utterancesRef.current.clear(); setIsSpeaking(false); }, []);
+  const cancelSpeech = useCallback(() => {
+    speakTokenRef.current++;
+    speechAbortRef.current?.abort();
+    speechAbortRef.current = null;
+    if (hasTts()) window.speechSynthesis.cancel();
+    utterancesRef.current.clear();
+    setIsSpeaking(false);
+  }, []);
   const stopListening = useCallback(() => recRef.current?.stop(), []);
   const abortListening = useCallback(() => recRef.current?.abort(), []);
   const resetTranscript = useCallback(() => { finalRef.current = ''; interimRef.current = ''; setTranscript(''); setInterimTranscript(''); }, []);
@@ -92,28 +194,97 @@ export function useSpeech({ defaultLang = 'en-US', continuous = false }: UseSpee
       if (interimRef.current) { finalRef.current = `${finalRef.current} ${interimRef.current}`.trim(); setTranscript(finalRef.current); interimRef.current = ''; setInterimTranscript(''); }
     };
     recRef.current = rec;
-    try { rec.start(); } catch (e) { recRef.current = null; setIsListening(false); setError({ code: 'unknown', message: 'Could not start.' }); }
+    try { rec.start(); } catch { recRef.current = null; setIsListening(false); setError({ code: 'unknown', message: 'Could not start.' }); }
   }, [defaultLang, continuous, cancelSpeech, resetTranscript]);
 
-  const speak = useCallback((text: string, lang: string = defaultLang, opts: { rate?: number; pitch?: number } = {}) =>
+  const speakWithBrowserFallback = useCallback((
+    clean: string,
+    lang: string,
+    opts: { rate?: number; pitch?: number },
+    token: number
+  ) =>
     new Promise<void>((resolve) => {
-      if (!hasTts()) { setError({ code: 'tts-unsupported', message: 'TTS unsupported.' }); return resolve(); }
-      const clean = text.trim(); if (!clean) return resolve();
-      recRef.current?.abort(); window.speechSynthesis.cancel(); setError(null);
-      const available = window.speechSynthesis.getVoices(); const voice = pickVoice(available, lang);
-      if (available.length > 0 && !voice) { setError({ code: 'tts-no-voice', message: `No voice for ${lang}.` }); return resolve(); }
-      const token = ++speakTokenRef.current; const chunks = splitIntoChunks(clean); let index = 0;
+      if (!hasTts()) {
+        setIsSpeaking(false);
+        setError({ code: 'tts-unsupported', message: 'TTS unsupported.' });
+        return resolve();
+      }
+      const available = window.speechSynthesis.getVoices();
+      const voice = pickVoice(available, lang);
+      if (available.length > 0 && !voice) {
+        setIsSpeaking(false);
+        setError({ code: 'tts-no-voice', message: `No voice for ${lang}.` });
+        return resolve();
+      }
+      const chunks = splitIntoChunks(clean);
+      let index = 0;
       const next = () => {
         if (token !== speakTokenRef.current) return resolve();
-        if (index >= chunks.length) { setIsSpeaking(false); return resolve(); }
-        const u = new SpeechSynthesisUtterance(chunks[index++]); u.lang = lang; if (voice) u.voice = voice; u.rate = opts.rate ?? 0.95;
+        if (index >= chunks.length) {
+          setIsSpeaking(false);
+          return resolve();
+        }
+        const u = new SpeechSynthesisUtterance(chunks[index++]);
+        u.lang = lang;
+        if (voice) u.voice = voice;
+        u.rate = opts.rate ?? 0.95;
+        if (opts.pitch !== undefined) u.pitch = opts.pitch;
         utterancesRef.current.add(u);
-        u.onend = () => { utterancesRef.current.delete(u); next(); };
-        u.onerror = (ev) => { utterancesRef.current.delete(u); if (token === speakTokenRef.current) { if (ev.error !== 'canceled') setError({ code: 'tts-failed', message: 'Audio failed.' }); setIsSpeaking(false); } resolve(); };
+        u.onend = () => {
+          utterancesRef.current.delete(u);
+          next();
+        };
+        u.onerror = (ev) => {
+          utterancesRef.current.delete(u);
+          if (token === speakTokenRef.current) {
+            if (ev.error !== 'canceled') {
+              setError({ code: 'tts-failed', message: 'Audio failed.' });
+            }
+            setIsSpeaking(false);
+          }
+          resolve();
+        };
         window.speechSynthesis.speak(u);
       };
-      setIsSpeaking(true); setTimeout(next, 50);
-    }), [defaultLang]);
+      setIsSpeaking(true);
+      setTimeout(next, 50);
+    }), []);
+
+  const speak = useCallback(async (text: string, lang: string = defaultLang, opts: { rate?: number; pitch?: number } = {}): Promise<void> => {
+    const clean = text.trim();
+    if (!clean) return;
+
+    recRef.current?.abort();
+    speechAbortRef.current?.abort();
+    if (hasTts()) window.speechSynthesis.cancel();
+    utterancesRef.current.clear();
+    setError(null);
+
+    const token = ++speakTokenRef.current;
+    const controller = new AbortController();
+    speechAbortRef.current = controller;
+    const { targetLang, neuralVoice } = resolveTargetLangAndNeuralVoice(clean, lang);
+    setIsSpeaking(true);
+
+    try {
+      const voipi = createVoiPiVoice();
+      await voipi.speak(clean, {
+        lang: targetLang,
+        voice: neuralVoice,
+        rate: opts.rate ?? 0.95,
+        signal: controller.signal,
+      });
+      if (token === speakTokenRef.current) {
+        setIsSpeaking(false);
+      }
+    } catch {
+      if (token !== speakTokenRef.current || controller.signal.aborted) {
+        setIsSpeaking(false);
+        return;
+      }
+      await speakWithBrowserFallback(clean, targetLang, opts, token);
+    }
+  }, [defaultLang, speakWithBrowserFallback]);
 
   useEffect(() => {
     const onHide = () => { if (document.visibilityState === 'hidden') { recRef.current?.abort(); cancelSpeech(); } };

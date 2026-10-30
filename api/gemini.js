@@ -101,8 +101,17 @@ function parseModelJson(text) {
   return JSON.parse(text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim());
 }
 
+function getApiKey() {
+  return (
+    process.env.GEMINI_API_KEY ||
+    process.env.VITE_GEMINI_API_KEY ||
+    process.env.GOOGLE_API_KEY ||
+    ''
+  ).trim();
+}
+
 function getClient() {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = getApiKey();
   if (!apiKey) return null;
   client ??= new GoogleGenAI({ apiKey });
   return client;
@@ -110,7 +119,7 @@ function getClient() {
 
 async function generate(operation, body) {
   const ai = getClient();
-  if (!ai) return { status: 503, error: { code: 'missing-key', message: 'AI service is not configured.' } };
+  if (!ai) return { status: 503, error: { code: 'missing-key', message: 'AI service is not configured (GEMINI_API_KEY missing in Vercel environment).' } };
 
   if (operation === 'entry') {
     const word = typeof body.word === 'string' ? body.word.trim() : '';
@@ -212,7 +221,7 @@ async function generate(operation, body) {
           `The user is learning ${context.profile.dialect === 'egyptian' ? 'Egyptian Arabic (Ammiya)' : 'Modern Standard Arabic (MSA/Fusha)'}. Always respond in that dialect. ` +
           `${wordContext} Answer the user's specific question accurately, using simple terms. ` +
           'Do not give generic encouragement unless they ask for it. Keep answers under three sentences.',
-        maxOutputTokens: 220,
+        maxOutputTokens: 1024,
         temperature: 0.6,
       },
     });
@@ -226,7 +235,7 @@ async function generate(operation, body) {
 
 export default async function handler(req, res) {
   if (req.method === 'GET') {
-    return sendJson(res, 200, { configured: Boolean(process.env.GEMINI_API_KEY) });
+    return sendJson(res, 200, { configured: Boolean(getApiKey()) });
   }
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'GET, POST');
@@ -260,8 +269,22 @@ export default async function handler(req, res) {
   try {
     const result = await generate(body.operation, body);
     return sendJson(res, result.status, result.status === 200 ? { data: result.data } : { error: result.error });
-  } catch {
-    console.error('Gemini request failed.');
-    return sendJson(res, 502, { error: { code: 'network', message: 'The AI service is temporarily unavailable.' } });
+  } catch (err) {
+    console.error('Gemini request failed:', err);
+    const rawStatus = Number(err?.status || err?.statusCode || err?.httpStatusCode || 0);
+    const status = rawStatus >= 400 && rawStatus < 600 ? rawStatus : 502;
+    const rawMessage = err instanceof Error ? err.message : String(err || 'The AI service is temporarily unavailable.');
+    const code =
+      status === 429 || /429|quota|rate|resource_exhausted/i.test(rawMessage)
+        ? 'rate-limited'
+        : status === 401 || status === 403 || /api[_\s-]?key|permission|unauthenticated|forbidden/i.test(rawMessage)
+          ? 'missing-key'
+          : 'network';
+    return sendJson(res, status, {
+      error: {
+        code,
+        message: `[HTTP ${status}] ${rawMessage}`,
+      },
+    });
   }
 }

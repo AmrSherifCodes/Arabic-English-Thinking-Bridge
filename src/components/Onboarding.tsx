@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useState } from 'react';
 import { UserProfile } from '../hooks/useUserProfile';
+import { isArabicUI, uiText } from '../utils/i18n';
 import { BouncyButton } from './BouncyButton';
 
 interface OnboardingProps {
@@ -15,7 +16,7 @@ const CHOICE_CLASS =
 export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingProps) {
   const [step, setStep] = useState(0);
   const [language, setLanguage] = useState<UserProfile['language']>(
-    initialProfile?.language ?? 'english'
+    initialProfile?.language ?? 'arabic'
   );
   const [dialect, setDialect] = useState<UserProfile['dialect']>(
     initialProfile?.dialect ?? 'egyptian'
@@ -25,16 +26,27 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
   );
   const [error, setError] = useState<string | null>(null);
 
+  const rtl = step > 0 && isArabicUI(language);
+  const t = (en: string, ar: string) => (step === 0 ? `${en} · ${ar}` : uiText(language, en, ar));
+  const choiceAlignClass = rtl ? `${CHOICE_CLASS} text-right` : CHOICE_CLASS;
+
   const completeOnboarding = (selectedGoal: UserProfile['goal']) => {
     try {
       onComplete({ language, dialect, level, goal: selectedGoal });
     } catch {
-      setError('We couldn’t save your profile. Check browser storage and try again.');
+      setError(
+        uiText(
+          language,
+          'We couldn’t save your profile. Check browser storage and try again.',
+          'تعذر حفظ ملفك الشخصي. يرجى التحقق من مساحة تخزين المتصفح والمحاولة مرة أخرى.'
+        )
+      );
     }
   };
 
   return (
     <div
+      dir={rtl ? 'rtl' : 'ltr'}
       className="fixed inset-0 z-50 flex min-h-dvh items-center justify-center overflow-y-auto bg-cover bg-center p-4"
       style={{
         backgroundImage:
@@ -48,7 +60,9 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
               Thinking Bridge
             </p>
             <p className="mt-1 text-sm text-stone-300">
-              Step {step + 1} of 4
+              {step === 0
+                ? `Step 1 of 4 · الخطوة 1 من 4`
+                : uiText(language, `Step ${step + 1} of 4`, `الخطوة ${step + 1} من 4`)}
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -68,7 +82,7 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
                 onClick={onCancel}
                 className="rounded-lg px-2 py-1 text-xs font-medium text-stone-300 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive-300"
               >
-                Cancel
+                {uiText(language, 'Cancel', 'إلغاء')}
               </BouncyButton>
             )}
           </div>
@@ -83,16 +97,42 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
             transition={{ duration: 0.2 }}
           >
             <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-              {step === 0 && 'What do you want to learn?'}
-              {step === 1 && 'Which Arabic dialect do you want to learn?'}
-              {step === 2 && 'What is your current level?'}
-              {step === 3 && 'Why are you learning?'}
+              {step === 0 && t('What do you want to learn?', 'ماذا تريد أن تتعلم؟')}
+              {step === 1 &&
+                uiText(
+                  language,
+                  'Which Arabic dialect do you want to learn?',
+                  'أي لهجة عربية تفضل استخدامها في الأمثلة والشرح؟'
+                )}
+              {step === 2 &&
+                uiText(language, 'What is your current level?', 'ما هو مستواك الحالي؟')}
+              {step === 3 &&
+                uiText(language, 'Why are you learning?', 'ما هو هدفك الأساسي من التعلم؟')}
             </h1>
             <p className="mt-2 text-sm leading-relaxed text-stone-300">
-              {step === 0 && 'Choose the language you want to focus on.'}
-              {step === 1 && 'Choose Egyptian Arabic (Ammiya) or Modern Standard Arabic (MSA/Fusha).'}
-              {step === 2 && 'We’ll use this to help shape your learning path.'}
-              {step === 3 && 'Pick the goal that matters most to you.'}
+              {step === 0 &&
+                t(
+                  'Choose the language you want to focus on.',
+                  'اختر اللغة التي ترغب في التركيز عليها.'
+                )}
+              {step === 1 &&
+                uiText(
+                  language,
+                  'Choose Egyptian Arabic (Ammiya) or Modern Standard Arabic (MSA/Fusha).',
+                  'اختر العامية المصرية أو العربية الفصحى.'
+                )}
+              {step === 2 &&
+                uiText(
+                  language,
+                  'We’ll use this to help shape your learning path.',
+                  'سنستخدم هذا لتخصيص مسارك التعليمي.'
+                )}
+              {step === 3 &&
+                uiText(
+                  language,
+                  'Pick the goal that matters most to you.',
+                  'اختر الهدف الأكثر أهمية بالنسبة لك.'
+                )}
             </p>
 
             <div className="mt-6 grid gap-3">
@@ -107,7 +147,7 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
                       setError(null);
                     }}
                   >
-                    English
+                    English (تعلم الإنجليزية — واجهة عربية)
                   </BouncyButton>
                   <BouncyButton
                     type="button"
@@ -118,7 +158,7 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
                       setError(null);
                     }}
                   >
-                    Arabic
+                    Arabic (Learn Arabic — English UI)
                   </BouncyButton>
                 </>
               )}
@@ -126,25 +166,25 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
                 <>
                   <BouncyButton
                     type="button"
-                    className={CHOICE_CLASS}
+                    className={choiceAlignClass}
                     onClick={() => {
                       setDialect('egyptian');
                       setStep(2);
                       setError(null);
                     }}
                   >
-                    Egyptian (Ammiya) 🇪🇬
+                    {uiText(language, 'Egyptian (Ammiya) 🇪🇬', 'العامية المصرية 🇪🇬')}
                   </BouncyButton>
                   <BouncyButton
                     type="button"
-                    className={CHOICE_CLASS}
+                    className={choiceAlignClass}
                     onClick={() => {
                       setDialect('msa');
                       setStep(2);
                       setError(null);
                     }}
                   >
-                    Standard (Fusha) 📖
+                    {uiText(language, 'Standard (Fusha) 📖', 'العربية الفصحى 📖')}
                   </BouncyButton>
                 </>
               )}
@@ -152,36 +192,36 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
                 <>
                   <BouncyButton
                     type="button"
-                    className={CHOICE_CLASS}
+                    className={choiceAlignClass}
                     onClick={() => {
                       setLevel('beginner');
                       setStep(3);
                       setError(null);
                     }}
                   >
-                    Beginner
+                    {uiText(language, 'Beginner', 'مبتدئ (Beginner)')}
                   </BouncyButton>
                   <BouncyButton
                     type="button"
-                    className={CHOICE_CLASS}
+                    className={choiceAlignClass}
                     onClick={() => {
                       setLevel('intermediate');
                       setStep(3);
                       setError(null);
                     }}
                   >
-                    Intermediate
+                    {uiText(language, 'Intermediate', 'متوسط (Intermediate)')}
                   </BouncyButton>
                   <BouncyButton
                     type="button"
-                    className={CHOICE_CLASS}
+                    className={choiceAlignClass}
                     onClick={() => {
                       setLevel('advanced');
                       setStep(3);
                       setError(null);
                     }}
                   >
-                    Advanced
+                    {uiText(language, 'Advanced', 'متقدم (Advanced)')}
                   </BouncyButton>
                 </>
               )}
@@ -189,30 +229,30 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
                 <>
                   <BouncyButton
                     type="button"
-                    className={CHOICE_CLASS}
+                    className={choiceAlignClass}
                     onClick={() => {
                       completeOnboarding('travel');
                     }}
                   >
-                    Travel
+                    {uiText(language, 'Travel', 'السفر والتنقل (Travel)')}
                   </BouncyButton>
                   <BouncyButton
                     type="button"
-                    className={CHOICE_CLASS}
+                    className={choiceAlignClass}
                     onClick={() => {
                       completeOnboarding('work');
                     }}
                   >
-                    Work
+                    {uiText(language, 'Work', 'العمل وخدمة العملاء (Work)')}
                   </BouncyButton>
                   <BouncyButton
                     type="button"
-                    className={CHOICE_CLASS}
+                    className={choiceAlignClass}
                     onClick={() => {
                       completeOnboarding('general');
                     }}
                   >
-                    General
+                    {uiText(language, 'General', 'تعلم عام ودراسة (General)')}
                   </BouncyButton>
                 </>
               )}
@@ -235,7 +275,7 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
             }}
             className="mt-6 rounded-lg px-2 py-2 text-sm font-medium text-stone-300 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive-300"
           >
-            ← Back
+            {uiText(language, '← Back', '→ رجوع')}
           </BouncyButton>
         )}
       </div>

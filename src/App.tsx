@@ -98,6 +98,7 @@ import { generateCustomDeck } from './services/geminiLexicon';
 import type { LexiconEntry, Situation } from './services/geminiLexicon';
 import { STATIC_DICTIONARY } from './data/staticDictionary';
 import { filterDictionaryForProfile, useMasterDictionary } from './services/dictionaryLoader';
+import { isArabicUI, uiText } from './utils/i18n';
 import { WhyEnglishView } from './components/WhyEnglishView';
 import { useTheme } from './hooks/useTheme';
 import { MessagesView } from './components/MessagesView';
@@ -269,17 +270,50 @@ export default function App() {
   const dictionaryEntries = masterDictionary.length > 0
     ? profileMatchedMaster
     : profileMatchedStatic;
-  const coreDecks = CORE_DECKS.map(deck =>
-    deck.id === 'master-dictionary'
-      ? {
-          ...deck,
-          name: `✨ My Personalized ${dictionaryEntries.length.toLocaleString()} Words`,
-          subtitle: profile
-            ? `${dictionaryEntries.length.toLocaleString()} words matched to your ${profile.level} level and ${profile.goal} goal`
-            : `${dictionaryEntries.length.toLocaleString()} words in your personalized vocabulary pool`
-        }
-      : deck
-  );
+  const isEgyptianOnly = profile?.dialect === 'egyptian';
+  const rtlUI = isArabicUI(profile?.language);
+  const tUI = (en: string, ar: string) => uiText(profile?.language, en, ar);
+
+  const visibleCoreDecks = isEgyptianOnly
+    ? CORE_DECKS.filter(d => d.id === 'master-dictionary' || d.id === 'custom').sort((a, b) =>
+        a.id === 'master-dictionary' ? -1 : b.id === 'master-dictionary' ? 1 : 0
+      )
+    : CORE_DECKS;
+
+  const coreDecks = visibleCoreDecks.map(deck => {
+    if (deck.id === 'master-dictionary') {
+      const dialectTag = profile?.dialect === 'egyptian'
+        ? tUI('Egyptian Arabic (Ammiya) 🇪🇬', 'العامية المصرية 🇪🇬')
+        : tUI('Modern Standard Arabic 📖', 'العربية الفصحى 📖');
+      return {
+        ...deck,
+        name: tUI(
+          `✨ My Personalized ${dictionaryEntries.length.toLocaleString()} Words & Phrases (${dialectTag})`,
+          `✨ قاموسي المخصص (${dictionaryEntries.length.toLocaleString()} كلمة وعبارة · ${dialectTag})`
+        ),
+        subtitle: profile
+          ? tUI(
+              `${dictionaryEntries.length.toLocaleString()} ${dialectTag} words & phrases matched to your ${profile.level} level and ${profile.goal} goal`,
+              `${dictionaryEntries.length.toLocaleString()} كلمة وعبارة (${dialectTag}) مخصصة لمستواك وأهدافك`
+            )
+          : tUI(
+              `${dictionaryEntries.length.toLocaleString()} words & phrases in your personalized vocabulary pool`,
+              `${dictionaryEntries.length.toLocaleString()} كلمة وعبارة في مجموعتك المخصصة`
+            )
+      };
+    }
+    if (deck.id === 'custom') {
+      return {
+        ...deck,
+        name: tUI('My Custom Translations', 'ترجماتي وبطاقاتي الخاصة'),
+        subtitle: tUI(
+          'Saved & bulk-imported from the Translate tab',
+          'البطاقات المحفوظة والمستوردة من تبويب الترجمة'
+        )
+      };
+    }
+    return deck;
+  });
   const { isStruggling, recordAnswer } = useAdaptiveLearning();
   const { isBlocked, unlock } = useTimeLimit({ permanentUnlock: true });
   const { verify, verifying, error } = useSubscriptionUnlock(unlock, isBlocked);
@@ -478,6 +512,7 @@ export default function App() {
       if (!arabicWord || !englishTranslation) return null;
       const dialect = dialectKey === undefined ? 'msa' : dialectKey;
       if (dialect !== 'msa' && dialect !== 'egyptian') return null;
+      if (profile && dialect !== profile.dialect) return null;
       let decodedArabicWord: string;
       let decodedEnglishTranslation: string;
       try {
@@ -491,9 +526,9 @@ export default function App() {
         candidate =>
           candidate.arabicWord === decodedArabicWord &&
           candidate.englishTranslation === decodedEnglishTranslation &&
-          (candidate.dialect ?? 'msa') === dialect
+          candidate.dialect === dialect
       );
-      if (!entry) return null;
+      if (!entry || (profile && entry.dialect !== profile.dialect)) return null;
       return {
         ar: entry.arabicWord,
         en: entry.englishTranslation,
@@ -505,6 +540,10 @@ export default function App() {
     if (k.startsWith('c:')) {
       const custom = (currentProgress.customCards || []).find(x => 'c:' + x.id === k);
       if (custom) {
+        // When user selected Egyptian dialect, block MSA prebuilt decks imported into customCards
+        if (profile?.dialect === 'egyptian' && custom.deckId && custom.deckId !== 'custom') {
+          return null;
+        }
         return {
           ar: custom.ar,
           en: custom.en,
@@ -512,6 +551,7 @@ export default function App() {
           nextReviewDate: currentProgress.cards?.[k]?.nextReviewDate ?? Date.now()
         };
       }
+      if (profile?.dialect === 'egyptian') return null;
       for (const deck of ALL_PREBUILT_DECKS) {
         const idxMatch = k.replace(`c:${deck.id}-`, '');
         const idx = Number(idxMatch);
@@ -526,6 +566,10 @@ export default function App() {
       }
       return null;
     }
+
+    // Curriculum exercises (ex-1-1-1, ex-1-1-2 "الطقس بارد جداً اليوم", etc.) are MSA-only
+    if (profile?.dialect === 'egyptian') return null;
+
     const exById = ALL_EXERCISES.find(x => x.id === k);
     if (exById) {
       return {
@@ -558,10 +602,6 @@ export default function App() {
     const sortSolvedFirst = (ids: string[]) =>
       [...ids].sort((a, b) => (solvedSet.has(b) ? 1 : 0) - (solvedSet.has(a) ? 1 : 0));
 
-    if (deckId === 'phase-1' || deckId === 'phase-2' || deckId === 'phase-3') {
-      return sortSolvedFirst(PHASE_EXERCISE_IDS[deckId]);
-    }
-
     if (deckId === 'master-dictionary') {
       return dictionaryEntries.map(getMasterDictionaryCardKey);
     }
@@ -570,6 +610,22 @@ export default function App() {
       return (currentProgress.customCards || [])
         .filter(c => !c.deckId || c.deckId === 'custom')
         .map(c => 'c:' + c.id);
+    }
+
+    // Strictly enforce Egyptian dialect: never return MSA curriculum or prebuilt MSA decks
+    if (profile?.dialect === 'egyptian') {
+      if (deckId === 'all' || deckId === null) {
+        const masterDictionaryIds = dictionaryEntries.map(getMasterDictionaryCardKey);
+        const userCustomIds = (currentProgress.customCards || [])
+          .filter(c => !c.deckId || c.deckId === 'custom')
+          .map(c => 'c:' + c.id);
+        return Array.from(new Set([...masterDictionaryIds, ...userCustomIds]));
+      }
+      return [];
+    }
+
+    if (deckId === 'phase-1' || deckId === 'phase-2' || deckId === 'phase-3') {
+      return sortSolvedFirst(PHASE_EXERCISE_IDS[deckId]);
     }
 
     const prebuilt = ALL_PREBUILT_DECKS.find(d => d.id === deckId);
@@ -581,7 +637,7 @@ export default function App() {
       return prebuilt.cards.map((_, idx) => `c:${prebuilt.id}-${idx}`);
     }
 
-    // Default / 'all': aggregate curriculum, master dictionary, expanded decks, and custom cards.
+    // Default / 'all' for MSA: prioritize profile-matched master dictionary + custom cards first
     const allPhaseIds = sortSolvedFirst([
       ...PHASE_EXERCISE_IDS['phase-1'],
       ...PHASE_EXERCISE_IDS['phase-2'],
@@ -592,7 +648,7 @@ export default function App() {
       d.cards.map((_, idx) => `c:${d.id}-${idx}`)
     );
     const customIds = (currentProgress.customCards || []).map(c => 'c:' + c.id);
-    return Array.from(new Set([...customIds, ...allPhaseIds, ...masterDictionaryIds, ...expandedIds]));
+    return Array.from(new Set([...masterDictionaryIds, ...customIds, ...allPhaseIds, ...expandedIds]));
   };
 
   const getDeckStats = (
@@ -667,11 +723,11 @@ export default function App() {
   }, [activeDeckId, progress, reviewQueue]);
 
   useEffect(() => {
-    if (activeDeckId !== 'master-dictionary' && activeDeckId !== 'all') return;
+    if (activeDeckId === null) return;
     const dictionary = masterDictionary;
-    console.log('LOADED DICTIONARY WORDS:', dictionary.length);
+    console.log('LOADED DICTIONARY WORDS:', dictionary.length, '| DIALECT:', profile?.dialect);
     setReviewQueue(computeDueCardQueue(progress, activeDeckId));
-  }, [activeDeckId, masterDictionary, profile?.goal, profile?.level]);
+  }, [activeDeckId, masterDictionary, profile?.dialect, profile?.goal, profile?.level]);
 
   const handleSelectDeck = (deckId: string) => {
     const q = computeDueCardQueue(progress, deckId);
@@ -1138,6 +1194,11 @@ export default function App() {
   };
 
   const handleQuickWinStart = () => {
+    if (profile?.dialect === 'egyptian') {
+      setActiveTab('cards');
+      handleSelectDeck('master-dictionary');
+      return;
+    }
     const nextIdx = Math.max(
       0,
       ALL_LESSONS.findIndex(l => !isLessonComplete(l))
@@ -1146,6 +1207,11 @@ export default function App() {
   };
 
   const handleStartBeginnerDeck = () => {
+    if (profile?.dialect === 'egyptian') {
+      setActiveTab('cards');
+      handleSelectDeck('master-dictionary');
+      return;
+    }
     const starterDeck = PREBUILT_DECKS.find(d => d.id === 'beginner-starter-a0');
     if (starterDeck && !(progress.importedDecks || []).includes(starterDeck.id)) {
       handleDownloadOpenSourceDeck(starterDeck);
@@ -1640,10 +1706,10 @@ export default function App() {
     reviewQueue !== null ? reviewQueue : computeDueCardQueue(progress, activeDeckId);
   const activeDeckTitle =
     activeDeckId === 'all'
-      ? 'All Due Cards'
+      ? tUI('All Due Cards', 'جميع البطاقات المستحقة')
       : coreDecks.find(d => d.id === activeDeckId)?.name ||
         ALL_PREBUILT_DECKS.find(d => d.id === activeDeckId)?.name ||
-        'Study Session';
+        tUI('Study Session', 'جلسة مراجعة');
 
   const activePracticeLesson =
     activeLessonIdx !== null ? ALL_LESSONS[activeLessonIdx] ?? null : null;
@@ -1660,20 +1726,31 @@ export default function App() {
     <div className="relative min-h-screen w-full overflow-hidden bg-transparent">
       <div className="relative z-10">
       <div inert={isBlocked} className="flex h-dvh min-h-screen w-full flex-col overflow-hidden">
-        <header className="relative z-40 mx-auto flex w-full max-w-md shrink-0 items-center justify-between px-4 py-3">
+        <header
+          dir={rtlUI ? 'rtl' : 'ltr'}
+          className="relative z-40 mx-auto flex w-full max-w-md shrink-0 items-center justify-between px-4 py-3"
+        >
           <div className="flex items-center gap-2 font-semibold text-orange-700 dark:text-orange-300">
             <Flame size={20} aria-hidden="true" />
             <span>
-              {progress.streak} day{progress.streak === 1 ? '' : 's'} streak
+              {tUI(
+                `${progress.streak} day${progress.streak === 1 ? '' : 's'} streak`,
+                `${progress.streak} يوم متتالي`
+              )}
             </span>
           </div>
-          <span className="text-sm font-medium capitalize text-stone-600 dark:text-stone-300">
-            {profile.language}
+          <span className="text-sm font-medium text-stone-600 dark:text-stone-300">
+            {profile.language === 'arabic'
+              ? `Learning Arabic (${profile.dialect === 'egyptian' ? 'Egyptian 🇪🇬' : 'MSA 📖'})`
+              : `تعلم الإنجليزية (${profile.dialect === 'egyptian' ? 'عامية مصرية 🇪🇬' : 'فصحى 📖'})`}
           </span>
           <div className="flex items-center gap-2">
             <button
               type="button"
-              aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+              aria-label={tUI(
+                `Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`,
+                `التبديل إلى الوضع ${theme === 'dark' ? 'الفاتح' : 'الداكن'}`
+              )}
               aria-pressed={theme === 'dark'}
               onClick={toggleTheme}
               className="flex h-11 w-11 items-center justify-center rounded-full border border-stone-300 bg-white/80 text-stone-700 shadow-sm hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive-600 dark:border-stone-700 dark:bg-stone-900/80 dark:text-stone-200 dark:hover:bg-stone-800"
@@ -1682,7 +1759,7 @@ export default function App() {
             </button>
             <button
               type="button"
-              aria-label="Open profile and settings"
+              aria-label={tUI('Open profile and settings', 'فتح الملف الشخصي والإعدادات')}
               aria-expanded={showSettingsMenu}
               onClick={() => setShowSettingsMenu(open => !open)}
               className="flex h-11 w-11 items-center justify-center rounded-full border border-stone-300 bg-white/80 text-stone-700 shadow-sm hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive-600 dark:border-stone-700 dark:bg-stone-900/80 dark:text-stone-200 dark:hover:bg-stone-800"
@@ -1693,8 +1770,10 @@ export default function App() {
           {showSettingsMenu && (
             <div
               role="dialog"
-              aria-label="Profile and settings"
-              className="absolute right-4 top-full z-40 max-h-[calc(100dvh-5rem)] w-64 overflow-y-auto rounded-2xl border border-stone-200 bg-white p-2 shadow-xl dark:border-stone-700 dark:bg-stone-900"
+              aria-label={tUI('Profile and settings', 'الملف الشخصي والإعدادات')}
+              className={`absolute ${
+                rtlUI ? 'left-4 text-right' : 'right-4 text-left'
+              } top-full z-40 max-h-[calc(100dvh-5rem)] w-64 overflow-y-auto rounded-2xl border border-stone-200 bg-white p-2 shadow-xl dark:border-stone-700 dark:bg-stone-900`}
             >
               <button
                 type="button"
@@ -1702,16 +1781,23 @@ export default function App() {
                   setShowSettingsMenu(false);
                   setShowOnboarding(true);
                 }}
-                className="w-full rounded-xl px-3 py-2.5 text-left text-sm font-medium hover:bg-stone-100 dark:hover:bg-stone-800"
+                className={`w-full rounded-xl px-3 py-2.5 ${
+                  rtlUI ? 'text-right' : 'text-left'
+                } text-sm font-medium hover:bg-stone-100 dark:hover:bg-stone-800`}
               >
-                Edit learning profile
+                {tUI('Edit learning profile', 'تعديل ملف التعلم واللهجة')}
               </button>
               <button
                 type="button"
                 onClick={toggleSound}
-                className="w-full rounded-xl px-3 py-2.5 text-left text-sm font-medium hover:bg-stone-100 dark:hover:bg-stone-800"
+                className={`w-full rounded-xl px-3 py-2.5 ${
+                  rtlUI ? 'text-right' : 'text-left'
+                } text-sm font-medium hover:bg-stone-100 dark:hover:bg-stone-800`}
               >
-                Turn sound {progress.soundOn ? 'off' : 'on'}
+                {tUI(
+                  `Turn sound ${progress.soundOn ? 'off' : 'on'}`,
+                  `${progress.soundOn ? 'إيقاف' : 'تشغيل'} المؤثرات الصوتية`
+                )}
               </button>
               <div className="px-3 py-2">
                 <PWAInstallButton />
@@ -1719,9 +1805,11 @@ export default function App() {
               <button
                 type="button"
                 onClick={handleDownloadOfflineHtml}
-                className="w-full rounded-xl px-3 py-2.5 text-left text-sm font-medium hover:bg-stone-100 dark:hover:bg-stone-800"
+                className={`w-full rounded-xl px-3 py-2.5 ${
+                  rtlUI ? 'text-right' : 'text-left'
+                } text-sm font-medium hover:bg-stone-100 dark:hover:bg-stone-800`}
               >
-                Download offline app
+                {tUI('Download offline app', 'تحميل نسخة تعمل بدون إنترنت')}
               </button>
               <a
                 href={waFriendShareLink(buildFriendShareWhatsAppMessage())}
@@ -1729,7 +1817,7 @@ export default function App() {
                 rel="noopener noreferrer"
                 className="block rounded-xl px-3 py-2.5 text-sm font-medium hover:bg-stone-100 dark:hover:bg-stone-800"
               >
-                Share app on WhatsApp
+                {tUI('Share app on WhatsApp', 'مشاركة التطبيق عبر واتساب')}
               </a>
               <button
                 type="button"
@@ -1737,9 +1825,11 @@ export default function App() {
                   setShowVaultModal(true);
                   setShowSettingsMenu(false);
                 }}
-                className="w-full rounded-xl px-3 py-2.5 text-left text-sm font-medium hover:bg-stone-100 dark:hover:bg-stone-800"
+                className={`w-full rounded-xl px-3 py-2.5 ${
+                  rtlUI ? 'text-right' : 'text-left'
+                } text-sm font-medium hover:bg-stone-100 dark:hover:bg-stone-800`}
               >
-                Privacy and authorship
+                {tUI('Privacy and authorship', 'الخصوصية وحقوق التأليف')}
               </button>
               <button
                 type="button"
@@ -1752,9 +1842,11 @@ export default function App() {
                   }
                   setShowSettingsMenu(false);
                 }}
-                className="w-full rounded-xl px-3 py-2.5 text-left text-sm font-medium hover:bg-stone-100 dark:hover:bg-stone-800"
+                className={`w-full rounded-xl px-3 py-2.5 ${
+                  rtlUI ? 'text-right' : 'text-left'
+                } text-sm font-medium hover:bg-stone-100 dark:hover:bg-stone-800`}
               >
-                Olive tree reflection
+                {tUI('Olive tree reflection', 'تأملات شجرة الزيتون')}
               </button>
             </div>
           )}
@@ -1955,6 +2047,7 @@ export default function App() {
         mysteryRewardBanner={mysteryRewardBanner}
         onToggleBeginnerMode={handleToggleBeginnerMode}
         onQuickWinStart={handleQuickWinStart}
+        language={profile.language}
       />
 
         {activeTab === 'home' && (
@@ -2052,6 +2145,7 @@ export default function App() {
           <div>
             {activeDeckId === null ? (
               <DeckListView
+                profile={profile}
                 coreDecks={coreDecks}
                 expandedDecks={EXPANDED_DECKS}
                 prebuiltDecks={PREBUILT_DECKS}
@@ -2064,6 +2158,7 @@ export default function App() {
               />
             ) : (
               <ReviewView
+                profile={profile}
                 deckName={activeDeckTitle}
                 deckStats={getDeckStats(activeDeckId, progress)}
                 activeQueue={activeCardQueue}
@@ -2230,7 +2325,44 @@ export default function App() {
         >
           <p>
             🌊 Crafted in <strong>Alexandria, Egypt</strong> by <strong>Amr Sherif</strong> ·{' '}
-            <strong>Thinking English™</strong> · 100% Free, Ad-Free &amp; Public Domain (CC0 1.0)
+            <strong>Thinking English™</strong> · 100% Free &amp; Ad-Free
+          </p>
+          <p>
+            📚 Lessons and built-in decks are original and dedicated to the public domain (CC0 1.0).
+          </p>
+          <p id="dictionary-attribution">
+            📖 Vocabulary data includes contributions from{' '}
+            <a
+              href="https://en.wiktionary.org/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline"
+            >
+              Wiktionary
+            </a>{' '}
+            (via{' '}
+            <a href="https://kaikki.org/" target="_blank" rel="noopener noreferrer" className="underline">
+              Kaikki.org
+            </a>
+            ), licensed under{' '}
+            <a
+              href="https://creativecommons.org/licenses/by-sa/4.0/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline"
+            >
+              CC BY-SA
+            </a>
+            , and the{' '}
+            <a
+              href="https://huggingface.co/datasets/oddadmix/egyptian-arabic-english-translation-50k"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline"
+            >
+              oddadmix/egyptian-arabic-english-translation-50k
+            </a>{' '}
+            dataset on Hugging Face (Apache-2.0).
           </p>
           <p>
             🔒 <em>No accounts. No analytics. Translation requests go to MyMemory.net only.</em>
@@ -2243,6 +2375,7 @@ export default function App() {
       </main>
 
       <BottomNav
+        language={profile.language}
         activeTab={
           activeTab === 'progress'
             ? 'profile'

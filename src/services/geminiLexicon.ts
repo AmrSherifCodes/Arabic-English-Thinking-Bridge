@@ -74,6 +74,7 @@ async function requestGemini<T>(
   if (signal?.aborted) controller.abort();
 
   try {
+    console.log('Key exists:', !!import.meta.env.VITE_GEMINI_API_KEY, '| Endpoint: /api/gemini | Operation:', operation);
     const response = await fetch('/api/gemini', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -94,9 +95,12 @@ async function requestGemini<T>(
         ['missing-key', 'empty-input', 'timeout', 'rate-limited', 'network', 'bad-output', 'unknown'].includes(error.code)
         ? error.code as LexiconErrorCode
         : 'unknown';
-      const message = typeof error.message === 'string'
+      const rawMessage = typeof error.message === 'string'
         ? error.message
         : 'The AI service could not complete the request.';
+      const message = rawMessage.startsWith('[HTTP')
+        ? `${rawMessage} (${code})`
+        : `[HTTP ${response.status} - ${code}] ${rawMessage}`;
       throw new LexiconError(code, message);
     }
     return body.data as T;
@@ -174,8 +178,8 @@ export async function generateCustomDeck(
   situation: Situation
 ): Promise<CustomDeckWord[]> {
   const getStaticDeck = (): CustomDeckWord[] => {
-    const entries = getStaticDictionaryEntries(situation)
-      .filter(entry => (entry.dialect ?? 'msa') === profile.dialect);
+    const entries = getStaticDictionaryEntries(situation, profile.dialect)
+      .filter(entry => entry.dialect === profile.dialect);
     for (let index = entries.length - 1; index > 0; index--) {
       const swapIndex = Math.floor(Math.random() * (index + 1));
       [entries[index], entries[swapIndex]] = [entries[swapIndex], entries[index]];
@@ -227,22 +231,20 @@ export async function generateTutorResponse(
   }
   const { profile, currentWord } = context;
   const recentHistory = context.history.slice(-4);
-  const wordContext = currentWord
-    ? `The learner is currently studying: ${currentWord.arabicWord} = ${currentWord.englishTranslation}. ` +
-      `Example: ${currentWord.exampleSentenceArabic} (${currentWord.exampleSentenceEnglish}).`
-    : 'No specific vocabulary card is currently selected.';
-  const conversationContext = recentHistory.length
-    ? `\nRecent conversation:\n${recentHistory.join('\n')}`
-    : '';
 
-  const answer = await requestGemini<string>('tutor', {
-    prompt: `${conversationContext}\n${wordContext}\nLearner's question: ${question}`,
-    context: { ...context, profile, currentWord, history: recentHistory }
-  });
-  if (typeof answer !== 'string' || !answer.trim()) {
-    throw new LexiconError('bad-output', 'The tutor returned an empty answer.');
+  try {
+    const answer = await requestGemini<string>('tutor', {
+      prompt: question,
+      context: { ...context, profile, currentWord, history: recentHistory }
+    });
+    if (typeof answer !== 'string' || !answer.trim()) {
+      throw new LexiconError('bad-output', 'The tutor returned an empty answer.');
+    }
+    return answer.trim();
+  } catch (err) {
+    console.error('[geminiLexicon] generateTutorResponse failed:', err);
+    throw err;
   }
-  return answer.trim();
 }
 
 export async function safeGenerateLexiconEntry(word: string, opts: GenerateOptions = {}): Promise<LexiconResult> {

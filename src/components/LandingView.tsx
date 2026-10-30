@@ -86,7 +86,7 @@ export function LandingView({ onStartWebApp }: LandingViewProps) {
           </div>
 
           <p className="mt-7 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50/90 px-4 py-2 text-sm font-semibold text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300">
-            🔒 No tracking · 100% CC0 Open Source
+            🔒 No tracking · 5,000+ Words &amp; Phrases · Open Source
           </p>
         </section>
       </div>

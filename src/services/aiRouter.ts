@@ -4,9 +4,9 @@ import { STATIC_DICTIONARY } from '../data/staticDictionary';
 
 function getOfflineAnswer(prompt: string, context: TutorContext, reason?: string): string {
   const entry =
-    context.currentWord ??
+    (context.currentWord?.dialect === context.profile.dialect ? context.currentWord : undefined) ??
     STATIC_DICTIONARY.find(candidate =>
-      (candidate.dialect ?? 'msa') === context.profile.dialect &&
+      candidate.dialect === context.profile.dialect &&
       (prompt.toLocaleLowerCase().includes(candidate.arabicWord.toLocaleLowerCase()) ||
         prompt.toLocaleLowerCase().includes(candidate.englishTranslation.toLocaleLowerCase()))
     );
@@ -27,7 +27,8 @@ function getOfflineAnswer(prompt: string, context: TutorContext, reason?: string
 
 export async function askAIHelper(
   prompt: string,
-  context: TutorContext
+  context: TutorContext,
+  onError?: (error: Error) => void
 ): Promise<string> {
   const question = prompt.trim();
   if (!question || question.length > 2000) {
@@ -35,18 +36,17 @@ export async function askAIHelper(
   }
 
   if (typeof navigator !== 'undefined' && !navigator.onLine) {
-    return getOfflineAnswer(question, context);
+    const offlineErr = new Error('Browser is offline (navigator.onLine === false)');
+    onError?.(offlineErr);
+    return getOfflineAnswer(question, context, 'API Error: ' + offlineErr.message);
   }
 
   try {
     return await generateTutorResponse(question, context);
   } catch (err) {
-    if (err instanceof LexiconError && err.code === 'rate-limited') {
-      return getOfflineAnswer(question, context, 'AI tutor is cooling down due to high traffic.');
-    }
-    if (err instanceof LexiconError && err.code === 'timeout') {
-      return getOfflineAnswer(question, context, 'AI tutor timed out.');
-    }
-    return getOfflineAnswer(question, context);
+    console.error('[aiRouter] generateTutorResponse error:', err);
+    const errorObj = err instanceof Error ? err : new Error(String(err));
+    onError?.(errorObj);
+    return getOfflineAnswer(question, context, 'API Error: ' + (err as Error).message);
   }
 }

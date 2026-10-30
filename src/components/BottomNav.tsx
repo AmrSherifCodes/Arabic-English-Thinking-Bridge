@@ -1,30 +1,36 @@
 import { motion } from 'framer-motion';
 import { BookOpen, Home, MessageCircle, Mic, User } from 'lucide-react';
+import type { UserProfile } from '../hooks/useUserProfile';
+import { isArabicUI, uiText } from '../utils/i18n';
 
 export type BottomNavTab = 'home' | 'lessons' | 'practice' | 'messages' | 'profile';
 
 interface BottomNavProps {
   activeTab: BottomNavTab;
   onTabChange: (tab: BottomNavTab) => void;
+  language?: UserProfile['language'];
 }
 
 const TABS = [
-  { id: 'home', label: 'Home', Icon: Home },
-  { id: 'lessons', label: 'Lessons', Icon: BookOpen },
-  { id: 'practice', label: 'Practice', Icon: Mic },
-  { id: 'messages', label: 'Messages', Icon: MessageCircle },
-  { id: 'profile', label: 'Profile', Icon: User }
+  { id: 'home', labelEn: 'Home', labelAr: 'الرئيسية', Icon: Home },
+  { id: 'lessons', labelEn: 'Lessons', labelAr: 'الدروس', Icon: BookOpen },
+  { id: 'practice', labelEn: 'Practice', labelAr: 'التدريب', Icon: Mic },
+  { id: 'messages', labelEn: 'Messages', labelAr: 'الرسائل', Icon: MessageCircle },
+  { id: 'profile', labelEn: 'Profile', labelAr: 'حسابي', Icon: User }
 ] as const;
 
-export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
+export function BottomNav({ activeTab, onTabChange, language }: BottomNavProps) {
+  const rtl = isArabicUI(language);
+
   return (
     <nav
-      aria-label="Main navigation"
+      dir={rtl ? 'rtl' : 'ltr'}
+      aria-label={uiText(language, 'Main navigation', 'التنقل الرئيسي')}
       className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950"
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
       <div className="mx-auto flex max-w-3xl">
-        {TABS.map(({ id, label, Icon }) => {
+        {TABS.map(({ id, labelEn, labelAr, Icon }) => {
           const isActive = activeTab === id;
           return (
             <motion.button
@@ -46,7 +52,7 @@ export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
               >
                 <Icon size={22} strokeWidth={isActive ? 2.5 : 2} aria-hidden="true" />
               </motion.span>
-              <span>{label}</span>
+              <span>{uiText(language, labelEn, labelAr)}</span>
             </motion.button>
           );
         })}

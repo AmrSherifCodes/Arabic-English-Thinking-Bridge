@@ -3,7 +3,7 @@ import type { DifficultyLevel, LexiconEntry, Situation } from './geminiLexicon';
 import type { UserProfile } from '../hooks/useUserProfile';
 import { isValidEntry } from '../data/staticDictionary';
 
-export const MASTER_DICTIONARY_STORAGE_KEY = 'tb.masterDictionary';
+export const MASTER_DICTIONARY_STORAGE_KEY = 'tb.masterDictionary.v2';
 const MAX_LOCALSTORAGE_ENTRIES = 1500;
 const DICTIONARY_FETCH_TIMEOUT_MS = 15_000;
 
@@ -19,18 +19,34 @@ export function getSituationForGoal(goal: UserProfile['goal']): Situation {
   return 'student';
 }
 
+/**
+ * Strictly filters dictionary entries so `entry.dialect === profile.dialect` is NEVER violated.
+ * - First matches dialect + level + situation.
+ * - If no entries match the narrow level+situation slice, widens to any entry of the SAME `profile.dialect`
+ *   (never falling back to MSA when `profile.dialect === 'egyptian'`, or vice-versa).
+ */
 export function filterDictionaryForProfile(
   entries: LexiconEntry[],
   profile: UserProfile
 ): LexiconEntry[] {
   const levelLimit = LEVEL_RANK[profile.level];
   const situation = getSituationForGoal(profile.goal);
-  return entries.filter(
+
+  const sameDialectEntries = entries.filter(
+    entry => entry.dialect === profile.dialect
+  );
+
+  const strictMatches = sameDialectEntries.filter(
     entry =>
       (entry.level === undefined || LEVEL_RANK[entry.level] <= levelLimit) &&
-      (entry.dialect ?? 'msa') === profile.dialect &&
       entry.situations.includes(situation)
   );
+
+  if (strictMatches.length > 0) {
+    return strictMatches;
+  }
+
+  return sameDialectEntries;
 }
 
 function readCachedDictionary(): LexiconEntry[] {
@@ -58,7 +74,10 @@ function readCachedDictionary(): LexiconEntry[] {
 function cacheDictionary(entries: LexiconEntry[]): void {
   if (typeof window === 'undefined') return;
   try {
-    const sliceToCache = entries.slice(0, MAX_LOCALSTORAGE_ENTRIES);
+    const halfCap = Math.floor(MAX_LOCALSTORAGE_ENTRIES / 2);
+    const egyptianSlice = entries.filter(e => e.dialect === 'egyptian').slice(0, halfCap);
+    const msaSlice = entries.filter(e => e.dialect === 'msa').slice(0, MAX_LOCALSTORAGE_ENTRIES - egyptianSlice.length);
+    const sliceToCache = [...egyptianSlice, ...msaSlice];
     window.localStorage.setItem(MASTER_DICTIONARY_STORAGE_KEY, JSON.stringify(sliceToCache));
   } catch (error) {
     console.warn('Could not save the master dictionary to localStorage.', error);

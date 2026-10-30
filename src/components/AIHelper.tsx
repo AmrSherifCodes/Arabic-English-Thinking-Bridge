@@ -6,6 +6,7 @@ import { useRealConversation } from '../hooks/useRealConversation';
 import type { LexiconEntry, TutorContext } from '../services/geminiLexicon';
 import { checkGeminiService } from '../services/geminiLexicon';
 import { askAIHelper } from '../services/aiRouter';
+import { isArabicUI, uiText } from '../utils/i18n';
 import { BouncyButton } from './BouncyButton';
 
 export interface AIHelperRequest {
@@ -31,6 +32,8 @@ export function AIHelper({ profile, request }: AIHelperProps) {
   const [error, setError] = useState<string | null>(null);
   const { messages, history, addMessage } = useRealConversation();
   const cloudAvailable = isOnline && hasGeminiBackend;
+  const rtl = isArabicUI(profile.language);
+  const t = (en: string, ar: string) => uiText(profile.language, en, ar);
 
   useEffect(() => {
     let active = true;
@@ -79,13 +82,18 @@ export function AIHelper({ profile, request }: AIHelperProps) {
 
     try {
       const context: TutorContext = { profile, currentWord, history };
-      const answer = await askAIHelper(question, context);
+      const answer = await askAIHelper(question, context, err => {
+        setError(err.message);
+      });
       addMessage('assistant', answer);
     } catch (requestError) {
       setError(
         requestError instanceof Error
           ? requestError.message
-          : 'The tutor could not answer right now. Please try again.'
+          : t(
+              'The tutor could not answer right now. Please try again.',
+              'تعذر على المساعد الذكي الرد حالياً. يرجى المحاولة مرة أخرى.'
+            )
       );
     } finally {
       setIsSending(false);
@@ -99,8 +107,9 @@ export function AIHelper({ profile, request }: AIHelperProps) {
           {isOpen && (
             <motion.section
               key="ai-chat"
+              dir={rtl ? 'rtl' : 'ltr'}
               role="dialog"
-              aria-label="AI language tutor"
+              aria-label={t('AI language tutor', 'المعلم اللغوي الذكي')}
               initial={{ opacity: 0, y: 18, scale: 0.97 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 14, scale: 0.98 }}
@@ -111,19 +120,21 @@ export function AIHelper({ profile, request }: AIHelperProps) {
                 <div className="flex min-w-0 items-center gap-2">
                   <Sparkles size={19} className="shrink-0 text-olive-600 dark:text-olive-300" />
                   <div className="min-w-0">
-                    <h2 className="text-sm font-bold">Language Tutor</h2>
+                    <h2 className="text-sm font-bold">{t('Language Tutor', 'المعلم اللغوي الذكي')}</h2>
                     <p className="flex items-center gap-1.5 text-xs text-stone-500 dark:text-stone-400">
                       <span
                         aria-hidden="true"
                         className={`h-2 w-2 rounded-full ${cloudAvailable ? 'bg-emerald-500' : 'bg-amber-500'}`}
                       />
-                        {cloudAvailable ? 'Gemini tutor' : 'Dictionary fallback'}
+                      {cloudAvailable
+                        ? t('Gemini tutor', 'معلم Gemini الذكي')
+                        : t('Dictionary fallback', 'القاموس المحلي')}
                     </p>
                   </div>
                 </div>
                 <button
                   type="button"
-                  aria-label="Close tutor"
+                  aria-label={t('Close tutor', 'إغلاق المعلم الذكي')}
                   onClick={() => setIsOpen(false)}
                   className="flex h-10 w-10 items-center justify-center rounded-full text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-800"
                 >
@@ -138,7 +149,10 @@ export function AIHelper({ profile, request }: AIHelperProps) {
               >
                 {messages.length === 0 && (
                   <p className="rounded-2xl bg-stone-100 p-3 text-sm text-stone-700 dark:bg-stone-800 dark:text-stone-200">
-                    Ask a specific question about {profile.language} vocabulary or grammar.
+                    {t(
+                      'Ask a specific question about Arabic vocabulary or grammar.',
+                      'اطرح أي سؤال محدد حول مفردات أو قواعد اللغة الإنجليزية.'
+                    )}
                   </p>
                 )}
                 {messages.map(message => (
@@ -155,39 +169,43 @@ export function AIHelper({ profile, request }: AIHelperProps) {
                 ))}
                 {isSending && (
                   <div className="rounded-2xl bg-stone-100 px-3 py-2 text-sm text-stone-700 dark:bg-stone-800 dark:text-stone-200">
-                    {cloudAvailable ? 'Thinking…' : 'Looking in the offline dictionary…'}
+                    {cloudAvailable
+                      ? t('Thinking…', 'جاري التفكير…')
+                      : t('Looking in the offline dictionary…', 'جاري البحث في القاموس المحلي…')}
                   </div>
-                )}
-                {error && (
-                  <p role="alert" className="rounded-xl bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950/50 dark:text-red-200">
-                    {error}
-                  </p>
                 )}
               </div>
 
               <form
                 onSubmit={event => void sendMessage(event)}
-                className="flex items-center gap-2 border-t border-stone-200 p-3 dark:border-stone-700"
+                className="flex flex-col gap-1.5 border-t border-stone-200 p-3 dark:border-stone-700"
               >
-                <label className="sr-only" htmlFor="ai-tutor-message">
-                  Message the language tutor
-                </label>
-                <input
-                  id="ai-tutor-message"
-                  value={input}
-                  onChange={event => setInput(event.target.value)}
-                  maxLength={2000}
-                  placeholder="Ask a language question…"
-                  className="min-w-0 flex-1 rounded-xl border border-stone-300 bg-white px-3 py-2.5 text-base text-stone-900 outline-none focus:border-olive-600 focus:ring-2 focus:ring-olive-600/20 dark:border-stone-700 dark:bg-stone-800 dark:text-white"
-                />
-                <BouncyButton
-                  type="submit"
-                  aria-label="Send message"
-                  disabled={!input.trim() || isSending}
-                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-olive-700 text-white hover:bg-olive-800 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <Send size={18} aria-hidden="true" />
-                </BouncyButton>
+                <div className="flex items-center gap-2">
+                  <label className="sr-only" htmlFor="ai-tutor-message">
+                    {t('Message the language tutor', 'أرسل رسالة للمعلم الذكي')}
+                  </label>
+                  <input
+                    id="ai-tutor-message"
+                    value={input}
+                    onChange={event => setInput(event.target.value)}
+                    maxLength={2000}
+                    placeholder={t('Ask a language question…', 'اسأل سؤالاً لغوياً…')}
+                    className="min-w-0 flex-1 rounded-xl border border-stone-300 bg-white px-3 py-2.5 text-base text-stone-900 outline-none focus:border-olive-600 focus:ring-2 focus:ring-olive-600/20 dark:border-stone-700 dark:bg-stone-800 dark:text-white"
+                  />
+                  <BouncyButton
+                    type="submit"
+                    aria-label={t('Send message', 'إرسال')}
+                    disabled={!input.trim() || isSending}
+                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-olive-700 text-white hover:bg-olive-800 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <Send size={18} aria-hidden="true" />
+                  </BouncyButton>
+                </div>
+                {error && (
+                  <p role="alert" className="break-words px-1 text-xs font-medium text-red-600 dark:text-red-400">
+                    {error}
+                  </p>
+                )}
               </form>
             </motion.section>
           )}
@@ -195,7 +213,11 @@ export function AIHelper({ profile, request }: AIHelperProps) {
 
         <BouncyButton
           type="button"
-          aria-label={isOpen ? 'Close AI tutor' : 'Open AI tutor'}
+          aria-label={
+            isOpen
+              ? t('Close AI tutor', 'إغلاق المعلم الذكي')
+              : t('Open AI tutor', 'فتح المعلم الذكي')
+          }
           aria-expanded={isOpen}
           onClick={() => setIsOpen(open => !open)}
           className="flex h-14 w-14 items-center justify-center rounded-full bg-olive-700 text-white shadow-xl ring-1 ring-white/30 hover:bg-olive-800"
