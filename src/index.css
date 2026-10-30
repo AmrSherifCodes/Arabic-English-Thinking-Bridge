@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+html {
+  color-scheme: light;
+}
+
+body {
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 1;
+  background-image:
+    repeating-linear-gradient(
+      45deg,
+      transparent 0 17px,
+      rgba(15, 23, 42, 0.035) 17px 18px,
+      transparent 18px 34px
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      transparent 0 17px,
+      rgba(15, 23, 42, 0.035) 17px 18px,
+      transparent 18px 34px
+    );
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+html.dark body {
+  background-color: #0f172a;
+  color: #f8fafc;
+}
+
+html.dark body::before {
+  opacity: 0;
+}

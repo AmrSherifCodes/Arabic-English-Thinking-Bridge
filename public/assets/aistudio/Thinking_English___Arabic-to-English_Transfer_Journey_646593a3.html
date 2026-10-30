@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Thinking English · Arabic-to-English Transfer Journey</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script>tailwind.config={darkMode:'class'}</script>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{font-family:Inter,system-ui,sans-serif;background:#faf7f2;color:#1c1917}
+html.dark body{background:#1c1917;color:#f5f5f4}
+.ar{font-family:Cairo,'Segoe UI',sans-serif}
+html{-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%}
+button,select{min-height:44px;touch-action:manipulation}
+input,textarea,select{font-size:16px}
+#v{padding-bottom:84px}
+#nav{position:fixed;left:0;right:0;bottom:0;z-index:20;padding-bottom:env(safe-area-inset-bottom,0px);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+details>summary{cursor:pointer}
+</style>
+</head>
+<body>
+<div class="max-w-3xl mx-auto p-4">
+  <header class="flex items-center justify-between gap-2 mb-4">
+    <div><h1 class="text-xl font-semibold">🧠 Thinking English</h1><p class="text-xs opacity-70">Arabic → English transfer journey · A1+ to C1</p></div>
+    <button id="th" class="rounded-full border border-stone-300 dark:border-stone-600 px-3 py-1 text-sm" onclick="theme()">🌓</button>
+  </header>
+  <nav id="nav" class="flex border-t border-stone-200 dark:border-stone-700 bg-white/90 dark:bg-stone-900/90"></nav>
+  <main id="v"></main>
+</div>
+<div id="toast" class="fixed left-1/2 -translate-x-1/2 bottom-24 z-30 bg-stone-900 text-white text-sm rounded-full px-4 py-2 hidden"></div>
+<script>
+const P=[
+{n:"Phase 1 · Foundations & The Skeleton",l:[
+{t:"The silent “to be”",w:"Arabic nominal sentences need no verb: subject + predicate. English always needs one. Where Arabic has nothing, English adds am / is / are, and a/an before a singular role noun.",ex:[
+{ar:"أنا طالب",a:["I am a student","I’m a student"],x:["is","are"],h:[[/^i (a )?student$/,"Arabic puts nothing between the two words. English needs a small verb in the middle. Which one goes with “I”?"],[/^i am student/,"Nearly! A singular noun like “student” needs a/an."]],m:[["أنا","I","s"],["∅","am","v"],["طالب","a student","o"]],g:"dropping “to be”"},
+{ar:"البيت كبير",a:["The house is big","The home is big"],x:["are","a"],h:[[/^(the )?(house|home) big/,"Nothing sits between “house” and “big” in Arabic. English must supply a verb."]],m:[["البيت","The house","s"],["∅","is","v"],["كبير","big","o"]],g:"dropping “to be”"}]},
+{t:"Having, not “at me”",w:"Arabic says عندي, literally “at me (is) a car”. English makes the owner the subject and uses a real verb: have / has.",ex:[
+{ar:"عندي سيارة",a:["I have a car","I have got a car","I’ve got a car"],x:["at","has"],h:[[/\b(at|with|by) /,"English doesn’t use a place word for owning. Who owns the car? Make that person the subject."]],m:[["عندي","I have","v"],["سيارة","a car","o"]],g:"have vs عندي"},
+{ar:"ليس عندها وقت",a:["She has no time","She doesn’t have time","She does not have time","She hasn’t got time"],x:["have","is"],h:[[/\bshe (have|do not has|does not has)\b/,"With she / he / it the verb changes. have → ?"]],m:[["ليس","no / doesn’t","c"],["عندها","She has","v"],["وقت","time","o"]],g:"have vs عندي"}]},
+{t:"Negatives and questions need “do”",w:"Arabic adds لا or هل directly. In the English present simple, a helper verb (do / does) carries the negative and the question; the main verb stays in its base form.",ex:[
+{ar:"لا أحب القهوة",a:["I don’t like coffee","I do not like coffee"],x:["not","likes"],h:[[/^i not like/,"“not” can’t go straight before the main verb. A helper verb comes first."]],m:[["أ-","I","s"],["لا","do not","v"],["أحب","like","v"],["القهوة","coffee","o"]],g:"do-support"},
+{ar:"هل تتكلم العربية؟",a:["Do you speak Arabic"],x:["speaks","does"],h:[[/^you speak/,"English needs a helper verb at the very start of a yes/no question, where Arabic uses هل."]],m:[["هل","Do","c"],["تـ","you","s"],["تكلم","speak","v"],["العربية","Arabic","o"]],g:"do-support"}]}]},
+{n:"Phase 2 · Flow & Nuance",l:[
+{t:"Still true now: for / since",w:"Arabic keeps the plain present with منذ. English can’t: a situation that began in the past and continues now takes the present perfect (have + past participle). The past simple means it’s finished.",ex:[
+{ar:"أعيش هنا منذ سنتين",a:["I have lived here for two years","I have been living here for two years","I’ve lived here for two years","I’ve been living here for two years"],x:["live","since"],h:[[/^i live here/,"Arabic stays in the present, but English can’t. The situation started in the past and still continues. Which tense links the two?"],[/since two/,"“since” needs a starting point (since 2022). A length of time takes “for”."]],m:[["أ","I","s"],["أعيش","have lived","v"],["هنا","here","o"],["منذ سنتين","for two years","c"]],g:"present perfect"},
+{ar:"ذهبت إلى القاهرة العام الماضي",a:["I went to Cairo last year"],x:["have","gone","in"],h:[[/have (gone|been)/,"A finished time (last year) pulls English back to the past simple. No “have”."],[/in last/,"“last year” takes no preposition."]],m:[["ذهبت","I went","v"],["إلى القاهرة","to Cairo","o"],["العام الماضي","last year","c"]],g:"present perfect"}]},
+{t:"If: now and later",w:"Arabic puts the future in both halves. English keeps the “if” half in the present (real) or past (imaginary); will / would only appear in the result half.",ex:[
+{ar:"إذا أمطرت غدا فسأبقى في البيت",a:["If it rains tomorrow, I will stay home","If it rains tomorrow I will stay at home"],x:["rain","the"],h:[[/if it will rain/,"Keep the “if” half in the present simple. The future will belongs only to the result."]],m:[["إذا","If","c"],["أمطرت","it rains","v"],["غدا","tomorrow","o"],["فسأبقى","I will stay","v"],["في البيت","home","o"]],g:"conditionals"},
+{ar:"لو كنت مكانك لقبلت العرض",a:["If I were you, I would accept the offer","If I was you, I would accept the offer"],x:["will","am"],h:[[/if i would/,"Don’t put “would” in the “if” half. It belongs to the result."]],m:[["لو","If","c"],["كنت مكانك","I were you","v"],["لقبلت","I would accept","v"],["العرض","the offer","o"]],g:"conditionals"}]},
+{t:"Relative clauses: who / that, no extra “it”",w:"Arabic uses الذي and repeats the object with a pronoun (قرأته). English uses who for people, that / which for things, and never repeats the object.",ex:[
+{ar:"الرجل الذي يعمل هنا صديقي",a:["The man who works here is my friend","The man that works here is my friend"],x:["which","work"],h:[[/ which /,"“which” is for things. For a person use who (or that)."]],m:[["الرجل","The man","s"],["الذي","who","c"],["يعمل هنا","works here","v"],["صديقي","is my friend","o"]],g:"relative clauses"},
+{ar:"الكتاب الذي قرأته كان رائعا",a:["The book that I read was great","The book I read was great","The book which I read was great","The book that I read was amazing","The book I read was amazing"],x:["it","who"],h:[[/read it/,"Arabic repeats the object (قرأته). In English the relative word already stands for it. Drop “it”."]],m:[["الكتاب","The book","s"],["الذي","that","c"],["قرأته","I read","v"],["كان رائعا","was great","o"]],g:"relative clauses"}]}]},
+{n:"Phase 3 · Mastery & Register",l:[
+{t:"Passive: who did it doesn’t matter",w:"The Arabic passive (كُتب) is a change inside one word. English builds it with be + past participle.",ex:[
+{ar:"كُتب الكتاب عام ١٩٩٠",a:["The book was written in 1990"],x:["wrote","is"],h:[[/was wrote/,"After “was” you need the past participle, not the past simple."]],m:[["كُتب","was written","v"],["الكتاب","The book","s"],["عام ١٩٩٠","in 1990","c"]],g:"passive"},
+{ar:"يُقال إن الطقس سيتغير",a:["It is said that the weather will change","It is said the weather will change"],x:["say","they"],h:[[/^it said/,"English needs be + past participle: is + said."]],m:[["يُقال","It is said","v"],["إن","that","c"],["الطقس سيتغير","the weather will change","o"]],g:"passive"}]},
+{t:"Reported speech steps back",w:"Arabic keeps the speaker’s tense after قال إن. English usually shifts one step back (is → was), and reported questions become statements.",ex:[
+{ar:"قال إنه مشغول",a:["He said that he was busy","He said he was busy"],x:["is","says"],h:[[/ is busy/,"After “said”, English steps one tense back."]],m:[["قال","He said","v"],["إنه","that he","c"],["مشغول","was busy","o"]],g:"reported speech"},
+{ar:"سألني هل أتكلم الإنجليزية",a:["He asked me if I spoke English","He asked me whether I spoke English"],x:["do","speak"],h:[[/asked me (if |whether )?(do|did) /,"A reported question loses its helper verb and question order. It’s a statement now."],[/ speak english/,"Step the verb back one tense."]],m:[["سألني","He asked me","v"],["هل","if","c"],["أتكلم","I spoke","v"],["الإنجليزية","English","o"]],g:"reported speech"}]},
+{t:"Formal contrast and emphasis",w:"English marks contrast with one word (although OR but, never both). Never can also lead a sentence for a formal tone, with the helper verb flipping before the subject.",ex:[
+{ar:"رغم أنه متعب واصل العمل",a:["Although he was tired, he kept working","Although he was tired he continued working","Although he was tired he continued to work","Although he was tired he carried on working","Despite being tired he kept working","Despite being tired he continued working"],x:["but","despite"],h:[[/although.* but /,"Don’t use “but” after “although”. One word already marks the contrast."]],m:[["رغم أنه","Although he","c"],["متعب","was tired","v"],["واصل العمل","he kept working","o"]],g:"connectors"},
+{ar:"لم أرَ مثل هذا قط",a:["I have never seen anything like this","I have never seen anything like it","Never have I seen anything like this"],x:["ever","saw"],h:[[/i never saw/,"“never” about experience up to now takes the present perfect: have + seen."]],m:[["لم أرَ","I have never seen","v"],["مثل هذا","anything like this","o"],["قط","(never)","c"]],g:"inversion"}]}]}];
+const L=[];P.forEach((p,pi)=>p.l.forEach(l=>L.push({...l,pi})));
+const C={s:"bg-sky-100 dark:bg-sky-900/50",v:"bg-rose-100 dark:bg-rose-900/50",o:"bg-amber-100 dark:bg-amber-900/50",c:"bg-emerald-100 dark:bg-emerald-900/50"};
+const CARD="rounded-2xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 p-4 mb-3";
+const BTN="rounded-full bg-teal-700 text-white px-4 py-2 text-sm font-semibold hover:bg-teal-800";
+const GH="rounded-full border border-stone-300 dark:border-stone-600 px-4 py-2 text-sm hover:bg-stone-100 dark:hover:bg-stone-700";
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const D=()=>({done:{},score:0,streak:0,best:0,wrong:{},notes:"",msgs:[],bc:[],dark:null});
+let S;try{S=Object.assign(D(),JSON.parse(localStorage.getItem("te")||"{}"))}catch(e){S=D()}
+const save=()=>{try{localStorage.setItem("te",JSON.stringify(S))}catch(e){toast("Couldn’t save (storage full or blocked)")}};
+function toast(m){const t=$("toast");t.textContent=m;t.classList.remove("hidden");clearTimeout(t._t);t._t=setTimeout(()=>t.classList.add("hidden"),2600)}
+function theme(){S.dark=!document.documentElement.classList.contains("dark");save();applyTheme()}
+function applyTheme(){const d=S.dark===null?matchMedia("(prefers-color-scheme: dark)").matches:S.dark;document.documentElement.classList.toggle("dark",d)}
+const norm=s=>s.toLowerCase().replace(/[’‘]/g,"'").replace(/won't/g,"will not").replace(/n't/g," not").replace(/'m\b/g," am").replace(/'ve\b/g," have").replace(/'ll\b/g," will").replace(/[^a-z0-9 ]/g," ").replace(/\s+/g," ").trim();
+const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const dn=li=>L[li].ex.filter((_,i)=>S.done[li+"-"+i]).length;
+const comp=li=>dn(li)==L[li].ex.length;
+let tab=0,cur=null,T=false,mvoice=null,prUrl=null,prTxt="";
+const TABS=["Lessons","Practice","Teacher Hub","Progress"];
+function render(){
+  $("nav").innerHTML=TABS.map((t,i)=>`<button onclick="tab=${i};render();scrollTo(0,0)" class="flex-1 flex flex-col items-center justify-center py-2 text-[11px] ${i==tab?'text-teal-700 dark:text-teal-300 font-semibold':'opacity-60'}"><span class="text-xl leading-none mb-0.5">${['📚','✍️','👩‍🏫','📊'][i]}</span>${t}</button>`).join("");
+  $("v").innerHTML=[lessonsV,practiceV,hubV,progV][tab]();
+}
+function lessonsV(){
+  let h="";P.forEach((p,pi)=>{h+=`<h2 class="font-semibold mt-4 mb-2">${p.n}</h2>`;
+  L.forEach((l,li)=>{if(l.pi!=pi)return;const lock=li>0&&!comp(li-1);
+  h+=`<div class="${CARD} flex items-center justify-between gap-3 ${lock?"opacity-50":""}"><div><div class="font-semibold">${lock?"🔒":comp(li)?"✅":"▶️"} ${li+1}. ${l.t}</div><div class="text-xs opacity-70">${dn(li)}/${l.ex.length} exercises</div></div><button ${lock?"disabled":""} class="${BTN}" onclick="go(${li})">${comp(li)?"Review":"Start"}</button></div>`})});
+  return h+`<p class="text-xs opacity-60 mt-3">Starter course: 9 lessons across the three phases. Finish a lesson to unlock the next.</p>`;
+}
+function go(li){let ei=L[li].ex.findIndex((_,i)=>!S.done[li+"-"+i]);if(ei<0)ei=0;setEx(li,ei);tab=1;render()}
+function setEx(li,ei){const e=L[li].ex[ei];cur={li,ei,tries:0,st:"ask",fb:"",chips:shuffle([...e.a[0].replace(/[.,?]/g,"").split(" "),...e.x])};prUrl=null;prTxt=""}
+function practiceV(){
+  if(!cur)return `<div class="${CARD}">Pick a lesson in the Lessons tab to begin.</div>`;
+  const l=L[cur.li],e=l.ex[cur.ei],open=cur.st=="ask";
+  let h=`<div class="flex justify-between text-sm mb-2"><span>${l.t} · ${cur.ei+1}/${l.ex.length}</span><span id="sc">⭐ ${S.score} · 🔥 ${S.streak}</span></div>
+  <div class="h-1.5 rounded-full bg-stone-200 dark:bg-stone-700 mb-3"><div class="h-1.5 rounded-full bg-teal-600" style="width:${100*(cur.ei+(cur.st=="ask"?0:1))/l.ex.length}%"></div></div><div class="${CARD}"><div class="text-xs uppercase opacity-60 mb-1">Say this thought in English</div><div dir="rtl" class="ar text-3xl leading-relaxed">${e.ar}</div></div>`;
+  if(open){
+    h+=`<div class="${CARD}"><input id="ans" class="w-full rounded-xl border border-stone-300 dark:border-stone-600 bg-transparent p-3" placeholder="Type or tap the blocks…" autocomplete="off" onkeydown="if(event.key=='Enter')check()">
+    <div class="flex flex-wrap gap-2 mt-3">${cur.chips.map(c=>`<button class="${GH} !px-4 text-base" onclick="add('${c.replace(/'/g,"")}')">${c}</button>`).join("")}</div>
+    <div id="fb" class="mt-3 text-sm">${cur.fb}</div>
+    <div class="flex gap-2 mt-3"><button class="${BTN} flex-1" onclick="check()">Check</button><button class="${GH}" onclick="$('ans').value=''">Clear</button><button class="${GH}" onclick="reveal()">Reveal</button></div></div>`;
+  }else{
+    h+=`<div class="${CARD}"><div class="text-lg font-semibold mb-3">${e.a[0]}${cur.st=="ok"?" ✅":""}</div>
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">${e.m.map(([a,b,t])=>`<div class="rounded-xl p-2 text-center ${C[t]}"><div dir="rtl" class="ar">${a}</div><div class="font-semibold text-sm">${b}</div></div>`).join("")}</div>
+    <p class="text-sm mt-3">💡 ${l.w}</p>
+    <div class="flex flex-wrap gap-2 mt-3"><button class="${GH}" onclick="speak('${e.a[0].replace(/'/g,"")}',1)">🔊 Hear</button><button class="${GH}" onclick="speak('${e.a[0].replace(/'/g,"")}',.6)">🐢 Slow</button><button class="${GH}" id="rb" onclick="pron()">🎙 Record yourself</button>${VO.length>1?`<select class="${GH} bg-white dark:bg-stone-800 max-w-[12rem]" title="Voice" onchange="S.voice=this.value;save();speak('Hello, this is how I sound.',1)">${VO.map(v=>`<option value="${esc(v.name)}" ${v.name==(best()||{}).name?"selected":""}>${esc(v.name)}</option>`).join("")}</select>`:""}</div>
+    <div id="pr" class="mt-3 text-sm"></div>
+    <button class="${BTN} mt-4 w-full" onclick="nextEx()">Next →</button></div>`;
+  }
+  return h;
+}
+function add(w){const i=$("ans");i.value=(i.value.trim()+" "+w).trim()}
+function check(){
+  const e=L[cur.li].ex[cur.ei],n=norm($("ans").value);if(!n)return;
+  if(e.a.some(x=>norm(x)==n)){
+    const k=cur.li+"-"+cur.ei;if(!S.done[k]){S.score+=cur.tries?5:10;S.done[k]=1}
+    S.streak++;S.best=Math.max(S.best,S.streak);save();cur.st="ok";render();return;
+  }
+  cur.tries++;S.streak=0;S.wrong[e.g]=(S.wrong[e.g]||0)+1;save();
+  const hit=e.h.find(([r])=>r.test(n));
+  cur.fb=`<span class="text-rose-600 dark:text-rose-400">${hit?hit[1]:"Not yet. Compare with the Arabic: is every piece of meaning there, in the order subject → verb → rest?"}</span>`;
+  $("fb").innerHTML=cur.fb;$("sc").textContent=`⭐ ${S.score} · 🔥 ${S.streak}`;
+}
+function reveal(){S.streak=0;save();cur.st="rev";render()}
+function nextEx(){
+  const l=L[cur.li];
+  if(cur.ei<l.ex.length-1){setEx(cur.li,cur.ei+1)}
+  else{toast(comp(cur.li)?"Lesson complete! 🎉":"Lesson finished. Retry skipped items to unlock the next.");tab=0}
+  render();
+}
+let VO=[];
+function loadV(){try{VO=speechSynthesis.getVoices().filter(v=>/^en/i.test(v.lang))}catch(e){}}
+try{loadV();speechSynthesis.onvoiceschanged=()=>{loadV();if(tab==1&&cur&&cur.st!="ask")render()}}catch(e){}
+function best(){
+  const p=S.voice&&VO.find(v=>v.name==S.voice);if(p)return p;
+  const sc=v=>(/natural|neural|online/i.test(v.name)?50:0)+(/aria|jenny|guy|ava|andrew|emma|samantha|allison|serena|daniel|karen|google/i.test(v.name)?20:0)+(/en-US/i.test(v.lang)?10:/en-GB/i.test(v.lang)?6:0);
+  return [...VO].sort((a,b)=>sc(b)-sc(a))[0];
+}
+function speak(t,r){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t),v=best();if(v){u.voice=v;u.lang=v.lang}else u.lang="en-US";u.rate=r*.92;u.pitch=1;speechSynthesis.speak(u)}catch(e){toast("Speech not supported here")}}
+let mr,st,sr;
+async function rec(done){
+  if(mr&&mr.state=="recording"){mr.stop();return false}
+  try{st=await navigator.mediaDevices.getUserMedia({audio:true});const ch=[];mr=new MediaRecorder(st);
+  mr.ondataavailable=e=>ch.push(e.data);
+  mr.onstop=()=>{st.getTracks().forEach(t=>t.stop());const r=new FileReader();r.onload=()=>done(r.result);r.readAsDataURL(new Blob(ch,{type:mr.mimeType}))};
+  mr.start();return true}catch(e){toast("Microphone unavailable or blocked");return false}
+}
+async function pron(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition,b=$("rb");
+  if(mr&&mr.state=="recording"){mr.stop();try{sr&&sr.stop()}catch(e){}b.textContent="🎙 Record yourself";return}
+  const t=norm(L[cur.li].ex[cur.ei].a[0]);
+  const on=await rec(u=>{$("pr").innerHTML=`<div>Yours: <audio controls src="${u}" class="inline-block align-middle h-8"></audio></div><div id="sp" class="mt-1"></div>`});
+  if(on){b.textContent="⏹ Stop";
+    if(SR){try{sr=new SR();sr.lang="en-US";sr.onresult=ev=>{const s=norm(ev.results[0][0].transcript),w=t.split(" "),m=w.filter(x=>s.split(" ").includes(x)).length;
+    const el=$("sp");if(el)el.textContent=`Heard: “${s}” · ${Math.round(100*m/w.length)}% of target words matched`};sr.start()}catch(e){}}
+    else $("pr").textContent="Recording… (speech recognition isn’t available in this browser, so just compare by ear.)"}
+}
+function hubV(){
+  const pend=S.msgs.map((m,i)=>[m,i]).filter(([m])=>!m.r);
+  let h=`<p class="text-xs opacity-70 mb-3">Demo layer: messages live in this browser’s LocalStorage. Real student-to-teacher sync across devices needs a backend (e.g. Firebase).</p>
+  <div class="${CARD}"><h3 class="font-semibold mb-2">Ask the Mentor</h3>
+  <textarea id="q" rows="3" class="w-full rounded-xl border border-stone-300 dark:border-stone-600 bg-transparent p-3" placeholder="Paste a tricky sentence or question…"></textarea>
+  <div class="flex flex-wrap items-center gap-2 mt-2"><button class="${GH}" id="vb" onclick="vnote()">🎙 Voice note</button><audio id="va" controls class="hidden h-8"></audio><button class="${BTN}" onclick="send()">Send</button></div></div>`;
+  if(S.bc.length)h+=`<div class="${CARD}"><h3 class="font-semibold mb-2">📢 Mini-lessons from your teacher</h3>${S.bc.map(b=>`<p class="text-sm mb-2">• ${esc(b)}</p>`).join("")}</div>`;
+  if(S.msgs.length)h+=`<div class="${CARD}"><h3 class="font-semibold mb-2">Your questions</h3>${S.msgs.map(m=>`<div class="text-sm mb-3"><div>❓ ${esc(m.q)}</div>${m.v?`<audio controls src="${m.v}" class="h-8"></audio>`:""}<div class="mt-1 opacity-80">${m.r?"👩‍🏫 "+esc(m.r):"⏳ awaiting reply"}</div></div>`).join("")}</div>`;
+  h+=`<div class="${CARD}"><h3 class="font-semibold mb-2">👩‍🏫 Teacher side</h3>`;
+  if(!T)h+=`<div class="flex gap-2"><input id="pin" type="password" placeholder="PIN" class="rounded-xl border border-stone-300 dark:border-stone-600 bg-transparent p-2 w-32"><button class="${BTN}" onclick="if($('pin').value=='1234'){T=true;render()}else toast('Wrong PIN')">Unlock</button></div><p class="text-xs opacity-60 mt-2">Demo PIN: 1234 (change it in the code).</p>`;
+  else{
+    h+=`<h4 class="text-sm font-semibold">Open questions (${pend.length})</h4>`+pend.map(([m,i])=>`<div class="my-2 text-sm"><div>${esc(m.q)}</div>${m.v?`<audio controls src="${m.v}" class="h-8"></audio>`:""}<textarea id="r${i}" rows="2" class="w-full rounded-xl border border-stone-300 dark:border-stone-600 bg-transparent p-2 mt-1" placeholder="Reply…"></textarea><button class="${BTN} mt-1" onclick="reply(${i})">Reply</button></div>`).join("");
+    h+=`<h4 class="text-sm font-semibold mt-4">Broadcast a mini-lesson</h4><textarea id="bt" rows="2" class="w-full rounded-xl border border-stone-300 dark:border-stone-600 bg-transparent p-2"></textarea><button class="${BTN} mt-1" onclick="bcast()">Broadcast</button>
+    <h4 class="text-sm font-semibold mt-4">Most-missed structures</h4>${weakV()}<button class="${GH} mt-3" onclick="T=false;render()">Lock</button>`;
+  }
+  return h+"</div>";
+}
+async function vnote(){const on=await rec(u=>{mvoice=u;const a=$("va");a.src=u;a.classList.remove("hidden");$("vb").textContent="🎙 Re-record"});if(on)$("vb").textContent="⏹ Stop"}
+function send(){const q=$("q").value.trim();if(!q&&!mvoice)return toast("Write a question or record a note");S.msgs.push({q:q||"(voice note)",v:mvoice,r:""});mvoice=null;save();render();toast("Sent to your mentor")}
+function reply(i){const r=$("r"+i).value.trim();if(!r)return;S.msgs[i].r=r;save();render()}
+function bcast(){const b=$("bt").value.trim();if(!b)return;S.bc.unshift(b);save();render();toast("Broadcast published")}
+function weakV(){const w=Object.entries(S.wrong).sort((a,b)=>b[1]-a[1]);
+  return w.length?w.map(([k,v])=>`<div class="flex items-center gap-2 text-sm my-1"><span class="w-44 shrink-0">${k}</span><div class="h-2 rounded-full bg-rose-500" style="width:${Math.min(100,v*12)}px"></div><span>${v}</span></div>`).join(""):`<p class="text-sm opacity-70">No mistakes recorded yet.</p>`}
+function progV(){
+  let h=`<div class="${CARD} grid grid-cols-3 text-center"><div><div class="text-2xl font-semibold">${S.score}</div><div class="text-xs opacity-70">score</div></div><div><div class="text-2xl font-semibold">${S.streak}</div><div class="text-xs opacity-70">streak</div></div><div><div class="text-2xl font-semibold">${S.best}</div><div class="text-xs opacity-70">best streak</div></div></div><div class="${CARD}">`;
+  P.forEach((p,pi)=>{let t=0,d=0;L.forEach((l,li)=>{if(l.pi==pi){t+=l.ex.length;d+=dn(li)}});const pc=Math.round(100*d/t);
+  h+=`<div class="mb-3"><div class="text-sm mb-1">${p.n} · ${pc}%</div><div class="h-2 rounded-full bg-stone-200 dark:bg-stone-700"><div class="h-2 rounded-full bg-teal-600" style="width:${pc}%"></div></div></div>`});
+  h+=`</div><div class="${CARD}"><h3 class="font-semibold mb-2">Weak spots</h3>${weakV()}</div>
+  <div class="${CARD}"><h3 class="font-semibold mb-2">My notes</h3><textarea rows="4" class="w-full rounded-xl border border-stone-300 dark:border-stone-600 bg-transparent p-3" oninput="S.notes=this.value;save()" placeholder="Habits to watch, new ideas…">${esc(S.notes)}</textarea></div>
+  <div class="${CARD}"><h3 class="font-semibold mb-2">Feedback for your teacher</h3><div class="flex mb-3">${[1,2,3,4,5].map(n=>`<button onclick="rate(${n})" class="${n==FR?BTN:GH} flex-1 mx-0.5 !px-0">${['😕','🙁','😐','🙂','😍'][n-1]}</button>`).join("")}</div><textarea rows="3" class="w-full rounded-xl border border-stone-300 dark:border-stone-600 bg-transparent p-3" oninput="FT=this.value" placeholder="What helped? What was confusing?">${esc(FT)}</textarea><div class="flex gap-2 mt-2"><button class="${BTN} flex-1" onclick="window.open(fbLink(),'_blank')">WhatsApp</button><button class="${GH} flex-1" onclick="window.open('mailto:?subject='+encodeURIComponent('Thinking English feedback')+'&body='+encodeURIComponent(fbMsg()))">Email</button><button class="${GH} flex-1" onclick="copyFb()">Copy</button></div></div><div class="${CARD}"><h3 class="font-semibold mb-1">Recap: the 9 mental shifts</h3><p class="text-xs opacity-60 mb-2">Tap a shift to expand it.</p>${L.map((l,i)=>`<details class="border-t border-stone-200 dark:border-stone-700"><summary class="py-3 text-sm font-semibold">${i+1}. ${l.t}</summary><p class="text-sm opacity-80 pb-3">${l.w}</p></details>`).join("")}</div><button class="${GH}" onclick="if(confirm('Reset all progress?')){S=D();save();cur=null;render()}">Reset progress</button>`;
+  return h;
+}
+const TEACHER="";let FR=0,FT="";
+function rate(n){FR=n;render()}
+function fbMsg(){const d=L.filter((_,i)=>comp(i)).length,w=Object.entries(S.wrong).sort((a,b)=>b[1]-a[1]).slice(0,3).map(x=>x[0]).join(", ")||"none";return `Thinking English feedback\nRating: ${FR?FR+"/5":"-"}\nLessons done: ${d}/${L.length} · Score: ${S.score}\nHardest: ${w}\n\n${FT}`}
+function fbLink(){return "https://wa.me/"+TEACHER+"?text="+encodeURIComponent(fbMsg())}
+function copyFb(){try{navigator.clipboard.writeText(fbMsg()).then(()=>toast("Copied. Paste it to your teacher"))}catch(e){toast("Couldn’t copy")}}
+applyTheme();render();
+</script>
+</body>
+</html>
