@@ -1,4 +1,6 @@
 import { GoogleGenAI, Type } from '@google/genai';
+import { Ratelimit } from '@upstash/ratelimit';
+import { Redis } from '@upstash/redis';
 
 const MODEL = process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite';
 const FALLBACK_MODELS = [
@@ -10,9 +12,24 @@ const FALLBACK_MODELS = [
   'gemini-1.5-flash-8b',
 ];
 const MAX_BODY_BYTES = 16 * 1024;
-const RATE_LIMIT = 20;
-const RATE_WINDOW_MS = 60_000;
+const GEMINI_TIMEOUT_MS = 7_000;
+
+// Rate limit thresholds: max 10 requests/minute and 50 requests/day per IP
+const RATE_LIMIT_PER_MINUTE = 10;
+const RATE_WINDOW_MINUTE_MS = 60_000;
+const RATE_LIMIT_PER_DAY = 50;
+const RATE_WINDOW_DAY_MS = 24 * 60 * 60 * 1000;
 const rateLimits = new Map();
+
+// Response cache (in-memory + optional Upstash Redis)
+const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes
+const CACHE_TTL_SECONDS = 30 * 60;
+const MAX_MEMORY_CACHE_ENTRIES = 500;
+const responseCache = new Map();
+
+const HIGH_TRAFFIC_MESSAGE =
+  'The free AI is currently busy due to high traffic. Click the orange button to use your own VIP key for instant answers!';
+
 const situations = ['student', 'call-center', 'public-matter'];
 const levels = ['beginner', 'intermediate', 'advanced'];
 const languages = ['english', 'arabic'];
@@ -49,6 +66,29 @@ const wordSchema = {
 };
 
 let client;
+let upstashRedis = null;
+let upstashRatelimitMinute = null;
+
+function getUpstash() {
+  const url = (process.env.UPSTASH_REDIS_REST_URL || '').trim();
+  const token = (process.env.UPSTASH_REDIS_REST_TOKEN || '').trim();
+  if (!url || !token) return null;
+  if (!upstashRedis) {
+    try {
+      upstashRedis = new Redis({ url, token });
+      upstashRatelimitMinute = new Ratelimit({
+        redis: upstashRedis,
+        limiter: Ratelimit.slidingWindow(RATE_LIMIT_PER_MINUTE, '1 m'),
+        analytics: false,
+        prefix: 'tb:rl:min',
+      });
+    } catch {
+      upstashRedis = null;
+      upstashRatelimitMinute = null;
+    }
+  }
+  return upstashRedis ? { redis: upstashRedis, ratelimit: upstashRatelimitMinute } : null;
+}
 
 function isRecord(value) {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -66,10 +106,13 @@ function validProfile(profile) {
     isMember(profile.goal, goals);
 }
 
-function sendJson(res, status, value) {
+function sendJson(res, status, value, extraHeaders = {}) {
   res.statusCode = status;
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
   res.setHeader('Cache-Control', 'no-store');
+  for (const [k, v] of Object.entries(extraHeaders)) {
+    res.setHeader(k, v);
+  }
   res.end(JSON.stringify(value));
 }
 
@@ -89,19 +132,124 @@ async function readBody(req) {
   return parsed;
 }
 
-function checkRateLimit(req) {
+function getClientIp(req) {
   const forwardedFor = req.headers['x-forwarded-for'];
-  const address = typeof forwardedFor === 'string'
+  return typeof forwardedFor === 'string'
     ? forwardedFor.split(',')[0].trim()
     : req.socket?.remoteAddress || 'unknown';
+}
+
+function checkMemoryRateLimit(address) {
   const now = Date.now();
-  const current = rateLimits.get(address);
-  if (!current || current.resetAt <= now) {
-    rateLimits.set(address, { count: 1, resetAt: now + RATE_WINDOW_MS });
-    return true;
+  let record = rateLimits.get(address);
+  if (!record) {
+    record = {
+      minuteCount: 0,
+      minuteResetAt: now + RATE_WINDOW_MINUTE_MS,
+      dayCount: 0,
+      dayResetAt: now + RATE_WINDOW_DAY_MS,
+    };
+    rateLimits.set(address, record);
   }
-  current.count += 1;
-  return current.count <= RATE_LIMIT;
+  if (record.minuteResetAt <= now) {
+    record.minuteCount = 0;
+    record.minuteResetAt = now + RATE_WINDOW_MINUTE_MS;
+  }
+  if (record.dayResetAt <= now) {
+    record.dayCount = 0;
+    record.dayResetAt = now + RATE_WINDOW_DAY_MS;
+  }
+  record.minuteCount += 1;
+  record.dayCount += 1;
+  return record.minuteCount <= RATE_LIMIT_PER_MINUTE && record.dayCount <= RATE_LIMIT_PER_DAY;
+}
+
+async function checkRateLimit(req) {
+  const address = getClientIp(req);
+  if (!checkMemoryRateLimit(address)) {
+    return false;
+  }
+  const upstash = getUpstash();
+  if (upstash?.ratelimit) {
+    try {
+      const { success } = await upstash.ratelimit.limit(address);
+      return Boolean(success);
+    } catch {
+      // Fall back to in-memory check already passed above
+      return true;
+    }
+  }
+  return true;
+}
+
+function buildCacheKey(operation, body) {
+  if (!isRecord(body)) return null;
+  if (operation === 'entry') {
+    const word = typeof body.word === 'string' ? body.word.trim().toLowerCase() : '';
+    const dialect = typeof body.dialect === 'string' ? body.dialect : 'msa';
+    const reqSits = Array.isArray(body.situations) ? [...body.situations].sort().join(',') : '';
+    if (!word) return null;
+    return `tb:cache:entry:${dialect}:${reqSits}:${word}`;
+  }
+  if (operation === 'tutor') {
+    const prompt = typeof body.prompt === 'string' ? body.prompt.trim().toLowerCase().replace(/\s+/g, ' ') : '';
+    const ctx = isRecord(body.context) ? body.context : {};
+    const prof = isRecord(ctx.profile) ? ctx.profile : {};
+    const curWord = isRecord(ctx.currentWord) && typeof ctx.currentWord.arabicWord === 'string'
+      ? ctx.currentWord.arabicWord.trim().toLowerCase()
+      : '';
+    if (!prompt) return null;
+    return `tb:cache:tutor:${prof.dialect || 'msa'}:${prof.language || 'english'}:${prof.level || 'beginner'}:${curWord}:${prompt}`;
+  }
+  if (operation === 'deck') {
+    const prof = isRecord(body.profile) ? body.profile : {};
+    const sit = typeof body.situation === 'string' ? body.situation : 'student';
+    const struggling = Boolean(body.isStruggling);
+    return `tb:cache:deck:${prof.dialect || 'msa'}:${prof.level || 'beginner'}:${prof.goal || 'general'}:${sit}:${struggling}`;
+  }
+  return null;
+}
+
+async function getCachedResponse(cacheKey) {
+  if (!cacheKey) return null;
+  const now = Date.now();
+  const memHit = responseCache.get(cacheKey);
+  if (memHit) {
+    if (memHit.expiresAt > now) {
+      return memHit.data;
+    }
+    responseCache.delete(cacheKey);
+  }
+  const upstash = getUpstash();
+  if (upstash?.redis) {
+    try {
+      const redisHit = await upstash.redis.get(cacheKey);
+      if (redisHit !== null && redisHit !== undefined) {
+        responseCache.set(cacheKey, { data: redisHit, expiresAt: now + CACHE_TTL_MS });
+        return redisHit;
+      }
+    } catch {
+      // Ignore Redis cache read error
+    }
+  }
+  return null;
+}
+
+async function setCachedResponse(cacheKey, data) {
+  if (!cacheKey || data === undefined || data === null) return;
+  if (responseCache.size >= MAX_MEMORY_CACHE_ENTRIES) {
+    const oldestKey = responseCache.keys().next().value;
+    if (oldestKey) responseCache.delete(oldestKey);
+  }
+  responseCache.set(cacheKey, { data, expiresAt: Date.now() + CACHE_TTL_MS });
+  const upstash = getUpstash();
+  if (upstash?.redis) {
+    try {
+      await upstash.redis.set(cacheKey, data, { ex: CACHE_TTL_SECONDS });
+    } catch {
+      // Ignore Redis cache write error
+    }
+  }
 }
 
 function parseModelJson(text) {
@@ -128,37 +276,53 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+function withStrictTimeout(promise, ms = GEMINI_TIMEOUT_MS) {
+  let timer;
+  const timeoutPromise = new Promise((_, reject) => {
+    timer = setTimeout(() => {
+      const err = new Error('Gemini API timed out after 7 seconds.');
+      err.status = 408;
+      err.code = 'timeout';
+      reject(err);
+    }, ms);
+  });
+  return Promise.race([promise, timeoutPromise]).finally(() => clearTimeout(timer));
+}
+
 async function generateContentWithFallback(ai, params) {
   const uniqueModels = [MODEL, ...FALLBACK_MODELS.filter(m => m !== MODEL)];
-  // Include a second retry pass of the primary model in case a 503 spike clears after a brief pause
   const attempts = [...uniqueModels, MODEL];
-  let lastError;
-  for (let i = 0; i < attempts.length; i++) {
-    const model = attempts[i];
-    try {
-      return await ai.models.generateContent({ ...params, model });
-    } catch (err) {
-      lastError = err;
-      const msg = err instanceof Error ? err.message : String(err || '');
-      const status = Number(err?.status || err?.statusCode || err?.httpStatusCode || 0);
-      if (status === 404 || /404|NOT_FOUND|no longer available/i.test(msg)) {
-        continue;
+  const attemptLoop = async () => {
+    let lastError;
+    for (let i = 0; i < attempts.length; i++) {
+      const model = attempts[i];
+      try {
+        return await ai.models.generateContent({ ...params, model });
+      } catch (err) {
+        lastError = err;
+        const msg = err instanceof Error ? err.message : String(err || '');
+        const status = Number(err?.status || err?.statusCode || err?.httpStatusCode || 0);
+        if (status === 404 || /404|NOT_FOUND|no longer available/i.test(msg)) {
+          continue;
+        }
+        if (
+          status === 503 ||
+          status === 429 ||
+          status === 500 ||
+          status === 502 ||
+          status === 504 ||
+          /503|429|UNAVAILABLE|high demand|overloaded|RESOURCE_EXHAUSTED|temporarily/i.test(msg)
+        ) {
+          await sleep(250 + i * 150);
+          continue;
+        }
+        throw err;
       }
-      if (
-        status === 503 ||
-        status === 429 ||
-        status === 500 ||
-        status === 502 ||
-        status === 504 ||
-        /503|429|UNAVAILABLE|high demand|overloaded|RESOURCE_EXHAUSTED|temporarily/i.test(msg)
-      ) {
-        await sleep(450 + i * 200);
-        continue;
-      }
-      throw err;
     }
-  }
-  throw lastError;
+    throw lastError;
+  };
+
+  return withStrictTimeout(attemptLoop(), GEMINI_TIMEOUT_MS);
 }
 
 async function generate(operation, body) {
@@ -296,10 +460,6 @@ export default async function handler(req, res) {
     return sendJson(res, 403, { error: { code: 'bad-output', message: 'Invalid request origin.' } });
   }
 
-  if (!checkRateLimit(req)) {
-    return sendJson(res, 429, { error: { code: 'rate-limited', message: 'Too many requests.' } });
-  }
-
   let body;
   try {
     body = await readBody(req);
@@ -307,26 +467,52 @@ export default async function handler(req, res) {
     return sendJson(res, 400, { error: { code: 'bad-output', message: 'Invalid request body.' } });
   }
 
+  // 1. Check response cache first so cached answers do not burn rate limit or Gemini quota
+  const cacheKey = buildCacheKey(body.operation, body);
+  const cachedData = await getCachedResponse(cacheKey);
+  if (cachedData !== null) {
+    return sendJson(res, 200, { data: cachedData, cached: true }, { 'X-Cache': 'HIT' });
+  }
+
+  // 2. Enforce IP Rate Limit (10/min, 50/day)
+  if (!(await checkRateLimit(req))) {
+    return sendJson(res, 429, {
+      error: {
+        code: 'rate-limited',
+        message: HIGH_TRAFFIC_MESSAGE,
+      },
+    });
+  }
+
   try {
     const result = await generate(body.operation, body);
-    return sendJson(res, result.status, result.status === 200 ? { data: result.data } : { error: result.error });
+    if (result.status === 200 && result.data !== undefined) {
+      await setCachedResponse(cacheKey, result.data);
+      return sendJson(res, 200, { data: result.data }, { 'X-Cache': 'MISS' });
+    }
+    return sendJson(res, result.status, { error: result.error });
   } catch (err) {
     console.error('Gemini request failed:', err);
     const rawStatus = Number(err?.status || err?.statusCode || err?.httpStatusCode || 0);
-    const status = rawStatus >= 400 && rawStatus < 600 ? rawStatus : 502;
     const rawMessage = err instanceof Error ? err.message : String(err || 'The AI service is temporarily unavailable.');
+    const isTimeout = err?.code === 'timeout' || rawStatus === 408 || /timed out/i.test(rawMessage);
     const isHighDemand =
-      status === 429 ||
-      status === 503 ||
+      rawStatus === 429 ||
+      rawStatus === 503 ||
       /429|503|quota|rate|resource_exhausted|high demand|unavailable|overloaded/i.test(rawMessage);
-    const code = isHighDemand
-      ? 'rate-limited'
-      : status === 401 || status === 403 || /api[_\s-]?key|permission|unauthenticated|forbidden/i.test(rawMessage)
-        ? 'missing-key'
-        : 'network';
+    const status = isTimeout ? 408 : rawStatus >= 400 && rawStatus < 600 ? rawStatus : 502;
+    const code = isTimeout
+      ? 'timeout'
+      : isHighDemand
+        ? 'rate-limited'
+        : status === 401 || status === 403 || /api[_\s-]?key|permission|unauthenticated|forbidden/i.test(rawMessage)
+          ? 'missing-key'
+          : 'network';
     const cleanMessage = isHighDemand
-      ? 'The AI tutor is experiencing high traffic right now. Please try again in a few seconds.'
-      : 'The AI tutor is temporarily unavailable. Please try again shortly.';
+      ? HIGH_TRAFFIC_MESSAGE
+      : isTimeout
+        ? 'The AI tutor took longer than 7 seconds to respond. Switching to offline dictionary.'
+        : 'The AI tutor is temporarily unavailable. Please try again shortly.';
     return sendJson(res, status, {
       error: {
         code,
