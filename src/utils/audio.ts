@@ -58,6 +58,8 @@ export function selectBestArabicVoice(
   return [...voices].sort((a, b) => scoreArabicVoice(b) - scoreArabicVoice(a))[0];
 }
 
+export const CLOUD_AI_VOICE_ID = 'cloud-ai';
+
 function speakWithNativeSpeechSynthesis(
   text: string,
   requestedRate: number = 1,
@@ -69,9 +71,19 @@ function speakWithNativeSpeechSynthesis(
   try {
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
+    const allVoices = window.speechSynthesis.getVoices();
     const isArabic = /[\u0600-\u06FF]/.test(text);
 
-    if (isArabic) {
+    // 1. Find the exact voice object the user selected
+    const exactVoice =
+      preferredVoiceName && preferredVoiceName !== CLOUD_AI_VOICE_ID
+        ? allVoices.find(v => v.name === preferredVoiceName)
+        : undefined;
+
+    if (exactVoice) {
+      utterance.voice = exactVoice;
+      utterance.lang = exactVoice.lang;
+    } else if (isArabic) {
       const arVoices = getArabicVoices();
       const chosenAr = selectBestArabicVoice(arVoices);
       if (chosenAr) {
@@ -91,7 +103,7 @@ function speakWithNativeSpeechSynthesis(
       }
     }
 
-    utterance.rate = requestedRate * 0.92;
+    utterance.rate = requestedRate * 0.9;
     utterance.pitch = 1;
     window.speechSynthesis.speak(utterance);
     return true;
@@ -116,6 +128,23 @@ export function speakWithRate(
   }
 
   const isArabic = /[\u0600-\u06FF]/.test(clean);
+  const enVoices = !isArabic ? getEnglishVoices() : [];
+  const wantsSpecificBrowserVoice =
+    !isArabic &&
+    preferredVoiceName !== CLOUD_AI_VOICE_ID &&
+    enVoices.length > 0 &&
+    Boolean(
+      preferredVoiceName
+        ? enVoices.some(v => v.name === preferredVoiceName)
+        : enVoices.length > 0
+    );
+
+  // If the user picked a specific browser voice (e.g. Zira, David, Samantha),
+  // attach that exact SpeechSynthesisVoice object and play it immediately.
+  if (wantsSpecificBrowserVoice) {
+    return speakWithNativeSpeechSynthesis(clean, requestedRate, preferredVoiceName);
+  }
+
   const defaultLang = isArabic ? 'ar-EG' : 'en-US';
   const { targetLang, neuralVoice } = resolveTargetLangAndNeuralVoice(clean, defaultLang);
   const controller = new AbortController();

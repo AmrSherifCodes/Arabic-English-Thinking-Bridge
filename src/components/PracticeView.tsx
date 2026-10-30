@@ -1,6 +1,6 @@
 import React from 'react';
 import { Exercise, Lesson, UserProgress } from '../types';
-import { scoreEnglishVoice, speakWithRate } from '../utils/audio';
+import { CLOUD_AI_VOICE_ID, scoreEnglishVoice, speakWithRate } from '../utils/audio';
 import { computeNextHintWord, MYSTERY_CHEST_THRESHOLD } from '../utils/habitPsychology';
 import { normalizeSentence } from '../utils/transferLogic';
 import { InteractiveArabicSentence } from './InteractiveArabicSentence';
@@ -390,22 +390,25 @@ export function PracticeView({
               {isRecordingPron ? '⏹ Stop' : '🎙 Record yourself'}
             </button>
 
-            {voices.length > 0 && (
-              <select
-                title="Voice"
-                aria-label="Voice"
-                value={chosenVoice?.name || ''}
-                onChange={e => onSelectVoice(e.target.value)}
-                className={`${BTN_GHOST} min-h-[48px] max-w-full truncate bg-white dark:bg-stone-800 sm:max-w-[13rem]`}
-              >
-                {voices.map(v => (
-                  <option key={v.name} value={v.name}>
-                    {scoreEnglishVoice(v) >= 50 ? '★ ' : ''}
-                    {v.name} ({v.lang})
-                  </option>
-                ))}
-              </select>
-            )}
+            <select
+              title="Voice"
+              aria-label="Voice"
+              value={
+                progress.preferredVoice === CLOUD_AI_VOICE_ID
+                  ? CLOUD_AI_VOICE_ID
+                  : chosenVoice?.name || CLOUD_AI_VOICE_ID
+              }
+              onChange={e => onSelectVoice(e.target.value)}
+              className={`${BTN_GHOST} min-h-[48px] max-w-full truncate bg-white dark:bg-stone-800 sm:max-w-[14rem]`}
+            >
+              <option value={CLOUD_AI_VOICE_ID}>☁️ Cloud AI Voice (All Devices)</option>
+              {voices.map(v => (
+                <option key={v.name} value={v.name}>
+                  {scoreEnglishVoice(v) >= 50 ? '★ ' : ''}
+                  {v.name} ({v.lang})
+                </option>
+              ))}
+            </select>
           </div>
 
           {(pronAudioUrl || pronResultText || pronWordMatches.length > 0) && (
