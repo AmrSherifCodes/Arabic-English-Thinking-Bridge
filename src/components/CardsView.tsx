@@ -379,7 +379,7 @@ export function ReviewView({
   const winsToChest = 3 - (comboCount % 3);
 
   return (
-    <div id="anki-review-view">
+    <div id="anki-review-view" className="mx-auto w-full max-w-2xl">
       {/* Review Header */}
       <div className="flex items-center justify-between gap-2 mb-3">
         <div className="flex items-center gap-2 min-w-0">
@@ -525,14 +525,14 @@ export function ReviewView({
             <button
               type="button"
               id="show-answer-btn"
-              className={`${BTN_PRIMARY} w-full`}
+              className={`${BTN_PRIMARY} mt-4 w-full`}
               onClick={onShowAnswer}
             >
               👀 Tap card to reveal English answer (إظهار الإجابة)
             </button>
           ) : (
             <>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
                 {(
                   [
                     ['Again', '🔄 Forgot · نسيتها', 'bg-red-600 hover:bg-red-700'],
@@ -572,7 +572,7 @@ export function ReviewView({
                   );
                 })}
               </div>
-              <p className="text-xs opacity-60 mt-3 text-center">
+              <p className="mt-4 block rounded-xl p-3 text-center text-xs opacity-70">
                 No stress! Tap <strong>Forgot (نسيتها)</strong> if you want to see this card again
                 in a minute, or <strong>Got It! (عرفتها)</strong> to earn XP toward your 🎁 Mystery
                 Chest.

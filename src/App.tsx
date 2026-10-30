@@ -1898,7 +1898,12 @@ export default function App() {
         </div>
       )}
 
-      <main id="v" className="mx-auto min-h-0 w-full max-w-md flex-1 overflow-y-auto p-4 pb-24">
+      <main
+        id="v"
+        className={`mx-auto min-h-0 w-full ${
+          activeTab === 'cards' ? 'max-w-2xl' : 'max-w-md'
+        } flex-1 overflow-y-auto p-4 pb-24`}
+      >
       {/* Amr Sherif Dedication & Teacher Broadcast Banner */}
       {(activeTab === 'home' || activeTab === 'lessons' || activeTab === 'hub') &&
         latestBroadcast &&
