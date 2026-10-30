@@ -1,4 +1,5 @@
 import { EdgeTTS } from 'voipi/edge-tts';
+import { GoogleTTS } from 'voipi/google-tts';
 
 const MAX_TEXT_LENGTH = 600;
 
@@ -11,6 +12,12 @@ function resolveEdgeVoice(lang = 'en-US', requestedVoice = '') {
   if (norm.startsWith('ar')) return 'ar-EG-SalmaNeural';
   if (norm === 'en-gb') return 'en-GB-SoniaNeural';
   return 'en-US-AvaNeural';
+}
+
+function resolveGoogleLang(lang = 'en-US') {
+  const norm = String(lang || 'en-US').trim().toLowerCase().replace('_', '-');
+  if (norm.startsWith('ar')) return 'ar';
+  return 'en';
 }
 
 export default async function ttsHandler(req, res) {
@@ -54,15 +61,32 @@ export default async function ttsHandler(req, res) {
 
     const safeRate = Number.isFinite(rate) ? Math.min(2, Math.max(0.5, rate)) : 1;
     const selectedVoice = resolveEdgeVoice(lang, voice);
-    const tts = new EdgeTTS({ voice: selectedVoice });
-    const audio = await tts.synthesize(cleanText, {
-      voice: selectedVoice,
-      lang,
-      rate: safeRate,
-    });
+
+    let audio;
+    let provider = 'edge-tts';
+    try {
+      const edgeTts = new EdgeTTS({ voice: selectedVoice });
+      audio = await edgeTts.synthesize(cleanText, {
+        voice: selectedVoice,
+        lang,
+        rate: safeRate,
+      });
+    } catch {
+      provider = 'google-tts';
+      const googleLang = resolveGoogleLang(lang);
+      const googleTts = new GoogleTTS({
+        voice: googleLang,
+        slow: safeRate < 0.78,
+      });
+      audio = await googleTts.synthesize(cleanText, {
+        lang: googleLang,
+        rate: safeRate,
+      });
+    }
 
     res.statusCode = 200;
     res.setHeader('Content-Type', 'audio/mpeg');
+    res.setHeader('X-TTS-Provider', provider);
     res.setHeader('Cache-Control', 'public, max-age=86400');
     res.end(audio.data);
   } catch (error) {

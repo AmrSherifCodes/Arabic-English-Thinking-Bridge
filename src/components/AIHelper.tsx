@@ -4,10 +4,17 @@ import { FormEvent, useEffect, useState } from 'react';
 import type { UserProfile } from '../hooks/useUserProfile';
 import { useRealConversation } from '../hooks/useRealConversation';
 import type { LexiconEntry, TutorContext } from '../services/geminiLexicon';
-import { checkGeminiService } from '../services/geminiLexicon';
+import {
+  checkGeminiService,
+  GEMINI_KEY_CHANGED_EVENT,
+  hasUserGeminiKey
+} from '../services/geminiLexicon';
 import { askAIHelper } from '../services/aiRouter';
 import { isArabicUI, uiText } from '../utils/i18n';
 import { BouncyButton } from './BouncyButton';
+import { VipPassModal } from './VipPassModal';
+
+export const OPEN_VIP_PASS_EVENT = 'tb:open-vip-pass';
 
 export interface AIHelperRequest {
   id: number;
@@ -22,6 +29,8 @@ interface AIHelperProps {
 
 export function AIHelper({ profile, request }: AIHelperProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [showVipModal, setShowVipModal] = useState(false);
+  const [hasPersonalKey, setHasPersonalKey] = useState(() => hasUserGeminiKey());
   const [isOnline, setIsOnline] = useState(
     () => typeof navigator === 'undefined' || navigator.onLine
   );
@@ -31,7 +40,7 @@ export function AIHelper({ profile, request }: AIHelperProps) {
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { messages, history, addMessage } = useRealConversation();
-  const cloudAvailable = isOnline && hasGeminiBackend;
+  const cloudAvailable = isOnline && (hasPersonalKey || hasGeminiBackend);
   const rtl = isArabicUI(profile.language);
   const t = (en: string, ar: string) => uiText(profile.language, en, ar);
 
@@ -40,6 +49,7 @@ export function AIHelper({ profile, request }: AIHelperProps) {
     const updateConnection = () => {
       const online = navigator.onLine;
       setIsOnline(online);
+      setHasPersonalKey(hasUserGeminiKey());
       if (!online) {
         setHasGeminiBackend(false);
         return;
@@ -52,13 +62,19 @@ export function AIHelper({ profile, request }: AIHelperProps) {
           if (active) setHasGeminiBackend(false);
         });
     };
+    const handleOpenVip = () => setShowVipModal(true);
+
     updateConnection();
     window.addEventListener('online', updateConnection);
     window.addEventListener('offline', updateConnection);
+    window.addEventListener(GEMINI_KEY_CHANGED_EVENT, updateConnection);
+    window.addEventListener(OPEN_VIP_PASS_EVENT, handleOpenVip);
     return () => {
       active = false;
       window.removeEventListener('online', updateConnection);
       window.removeEventListener('offline', updateConnection);
+      window.removeEventListener(GEMINI_KEY_CHANGED_EVENT, updateConnection);
+      window.removeEventListener(OPEN_VIP_PASS_EVENT, handleOpenVip);
     };
   }, []);
 
@@ -82,18 +98,16 @@ export function AIHelper({ profile, request }: AIHelperProps) {
 
     try {
       const context: TutorContext = { profile, currentWord, history };
-      const answer = await askAIHelper(question, context, err => {
-        setError(err.message);
-      });
+      const answer = await askAIHelper(question, context);
       addMessage('assistant', answer);
     } catch (requestError) {
       setError(
         requestError instanceof Error
           ? requestError.message
           : t(
-              'The tutor could not answer right now. Please try again.',
-              'تعذر على المساعد الذكي الرد حالياً. يرجى المحاولة مرة أخرى.'
-            )
+            'The tutor could not answer right now. Please try again.',
+            'تعذر على المساعد الذكي الرد حالياً. يرجى المحاولة مرة أخرى.'
+          )
       );
     } finally {
       setIsSending(false);
@@ -116,7 +130,7 @@ export function AIHelper({ profile, request }: AIHelperProps) {
               transition={{ duration: 0.2, ease: 'easeOut' }}
               className="flex max-h-[calc(100dvh-8rem-env(safe-area-inset-bottom))] min-h-64 w-full flex-col overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-2xl dark:border-stone-700 dark:bg-stone-900"
             >
-              <header className="flex items-center justify-between border-b border-stone-200 px-4 py-3 dark:border-stone-700">
+              <header className="flex items-center justify-between gap-2 border-b border-stone-200 px-4 py-3 dark:border-stone-700">
                 <div className="flex min-w-0 items-center gap-2">
                   <Sparkles size={19} className="shrink-0 text-olive-600 dark:text-olive-300" />
                   <div className="min-w-0">
@@ -126,21 +140,47 @@ export function AIHelper({ profile, request }: AIHelperProps) {
                         aria-hidden="true"
                         className={`h-2 w-2 rounded-full ${cloudAvailable ? 'bg-emerald-500' : 'bg-amber-500'}`}
                       />
-                      {cloudAvailable
+                      {hasPersonalKey
+                        ? '🌟 المساعد الذكي (VIP مفعل)'
+                        : cloudAvailable
                         ? t('Gemini tutor', 'معلم Gemini الذكي')
-                        : t('Dictionary fallback', 'القاموس المحلي')}
+                        : t('Offline Mode · Dictionary fallback', 'وضع بدون إنترنت · القاموس المحلي')}
                     </p>
                   </div>
                 </div>
-                <button
-                  type="button"
-                  aria-label={t('Close tutor', 'إغلاق المعلم الذكي')}
-                  onClick={() => setIsOpen(false)}
-                  className="flex h-10 w-10 items-center justify-center rounded-full text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-800"
-                >
-                  <X size={18} />
-                </button>
+                <div className="flex shrink-0 items-center gap-1.5">
+                  {hasPersonalKey && (
+                    <button
+                      type="button"
+                      onClick={() => setShowVipModal(true)}
+                      className="ar rounded-full border border-amber-400/50 bg-amber-500/15 px-2.5 py-1 text-[11px] font-bold text-amber-800 hover:bg-amber-500/25 dark:text-amber-300"
+                    >
+                      🌟 كود VIP
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    aria-label={t('Close tutor', 'إغلاق المعلم الذكي')}
+                    onClick={() => setIsOpen(false)}
+                    className="flex h-10 w-10 items-center justify-center rounded-full text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-800"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
               </header>
+
+              {!hasPersonalKey && (
+                <div className="border-b border-amber-400/30 bg-gradient-to-l from-amber-500/10 via-orange-500/10 to-emerald-500/10 px-3.5 py-2.5">
+                  <button
+                    type="button"
+                    dir="rtl"
+                    onClick={() => setShowVipModal(true)}
+                    className="ar flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-l from-amber-500 to-orange-600 px-3.5 py-2 text-xs font-extrabold text-white shadow-sm transition hover:from-amber-600 hover:to-orange-700"
+                  >
+                    <span>افتح المساعد الذكي (مجاني) 🚀</span>
+                  </button>
+                </div>
+              )}
 
               <div
                 className="flex-1 space-y-3 overflow-y-auto p-4"
@@ -158,11 +198,10 @@ export function AIHelper({ profile, request }: AIHelperProps) {
                 {messages.map(message => (
                   <div
                     key={message.id}
-                    className={`max-w-[90%] whitespace-pre-wrap break-words rounded-2xl px-3 py-2 text-sm ${
-                      message.role === 'user'
+                    className={`max-w-[90%] whitespace-pre-wrap break-words rounded-2xl px-3 py-2 text-sm ${message.role === 'user'
                         ? 'ml-auto bg-olive-700 text-white'
                         : 'bg-stone-100 text-stone-800 dark:bg-stone-800 dark:text-stone-100'
-                    }`}
+                      }`}
                   >
                     {message.text}
                   </div>
@@ -224,6 +263,13 @@ export function AIHelper({ profile, request }: AIHelperProps) {
         >
           {isOpen ? <X size={23} /> : <Sparkles size={23} />}
         </BouncyButton>
+      </div>
+      <div className="pointer-events-auto">
+        <VipPassModal
+          isOpen={showVipModal}
+          onClose={() => setShowVipModal(false)}
+          onStatusChange={active => setHasPersonalKey(active)}
+        />
       </div>
     </div>
   );

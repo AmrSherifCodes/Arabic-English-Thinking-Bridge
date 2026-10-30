@@ -11,9 +11,9 @@ import { INITIAL_BROADCASTS, INITIAL_MENTOR_QUESTIONS } from '../data/lessons';
 const PROGRESS_KEY = 'thinking_english_progress_v1';
 const MENTOR_QUESTIONS_KEY = 'thinking_english_mentor_q_v1';
 const BROADCASTS_KEY = 'thinking_english_broadcasts_v2';
-const TEACHER_PIN_KEY = 'thinking_english_teacher_pin_v1';
+const TEACHER_PIN_KEY = 'thinking_english_teacher_pin_v2';
 
-export const TEACHER_PIN = '1234';
+export const TEACHER_PIN = '69420';
 export const DEFAULT_PIN = TEACHER_PIN;
 
 export const DEFAULT_PROGRESS: UserProgress = {

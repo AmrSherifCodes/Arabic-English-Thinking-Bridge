@@ -174,7 +174,7 @@ const CONFIG = {
   TEACHER_WHATSAPP: "${TEACHER_WHATSAPP}", // Leave empty for public release (opens WhatsApp contact picker)
   FEEDBACK_FORM_URL: "${FEEDBACK_FORM_URL}",
   APP_URL: "${DEFAULT_SHARED_APP_URL}",
-  DEMO_PIN: "1234" // Client-side demo mode UI toggle only (not a security boundary)
+  DEMO_PIN: "69420" // Client-side demo mode UI toggle only (not a security boundary)
 };
 const TEACHER = CONFIG.TEACHER_WHATSAPP;
 const FORM = CONFIG.FEEDBACK_FORM_URL;
@@ -376,8 +376,11 @@ function lessonsV(){
   return h+\`<p class="text-xs opacity-70 mt-4 pt-3 border-t border-stone-200 dark:border-stone-700 text-center">🌊 Crafted in <strong>Alexandria, Egypt</strong> by <strong>Amr Sherif</strong> · Gratefully inspired by <strong>Mihalis Eleftheriou</strong> &amp; <em>The Thinking Method</em> · 100% Free &amp; Ad-Free (CC0 1.0 · Thinking English™)</p>\`;
 }
 
+function shuffleArray(array){const a=[...array];let c=a.length,r;while(c!==0){r=Math.floor(Math.random()*c);c--;[a[c],a[r]]=[a[r],a[c]]}if(a.length>1&&a.every((v,i)=>v===array[i])){const s=a.findIndex(v=>v!==a[0]);if(s>0)[a[0],a[s]]=[a[s],a[0]]}return a}
+function buildBlocks(e){const tw=e.a[0].replace(/[.,?!]/g,"").split(/\s+/).filter(Boolean);const ts=new Set(tw.map(w=>w.toLowerCase()));const ex=(e.x||[]).filter(w=>!ts.has(w.toLowerCase()));return [...tw,...ex]}
+function resetAttemptState(){if(!cur)return;const e=L[cur.li]&&L[cur.li].ex[cur.ei];if(!e)return;cur.chips=shuffleArray(buildBlocks(e));cur.fb="";render()}
 function go(li){let ei=L[li].ex.findIndex((_,i)=>!S.done[li+"-"+i]);if(ei<0)ei=0;setEx(li,ei);tab=1;render()}
-function setEx(li,ei){const e=L[li].ex[ei];popWord=null;cur={li,ei,tries:0,st:"ask",fb:"",chips:shuffle(Array.from(new Set([...e.a[0].replace(/[.,?!]/g,"").split(" "),...e.x])))}}
+function setEx(li,ei){const e=L[li].ex[ei];popWord=null;cur={li,ei,tries:0,st:"ask",fb:"",chips:shuffleArray(buildBlocks(e))}}
 
 function practiceV(){
   if(!cur)return \`<div class="\${CARD}"><p class="mb-3">Pick a lesson in the Lessons tab to begin.</p><button class="\${BTN}" onclick="go(0)">Start Lesson 1 →</button></div>\`;
@@ -389,7 +392,7 @@ function practiceV(){
     h+=\`<div class="\${CARD}"><input id="ans" translate="no" class="w-full rounded-xl border border-stone-300 dark:border-stone-600 bg-transparent p-3" placeholder="Type or tap the blocks…" autocomplete="off" onkeydown="if(event.key=='Enter')check()">
     <div class="flex flex-wrap gap-2 mt-3">\${cur.chips.map(c=>\`<button class="\${GH} !px-4 text-base" translate="no" data-chip="\${esc(c)}">\${esc(c)}</button>\`).join("")}</div>
     <div id="fb" class="mt-3 text-sm">\${cur.fb}</div>
-    <div class="flex gap-2 mt-3"><button class="\${BTN} flex-1" onclick="check()">Check</button><button class="\${GH}" onclick="$('ans').value=''">Clear</button><button class="\${GH}" onclick="reveal()">Reveal</button></div></div>\`;
+    <div class="flex gap-2 mt-3"><button class="\${BTN} flex-1" onclick="check()">Check</button><button class="\${GH}" onclick="resetAttemptState()">↺ Reset</button><button class="\${GH}" onclick="reveal()">Reveal</button></div></div>\`;
   }else{
     h+=\`<div class="\${CARD}"><div translate="no" class="text-lg font-semibold mb-3">\${esc(e.a[0])}\${cur.st=="ok"?" ✅":""}</div>
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">\${e.m.map(([a,b,t])=>\`<div class="rounded-xl p-2 text-center \${C[t]}"><div dir="rtl" class="ar font-semibold">\${esc(a)}</div><div translate="no" class="font-semibold text-sm">\${esc(b)}</div></div>\`).join("")}</div>
@@ -710,8 +713,8 @@ function hubV(){
   <div class="flex flex-wrap items-center gap-2 mt-2"><button class="\${BTN}" onclick="send()">Send</button></div></div>\`;
   if(S.bc.length)h+=\`<div class="\${CARD}"><h3 class="font-semibold mb-2">📢 Mini-lessons from your teacher</h3>\${S.bc.map(b=>\`<p class="text-sm mb-2">• \${esc(b)}</p>\`).join("")}</div>\`;
   if(S.msgs.length)h+=\`<div class="\${CARD}"><h3 class="font-semibold mb-2">Your questions</h3>\${S.msgs.map(m=>\`<div class="text-sm mb-3"><div>❓ \${esc(m.q)}</div><div class="mt-1 opacity-80">\${m.r?"👩‍🏫 "+esc(m.r):"⏳ awaiting reply"}</div></div>\`).join("")}</div>\`;
-  h+=\`<div class="\${CARD}"><h3 class="font-semibold mb-2">👩‍🏫 Teacher Demo Mode (UI Toggle)</h3>\`;
-  if(!T)h+=\`<div class="flex gap-2"><input id="pin" type="password" placeholder="Demo PIN" class="rounded-xl border border-stone-300 dark:border-stone-600 bg-transparent p-2 w-32"><button class="\${BTN}" onclick="if($('pin').value==CONFIG.DEMO_PIN){T=true;render()}else toast('Wrong demo PIN')">Unlock Demo</button></div><p class="text-xs opacity-60 mt-2">Demo mode PIN: \${CONFIG.DEMO_PIN} (client-side UI toggle for local replies &amp; broadcasts)</p>\`;
+  h+=\`<div class="\${CARD}"><div class="flex flex-wrap items-center justify-between gap-2 mb-2"><h3 class="font-semibold">👩‍🏫 Teacher Demo Mode (UI Toggle)</h3><span class="rounded-full border border-amber-500/35 bg-amber-500/10 px-2 py-0.5 text-[11px] font-semibold text-amber-800 dark:text-amber-300">Demo Only</span></div>\`;
+  if(!T)h+=\`<div class="flex flex-wrap gap-2"><input id="pin" type="password" placeholder="Teacher PIN" class="rounded-xl border border-stone-300 dark:border-stone-600 bg-transparent p-2 w-36"><button class="\${BTN}" onclick="if($('pin').value==CONFIG.DEMO_PIN){T=true;render()}else toast('Wrong demo PIN')">Unlock Demo</button></div><p class="text-xs opacity-60 mt-2">Restricted to Teacher / Admin demo access. Replies and broadcasts save to local device storage only.</p>\`;
   else{
     h+=\`<h4 class="text-sm font-semibold">Open questions (\${pend.length})</h4>\`+pend.map(([m,i])=>\`<div class="my-2 text-sm"><div>\${esc(m.q)}</div><textarea id="r\${i}" rows="2" class="w-full rounded-xl border border-stone-300 dark:border-stone-600 bg-transparent p-2 mt-1" placeholder="Reply…"></textarea><button class="\${BTN} mt-1" onclick="reply(\${i})">Reply</button></div>\`).join("");
     h+=\`<h4 class="text-sm font-semibold mt-4">Broadcast a mini-lesson</h4><textarea id="bt" rows="2" class="w-full rounded-xl border border-stone-300 dark:border-stone-600 bg-transparent p-2"></textarea><button class="\${BTN} mt-1" onclick="bcast()">Broadcast</button>

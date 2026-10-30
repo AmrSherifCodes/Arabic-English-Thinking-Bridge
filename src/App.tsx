@@ -91,7 +91,7 @@ import { HomeAction, HomeView } from './components/HomeView';
 import { Onboarding } from './components/Onboarding';
 import { EncouragementToast } from './components/EncouragementToast';
 import { useUserProfile } from './hooks/useUserProfile';
-import { AIHelper } from './components/AIHelper';
+import { AIHelper, OPEN_VIP_PASS_EVENT } from './components/AIHelper';
 import type { AIHelperRequest } from './components/AIHelper';
 import { useAdaptiveLearning } from './hooks/useAdaptiveLearning';
 import { generateCustomDeck } from './services/geminiLexicon';
@@ -157,11 +157,20 @@ interface UndoGradeSnapshot {
   previousDateCount: number;
 }
 
-function shuffleArray<T>(arr: T[]): T[] {
-  const copy = [...arr];
-  for (let i = copy.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [copy[i], copy[j]] = [copy[j], copy[i]];
+// Fisher-Yates Shuffle Algorithm (ensures blocks don't remain in original order)
+function shuffleArray<T>(array: T[]): T[] {
+  const copy = [...array];
+  let currentIndex = copy.length;
+  while (currentIndex !== 0) {
+    const randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex--;
+    [copy[currentIndex], copy[randomIndex]] = [copy[randomIndex], copy[currentIndex]];
+  }
+  if (copy.length > 1 && copy.every((item, idx) => item === array[idx])) {
+    const swapIdx = copy.findIndex(item => item !== copy[0]);
+    if (swapIdx > 0) {
+      [copy[0], copy[swapIdx]] = [copy[swapIdx], copy[0]];
+    }
   }
   return copy;
 }
@@ -1123,14 +1132,36 @@ export default function App() {
   // ============================================================================
   // PRACTICE LOOP HANDLERS
   // ============================================================================
+  const buildExerciseBlocks = (ex: Exercise): string[] => {
+    const targetWords = ex.englishTarget.replace(/[.,?!]/g, '').split(/\s+/).filter(Boolean);
+    const targetSet = new Set(targetWords.map(w => w.toLowerCase()));
+    const extraChips = ex.wordChips.filter(w => !targetSet.has(w.toLowerCase()));
+    return [...targetWords, ...extraChips];
+  };
+
+  const resetAttemptState = () => {
+    if (activeLessonIdx !== null) {
+      const lesson = ALL_LESSONS[activeLessonIdx];
+      const ex = lesson?.exercises[activeExIdx];
+      if (ex) {
+        setShuffledChips(shuffleArray(buildExerciseBlocks(ex)));
+      } else {
+        setShuffledChips(prev => shuffleArray(prev));
+      }
+    } else {
+      setShuffledChips(prev => shuffleArray(prev));
+    }
+    setUserAnswer('');
+    setFeedbackHtml('');
+  };
+
   const startExercise = (lessonIdx: number, exIdx: number) => {
     const lesson = ALL_LESSONS[lessonIdx];
     if (!lesson) return;
     const ex = lesson.exercises[exIdx];
     if (!ex) return;
 
-    const targetWords = ex.englishTarget.replace(/[.,?!]/g, '').split(/\s+/);
-    const mergedChips = Array.from(new Set([...targetWords, ...ex.wordChips]));
+    const mergedChips = buildExerciseBlocks(ex);
 
     setActiveLessonIdx(lessonIdx);
     setActiveExIdx(exIdx);
@@ -1779,6 +1810,18 @@ export default function App() {
                 type="button"
                 onClick={() => {
                   setShowSettingsMenu(false);
+                  window.dispatchEvent(new CustomEvent(OPEN_VIP_PASS_EVENT));
+                }}
+                className={`w-full rounded-xl px-3 py-2.5 ${
+                  rtlUI ? 'text-right' : 'text-left'
+                } text-sm font-bold text-amber-800 hover:bg-amber-50 dark:text-amber-300 dark:hover:bg-stone-800`}
+              >
+                {tUI('🌟 Unlock Smart AI (Free VIP Pass)', '🌟 افتح المساعد الذكي (كود مجاني)')}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowSettingsMenu(false);
                   setShowOnboarding(true);
                 }}
                 className={`w-full rounded-xl px-3 py-2.5 ${
@@ -2128,7 +2171,7 @@ export default function App() {
             onRemoveWordAt={handleRemoveWordAt}
             onGiveNextWordHint={handleGiveNextWordHint}
             onCheckAnswer={handleCheckAnswer}
-            onClearAnswer={() => setUserAnswer('')}
+            onClearAnswer={resetAttemptState}
             onRevealAnswer={handleReveal}
             onNextExercise={handleNextExercise}
             onPronunciationPractice={handlePronunciationPractice}
@@ -2257,8 +2300,9 @@ export default function App() {
             onToggleMentorVoice={handleMentorVoiceToggle}
             onSendMentorQuestion={handleSendMentorQuestion}
             onChangePinInput={setPinInput}
-            onUnlockTeacher={() => {
-              if (pinInput === loadTeacherPin() || pinInput === TEACHER_PIN) {
+            onUnlockTeacher={(overridePin?: string) => {
+              const candidate = (overridePin ?? pinInput).trim();
+              if (candidate === loadTeacherPin() || candidate === TEACHER_PIN) {
                 setTeacherUnlocked(true);
                 setPinInput('');
               } else {

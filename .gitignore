@@ -9,3 +9,6 @@ public/*.backup.json
 .env
 .env.*
 !.env.example
+
+.vercel
+.env*

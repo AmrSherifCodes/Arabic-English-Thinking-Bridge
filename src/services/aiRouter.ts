@@ -36,9 +36,7 @@ export async function askAIHelper(
   }
 
   if (typeof navigator !== 'undefined' && !navigator.onLine) {
-    const offlineErr = new Error('Browser is offline (navigator.onLine === false)');
-    onError?.(offlineErr);
-    return getOfflineAnswer(question, context, 'API Error: ' + offlineErr.message);
+    return getOfflineAnswer(question, context);
   }
 
   try {
@@ -47,6 +45,12 @@ export async function askAIHelper(
     console.error('[aiRouter] generateTutorResponse error:', err);
     const errorObj = err instanceof Error ? err : new Error(String(err));
     onError?.(errorObj);
-    return getOfflineAnswer(question, context, 'API Error: ' + (err as Error).message);
+    if (err instanceof LexiconError && err.code === 'rate-limited') {
+      return getOfflineAnswer(question, context, 'AI tutor is cooling down due to high traffic.');
+    }
+    if (err instanceof LexiconError && err.code === 'timeout') {
+      return getOfflineAnswer(question, context, 'AI tutor timed out.');
+    }
+    return getOfflineAnswer(question, context, 'AI tutor temporarily unavailable.');
   }
 }

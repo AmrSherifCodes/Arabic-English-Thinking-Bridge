@@ -1,6 +1,14 @@
 import { GoogleGenAI, Type } from '@google/genai';
 
-const MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+const MODEL = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
+const FALLBACK_MODELS = [
+  'gemini-3.8-flash',
+  'gemini-3.8-flash-lite',
+  'gemini-3-flash-preview',
+  'gemini-2.5-flash-lite',
+  'gemini-2.5-flash',
+  'gemini-2.0-flash',
+];
 const MAX_BODY_BYTES = 16 * 1024;
 const RATE_LIMIT = 20;
 const RATE_WINDOW_MS = 60_000;
@@ -104,7 +112,6 @@ function parseModelJson(text) {
 function getApiKey() {
   return (
     process.env.GEMINI_API_KEY ||
-    process.env.VITE_GEMINI_API_KEY ||
     process.env.GOOGLE_API_KEY ||
     ''
   ).trim();
@@ -115,6 +122,43 @@ function getClient() {
   if (!apiKey) return null;
   client ??= new GoogleGenAI({ apiKey });
   return client;
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function generateContentWithFallback(ai, params) {
+  const uniqueModels = [MODEL, ...FALLBACK_MODELS.filter(m => m !== MODEL)];
+  // Include a second retry pass of the primary model in case a 503 spike clears after a brief pause
+  const attempts = [...uniqueModels, MODEL];
+  let lastError;
+  for (let i = 0; i < attempts.length; i++) {
+    const model = attempts[i];
+    try {
+      return await ai.models.generateContent({ ...params, model });
+    } catch (err) {
+      lastError = err;
+      const msg = err instanceof Error ? err.message : String(err || '');
+      const status = Number(err?.status || err?.statusCode || err?.httpStatusCode || 0);
+      if (status === 404 || /404|NOT_FOUND|no longer available/i.test(msg)) {
+        continue;
+      }
+      if (
+        status === 503 ||
+        status === 429 ||
+        status === 500 ||
+        status === 502 ||
+        status === 504 ||
+        /503|429|UNAVAILABLE|high demand|overloaded|RESOURCE_EXHAUSTED|temporarily/i.test(msg)
+      ) {
+        await sleep(450 + i * 200);
+        continue;
+      }
+      throw err;
+    }
+  }
+  throw lastError;
 }
 
 async function generate(operation, body) {
@@ -135,8 +179,7 @@ async function generate(operation, body) {
     const dialectName = dialect === 'egyptian'
       ? 'Egyptian Arabic (Ammiya)'
       : 'Modern Standard Arabic (MSA/Fusha)';
-    const response = await ai.models.generateContent({
-      model: MODEL,
+    const response = await generateContentWithFallback(ai, {
       contents:
         `Create a lexicon entry in ${dialectName} for: <<<${word}>>>. ` +
         `Write the example sentence in ${dialectName}.${hint}`,
@@ -167,12 +210,11 @@ async function generate(operation, body) {
     const instruction = isStruggling
       ? 'The user is struggling. Generate 3 very simple, beginner-level words.'
       : `Generate 10 ${profile.level}-appropriate words.`;
-    const response = await ai.models.generateContent({
-      model: MODEL,
+    const response = await generateContentWithFallback(ai, {
       contents:
         `${instruction} Their goal is ${profile.goal} and their practice situation is ${situation}. ` +
-          `The learner's Arabic dialect is ${profile.dialect === 'egyptian' ? 'Egyptian Arabic (Ammiya)' : 'Modern Standard Arabic (MSA/Fusha)'}. ` +
-          `Return exactly ${expectedCount} useful Arabic-English vocabulary pairs for that situation. ` +
+        `The learner's Arabic dialect is ${profile.dialect === 'egyptian' ? 'Egyptian Arabic (Ammiya)' : 'Modern Standard Arabic (MSA/Fusha)'}. ` +
+        `Return exactly ${expectedCount} useful Arabic-English vocabulary pairs for that situation. ` +
         'Keep each item to a single word when possible.',
       config: {
         systemInstruction:
@@ -212,8 +254,7 @@ async function generate(operation, body) {
     const wordContext = currentWord
       ? `The learner is currently studying: ${currentWord.arabicWord.slice(0, 100)} = ${currentWord.englishTranslation.slice(0, 100)}.`
       : 'No specific vocabulary card is currently selected.';
-    const response = await ai.models.generateContent({
-      model: MODEL,
+    const response = await generateContentWithFallback(ai, {
       contents: `${recentHistory.join('\n')}\nLearner's question: ${prompt.trim()}`,
       config: {
         systemInstruction:
@@ -274,16 +315,22 @@ export default async function handler(req, res) {
     const rawStatus = Number(err?.status || err?.statusCode || err?.httpStatusCode || 0);
     const status = rawStatus >= 400 && rawStatus < 600 ? rawStatus : 502;
     const rawMessage = err instanceof Error ? err.message : String(err || 'The AI service is temporarily unavailable.');
-    const code =
-      status === 429 || /429|quota|rate|resource_exhausted/i.test(rawMessage)
-        ? 'rate-limited'
-        : status === 401 || status === 403 || /api[_\s-]?key|permission|unauthenticated|forbidden/i.test(rawMessage)
-          ? 'missing-key'
-          : 'network';
+    const isHighDemand =
+      status === 429 ||
+      status === 503 ||
+      /429|503|quota|rate|resource_exhausted|high demand|unavailable|overloaded/i.test(rawMessage);
+    const code = isHighDemand
+      ? 'rate-limited'
+      : status === 401 || status === 403 || /api[_\s-]?key|permission|unauthenticated|forbidden/i.test(rawMessage)
+        ? 'missing-key'
+        : 'network';
+    const cleanMessage = isHighDemand
+      ? 'The AI tutor is experiencing high traffic right now. Please try again in a few seconds.'
+      : 'The AI tutor is temporarily unavailable. Please try again shortly.';
     return sendJson(res, status, {
       error: {
         code,
-        message: `[HTTP ${status}] ${rawMessage}`,
+        message: cleanMessage,
       },
     });
   }

@@ -316,8 +316,13 @@ export function PracticeView({
             >
               🪄 Next Word (كلمة مساعدة)
             </button>
-            <button type="button" className={`${BTN_GHOST} min-h-[48px]`} onClick={onClearAnswer}>
-              Clear
+            <button
+              type="button"
+              title="Clear and reshuffle word blocks"
+              className={`${BTN_GHOST} min-h-[48px]`}
+              onClick={onClearAnswer}
+            >
+              ↺ Reset
             </button>
             <button type="button" className={`${BTN_GHOST} min-h-[48px]`} onClick={onRevealAnswer}>
               Reveal
