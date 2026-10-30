@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import { Flame, Moon, Sun, UserRound } from 'lucide-react';
 import { PHASES_DATA } from './data/lessons';
 import { PREBUILT_DECKS, PrebuiltDeck } from './data/prebuiltDecks';
@@ -2431,6 +2432,7 @@ export default function App() {
         />
       )}
       <BlockScreen isBlocked={isBlocked} onUnlock={verify} busy={verifying} error={error} />
+      <Analytics />
       </div>
     </div>
   );
