@@ -81,7 +81,7 @@ Behavior:
 Progress tab card **"Feedback for your teacher"**: 5 emoji rating buttons (😕 🙁 😐 🙂 😍), a textarea, and three buttons: **WhatsApp**, **Email**, **Copy**.
 
 ```ts
-const TEACHER_WHATSAPP = '201111452785'; // country code + number, digits only
+const TEACHER_WHATSAPP = ''; // country code + number, digits only
 const FEEDBACK_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSf6eHUa4iLP-2pcivw8KCLyWdcU1BD73cMtrtMmttLv09fGuQ/viewform'; // show a "Full feedback form" button under the three buttons
 
 function feedbackMessage(rating: number, text: string, p: UserProgress, lessonsTotal: number) {

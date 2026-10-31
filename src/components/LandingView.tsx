@@ -238,11 +238,6 @@ export function LandingView({ onStartWebApp, onStartGuest }: LandingViewProps) {
                           ✉️ amrsherifwork@gmail.com
                         </a>
                       </li>
-                      <li>
-                        <a href="tel:+201111452785" className="hover:underline">
-                          📞 +201111452785
-                        </a>
-                      </li>
                       <li>📍 Alexandria, Egypt</li>
                     </ul>
                   </section>
