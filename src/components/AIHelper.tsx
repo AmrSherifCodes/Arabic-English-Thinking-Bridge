@@ -20,6 +20,8 @@ export interface AIHelperRequest {
   id: number;
   prompt: string;
   currentWord: LexiconEntry;
+  /** When true, the prompt is sent immediately instead of being placed in the input box. */
+  autoSend?: boolean;
 }
 
 interface AIHelperProps {
@@ -81,23 +83,24 @@ export function AIHelper({ profile, request }: AIHelperProps) {
   useEffect(() => {
     if (!request) return;
     setCurrentWord(request.currentWord);
-    setInput(request.prompt);
     setError(null);
     setIsOpen(true);
+    if (request.autoSend) {
+      setInput('');
+      void submitQuestion(request.prompt, request.currentWord);
+    } else {
+      setInput(request.prompt);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [request?.id]);
 
-  const sendMessage = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const question = input.trim();
-    if (!question || isSending) return;
-
-    setInput('');
+  const submitQuestion = async (question: string, word: LexiconEntry | undefined) => {
     setError(null);
     addMessage('user', question);
     setIsSending(true);
 
     try {
-      const context: TutorContext = { profile, currentWord, history };
+      const context: TutorContext = { profile, currentWord: word, history };
       const answer = await askAIHelper(question, context);
       addMessage('assistant', answer);
     } catch (requestError) {
@@ -112,6 +115,15 @@ export function AIHelper({ profile, request }: AIHelperProps) {
     } finally {
       setIsSending(false);
     }
+  };
+
+  const sendMessage = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const question = input.trim();
+    if (!question || isSending) return;
+
+    setInput('');
+    await submitQuestion(question, currentWord);
   };
 
   return (

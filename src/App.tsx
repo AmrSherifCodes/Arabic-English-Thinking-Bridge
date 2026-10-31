@@ -2218,6 +2218,22 @@ export default function App() {
               speakWithRate('Hello, this is how I sound.', 1, val);
             }}
             onToast={showToast}
+            onAskTutor={(exercise, prompt) =>
+              setAiHelperRequest({
+                id: ++aiRequestIdRef.current,
+                autoSend: true,
+                prompt,
+                currentWord: {
+                  arabicWord: exercise.arabicThought,
+                  englishTranslation: exercise.englishTarget,
+                  partOfSpeech: 'phrase',
+                  situations: [],
+                  exampleSentenceArabic: exercise.arabicThought,
+                  exampleSentenceEnglish: exercise.englishTarget,
+                  dialect: profile?.dialect ?? 'egyptian'
+                }
+              })
+            }
           />
         )}
 

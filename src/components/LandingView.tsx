@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ArrowRight, BookOpen, ExternalLink, Github, Heart, Linkedin, Smartphone, X } from 'lucide-react';
+import { ArrowRight, BookOpen, ExternalLink, Github, Heart, Linkedin, Smartphone, X, Youtube } from 'lucide-react';
 
 interface LandingViewProps {
   onStartWebApp: () => void;
@@ -169,6 +169,14 @@ export function LandingView({ onStartWebApp, onStartGuest }: LandingViewProps) {
               <span>GitHub</span>
             </a>
             <a
+              href="https://youtube.com/@SciAmrSherif"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 font-semibold text-slate-700 transition hover:text-orange-600 dark:text-slate-300 dark:hover:text-orange-400"
+            >
+              <Youtube size={16} aria-hidden="true" />
+              <span>YouTube</span>
+            </a>            <a
               href="https://www.patreon.com/c/SciAmrSherif"
               target="_blank"
               rel="noopener noreferrer"
@@ -184,7 +192,7 @@ export function LandingView({ onStartWebApp, onStartGuest }: LandingViewProps) {
 
       {showCv && (
         <div
-          className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-950/60 p-4 backdrop-blur-sm sm:items-center"
+          className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-950/60 p-3 backdrop-blur-sm sm:items-center sm:p-4"
           onMouseDown={event => {
             if (event.target === event.currentTarget) setShowCv(false);
           }}
@@ -193,127 +201,148 @@ export function LandingView({ onStartWebApp, onStartGuest }: LandingViewProps) {
             role="dialog"
             aria-modal="true"
             aria-labelledby="cv-title"
-            className="relative my-4 w-full max-w-2xl overflow-hidden rounded-3xl border border-slate-200 bg-white text-slate-900 shadow-2xl dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+            className="relative my-3 w-full max-w-4xl overflow-hidden rounded-3xl border border-slate-200 bg-white text-slate-900 shadow-2xl dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
           >
-            <header className="bg-gradient-to-r from-orange-600 to-amber-500 px-6 py-6 text-white sm:px-8">
+            <header className="bg-gradient-to-r from-orange-600 to-amber-500 px-6 py-6 pr-16 text-white sm:px-8">
               <button
                 type="button"
                 onClick={() => setShowCv(false)}
                 aria-label="Close CV"
-                className="absolute right-4 top-4 rounded-lg bg-white/20 p-2 transition hover:bg-white/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/20 transition hover:bg-white/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
               >
-                <X size={18} aria-hidden="true" />
+                <X size={20} aria-hidden="true" />
               </button>
-              <h2 id="cv-title" className="text-3xl font-black tracking-tight">
+              <h2 id="cv-title" className="text-3xl font-black tracking-tight sm:text-4xl">
                 Amr Sherif
               </h2>
-              <p className="mt-1 text-base font-semibold text-orange-50">
+              <p className="mt-1 text-base font-semibold text-orange-50 sm:text-lg">
                 Retention Specialist &amp; Chemistry Student
-              </p>
-              <p className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-orange-50/95">
-                <a href="mailto:amrsherifwork@gmail.com" className="underline-offset-2 hover:underline">
-                  ✉️ amrsherifwork@gmail.com
-                </a>
-                <a href="tel:+201111452785" className="underline-offset-2 hover:underline">
-                  📞 +201111452785
-                </a>
-                <span>📍 Alexandria, Egypt</span>
               </p>
             </header>
 
-            <div className="max-h-[70vh] space-y-6 overflow-y-auto px-6 py-6 sm:px-8">
-              <section>
-                <h3 className="mb-2 text-xs font-extrabold uppercase tracking-widest text-orange-700 dark:text-orange-300">
-                  Profile
-                </h3>
-                <p className="text-sm leading-relaxed text-slate-700 dark:text-slate-300">
-                  Results-driven Retention Specialist with nearly two years of experience delivering
-                  exceptional customer retention for Optimum Internet (US) via Intelcia. Proven track
-                  record of exceeding KPIs (130%+ over five months). A senior Chemistry undergraduate
-                  demonstrating robust analytical problem-solving and a readiness to transition
-                  front-line success into a Team Leader capacity.
-                </p>
-              </section>
+            <div className="max-h-[75vh] overflow-y-auto px-6 py-6 sm:px-8">
+              <div className="grid grid-cols-1 gap-8 md:grid-cols-[minmax(0,1fr)_minmax(0,1.7fr)]">
+                {/* Left column: contact, skills, volunteering */}
+                <div className="space-y-7">
+                  <section>
+                    <h3 className="mb-3 text-xs font-extrabold uppercase tracking-widest text-orange-700 dark:text-orange-300">
+                      Contact
+                    </h3>
+                    <ul className="space-y-2 break-words text-sm text-slate-700 dark:text-slate-300">
+                      <li>
+                        <a href="mailto:amrsherifwork@gmail.com" className="hover:underline">
+                          ✉️ amrsherifwork@gmail.com
+                        </a>
+                      </li>
+                      <li>
+                        <a href="tel:+201111452785" className="hover:underline">
+                          📞 +201111452785
+                        </a>
+                      </li>
+                      <li>📍 Alexandria, Egypt</li>
+                    </ul>
+                  </section>
 
-              <section>
-                <h3 className="mb-2 text-xs font-extrabold uppercase tracking-widest text-orange-700 dark:text-orange-300">
-                  Skills
-                </h3>
-                <ul className="flex flex-wrap gap-2">
-                  {[
-                    'Team Leadership & Coaching',
-                    'Customer Retention',
-                    'KPI Adherence',
-                    'High-Risk De-escalation',
-                    'Technical Troubleshooting',
-                    'Onboarding & Mentorship'
-                  ].map(skill => (
-                    <li
-                      key={skill}
-                      className="rounded-full border border-orange-200 bg-orange-50 px-3 py-1 text-xs font-semibold text-orange-800 dark:border-orange-900 dark:bg-orange-950/40 dark:text-orange-200"
-                    >
-                      {skill}
-                    </li>
-                  ))}
-                </ul>
-              </section>
+                  <section>
+                    <h3 className="mb-3 text-xs font-extrabold uppercase tracking-widest text-orange-700 dark:text-orange-300">
+                      Skills
+                    </h3>
+                    <ul className="flex flex-wrap gap-2">
+                      {[
+                        'Team Leadership & Coaching',
+                        'Customer Retention',
+                        'KPI Adherence',
+                        'High-Risk De-escalation',
+                        'Technical Troubleshooting',
+                        'Onboarding & Mentorship'
+                      ].map(skill => (
+                        <li
+                          key={skill}
+                          className="rounded-full border border-orange-200 bg-orange-50 px-3 py-1 text-xs font-semibold text-orange-800 dark:border-orange-900 dark:bg-orange-950/40 dark:text-orange-200"
+                        >
+                          {skill}
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
 
-              <section>
-                <h3 className="mb-2 text-xs font-extrabold uppercase tracking-widest text-orange-700 dark:text-orange-300">
-                  Experience
-                </h3>
-                <div className="border-l-2 border-orange-300 pl-4 dark:border-orange-800">
-                  <p className="font-bold">Loyalty (Retention) Specialist – Optimum (Intelcia Egypt)</p>
-                  <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Jul 2024 – Present</p>
-                  <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-700 dark:text-slate-300">
-                    <li>Handle high-risk retention cases and negotiate tailored solutions.</li>
-                    <li>Sell 200+ mobile lines.</li>
-                    <li>Resolve internet/cable issues.</li>
-                    <li>Mentor newcomers.</li>
-                  </ul>
-                </div>
-              </section>
-
-              <section>
-                <h3 className="mb-2 text-xs font-extrabold uppercase tracking-widest text-orange-700 dark:text-orange-300">
-                  Technical Internships
-                </h3>
-                <div className="space-y-4 border-l-2 border-orange-300 pl-4 dark:border-orange-800">
-                  <div>
-                    <p className="font-bold">Industrial Chemistry Intern – Misr Chemical Industries</p>
-                    <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Aug 2025 – Sep 2025</p>
-                    <p className="mt-1 text-sm text-slate-700 dark:text-slate-300">
-                      Analyzed chlor-alkali processes and industrial manufacturing.
+                  <section>
+                    <h3 className="mb-3 text-xs font-extrabold uppercase tracking-widest text-orange-700 dark:text-orange-300">
+                      Volunteering
+                    </h3>
+                    <p className="text-sm text-slate-700 dark:text-slate-300">
+                      <span className="font-bold">Volunteer — Resala Charity</span>
+                      <span className="block text-xs font-semibold text-slate-500 dark:text-slate-400">
+                        Jul 2022 – Present
+                      </span>
                     </p>
-                  </div>
-                  <div>
-                    <p className="font-bold">Wastewater Treatment Intern – Sanitary Drainage Company</p>
-                    <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Summer 2026</p>
-                    <p className="mt-1 text-sm text-slate-700 dark:text-slate-300">
-                      Analyzed multi-stage municipal wastewater treatment.
-                    </p>
-                  </div>
+                  </section>
                 </div>
-              </section>
 
-              <section>
-                <h3 className="mb-2 text-xs font-extrabold uppercase tracking-widest text-orange-700 dark:text-orange-300">
-                  Education
-                </h3>
-                <p className="font-bold">Faculty of Science, Alexandria University</p>
-                <p className="text-sm text-slate-700 dark:text-slate-300">
-                  BSc in Environmental Studies / Chemistry · 2023 – Present
-                </p>
-              </section>
+                {/* Right column: profile, experience, internships, education */}
+                <div className="space-y-7">
+                  <section>
+                    <h3 className="mb-3 text-xs font-extrabold uppercase tracking-widest text-orange-700 dark:text-orange-300">
+                      Profile
+                    </h3>
+                    <p className="text-sm leading-relaxed text-slate-700 dark:text-slate-300">
+                      Results-driven Retention Specialist with nearly two years of experience delivering
+                      exceptional customer retention for Optimum Internet (US) via Intelcia. Proven track
+                      record of exceeding KPIs (130%+ over five months). A senior Chemistry undergraduate
+                      demonstrating robust analytical problem-solving and a readiness to transition
+                      front-line success into a Team Leader capacity.
+                    </p>
+                  </section>
 
-              <section>
-                <h3 className="mb-2 text-xs font-extrabold uppercase tracking-widest text-orange-700 dark:text-orange-300">
-                  Volunteering
-                </h3>
-                <p className="text-sm text-slate-700 dark:text-slate-300">
-                  <span className="font-bold">Volunteer — Resala Charity</span> · Jul 2022 – Present
-                </p>
-              </section>
+                  <section>
+                    <h3 className="mb-3 text-xs font-extrabold uppercase tracking-widest text-orange-700 dark:text-orange-300">
+                      Experience
+                    </h3>
+                    <div className="border-l-2 border-orange-300 pl-4 dark:border-orange-800">
+                      <p className="font-bold">Loyalty (Retention) Specialist – Optimum (Intelcia Egypt)</p>
+                      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Jul 2024 – Present</p>
+                      <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-700 dark:text-slate-300">
+                        <li>Handle high-risk retention cases and negotiate tailored solutions.</li>
+                        <li>Sell 200+ mobile lines.</li>
+                        <li>Resolve internet/cable issues.</li>
+                        <li>Mentor newcomers.</li>
+                      </ul>
+                    </div>
+                  </section>
+
+                  <section>
+                    <h3 className="mb-3 text-xs font-extrabold uppercase tracking-widest text-orange-700 dark:text-orange-300">
+                      Technical Internships
+                    </h3>
+                    <div className="space-y-4 border-l-2 border-orange-300 pl-4 dark:border-orange-800">
+                      <div>
+                        <p className="font-bold">Industrial Chemistry Intern – Misr Chemical Industries</p>
+                        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Aug 2025 – Sep 2025</p>
+                        <p className="mt-1 text-sm text-slate-700 dark:text-slate-300">
+                          Analyzed chlor-alkali processes and industrial manufacturing.
+                        </p>
+                      </div>
+                      <div>
+                        <p className="font-bold">Wastewater Treatment Intern – Sanitary Drainage Company</p>
+                        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Summer 2026</p>
+                        <p className="mt-1 text-sm text-slate-700 dark:text-slate-300">
+                          Analyzed multi-stage municipal wastewater treatment.
+                        </p>
+                      </div>
+                    </div>
+                  </section>
+
+                  <section>
+                    <h3 className="mb-3 text-xs font-extrabold uppercase tracking-widest text-orange-700 dark:text-orange-300">
+                      Education
+                    </h3>
+                    <p className="font-bold">Faculty of Science, Alexandria University</p>
+                    <p className="text-sm text-slate-700 dark:text-slate-300">
+                      BSc in Environmental Studies / Chemistry · 2023 – Present
+                    </p>
+                  </section>
+                </div>
+              </div>
             </div>
 
             <footer className="border-t border-slate-200 px-6 py-4 dark:border-slate-700 sm:px-8">

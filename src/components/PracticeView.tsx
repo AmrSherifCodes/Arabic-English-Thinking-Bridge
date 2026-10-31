@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { X } from 'lucide-react';
 import { Exercise, Lesson, UserProgress } from '../types';
-import { CLOUD_AI_VOICE_ID, scoreEnglishVoice, speakWithRate } from '../utils/audio';
+import { CLOUD_AI_VOICE_ID, speakWithRate } from '../utils/audio';
 import { computeNextHintWord, MYSTERY_CHEST_THRESHOLD } from '../utils/habitPsychology';
 import { normalizeSentence } from '../utils/transferLogic';
 import { InteractiveArabicSentence } from './InteractiveArabicSentence';
@@ -24,7 +25,7 @@ export interface PracticeViewProps {
   showBlueprintPeek: boolean;
   xpPopText: string | null;
   progress: UserProgress;
-  voices: SpeechSynthesisVoice[];
+  voices?: SpeechSynthesisVoice[];
   chosenVoice?: SpeechSynthesisVoice;
   isRecordingPron: boolean;
   pronAudioUrl: string | null;
@@ -42,9 +43,13 @@ export interface PracticeViewProps {
   onRevealAnswer: () => void;
   onNextExercise: () => void;
   onPronunciationPractice: () => void;
-  onSelectVoice: (voiceName: string) => void;
+  onSelectVoice?: (voiceName: string) => void;
+  onAskTutor?: (exercise: Exercise, prompt: string) => void;
   onToast: (msg: string) => void;
 }
+
+export const YOUTUBE_CHANNEL_URL = 'https://youtube.com/@SciAmrSherif';
+const IDLE_HELP_MS = 15_000;
 
 export function PracticeView({
   lesson,
@@ -58,8 +63,6 @@ export function PracticeView({
   showBlueprintPeek,
   xpPopText,
   progress,
-  voices,
-  chosenVoice,
   isRecordingPron,
   pronAudioUrl,
   pronResultText,
@@ -76,9 +79,33 @@ export function PracticeView({
   onRevealAnswer,
   onNextExercise,
   onPronunciationPractice,
-  onSelectVoice,
+  onAskTutor,
   onToast
 }: PracticeViewProps) {
+  const [showTutorial, setShowTutorial] = useState(false);
+  const [showLostPrompt, setShowLostPrompt] = useState(false);
+  const [lostDismissedFor, setLostDismissedFor] = useState<string | null>(null);
+
+  const exerciseId = exercise?.id ?? null;
+  const isAskState = exState === 'ask';
+
+  // Proactive tutor: after 15s with no block tapped on the current sentence, offer help.
+  useEffect(() => {
+    setShowLostPrompt(false);
+    if (!exerciseId || !isAskState || !onAskTutor || lostDismissedFor === exerciseId) return;
+    const timer = window.setTimeout(() => setShowLostPrompt(true), IDLE_HELP_MS);
+    return () => window.clearTimeout(timer);
+  }, [exerciseId, isAskState, userAnswer, lostDismissedFor, onAskTutor]);
+
+  useEffect(() => {
+    if (!showTutorial) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setShowTutorial(false);
+    };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [showTutorial]);
+
   if (!lesson || !exercise) {
     return (
       <div className={CARD_CLASS}>
@@ -100,13 +127,19 @@ export function PracticeView({
   const winsLeftForChest = MYSTERY_CHEST_THRESHOLD - combo;
 
   return (
-    <div>
-      <div className="mb-3 grid grid-cols-1 gap-2 text-sm sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+    <div className="flex flex-col gap-6">
+      <div className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
         <span className="min-w-0 font-semibold leading-snug">
           {lesson.number}. {lesson.title} · {activeExIdx + 1}/{lesson.exercises.length}
         </span>
-        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 tabular-nums sm:justify-end">
-          <span className="text-xs text-teal-700 dark:text-teal-300 font-semibold">
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 tabular-nums sm:justify-end">
+          <button
+            type="button"
+            onClick={() => setShowTutorial(true)}
+            className="rounded-full border border-orange-400/60 bg-orange-50 px-3.5 py-2 text-xs font-bold text-orange-800 transition hover:bg-orange-100 dark:border-orange-500/40 dark:bg-orange-950/30 dark:text-orange-200 dark:hover:bg-orange-950/50"
+          >
+            🎥 Watch Tutorial
+          </button>          <span className="text-xs text-teal-700 dark:text-teal-300 font-semibold">
             {tries === 0 ? '+10 XP first try' : '+5 XP retry'}
             {progress.streak >= 2 ? ' · 🔥 Combo +5 XP' : ''}
           </span>
@@ -153,7 +186,7 @@ export function PracticeView({
       </details>
 
       {/* Arabic Prompt Card with Double-Tap Word Auto-Translator */}
-      <div key={exercise.id} className={`${CARD_CLASS} practice-card-enter !p-3.5 sm:!p-4`}>
+      <div key={exercise.id} className={`${CARD_CLASS} practice-card-enter !mb-0 !p-6 sm:!p-8`}>
         <div className="mb-2 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
           <span className="text-xs font-semibold uppercase tracking-wide text-stone-500 dark:text-stone-400">
             Say this thought in English
@@ -198,7 +231,7 @@ export function PracticeView({
       </div>
 
       {isAsk ? (
-        <div className={`${CARD_CLASS} practice-card-enter !p-3.5 sm:!p-4`}>
+        <div className={`${CARD_CLASS} practice-card-enter !mb-0 !p-6 sm:!p-8`}>
           {/* Beginner Scaffolding Banner */}
           {beginnerOn && nextWord && (
             <div className="mb-2.5 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 px-3 py-2 text-xs">
@@ -219,7 +252,7 @@ export function PracticeView({
             <div
               role="group"
               aria-label="Your sentence so far; tap a word to remove it"
-              className="mb-2.5 flex flex-wrap gap-1.5 rounded-xl bg-stone-100/80 p-2 dark:bg-stone-900/50"
+              className="mb-3 flex flex-wrap gap-2 rounded-xl bg-stone-100/80 p-3 dark:bg-stone-900/50"
             >
               {currentWords.map((w, idx) => (
                 <button
@@ -263,7 +296,7 @@ export function PracticeView({
           <div
             role="group"
             aria-label="Available English words"
-            className="mt-3 flex flex-wrap gap-2"
+            className="mt-4 flex flex-wrap gap-3"
           >
             {shuffledChips.map((chip, idx) => {
               const isSuggestedNext =
@@ -274,7 +307,7 @@ export function PracticeView({
                   type="button"
                   translate="no"
                   onClick={() => onAddChip(chip)}
-                  className={`chip-btn ${BTN_GHOST} !px-4 text-base transition-all ${
+                  className={`chip-btn ${BTN_GHOST} min-h-[52px] !px-5 !py-3 text-lg transition-all ${
                     isSuggestedNext
                       ? '!border-emerald-500 bg-emerald-500/15 text-emerald-900 dark:text-emerald-200 font-bold ring-2 ring-emerald-500/30'
                       : ''
@@ -291,13 +324,13 @@ export function PracticeView({
               id="fb"
               role="status"
               aria-live="polite"
-              className="mt-3 text-sm text-rose-600 dark:text-rose-400 font-medium leading-relaxed"
+              className="mt-5 rounded-xl bg-rose-50 p-4 text-sm text-rose-700 dark:bg-rose-950/30 dark:text-rose-300 font-medium leading-relaxed"
             >
               🧭 {feedbackHtml}
             </div>
           )}
 
-          <div className="mt-3 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+          <div className="mt-5 grid grid-cols-2 gap-3 sm:flex sm:flex-wrap">
             <button
               type="button"
               id="check-answer-btn"
@@ -330,7 +363,7 @@ export function PracticeView({
           </div>
         </div>
       ) : (
-        <div className={`${CARD_CLASS} practice-card-enter !p-3.5 sm:!p-4`}>
+        <div className={`${CARD_CLASS} practice-card-enter !mb-0 !p-6 sm:!p-8`}>
           <div translate="no" className="text-lg font-semibold mb-3">
             {exercise.englishTarget}
             {exState === 'ok' ? ' ✅' : ''}
@@ -360,12 +393,12 @@ export function PracticeView({
             {lesson.transferConceptAr}
           </p>
 
-          <div className="mt-3 flex flex-wrap items-center gap-2">
+          <div className="mt-5 grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:items-center">
             <button
               type="button"
-              className={BTN_GHOST}
+              className={`${BTN_GHOST} min-h-[52px] text-base`}
               onClick={() => {
-                const ok = speakWithRate(exercise.englishTarget, 1, progress.preferredVoice);
+                const ok = speakWithRate(exercise.englishTarget, 1, CLOUD_AI_VOICE_ID);
                 if (!ok) onToast('Speech not supported here');
               }}
             >
@@ -373,9 +406,9 @@ export function PracticeView({
             </button>
             <button
               type="button"
-              className={BTN_GHOST}
+              className={`${BTN_GHOST} min-h-[52px] text-base`}
               onClick={() => {
-                const ok = speakWithRate(exercise.englishTarget, 0.6, progress.preferredVoice);
+                const ok = speakWithRate(exercise.englishTarget, 0.75, CLOUD_AI_VOICE_ID);
                 if (!ok) onToast('Speech not supported here');
               }}
             >
@@ -384,31 +417,11 @@ export function PracticeView({
             <button
               type="button"
               id="rb"
-              className={BTN_GHOST}
+              className={`${BTN_GHOST} col-span-2 min-h-[52px] text-base sm:col-span-1`}
               onClick={onPronunciationPractice}
             >
               {isRecordingPron ? '⏹ Stop' : '🎙 Record yourself'}
             </button>
-
-            <select
-              title="Voice"
-              aria-label="Voice"
-              value={
-                progress.preferredVoice === CLOUD_AI_VOICE_ID
-                  ? CLOUD_AI_VOICE_ID
-                  : chosenVoice?.name || CLOUD_AI_VOICE_ID
-              }
-              onChange={e => onSelectVoice(e.target.value)}
-              className={`${BTN_GHOST} min-h-[48px] max-w-full truncate bg-white dark:bg-stone-800 sm:max-w-[14rem]`}
-            >
-              <option value={CLOUD_AI_VOICE_ID}>☁️ Cloud AI Voice (All Devices)</option>
-              {voices.map(v => (
-                <option key={v.name} value={v.name}>
-                  {scoreEnglishVoice(v) >= 50 ? '★ ' : ''}
-                  {v.name} ({v.lang})
-                </option>
-              ))}
-            </select>
           </div>
 
           {(pronAudioUrl || pronResultText || pronWordMatches.length > 0) && (
@@ -454,6 +467,109 @@ export function PracticeView({
             Next Sentence ({winsLeftForChest} more win{winsLeftForChest === 1 ? '' : 's'} to 🎁
             Mystery Chest) →
           </button>
+        </div>
+      )}
+
+      {/* Proactive "Are you lost?" tutor nudge */}
+      {showLostPrompt && isAsk && onAskTutor && (
+        <div
+          role="dialog"
+          aria-label="Need help?"
+          className="fixed bottom-[calc(9.5rem+env(safe-area-inset-bottom,0px))] right-4 z-[990] w-[min(20rem,calc(100vw-2rem))] rounded-2xl border border-orange-300/60 bg-white p-4 text-slate-900 shadow-2xl dark:border-orange-500/40 dark:bg-slate-900 dark:text-slate-100"
+        >
+          <button
+            type="button"
+            aria-label="Close"
+            onClick={() => {
+              setShowLostPrompt(false);
+              setLostDismissedFor(exercise.id);
+            }}
+            className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+          >
+            <X size={16} aria-hidden="true" />
+          </button>
+          <p className="pr-6 text-sm font-semibold leading-snug">
+            🤔 Are you lost? Do you need help with this sentence?
+          </p>
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              className={`${BTN_PRIMARY} min-h-[44px]`}
+              onClick={() => {
+                setShowLostPrompt(false);
+                setLostDismissedFor(exercise.id);
+                onAskTutor(
+                  exercise,
+                  `The user is stuck on the sentence "${exercise.arabicThought}". Explain it to them step-by-step in Egyptian Arabic.`
+                );
+              }}
+            >
+              Yes, guide me
+            </button>
+            <button
+              type="button"
+              className={`${BTN_GHOST} min-h-[44px]`}
+              onClick={() => {
+                setShowLostPrompt(false);
+                setLostDismissedFor(exercise.id);
+              }}
+            >
+              No, I'm good
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Tutorial modal */}
+      {showTutorial && (
+        <div
+          className="fixed inset-0 z-[1000] flex items-center justify-center overflow-y-auto bg-slate-950/60 p-4 backdrop-blur-sm"
+          onMouseDown={event => {
+            if (event.target === event.currentTarget) setShowTutorial(false);
+          }}
+        >
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="tutorial-title"
+            className="relative w-full max-w-md rounded-3xl border border-slate-200 bg-white p-6 text-slate-900 shadow-2xl dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 sm:p-8"
+          >
+            <button
+              type="button"
+              aria-label="Close tutorial"
+              onClick={() => setShowTutorial(false)}
+              className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+            >
+              <X size={20} aria-hidden="true" />
+            </button>
+            <h2 id="tutorial-title" className="pr-10 text-xl font-bold">
+              🎥 How to practice
+            </h2>
+            <ol className="mt-5 space-y-4">
+              {[
+                'Read the Arabic sentence.',
+                'Tap the blocks to build the English.',
+                'Hit Check and listen to the audio.'
+              ].map((text, index) => (
+                <li key={text} className="flex items-start gap-3">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-orange-600 text-sm font-extrabold text-white">
+                    {index + 1}
+                  </span>
+                  <span className="pt-1 text-base leading-snug">
+                    <strong>Step {index + 1}:</strong> {text}
+                  </span>
+                </li>
+              ))}
+            </ol>
+            <a
+              href={YOUTUBE_CHANNEL_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-7 flex min-h-[52px] items-center justify-center rounded-xl bg-red-600 px-5 py-3 text-center text-base font-bold text-white transition hover:bg-red-700"
+            >
+              ▶ Watch the full video on YouTube
+            </a>
+          </section>
         </div>
       )}
     </div>

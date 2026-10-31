@@ -48,3 +48,19 @@ html.dark body {
 html.dark body::before {
   opacity: 0;
 }
+
+
+
+/* Arabic text: Cairo/Tajawal so letters connect properly, always RTL-friendly */
+.ar,
+[dir="rtl"],
+[lang="ar"] {
+  font-family: 'Cairo', 'Tajawal', 'Segoe UI', Tahoma, sans-serif;
+  letter-spacing: 0;
+}
+
+/* Larger, easier-to-tap word blocks on touch devices */
+.chip-btn {
+  min-height: 52px;
+  touch-action: manipulation;
+}
