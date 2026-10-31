@@ -117,28 +117,32 @@ export function LandingView({ onStartWebApp, onStartGuest }: LandingViewProps) {
 
           {/* Right Column: Creator Photo */}
           <div className="flex justify-center lg:col-span-5 lg:justify-end">
-            <div className="relative">
-              <div
-                aria-hidden="true"
-                className="absolute -inset-3 rounded-[2rem] bg-gradient-to-tr from-orange-500/25 via-amber-400/20 to-transparent blur-xl dark:from-orange-500/20 dark:via-amber-500/10"
-              />
-              <div className="relative overflow-hidden rounded-[2rem] border-4 border-orange-500/80 bg-white shadow-2xl shadow-orange-950/15 dark:border-orange-400/70 dark:bg-slate-900">
-                <img
-                  src="/amr.jpg"
-                  alt="Amr Sherif"
-                  className="h-80 w-64 object-cover object-top sm:h-96 sm:w-80 lg:h-[26rem] lg:w-80"
+            <div className="flex flex-col items-center gap-5">
+              <div className="relative">
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute -inset-3 rounded-[2rem] bg-gradient-to-tr from-orange-500/25 via-amber-400/20 to-transparent blur-xl dark:from-orange-500/20 dark:via-amber-500/10"
                 />
-                <div className="bg-gradient-to-t from-slate-950/85 via-slate-950/45 to-transparent px-4 pb-3.5 pt-8 text-white">
-                  <p className="text-sm font-bold tracking-wide">Amr Sherif</p>
-                  <p className="text-xs text-orange-200">Creator of Thinking English</p>
+                <div className="relative overflow-hidden rounded-[2rem] border-4 border-orange-500/80 bg-white shadow-2xl shadow-orange-950/15 dark:border-orange-400/70 dark:bg-slate-900">
+                  <img
+                    src="/amr.jpg"
+                    alt="Amr Sherif"
+                    width={320}
+                    height={416}
+                    className="h-80 w-64 object-cover object-top sm:h-96 sm:w-80 lg:h-[26rem] lg:w-80"
+                  />
+                  <div className="bg-gradient-to-t from-slate-950/85 via-slate-950/45 to-transparent px-4 pb-3.5 pt-8 text-white">
+                    <p className="text-sm font-bold tracking-wide">Amr Sherif</p>
+                    <p className="text-xs text-orange-200">Creator of Thinking English</p>
+                  </div>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setShowCv(true)}
-                className="mt-5 flex w-full max-w-xs items-center justify-center gap-2 rounded-xl border border-orange-500/60 bg-white/80 px-5 py-3 text-sm font-bold text-orange-700 shadow-sm transition hover:bg-orange-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 dark:bg-slate-900/60 dark:text-orange-300 dark:hover:bg-slate-800"
+                className="relative z-10 flex w-full max-w-xs items-center justify-center gap-2 rounded-xl border border-orange-500/60 bg-white px-5 py-3 text-sm font-bold text-orange-700 shadow-sm transition hover:bg-orange-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 dark:bg-slate-900 dark:text-orange-300 dark:hover:bg-slate-800"
               >
-                📄 View My CV · About the Builder
+                📄 View My CV
               </button>
             </div>
           </div>
@@ -192,7 +196,7 @@ export function LandingView({ onStartWebApp, onStartGuest }: LandingViewProps) {
 
       {showCv && (
         <div
-          className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-950/60 p-3 backdrop-blur-sm sm:items-center sm:p-4"
+          className="fixed inset-0 z-[999] flex items-start justify-center overflow-y-auto bg-slate-950/60 p-3 backdrop-blur-sm sm:items-center sm:p-4"
           onMouseDown={event => {
             if (event.target === event.currentTarget) setShowCv(false);
           }}
@@ -360,7 +364,7 @@ export function LandingView({ onStartWebApp, onStartGuest }: LandingViewProps) {
 
       {showInstallGuide && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-[999] flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-sm"
           onMouseDown={event => {
             if (event.target === event.currentTarget) setShowInstallGuide(false);
           }}
