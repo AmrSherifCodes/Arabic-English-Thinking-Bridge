@@ -76,7 +76,7 @@ export function normalizeEntry(raw: unknown): LexiconEntry | null {
   return isLexiconEntry(candidate) ? candidate : null;
 }
 
-const TIMEOUT_MS = 20_000;
+const TIMEOUT_MS = 10_000;
 const DIRECT_MODELS = [
   'gemini-3.5-flash-lite',
   'gemini-flash-lite-latest',

@@ -90,7 +90,7 @@ import { BottomNav, BottomNavTab } from './components/BottomNav';
 import { HomeAction, HomeView } from './components/HomeView';
 import { Onboarding } from './components/Onboarding';
 import { EncouragementToast } from './components/EncouragementToast';
-import { useUserProfile } from './hooks/useUserProfile';
+import { useUserProfile, type UserProfile } from './hooks/useUserProfile';
 import { AIHelper, OPEN_VIP_PASS_EVENT } from './components/AIHelper';
 import type { AIHelperRequest } from './components/AIHelper';
 import { useAdaptiveLearning } from './hooks/useAdaptiveLearning';
@@ -266,9 +266,19 @@ async function translateSingleLine(rawLine: string): Promise<{ ar: string; en: s
   return { ar: trimmed, en: trimmed };
 }
 
+const GUEST_PROFILE: UserProfile = {
+  language: 'english',
+  dialect: 'egyptian',
+  level: 'beginner',
+  goal: 'general'
+};
+
 export default function App() {
   const { theme, toggleTheme } = useTheme();
-  const { profile, saveProfile } = useUserProfile();
+  const { profile: storedProfile, saveProfile } = useUserProfile();
+  // Guest mode: in-memory profile only (never written to localStorage), skips onboarding.
+  const [isGuest, setIsGuest] = useState(false);
+  const profile = storedProfile ?? (isGuest ? GUEST_PROFILE : null);
   const { entries: masterDictionary } = useMasterDictionary();
   const profileMatchedMaster = profile
     ? filterDictionaryForProfile(masterDictionary, profile)
@@ -1188,6 +1198,16 @@ export default function App() {
     window.scrollTo(0, 0);
   };
 
+  // Guest mode: drop straight into the first (A1+) lesson once the guest session starts.
+  const guestLessonOpenedRef = useRef(false);
+  useEffect(() => {
+    if (isGuest && !storedProfile && !guestLessonOpenedRef.current) {
+      guestLessonOpenedRef.current = true;
+      openLesson(0);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isGuest, storedProfile]);
+
   const triggerInputShake = () => {
     const el = answerInputRef.current;
     if (!el) return;
@@ -1617,7 +1637,12 @@ export default function App() {
   }
 
   if (profile === null) {
-    return <LandingView onStartWebApp={() => setShowOnboarding(true)} />;
+    return (
+      <LandingView
+        onStartWebApp={() => setShowOnboarding(true)}
+        onStartGuest={() => setIsGuest(true)}
+      />
+    );
   }
 
   // Presentation Mode Modal for Training Meetings
@@ -1757,7 +1782,20 @@ export default function App() {
     <div className="relative min-h-screen w-full overflow-hidden bg-transparent">
       <div className="relative z-10">
       <div inert={isBlocked} className="flex h-dvh min-h-screen w-full flex-col overflow-hidden">
-        <header
+        {isGuest && !storedProfile && (
+          <div className="flex shrink-0 items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-orange-600 px-3 py-1.5 text-xs font-bold text-white">
+            <span>🎟️ Honorary Guest Mode</span>
+            <button
+              type="button"
+              onClick={() => {
+                setShowOnboarding(true);
+              }}
+              className="rounded-full bg-white/20 px-2.5 py-0.5 text-[11px] font-semibold hover:bg-white/30"
+            >
+              Create profile
+            </button>
+          </div>
+        )}        <header
           dir={rtlUI ? 'rtl' : 'ltr'}
           className="relative z-40 mx-auto flex w-full max-w-md shrink-0 items-center justify-between px-4 py-3"
         >

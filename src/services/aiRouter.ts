@@ -46,7 +46,11 @@ export async function askAIHelper(
     const errorObj = err instanceof Error ? err : new Error(String(err));
     onError?.(errorObj);
     if (err instanceof LexiconError && err.code === 'rate-limited') {
-      return getOfflineAnswer(question, context, 'AI tutor is cooling down due to high traffic.');
+      return getOfflineAnswer(
+        question,
+        context,
+        'The free AI is currently busy due to high traffic. Click the orange button to use your own VIP key for instant answers!'
+      );
     }
     if (err instanceof LexiconError && err.code === 'timeout') {
       return getOfflineAnswer(question, context, 'AI tutor timed out.');
