@@ -153,7 +153,6 @@ function sendJson(res, status, value, extraHeaders = {}) {
   res.statusCode = status;
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
   res.setHeader('Cache-Control', 'no-store');
-  res.setHeader('Access-Control-Allow-Origin', '*');
   for (const [k, v] of Object.entries(extraHeaders)) {
     res.setHeader(k, v);
   }
@@ -647,10 +646,25 @@ async function generate(operation, body) {
   return { status: 400, error: { code: 'bad-output', message: 'Unknown AI operation.' } };
 }
 
+const ALLOWED_CORS_ORIGINS = new Set([
+  'https://arabicenglishthinkingbridge.vercel.app',
+  'capacitor://localhost'
+]);
+
+function getCorsOrigin(origin) {
+  if (!origin) return 'https://arabicenglishthinkingbridge.vercel.app';
+  if (ALLOWED_CORS_ORIGINS.has(origin)) return origin;
+  if (/^https?:\/\/localhost(:\d+)?$/.test(origin)) return origin;
+  return 'https://arabicenglishthinkingbridge.vercel.app';
+}
+
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  const origin = req.headers.origin;
+  const allowedOrigin = getCorsOrigin(origin);
+  res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  res.setHeader('Vary', 'Origin');
 
   if (req.method === 'OPTIONS') {
     res.statusCode = 204;
@@ -666,7 +680,6 @@ export default async function handler(req, res) {
     return sendJson(res, 405, { error: { code: 'bad-output', message: 'Method not allowed.' } });
   }
 
-  const origin = req.headers.origin;
   const requestHost = String(req.headers['x-forwarded-host'] || req.headers.host || '').split(',')[0].trim();
   const isCapacitorOrLocal =
     !origin ||

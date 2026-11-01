@@ -2,10 +2,34 @@
   "headers": [
     {
       "source": "/api/(.*)",
+      "has": [
+        {
+          "type": "header",
+          "key": "origin",
+          "value": "capacitor://localhost"
+        }
+      ],
       "headers": [
         {
           "key": "Access-Control-Allow-Origin",
-          "value": "*"
+          "value": "capacitor://localhost"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, Authorization, X-Requested-With"
+        }
+      ]
+    },
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "https://arabicenglishthinkingbridge.vercel.app"
         },
         {
           "key": "Access-Control-Allow-Methods",
@@ -40,4 +64,3 @@
     }
   ]
 }
-
