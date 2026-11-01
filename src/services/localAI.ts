@@ -13,6 +13,7 @@ let isInitializing = false;
 const listeners = new Set<ProgressListener>();
 
 export function isLocalAIReady(): boolean {
+  if (Capacitor.getPlatform() !== 'android') return false;
   return isInitialized;
 }
 
@@ -43,6 +44,13 @@ function notifyProgress(status: string, progress: number): void {
  * On lower-end devices (< 3GB RAM), gracefully skips the model to prevent OOM/freezes.
  */
 export async function checkDeviceMemorySafety(): Promise<{ safe: boolean; reason?: string }> {
+  if (Capacitor.getPlatform() !== 'android') {
+    return {
+      safe: false,
+      reason: 'On-device Gemma 3n is only supported on Android devices.',
+    };
+  }
+
   if (typeof navigator !== 'undefined' && 'deviceMemory' in navigator) {
     const ramGb = (navigator as unknown as { deviceMemory?: number }).deviceMemory;
     if (typeof ramGb === 'number' && ramGb < 3) {
@@ -74,7 +82,7 @@ export async function checkDeviceMemorySafety(): Promise<{ safe: boolean; reason
  * LAZY LOADED: ONLY called when user is offline and actively requests AI Tutor/Voice AI.
  */
 export async function initLocalAI(): Promise<boolean> {
-  if (!Capacitor.isNativePlatform()) {
+  if (Capacitor.getPlatform() !== 'android') {
     throw new Error('On-device Gemma 3n AI is only supported on native Android devices.');
   }
 
@@ -132,7 +140,7 @@ export async function generateLocalTutorResponse(
   prompt: string,
   systemPrompt?: string
 ): Promise<string> {
-  if (!Capacitor.isNativePlatform()) {
+  if (Capacitor.getPlatform() !== 'android') {
     throw new Error('On-device Gemma 3n AI is only supported on native Android devices.');
   }
 
