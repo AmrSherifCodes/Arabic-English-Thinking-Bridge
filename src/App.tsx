@@ -2031,11 +2031,10 @@ export default function App() {
               </span>
             </div>
           </div>
-          <span className="text-xs sm:text-sm font-semibold text-stone-800 dark:text-stone-200 truncate max-w-[130px] sm:max-w-[180px]">
-            {profile.language === 'arabic'
-              ? `Learning Arabic (${profile.dialect === 'egyptian' ? 'Egyptian 🇪🇬' : 'MSA 📖'})`
-              : `تعلم الإنجليزية (${profile.dialect === 'egyptian' ? 'عامية مصرية 🇪🇬' : 'فصحى 📖'})`}
-          </span>
+          <div className="flex flex-col items-center leading-tight">
+            <span className="ar text-base sm:text-lg font-black text-teal-800 dark:text-teal-300">فكّر إنجليزي</span>
+            <span className="text-[10px] font-semibold text-stone-500 dark:text-stone-400 tracking-wider">Thinking English</span>
+          </div>
           <div className="flex items-center gap-2">
             <button
               type="button"
@@ -2246,15 +2245,6 @@ export default function App() {
           </button>
         </div>
       )}
-
-      {/* Persistent Psychology Habit & Dopamine Bar */}
-      <HabitLoopBar
-        progress={progress}
-        mysteryRewardBanner={mysteryRewardBanner}
-        onToggleBeginnerMode={handleToggleBeginnerMode}
-        onQuickWinStart={handleQuickWinStart}
-        language={profile.language}
-      />
 
         {activeTab === 'home' && (
           <HomeView
@@ -2508,38 +2498,47 @@ export default function App() {
 
         {/* PROFILE / PROGRESS */}
         {activeTab === 'progress' && (
-          <ProgressView
-            progress={progress}
-            levelInfo={levelInfo}
-            badges={badges}
-            phases={PHASES_DATA}
-            allLessons={ALL_LESSONS}
-            sortedWeakSpots={sortedWeakSpots}
-            feedbackRating={feedbackRating}
-            feedbackText={feedbackText}
-            getCompletedCountForLesson={getCompletedCountForLesson}
-            onToggleSound={toggleSound}
-            onOpenLesson={openLesson}
-            onChangeNotes={val =>
-              updateAndSaveProgress(prev => ({ ...prev, generalNotes: val }))
-            }
-            onDownloadOfflineHtml={handleDownloadOfflineHtml}
-            onSetFeedbackRating={setFeedbackRating}
-            onChangeFeedbackText={setFeedbackText}
-            onCopyFeedback={handleCopyFeedback}
-            onOpenPresentation={() => setPresentationSlide(0)}
-            onResetProgress={() => {
-              const fresh = { ...DEFAULT_PROGRESS };
-              saveUserProgress(fresh);
-              setProgress(fresh);
-              setActiveLessonIdx(null);
-              setActiveDeckId(null);
-              setReviewQueue(null);
-              setUndoSnapshot(null);
-              showToast('Progress reset');
-            }}
-            onToast={showToast}
-          />
+          <div className="space-y-4">
+            <HabitLoopBar
+              progress={progress}
+              mysteryRewardBanner={mysteryRewardBanner}
+              onToggleBeginnerMode={handleToggleBeginnerMode}
+              onQuickWinStart={handleQuickWinStart}
+              language={profile.language}
+            />
+            <ProgressView
+              progress={progress}
+              levelInfo={levelInfo}
+              badges={badges}
+              phases={PHASES_DATA}
+              allLessons={ALL_LESSONS}
+              sortedWeakSpots={sortedWeakSpots}
+              feedbackRating={feedbackRating}
+              feedbackText={feedbackText}
+              getCompletedCountForLesson={getCompletedCountForLesson}
+              onToggleSound={toggleSound}
+              onOpenLesson={openLesson}
+              onChangeNotes={val =>
+                updateAndSaveProgress(prev => ({ ...prev, generalNotes: val }))
+              }
+              onDownloadOfflineHtml={handleDownloadOfflineHtml}
+              onSetFeedbackRating={setFeedbackRating}
+              onChangeFeedbackText={setFeedbackText}
+              onCopyFeedback={handleCopyFeedback}
+              onOpenPresentation={() => setPresentationSlide(0)}
+              onResetProgress={() => {
+                const fresh = { ...DEFAULT_PROGRESS };
+                saveUserProgress(fresh);
+                setProgress(fresh);
+                setActiveLessonIdx(null);
+                setActiveDeckId(null);
+                setReviewQueue(null);
+                setUndoSnapshot(null);
+                showToast('Progress reset');
+              }}
+              onToast={showToast}
+            />
+          </div>
         )}
 
         {/* Traditional Kuffiyeh Woven Olive-Leaf Border Band */}

@@ -467,35 +467,38 @@ export const PracticeView = React.memo(function PracticeView({
             {lesson.transferConceptAr}
           </p>
 
-          <div className="mt-5 grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:items-center">
+          <div className="mt-5 space-y-2.5">
             <button
               type="button"
-              className={`${BTN_GHOST} min-h-[52px] text-base`}
+              className="w-full min-h-[56px] rounded-2xl bg-teal-700 hover:bg-teal-800 active:scale-[0.98] text-white font-black text-base sm:text-lg shadow-md transition-all flex items-center justify-center gap-2 ar"
               onClick={() => {
                 const ok = speakWithRate(exercise.englishTarget, 1, CLOUD_AI_VOICE_ID);
                 if (!ok) onToast('Speech not supported here');
               }}
             >
-              🔊 Hear
+              <span>🔊 اسمع النطق الصح</span>
+              <span className="text-xs font-semibold opacity-90">(Hear English)</span>
             </button>
-            <button
-              type="button"
-              className={`${BTN_GHOST} min-h-[52px] text-base`}
-              onClick={() => {
-                const ok = speakWithRate(exercise.englishTarget, 0.75, CLOUD_AI_VOICE_ID);
-                if (!ok) onToast('Speech not supported here');
-              }}
-            >
-              🐢 Slow
-            </button>
-            <button
-              type="button"
-              id="rb"
-              className={`${BTN_GHOST} col-span-2 min-h-[52px] text-base sm:col-span-1`}
-              onClick={onPronunciationPractice}
-            >
-              {isRecordingPron ? '⏹ Stop' : '🎙 Record yourself'}
-            </button>
+            <div className="grid grid-cols-2 gap-2.5">
+              <button
+                type="button"
+                className={`${BTN_GHOST} min-h-[48px] text-sm font-bold`}
+                onClick={() => {
+                  const ok = speakWithRate(exercise.englishTarget, 0.75, CLOUD_AI_VOICE_ID);
+                  if (!ok) onToast('Speech not supported here');
+                }}
+              >
+                🐢 بالراحه (Slow)
+              </button>
+              <button
+                type="button"
+                id="rb"
+                className={`${BTN_GHOST} min-h-[48px] text-sm font-bold`}
+                onClick={onPronunciationPractice}
+              >
+                {isRecordingPron ? '⏹ وقف التسجيل' : '🎙 سجل صوتك'}
+              </button>
+            </div>
           </div>
 
           {(pronAudioUrl || pronResultText || pronWordMatches.length > 0) && (

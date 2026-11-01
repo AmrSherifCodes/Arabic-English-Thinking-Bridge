@@ -188,8 +188,8 @@ export function getAdaptiveRecommendation(
         reasonEn = 'Connect scientific hypotheses with high-order logic: nevertheless, consequently, furthermore.';
         reasonAr = 'ربط الفرضيات العلمية بروابط منطقية رفيعة: ومع ذلك، وبناءً على ذلك، وعلاوة على ذلك.';
       } else if (top.lesson.number === 16) {
-        reasonEn = 'Essential for chemistry research papers: master agent demotion in lab observations.';
-        reasonAr = 'أساسي لأوراق أبحاث الكيمياء: إتقان المبني للمجهول لتقارير وتجارب المختبر.';
+        reasonEn = 'Essential for chemistry & lab reports: describe actions clearly without focusing on who did them (passive voice).';
+        reasonAr = 'أساسي لأوراق الأبحاث وتجارب المختبر: إزاي توصف اللي حصل من غير ما تركز على مين عمله (المبني للمجهول).';
       } else if (top.lesson.number === 1) {
         reasonEn = 'Crucial for chemical compound definitions: understand required linking verbs in English.';
         reasonAr = 'جوهري لتعريفات المركبات الكيميائية: فهم رابط الجملة الإنجليزية الإلزامي.';

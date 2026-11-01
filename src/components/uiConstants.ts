@@ -43,8 +43,8 @@ export const CHUNK_LABELS: Record<ChunkRole, string> = {
 };
 
 export const CARD_CLASS =
-  'rounded-2xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 p-4 mb-3 shadow-md shadow-stone-900/5 dark:shadow-black/30 font-medium';
+  'rounded-2xl border border-stone-200/90 dark:border-stone-800 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 p-5 mb-4 shadow-xs font-medium';
 export const BTN_PRIMARY =
-  'rounded-full border border-teal-400/30 bg-gradient-to-r from-teal-600 to-cyan-600 text-white px-4 py-2 text-sm font-semibold shadow-md shadow-black/30 hover:from-teal-500 hover:to-cyan-500 active:scale-[0.98] transition-all disabled:opacity-45 disabled:pointer-events-none';
+  'rounded-2xl bg-teal-700 hover:bg-teal-800 active:scale-[0.98] text-white px-5 py-2.5 text-sm font-bold shadow-xs transition-all disabled:opacity-45 disabled:pointer-events-none text-center';
 export const BTN_GHOST =
-  'rounded-full border border-stone-400 dark:border-stone-600 px-4 py-2 text-sm font-semibold text-stone-800 dark:text-stone-200 hover:bg-stone-100 dark:hover:bg-stone-800 active:scale-[0.98] transition-all disabled:opacity-40 disabled:pointer-events-none';
+  'rounded-2xl border border-stone-300 dark:border-stone-700 px-4 py-2.5 text-sm font-semibold text-stone-800 dark:text-stone-200 hover:bg-stone-100 dark:hover:bg-stone-800 active:scale-[0.98] transition-all disabled:opacity-40 disabled:pointer-events-none text-center';

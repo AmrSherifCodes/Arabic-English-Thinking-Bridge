@@ -10,7 +10,7 @@ body {
   position: relative;
   isolation: isolate;
   min-height: 100vh;
-  background-color: #f5f2eb;
+  background-color: #f8f9fa;
   color: #1c1917;
   font-weight: 500;
   -webkit-font-smoothing: antialiased;
@@ -24,18 +24,18 @@ body::before {
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  opacity: 1;
+  opacity: 0.6;
   background-image:
     repeating-linear-gradient(
       45deg,
       transparent 0 17px,
-      rgba(28, 25, 23, 0.045) 17px 18px,
+      rgba(28, 25, 23, 0.025) 17px 18px,
       transparent 18px 34px
     ),
     repeating-linear-gradient(
       -45deg,
       transparent 0 17px,
-      rgba(28, 25, 23, 0.045) 17px 18px,
+      rgba(28, 25, 23, 0.025) 17px 18px,
       transparent 18px 34px
     );
 }
@@ -45,23 +45,23 @@ html.dark {
 }
 
 html.dark body {
-  background-color: #12100e;
+  background-color: #121212;
   color: #f5f5f4;
 }
 
 html.dark body::before {
-  opacity: 0.15;
+  opacity: 0.1;
   background-image:
     repeating-linear-gradient(
       45deg,
       transparent 0 17px,
-      rgba(255, 255, 255, 0.035) 17px 18px,
+      rgba(255, 255, 255, 0.025) 17px 18px,
       transparent 18px 34px
     ),
     repeating-linear-gradient(
       -45deg,
       transparent 0 17px,
-      rgba(255, 255, 255, 0.035) 17px 18px,
+      rgba(255, 255, 255, 0.025) 17px 18px,
       transparent 18px 34px
     );
 }

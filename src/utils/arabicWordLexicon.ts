@@ -1609,9 +1609,9 @@ const RAW_LEXICON: Record<string, ArabicLexiconEntry> = {
     tip: 'After “Furthermore”, start directly with the English subject (“the preliminary results”).'
   },
   'الأولية': {
-    en: 'preliminary',
+    en: 'preliminary / initial',
     grammar: 'Adjective',
-    tip: 'Placed before “results” (“the preliminary results”).'
+    tip: 'Scientific hedge: “The preliminary findings appear to support…”. Placed before noun: “the preliminary results”.'
   },
   'غير': {
     en: 'in- / un- (negative prefix)',
@@ -2043,11 +2043,6 @@ const RAW_LEXICON: Record<string, ArabicLexiconEntry> = {
     en: 'rate / speed',
     grammar: 'Noun',
     tip: '“reaction rate” in chemical kinetics.'
-  },
-  'الأولية': {
-    en: 'preliminary / initial',
-    grammar: 'Adjective',
-    tip: 'Scientific hedge: “The preliminary findings appear to support…”.'
   },
   'الفرضية': {
     en: 'hypothesis',
