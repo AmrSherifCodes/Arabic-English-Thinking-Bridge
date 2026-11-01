@@ -78,15 +78,17 @@ function getClientIp(request: Request): string {
   const xVercelForwarded = request.headers.get('x-vercel-forwarded-for');
   if (xVercelForwarded && xVercelForwarded.trim()) {
     const parts = xVercelForwarded.split(',');
-    return parts[parts.length - 1].trim();
+    return parts[0].trim();
   }
   const xForwardedFor = request.headers.get('x-forwarded-for');
   if (xForwardedFor && xForwardedFor.trim()) {
     const parts = xForwardedFor.split(',');
-    return parts[parts.length - 1].trim();
+    return parts[0].trim();
   }
   return '127.0.0.1';
 }
+
+export { getClientIp, checkMemoryRateLimit, memoryLimiter };
 
 export default async function middleware(request: Request): Promise<Response> {
   // Allow preflight OPTIONS requests without consuming rate limit

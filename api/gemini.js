@@ -3,13 +3,14 @@ import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
 
 const MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
-const FALLBACK_MODELS = [
-  'gemini-2.5-flash',
-  'gemini-2.5-flash-lite',
-  'gemini-2.0-flash',
-  'gemini-1.5-flash',
-  'gemini-1.5-flash-8b',
-];
+const FALLBACK_MODELS = process.env.GEMINI_FALLBACK_MODELS
+  ? process.env.GEMINI_FALLBACK_MODELS.split(',').map((s) => s.trim()).filter(Boolean)
+  : [
+      'gemini-2.5-flash',
+      'gemini-2.5-flash-lite',
+      'gemini-flash-lite-latest',
+      'gemini-3.5-flash-lite',
+    ];
 const MAX_BODY_BYTES = 16 * 1024;
 const GEMINI_TIMEOUT_MS = 7_000;
 
@@ -182,12 +183,12 @@ function getClientIp(req) {
   const vercelForwarded = req.headers['x-vercel-forwarded-for'];
   if (typeof vercelForwarded === 'string' && vercelForwarded.trim()) {
     const parts = vercelForwarded.split(',');
-    return parts[parts.length - 1].trim();
+    return parts[0].trim();
   }
   const forwardedFor = req.headers['x-forwarded-for'];
   if (typeof forwardedFor === 'string' && forwardedFor.trim()) {
     const parts = forwardedFor.split(',');
-    return parts[parts.length - 1].trim();
+    return parts[0].trim();
   }
   return req.socket?.remoteAddress || 'unknown';
 }
@@ -369,8 +370,8 @@ function withStrictTimeout(promise, ms = GEMINI_TIMEOUT_MS) {
 }
 
 async function generateContentWithFallback(ai, params) {
-  const uniqueModels = [MODEL, ...FALLBACK_MODELS.filter(m => m !== MODEL)];
-  const attempts = [...uniqueModels, MODEL];
+  const uniqueModels = Array.from(new Set([MODEL, ...FALLBACK_MODELS]));
+  const attempts = uniqueModels;
   const attemptLoop = async () => {
     let lastError;
     for (let i = 0; i < attempts.length; i++) {
@@ -675,10 +676,20 @@ async function generate(operation, body) {
   }
 
   if (operation === 'explain-error') {
-    const conceptId = typeof body.conceptId === 'string' ? body.conceptId.slice(0, 80) : 'general_syntax';
-    const errorType = typeof body.errorType === 'string' ? body.errorType.slice(0, 80) : 'syntax_error';
-    const submitted = typeof body.submitted === 'string' ? body.submitted.trim().slice(0, 500) : '';
-    const target = typeof body.target === 'string' ? body.target.trim().slice(0, 500) : '';
+    if (
+      typeof body.submitted !== 'string' ||
+      typeof body.target !== 'string' ||
+      body.submitted.length > 500 ||
+      body.target.length > 500 ||
+      (typeof body.conceptId === 'string' && body.conceptId.length > 80) ||
+      (typeof body.errorType === 'string' && body.errorType.length > 80)
+    ) {
+      return { status: 400, error: { code: 'bad-output', message: 'Input lengths exceed allowed maximum or are invalid.' } };
+    }
+    const conceptId = (body.conceptId && body.conceptId.trim()) || 'general_syntax';
+    const errorType = (body.errorType && body.errorType.trim()) || 'syntax_error';
+    const submitted = body.submitted.trim();
+    const target = body.target.trim();
     if (!submitted || !target) {
       return { status: 400, error: { code: 'empty-input', message: 'Missing or invalid submitted or target text.' } };
     }
@@ -807,3 +818,15 @@ export default async function handler(req, res) {
     });
   }
 }
+
+export {
+  handler,
+  getClientIp,
+  checkMemoryRateLimit,
+  rateLimits,
+  getCorsOrigin,
+  ALLOWED_CORS_ORIGINS,
+  MODEL,
+  FALLBACK_MODELS,
+  generateContentWithFallback,
+};
