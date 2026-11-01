@@ -90,7 +90,7 @@ export function LandingView({ onStartWebApp, onStartGuest, onResumeApp }: Landin
             </p>
 
             <div className="mt-8 flex flex-col items-start gap-3 w-full max-w-md">
-              {/* Primary Action: Download Android App (v1.0.0) */}
+              {/* Primary Action: Download Android App (v1.0.1) */}
               <a
                 href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v1.0.1/thinking-english-v1.0.1.apk"
                 id="download-android-apk-btn"
@@ -100,7 +100,7 @@ export function LandingView({ onStartWebApp, onStartGuest, onResumeApp }: Landin
                 <span className="text-center">
                   <span className="ar block text-lg font-black">تحميل تطبيق الأندرويد 📱</span>
                   <span className="block text-xs font-semibold opacity-90">
-                    Download Android App 📱 (v1.0.0)
+                    Download Android App 📱 (v1.0.1)
                   </span>
                 </span>
               </a>
@@ -543,7 +543,7 @@ export function LandingView({ onStartWebApp, onStartGuest, onResumeApp }: Landin
               className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-teal-700/70 bg-teal-50 dark:bg-stone-800 px-4 py-2.5 text-xs font-bold text-teal-800 dark:text-teal-200 transition hover:bg-teal-100 dark:hover:bg-stone-700 cursor-pointer"
             >
               <Smartphone size={16} aria-hidden="true" />
-              <span>أو حمّل ملف الـ APK مباشرة (Download Android App 📱 v1.0.0)</span>
+              <span>أو حمّل ملف الـ APK مباشرة (Download Android App 📱 v1.0.1)</span>
             </a>
             <button
               type="button"
