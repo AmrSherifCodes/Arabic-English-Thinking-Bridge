@@ -110,6 +110,7 @@ function sendJson(res, status, value, extraHeaders = {}) {
   res.statusCode = status;
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
   res.setHeader('Cache-Control', 'no-store');
+  res.setHeader('Access-Control-Allow-Origin', '*');
   for (const [k, v] of Object.entries(extraHeaders)) {
     res.setHeader(k, v);
   }
@@ -497,25 +498,41 @@ async function generate(operation, body) {
 }
 
 export default async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+
+  if (req.method === 'OPTIONS') {
+    res.statusCode = 204;
+    res.end();
+    return;
+  }
+
   if (req.method === 'GET') {
     return sendJson(res, 200, { configured: Boolean(getApiKey()) });
   }
   if (req.method !== 'POST') {
-    res.setHeader('Allow', 'GET, POST');
+    res.setHeader('Allow', 'GET, POST, OPTIONS');
     return sendJson(res, 405, { error: { code: 'bad-output', message: 'Method not allowed.' } });
   }
 
   const origin = req.headers.origin;
   const requestHost = String(req.headers['x-forwarded-host'] || req.headers.host || '').split(',')[0].trim();
-  if (typeof origin !== 'string' || !requestHost) {
-    return sendJson(res, 403, { error: { code: 'bad-output', message: 'Same-origin request required.' } });
-  }
-  try {
-    if (new URL(origin).host !== requestHost) {
-      return sendJson(res, 403, { error: { code: 'bad-output', message: 'Same-origin request required.' } });
+  const isCapacitorOrLocal =
+    !origin ||
+    origin === 'capacitor://localhost' ||
+    origin === 'http://localhost' ||
+    origin === 'https://localhost' ||
+    /^https?:\/\/localhost(:\d+)?$/.test(origin);
+
+  if (origin && !isCapacitorOrLocal) {
+    try {
+      if (requestHost && new URL(origin).host !== requestHost) {
+        return sendJson(res, 403, { error: { code: 'bad-output', message: 'Same-origin or authorized origin required.' } });
+      }
+    } catch {
+      return sendJson(res, 403, { error: { code: 'bad-output', message: 'Invalid request origin.' } });
     }
-  } catch {
-    return sendJson(res, 403, { error: { code: 'bad-output', message: 'Invalid request origin.' } });
   }
 
   let body;

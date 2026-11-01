@@ -1,6 +1,7 @@
 import { GoogleGenAI, Type } from '@google/genai';
 import type { UserProfile } from '../hooks/useUserProfile';
 import { getStaticDictionaryEntries } from '../data/staticDictionary';
+import { API_BASE_URL } from '../utils/api';
 
 export const USER_GEMINI_KEY_STORAGE = 'user_gemini_key';
 export const GEMINI_KEY_CHANGED_EVENT = 'tb:gemini-key-changed';
@@ -245,7 +246,7 @@ async function requestGeminiWithUserKey<T>(
 
 export async function checkGeminiService(): Promise<boolean> {
   if (hasUserGeminiKey()) return true;
-  const response = await fetch('/api/gemini', { cache: 'no-store' });
+  const response = await fetch(`${API_BASE_URL}/api/gemini`, { cache: 'no-store' });
   if (!response.ok) return false;
   const result: unknown = await response.json();
   return !!result && typeof result === 'object' &&
@@ -281,7 +282,7 @@ async function requestGemini<T>(
   if (signal?.aborted) controller.abort();
 
   try {
-    const response = await fetch('/api/gemini', {
+    const response = await fetch(`${API_BASE_URL}/api/gemini`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ...payload, operation }),

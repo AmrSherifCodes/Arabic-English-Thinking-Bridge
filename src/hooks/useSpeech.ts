@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { BaseVoiceProvider, VoiPi, type AudioData, type SpeakOptions } from 'voipi';
+import { API_BASE_URL } from '../utils/api';
 
 interface RecAlt { transcript: string; confidence: number }
 interface RecResult { readonly length: number; readonly isFinal: boolean; [i: number]: RecAlt }
@@ -93,7 +94,7 @@ class BrowserEdgeVoiPiProvider extends BaseVoiceProvider {
     const lang = options?.lang ?? 'ar-EG';
     const rate = options?.rate ?? 1;
 
-    const response = await fetch('/api/tts', {
+    const response = await fetch(`${API_BASE_URL}/api/tts`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text, lang, voice, rate }),

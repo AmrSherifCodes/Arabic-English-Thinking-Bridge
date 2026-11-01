@@ -228,10 +228,10 @@ export function LandingView({ onStartWebApp, onStartGuest, onResumeApp }: Landin
                 <X size={20} aria-hidden="true" />
               </button>
               <h2 id="cv-title" className="text-3xl font-black tracking-tight sm:text-4xl">
-                Amr Sherif
+                Amr Sherif Abdelaal
               </h2>
               <p className="mt-1 text-base font-semibold text-orange-50 sm:text-lg">
-                Retention Specialist &amp; Chemistry Student
+                Full-Stack Developer &amp; Chemistry Undergraduate
               </p>
             </header>
 
@@ -245,26 +245,46 @@ export function LandingView({ onStartWebApp, onStartGuest, onResumeApp }: Landin
                     </h3>
                     <ul className="space-y-2 break-words text-sm text-slate-700 dark:text-slate-300">
                       <li>
-                        <a href="mailto:amrsherifwork@gmail.com" className="hover:underline">
+                        <a href="mailto:amrsherifwork@gmail.com" className="hover:underline inline-flex items-center gap-1.5">
                           ✉️ amrsherifwork@gmail.com
                         </a>
                       </li>
                       <li>📍 Alexandria, Egypt</li>
+                      <li>
+                        <a
+                          href="https://github.com/AmrSherifCodes"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hover:underline inline-flex items-center gap-1.5 text-orange-700 dark:text-orange-400 font-medium"
+                        >
+                          <Github size={15} aria-hidden="true" /> github.com/AmrSherifCodes
+                        </a>
+                      </li>
+                      <li>
+                        <a
+                          href="https://linkedin.com/in/sciamrsherif-abdelaal"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hover:underline inline-flex items-center gap-1.5 text-orange-700 dark:text-orange-400 font-medium"
+                        >
+                          <Linkedin size={15} aria-hidden="true" /> linkedin.com/in/sciamrsherif-abdelaal
+                        </a>
+                      </li>
                     </ul>
                   </section>
 
                   <section>
                     <h3 className="mb-3 text-xs font-extrabold uppercase tracking-widest text-orange-700 dark:text-orange-300">
-                      Skills
+                      Core Skills
                     </h3>
                     <ul className="flex flex-wrap gap-2">
                       {[
+                        'Full-Stack Development (React, TypeScript, Tailwind CSS)',
+                        'AI & API Integration (Gemini, Serverless Routing)',
+                        'Product Strategy & UX Design',
+                        'UI/UX & RTL Localization',
                         'Team Leadership & Coaching',
-                        'Customer Retention',
-                        'KPI Adherence',
-                        'High-Risk De-escalation',
-                        'Technical Troubleshooting',
-                        'Onboarding & Mentorship'
+                        'High-Risk De-escalation'
                       ].map(skill => (
                         <li
                           key={skill}
@@ -280,28 +300,54 @@ export function LandingView({ onStartWebApp, onStartGuest, onResumeApp }: Landin
                     <h3 className="mb-3 text-xs font-extrabold uppercase tracking-widest text-orange-700 dark:text-orange-300">
                       Volunteering
                     </h3>
-                    <p className="text-sm text-slate-700 dark:text-slate-300">
-                      <span className="font-bold">Volunteer — Resala Charity</span>
-                      <span className="block text-xs font-semibold text-slate-500 dark:text-slate-400">
+                    <div className="border-l-2 border-orange-300 pl-4 dark:border-orange-800">
+                      <p className="font-bold text-sm text-slate-900 dark:text-slate-100">
+                        Volunteer — Resala Charity
+                      </p>
+                      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
                         Jul 2022 – Present
-                      </span>
-                    </p>
+                      </p>
+                    </div>
                   </section>
                 </div>
 
-                {/* Right column: profile, experience, internships, education */}
+                {/* Right column: profile, featured project, experience, internships, education */}
                 <div className="space-y-7">
                   <section>
                     <h3 className="mb-3 text-xs font-extrabold uppercase tracking-widest text-orange-700 dark:text-orange-300">
                       Profile
                     </h3>
                     <p className="text-sm leading-relaxed text-slate-700 dark:text-slate-300">
-                      Results-driven Retention Specialist with nearly two years of experience delivering
-                      exceptional customer retention for Optimum Internet (US) via Intelcia. Proven track
-                      record of exceeding KPIs (130%+ over five months). A senior Chemistry undergraduate
-                      demonstrating robust analytical problem-solving and a readiness to transition
-                      front-line success into a Team Leader capacity.
+                      Results-driven professional bridging the gap between scientific analytical thinking and full-stack software development. Creator of &ldquo;Thinking English&rdquo; (#0), a 100% free, open-source, AI-powered web application that teaches English to Arabic speakers using structural comparison. Combines a strong background in BPO operations (Retention &amp; Sales) with proven technical ability in React, TypeScript, AI API integration (Gemini), and product strategy.
                     </p>
+                  </section>
+
+                  <section>
+                    <h3 className="mb-3 text-xs font-extrabold uppercase tracking-widest text-orange-700 dark:text-orange-300">
+                      Featured Project
+                    </h3>
+                    <div className="border-l-2 border-orange-300 pl-4 dark:border-orange-800">
+                      <p className="font-bold text-sm text-slate-900 dark:text-slate-100">
+                        Creator &amp; Full-Stack Developer — Thinking English (#0)
+                      </p>
+                      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                        Oct 2026 – Present
+                      </p>
+                      <ul className="mt-2 list-disc space-y-1.5 pl-5 text-sm text-slate-700 dark:text-slate-300">
+                        <li>
+                          Built a fully functional, open-source web app deployed on Vercel, designed to help Arabic speakers learn English through cognitive structural bridging.
+                        </li>
+                        <li>
+                          Integrated Gemini AI with a custom fallback system (rate limiting, caching, and a local offline dictionary) to ensure 100% uptime.
+                        </li>
+                        <li>
+                          Engineered a &ldquo;Bring Your Own Key&rdquo; (BYOK) system and localized RTL interface for Arabic users.
+                        </li>
+                        <li>
+                          App code was officially reviewed and selected by the XERJ Corpus Hub as a gold-standard reference for AI coding agents.
+                        </li>
+                      </ul>
+                    </div>
                   </section>
 
                   <section>
@@ -309,13 +355,15 @@ export function LandingView({ onStartWebApp, onStartGuest, onResumeApp }: Landin
                       Experience
                     </h3>
                     <div className="border-l-2 border-orange-300 pl-4 dark:border-orange-800">
-                      <p className="font-bold">Loyalty (Retention) Specialist – Optimum (Intelcia Egypt)</p>
-                      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Jul 2024 – Present</p>
+                      <p className="font-bold text-sm text-slate-900 dark:text-slate-100">
+                        Loyalty (Retention) Specialist — Optimum (Intelcia Egypt)
+                      </p>
+                      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                        Jul 2024 – Present
+                      </p>
                       <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-700 dark:text-slate-300">
                         <li>Handle high-risk retention cases and negotiate tailored solutions.</li>
-                        <li>Sell 200+ mobile lines.</li>
-                        <li>Resolve internet/cable issues.</li>
-                        <li>Mentor newcomers.</li>
+                        <li>Sell 200+ mobile lines and mentor newcomers.</li>
                       </ul>
                     </div>
                   </section>
@@ -326,17 +374,19 @@ export function LandingView({ onStartWebApp, onStartGuest, onResumeApp }: Landin
                     </h3>
                     <div className="space-y-4 border-l-2 border-orange-300 pl-4 dark:border-orange-800">
                       <div>
-                        <p className="font-bold">Industrial Chemistry Intern – Misr Chemical Industries</p>
-                        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Aug 2025 – Sep 2025</p>
-                        <p className="mt-1 text-sm text-slate-700 dark:text-slate-300">
-                          Analyzed chlor-alkali processes and industrial manufacturing.
+                        <p className="font-bold text-sm text-slate-900 dark:text-slate-100">
+                          Industrial Chemistry Intern — Misr Chemical Industries
+                        </p>
+                        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                          Aug 2025 – Sep 2025
                         </p>
                       </div>
                       <div>
-                        <p className="font-bold">Wastewater Treatment Intern – Sanitary Drainage Company</p>
-                        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Summer 2026</p>
-                        <p className="mt-1 text-sm text-slate-700 dark:text-slate-300">
-                          Analyzed multi-stage municipal wastewater treatment.
+                        <p className="font-bold text-sm text-slate-900 dark:text-slate-100">
+                          Wastewater Treatment Intern — Sanitary Drainage Company
+                        </p>
+                        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                          Summer 2026
                         </p>
                       </div>
                     </div>
@@ -346,10 +396,14 @@ export function LandingView({ onStartWebApp, onStartGuest, onResumeApp }: Landin
                     <h3 className="mb-3 text-xs font-extrabold uppercase tracking-widest text-orange-700 dark:text-orange-300">
                       Education
                     </h3>
-                    <p className="font-bold">Faculty of Science, Alexandria University</p>
-                    <p className="text-sm text-slate-700 dark:text-slate-300">
-                      BSc in Environmental Studies / Chemistry · 2023 – Present
-                    </p>
+                    <div className="border-l-2 border-orange-300 pl-4 dark:border-orange-800">
+                      <p className="font-bold text-sm text-slate-900 dark:text-slate-100">
+                        Faculty of Science, Alexandria University
+                      </p>
+                      <p className="text-sm text-slate-700 dark:text-slate-300">
+                        BSc in Environmental Studies / Chemistry (2023 – Present)
+                      </p>
+                    </div>
                   </section>
                 </div>
               </div>

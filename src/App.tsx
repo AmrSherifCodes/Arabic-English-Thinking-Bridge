@@ -50,6 +50,7 @@ import {
 } from './utils/audio';
 import { ARABIC_WORD_LEXICON, stripTashkeel } from './utils/arabicWordLexicon';
 import { saveVoiceNoteToVault } from './utils/audioVault';
+import { API_BASE_URL } from './utils/api';
 import {
   triggerStandaloneHtmlDownload
 } from './utils/standaloneHtmlBuilder';
@@ -243,7 +244,7 @@ async function translateSingleLine(rawLine: string): Promise<{ ar: string; en: s
 
   // 2. Route translation to backend /api/gemini endpoint
   try {
-    const resp = await fetch('/api/gemini', {
+    const resp = await fetch(`${API_BASE_URL}/api/gemini`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -1004,7 +1005,7 @@ export default function App() {
 
     // 2. Route translation request to existing backend /api/gemini endpoint
     try {
-      const resp = await fetch('/api/gemini', {
+      const resp = await fetch(`${API_BASE_URL}/api/gemini`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
