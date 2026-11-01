@@ -13,7 +13,8 @@ export function normalizeSentence(str: string): string {
     .toLowerCase()
     .replace(/[’‘`]/g, "'")
     .replace(/\bwon't\b/g, 'will not')
-    .replace(/\bcan't\b/g, 'cannot')
+    .replace(/\bcan't\b/g, 'can not')
+    .replace(/\bcannot\b/g, 'can not')
     .replace(/\bshan't\b/g, 'shall not')
     .replace(/n't\b/g, ' not')
     .replace(/'m\b/g, ' am')
@@ -21,7 +22,7 @@ export function normalizeSentence(str: string): string {
     .replace(/'ve\b/g, ' have')
     .replace(/'ll\b/g, ' will')
     .replace(/'d\b/g, ' would')
-    .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?"!]/g, ' ')
+    .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?"!؟،؛«»]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
 }

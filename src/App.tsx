@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Flame, Home, Moon, Sun, UserRound } from 'lucide-react';
 import { PHASES_DATA } from './data/lessons';
 import { PREBUILT_DECKS, PrebuiltDeck } from './data/prebuiltDecks';
@@ -19,7 +19,6 @@ import {
 } from './utils/transferLogic';
 import {
   DEFAULT_PROGRESS,
-  getVaultAuditSnapshot,
   loadBroadcasts,
   loadMentorQuestions,
   loadTeacherPin,
@@ -42,16 +41,16 @@ import {
 import {
   createSpeechRecognition,
   getEnglishVoices,
+  MAX_VOICE_NOTE_DURATION_SEC,
   scoreEnglishVoice,
   selectBestEnglishVoice,
   speakWithRate,
+  VOICE_NOTE_LIMIT_MESSAGE,
   VoiceRecorder
 } from './utils/audio';
 import { ARABIC_WORD_LEXICON, stripTashkeel } from './utils/arabicWordLexicon';
 import { saveVoiceNoteToVault } from './utils/audioVault';
 import {
-  PROVENANCE_MD_CONTENT,
-  triggerProvenanceMdDownload,
   triggerStandaloneHtmlDownload
 } from './utils/standaloneHtmlBuilder';
 import {
@@ -234,11 +233,35 @@ async function translateSingleLine(rawLine: string): Promise<{ ar: string; en: s
 
   const from: 'ar' | 'en' = isArabicText(trimmed) ? 'ar' : 'en';
   const to: 'ar' | 'en' = from === 'ar' ? 'en' : 'ar';
+
+  // 1. Check local static dictionary first
   const localHit = localOfflineTranslate(trimmed, from);
   if (localHit) {
     return from === 'ar' ? { ar: trimmed, en: localHit } : { ar: localHit, en: trimmed };
   }
 
+  // 2. Route translation to backend /api/gemini endpoint
+  try {
+    const resp = await fetch('/api/gemini', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        operation: 'translate',
+        text: trimmed,
+        from,
+        to
+      })
+    });
+    if (resp.ok) {
+      const j = await resp.json();
+      if (j?.data && typeof j.data === 'string' && j.data.trim()) {
+        const cleanT = j.data.trim();
+        return from === 'ar' ? { ar: trimmed, en: cleanT } : { ar: cleanT, en: trimmed };
+      }
+    }
+  } catch {}
+
+  // 3. Fall back to MyMemory ONLY if backend fails
   try {
     const r = await fetch(
       `https://api.mymemory.translated.net/get?q=${encodeURIComponent(trimmed)}&langpair=${from}|${to}`
@@ -358,8 +381,7 @@ export default function App() {
   const toastTimerRef = useRef<number | null>(null);
   const aiRequestIdRef = useRef(0);
 
-  // Vault Inspector & Open-Source Attribution Modals
-  const [showVaultModal, setShowVaultModal] = useState<boolean>(false);
+  // Settings & Open-Source Attribution Modals
   const [showSettingsMenu, setShowSettingsMenu] = useState<boolean>(false);
   const [showOnboarding, setShowOnboarding] = useState<boolean>(false);
   const [attributionDeck, setAttributionDeck] = useState<PrebuiltDeck | null>(null);
@@ -394,6 +416,7 @@ export default function App() {
   const [pronResultText, setPronResultText] = useState<string>('');
   const [pronWordMatches, setPronWordMatches] = useState<Array<{ word: string; ok: boolean }>>([]);
   const pronRecorderRef = useRef<VoiceRecorder | null>(null);
+  const pronTimeoutRef = useRef<number | null>(null);
   const speechRecRef = useRef<any | null>(null);
 
   // Teacher Hub State
@@ -402,6 +425,7 @@ export default function App() {
   const [mentorVoiceBase64, setMentorVoiceBase64] = useState<string | null>(null);
   const [isRecordingMentorVoice, setIsRecordingMentorVoice] = useState<boolean>(false);
   const mentorRecorderRef = useRef<VoiceRecorder | null>(null);
+  const mentorTimeoutRef = useRef<number | null>(null);
   const [teacherUnlocked, setTeacherUnlocked] = useState<boolean>(false);
   const [pinInput, setPinInput] = useState<string>('');
   const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
@@ -964,33 +988,58 @@ export default function App() {
     setTrTo(to);
     setTrBusy(true);
 
+    // 1. Check local static dictionary first
     const localHit = localOfflineTranslate(q, from);
+    if (localHit) {
+      setTrOut(localHit);
+      setTrBusy(false);
+      return;
+    }
 
+    // 2. Route translation request to existing backend /api/gemini endpoint
+    try {
+      const resp = await fetch('/api/gemini', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          operation: 'translate',
+          text: q,
+          from,
+          to
+        })
+      });
+      if (resp.ok) {
+        const j = await resp.json();
+        if (j?.data && typeof j.data === 'string' && j.data.trim()) {
+          setTrOut(j.data.trim());
+          setTrBusy(false);
+          return;
+        }
+      }
+    } catch {
+      // Backend failed, fall back to MyMemory
+    }
+
+    // 3. Fall back to MyMemory ONLY if backend fails
     try {
       const r = await fetch(
         `https://api.mymemory.translated.net/get?q=${encodeURIComponent(q)}&langpair=${from}|${to}`
       );
       const j = await r.json();
       const t = j?.responseData?.translatedText;
-      if (!t || /MYMEMORY WARNING/i.test(t)) {
-        if (localHit) {
-          setTrOut(localHit);
-        } else {
-          throw new Error('quota');
-        }
-      } else {
+      if (t && !/MYMEMORY WARNING/i.test(t)) {
         setTrOut(String(t).trim());
+        setTrBusy(false);
+        return;
       }
     } catch {
-      if (localHit) {
-        setTrOut(localHit);
-      } else {
-        setTrOut('');
-        showToast('Couldn’t translate right now. Try again in a moment.');
-      }
-    } finally {
-      setTrBusy(false);
+      // MyMemory also failed
     }
+
+    // 4. Gracefully display an error instead of breaking the UI
+    setTrOut('');
+    showToast('Couldn’t translate right now. Try again in a moment.');
+    setTrBusy(false);
   };
 
   const handleTranslateType = (val: string) => {
@@ -1416,6 +1465,10 @@ export default function App() {
     const ex = lesson.exercises[activeExIdx];
 
     if (isRecordingPron && pronRecorderRef.current) {
+      if (pronTimeoutRef.current) {
+        window.clearTimeout(pronTimeoutRef.current);
+        pronTimeoutRef.current = null;
+      }
       try {
         const result = await pronRecorderRef.current.stop();
         setPronAudioUrl(result.base64);
@@ -1435,10 +1488,31 @@ export default function App() {
     try {
       const recorder = new VoiceRecorder();
       pronRecorderRef.current = recorder;
-      await recorder.start();
+
+      const stopPronOnTimeout = async () => {
+        if (pronRecorderRef.current) {
+          try {
+            const result = await pronRecorderRef.current.stop();
+            setPronAudioUrl(result.base64);
+          } catch {}
+        }
+        try {
+          speechRecRef.current?.stop();
+        } catch {}
+        setIsRecordingPron(false);
+        showToast(VOICE_NOTE_LIMIT_MESSAGE);
+      };
+
+      await recorder.start({
+        maxDurationSec: MAX_VOICE_NOTE_DURATION_SEC,
+        onTimeLimitReached: stopPronOnTimeout
+      });
       setIsRecordingPron(true);
       setPronWordMatches([]);
       setPronResultText('Listening… speak the English sentence clearly, then tap Stop.');
+
+      if (pronTimeoutRef.current) window.clearTimeout(pronTimeoutRef.current);
+      pronTimeoutRef.current = window.setTimeout(stopPronOnTimeout, MAX_VOICE_NOTE_DURATION_SEC * 1000);
 
       const sr = createSpeechRecognition();
       if (sr) {
@@ -1486,6 +1560,10 @@ export default function App() {
   // ============================================================================
   const handleMentorVoiceToggle = async () => {
     if (isRecordingMentorVoice && mentorRecorderRef.current) {
+      if (mentorTimeoutRef.current) {
+        window.clearTimeout(mentorTimeoutRef.current);
+        mentorTimeoutRef.current = null;
+      }
       try {
         const res = await mentorRecorderRef.current.stop();
         setMentorVoiceBase64(res.base64);
@@ -1497,8 +1575,26 @@ export default function App() {
     try {
       const recorder = new VoiceRecorder();
       mentorRecorderRef.current = recorder;
-      await recorder.start();
+
+      const stopMentorOnTimeout = async () => {
+        if (mentorRecorderRef.current) {
+          try {
+            const res = await mentorRecorderRef.current.stop();
+            setMentorVoiceBase64(res.base64);
+          } catch {}
+        }
+        setIsRecordingMentorVoice(false);
+        showToast(VOICE_NOTE_LIMIT_MESSAGE);
+      };
+
+      await recorder.start({
+        maxDurationSec: MAX_VOICE_NOTE_DURATION_SEC,
+        onTimeLimitReached: stopMentorOnTimeout
+      });
       setIsRecordingMentorVoice(true);
+
+      if (mentorTimeoutRef.current) window.clearTimeout(mentorTimeoutRef.current);
+      mentorTimeoutRef.current = window.setTimeout(stopMentorOnTimeout, MAX_VOICE_NOTE_DURATION_SEC * 1000);
     } catch {
       showToast('Microphone unavailable or blocked');
       setIsRecordingMentorVoice(false);
@@ -1618,7 +1714,6 @@ export default function App() {
   const chosenVoice = selectBestEnglishVoice(voices, progress.preferredVoice);
   const sortedWeakSpots = Object.entries(progress.weakSpotCounts || {}).sort((a, b) => b[1] - a[1]);
   const latestBroadcast = broadcasts[0];
-  const vaultAudit = getVaultAuditSnapshot(progress);
 
   if (showOnboarding) {
     return (
@@ -1903,18 +1998,6 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => {
-                  setShowVaultModal(true);
-                  setShowSettingsMenu(false);
-                }}
-                className={`w-full rounded-xl px-3 py-2.5 ${
-                  rtlUI ? 'text-right' : 'text-left'
-                } text-sm font-medium hover:bg-stone-100 dark:hover:bg-stone-800`}
-              >
-                {tUI('Privacy and authorship', 'الخصوصية وحقوق التأليف')}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
                   if (showCulture) {
                     setCultureQuoteIdx(prev => (prev + 1) % CULTURAL_QUOTES.length);
                   } else {
@@ -1932,110 +2015,6 @@ export default function App() {
             </div>
           )}
         </header>
-
-      {/* Security, Privacy & Authorship Provenance Modal */}
-      {showVaultModal && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Security, Privacy and Authorship Provenance"
-          className="fixed inset-0 z-50 bg-stone-950/80 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto"
-        >
-          <div className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-2xl max-w-lg w-full p-5 space-y-4 shadow-2xl my-auto">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="text-xl">🛡️</span>
-                <h2 className="font-bold text-base">
-                  Security, Privacy &amp; Authorship Provenance
-                </h2>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowVaultModal(false)}
-                className={BTN_GHOST + ' !px-3 !py-1'}
-              >
-                ✕
-              </button>
-            </div>
-            <div className="text-xs space-y-1.5 opacity-85 leading-relaxed">
-              <p>
-                • <strong>Authorship &amp; Provenance:</strong> Original work by{' '}
-                <strong>Amr Sherif</strong> (Alexandria, Egypt). Includes top-of-file copyright
-                header (<code>&lt;!-- Copyright (c) 2026 Amr Sherif. All rights reserved. --&gt;</code>),{' '}
-                <code>PROVENANCE.md</code>, and <strong>Thinking English™</strong> branding.
-              </p>
-              <p>
-                • <strong>Public Release Security Hardened:</strong> Zero personal phone numbers in
-                source code, single-quote &amp; HTML entity escaping (<code>esc()</code>) +{' '}
-                <code>data-*</code> event delegation (zero self-XSS), and{' '}
-                <a
-                  href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/blob/main/CONSTITUTION.md#comment-policy"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline text-olive-700 dark:text-olive-300"
-                >
-                  CONSTITUTION.md#comment-policy
-                </a>
-                .
-              </p>
-              <p>
-                • <strong>Honest Privacy Guarantee:</strong>{' '}
-                <em>No accounts. No analytics. Translation requests go to MyMemory.net only.</em>
-              </p>
-              <p>
-                • <strong>Isolated Storage &amp; IndexedDB Audio Vault:</strong> Every read/write
-                passes schema sanitization, FNV-1a integrity checksum verification, and strict{' '}
-                <code>try/catch</code> isolation.
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                id="download-provenance-btn"
-                onClick={() => {
-                  triggerProvenanceMdDownload();
-                  showToast('Downloaded PROVENANCE.md ✓');
-                }}
-                className={BTN_PRIMARY + ' !text-xs flex-1'}
-              >
-                📜 Download PROVENANCE.md
-              </button>
-              <button
-                type="button"
-                id="copy-provenance-btn"
-                onClick={() => {
-                  navigator.clipboard
-                    ?.writeText(PROVENANCE_MD_CONTENT)
-                    .then(() => showToast('Copied PROVENANCE.md to clipboard ✓'))
-                    .catch(() => showToast('Copy not supported here'));
-                }}
-                className={BTN_GHOST + ' !text-xs flex-1'}
-              >
-                📋 Copy PROVENANCE.md
-              </button>
-              <button
-                type="button"
-                onClick={handleDownloadOfflineHtml}
-                className={BTN_GHOST + ' !text-xs w-full'}
-              >
-                📥 Download Patched Thinking-English.html
-              </button>
-            </div>
-            <pre className="bg-stone-950 text-teal-400 p-3 rounded-xl text-xs overflow-x-auto font-mono max-h-40">
-              {JSON.stringify(vaultAudit, null, 2)}
-            </pre>
-            <div className="flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setShowVaultModal(false)}
-                className={BTN_PRIMARY}
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Open-Source Deck Attribution Modal */}
       {attributionDeck && (

@@ -173,16 +173,24 @@ export function speakEnglishText(text: string, isSlow: boolean = false, preferre
   speakWithRate(text, isSlow ? 0.6 : 1, preferredVoiceName);
 }
 
+export const MAX_VOICE_NOTE_DURATION_SEC = 15;
+export const VOICE_NOTE_LIMIT_MESSAGE = 'Voice notes are limited to 15 seconds to save storage.';
+
 /**
- * Helper to record audio via MediaRecorder and convert to base64 Data URL
+ * Helper to record audio via MediaRecorder and convert to base64 Data URL.
+ * Automatically enforces a strict 15-second cap to prevent localStorage quota exhaustion.
  */
 export class VoiceRecorder {
   private mediaRecorder: MediaRecorder | null = null;
   private audioChunks: Blob[] = [];
   private stream: MediaStream | null = null;
   private startTime: number = 0;
+  private timeoutId: any = null;
 
-  async start(): Promise<boolean> {
+  async start(options?: {
+    maxDurationSec?: number;
+    onTimeLimitReached?: () => void;
+  }): Promise<boolean> {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       throw new Error('Microphone access is not supported in this browser environment.');
     }
@@ -197,11 +205,33 @@ export class VoiceRecorder {
       }
     };
 
+    const maxSec = options?.maxDurationSec ?? MAX_VOICE_NOTE_DURATION_SEC;
+    if (this.timeoutId) {
+      clearTimeout(this.timeoutId);
+      this.timeoutId = null;
+    }
+    if (maxSec > 0) {
+      this.timeoutId = setTimeout(() => {
+        this.timeoutId = null;
+        if (options?.onTimeLimitReached) {
+          options.onTimeLimitReached();
+        } else if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
+          try {
+            this.mediaRecorder.stop();
+          } catch {}
+        }
+      }, maxSec * 1000);
+    }
+
     this.mediaRecorder.start();
     return true;
   }
 
   stop(): Promise<{ audioBlob: Blob; audioUrl: string; base64: string; durationSec: number }> {
+    if (this.timeoutId) {
+      clearTimeout(this.timeoutId);
+      this.timeoutId = null;
+    }
     return new Promise((resolve, reject) => {
       if (!this.mediaRecorder) {
         return reject(new Error('Recorder not started'));
@@ -227,11 +257,17 @@ export class VoiceRecorder {
         }
       };
 
-      this.mediaRecorder.stop();
+      if (this.mediaRecorder.state !== 'inactive') {
+        this.mediaRecorder.stop();
+      }
     });
   }
 
   cancel(): void {
+    if (this.timeoutId) {
+      clearTimeout(this.timeoutId);
+      this.timeoutId = null;
+    }
     try {
       if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
         this.mediaRecorder.stop();

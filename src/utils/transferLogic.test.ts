@@ -29,6 +29,11 @@ test('normalizeSentence cleans punctuation, apostrophes, and spacing', () => {
   assert.equal(normalizeSentence("He’s an engineer!"), "he's an engineer");
   assert.equal(normalizeSentence("  He   is an engineer. "), "he is an engineer");
   assert.equal(normalizeSentence("What? Really..."), "what really");
+  assert.equal(normalizeSentence("I can't go"), "i can not go");
+  assert.equal(normalizeSentence("I cannot go"), "i can not go");
+  assert.equal(normalizeSentence("They won't leave"), "they will not leave");
+  assert.equal(normalizeSentence("Don't stop"), "do not stop");
+  assert.equal(normalizeSentence("هل هذا مهندس؟ نعم، هو كذلك؛"), "هل هذا مهندس نعم هو كذلك");
 });
 
 test('checkAnswerMatch accepts canonical target and valid contractions', () => {

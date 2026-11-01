@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 import { Exercise, Lesson, UserProgress } from '../types';
 import { CLOUD_AI_VOICE_ID, speakWithRate } from '../utils/audio';
@@ -51,7 +51,7 @@ export interface PracticeViewProps {
 export const YOUTUBE_CHANNEL_URL = 'https://youtube.com/@SciAmrSherif';
 const IDLE_HELP_MS = 15_000;
 
-export function PracticeView({
+export const PracticeView = React.memo(function PracticeView({
   lesson,
   exercise,
   activeExIdx,
@@ -574,4 +574,4 @@ export function PracticeView({
       )}
     </div>
   );
-}
+});

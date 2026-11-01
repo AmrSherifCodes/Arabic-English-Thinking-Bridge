@@ -207,6 +207,13 @@ function buildCacheKey(operation, body) {
     const struggling = Boolean(body.isStruggling);
     return `tb:cache:deck:${prof.dialect || 'msa'}:${prof.level || 'beginner'}:${prof.goal || 'general'}:${sit}:${struggling}`;
   }
+  if (operation === 'translate') {
+    const text = typeof body.text === 'string' ? body.text.trim().toLowerCase() : (typeof body.prompt === 'string' ? body.prompt.trim().toLowerCase() : '');
+    const from = body.from || '';
+    const to = body.to || '';
+    if (!text) return null;
+    return `tb:cache:tr:${from}:${to}:${text}`;
+  }
   return null;
 }
 
@@ -431,6 +438,29 @@ async function generate(operation, body) {
     });
     const data = response.text?.trim();
     if (!data) throw new Error('Empty tutor response.');
+    return { status: 200, data };
+  }
+
+  if (operation === 'translate') {
+    const text = typeof body.text === 'string' ? body.text.trim() : (typeof body.prompt === 'string' ? body.prompt.trim() : '');
+    const from = body.from === 'ar' ? 'Arabic' : 'English';
+    const to = body.to === 'ar' ? 'Arabic' : (body.to === 'en' ? 'English' : (from === 'Arabic' ? 'English' : 'Arabic'));
+    if (!text || text.length > 2000) {
+      return { status: 400, error: { code: 'empty-input', message: 'Invalid text for translation.' } };
+    }
+
+    const response = await generateContentWithFallback(ai, {
+      contents: `Translate the following ${from} text directly into natural ${to}. Return ONLY the direct translation, with no explanation, no quotes, and no commentary:\n\n${text}`,
+      config: {
+        systemInstruction:
+          'You are a high-speed, direct and accurate translator between Arabic and English. Output ONLY the translated text itself without quotes, labels, markdown, or commentary.',
+        maxOutputTokens: 512,
+        temperature: 0.1,
+      },
+    });
+
+    const data = response.text?.trim().replace(/^["'«»]+|["'«»]+$/g, '').trim();
+    if (!data) throw new Error('Empty translation response.');
     return { status: 200, data };
   }
 

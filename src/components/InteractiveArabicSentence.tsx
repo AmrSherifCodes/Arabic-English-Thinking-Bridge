@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Exercise } from '../types';
 import { speakWithRate } from '../utils/audio';
 import {
@@ -17,12 +17,12 @@ export interface InteractiveArabicSentenceProps {
 }
 
 /**
- * Interactive Double-Tap Arabic Word Auto-Translator Component
+ * Interactive Single-Tap Arabic Word Auto-Translator Component (Memoized)
  * - Splits Arabic sentence into interactive <span role="button" tabIndex={0}> tokens
- * - Detects mobile double-tap within a 320ms window (via onTouchEnd / onPointerUp) + desktop onDoubleClick
- * - Zero iOS/Android double-tap zoom or accidental text selection
+ * - Instant single-tap / click word translation popover (zero double-tap delay, zoom, or selection)
+ * - Accessible keyboard navigation (Enter/Space)
  */
-export function InteractiveArabicSentence({
+export const InteractiveArabicSentence = React.memo(function InteractiveArabicSentence({
   sentence,
   exercise,
   preferredVoice,
@@ -33,9 +33,6 @@ export function InteractiveArabicSentence({
   const [selectedTokenIndex, setSelectedTokenIndex] = useState<number | null>(null);
   const [selectedRawWord, setSelectedRawWord] = useState<string | null>(null);
   const [activeEntry, setActiveEntry] = useState<ArabicLexiconEntry | null>(null);
-
-  const lastTapTimeRef = useRef<number>(0);
-  const lastTappedIdxRef = useRef<number | null>(null);
 
   useEffect(() => {
     setSelectedTokenIndex(null);
@@ -64,24 +61,6 @@ export function InteractiveArabicSentence({
     }
   };
 
-  const handleTouchOrPointerTap = (
-    e: React.TouchEvent<HTMLSpanElement> | React.PointerEvent<HTMLSpanElement>,
-    token: string,
-    idx: number
-  ) => {
-    const now = Date.now();
-    const delta = now - lastTapTimeRef.current;
-    if (lastTappedIdxRef.current === idx && delta > 0 && delta < 320) {
-      e.preventDefault();
-      lastTapTimeRef.current = 0;
-      lastTappedIdxRef.current = null;
-      triggerWordTranslation(token, idx);
-    } else {
-      lastTapTimeRef.current = now;
-      lastTappedIdxRef.current = idx;
-    }
-  };
-
   return (
     <div>
       <div id="arabic-prompt" dir="rtl" className={className}>
@@ -92,18 +71,9 @@ export function InteractiveArabicSentence({
               <span
                 role="button"
                 tabIndex={0}
-                title="Double-tap to translate word"
+                title="Tap to translate word"
                 style={{ touchAction: 'manipulation' }}
-                onTouchEnd={e => handleTouchOrPointerTap(e, token, idx)}
-                onPointerUp={e => {
-                  if (e.pointerType !== 'touch') {
-                    handleTouchOrPointerTap(e, token, idx);
-                  }
-                }}
-                onDoubleClick={e => {
-                  e.preventDefault();
-                  triggerWordTranslation(token, idx);
-                }}
+                onClick={() => triggerWordTranslation(token, idx)}
                 onKeyDown={e => {
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
@@ -125,9 +95,9 @@ export function InteractiveArabicSentence({
 
       {showCaption && (
         <div className="mt-1.5 text-[11px] opacity-70 flex flex-wrap items-center justify-between gap-1">
-          <span>💡 Double-tap any Arabic word to translate it</span>
+          <span>💡 Tap any Arabic word to translate it</span>
           <span dir="rtl" className="ar font-medium">
-            (اضغط مرتين على أي كلمة لترجمتها)
+            (اضغط على أي كلمة لترجمتها)
           </span>
         </div>
       )}
@@ -187,4 +157,4 @@ export function InteractiveArabicSentence({
       )}
     </div>
   );
-}
+});
