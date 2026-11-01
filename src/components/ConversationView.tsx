@@ -5,7 +5,6 @@ import { Mic, MicOff, Volume2, Square, Send, RotateCcw, Sparkles, Bot, User, Ale
 import type { UserProfile } from '../types';
 import { createSpeechRecognition, isSpeechRecognitionSupported, speakWithRate, CLOUD_AI_VOICE_ID } from '../utils/audio';
 import { sendConversationMessage, ConversationHistoryItem } from '../services/geminiLexicon';
-import { generateLocalTutorResponse } from '../services/localAI';
 import { generateSmartConversationReply } from '../services/smartConversation';
 import { API_BASE_URL } from '../utils/api';
 
@@ -315,19 +314,7 @@ export function ConversationView({ profile, onToast, preferredVoice }: Conversat
         }
       }
 
-      // 2. If Cloud AI returned empty or failed, use smart conversational engine
-      if (!replyText) {
-        try {
-          replyText = await generateLocalTutorResponse(
-            clean,
-            'You are an offline conversational English-Arabic tutor. Answer in 1-2 friendly, natural English sentences.'
-          );
-        } catch {
-          replyText = generateSmartConversationReply(clean, historyPayload, profile);
-        }
-      }
-
-      // Final fallback guard
+      // 2. If Cloud AI returned empty or timed out, instantly use the deterministic conversational engine (<15ms)
       if (!replyText) {
         replyText = generateSmartConversationReply(clean, historyPayload, profile);
       }

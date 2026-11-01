@@ -1,7 +1,7 @@
 import type { TutorContext } from './geminiLexicon';
 import { generateTutorResponse, LexiconError } from './geminiLexicon';
 import { STATIC_DICTIONARY } from '../data/staticDictionary';
-import { generateLocalTutorResponse } from './localAI';
+import { generateLocalTutorResponse, isLocalAIReady } from './localAI';
 import { generateSmartConversationReply } from './smartConversation';
 import { localOfflineTranslate } from '../App';
 
@@ -43,8 +43,8 @@ export function getOfflineAnswer(prompt: string, context?: TutorContext, reason?
 /**
  * Intelligent AI Router:
  * 1. Online  -> Call fast, smart cloud model (/api/gemini).
- * 2. Offline -> Call on-device Small Language Model (Gemma 3n via localAI).
- * 3. Fallback -> Fall back to local offline dictionary if local SLM fails or is unsupported.
+ * 2. Offline -> Call on-device Small Language Model (Gemma 3n via localAI) if already initialized.
+ * 3. Fallback -> Fall back to smart pedagogical dictionary & conversational engine.
  */
 export async function sendMessage(
   prompt: string,
@@ -68,24 +68,25 @@ export async function sendMessage(
       console.warn('[aiRouter] Cloud /api/gemini failed or rate-limited. Falling back to local AI:', err);
       const errorObj = err instanceof Error ? err : new Error(String(err));
       onError?.(errorObj);
-
-      // If rate-limited or unavailable, fall through to on-device Gemma 3n
     }
   }
 
-  // 2. OFFLINE (or Cloud Failure): Attempt on-device Gemma 3n SLM
-  try {
-    const localReply = await generateLocalTutorResponse(question);
-    return localReply;
-  } catch (localErr) {
-    console.warn('[aiRouter] On-device Gemma 3n failed or unavailable, falling back to dictionary:', localErr);
-    // 3. Fall back to offline dictionary
-    return getOfflineAnswer(
-      question,
-      context,
-      isOnline ? 'AI temporarily busy.' : 'Offline mode.'
-    );
+  // 2. OFFLINE (or Cloud Failure): Attempt on-device Gemma 3n SLM ONLY if ready
+  if (isLocalAIReady()) {
+    try {
+      const localReply = await generateLocalTutorResponse(question);
+      return localReply;
+    } catch (localErr) {
+      console.warn('[aiRouter] On-device Gemma 3n failed:', localErr);
+    }
   }
+
+  // 3. Fall back to smart offline dictionary & conversational pedagogical engine (<15ms)
+  return getOfflineAnswer(
+    question,
+    context,
+    isOnline ? 'AI temporarily busy.' : 'Offline mode.'
+  );
 }
 
 /**

@@ -774,7 +774,7 @@ function getCorsOrigin(origin) {
   if (isAllowedOrigin(origin)) {
     return origin;
   }
-  return 'https://thinkingbridge.vercel.app';
+  return 'https://arabicenglishthinkingbridge.vercel.app';
 }
 
 export default async function handler(req, res) {
@@ -800,7 +800,7 @@ export default async function handler(req, res) {
   }
 
   if (origin) {
-    const isAllowed = ALLOWED_CORS_ORIGINS.has(origin) || /^https?:\/\/localhost(:\d+)?$/.test(origin);
+    const isAllowed = isAllowedOrigin(origin);
     if (!isAllowed) {
       return sendJson(res, 403, { error: { code: 'bad-output', message: 'Origin not allowed.' } });
     }

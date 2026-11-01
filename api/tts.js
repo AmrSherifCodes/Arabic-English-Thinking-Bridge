@@ -55,7 +55,7 @@ export function getCorsOrigin(origin) {
   if (isAllowedOrigin(origin)) {
     return origin;
   }
-  return 'https://thinkingbridge.vercel.app';
+  return 'https://arabicenglishthinkingbridge.vercel.app';
 }
 
 function isAllowedUrlOrigin(urlStr) {

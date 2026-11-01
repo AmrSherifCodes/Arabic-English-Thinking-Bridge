@@ -12,6 +12,10 @@ let isInitialized = false;
 let isInitializing = false;
 const listeners = new Set<ProgressListener>();
 
+export function isLocalAIReady(): boolean {
+  return isInitialized;
+}
+
 /**
  * Subscribe to model download / boot progress events.
  */
