@@ -1,4 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
+import { Capacitor } from '@capacitor/core';
+import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
 import { X } from 'lucide-react';
 import { Exercise, Lesson, UserProgress } from '../types';
 import { CLOUD_AI_VOICE_ID, speakWithRate } from '../utils/audio';
@@ -93,6 +95,43 @@ export const PracticeView = React.memo(function PracticeView({
   onToast
 }: PracticeViewProps) {
   const [showTutorial, setShowTutorial] = useState(false);
+    // Native Haptic Vibrations on answer & lesson complete
+  const prevExStateRef = useRef(exState);
+  useEffect(() => {
+    if (prevExStateRef.current === 'ask') {
+      if (exState === 'ok' || exState === 'rev') {
+        try {
+          if (Capacitor.isNativePlatform()) {
+            Haptics.impact({ style: ImpactStyle.Medium }).catch(() => {});
+          }
+        } catch {}
+      }
+    }
+    prevExStateRef.current = exState;
+  }, [exState]);
+
+  useEffect(() => {
+    if (lesson && exState === 'ok' && activeExIdx + 1 >= lesson.exercises.length) {
+      try {
+        if (Capacitor.isNativePlatform()) {
+          Haptics.notification({ type: NotificationType.Success }).catch(() => {});
+        }
+      } catch {}
+    }
+  }, [exState, activeExIdx, lesson]);
+
+  const [isOnline, setIsOnline] = useState<boolean>(() => (typeof navigator !== 'undefined' ? navigator.onLine : true));
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
   const [showLostPrompt, setShowLostPrompt] = useState(false);
   const [lostDismissedFor, setLostDismissedFor] = useState<string | null>(null);
 
@@ -154,6 +193,15 @@ export const PracticeView = React.memo(function PracticeView({
           </span>
         )}
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 tabular-nums sm:justify-end">
+          <span
+            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold transition shadow-xs ${
+              isOnline
+                ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800'
+                : 'bg-purple-50 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-300 dark:border-purple-800'
+            }`}
+          >
+            {isOnline ? '🌐 Cloud AI' : '📱 Offline AI'}
+          </span>
           {isAiPractice ? (
             <>
               <button

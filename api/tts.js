@@ -111,7 +111,7 @@ export default async function ttsHandler(req, res) {
     res.statusCode = 200;
     res.setHeader('Content-Type', 'audio/mpeg');
     res.setHeader('X-TTS-Provider', provider);
-    res.setHeader('Cache-Control', 'public, max-age=86400');
+    res.setHeader('Cache-Control', 'public, s-maxage=31536000, immutable');
     res.end(audio.data);
   } catch (error) {
     res.statusCode = 502;

@@ -4,4 +4,5 @@ android/
 coverage/
 .cache/
 build/
-
+*.apk
+public/*.apk

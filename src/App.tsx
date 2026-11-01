@@ -1,5 +1,11 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Flame, Home, Moon, Sun, UserRound } from 'lucide-react';
+import { Capacitor } from '@capacitor/core';
+import { App as CapApp } from '@capacitor/app';
+import { StatusBar, Style } from '@capacitor/status-bar';
+import { Keyboard, KeyboardResize } from '@capacitor/keyboard';
+import { Network } from '@capacitor/network';
+import { Haptics, NotificationType } from '@capacitor/haptics';
 import { PHASES_DATA } from './data/lessons';
 import { PREBUILT_DECKS, PrebuiltDeck } from './data/prebuiltDecks';
 import { EXPANDED_DECKS } from './data/expandedDecks';
@@ -373,7 +379,112 @@ export default function App() {
     }
   }, [isBlocked, speech]);
 
-  const [activeTab, setActiveTab] = useState<ActiveTab>('home');
+    const [activeTab, setActiveTab] = useState<ActiveTab>('home');
+
+  // 1. Native Hardware Back Button Handling
+  const activeTabRef = useRef(activeTab);
+  useEffect(() => {
+    activeTabRef.current = activeTab;
+  }, [activeTab]);
+
+  const lastBackPressRef = useRef(0);
+  useEffect(() => {
+    let handle: any;
+    try {
+      if (Capacitor.isNativePlatform()) {
+        CapApp.addListener('backButton', () => {
+          if (activeTabRef.current !== 'home') {
+            setActiveTab('home');
+            return;
+          }
+          const now = Date.now();
+          if (now - lastBackPressRef.current < 2000) {
+            CapApp.exitApp();
+          } else {
+            lastBackPressRef.current = now;
+            showToast(tUI('Press back again to exit', 'اضغط مرة أخرى للخروج من التطبيق'));
+          }
+        }).then(h => {
+          handle = h;
+        }).catch(() => {});
+      }
+    } catch {
+      // Ignore on web
+    }
+    return () => {
+      try {
+        handle?.remove();
+      } catch {}
+    };
+  }, []);
+
+  // 2. Status Bar Theme & Color Synchronization
+  useEffect(() => {
+    try {
+      if (Capacitor.isNativePlatform()) {
+        const isDark = theme === 'dark';
+        StatusBar.setStyle({
+          style: isDark ? Style.Light : Style.Dark
+        }).catch(() => {});
+        StatusBar.setBackgroundColor({
+          color: isDark ? '#121212' : '#f8f9fa'
+        }).catch(() => {});
+      }
+    } catch {
+      // Ignore on web
+    }
+  }, [theme]);
+
+  // 3. Native Keyboard Behavior
+  useEffect(() => {
+    try {
+      if (Capacitor.isNativePlatform()) {
+        Keyboard.setResizeMode({ mode: KeyboardResize.Body }).catch(() => {});
+      }
+    } catch {
+      // Ignore on web
+    }
+  }, []);
+
+  // 4. Native Network Detection (Offline Mode Banner)
+  const [isOffline, setIsOffline] = useState<boolean>(() => {
+    return typeof navigator !== 'undefined' ? !navigator.onLine : false;
+  });
+
+  useEffect(() => {
+    let networkHandle: any;
+
+    try {
+      if (Capacitor.isNativePlatform()) {
+        Network.getStatus().then(status => {
+          setIsOffline(!status.connected);
+        }).catch(() => {
+          setIsOffline(!navigator.onLine);
+        });
+
+        Network.addListener('networkStatusChange', status => {
+          setIsOffline(!status.connected);
+        }).then(h => {
+          networkHandle = h;
+        }).catch(() => {});
+      }
+    } catch {
+      // Fallback to browser online/offline events
+    }
+
+    const onOnline = () => setIsOffline(false);
+    const onOffline = () => setIsOffline(true);
+    window.addEventListener('online', onOnline);
+    window.addEventListener('offline', onOffline);
+
+    return () => {
+      window.removeEventListener('online', onOnline);
+      window.removeEventListener('offline', onOffline);
+      try {
+        networkHandle?.remove();
+      } catch {}
+    };
+  }, []);
   const [progress, setProgress] = useState<UserProgress>(() => loadUserProgress());
   const [mentorQuestions, setMentorQuestions] = useState<MentorQuestion[]>(() =>
     loadMentorQuestions()
@@ -1488,6 +1599,13 @@ export default function App() {
           : [...prev.completedExerciseIds, ex.id];
 
         const lessonNowDone = lesson.exercises.every(item => nextExIds.includes(item.id));
+        if (lessonNowDone && !prev.completedLessonIds.includes(lesson.id)) {
+          try {
+            if (Capacitor.isNativePlatform()) {
+              Haptics.notification({ type: NotificationType.Success }).catch(() => {});
+            }
+          } catch {}
+        }
         const nextLessonIds =
           lessonNowDone && !prev.completedLessonIds.includes(lesson.id)
             ? [...prev.completedLessonIds, lesson.id]
@@ -2002,9 +2120,20 @@ export default function App() {
               Create profile
             </button>
           </div>
-        )}        <header
+        )}        {isOffline && (
+          <div
+            role="status"
+            aria-live="polite"
+            className="sticky top-0 z-50 flex items-center justify-center gap-2 bg-amber-500 text-stone-950 font-bold px-4 py-2 text-xs sm:text-sm shadow-md transition-all pt-[calc(0.5rem+env(safe-area-inset-top,0px))]"
+          >
+            <span>⚠️</span>
+            <span>You are offline. Using local dictionary.</span>
+            <span className="hidden sm:inline opacity-80">· أنت غير متصل بالإنترنت. يتم استخدام القاموس المحلي</span>
+          </div>
+        )}
+        <header
           dir={rtlUI ? 'rtl' : 'ltr'}
-          className="relative z-40 mx-auto flex w-full max-w-md shrink-0 items-center justify-between px-4 py-3"
+          className="relative z-40 mx-auto flex w-full max-w-md shrink-0 items-center justify-between px-4 py-3 safe-top"
         >
           <div className="flex items-center gap-2">
             <button
