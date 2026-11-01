@@ -8,6 +8,6 @@ import { Capacitor } from '@capacitor/core';
  * In web browsers, it stays empty ('') so existing relative proxying/routing continues working.
  */
 export const API_BASE_URL: string = Capacitor.isNativePlatform()
-  ? 'https://arabicenglishthinkingbridge.vercel.app'
+  ? 'https://thinkingbridge.vercel.app'
   : '';
 

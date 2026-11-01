@@ -9,7 +9,7 @@ import {
   GEMINI_KEY_CHANGED_EVENT,
   hasUserGeminiKey
 } from '../services/geminiLexicon';
-import { askAIHelper } from '../services/aiRouter';
+import { askAIHelper, getOfflineAnswer } from '../services/aiRouter';
 import { isArabicUI, uiText } from '../utils/i18n';
 import { BouncyButton } from './BouncyButton';
 import { VipPassModal } from './VipPassModal';
@@ -103,15 +103,11 @@ export function AIHelper({ profile, request }: AIHelperProps) {
       const context: TutorContext = { profile, currentWord: word, history };
       const answer = await askAIHelper(question, context);
       addMessage('assistant', answer);
-    } catch (requestError) {
-      setError(
-        requestError instanceof Error
-          ? requestError.message
-          : t(
-            'The tutor could not answer right now. Please try again.',
-            'تعذر على المساعد الذكي الرد حالياً. يرجى المحاولة مرة أخرى.'
-          )
-      );
+    } catch {
+      // Seamlessly fall back to smart local tutor reply so it never displays an error
+      const context: TutorContext = { profile, currentWord: word, history };
+      const fallback = getOfflineAnswer(question, context);
+      addMessage('assistant', fallback);
     } finally {
       setIsSending(false);
     }

@@ -6,7 +6,7 @@ import type { UserProfile } from '../types';
 import { createSpeechRecognition, isSpeechRecognitionSupported, speakWithRate, CLOUD_AI_VOICE_ID } from '../utils/audio';
 import { sendConversationMessage, ConversationHistoryItem } from '../services/geminiLexicon';
 import { generateLocalTutorResponse } from '../services/localAI';
-import { localOfflineTranslate } from '../App';
+import { generateSmartConversationReply } from '../services/smartConversation';
 import { API_BASE_URL } from '../utils/api';
 
 export interface ChatMessage {
@@ -201,33 +201,76 @@ export function ConversationView({ profile, onToast, preferredVoice }: Conversat
         return;
       }
 
-      // Route through our edge-tts backend
-      const url = `${API_BASE_URL}/api/tts?text=${encodeURIComponent(cleanText)}&lang=en-US`;
-      const audio = new Audio(url);
-      currentAudioRef.current = audio;
+      const isAr = /[\u0600-\u06FF]/.test(cleanText);
+      const targetLang = isAr ? 'ar-EG' : 'en-US';
+      const targetVoice = isAr ? 'ar-EG-SalmaNeural' : (preferredVoice || 'en-US-AvaNeural');
 
-      audio.onended = () => {
-        currentAudioRef.current = null;
-        setConversationState('idle');
-      };
+      let playedBlob = false;
+      const onlineNow = typeof navigator !== 'undefined' ? navigator.onLine : true;
 
-      audio.onerror = (e) => {
-        console.warn('[ConversationView] Backend TTS failed, falling back to native speechSynthesis:', e);
-        currentAudioRef.current = null;
-        speakWithRate(cleanText, 1, preferredVoice || CLOUD_AI_VOICE_ID);
-        const wordsCount = cleanText.split(/\s+/).length;
-        const estimatedDurationMs = Math.max(2500, Math.min(25000, wordsCount * 420));
-        speakingTimeoutRef.current = setTimeout(() => {
-          setConversationState('idle');
-        }, estimatedDurationMs);
-      };
+      // Fast in-memory MP3 playback via /api/tts POST endpoint
+      if (onlineNow) {
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 4000);
 
-      await audio.play();
+          const response = await fetch(`${API_BASE_URL}/api/tts`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              text: cleanText,
+              lang: targetLang,
+              voice: targetVoice,
+              rate: 1
+            }),
+            signal: controller.signal
+          });
+          clearTimeout(timeoutId);
+
+          if (response.ok) {
+            const blob = await response.blob();
+            if (blob.size > 200) {
+              const blobUrl = URL.createObjectURL(blob);
+              const audio = new Audio(blobUrl);
+              currentAudioRef.current = audio;
+
+              audio.onended = () => {
+                URL.revokeObjectURL(blobUrl);
+                currentAudioRef.current = null;
+                setConversationState('idle');
+              };
+
+              audio.onerror = () => {
+                URL.revokeObjectURL(blobUrl);
+                currentAudioRef.current = null;
+                fallbackNativeSpeak(cleanText);
+              };
+
+              await audio.play();
+              playedBlob = true;
+            }
+          }
+        } catch (fetchErr) {
+          console.warn('[ConversationView] Direct TTS blob fetch failed:', fetchErr);
+        }
+      }
+
+      if (!playedBlob) {
+        fallbackNativeSpeak(cleanText);
+      }
     } catch (err) {
       console.error('[ConversationView] Audio playback failed:', err);
-      speakWithRate(text, 1, preferredVoice || CLOUD_AI_VOICE_ID);
-      setConversationState('idle');
+      fallbackNativeSpeak(text);
     }
+  };
+
+  const fallbackNativeSpeak = (cleanText: string) => {
+    speakWithRate(cleanText, 1, preferredVoice || CLOUD_AI_VOICE_ID);
+    const wordsCount = cleanText.split(/\s+/).length;
+    const estimatedDurationMs = Math.max(2200, Math.min(22000, wordsCount * 420));
+    speakingTimeoutRef.current = setTimeout(() => {
+      setConversationState('idle');
+    }, estimatedDurationMs);
   };
 
   const handleSendPrompt = async (userText: string) => {
@@ -256,31 +299,37 @@ export function ConversationView({ profile, onToast, preferredVoice }: Conversat
       let replyText = '';
       const onlineNow = typeof navigator !== 'undefined' ? navigator.onLine : true;
 
+      // 1. Attempt Cloud AI (Gemini) if online with a fast 3.5s timeout
       if (onlineNow) {
         try {
-          replyText = await sendConversationMessage(clean, historyPayload, profile);
-          console.log('[ConversationView] Raw reply from backend:', replyText);
+          const timeoutPromise = new Promise<string>((_, reject) =>
+            setTimeout(() => reject(new Error('Cloud timeout')), 3500)
+          );
+          replyText = await Promise.race([
+            sendConversationMessage(clean, historyPayload, profile),
+            timeoutPromise
+          ]);
+          console.log('[ConversationView] Fast reply from cloud AI:', replyText);
         } catch (cloudErr) {
-          console.warn('[ConversationView] Cloud AI failed, attempting on-device Gemma 3n:', cloudErr);
+          console.warn('[ConversationView] Fast cloud fallback engaged:', cloudErr);
         }
       }
 
+      // 2. If Cloud AI returned empty or failed, use smart conversational engine
       if (!replyText) {
-        // Offline or cloud failed -> fallback to local Gemma 3n SLM
         try {
           replyText = await generateLocalTutorResponse(
             clean,
             'You are an offline conversational English-Arabic tutor. Answer in 1-2 friendly, natural English sentences.'
           );
-          console.log('[ConversationView] Raw reply from local SLM:', replyText);
-        } catch (localErr) {
-          console.warn('[ConversationView] Local SLM failed, falling back to offline dictionary:', localErr);
-          const isAr = /[\u0600-\u06FF]/.test(clean);
-          const tr = localOfflineTranslate(clean, isAr ? 'ar' : 'en');
-          replyText = tr
-            ? `(Offline) ${clean} = ${tr}`
-            : 'I am in offline mode. Connect to the internet or download local weights to chat freely!';
+        } catch {
+          replyText = generateSmartConversationReply(clean, historyPayload, profile);
         }
+      }
+
+      // Final fallback guard
+      if (!replyText) {
+        replyText = generateSmartConversationReply(clean, historyPayload, profile);
       }
 
       const aiMessage: ChatMessage = {
@@ -294,8 +343,15 @@ export function ConversationView({ profile, onToast, preferredVoice }: Conversat
       await playBackendAudio(replyText);
     } catch (err) {
       console.error('[ConversationView] Error communicating with tutor:', err);
-      setConversationState('idle');
-      onToast('تعذر الاتصال بالمعلم الذكي. حاول مرة تانية.');
+      const fallback = generateSmartConversationReply(clean, [], profile);
+      const aiMessage: ChatMessage = {
+        id: `msg-${Date.now()}-ai`,
+        role: 'model',
+        text: fallback,
+        timestamp: Date.now()
+      };
+      setMessages(prev => [...prev, aiMessage]);
+      await playBackendAudio(fallback);
     }
   };
 

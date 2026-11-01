@@ -190,38 +190,10 @@ const getMasterDictionaryCardKey = (entry: LexiconEntry): string =>
   `md:${encodeURIComponent(entry.arabicWord)}:${encodeURIComponent(entry.englishTranslation)}` +
   (entry.dialect === 'egyptian' ? ':egyptian' : '');
 
+import { searchOfflineDictionary } from './utils/dictionarySearch';
+
 export function localOfflineTranslate(query: string, from: 'ar' | 'en'): string | null {
-  const trimmed = query.trim();
-  if (!trimmed) return null;
-
-  if (from === 'ar') {
-    const cleanAr = stripTashkeel(trimmed);
-    const exMatch = ALL_EXERCISES.find(ex => stripTashkeel(ex.arabicThought) === cleanAr);
-    if (exMatch) return exMatch.englishTarget;
-
-    for (const deck of ALL_PREBUILT_DECKS) {
-      const cardMatch = deck.cards.find(c => stripTashkeel(c.ar) === cleanAr);
-      if (cardMatch) return cardMatch.en;
-    }
-
-    if (ARABIC_WORD_LEXICON[cleanAr]) {
-      return ARABIC_WORD_LEXICON[cleanAr].en.replace(/\(.*?\)/g, '').split('/')[0].trim();
-    }
-  } else {
-    const normEn = normalizeSentence(trimmed);
-    const exMatch = ALL_EXERCISES.find(
-      ex =>
-        normalizeSentence(ex.englishTarget) === normEn ||
-        ex.acceptableAlternatives.some(a => normalizeSentence(a) === normEn)
-    );
-    if (exMatch) return exMatch.arabicThought;
-
-    for (const deck of ALL_PREBUILT_DECKS) {
-      const cardMatch = deck.cards.find(c => normalizeSentence(c.en) === normEn);
-      if (cardMatch) return cardMatch.ar;
-    }
-  }
-  return null;
+  return searchOfflineDictionary(query, from);
 }
 
 async function translateSingleLine(rawLine: string): Promise<{ ar: string; en: string } | null> {

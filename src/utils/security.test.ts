@@ -102,3 +102,4 @@ test('4. vercel.json and index.html CSP disallow unsafe-inline in script-src', (
     }
   }
 });
+

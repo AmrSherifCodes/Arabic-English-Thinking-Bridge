@@ -6,6 +6,7 @@ import { UserProgress } from '../types';
 import { ThinkingMap } from './ThinkingMap';
 import { getAdaptiveRecommendation } from '../utils/adaptiveCurriculum';
 import { TutorAvatar } from './TutorAvatar';
+import { confetti } from '../utils/fx';
 
 export type HomeAction = 'flashcards' | 'speaking' | 'situations' | 'daily-review' | 'messages';
 
@@ -138,9 +139,15 @@ export function HomeView({
         />
       </div>
 
-      {(progress.todayWins ?? 0) < 5 && (
-        <div className="my-3 rounded-2xl bg-red-600 text-white p-3 text-center font-bold text-sm animate-pulse shadow-md">
-          🔥 Your {progress.streak || 0}-day streak is about to end! Complete 1 lesson to keep it alive.
+      {Boolean(progress.streak && progress.streak > 0 && (progress.todayWins ?? 0) < 1) && (
+        <div className="my-3 rounded-2xl bg-amber-600/90 text-white p-3 text-center font-bold text-sm shadow-md animate-pulse">
+          🔥 حماسك مستمر منذ {progress.streak} أيام! كمل درس النهاردة عشان تحافظ على الـ Streak بتاعك.
+        </div>
+      )}
+
+      {(progress.streak || 0) === 0 && (
+        <div className="my-3 rounded-2xl bg-teal-700/90 text-white p-3 text-center font-bold text-sm shadow-md">
+          🌟 ابدأ أول درس النهاردة وافتح أول يوم في حماسك اليومي (Streak)!
         </div>
       )}
 
@@ -172,37 +179,44 @@ export function HomeView({
         )}
       </div>
 
-      {/* Daily Missions Card */}
+      {/* Daily Missions Card (Gamified) */}
       <div className="rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-4 shadow-sm mt-4">
         <h3 className="font-black text-lg mb-3 flex items-center gap-2 text-stone-900 dark:text-white">
-          🎯 Daily Missions
+          🎯 مهماتك اليومية (Daily Missions)
         </h3>
-        <div className="space-y-2 text-sm font-medium text-stone-700 dark:text-stone-300">
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" className="w-4 h-4 rounded" /> Complete 2 lessons
+        <div className="space-y-2.5 text-sm font-medium text-stone-700 dark:text-stone-300">
+          <label className="flex items-center gap-2.5 cursor-pointer">
+            <input type="checkbox" className="w-4 h-4 rounded text-teal-700 focus:ring-teal-500" />
+            <span>خلص درسين النهاردة (Complete 2 Lessons)</span>
           </label>
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" className="w-4 h-4 rounded" /> Talk to AI Tutor for 1 minute
+          <label className="flex items-center gap-2.5 cursor-pointer">
+            <input type="checkbox" className="w-4 h-4 rounded text-teal-700 focus:ring-teal-500" />
+            <span>اتكلم مع المعلم الذكي دقيقة واحدة (Talk to AI)</span>
           </label>
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" className="w-4 h-4 rounded" /> Review 10 flashcards
+          <label className="flex items-center gap-2.5 cursor-pointer">
+            <input type="checkbox" className="w-4 h-4 rounded text-teal-700 focus:ring-teal-500" />
+            <span>راجع 10 بطاقات كلمات (Review 10 Cards)</span>
           </label>
         </div>
         <button
           type="button"
           onClick={() => {
-            // Simple visual reward trigger
             const btn = document.getElementById('mystery-chest-btn');
             if (btn) {
-              btn.textContent = '✅ Chest Claimed!';
+              btn.textContent = '🎉 تم فتح الصندوق بنجاح (+50 XP)!';
               (btn as HTMLButtonElement).disabled = true;
             }
-            alert('🎁 You found +50 XP and a Streak Shield!');
+            try {
+              confetti();
+            } catch {
+              // ignore
+            }
+            alert('🎁 مبروك يا بطل! كسبت +50 نقطة خبرة وحماية للـ Streak بتاعك!');
           }}
           id="mystery-chest-btn"
-          className="mt-4 w-full rounded-full bg-gradient-to-r from-amber-500 to-orange-600 text-white py-3 font-black text-sm shadow-md transition hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
+          className="mt-4 w-full rounded-2xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white py-3.5 font-black text-sm shadow-md transition hover:scale-[1.02] active:scale-95 disabled:opacity-60 disabled:hover:scale-100 cursor-pointer"
         >
-          🎁 Claim Mystery Chest
+          🎁 افتح صندوق المفاجآت (Claim Mystery Chest)
         </button>
       </div>
 

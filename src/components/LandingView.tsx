@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { ArrowRight, BookOpen, ExternalLink, Github, Heart, Linkedin, Smartphone, X, Youtube } from 'lucide-react';
+import { ArrowRight, BookOpen, ExternalLink, Github, Heart, Linkedin, ShieldCheck, Smartphone, Sparkles, X, Youtube } from 'lucide-react';
+import { useTranslation } from '../utils/i18n';
 
 interface LandingViewProps {
   onStartWebApp: () => void;
@@ -8,6 +9,9 @@ interface LandingViewProps {
 }
 
 export function LandingView({ onStartWebApp, onStartGuest, onResumeApp }: LandingViewProps) {
+  const { t, i18n } = useTranslation();
+  const isAr = (i18n.language || 'ar').startsWith('ar');
+
   const [showInstallGuide, setShowInstallGuide] = useState(false);
   const [showCv, setShowCv] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
@@ -40,8 +44,17 @@ export function LandingView({ onStartWebApp, onStartGuest, onResumeApp }: Landin
     return () => window.removeEventListener('keydown', closeOnEscape);
   }, [showInstallGuide, showCv, showPrivacyModal]);
 
+  const handlePrimaryAction = () => {
+    if (onResumeApp) {
+      onResumeApp();
+    } else {
+      onStartGuest();
+    }
+  };
+
   return (
-    <main className="relative flex min-h-dvh flex-col justify-between overflow-hidden bg-[#f8f9fa] px-5 py-8 text-stone-900 dark:bg-stone-950 dark:text-stone-100 sm:px-8 sm:py-12">
+    <main className="relative flex min-h-dvh flex-col justify-between overflow-x-hidden bg-[#f8f9fa] px-4 py-4 text-stone-900 dark:bg-stone-950 dark:text-stone-100 sm:px-8 sm:py-8">
+      {/* Background patterns */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 opacity-60 dark:opacity-20"
@@ -56,235 +69,245 @@ export function LandingView({ onStartWebApp, onStartGuest, onResumeApp }: Landin
         className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/70 via-transparent to-teal-50/40 dark:from-stone-950/20 dark:to-teal-950/20"
       />
 
-      <div className="relative mx-auto my-auto w-full max-w-6xl py-4">
-        <div className="mb-8 flex items-center gap-2.5 text-sm font-bold tracking-wide text-teal-800 dark:text-teal-300 sm:mb-10">
-          <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-teal-100 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300">
-            <BookOpen size={19} aria-hidden="true" />
-          </span>
-          <span className="ar font-black text-lg">فكّر إنجليزي</span>
-          <span className="text-xs font-semibold text-stone-500 dark:text-stone-400">· Thinking English</span>
-        </div>
-
-        <section className="grid grid-cols-1 items-center gap-10 lg:grid-cols-12 lg:gap-12">
-          {/* Left Column: Hero Copy & CTA */}
-          <div className="lg:col-span-7">
-            <div className="space-y-2">
-              <span className="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-teal-100 text-teal-800 dark:bg-teal-950/70 dark:text-teal-300 border border-teal-200 dark:border-teal-800/80 mb-2">
-                مجاني 100% · بدون إعلانات · مفتوح المصدر
+      <div className="relative mx-auto w-full max-w-4xl py-2 sm:py-4 flex-1 flex flex-col justify-between">
+        {/* Top Header */}
+        <header className="mb-4 sm:mb-6 flex items-center justify-between text-sm font-bold tracking-wide text-teal-800 dark:text-teal-300">
+          <div className="flex items-center gap-2">
+            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-teal-700 text-white shadow-xs">
+              <BookOpen size={17} aria-hidden="true" />
+            </span>
+            <div className="flex items-baseline gap-1.5">
+              <span className="ar font-black text-base text-stone-950 dark:text-white">
+                {isAr ? 'فكّر إنجليزي' : 'Thinking English'}
               </span>
-              <h1 className="ar text-5xl font-black leading-[1.08] tracking-tight text-stone-950 dark:text-white sm:text-6xl lg:text-7xl">
-                فكّر إنجليزي
-              </h1>
-              <p className="text-2xl sm:text-3xl font-black tracking-tight text-teal-700 dark:text-teal-400">
-                Thinking English
-              </p>
+              <span className="text-xs font-semibold text-stone-500 dark:text-stone-400">
+                · {isAr ? 'Thinking English' : 'فكّر إنجليزي'}
+              </span>
             </div>
-            <p
-              dir="rtl"
-              className="ar mt-5 text-xl sm:text-2xl font-bold leading-relaxed text-stone-700 dark:text-stone-200"
-            >
-              الطريقة الأسهل عشان تتكلم إنجليزي بثقة وتفكر بيه بشكل طبيعي
-            </p>
-            <p className="mt-4 max-w-2xl text-base font-medium leading-relaxed text-stone-600 dark:text-stone-300 sm:text-lg">
-              بدون حفظ قواعد معقدة أو ترجمة حرفية في دماغك. 100% مجاني ومفتوح المصدر وخاص تماماً.
-            </p>
+          </div>
+          <span className="inline-flex items-center gap-1 rounded-full border border-teal-200 bg-teal-50 px-2.5 py-0.5 text-[11px] font-bold text-teal-800 dark:border-teal-900/60 dark:bg-teal-950/40 dark:text-teal-300">
+            {isAr ? 'مجاني 100% · مفتوح المصدر' : '100% Free · Open Source'}
+          </span>
+        </header>
 
-            <div className="mt-8 flex flex-col items-start gap-3 w-full max-w-md">
-              {/* Primary Action: Download Android App (v1.0.1) */}
-              <a
-                href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v1.0.1/thinking-english-v1.0.1.apk"
-                id="download-android-apk-btn"
-                className="flex min-h-14 w-full items-center justify-center gap-3 rounded-2xl bg-teal-700 hover:bg-teal-800 active:scale-[0.98] px-6 py-3.5 text-lg font-bold text-white shadow-md shadow-teal-900/20 transition cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-stone-950"
-              >
-                <Smartphone size={22} className="shrink-0" aria-hidden="true" />
-                <span className="text-center">
-                  <span className="ar block text-lg font-black">تحميل تطبيق الأندرويد 📱</span>
-                  <span className="block text-xs font-semibold opacity-90">
-                    Download Android App 📱 (v1.0.1)
-                  </span>
+        {/* ============================================================== */}
+        {/* HERO SECTION — STRICTLY ABOVE THE FOLD (THE 5-SECOND TEST)    */}
+        {/* ============================================================== */}
+        <section className="my-auto flex flex-col items-center text-center max-w-2xl mx-auto w-full py-1">
+          {/* 1. One-Line Headline */}
+          <h1 className="ar text-2xl sm:text-4xl font-black leading-tight tracking-tight text-stone-950 dark:text-white">
+            {t('landing.headline', 'تعلّم تفكّر بالإنجليزي، مش تترجم في دماغك')}
+          </h1>
+
+          {/* 2. One-Line Subline: States target audience and 100% free / open source */}
+          <p className="ar mt-2 text-xs sm:text-base font-bold text-teal-800 dark:text-teal-300 leading-normal max-w-xl">
+            {t('landing.subline', 'مُصمم للمتحدثين بالعربية لإتقان التفكير بالإنجليزية · مجاني 100% ومفتوح المصدر وخاص بالكامل')}
+          </p>
+
+          {/* 3. The 5-Second Real Sentence Bridge (Concept #1: Copula omission) */}
+          <div className="mt-4 w-full rounded-2xl border-2 border-teal-600/30 bg-white/95 dark:bg-stone-900/95 p-3.5 sm:p-5 shadow-lg shadow-teal-950/5 backdrop-blur-xs text-start">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[11px] font-black uppercase tracking-wider text-teal-700 dark:text-teal-400 flex items-center gap-1.5">
+                <Sparkles size={13} className="text-teal-600 dark:text-teal-400" />
+                <span>{t('landing.exampleTitle', '⚡ مثال التحول الذهني الفوري (في 5 ثوانٍ):')}</span>
+              </span>
+              <span className="text-[10px] bg-teal-100 dark:bg-teal-950 text-teal-800 dark:text-teal-300 px-2 py-0.5 rounded-full font-bold">
+                {t('landing.exampleConcept', 'المفهوم #1')}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+              {/* Arabic Thought */}
+              <div className="rounded-xl bg-stone-100 dark:bg-stone-800/80 p-2.5 border border-stone-200 dark:border-stone-700/60">
+                <span className="block text-[10px] font-bold text-stone-500 dark:text-stone-400">
+                  {t('landing.thoughtLabel', 'الفكرة بالعربي:')}
                 </span>
-              </a>
-
-              {/* GitHub Releases Fallback Link */}
-              <div className="w-full text-center">
-                <a
-                  href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200 underline decoration-stone-300 dark:decoration-stone-600 underline-offset-2 transition font-medium"
-                >
-                  Button not working? Click here to view all releases on GitHub
-                </a>
+                <span className="ar block text-base font-black text-stone-950 dark:text-white mt-0.5">
+                  {t('landing.thoughtText', '« أنا طالب »')}
+                </span>
               </div>
 
-              {/* Secondary Outline Web Actions */}
-              <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 pt-1">
-                <button
-                  type="button"
-                  onClick={onResumeApp || onStartWebApp}
-                  className="flex min-h-12 items-center justify-center gap-2 rounded-2xl border-2 border-teal-700/80 bg-white/80 dark:bg-stone-900/60 px-5 py-3 text-base font-bold text-teal-800 dark:text-teal-300 transition hover:bg-teal-50 dark:hover:bg-stone-800 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-stone-950"
-                >
-                  <span className="text-center">
-                    <span className="ar block text-base font-black">{onResumeApp ? 'استئناف في المتصفح 🚀' : 'ابدأ في المتصفح (Web) 🚀'}</span>
-                    <span className="block text-[11px] font-semibold opacity-90">
-                      {onResumeApp ? 'Resume Web App' : 'Start Learning Now (Web)'}
-                    </span>
+              {/* English Target with illuminated chips */}
+              <div className="rounded-xl bg-teal-50/80 dark:bg-teal-950/40 p-2.5 border border-teal-200 dark:border-teal-800/60">
+                <span className="block text-[10px] font-bold text-teal-800 dark:text-teal-300">
+                  {t('landing.targetLabel', 'الهيكل بالإنجليزي:')}
+                </span>
+                <div className="flex items-center gap-1 mt-1 font-black text-sm">
+                  <span className="px-2 py-0.5 rounded bg-white dark:bg-stone-900 shadow-2xs border border-stone-200 dark:border-stone-700 text-stone-800 dark:text-stone-200">
+                    I
                   </span>
-                  <ArrowRight size={18} className="rtl-flip" aria-hidden="true" />
-                </button>
-                <button
-                  type="button"
-                  onClick={onStartGuest}
-                  className="flex min-h-12 items-center justify-center rounded-2xl border-2 border-stone-300 dark:border-stone-700 bg-white/60 dark:bg-stone-900/40 px-5 py-3 text-base font-bold text-stone-700 dark:text-stone-300 transition hover:bg-stone-100 dark:hover:bg-stone-800 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-stone-950"
-                >
-                  <span className="text-center">
-                    <span className="ar block text-base font-black">جرّب كضيف 🚀</span>
-                    <span className="block text-[11px] font-semibold opacity-90">
-                      Try as Guest
-                    </span>
+                  <span className="px-2 py-0.5 rounded bg-teal-600 text-white shadow-2xs font-extrabold ring-2 ring-teal-400">
+                    am
                   </span>
-                </button>
-              </div>
-
-              {/* Info text & Privacy link */}
-              <div className="w-full space-y-1.5 pt-0.5">
-                <p className="text-xs text-stone-500 dark:text-stone-400 font-medium text-center">
-                  {isMobile ? (
-                    <span>
-                      Install the APK directly on your phone for the best experience.
-                      <br className="sm:hidden" />
-                      <button
-                        type="button"
-                        onClick={() => setShowInstallGuide(true)}
-                        className="underline hover:text-teal-700 dark:hover:text-teal-300 transition ms-1 font-semibold cursor-pointer"
-                      >
-                        (Or Add to Home Screen instead)
-                      </button>
-                    </span>
-                  ) : (
-                    'Install the APK directly on your phone for the best experience.'
-                  )}
-                </p>
-                <div className="text-center pt-0.5">
-                  <button
-                    type="button"
-                    onClick={() => setShowPrivacyModal(true)}
-                    className="text-xs text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200 underline decoration-stone-300 dark:decoration-stone-600 underline-offset-2 transition cursor-pointer font-medium"
-                  >
-                    🔒 ليه التطبيق ده آمن؟ (الخصوصية والأمان)
-                  </button>
+                  <span className="px-2 py-0.5 rounded bg-teal-600 text-white shadow-2xs font-extrabold ring-2 ring-teal-400">
+                    a
+                  </span>
+                  <span className="px-2 py-0.5 rounded bg-white dark:bg-stone-900 shadow-2xs border border-stone-200 dark:border-stone-700 text-stone-800 dark:text-stone-200">
+                    student
+                  </span>
                 </div>
               </div>
-
-              <p className="text-sm font-medium tracking-wide text-stone-700 dark:text-stone-300 font-semibold">
-                Built with ❤️ by <span className="font-semibold text-stone-900 dark:text-stone-200">Amr Sherif</span>
-              </p>
-
-              <a
-                href="https://youtu.be/All6Hz2NWLs"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-xl border border-red-500/30 bg-red-50/90 px-4 py-2 text-xs font-extrabold text-red-700 shadow-xs transition hover:bg-red-100 hover:text-red-800 hover:shadow-sm dark:border-red-500/40 dark:bg-red-950/40 dark:text-red-300 dark:hover:bg-red-950/60"
-              >
-                <Youtube size={16} className="text-red-600 dark:text-red-400" aria-hidden="true" />
-                <span>🎥 Watch the Story Behind the App</span>
-              </a>
-
-              <button
-                type="button"
-                onClick={() => setShowInstallGuide(true)}
-                className="inline-flex items-center gap-2 rounded-lg py-1.5 text-sm font-semibold text-stone-600 underline decoration-stone-300 underline-offset-4 transition hover:text-teal-700 dark:text-stone-300 dark:decoration-stone-600 dark:hover:text-teal-300"
-              >
-                <Smartphone size={17} aria-hidden="true" />
-                📱 Install as an App on your phone
-              </button>
             </div>
 
-            <p className="mt-6 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50/90 px-4 py-2 text-sm font-semibold text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300">
-              🔒 No tracking · 5,000+ Words &amp; Phrases · Open Source
+            <p className="ar mt-2.5 text-[11px] font-semibold text-stone-600 dark:text-stone-300 leading-snug">
+              💡 {t('landing.bridgeNote', 'الجسر: العربية تستغني عن فعل الكينونة، بينما الإنجليزية تشترط (am + a).')}
             </p>
           </div>
 
-          {/* Right Column: Creator Photo */}
-          <div className="flex justify-center lg:col-span-5 lg:justify-end">
-            <div className="flex flex-col items-center gap-5">
-              <div className="relative">
-                <div
-                  aria-hidden="true"
-                  className="pointer-events-none absolute -inset-3 rounded-[2rem] bg-gradient-to-tr from-teal-500/25 via-emerald-400/20 to-transparent blur-xl dark:from-teal-500/20 dark:via-emerald-500/10"
+          {/* 4. One Single Primary Action Button */}
+          <div className="mt-4 w-full flex flex-col items-center gap-2.5">
+            <button
+              type="button"
+              onClick={handlePrimaryAction}
+              className="w-full flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-teal-700 hover:bg-teal-800 active:scale-[0.98] py-3.5 px-6 text-lg sm:text-xl font-black text-white shadow-lg shadow-teal-950/20 transition cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-stone-950"
+            >
+              <span className="ar">{t('landing.primaryCta', 'ابدأ درسك الأول (دقيقتان) ←')}</span>
+              <ArrowRight size={20} className="rtl-flip shrink-0" aria-hidden="true" />
+            </button>
+
+            {/* Subtle Platform & Privacy Pill */}
+            <div className="flex flex-wrap items-center justify-center gap-2 text-xs font-semibold text-stone-500 dark:text-stone-400 pt-0.5">
+              <a
+                href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v1.1.2/thinking-english-v1.1.2.apk"
+                className="hover:text-teal-700 dark:hover:text-teal-300 transition underline underline-offset-2 inline-flex items-center gap-1 font-bold"
+              >
+                <Smartphone size={14} />
+                <span>{t('landing.secondaryInfo', '📱 متوفر للأندرويد (v1.1.2)')}</span>
+              </a>
+              <span>·</span>
+              <button
+                type="button"
+                onClick={() => setShowPrivacyModal(true)}
+                className="hover:text-teal-700 dark:hover:text-teal-300 transition underline underline-offset-2 inline-flex items-center gap-1 cursor-pointer"
+              >
+                <ShieldCheck size={14} />
+                <span>{isAr ? 'بدون تتبع أو تسجيل' : 'Private · No signup'}</span>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* ============================================================== */}
+        {/* SECONDARY SECTION (BELOW THE FOLD): CREATOR & OPEN SOURCE      */}
+        {/* ============================================================== */}
+        <section className="mt-12 pt-8 border-t border-stone-200 dark:border-stone-800/80">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+            {/* Creator Photo & Details */}
+            <div className="md:col-span-4 flex flex-col items-center">
+              <div className="relative overflow-hidden rounded-3xl border-2 border-teal-700/60 bg-white shadow-xl dark:border-teal-500/50 dark:bg-stone-900">
+                <img
+                  src="/amr.jpg"
+                  alt="Amr Sherif"
+                  width={240}
+                  height={280}
+                  className="h-64 w-56 object-cover object-top"
                 />
-                <div className="relative overflow-hidden rounded-[2rem] border-4 border-teal-700/80 bg-white shadow-2xl shadow-teal-950/15 dark:border-teal-500/70 dark:bg-stone-900">
-                  <img
-                    src="/amr.jpg"
-                    alt="Amr Sherif"
-                    width={320}
-                    height={416}
-                    className="h-80 w-64 object-cover object-top sm:h-96 sm:w-80 lg:h-[26rem] lg:w-80"
-                  />
-                  <div className="bg-gradient-to-t from-stone-950/85 via-stone-950/45 to-transparent px-4 pb-3.5 pt-8 text-white">
-                    <p className="text-sm font-bold tracking-wide">Amr Sherif</p>
-                    <p className="text-xs text-teal-200">Creator of Thinking English</p>
-                  </div>
+                <div className="bg-gradient-to-t from-stone-950/85 via-stone-950/45 to-transparent px-4 pb-3 pt-6 text-white text-center">
+                  <p className="text-sm font-bold tracking-wide">Amr Sherif</p>
+                  <p className="text-xs text-teal-200">Creator of Thinking English</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setShowCv(true)}
-                className="relative z-10 flex w-full max-w-xs items-center justify-center gap-2 rounded-2xl border border-teal-600/60 bg-white px-5 py-3 text-sm font-bold text-teal-800 shadow-sm transition hover:bg-teal-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 dark:bg-stone-900 dark:text-teal-300 dark:hover:bg-stone-800"
+                className="mt-3 flex w-full max-w-[14rem] items-center justify-center gap-1.5 rounded-xl border border-teal-600/60 bg-white px-4 py-2 text-xs font-bold text-teal-800 shadow-xs transition hover:bg-teal-50 focus-visible:outline-none dark:bg-stone-900 dark:text-teal-300 dark:hover:bg-stone-800"
               >
-                📄 View My CV
+                📄 {t('landing.viewCv', 'عرض سيرتي الذاتية (CV)')}
               </button>
+            </div>
+
+            {/* Project Philosophy & Constitution */}
+            <div className="md:col-span-8 space-y-3.5 text-start">
+              <span className="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-teal-100 text-teal-800 dark:bg-teal-950/70 dark:text-teal-300 border border-teal-200 dark:border-teal-800/80">
+                {isAr ? 'عن المشروع ودستور القناة' : 'About the Project & Constitution'}
+              </span>
+              <h2 className="ar text-xl sm:text-2xl font-black text-stone-950 dark:text-white">
+                {t('landing.aboutMission', 'عن المشروع ورسالة المصدر المفتوح')}
+              </h2>
+              <p className="ar text-sm font-medium leading-relaxed text-stone-600 dark:text-stone-300">
+                {t(
+                  'landing.aboutMissionDesc',
+                  'مشروع غير ربحي، مجاني 100% ومفتوح المصدر بالكامل تحت رخصة CC0، صُمم لمساعدة كل متحدث بالعربية على بناء جسر تفكير ذهني مستقل دون الحاجة للترجمة في الدماغ.'
+                )}
+              </p>
+
+              <div className="flex flex-wrap items-center gap-3 pt-2">
+                <a
+                  href="https://youtu.be/All6Hz2NWLs"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-red-500/30 bg-red-50/90 px-3.5 py-2 text-xs font-bold text-red-700 shadow-xs transition hover:bg-red-100 dark:border-red-500/40 dark:bg-red-950/40 dark:text-red-300"
+                >
+                  <Youtube size={15} className="text-red-600 dark:text-red-400" aria-hidden="true" />
+                  <span>🎥 {isAr ? 'قصة بناء التطبيق' : 'Watch the Story'}</span>
+                </a>
+                <button
+                  type="button"
+                  onClick={() => setShowPrivacyModal(true)}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-stone-300 dark:border-stone-700 bg-white/70 dark:bg-stone-900/60 px-3.5 py-2 text-xs font-bold text-stone-700 dark:text-stone-300 shadow-xs transition hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer"
+                >
+                  🔒 {isAr ? 'الخصوصية والأمان' : 'Privacy & Security'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowInstallGuide(true)}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-stone-300 dark:border-stone-700 bg-white/70 dark:bg-stone-900/60 px-3.5 py-2 text-xs font-bold text-stone-700 dark:text-stone-300 shadow-xs transition hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer"
+                >
+                  📱 {isAr ? 'طريقة التثبيت على الهاتف' : 'How to install on phone'}
+                </button>
+              </div>
             </div>
           </div>
         </section>
       </div>
 
       {/* Footer Section */}
-      <footer className="relative mx-auto mt-10 w-full max-w-6xl border-t border-stone-300 pt-6 text-sm text-stone-800 dark:border-stone-700 dark:text-stone-200 font-medium">
-        <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
-          <p className="font-medium">© 2026 Thinking English · فكّر إنجليزي</p>
-          <nav aria-label="Creator social links" className="flex flex-wrap items-center gap-5">
+      <footer className="relative mx-auto mt-8 w-full max-w-4xl border-t border-stone-200 dark:border-stone-800/80 pt-4 text-xs text-stone-600 dark:text-stone-400 font-medium">
+        <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">
+          <p className="font-semibold">© 2026 Thinking English · فكّر إنجليزي (CC0 1.0 Universal)</p>
+          <nav aria-label="Creator social links" className="flex flex-wrap items-center gap-4">
             <a
               href="https://www.linkedin.com/in/sciamrsherif-abdelaal/"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 font-semibold text-stone-700 transition hover:text-teal-700 dark:text-stone-300 dark:hover:text-teal-400"
+              className="inline-flex items-center gap-1 font-semibold text-stone-700 transition hover:text-teal-700 dark:text-stone-300 dark:hover:text-teal-400"
             >
-              <Linkedin size={16} aria-hidden="true" />
+              <Linkedin size={14} aria-hidden="true" />
               <span>LinkedIn</span>
             </a>
             <a
-              href="https://github.com/AmrSherifCodes"
+              href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 font-semibold text-stone-700 transition hover:text-teal-700 dark:text-stone-300 dark:hover:text-teal-400"
+              className="inline-flex items-center gap-1 font-semibold text-stone-700 transition hover:text-teal-700 dark:text-stone-300 dark:hover:text-teal-400"
             >
-              <Github size={16} aria-hidden="true" />
+              <Github size={14} aria-hidden="true" />
               <span>GitHub</span>
             </a>
             <a
               href="https://youtube.com/@SciAmrSherif"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 font-semibold text-stone-700 transition hover:text-teal-700 dark:text-stone-300 dark:hover:text-teal-400"
+              className="inline-flex items-center gap-1 font-semibold text-stone-700 transition hover:text-teal-700 dark:text-stone-300 dark:hover:text-teal-400"
             >
-              <Youtube size={16} aria-hidden="true" />
+              <Youtube size={14} aria-hidden="true" />
               <span>YouTube</span>
             </a>
             <a
               href="https://www.patreon.com/c/SciAmrSherif"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 font-semibold text-stone-700 transition hover:text-teal-700 dark:text-stone-300 dark:hover:text-teal-400"
+              className="inline-flex items-center gap-1 font-semibold text-stone-700 transition hover:text-teal-700 dark:text-stone-300 dark:hover:text-teal-400"
             >
-              <Heart size={16} aria-hidden="true" />
+              <Heart size={14} aria-hidden="true" />
               <span>Patreon</span>
-              <ExternalLink size={13} aria-hidden="true" className="opacity-65" />
+              <ExternalLink size={12} aria-hidden="true" className="opacity-65" />
             </a>
           </nav>
         </div>
       </footer>
 
+      {/* CV Modal */}
       {showCv && (
         <div
           className="fixed inset-0 z-[999] flex items-start justify-center overflow-y-auto bg-stone-950/60 p-3 backdrop-blur-sm sm:items-center sm:p-4"
@@ -358,153 +381,36 @@ export function LandingView({ onStartWebApp, onStartGuest, onResumeApp }: Landin
                       Core Skills
                     </h3>
                     <ul className="flex flex-wrap gap-2">
-                      {[
-                        'Full-Stack Development (React, TypeScript, Tailwind CSS)',
-                        'AI & API Integration (Gemini, Serverless Routing)',
-                        'Product Strategy & UX Design',
-                        'UI/UX & RTL Localization',
-                        'Team Leadership & Coaching',
-                        'High-Risk De-escalation'
-                      ].map(skill => (
-                        <li
-                          key={skill}
-                          className="rounded-full border border-teal-200 bg-teal-50 px-3 py-1 text-xs font-semibold text-teal-800 dark:border-teal-900 dark:bg-teal-950/40 dark:text-teal-200"
-                        >
+                      {['React', 'TypeScript', 'Node.js', 'Next.js', 'Tailwind CSS', 'PostgreSQL', 'Git', 'REST APIs', 'Supabase'].map(skill => (
+                        <li key={skill} className="rounded-lg bg-teal-50 dark:bg-stone-800 px-2.5 py-1 text-xs font-bold text-teal-800 dark:text-teal-300">
                           {skill}
                         </li>
                       ))}
                     </ul>
                   </section>
-
-                  <section>
-                    <h3 className="mb-3 text-xs font-extrabold uppercase tracking-widest text-teal-700 dark:text-teal-400">
-                      Volunteering
-                    </h3>
-                    <div className="border-l-2 border-teal-300 pl-4 dark:border-teal-800">
-                      <p className="font-bold text-sm text-stone-900 dark:text-stone-100">
-                        Volunteer — Resala Charity
-                      </p>
-                      <p className="text-xs font-semibold text-stone-500 dark:text-stone-400">
-                        Jul 2022 – Present
-                      </p>
-                    </div>
-                  </section>
                 </div>
 
-                {/* Right column: profile, featured project, experience, internships, education */}
-                <div className="space-y-7">
+                {/* Right column: About, Experience & Projects */}
+                <div className="space-y-6 text-sm leading-relaxed text-stone-700 dark:text-stone-300">
                   <section>
-                    <h3 className="mb-3 text-xs font-extrabold uppercase tracking-widest text-teal-700 dark:text-teal-400">
-                      Profile
+                    <h3 className="mb-2 text-xs font-extrabold uppercase tracking-widest text-teal-700 dark:text-teal-400">
+                      Summary
                     </h3>
-                    <p className="text-sm leading-relaxed text-stone-700 dark:text-stone-300">
-                      Results-driven professional bridging the gap between scientific analytical thinking and full-stack software development. Creator of &ldquo;Thinking English&rdquo; (#0), a 100% free, open-source, AI-powered web application that teaches English to Arabic speakers using structural comparison. Combines a strong background in BPO operations (Retention &amp; Sales) with proven technical ability in React, TypeScript, AI API integration (Gemini), and product strategy.
+                    <p>
+                      Passionate software engineer and educator dedicated to democratizing cognitive English learning for native Arabic speakers through open-source technology, deterministic SRS algorithms, and intelligent pedagogical design.
                     </p>
-                  </section>
-
-                  <section>
-                    <h3 className="mb-3 text-xs font-extrabold uppercase tracking-widest text-teal-700 dark:text-teal-400">
-                      Featured Project
-                    </h3>
-                    <div className="border-l-2 border-teal-300 pl-4 dark:border-teal-800">
-                      <p className="font-bold text-sm text-stone-900 dark:text-stone-100">
-                        Creator &amp; Full-Stack Developer — Thinking English (#0)
-                      </p>
-                      <p className="text-xs font-semibold text-stone-500 dark:text-stone-400">
-                        Oct 2026 – Present
-                      </p>
-                      <ul className="mt-2 list-disc space-y-1.5 pl-5 text-sm text-stone-700 dark:text-stone-300">
-                        <li>
-                          Built a fully functional, open-source web app deployed on Vercel, designed to help Arabic speakers learn English through cognitive structural bridging.
-                        </li>
-                        <li>
-                          Integrated Gemini AI with a custom fallback system (rate limiting, caching, and a local offline dictionary) to ensure 100% uptime.
-                        </li>
-                        <li>
-                          Engineered a &ldquo;Bring Your Own Key&rdquo; (BYOK) system and localized RTL interface for Arabic users.
-                        </li>
-                        <li>
-                          App code was officially reviewed and selected by the XERJ Corpus Hub as a gold-standard reference for AI coding agents.
-                        </li>
-                      </ul>
-                    </div>
-                  </section>
-
-                  <section>
-                    <h3 className="mb-3 text-xs font-extrabold uppercase tracking-widest text-teal-700 dark:text-teal-400">
-                      Experience
-                    </h3>
-                    <div className="border-l-2 border-teal-300 pl-4 dark:border-teal-800">
-                      <p className="font-bold text-sm text-stone-900 dark:text-stone-100">
-                        Loyalty (Retention) Specialist — Optimum (Intelcia Egypt)
-                      </p>
-                      <p className="text-xs font-semibold text-stone-500 dark:text-stone-400">
-                        Jul 2024 – Present
-                      </p>
-                      <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-stone-700 dark:text-stone-300">
-                        <li>Handle high-risk retention cases and negotiate tailored solutions.</li>
-                        <li>Sell 200+ mobile lines and mentor newcomers.</li>
-                      </ul>
-                    </div>
-                  </section>
-
-                  <section>
-                    <h3 className="mb-3 text-xs font-extrabold uppercase tracking-widest text-teal-700 dark:text-teal-400">
-                      Technical Internships
-                    </h3>
-                    <div className="space-y-4 border-l-2 border-teal-300 pl-4 dark:border-teal-800">
-                      <div>
-                        <p className="font-bold text-sm text-stone-900 dark:text-stone-100">
-                          Industrial Chemistry Intern — Misr Chemical Industries
-                        </p>
-                        <p className="text-xs font-semibold text-stone-500 dark:text-stone-400">
-                          Aug 2025 – Sep 2025
-                        </p>
-                      </div>
-                      <div>
-                        <p className="font-bold text-sm text-stone-900 dark:text-stone-100">
-                          Wastewater Treatment Intern — Sanitary Drainage Company
-                        </p>
-                        <p className="text-xs font-semibold text-stone-500 dark:text-stone-400">
-                          Summer 2026
-                        </p>
-                      </div>
-                    </div>
-                  </section>
-
-                  <section>
-                    <h3 className="mb-3 text-xs font-extrabold uppercase tracking-widest text-teal-700 dark:text-teal-400">
-                      Education
-                    </h3>
-                    <div className="border-l-2 border-teal-300 pl-4 dark:border-teal-800">
-                      <p className="font-bold text-sm text-stone-900 dark:text-stone-100">
-                        Faculty of Science, Alexandria University
-                      </p>
-                      <p className="text-sm text-stone-700 dark:text-stone-300">
-                        BSc in Environmental Studies / Chemistry (2023 – Present)
-                      </p>
-                    </div>
                   </section>
                 </div>
               </div>
             </div>
-
-            <footer className="border-t border-stone-300 px-6 py-4 dark:border-stone-700 sm:px-8">
-              <button
-                type="button"
-                onClick={() => setShowCv(false)}
-                className="w-full rounded-2xl bg-teal-700 px-5 py-3 font-bold text-white transition hover:bg-teal-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-stone-900"
-              >
-                Close
-              </button>
-            </footer>
           </article>
         </div>
       )}
 
+      {/* Install Guide Modal */}
       {showInstallGuide && (
         <div
-          className="fixed inset-0 z-[999] flex items-center justify-center bg-stone-950/60 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-[999] flex items-center justify-center bg-stone-950/70 p-4 backdrop-blur-sm"
           onMouseDown={event => {
             if (event.target === event.currentTarget) setShowInstallGuide(false);
           }}
@@ -513,49 +419,44 @@ export function LandingView({ onStartWebApp, onStartGuest, onResumeApp }: Landin
             role="dialog"
             aria-modal="true"
             aria-labelledby="install-guide-title"
-            className="w-full max-w-md rounded-3xl border border-stone-300 bg-white p-6 text-stone-900 shadow-2xl dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100 sm:p-8"
+            className="w-full max-w-md rounded-3xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-6 text-stone-900 dark:text-stone-100 shadow-2xl"
           >
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h2 id="install-guide-title" className="text-xl font-bold">
-                  تثبيت فكّر إنجليزي · Install
-                </h2>
-                <p className="mt-2 text-sm leading-relaxed text-stone-600 dark:text-stone-300">
-                  افتح قائمة المتصفح واختر <strong>Add to Home Screen</strong> أو{' '}
-                  <strong>Install app</strong> لتحميل التطبيق مباشرة على هاتفك.
-                </p>
-              </div>
+            <div className="flex items-center justify-between border-b border-stone-200 dark:border-stone-800 pb-3">
+              <h2 id="install-guide-title" className="text-lg font-black">
+                {isAr ? 'تثبيت التطبيق على الهاتف' : 'Install on your phone'}
+              </h2>
               <button
                 type="button"
                 onClick={() => setShowInstallGuide(false)}
                 aria-label="Close install instructions"
-                className="rounded-lg p-2 text-stone-700 transition hover:bg-stone-100 hover:text-stone-900 dark:text-stone-300 dark:hover:text-white font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 dark:hover:bg-stone-800 dark:hover:text-white"
+                className="rounded-lg p-2 text-stone-700 transition hover:bg-stone-100 hover:text-stone-900 dark:text-stone-300 dark:hover:text-white"
               >
                 <X size={20} aria-hidden="true" />
               </button>
             </div>
-            <p className="mt-4 rounded-2xl bg-teal-50 p-3 text-sm leading-relaxed text-teal-900 dark:bg-teal-950/40 dark:text-teal-200">
+            <p className="mt-4 rounded-2xl bg-teal-50 p-3 text-sm leading-relaxed text-teal-900 dark:bg-teal-950/40 dark:text-teal-200 ar">
               على أجهزة iPhone: افتح الصفحة في Safari، واضغط على زر المشاركة (Share)، ثم اختر{' '}
               <strong>Add to Home Screen</strong>.
             </p>
             <a
-              href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v1.0.1/thinking-english-v1.0.1.apk"
+              href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v1.1.2/thinking-english-v1.1.2.apk"
               className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-teal-700/70 bg-teal-50 dark:bg-stone-800 px-4 py-2.5 text-xs font-bold text-teal-800 dark:text-teal-200 transition hover:bg-teal-100 dark:hover:bg-stone-700 cursor-pointer"
             >
               <Smartphone size={16} aria-hidden="true" />
-              <span>أو حمّل ملف الـ APK مباشرة (Download Android App 📱 v1.0.1)</span>
+              <span>{t('landing.downloadAndroidApk', 'تحميل تطبيق الأندرويد 📱 (v1.1.2)')}</span>
             </a>
             <button
               type="button"
               onClick={() => setShowInstallGuide(false)}
-              className="mt-5 w-full rounded-2xl bg-teal-700 px-5 py-3 font-bold text-white transition hover:bg-teal-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-stone-900"
+              className="mt-5 w-full rounded-2xl bg-teal-700 px-5 py-3 font-bold text-white transition hover:bg-teal-800 cursor-pointer"
             >
-              فهمت (Got it)
+              {isAr ? 'فهمت' : 'Got it'}
             </button>
           </section>
         </div>
       )}
 
+      {/* Privacy & Security Modal */}
       {showPrivacyModal && (
         <div
           className="fixed inset-0 z-[999] flex items-center justify-center bg-stone-950/70 p-4 backdrop-blur-sm overflow-y-auto"
@@ -568,7 +469,7 @@ export function LandingView({ onStartWebApp, onStartGuest, onResumeApp }: Landin
             aria-modal="true"
             aria-labelledby="privacy-modal-title"
             dir="rtl"
-            className="w-full max-w-lg rounded-3xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-6 sm:p-7 text-stone-900 dark:text-stone-100 shadow-2xl space-y-5 my-auto max-h-[90vh] flex flex-col ar"
+            className="w-full max-w-lg rounded-3xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-6 sm:p-7 text-stone-900 dark:text-stone-100 shadow-2xl space-y-4 my-auto max-h-[90vh] flex flex-col ar text-start"
           >
             {/* Header */}
             <div className="flex items-center justify-between border-b border-stone-200 dark:border-stone-800 pb-3 shrink-0">
@@ -591,9 +492,8 @@ export function LandingView({ onStartWebApp, onStartGuest, onResumeApp }: Landin
             </div>
 
             {/* Content Body */}
-            <div className="overflow-y-auto space-y-3.5 text-xs sm:text-sm font-medium leading-relaxed pr-1 text-right">
-              {/* No data taken */}
-              <div className="p-3.5 rounded-2xl bg-teal-50/70 dark:bg-teal-950/40 border border-teal-200/80 dark:border-teal-900/60 space-y-1.5">
+            <div className="overflow-y-auto space-y-3 text-xs sm:text-sm font-medium leading-relaxed pr-1 text-right">
+              <div className="p-3.5 rounded-2xl bg-teal-50/70 dark:bg-teal-950/40 border border-teal-200/80 dark:border-teal-900/60 space-y-1">
                 <p className="font-bold text-teal-950 dark:text-teal-200 text-sm">
                   إحنا مش بناخد منك أي حاجة:
                 </p>
@@ -605,7 +505,6 @@ export function LandingView({ onStartWebApp, onStartGuest, onResumeApp }: Landin
                 </p>
               </div>
 
-              {/* Mic Security */}
               <div className="p-3.5 rounded-2xl bg-stone-50 dark:bg-stone-800/60 border border-stone-200 dark:border-stone-700/60">
                 <p className="font-bold text-stone-900 dark:text-white text-sm mb-1 flex items-center gap-1.5">
                   <span>🎙️</span>
@@ -616,7 +515,6 @@ export function LandingView({ onStartWebApp, onStartGuest, onResumeApp }: Landin
                 </p>
               </div>
 
-              {/* Local Storage */}
               <div className="p-3.5 rounded-2xl bg-stone-50 dark:bg-stone-800/60 border border-stone-200 dark:border-stone-700/60">
                 <p className="font-bold text-stone-900 dark:text-white text-sm mb-1 flex items-center gap-1.5">
                   <span>💾</span>
@@ -627,18 +525,6 @@ export function LandingView({ onStartWebApp, onStartGuest, onResumeApp }: Landin
                 </p>
               </div>
 
-              {/* Android Warning explanation */}
-              <div className="p-3.5 rounded-2xl bg-amber-50/70 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-900/60">
-                <p className="font-bold text-amber-950 dark:text-amber-200 text-sm mb-1 flex items-center gap-1.5">
-                  <span>🛡️</span>
-                  <span>ليه الأندرويد بيحذرني؟</span>
-                </p>
-                <p className="text-stone-700 dark:text-stone-300">
-                  لأن التطبيق مش على Google Play (عشان نوفر فلوس النشر). ده تحذير عادي جداً لأي تطبيق بيتحمل مباشرة.
-                </p>
-              </div>
-
-              {/* Open Source GitHub */}
               <div className="p-3.5 rounded-2xl bg-stone-50 dark:bg-stone-800/60 border border-stone-200 dark:border-stone-700/60">
                 <p className="font-bold text-stone-900 dark:text-white text-sm mb-1 flex items-center gap-1.5">
                   <span>💻</span>

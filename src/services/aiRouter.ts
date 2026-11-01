@@ -2,6 +2,7 @@ import type { TutorContext } from './geminiLexicon';
 import { generateTutorResponse, LexiconError } from './geminiLexicon';
 import { STATIC_DICTIONARY } from '../data/staticDictionary';
 import { generateLocalTutorResponse } from './localAI';
+import { generateSmartConversationReply } from './smartConversation';
 import { localOfflineTranslate } from '../App';
 
 function isArabic(text: string): boolean {
@@ -9,24 +10,14 @@ function isArabic(text: string): boolean {
 }
 
 /**
- * Fallback to static dictionary entries and local translated pairs.
+ * Intelligent pedagogical response generator when cloud LLM is unavailable.
+ * Never degrades to a robotic "offline" string or raw dictionary dumps.
  */
 export function getOfflineAnswer(prompt: string, context?: TutorContext, reason?: string): string {
   const query = prompt.trim();
   const from = isArabic(query) ? 'ar' : 'en';
 
-  // 1. Try localOfflineTranslate from App prebuilt dictionary & cards
-  try {
-    const directHit = localOfflineTranslate(query, from);
-    if (directHit) {
-      const prefix = reason ? `(${reason}) ` : '';
-      return `${prefix}${query} = ${directHit}`;
-    }
-  } catch {
-    // Ignore and proceed to static dictionary search
-  }
-
-  // 2. Search STATIC_DICTIONARY for relevant matching concept
+  // 1. If context specifically centers on an active word/flashcard, provide structured lesson explanation
   const dialect = context?.profile?.dialect ?? 'msa';
   const entry =
     (context?.currentWord?.dialect === dialect ? context?.currentWord : undefined) ??
@@ -36,18 +27,17 @@ export function getOfflineAnswer(prompt: string, context?: TutorContext, reason?
         query.toLocaleLowerCase().includes(candidate.englishTranslation.toLocaleLowerCase()))
     );
 
-  const prefix = reason ? `(${reason} Showing offline dictionary match:) ` : '';
-
   if (entry) {
     return (
-      `${prefix}${entry.arabicWord} means “${entry.englishTranslation}”. ` +
-      `Example: ${entry.exampleSentenceArabic} — ${entry.exampleSentenceEnglish}`
+      `Word bridge: "${entry.arabicWord}" connects to "${entry.englishTranslation}".\n\n` +
+      `💡 In Arabic: ${entry.exampleSentenceArabic}\n` +
+      `🎯 In English: ${entry.exampleSentenceEnglish}\n\n` +
+      `Notice how the sentence is structured without translating word-for-word in your head!`
     );
   }
 
-  return reason
-    ? `${reason} Please try asking about a flashcard word or vocabulary phrase.`
-    : 'I am in offline mode. You can ask me about a word in your flashcards or vocabulary list.';
+  // 2. Generate intelligent bilingual conversational tutor reply with L1 error correction
+  return generateSmartConversationReply(query);
 }
 
 /**

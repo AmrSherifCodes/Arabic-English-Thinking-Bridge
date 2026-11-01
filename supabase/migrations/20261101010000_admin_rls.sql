@@ -58,3 +58,4 @@ CREATE POLICY "Allow only admins to delete messages"
 
 -- 3. Chronological index for inbox queries
 CREATE INDEX IF NOT EXISTS idx_messages_created_at ON public.messages(created_at DESC);
+

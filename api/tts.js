@@ -35,6 +35,7 @@ function resolveGoogleLang(lang = 'en-US') {
 }
 
 export const ALLOWED_CORS_ORIGINS = new Set([
+  'https://thinkingbridge.vercel.app',
   'https://arabicenglishthinkingbridge.vercel.app',
   'http://localhost:5173',
   'http://localhost:3000',
@@ -42,11 +43,19 @@ export const ALLOWED_CORS_ORIGINS = new Set([
   'https://localhost'
 ]);
 
-function getCorsOrigin(origin) {
-  if (origin && (ALLOWED_CORS_ORIGINS.has(origin) || /^https?:\/\/localhost(:\d+)?$/.test(origin))) {
+export function isAllowedOrigin(origin) {
+  if (!origin) return false;
+  if (ALLOWED_CORS_ORIGINS.has(origin)) return true;
+  if (/^https?:\/\/localhost(:\d+)?$/.test(origin)) return true;
+  if (/^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin)) return true;
+  return false;
+}
+
+export function getCorsOrigin(origin) {
+  if (isAllowedOrigin(origin)) {
     return origin;
   }
-  return 'https://arabicenglishthinkingbridge.vercel.app';
+  return 'https://thinkingbridge.vercel.app';
 }
 
 function isAllowedUrlOrigin(urlStr) {
@@ -54,7 +63,7 @@ function isAllowedUrlOrigin(urlStr) {
   try {
     const u = new URL(urlStr);
     const originOnly = `${u.protocol}//${u.host}`;
-    return ALLOWED_CORS_ORIGINS.has(originOnly) || /^https?:\/\/localhost(:\d+)?$/.test(originOnly);
+    return isAllowedOrigin(originOnly);
   } catch {
     return false;
   }
@@ -63,7 +72,6 @@ function isAllowedUrlOrigin(urlStr) {
 export default async function ttsHandler(req, res) {
   const origin = req.headers.origin;
   const referer = req.headers.referer;
-  const secFetchSite = req.headers['sec-fetch-site'];
 
   res.setHeader('Access-Control-Allow-Origin', getCorsOrigin(origin));
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -77,8 +85,7 @@ export default async function ttsHandler(req, res) {
   }
 
   if (origin) {
-    const isAllowed = ALLOWED_CORS_ORIGINS.has(origin) || /^https?:\/\/localhost(:\d+)?$/.test(origin);
-    if (!isAllowed) {
+    if (!isAllowedOrigin(origin)) {
       res.statusCode = 403;
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
       res.end(JSON.stringify({ error: 'Origin not allowed.' }));
@@ -91,11 +98,6 @@ export default async function ttsHandler(req, res) {
       res.end(JSON.stringify({ error: 'Referer not allowed.' }));
       return;
     }
-  } else if (secFetchSite === 'cross-site') {
-    res.statusCode = 403;
-    res.setHeader('Content-Type', 'application/json; charset=utf-8');
-    res.end(JSON.stringify({ error: 'Cross-site request rejected.' }));
-    return;
   }
 
   if (req.method !== 'GET' && req.method !== 'POST') {

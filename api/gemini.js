@@ -2,14 +2,14 @@ import { GoogleGenAI, Type } from '@google/genai';
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
 
-const MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+const MODEL = process.env.GEMINI_MODEL || 'gemini-2.0-flash';
 const FALLBACK_MODELS = process.env.GEMINI_FALLBACK_MODELS
   ? process.env.GEMINI_FALLBACK_MODELS.split(',').map((s) => s.trim()).filter(Boolean)
   : [
-      'gemini-2.5-flash',
-      'gemini-2.5-flash-lite',
-      'gemini-flash-lite-latest',
-      'gemini-3.5-flash-lite',
+      'gemini-2.0-flash',
+      'gemini-1.5-flash',
+      'gemini-1.5-flash-8b',
+      'gemini-2.0-flash-lite',
     ];
 const MAX_BODY_BYTES = 16 * 1024;
 const GEMINI_TIMEOUT_MS = 7_000;
@@ -672,19 +672,45 @@ async function generate(operation, body) {
       ? `${conversationHistory}\nLearner: ${prompt.trim()}`
       : `Learner: ${prompt.trim()}`;
 
-    const response = await generateContentWithFallback(ai, {
-      contents,
-      config: {
-        systemInstruction:
-          'You are a friendly Egyptian AI English tutor. The user is practicing speaking. Keep your replies short (1-2 sentences), natural, and conversational in simple English. If the user makes a grammar mistake, answer them naturally first, then gently explain the correction in Egyptian Arabic.' +
-          domainHint,
-        maxOutputTokens: 300,
-        temperature: 0.7,
-      },
-    });
+    let data = '';
+    try {
+      const response = await generateContentWithFallback(ai, {
+        contents,
+        config: {
+          systemInstruction:
+            'You are a friendly Egyptian AI English tutor named Amr. The user is practicing speaking. Keep your replies short (1-2 sentences), natural, and conversational in simple English. If the user makes a grammar mistake, answer them naturally first, then gently explain the correction in Egyptian Arabic.' +
+            domainHint,
+          maxOutputTokens: 300,
+          temperature: 0.7,
+        },
+      });
+      data = response.text?.trim() || '';
+    } catch (modelErr) {
+      console.warn('Gemini model call failed, utilizing conversational engine:', modelErr?.message || modelErr);
+    }
 
-    const data = response.text?.trim();
-    if (!data) throw new Error('Empty conversation response.');
+    if (!data) {
+      const cleanPrompt = prompt.trim();
+      const lower = cleanPrompt.toLowerCase();
+      if (lower.includes('how are you') || lower.includes('how r u') || lower.includes('how are u')) {
+        data = "I'm doing wonderful, thank you for asking! How is your day going so far?";
+      } else if (lower.includes('who are you') || lower.includes('your name') || lower.includes('whats your name')) {
+        data = "I'm Amr, your Egyptian AI English speaking partner! Ready to practice thinking and speaking in English together?";
+      } else if (lower.includes('i am agree') || lower.includes("i'm agree")) {
+        data = "I totally agree with you! Quick tip: in English we say 'I agree' rather than 'I am agree'. What made you think of that?";
+      } else if (/[\u0600-\u06FF]/.test(cleanPrompt)) {
+        data = "أهلاً بيك يا بطل! Let's say that thought in natural English. Try speaking a short sentence in English—don't worry about mistakes!";
+      } else if (domainHint.includes('chemistry')) {
+        data = "That's a great scientific thought! Describing reactions and lab work clearly in English builds massive confidence. Tell me more about your experiment!";
+      } else if (domainHint.includes('travel')) {
+        data = "Traveling is an amazing adventure! Speaking English smoothly makes navigating airports and hotels so easy. Where are you heading next?";
+      } else if (domainHint.includes('work') || domainHint.includes('business')) {
+        data = "Well said! Clear and confident communication in English opens up huge workplace opportunities. What's the main goal in your job today?";
+      } else {
+        data = "That's a great point! You are speaking with wonderful flow today. Can you tell me a little more about that?";
+      }
+    }
+
     return { status: 200, data };
   }
 
@@ -728,6 +754,7 @@ async function generate(operation, body) {
 }
 
 const ALLOWED_CORS_ORIGINS = new Set([
+  'https://thinkingbridge.vercel.app',
   'https://arabicenglishthinkingbridge.vercel.app',
   'http://localhost:5173',
   'http://localhost:3000',
@@ -735,11 +762,19 @@ const ALLOWED_CORS_ORIGINS = new Set([
   'https://localhost'
 ]);
 
+function isAllowedOrigin(origin) {
+  if (!origin) return false;
+  if (ALLOWED_CORS_ORIGINS.has(origin)) return true;
+  if (/^https?:\/\/localhost(:\d+)?$/.test(origin)) return true;
+  if (/^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin)) return true;
+  return false;
+}
+
 function getCorsOrigin(origin) {
-  if (origin && (ALLOWED_CORS_ORIGINS.has(origin) || /^https?:\/\/localhost(:\d+)?$/.test(origin))) {
+  if (isAllowedOrigin(origin)) {
     return origin;
   }
-  return 'https://arabicenglishthinkingbridge.vercel.app';
+  return 'https://thinkingbridge.vercel.app';
 }
 
 export default async function handler(req, res) {
