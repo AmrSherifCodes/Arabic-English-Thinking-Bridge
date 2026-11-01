@@ -3,7 +3,7 @@ import { generateTutorResponse, LexiconError } from './geminiLexicon';
 import { STATIC_DICTIONARY } from '../data/staticDictionary';
 import { generateLocalTutorResponse, isLocalAIReady } from './localAI';
 import { generateSmartConversationReply } from './smartConversation';
-import { localOfflineTranslate } from '../App';
+import { searchOfflineDictionary as localOfflineTranslate } from '../utils/dictionarySearch';
 
 function isArabic(text: string): boolean {
   return /[\u0600-\u06FF]/.test(text);

@@ -1,0 +1,13 @@
+.menu { display: flex; flex-direction: column; min-height: 100dvh; background: var(--bg, #0b0d10); color: var(--fg, #e9ecf1); padding: max(16px, env(safe-area-inset-top)) 20px max(24px, env(safe-area-inset-bottom)); }
+.menu__header { padding: 8px 0 20px; }
+.menu__title { font-size: 22px; font-weight: 600; margin: 0; }
+.menu__tiles { display: flex; flex-direction: column; gap: 12px; flex: 1; }
+.tile { display: flex; align-items: center; gap: 16px; padding: 20px; min-height: 120px; border-radius: 20px; background: #ffffff0a; border: 1px solid #ffffff0f; color: inherit; text-align: start; cursor: pointer; transition: transform 0.08s, background 0.15s; }
+.tile:active { transform: scale(0.985); }
+.tile--primary { background: linear-gradient(135deg, #4f8cff22, #7a5cff22); border-color: #4f8cff44; }
+.tile__icon { font-size: 34px; flex-shrink: 0; width: 56px; height: 56px; display: grid; place-items: center; background: #ffffff0d; border-radius: 16px; }
+.tile__copy { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+.tile__label { font-size: 18px; font-weight: 600; }
+.tile__hint { font-size: 14px; color: #9aa4b2; }
+.tile__badge { font-size: 13px; font-weight: 600; background: #ff5c7c; color: #fff; border-radius: 999px; padding: 4px 10px; min-width: 32px; text-align: center; }
+

@@ -84,6 +84,14 @@ export default async function ttsHandler(req, res) {
     return;
   }
 
+  const secFetchSite = req.headers['sec-fetch-site'];
+  if (secFetchSite === 'cross-site') {
+    res.statusCode = 403;
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.end(JSON.stringify({ error: 'Cross-site request rejected.' }));
+    return;
+  }
+
   if (origin) {
     if (!isAllowedOrigin(origin)) {
       res.statusCode = 403;

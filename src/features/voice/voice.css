@@ -1,0 +1,98 @@
+.voice {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  background: var(--bg, #0b0d10);
+  color: var(--fg, #e9ecf1);
+  padding: max(16px, env(safe-area-inset-top)) 20px max(32px, env(safe-area-inset-bottom));
+}
+
+.voice__header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 0 20px;
+  font-size: 18px;
+  font-weight: 600;
+  border-bottom: 1px solid #ffffff14;
+}
+
+.voice__back {
+  width: 48px;
+  height: 48px;
+  border-radius: 24px;
+  background: #ffffff0f;
+  color: inherit;
+  border: 0;
+  font-size: 22px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+
+.voice__stage {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+}
+
+.voice__orb {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #4f8cff, #7a5cff 60%, #1a1e29);
+  box-shadow: 0 0 40px #4f8cff33;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.voice__orb--listening {
+  transform: scale(1.15);
+  box-shadow: 0 0 60px #4f8cff88;
+  animation: pulse-ring 1.8s infinite;
+}
+
+.voice__orb--transcribing,
+.voice__orb--thinking {
+  transform: scale(0.95);
+  box-shadow: 0 0 50px #ffd15c88;
+}
+
+.voice__orb--speaking {
+  transform: scale(1.1);
+  box-shadow: 0 0 60px #5cff9e88;
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(1); box-shadow: 0 0 30px #4f8cff44; }
+  50% { transform: scale(1.18); box-shadow: 0 0 70px #4f8cffaa; }
+  100% { transform: scale(1); box-shadow: 0 0 30px #4f8cff44; }
+}
+
+.voice__status {
+  font-size: 16px;
+  color: #9aa4b2;
+  text-align: center;
+}
+
+.voice__mic {
+  width: 72px;
+  height: 72px;
+  border-radius: 36px;
+  background: linear-gradient(135deg, #4f8cff, #7a5cff);
+  border: 0;
+  font-size: 30px;
+  cursor: pointer;
+  margin: 0 auto;
+  box-shadow: 0 8px 24px #4f8cff44;
+  display: grid;
+  place-items: center;
+  transition: transform 0.1s ease;
+}
+
+.voice__mic:active {
+  transform: scale(0.92);
+}
+

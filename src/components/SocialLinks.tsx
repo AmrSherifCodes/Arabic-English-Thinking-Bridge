@@ -1,4 +1,4 @@
-import { Github, Linkedin, Youtube } from 'lucide-react';
+import { Github, Linkedin, Youtube, Heart } from 'lucide-react';
 
 const SOCIAL_LINKS = [
   {
@@ -18,6 +18,12 @@ const SOCIAL_LINKS = [
     href: 'https://www.linkedin.com/in/sciamrsherif-abdelaal/',
     Icon: Linkedin,
     className: 'hover:border-sky-300 hover:text-sky-700 dark:hover:border-sky-800 dark:hover:text-sky-300'
+  },
+  {
+    label: 'Patreon',
+    href: 'https://www.patreon.com/c/SciAmrSherif',
+    Icon: Heart,
+    className: 'hover:border-amber-300 hover:text-amber-700 dark:hover:border-amber-800 dark:hover:text-amber-400'
   }
 ] as const;
 

@@ -5,6 +5,8 @@ export interface ArabicLexiconEntry {
   en: string;
   grammar: string;
   tip: string;
+  phonetic?: string;
+  root?: string;
 }
 
 /**

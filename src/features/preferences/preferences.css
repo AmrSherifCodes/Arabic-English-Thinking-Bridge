@@ -1,0 +1,22 @@
+.pref-screen { display: flex; flex-direction: column; min-height: 100dvh; background: var(--bg, #0b0d10); color: var(--fg, #e9ecf1); }
+.pref-header { display: flex; align-items: center; gap: 12px; padding: max(12px, env(safe-area-inset-top)) 20px 12px; border-bottom: 1px solid #ffffff14; }
+.pref-header h1 { font-size: 20px; font-weight: 600; margin: 0; }
+.pref-back { width: 48px; height: 48px; border-radius: 24px; background: #ffffff0f; color: inherit; border: 0; font-size: 22px; cursor: pointer; }
+.pref-body { padding: 20px; padding-bottom: max(32px, env(safe-area-inset-bottom)); }
+.pref-section { margin-bottom: 28px; }
+.pref-section__title { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #9aa4b2; margin: 0 0 12px; }
+.pref-section__fields { background: #ffffff08; border-radius: 16px; overflow: hidden; }
+.pref-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px; min-height: 56px; border-bottom: 1px solid #ffffff0d; }
+.pref-row:last-child { border-bottom: 0; }
+.pref-row--stack { flex-direction: column; align-items: stretch; }
+.pref-row__header { display: flex; justify-content: space-between; margin-bottom: 8px; }
+.pref-row__label { font-size: 15px; }
+.pref-row__value { font-variant-numeric: tabular-nums; color: #9aa4b2; }
+.pref-toggle { position: relative; width: 52px; height: 32px; border-radius: 16px; background: #ffffff20; border: 0; cursor: pointer; padding: 0; transition: background 0.15s; }
+.pref-toggle.is-on { background: #4f8cff; }
+.pref-toggle__thumb { position: absolute; top: 4px; left: 4px; width: 24px; height: 24px; border-radius: 12px; background: #fff; transition: transform 0.15s; }
+.pref-toggle.is-on .pref-toggle__thumb { transform: translateX(20px); }
+.pref-select, .pref-text { background: #ffffff10; color: inherit; border: 1px solid #ffffff1a; border-radius: 10px; padding: 10px 12px; font-size: 14px; min-height: 44px; }
+.pref-slider { width: 100%; accent-color: #4f8cff; }
+.pref-reset { width: 100%; margin-top: 24px; padding: 16px; border-radius: 12px; border: 1px solid #ffffff1a; background: transparent; color: #ff8f8f; font-size: 15px; cursor: pointer; min-height: 48px; }
+
