@@ -10,7 +10,7 @@ body {
   position: relative;
   isolation: isolate;
   min-height: 100vh;
-  background-color: #f8f9fa;
+  background-color: #f1f0eb;
   color: #1c1917;
   font-weight: 500;
   -webkit-font-smoothing: antialiased;
@@ -45,7 +45,7 @@ html.dark {
 }
 
 html.dark body {
-  background-color: #121212;
+  background-color: #0c0a09;
   color: #f5f5f4;
 }
 

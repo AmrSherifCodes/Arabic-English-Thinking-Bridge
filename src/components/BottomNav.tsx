@@ -26,10 +26,10 @@ export function BottomNav({ activeTab, onTabChange, language }: BottomNavProps) 
     <nav
       dir={rtl ? 'rtl' : 'ltr'}
       aria-label={uiText(language, 'Main navigation', 'التنقل الرئيسي')}
-      className="fixed inset-x-0 bottom-0 z-30 border-t border-stone-200 dark:border-stone-800 bg-white/95 dark:bg-stone-900/95 backdrop-blur-md"
+      className="fixed inset-x-0 bottom-0 sm:left-1/2 sm:-translate-x-1/2 sm:max-w-md sm:border-x sm:border-stone-200/90 dark:sm:border-stone-800 z-30 border-t border-stone-200 dark:border-stone-800 bg-white/95 dark:bg-stone-900/95 backdrop-blur-md"
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
-      <div className="mx-auto flex max-w-xl">
+      <div className="mx-auto flex max-w-md">
         {TABS.map(({ id, labelEn, labelAr, Icon }) => {
           const isActive = activeTab === id;
           return (

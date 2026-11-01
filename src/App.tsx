@@ -106,6 +106,7 @@ import { useTheme } from './hooks/useTheme';
 import { MessagesView } from './components/MessagesView';
 import { LandingView } from './components/LandingView';
 import { ConversationView } from './components/ConversationView';
+import { CreditsModal } from './components/CreditsModal';
 
 export { CULTURAL_QUOTES, PAN_ARAB_NATIONS, CulturalToast, OliveBranchIcon };
 export const TEACHER_PIN = STORAGE_TEACHER_PIN;
@@ -331,23 +332,20 @@ export default function App() {
 
   const coreDecks = visibleCoreDecks.map(deck => {
     if (deck.id === 'master-dictionary') {
-      const dialectTag = profile?.dialect === 'egyptian'
-        ? tUI('Egyptian Arabic (Ammiya) 🇪🇬', 'العامية المصرية 🇪🇬')
-        : tUI('Modern Standard Arabic 📖', 'العربية الفصحى 📖');
       return {
         ...deck,
         name: tUI(
-          `✨ My Personalized ${dictionaryEntries.length.toLocaleString()} Words & Phrases (${dialectTag})`,
-          `✨ قاموسي المخصص (${dictionaryEntries.length.toLocaleString()} كلمة وعبارة · ${dialectTag})`
+          `Personalized Vocabulary (${dictionaryEntries.length.toLocaleString()} words)`,
+          `قاموس المفردات المخصص (${dictionaryEntries.length.toLocaleString()} كلمة)`
         ),
         subtitle: profile
           ? tUI(
-              `${dictionaryEntries.length.toLocaleString()} ${dialectTag} words & phrases matched to your ${profile.level} level and ${profile.goal} goal`,
-              `${dictionaryEntries.length.toLocaleString()} كلمة وعبارة (${dialectTag}) مخصصة لمستواك وأهدافك`
+              `${dictionaryEntries.length.toLocaleString()} words matched to your ${profile.level} level`,
+              `${dictionaryEntries.length.toLocaleString()} كلمة وعبارة مخصصة لمستواك وأهدافك`
             )
           : tUI(
-              `${dictionaryEntries.length.toLocaleString()} words & phrases in your personalized vocabulary pool`,
-              `${dictionaryEntries.length.toLocaleString()} كلمة وعبارة في مجموعتك المخصصة`
+              `${dictionaryEntries.length.toLocaleString()} words in your vocabulary pool`,
+              `${dictionaryEntries.length.toLocaleString()} كلمة في مجموعتك المخصصة`
             )
       };
     }
@@ -393,6 +391,7 @@ export default function App() {
   const [showSettingsMenu, setShowSettingsMenu] = useState<boolean>(false);
   const [showOnboarding, setShowOnboarding] = useState<boolean>(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState<boolean>(false);
+  const [showCreditsModal, setShowCreditsModal] = useState<boolean>(false);
   const [attributionDeck, setAttributionDeck] = useState<PrebuiltDeck | null>(null);
 
   // Unlock all mode for training demos / free exploration
@@ -1987,9 +1986,9 @@ export default function App() {
     CULTURAL_QUOTES[cultureQuoteIdx % CULTURAL_QUOTES.length] || CULTURAL_QUOTES[0];
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden bg-transparent">
-      <div className="relative z-10">
-      <div inert={isBlocked} className="flex h-dvh min-h-screen w-full flex-col overflow-hidden">
+    <div className="relative min-h-screen w-full flex justify-center bg-[#f1f0eb] dark:bg-[#0c0a09]">
+      <div className="relative z-10 w-full max-w-md bg-[#f8f9fa] dark:bg-stone-900 text-stone-900 dark:text-stone-100 flex flex-col min-h-screen sm:border-x sm:border-stone-200/90 dark:sm:border-stone-800 sm:shadow-2xl overflow-x-hidden">
+      <div inert={isBlocked} className="flex min-h-screen w-full flex-col">
         {isGuest && !storedProfile && (
           <div className="flex shrink-0 items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-orange-600 px-3 py-1.5 text-xs font-bold text-white">
             <span>🎟️ Honorary Guest Mode</span>
@@ -2216,9 +2215,7 @@ export default function App() {
 
       <main
         id="v"
-        className={`mx-auto min-h-0 w-full ${
-          activeTab === 'cards' ? 'max-w-2xl' : 'max-w-md'
-        } flex-1 overflow-y-auto px-4 py-3 pb-[calc(7rem+env(safe-area-inset-bottom,0px))]`}
+        className="mx-auto min-h-0 w-full flex-1 overflow-y-auto px-4 py-3 pb-[calc(7rem+env(safe-area-inset-bottom,0px))]"
       >
       {/* Motivational Focus Card */}
       {(activeTab === 'home' || activeTab === 'lessons' || activeTab === 'hub') &&
@@ -2254,6 +2251,7 @@ export default function App() {
             onOpenLesson={openLesson}
             onOpenWhyEnglish={() => setShowWhyEnglish(true)}
             onStartAiPractice={handleStartAiPractice}
+            onOpenCredits={() => setShowCreditsModal(true)}
             onNavigate={(action: HomeAction) => {
               if (action === 'messages') {
                 setActiveTab('messages');
@@ -2557,61 +2555,6 @@ export default function App() {
           className="kuffiyeh-border-band mt-6 rounded-lg"
           aria-hidden="true"
         />
-
-        {/* Inspiration & Alexandria Tribute Footer */}
-        <footer
-          id="tribute-footer"
-          className="mt-3 pt-4 border-t border-stone-200/80 dark:border-stone-800 text-center text-xs opacity-75 space-y-1"
-        >
-          <p>
-            🌊 Crafted in <strong>Alexandria, Egypt</strong> by <strong>Amr Sherif</strong> ·{' '}
-            <strong>Thinking English™</strong> · 100% Free &amp; Ad-Free
-          </p>
-          <p>
-            📚 Lessons and built-in decks are original and dedicated to the public domain (CC0 1.0).
-          </p>
-          <p id="dictionary-attribution">
-            📖 Vocabulary data includes contributions from{' '}
-            <a
-              href="https://en.wiktionary.org/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline"
-            >
-              Wiktionary
-            </a>{' '}
-            (via{' '}
-            <a href="https://kaikki.org/" target="_blank" rel="noopener noreferrer" className="underline">
-              Kaikki.org
-            </a>
-            ), licensed under{' '}
-            <a
-              href="https://creativecommons.org/licenses/by-sa/4.0/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline"
-            >
-              CC BY-SA
-            </a>
-            , and the{' '}
-            <a
-              href="https://huggingface.co/datasets/oddadmix/egyptian-arabic-english-translation-50k"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline"
-            >
-              oddadmix/egyptian-arabic-english-translation-50k
-            </a>{' '}
-            dataset on Hugging Face (Apache-2.0).
-          </p>
-          <p>
-            🔒 <em>No accounts. No analytics. Translation requests go to MyMemory.net only.</em>
-          </p>
-          <p>
-            💡 Pedagogical approach gratefully inspired by{' '}
-            <strong>Mihalis Eleftheriou</strong> &amp; <em>The Thinking Method (Language Transfer)</em> — an independent community project.
-          </p>
-        </footer>
       </main>
 
       <BottomNav
@@ -2671,6 +2614,7 @@ export default function App() {
           }}
         />
       )}
+      <CreditsModal isOpen={showCreditsModal} onClose={() => setShowCreditsModal(false)} />
       <BlockScreen isBlocked={isBlocked} onUnlock={verify} busy={verifying} error={error} />
       </div>
     </div>

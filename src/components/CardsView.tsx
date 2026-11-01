@@ -177,54 +177,40 @@ export function DeckListView({
 
   return (
     <div id="anki-deck-list" dir={rtl ? 'rtl' : 'ltr'} className="space-y-5">
-      {/* Top Aggregated Study Banner */}
-      <div className={`${CARD_CLASS} flex flex-col sm:flex-row sm:items-center justify-between gap-3`}>
-        <div>
-          <div className="text-xs font-semibold text-olive-800 dark:text-olive-300 flex items-center gap-1.5">
-            <OliveBranchIcon size={15} className="text-olive-700 dark:text-olive-400" />
-            <span>
-              {t(
-                'Anki Spaced Repetition Dashboard · Free & Open Source',
-                'لوحة التكرار المتباعد الذكية · مجانية ومفتوحة المصدر'
-              )}
-            </span>
-          </div>
-          <div className="text-sm opacity-85 mt-0.5 flex flex-wrap items-center gap-3 tabular-nums">
-            <span>
-              {t('New:', 'جديد:')}{' '}
-              <strong className="text-sky-700 dark:text-sky-400">{allStats.newCount}</strong>
-            </span>
-            <span>·</span>
-            <span>
-              {t('Learning:', 'قيد التعلم:')}{' '}
-              <strong className="text-red-700 dark:text-red-400">{allStats.learningCount}</strong>
-            </span>
-            <span>·</span>
-            <span>
-              {t('Due:', 'مستحق:')}{' '}
-              <strong className="text-emerald-700 dark:text-emerald-400">{allStats.dueCount}</strong>
-            </span>
-            <span>·</span>
-            <span className="text-xs opacity-75">
-              {t('Total Active Pool:', 'إجمالي البطاقات المتاحة:')}{' '}
-              <strong>{allStats.totalCards}</strong> {t('cards', 'بطاقة')}
-            </span>
-          </div>
+      {/* Top Header & Study CTA */}
+      <div className="space-y-3">
+        <div className="text-right sm:text-start px-1">
+          <h2 className="text-xl sm:text-2xl font-black text-stone-900 dark:text-white flex items-center gap-2">
+            <span>🧠</span>
+            <span>{t('Flashcards & Review', 'البطاقات والمراجعة')}</span>
+          </h2>
+          <p className="text-xs font-semibold text-stone-600 dark:text-stone-300 mt-1">
+            {t(
+              'Spaced repetition for long-term memory',
+              'مراجعة ذكية بالتكرار المتباعد لتثبيت الكلمات في الذاكرة'
+            )}
+          </p>
         </div>
+
+        {/* Primary Full-Width CTA Button */}
         <button
           type="button"
           id="study-all-btn"
           disabled={totalDueOrNew === 0}
           onClick={() => onSelectDeck('all')}
-          className={BTN_PRIMARY + ' whitespace-nowrap'}
+          className="w-full py-4 px-6 rounded-2xl bg-teal-700 hover:bg-teal-800 active:scale-[0.98] text-white font-black text-base sm:text-lg shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2.5 text-center disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
         >
-          ⚡ {t('Study All Due Cards', 'ابدأ مراجعة البطاقات المستحقة')} ({totalDueOrNew})
+          <span>⚡</span>
+          <span>{t('Study All Due Cards', 'ابدأ مراجعة البطاقات المستحقة')}</span>
+          <span className="text-xs font-bold opacity-90 bg-teal-800/80 px-2.5 py-0.5 rounded-xl">
+            {totalDueOrNew} {t('due', 'مستحق')}
+          </span>
         </button>
       </div>
 
       {/* Core Decks Section */}
       <div>
-        <div className="flex items-center justify-between px-2 mb-2 text-xs font-semibold opacity-65">
+        <div className="flex items-center justify-between px-2 mb-2 text-xs font-semibold text-stone-600 dark:text-stone-300">
           <span>
             {isEgyptianOnly
               ? t(
@@ -233,100 +219,84 @@ export function DeckListView({
                 )
               : t('Core Curriculum Decks', 'المجموعات الأساسية للمنهج')}
           </span>
-          <div className="grid grid-cols-3 gap-3 text-right w-36">
-            <span className="text-sky-700 dark:text-sky-400">{t('New', 'جديد')}</span>
-            <span className="text-red-700 dark:text-red-400">{t('Learn', 'تعلم')}</span>
-            <span className="text-emerald-700 dark:text-emerald-400">{t('Due', 'مستحق')}</span>
-          </div>
         </div>
 
         <div className="space-y-2.5">
           {coreDecks.map(deck => {
             const st = getDeckStats(deck.id);
             const isEmptyCustom = deck.id === 'custom' && st.totalCards === 0;
+            const isMaster = deck.id === 'master-dictionary';
+
+            if (isEmptyCustom) {
+              return (
+                <button
+                  key={deck.id}
+                  type="button"
+                  id={`deck-card-${deck.id}`}
+                  onClick={() => onSelectDeck(deck.id)}
+                  className="w-full text-right p-4 rounded-2xl border-2 border-dashed border-stone-300 dark:border-stone-700 hover:border-teal-600 dark:hover:border-teal-500 bg-stone-50/70 dark:bg-stone-900/70 transition-all flex items-center justify-between gap-3 group cursor-pointer"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-10 h-10 rounded-xl bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-400 flex items-center justify-center text-lg font-bold shrink-0">
+                      ➕
+                    </div>
+                    <div className="min-w-0">
+                      <div className="font-bold text-sm text-stone-900 dark:text-white group-hover:text-teal-700 dark:group-hover:text-teal-400 transition-colors">
+                        {t('Tap here to create your first flashcard', 'اضغط هنا لإنشاء بطاقتك الأولى')}
+                      </div>
+                      <div className="text-xs text-stone-600 dark:text-stone-300 mt-0.5 truncate">
+                        {t('Save words or phrases from the Translate tab', 'احفظ أي عبارة من تبويب الترجمة لتظهر هنا')}
+                      </div>
+                    </div>
+                  </div>
+                  <span className="text-xs font-bold text-teal-700 dark:text-teal-400 px-2.5 py-1 rounded-xl bg-teal-100/70 dark:bg-teal-950/70 shrink-0">
+                    {t('New', 'جديدة')}
+                  </span>
+                </button>
+              );
+            }
+
             return (
               <button
                 key={deck.id}
                 type="button"
                 id={`deck-card-${deck.id}`}
                 onClick={() => onSelectDeck(deck.id)}
-                className={`${CARD_CLASS} !mb-0 w-full ${
-                  rtl ? 'text-right' : 'text-left'
-                } flex items-center justify-between gap-3 hover:border-olive-600 dark:hover:border-olive-500 transition-colors`}
+                className="w-full text-right p-4 rounded-2xl border border-stone-200/90 dark:border-stone-800 bg-white dark:bg-stone-900 shadow-xs hover:shadow-md hover:border-teal-600 dark:hover:border-teal-500 transition-all flex items-center justify-between gap-3 group cursor-pointer"
               >
-                <div className="min-w-0 pr-2">
-                  <div className="font-semibold text-base truncate flex items-center gap-1.5">
-                    <span>{deck.name}</span>
-                    {isEmptyCustom && (
-                      <OliveBranchIcon
-                        size={15}
-                        className="text-olive-700 dark:text-olive-400"
-                        title={t(
-                          'Plant your first custom card in the Translate tab',
-                          'أضف أول بطاقة خاصة بك من تبويب الترجمة'
-                        )}
-                      />
-                    )}
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div className="w-11 h-11 rounded-2xl bg-teal-50 dark:bg-stone-800 text-teal-700 dark:text-teal-300 flex items-center justify-center text-xl shrink-0 group-hover:scale-105 transition-transform border border-teal-100 dark:border-stone-700">
+                    {isMaster ? '📚' : '📝'}
                   </div>
-                  <div className="text-xs font-medium text-stone-700 dark:text-stone-300 truncate mt-0.5">
-                    {isEmptyCustom
-                      ? t(
-                          'Empty deck · Plant your first custom translation seed in the Translate tab',
-                          'مجموعة فارغة · احفظ أول جملة أو كلمة خاصة بك من تبويب الترجمة'
-                        )
-                      : deck.subtitle}
+                  <div className="min-w-0">
+                    <div className="font-bold text-base text-stone-900 dark:text-white truncate group-hover:text-teal-700 dark:group-hover:text-teal-400 transition-colors flex items-center gap-2">
+                      <span>{deck.name}</span>
+                    </div>
+                    <div className="text-xs font-medium text-stone-600 dark:text-stone-300 truncate mt-0.5">
+                      {deck.subtitle}
+                    </div>
                   </div>
                 </div>
 
-                {/* Anki Three-Column Stats: New (Blue), Learning (Red), Due (Green) */}
-                <div className="grid grid-cols-3 gap-3 text-right w-36 shrink-0 font-bold text-sm tabular-nums">
-                  <span
-                    className={
-                      st.newCount > 0
-                        ? 'text-sky-700 dark:text-sky-400'
-                        : 'text-slate-400 dark:text-slate-600'
-                    }
-                  >
-                    {st.newCount}
-                  </span>
-                  <span
-                    className={
-                      st.learningCount > 0
-                        ? 'text-red-700 dark:text-red-400'
-                        : 'text-slate-400 dark:text-slate-600'
-                    }
-                  >
-                    {st.learningCount}
-                  </span>
-                  <span
-                    className={
-                      st.dueCount > 0
-                        ? 'text-emerald-700 dark:text-emerald-400'
-                        : 'text-slate-400 dark:text-slate-600'
-                    }
-                  >
-                    {st.dueCount}
-                  </span>
+                <div className="flex items-center gap-2 shrink-0">
+                  {st.dueCount > 0 ? (
+                    <span className="text-xs font-bold px-2.5 py-1 rounded-xl bg-emerald-100 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+                      {st.dueCount} {t('due', 'مستحق')}
+                    </span>
+                  ) : st.newCount > 0 ? (
+                    <span className="text-xs font-bold px-2.5 py-1 rounded-xl bg-sky-100 text-sky-800 dark:bg-sky-950/70 dark:text-sky-300 border border-sky-300 dark:border-sky-800">
+                      {st.newCount} {t('new', 'جديد')}
+                    </span>
+                  ) : (
+                    <span className="text-xs font-bold px-2.5 py-1 rounded-xl bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-300">
+                      {t('Done', 'مكتمل')} ✨
+                    </span>
+                  )}
                 </div>
               </button>
             );
           })}
         </div>
-
-        {customStats.totalCards === 0 && (
-          <div
-            id="custom-deck-empty-callout"
-            className="mt-2.5 flex items-center gap-2.5 rounded-2xl border border-olive-600/25 dark:border-olive-500/25 bg-white dark:bg-slate-900 px-3.5 py-2.5 text-xs text-slate-700 dark:text-slate-300 shadow-sm"
-          >
-            <OliveBranchIcon size={18} className="text-olive-700 dark:text-olive-400" />
-            <span className="opacity-85">
-              {t(
-                'My Custom Translations is ready for your own sentences — save any phrase from the Translate tab to grow your personal olive grove of cards.',
-                'مجموعة «ترجماتي الخاصة» جاهزة لجملك المفضلة — احفظ أي عبارة من تبويب الترجمة لتبني مجموعتك الخاصة.'
-              )}
-            </span>
-          </div>
-        )}
       </div>
 
       {/* Prebuilt Master Decks & Starter Decks (Shown only for MSA so Egyptian learners never see MSA cards) */}
@@ -421,7 +391,7 @@ export function ReviewView({
   const isEgyptian = profile?.dialect === 'egyptian';
 
   return (
-    <div id="anki-review-view" dir={rtl ? 'rtl' : 'ltr'} className="mx-auto w-full max-w-2xl">
+    <div id="anki-review-view" dir={rtl ? 'rtl' : 'ltr'} className="mx-auto w-full">
       {/* Review Header */}
       <div className="flex items-center justify-between gap-2 mb-3">
         <div className="flex items-center gap-2 min-w-0">
