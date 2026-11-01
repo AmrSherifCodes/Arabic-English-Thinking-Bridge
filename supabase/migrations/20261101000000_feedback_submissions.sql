@@ -59,3 +59,4 @@ CREATE POLICY "Allow service_role to read feedback"
 -- Index for chronological ordering
 CREATE INDEX IF NOT EXISTS idx_feedback_submissions_created_at
   ON public.feedback_submissions (created_at DESC);
+

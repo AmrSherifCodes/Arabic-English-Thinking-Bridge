@@ -121,9 +121,8 @@ export function LandingView({ onStartWebApp, onStartGuest, onResumeApp }: Landin
               {/* Secondary Android APK Download / Mobile CTA */}
               <div className="w-full max-w-md space-y-1.5 pt-1">
                 <a
-                  href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v1.0.0/app-debug.apk"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  href="/thinking-english.apk"
+                  download="thinking-english.apk"
                   id="download-android-apk-btn"
                   className="flex w-full min-h-12 items-center justify-center gap-2.5 rounded-2xl border-2 border-stone-300 dark:border-stone-700 bg-white/80 dark:bg-stone-900/80 hover:bg-teal-50 dark:hover:bg-stone-800 hover:border-teal-600 dark:hover:border-teal-500 py-3 px-5 text-stone-900 dark:text-stone-100 font-bold text-base transition-all shadow-xs group cursor-pointer"
                 >
@@ -521,9 +520,8 @@ export function LandingView({ onStartWebApp, onStartGuest, onResumeApp }: Landin
               <strong>Add to Home Screen</strong>.
             </p>
             <a
-              href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v1.0.0/app-debug.apk"
-              target="_blank"
-              rel="noopener noreferrer"
+              href="/thinking-english.apk"
+              download="thinking-english.apk"
               className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-teal-700/70 bg-teal-50 dark:bg-stone-800 px-4 py-2.5 text-xs font-bold text-teal-800 dark:text-teal-200 transition hover:bg-teal-100 dark:hover:bg-stone-700 cursor-pointer"
             >
               <Smartphone size={16} aria-hidden="true" />
