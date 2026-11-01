@@ -42,7 +42,6 @@ export interface HubViewProps {
   mentorQuestions: MentorQuestion[];
   teacherUnlocked: boolean;
   pinInput: string;
-  teacherPin: string;
   replyDrafts: Record<string, string>;
   broadcastDraft: string;
   sortedWeakSpots: Array<[string, number]>;
@@ -68,7 +67,6 @@ export function HubView({
   mentorQuestions,
   teacherUnlocked,
   pinInput,
-  teacherPin,
   replyDrafts,
   broadcastDraft,
   sortedWeakSpots,
@@ -92,12 +90,18 @@ export function HubView({
     if (!client) return;
 
     let active = true;
+    const checkIsAdmin = (sess: any) => {
+      const user = sess?.user;
+      const role = user?.app_metadata?.role;
+      return role === 'admin';
+    };
+
     void client.auth.getSession().then(({ data }) => {
-      if (active) setHasAdminSession(Boolean(data.session));
+      if (active) setHasAdminSession(checkIsAdmin(data.session));
     });
 
     const { data: listener } = client.auth.onAuthStateChange((_event, nextSession) => {
-      if (active) setHasAdminSession(Boolean(nextSession));
+      if (active) setHasAdminSession(checkIsAdmin(nextSession));
     });
 
     return () => {
@@ -223,7 +227,7 @@ export function HubView({
                 <button
                   type="button"
                   className={BTN_GHOST}
-                  onClick={() => onUnlockTeacher(teacherPin)}
+                  onClick={() => onUnlockTeacher('__admin_session__')}
                 >
                   Unlock with Admin Session
                 </button>

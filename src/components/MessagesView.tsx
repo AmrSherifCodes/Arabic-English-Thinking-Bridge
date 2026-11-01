@@ -41,6 +41,7 @@ export function MessagesView() {
   const [messageText, setMessageText] = useState('');
   const [messages, setMessages] = useState<AdminMessage[]>([]);
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [authReady, setAuthReady] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const [loginEmail, setLoginEmail] = useState('');
@@ -49,7 +50,6 @@ export function MessagesView() {
   const [error, setError] = useState('');
   const [toast, setToast] = useState('');
 
-  const isAdmin = Boolean(userEmail);
 
   useEffect(() => {
     if (!supabase) {
@@ -65,7 +65,10 @@ export function MessagesView() {
           console.error('Could not restore the Supabase session.', sessionError);
           setError('Could not restore your sign-in session.');
         }
-        setUserEmail(getSessionEmail(data.session));
+        const session = data.session;
+        const role = session?.user?.app_metadata?.role;
+        setIsAdmin(role === 'admin');
+        setUserEmail(getSessionEmail(session));
         setAuthReady(true);
       },
       sessionError => {
@@ -78,6 +81,8 @@ export function MessagesView() {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       const nextEmail = getSessionEmail(session);
+      const role = session?.user?.app_metadata?.role;
+      setIsAdmin(role === 'admin');
       setUserEmail(prevEmail => {
         if (prevEmail && !nextEmail && event === 'SIGNED_OUT') {
           setToast('Admin session ended. Please sign in again.');
@@ -171,15 +176,20 @@ export function MessagesView() {
       });
       if (loginError) throw loginError;
       const email = getSessionEmail(data.session);
-      if (!email) {
-        throw new Error('No user session.');
+      const role = data.session?.user?.app_metadata?.role;
+      if (!email || role !== 'admin') {
+        await getSupabaseClient().auth.signOut();
+        setIsAdmin(false);
+        setUserEmail(null);
+        throw new Error('Unauthorized: This account does not have admin privileges.');
       }
+      setIsAdmin(true);
       setUserEmail(email);
       setPassword('');
       setShowLogin(false);
     } catch (loginError) {
       console.error('Supabase admin sign-in failed.', loginError);
-      setError('Incorrect admin email or password.');
+      setError(loginError instanceof Error ? loginError.message : 'Incorrect admin email or password.');
     } finally {
       setIsLoading(false);
     }
@@ -191,6 +201,7 @@ export function MessagesView() {
     try {
       const { error: signOutError } = await getSupabaseClient().auth.signOut();
       if (signOutError) throw signOutError;
+      setIsAdmin(false);
       setUserEmail(null);
       setMessages([]);
     } catch (signOutError) {

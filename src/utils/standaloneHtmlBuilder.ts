@@ -174,7 +174,7 @@ const CONFIG = {
   TEACHER_WHATSAPP: "${TEACHER_WHATSAPP}", // Leave empty for public release (opens WhatsApp contact picker)
   FEEDBACK_FORM_URL: "${FEEDBACK_FORM_URL}",
   APP_URL: "${DEFAULT_SHARED_APP_URL}",
-  DEMO_PIN: "69420" // Client-side demo mode UI toggle only (not a security boundary)
+  DEMO_PIN: "" // Configurable via device settings (no hardcoded secret)
 };
 const TEACHER = CONFIG.TEACHER_WHATSAPP;
 const FORM = CONFIG.FEEDBACK_FORM_URL;
@@ -714,7 +714,7 @@ function hubV(){
   if(S.bc.length)h+=\`<div class="\${CARD}"><h3 class="font-semibold mb-2">📢 Mini-lessons from your teacher</h3>\${S.bc.map(b=>\`<p class="text-sm mb-2">• \${esc(b)}</p>\`).join("")}</div>\`;
   if(S.msgs.length)h+=\`<div class="\${CARD}"><h3 class="font-semibold mb-2">Your questions</h3>\${S.msgs.map(m=>\`<div class="text-sm mb-3"><div>❓ \${esc(m.q)}</div><div class="mt-1 opacity-80">\${m.r?"👩‍🏫 "+esc(m.r):"⏳ awaiting reply"}</div></div>\`).join("")}</div>\`;
   h+=\`<div class="\${CARD}"><div class="flex flex-wrap items-center justify-between gap-2 mb-2"><h3 class="font-semibold">👩‍🏫 Teacher Demo Mode (UI Toggle)</h3><span class="rounded-full border border-amber-500/35 bg-amber-500/10 px-2 py-0.5 text-[11px] font-semibold text-amber-800 dark:text-amber-300">Demo Only</span></div>\`;
-  if(!T)h+=\`<div class="flex flex-wrap gap-2"><input id="pin" type="password" placeholder="Teacher PIN" class="rounded-xl border border-stone-300 dark:border-stone-600 bg-transparent p-2 w-36"><button class="\${BTN}" onclick="if($('pin').value==CONFIG.DEMO_PIN){T=true;render()}else toast('Wrong demo PIN')">Unlock Demo</button></div><p class="text-xs opacity-60 mt-2">Restricted to Teacher / Admin demo access. Replies and broadcasts save to local device storage only.</p>\`;
+  if(!T)h+=\`<div class="flex flex-wrap gap-2"><input id="pin" type="password" placeholder="Teacher PIN" class="rounded-xl border border-stone-300 dark:border-stone-600 bg-transparent p-2 w-36"><button class="\${BTN}" onclick="const p=$('pin').value.trim(),sp=localStorage.getItem('thinking_english_teacher_pin_v2');if((CONFIG.DEMO_PIN&&p===CONFIG.DEMO_PIN)||(sp&&p===sp)){T=true;render()}else toast('Wrong PIN')">Unlock Demo</button></div><p class="text-xs opacity-60 mt-2">Restricted to Teacher / Admin demo access. Replies and broadcasts save to local device storage only.</p>\`;
   else{
     h+=\`<h4 class="text-sm font-semibold">Open questions (\${pend.length})</h4>\`+pend.map(([m,i])=>\`<div class="my-2 text-sm"><div>\${esc(m.q)}</div><textarea id="r\${i}" rows="2" class="w-full rounded-xl border border-stone-300 dark:border-stone-600 bg-transparent p-2 mt-1" placeholder="Reply…"></textarea><button class="\${BTN} mt-1" onclick="reply(\${i})">Reply</button></div>\`).join("");
     h+=\`<h4 class="text-sm font-semibold mt-4">Broadcast a mini-lesson</h4><textarea id="bt" rows="2" class="w-full rounded-xl border border-stone-300 dark:border-stone-600 bg-transparent p-2"></textarea><button class="\${BTN} mt-1" onclick="bcast()">Broadcast</button>

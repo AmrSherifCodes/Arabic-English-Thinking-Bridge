@@ -31,8 +31,7 @@ import {
   loadUserProgress,
   saveBroadcasts,
   saveMentorQuestions,
-  saveUserProgress,
-  TEACHER_PIN as STORAGE_TEACHER_PIN
+  saveUserProgress
 } from './utils/storage';
 import {
   beep,
@@ -116,7 +115,7 @@ import { ConversationView } from './components/ConversationView';
 import { CreditsModal } from './components/CreditsModal';
 
 export { CULTURAL_QUOTES, PAN_ARAB_NATIONS, CulturalToast, OliveBranchIcon };
-export const TEACHER_PIN = STORAGE_TEACHER_PIN;
+
 
 type ActiveTab = BottomNavTab | 'hub' | 'progress' | 'cards' | 'translate';
 
@@ -2606,7 +2605,6 @@ export default function App() {
             mentorQuestions={mentorQuestions}
             teacherUnlocked={teacherUnlocked}
             pinInput={pinInput}
-            teacherPin={TEACHER_PIN}
             replyDrafts={replyDrafts}
             broadcastDraft={broadcastDraft}
             sortedWeakSpots={sortedWeakSpots}
@@ -2617,7 +2615,8 @@ export default function App() {
             onChangePinInput={setPinInput}
             onUnlockTeacher={(overridePin?: string) => {
               const candidate = (overridePin ?? pinInput).trim();
-              if (candidate === loadTeacherPin() || candidate === TEACHER_PIN) {
+              const storedPin = loadTeacherPin();
+              if (overridePin === '__admin_session__' || (storedPin && candidate === storedPin)) {
                 setTeacherUnlocked(true);
                 setPinInput('');
               } else {

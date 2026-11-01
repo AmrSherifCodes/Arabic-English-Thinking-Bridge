@@ -13,7 +13,7 @@ const MENTOR_QUESTIONS_KEY = 'thinking_english_mentor_q_v1';
 const BROADCASTS_KEY = 'thinking_english_broadcasts_v2';
 const TEACHER_PIN_KEY = 'thinking_english_teacher_pin_v2';
 
-export const TEACHER_PIN = '69420';
+export const TEACHER_PIN = '';
 export const DEFAULT_PIN = TEACHER_PIN;
 
 export const DEFAULT_PROGRESS: UserProgress = {
@@ -365,9 +365,9 @@ export function saveBroadcasts(broadcasts: TeacherBroadcast[]): void {
 export function loadTeacherPin(): string {
   try {
     const saved = localStorage.getItem(TEACHER_PIN_KEY);
-    return saved || memoryFallback.pin || TEACHER_PIN;
+    return saved || memoryFallback.pin || '';
   } catch {
-    return memoryFallback.pin || TEACHER_PIN;
+    return memoryFallback.pin || '';
   }
 }
 
