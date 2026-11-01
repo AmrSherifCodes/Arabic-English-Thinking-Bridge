@@ -11,10 +11,13 @@ export interface TextField   extends Base { type: 'text';   default: string; pla
 export type PreferenceField = ToggleField | SelectField | SliderField | TextField;
 
 export const SETTINGS_SCHEMA: readonly PreferenceField[] = [
-  { id: 'voiceModel', type: 'select', category: 'audio', labelKey: 'AI Voice Language', default: 'ar-EG-SalmaNeural', options: [
-    { label: 'Egyptian Arabic — Salma (Neural)', value: 'ar-EG-SalmaNeural' },
+  { id: 'englishVoice', type: 'select', category: 'audio', labelKey: 'English Voice', default: 'en-US-AvaNeural', options: [
     { label: 'US English — Ava (Neural)',        value: 'en-US-AvaNeural' },
     { label: 'British English — Sonia (Neural)', value: 'en-GB-SoniaNeural' },
+  ]},
+  { id: 'voiceModel', type: 'select', category: 'audio', labelKey: 'Arabic Voice (Egyptian)', default: 'ar-EG-SalmaNeural', options: [
+    { label: 'Egyptian Arabic — Salma (Neural)', value: 'ar-EG-SalmaNeural' },
+    { label: 'Saudi Arabic — Hamed (Neural)',    value: 'ar-SA-HamedNeural' },
   ]},
   { id: 'speechRate',    type: 'slider', category: 'audio', labelKey: 'Speaking Speed',       default: 1.0, min: 0.7, max: 1.5, step: 0.1 },
   { id: 'autoListen',    type: 'toggle', category: 'audio', labelKey: 'Auto-Listen after AI speaks', default: true },
