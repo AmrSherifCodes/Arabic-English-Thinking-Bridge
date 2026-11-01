@@ -127,7 +127,7 @@ export function AIHelper({ profile, request }: AIHelperProps) {
   };
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-[999] flex justify-end px-4">
+    <div className="pointer-events-none fixed right-4 bottom-[calc(5.2rem+env(safe-area-inset-bottom,0px))] z-[999] flex justify-end">
       <div className="pointer-events-auto flex w-full max-w-sm flex-col items-end gap-3">
         <AnimatePresence>
           {isOpen && (

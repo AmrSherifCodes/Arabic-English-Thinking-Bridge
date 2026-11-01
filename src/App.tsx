@@ -2139,30 +2139,29 @@ export default function App() {
         id="v"
         className={`mx-auto min-h-0 w-full ${
           activeTab === 'cards' ? 'max-w-2xl' : 'max-w-md'
-        } flex-1 overflow-y-auto p-4 pb-[calc(6rem+env(safe-area-inset-bottom,0px))]`}
+        } flex-1 overflow-y-auto px-4 py-3 pb-[calc(7rem+env(safe-area-inset-bottom,0px))]`}
       >
-      {/* Amr Sherif Dedication & Teacher Broadcast Banner */}
+      {/* Motivational Focus Card */}
       {(activeTab === 'home' || activeTab === 'lessons' || activeTab === 'hub') &&
         latestBroadcast &&
         dismissedBroadcastId !== latestBroadcast.id && (
         <div
           id="top-dedication-banner"
-          className="mb-3 flex min-w-0 items-center gap-2 rounded-xl border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-xs"
+          className="mb-4 flex items-center justify-between gap-3 rounded-2xl border border-stone-300 dark:border-stone-700 bg-white/95 dark:bg-stone-900/95 px-4 py-3 shadow-xs"
         >
-          <span aria-hidden="true">✨</span>
-          <div className="min-w-0 flex-1">
-            <p className="truncate font-semibold leading-snug text-amber-800 dark:text-amber-300">
-              {latestBroadcast.title || 'A little progress adds up—keep going!'}
+          <div className="flex-1 text-center">
+            <p className="text-xs sm:text-sm font-bold text-stone-900 dark:text-stone-100 leading-relaxed">
+              ✨ {tUI('God willing, you will succeed. Progress one sentence at a time.', 'إن شاء الله ستنجح. التقدم خطوة بخطوة وجملة بعد جملة.')}
             </p>
-            <p className="truncate leading-snug text-stone-700 dark:text-stone-300">
-              {latestBroadcast.content}
+            <p className="mt-0.5 text-[11px] font-semibold text-stone-600 dark:text-stone-400">
+              {tUI('Crafted with dedication by Amr Sherif', 'صُمم بكل إخلاص بواسطة عمرو شريف')}
             </p>
           </div>
           <button
             type="button"
             aria-label="Dismiss message"
             onClick={() => setDismissedBroadcastId(latestBroadcast.id)}
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold hover:bg-amber-500/20"
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-stone-500 hover:bg-stone-100 hover:text-stone-800 dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-stone-200 transition text-base"
           >
             ×
           </button>

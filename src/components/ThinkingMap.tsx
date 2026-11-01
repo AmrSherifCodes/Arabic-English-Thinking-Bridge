@@ -96,7 +96,7 @@ export function ThinkingMap({ progress, onOpenLesson, language, profile }: Think
     <section
       dir={rtl ? 'rtl' : 'ltr'}
       aria-label={t('Personal Thinking Map', 'خريطة التفكير الإنجليزي الشخصية')}
-      className={`${CARD_CLASS} !p-4 sm:!p-5 mb-4 border-2 border-teal-500/20 dark:border-teal-400/20`}
+      className={`${CARD_CLASS} !p-4 sm:!p-5 !mb-0 border border-stone-300 dark:border-stone-700 shadow-sm`}
     >
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-stone-300 dark:border-stone-700 pb-3">

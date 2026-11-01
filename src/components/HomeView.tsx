@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { BookOpen, CalendarDays, Github, Heart, Layers, Linkedin, MessageCircle, MessageSquare, Mic, Sparkles, ArrowRight, Target } from 'lucide-react';
+import { BookOpen, CalendarDays, Layers, MessageCircle, MessageSquare, Mic, ArrowRight, Target } from 'lucide-react';
 import { UserProfile } from '../hooks/useUserProfile';
 import { UserProgress } from '../types';
 import { isArabicUI, uiText } from '../utils/i18n';
@@ -25,7 +25,7 @@ const FEATURES = [
     descriptionEn: 'Master vocab with 3D cards',
     descriptionAr: 'أتقن المفردات عبر البطاقات التفاعلية ثلاثية الأبعاد',
     Icon: Layers,
-    iconClass: 'bg-violet-100 text-violet-700 dark:bg-violet-900/50 dark:text-violet-300'
+    iconClass: 'bg-teal-50 text-teal-700 dark:bg-teal-950/60 dark:text-teal-300'
   },
   {
     id: 'speaking',
@@ -34,7 +34,7 @@ const FEATURES = [
     descriptionEn: 'Talk with AI voice recognition',
     descriptionAr: 'تدرب على النطق السليم مع التعرف الصوتي الذكي',
     Icon: Mic,
-    iconClass: 'bg-sky-100 text-sky-700 dark:bg-sky-900/50 dark:text-sky-300'
+    iconClass: 'bg-sky-50 text-sky-700 dark:bg-sky-950/60 dark:text-sky-300'
   },
   {
     id: 'situations',
@@ -43,7 +43,7 @@ const FEATURES = [
     descriptionEn: 'Student, Call Center, Public',
     descriptionAr: 'مواقف الدراسة، خدمة العملاء، والحياة اليومية',
     Icon: MessageSquare,
-    iconClass: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300'
+    iconClass: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300'
   },
   {
     id: 'daily-review',
@@ -52,7 +52,7 @@ const FEATURES = [
     descriptionEn: 'Review your due words',
     descriptionAr: 'راجع الكلمات والجمل المستحقة اليوم',
     Icon: CalendarDays,
-    iconClass: 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300'
+    iconClass: 'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300'
   },
   {
     id: 'messages',
@@ -61,7 +61,7 @@ const FEATURES = [
     descriptionEn: 'Send feedback or a question',
     descriptionAr: 'أرسل ملاحظاتك أو استفسارك مباشرة',
     Icon: MessageCircle,
-    iconClass: 'bg-teal-100 text-teal-700 dark:bg-teal-900/50 dark:text-teal-300'
+    iconClass: 'bg-stone-100 text-stone-700 dark:bg-stone-800 dark:text-stone-300'
   }
 ] as const;
 
@@ -127,91 +127,99 @@ export function HomeView({ profile, progress, onNavigate, onOpenWhyEnglish, onOp
     <section
       dir={rtl ? 'rtl' : 'ltr'}
       aria-labelledby="home-heading"
-      className="w-full min-w-0 space-y-5"
+      className="w-full min-w-0 space-y-6 sm:space-y-7"
     >
       {isOffline && (
         <p
           role="status"
-          className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800 dark:border-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-200"
+          className="inline-flex items-center rounded-full border border-emerald-300 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800 dark:border-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-200"
         >
           {t('Offline Mode Active 🟢', 'وضع عدم الاتصال نشط 🟢')}
         </p>
       )}
 
-      <header className="pt-1">
-        <div className="flex items-center gap-2 flex-wrap mb-1">
-          <p className="text-sm font-semibold text-olive-800 dark:text-olive-300">
-            {t(`Welcome back, ${userName}! 👋`, `مرحبًا بك من جديد، ${userName}! 👋`)}
-          </p>
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-teal-500/15 text-teal-700 dark:text-teal-300 border border-teal-500/30">
+      {/* Header with clean, bold greeting and subtle track tag */}
+      <header className="pt-1 space-y-1.5">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <h1
+            id="home-heading"
+            className="text-2xl sm:text-3xl font-black tracking-tight text-stone-900 dark:text-white"
+          >
+            {t(`Welcome back, ${userName}! 👋`, `مرحبًا بك، ${userName}! 👋`)}
+          </h1>
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 border border-stone-300 dark:border-stone-700 shadow-2xs">
             <span>{trackInfo.icon}</span>
             <span>{t(trackInfo.titleEn, trackInfo.titleAr)}</span>
           </span>
         </div>
 
-        <h2
-          id="home-heading"
-          className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-3xl"
-        >
+        <p className="text-sm sm:text-base font-bold text-teal-700 dark:text-teal-300">
           {profile.language === 'arabic'
-            ? `Ready to learn ${profile.dialect === 'egyptian' ? 'Egyptian Arabic' : 'Arabic'}?`
-            : 'هل أنت مستعد لبناء التفكير الإنجليزي؟'}
-        </h2>
-        <p className="mt-1 text-xs font-medium text-slate-700 dark:text-slate-300">
+            ? `Ready to master ${profile.dialect === 'egyptian' ? 'Egyptian Arabic' : 'Arabic'}?`
+            : 'هل أنت مستعد لتطوير طريقة تفكيرك بالإنجليزية؟'}
+        </p>
+
+        <p className="text-xs font-medium text-stone-600 dark:text-stone-400">
           {t(
-            `Adaptive Track: ${levelLabel} · Goal: ${profile.goal} (${profile.focusArea || 'General'}) · ${dialectLabel}`,
-            `المسار التكيفي: المستوى ${levelLabel} · الهدف: ${profile.goal} (${profile.focusArea || 'عام'}) · ${dialectLabel}`
+            `Track: ${levelLabel} · ${dialectLabel}`,
+            `المسار: ${levelLabel} · ${dialectLabel}`
           )}
         </p>
       </header>
 
-      {/* Adaptive Recommendation Card */}
-      <div className="overflow-hidden rounded-2xl border-2 border-teal-500/40 bg-gradient-to-r from-teal-900/30 via-stone-900 to-emerald-900/20 p-4 sm:p-5 shadow-lg border border-teal-500/30 text-white">
+      {/* Clean, High-Contrast Adaptive Recommendation Card */}
+      <div className="rounded-2xl border-2 border-teal-600/40 bg-white dark:bg-stone-900 p-5 shadow-sm text-stone-900 dark:text-stone-100 space-y-3.5">
         <div className="flex items-center justify-between gap-2 flex-wrap">
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wider bg-teal-500 text-stone-950">
-            <Target size={13} />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide bg-teal-600/10 text-teal-800 dark:bg-teal-500/20 dark:text-teal-300 border border-teal-600/20">
+            <Target size={14} className="text-teal-600 dark:text-teal-400" />
             {t('Adaptive Focus Recommendation', 'الهدف التكيفي المقترح')}
           </span>
-          <span className="text-xs font-bold text-teal-300">
+          <span className="text-xs font-bold text-teal-700 dark:text-teal-300 tabular-nums">
             {t(`Lesson #${adaptiveRec.lesson.number}`, `الدرس #${adaptiveRec.lesson.number}`)}
           </span>
         </div>
-        <h3 className="mt-2 text-base sm:text-lg font-black text-white">
-          {adaptiveRec.lesson.number}. {t(adaptiveRec.lesson.title, adaptiveRec.lesson.titleAr)}
-        </h3>
-        <p className="mt-1 text-xs text-stone-300 leading-relaxed">
-          {t(adaptiveRec.reasonEn, adaptiveRec.reasonAr)}
-        </p>
+
+        <div>
+          <h3 className="text-base sm:text-lg font-black text-stone-900 dark:text-white">
+            {adaptiveRec.lesson.number}. {t(adaptiveRec.lesson.title, adaptiveRec.lesson.titleAr)}
+          </h3>
+          <p className="mt-1 text-xs font-medium text-stone-600 dark:text-stone-300 leading-relaxed">
+            {t(adaptiveRec.reasonEn, adaptiveRec.reasonAr)}
+          </p>
+        </div>
+
         <button
           type="button"
           onClick={() => onOpenLesson(adaptiveRec.lessonIndex)}
-          className="mt-3.5 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-teal-500 hover:bg-teal-400 text-stone-950 font-extrabold text-xs shadow-md transition active:scale-[0.98]"
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs shadow-xs transition active:scale-[0.98]"
         >
           <span>{t('Launch Adaptive Lesson →', 'ابدأ الدرس التكيفي الآن ←')}</span>
           <ArrowRight size={14} className="rtl-flip" />
         </button>
       </div>
 
+      {/* Soft secondary "Why Learn With Thinking Bridge?" card */}
       <motion.button
         type="button"
         onClick={onOpenWhyEnglish}
         whileTap={{ scale: 0.98 }}
         transition={{ duration: 0.15 }}
-        className={`flex min-h-20 w-full items-center gap-4 rounded-2xl border border-indigo-700/60 bg-gradient-to-r from-indigo-800 to-violet-700 p-4 ${
+        className={`flex min-h-16 w-full items-center gap-3.5 rounded-2xl border border-teal-500/30 bg-teal-50/60 dark:bg-stone-800/80 p-4 ${
           rtl ? 'text-right' : 'text-left'
-        } text-white shadow-lg shadow-indigo-950/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600`}
+        } text-stone-900 dark:text-stone-100 shadow-xs hover:border-teal-500/50 hover:bg-teal-50/80 dark:hover:bg-stone-800 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600`}
       >
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/15 text-white">
-          <BookOpen size={22} aria-hidden="true" />
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-600/15 text-teal-800 dark:bg-teal-500/20 dark:text-teal-300">
+          <BookOpen size={20} aria-hidden="true" />
         </span>
-        <span>
-          <span className="block font-semibold text-white">
+        <span className="min-w-0 flex-1">
+          <span className="block font-bold text-sm text-stone-900 dark:text-stone-100">
             {t('Why Learn With Thinking Bridge? 📖', 'لماذا تتعلم الإنجليزية؟ 📖')}
           </span>
-          <span className="mt-0.5 block text-xs text-indigo-100">
+          <span className="mt-0.5 block text-xs font-medium text-stone-600 dark:text-stone-400">
             {t('Discover your motivation & cognitive shift', 'اكتشف دافعك الحقيقي والتحول الإدراكي')}
           </span>
         </span>
+        <ArrowRight size={16} className="text-teal-700 dark:text-teal-400 shrink-0 rtl-flip" />
       </motion.button>
 
       {/* Visual English Thinking Map (Personalized by Profile) */}
@@ -222,6 +230,7 @@ export function HomeView({ profile, progress, onNavigate, onOpenWhyEnglish, onOp
         profile={profile}
       />
 
+      {/* Feature Navigation Grid with consistent gap and clean borders */}
       <div className="grid w-full min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
         {features.map(({ id, titleEn, titleAr, descriptionEn, descriptionAr, Icon, iconClass }) => {
           const isWorkFocus = (profile.goal === 'work' || profile.goal === 'business') && id === 'situations';
@@ -246,23 +255,23 @@ export function HomeView({ profile, progress, onNavigate, onOpenWhyEnglish, onOp
               key={id}
               type="button"
               onClick={() => onNavigate(id)}
-              whileHover={{ y: -3, scale: 1.01 }}
-              whileTap={{ scale: 0.97 }}
-              transition={{ type: 'spring', stiffness: 380, damping: 24 }}
-              className={`flex min-h-28 w-full min-w-0 touch-manipulation items-center gap-4 rounded-2xl border bg-white dark:bg-slate-800 p-4 ${
+              whileHover={{ y: -2 }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ duration: 0.15 }}
+              className={`flex min-h-24 w-full min-w-0 touch-manipulation items-center gap-3.5 rounded-2xl border bg-white dark:bg-stone-900 p-4 ${
                 rtl ? 'text-right' : 'text-left'
-              } border-stone-300 dark:border-stone-700 shadow-sm transition-colors hover:border-olive-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-olive-600`}
+              } border-stone-300 dark:border-stone-700 shadow-xs transition-colors hover:border-teal-500/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600`}
             >
               <span
-                className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${iconClass}`}
+                className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${iconClass}`}
               >
-                <Icon size={24} aria-hidden="true" />
+                <Icon size={22} aria-hidden="true" />
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block font-semibold text-slate-900 dark:text-white">
+                <span className="block font-bold text-sm text-stone-900 dark:text-white">
                   {cardTitle}
                 </span>
-                <span className="mt-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                <span className="mt-0.5 block text-xs font-medium text-stone-600 dark:text-stone-400">
                   {cardDescription}
                 </span>
               </span>
@@ -271,7 +280,7 @@ export function HomeView({ profile, progress, onNavigate, onOpenWhyEnglish, onOp
         })}
       </div>
 
-      <footer className="pt-2 text-center text-xs font-medium text-stone-700 dark:text-stone-300">
+      <footer className="pt-2 text-center text-xs font-medium text-stone-600 dark:text-stone-400">
         <p>Thinking English · Personalized Adaptive Engine</p>
       </footer>
     </section>
