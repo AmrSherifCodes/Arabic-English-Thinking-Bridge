@@ -79,6 +79,9 @@ export default defineConfig(({ mode }) => {
         devOptions: { enabled: false },
       }),
     ],
+    build: {
+      sourcemap: false,
+    },
     resolve: { alias: { '@': path.resolve(import.meta.dirname, '.') } },
     server: { port: 3000, strictPort: true },
   };

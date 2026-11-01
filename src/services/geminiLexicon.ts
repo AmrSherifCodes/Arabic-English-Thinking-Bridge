@@ -267,16 +267,28 @@ async function requestGemini<T>(
 
     const body = result as Record<string, unknown>;
     if (!response.ok) {
-      const error = body.error && typeof body.error === 'object'
-        ? body.error as Record<string, unknown>
-        : {};
-      const code = typeof error.code === 'string' &&
-        ['missing-key', 'empty-input', 'timeout', 'rate-limited', 'network', 'bad-output', 'unknown'].includes(error.code)
-        ? error.code as LexiconErrorCode
-        : 'unknown';
-      const rawMessage = typeof error.message === 'string'
-        ? error.message
-        : 'The AI service could not complete the request.';
+      let code: LexiconErrorCode = response.status === 429 ? 'rate-limited' : 'unknown';
+      let rawMessage = 'The AI service could not complete the request.';
+
+      if (typeof body.error === 'string') {
+        rawMessage = body.error;
+      } else if (body.error && typeof body.error === 'object') {
+        const errObj = body.error as Record<string, unknown>;
+        if (
+          typeof errObj.code === 'string' &&
+          ['missing-key', 'empty-input', 'timeout', 'rate-limited', 'network', 'bad-output', 'unknown'].includes(errObj.code)
+        ) {
+          code = errObj.code as LexiconErrorCode;
+        }
+        if (typeof errObj.message === 'string') {
+          rawMessage = errObj.message;
+        }
+      }
+
+      if (response.status === 429) {
+        code = 'rate-limited';
+      }
+
       const message = rawMessage.startsWith('[HTTP')
         ? `${rawMessage} (${code})`
         : `[HTTP ${response.status} - ${code}] ${rawMessage}`;

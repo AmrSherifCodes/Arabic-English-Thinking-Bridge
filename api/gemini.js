@@ -476,10 +476,9 @@ export default async function handler(req, res) {
   // 2. Enforce IP Rate Limit (10/min, 50/day)
   if (!(await checkRateLimit(req))) {
     return sendJson(res, 429, {
-      error: {
-        code: 'rate-limited',
-        message: HIGH_TRAFFIC_MESSAGE,
-      },
+      error: "Rate limit exceeded. Please wait a minute or use your VIP Pass.",
+      message: "Rate limit exceeded. Please wait a minute or use your VIP Pass.",
+      code: 'rate-limited',
     });
   }
 
