@@ -190,7 +190,7 @@ async function generateWithDirectFallback(
 
 async function requestGeminiWithUserKey<T>(
   userKey: string,
-  operation: 'entry' | 'deck' | 'tutor' | 'generate-exercise',
+  operation: 'entry' | 'deck' | 'tutor' | 'generate-exercise' | 'conversation',
   payload: Record<string, unknown>
 ): Promise<T> {
   const ai = new GoogleGenAI({ apiKey: userKey });
@@ -287,6 +287,46 @@ async function requestGeminiWithUserKey<T>(
     return parseDirectJson(response.text) as T;
   }
 
+  if (operation === 'conversation') {
+    const prompt = str(payload.prompt);
+    const history = (payload.history || []) as Array<{ role: 'user' | 'model'; text: string }>;
+    const profile = (payload.profile || {}) as UserProfile;
+    const conversationHistory = history
+      .filter(item => item && typeof item.text === 'string')
+      .slice(-8)
+      .map(item => `${item.role === 'user' ? 'Learner' : 'Tutor'}: ${item.text.slice(0, 1000)}`)
+      .join('\n');
+
+    let domainHint = '';
+    const focus = String(profile.focusArea || '').toLowerCase();
+    const goal = String(profile.goal || '').toLowerCase();
+    if (focus.includes('chem') || focus.includes('science')) {
+      domainHint = ' (The learner specializes in chemistry/science; feel free to relate topics to science if relevant).';
+    } else if (goal === 'travel') {
+      domainHint = ' (The learner is practicing for travel situations).';
+    } else if (goal === 'business' || goal === 'work') {
+      domainHint = ' (The learner is practicing for workplace and professional communication).';
+    }
+
+    const contents = conversationHistory
+      ? `${conversationHistory}\nLearner: ${prompt}`
+      : `Learner: ${prompt}`;
+
+    const response = await generateWithDirectFallback(ai, {
+      contents,
+      config: {
+        systemInstruction:
+          'You are a friendly Egyptian AI English tutor. The user is practicing speaking. Keep your replies short (1-2 sentences), natural, and conversational in simple English. If the user makes a grammar mistake, answer them naturally first, then gently explain the correction in Egyptian Arabic.' +
+          domainHint,
+        maxOutputTokens: 300,
+        temperature: 0.7,
+      },
+    });
+    const text = response.text?.trim();
+    if (!text) throw new LexiconError('bad-output', 'Empty conversation response.');
+    return text as unknown as T;
+  }
+
   const prompt = str(payload.prompt);
   const context = payload.context as TutorContext;
   const recentHistory = (context.history || []).slice(-4);
@@ -353,7 +393,7 @@ function toLexiconError(e: unknown): LexiconError {
 }
 
 async function requestGemini<T>(
-  operation: 'entry' | 'deck' | 'tutor' | 'generate-exercise',
+  operation: 'entry' | 'deck' | 'tutor' | 'generate-exercise' | 'conversation',
   payload: Record<string, unknown>,
   signal?: AbortSignal
 ): Promise<T> {
@@ -638,4 +678,33 @@ export async function generateAIPracticeExercise(
     breakdownChunks,
     habitHint,
   };
+}
+
+export interface ConversationHistoryItem {
+  role: 'user' | 'model';
+  text: string;
+}
+
+export async function sendConversationMessage(
+  prompt: string,
+  history: ConversationHistoryItem[],
+  profile?: UserProfile,
+  signal?: AbortSignal
+): Promise<string> {
+  const cleanPrompt = prompt.trim();
+  if (!cleanPrompt) {
+    throw new LexiconError('empty-input', 'Prompt cannot be empty.');
+  }
+
+  const answer = await requestGemini<string>(
+    'conversation',
+    { prompt: cleanPrompt, history, profile },
+    signal
+  );
+
+  if (typeof answer !== 'string' || !answer.trim()) {
+    throw new LexiconError('bad-output', 'The partner returned an empty response.');
+  }
+
+  return answer.trim();
 }

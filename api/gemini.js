@@ -597,6 +597,53 @@ async function generate(operation, body) {
     return { status: 200, data };
   }
 
+  if (operation === 'conversation') {
+    const { prompt, history, profile } = body;
+    if (typeof prompt !== 'string' || !prompt.trim() || prompt.trim().length > 2000) {
+      return { status: 400, error: { code: 'empty-input', message: 'Invalid conversation prompt.' } };
+    }
+
+    const conversationHistory = Array.isArray(history)
+      ? history
+          .filter(item => isRecord(item) && typeof item.text === 'string')
+          .slice(-8)
+          .map(item => `${item.role === 'user' ? 'Learner' : 'Tutor'}: ${item.text.slice(0, 1000)}`)
+          .join('\n')
+      : '';
+
+    let domainHint = '';
+    if (isRecord(profile)) {
+      const focus = String(profile.focusArea || '').toLowerCase();
+      const goal = String(profile.goal || '').toLowerCase();
+      if (focus.includes('chem') || focus.includes('science')) {
+        domainHint = ' (The learner specializes in chemistry/science; feel free to relate topics to science if relevant).';
+      } else if (goal === 'travel') {
+        domainHint = ' (The learner is practicing for travel situations).';
+      } else if (goal === 'business' || goal === 'work') {
+        domainHint = ' (The learner is practicing for workplace and professional communication).';
+      }
+    }
+
+    const contents = conversationHistory
+      ? `${conversationHistory}\nLearner: ${prompt.trim()}`
+      : `Learner: ${prompt.trim()}`;
+
+    const response = await generateContentWithFallback(ai, {
+      contents,
+      config: {
+        systemInstruction:
+          'You are a friendly Egyptian AI English tutor. The user is practicing speaking. Keep your replies short (1-2 sentences), natural, and conversational in simple English. If the user makes a grammar mistake, answer them naturally first, then gently explain the correction in Egyptian Arabic.' +
+          domainHint,
+        maxOutputTokens: 300,
+        temperature: 0.7,
+      },
+    });
+
+    const data = response.text?.trim();
+    if (!data) throw new Error('Empty conversation response.');
+    return { status: 200, data };
+  }
+
   return { status: 400, error: { code: 'bad-output', message: 'Unknown AI operation.' } };
 }
 

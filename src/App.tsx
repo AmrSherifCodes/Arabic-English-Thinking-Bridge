@@ -105,6 +105,7 @@ import { WhyEnglishView } from './components/WhyEnglishView';
 import { useTheme } from './hooks/useTheme';
 import { MessagesView } from './components/MessagesView';
 import { LandingView } from './components/LandingView';
+import { ConversationView } from './components/ConversationView';
 
 export { CULTURAL_QUOTES, PAN_ARAB_NATIONS, CulturalToast, OliveBranchIcon };
 export const TEACHER_PIN = STORAGE_TEACHER_PIN;
@@ -2257,7 +2258,7 @@ export default function App() {
               if (action === 'messages') {
                 setActiveTab('messages');
               } else if (action === 'speaking') {
-                setActiveTab('practice');
+                setActiveTab('conversation');
               } else if (action === 'situations') {
                 setActiveTab('hub');
               } else if (action === 'daily-review') {
@@ -2357,6 +2358,15 @@ export default function App() {
                 }
               })
             }
+          />
+        )}
+
+        {/* LIVE VOICE CONVERSATION PARTNER */}
+        {activeTab === 'conversation' && (
+          <ConversationView
+            profile={profile}
+            onToast={showToast}
+            preferredVoice={progress.preferredVoice}
           />
         )}
 
@@ -2611,6 +2621,7 @@ export default function App() {
             ? 'profile'
             : activeTab === 'lessons' ||
                 activeTab === 'practice' ||
+                activeTab === 'conversation' ||
                 activeTab === 'messages' ||
                 activeTab === 'home'
               ? activeTab
