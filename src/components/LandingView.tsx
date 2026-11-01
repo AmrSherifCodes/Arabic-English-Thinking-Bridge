@@ -89,46 +89,65 @@ export function LandingView({ onStartWebApp, onStartGuest, onResumeApp }: Landin
               بدون حفظ قواعد معقدة أو ترجمة حرفية في دماغك. 100% مجاني ومفتوح المصدر وخاص تماماً.
             </p>
 
-            <div className="mt-8 flex flex-col items-start gap-4">
-              <div className="grid w-full max-w-md grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="mt-8 flex flex-col items-start gap-3 w-full max-w-md">
+              {/* Primary Action: Download Android App (v1.0.0) */}
+              <a
+                href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v1.0.0/thinking-english-v1.0.0.apk"
+                id="download-android-apk-btn"
+                className="flex min-h-14 w-full items-center justify-center gap-3 rounded-2xl bg-teal-700 hover:bg-teal-800 active:scale-[0.98] px-6 py-3.5 text-lg font-bold text-white shadow-md shadow-teal-900/20 transition cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-stone-950"
+              >
+                <Smartphone size={22} className="shrink-0" aria-hidden="true" />
+                <span className="text-center">
+                  <span className="ar block text-lg font-black">تحميل تطبيق الأندرويد 📱</span>
+                  <span className="block text-xs font-semibold opacity-90">
+                    Download Android App 📱 (v1.0.0)
+                  </span>
+                </span>
+              </a>
+
+              {/* GitHub Releases Fallback Link */}
+              <div className="w-full text-center">
+                <a
+                  href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200 underline decoration-stone-300 dark:decoration-stone-600 underline-offset-2 transition font-medium"
+                >
+                  Button not working? Click here to view all releases on GitHub
+                </a>
+              </div>
+
+              {/* Secondary Outline Web Actions */}
+              <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 pt-1">
                 <button
                   type="button"
                   onClick={onResumeApp || onStartWebApp}
-                  className="flex min-h-14 items-center justify-center gap-3 rounded-2xl bg-teal-700 hover:bg-teal-800 active:scale-[0.98] px-6 py-3.5 text-lg font-bold text-white shadow-md shadow-teal-900/20 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-stone-950"
+                  className="flex min-h-12 items-center justify-center gap-2 rounded-2xl border-2 border-teal-700/80 bg-white/80 dark:bg-stone-900/60 px-5 py-3 text-base font-bold text-teal-800 dark:text-teal-300 transition hover:bg-teal-50 dark:hover:bg-stone-800 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-stone-950"
                 >
                   <span className="text-center">
-                    <span className="ar block text-lg font-black">{onResumeApp ? 'استئناف التعلم 🚀' : 'ابدأ التعلم الآن 🚀'}</span>
-                    <span className="block text-xs font-semibold opacity-90">
-                      {onResumeApp ? 'Resume Learning' : 'Start Learning Now'}
+                    <span className="ar block text-base font-black">{onResumeApp ? 'استئناف في المتصفح 🚀' : 'ابدأ في المتصفح (Web) 🚀'}</span>
+                    <span className="block text-[11px] font-semibold opacity-90">
+                      {onResumeApp ? 'Resume Web App' : 'Start Learning Now (Web)'}
                     </span>
                   </span>
-                  <ArrowRight size={20} className="rtl-flip" aria-hidden="true" />
+                  <ArrowRight size={18} className="rtl-flip" aria-hidden="true" />
                 </button>
                 <button
                   type="button"
                   onClick={onStartGuest}
-                  className="flex min-h-14 items-center justify-center rounded-2xl border-2 border-teal-700/80 bg-white/80 px-6 py-3.5 text-lg font-bold text-teal-800 transition hover:bg-teal-50 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2 dark:bg-stone-900/60 dark:text-teal-300 dark:hover:bg-stone-800 dark:focus-visible:ring-offset-stone-950"
+                  className="flex min-h-12 items-center justify-center rounded-2xl border-2 border-stone-300 dark:border-stone-700 bg-white/60 dark:bg-stone-900/40 px-5 py-3 text-base font-bold text-stone-700 dark:text-stone-300 transition hover:bg-stone-100 dark:hover:bg-stone-800 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-stone-950"
                 >
                   <span className="text-center">
-                    <span className="ar block text-lg font-black">جرّب كضيف 🚀</span>
-                    <span className="block text-xs font-semibold opacity-90">
+                    <span className="ar block text-base font-black">جرّب كضيف 🚀</span>
+                    <span className="block text-[11px] font-semibold opacity-90">
                       Try as Guest
                     </span>
                   </span>
                 </button>
               </div>
 
-              {/* Secondary Android APK Download / Mobile CTA */}
-              <div className="w-full max-w-md space-y-1.5 pt-1">
-                <a
-                  href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v1.0.0/thinking-english-v1.0.0.apk"
-                  download="thinking-english.apk"
-                  id="download-android-apk-btn"
-                  className="flex w-full min-h-12 items-center justify-center gap-2.5 rounded-2xl border-2 border-stone-300 dark:border-stone-700 bg-white/80 dark:bg-stone-900/80 hover:bg-teal-50 dark:hover:bg-stone-800 hover:border-teal-600 dark:hover:border-teal-500 py-3 px-5 text-stone-900 dark:text-stone-100 font-bold text-base transition-all shadow-xs group cursor-pointer"
-                >
-                  <Smartphone size={19} className="text-teal-700 dark:text-teal-400 group-hover:scale-110 transition-transform shrink-0" aria-hidden="true" />
-                  <span className="truncate">Download Android App 📱</span>
-                </a>
+              {/* Info text & Privacy link */}
+              <div className="w-full space-y-1.5 pt-0.5">
                 <p className="text-xs text-stone-500 dark:text-stone-400 font-medium text-center">
                   {isMobile ? (
                     <span>
@@ -521,11 +540,10 @@ export function LandingView({ onStartWebApp, onStartGuest, onResumeApp }: Landin
             </p>
             <a
               href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v1.0.0/thinking-english-v1.0.0.apk"
-              download="thinking-english.apk"
               className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-teal-700/70 bg-teal-50 dark:bg-stone-800 px-4 py-2.5 text-xs font-bold text-teal-800 dark:text-teal-200 transition hover:bg-teal-100 dark:hover:bg-stone-700 cursor-pointer"
             >
               <Smartphone size={16} aria-hidden="true" />
-              <span>أو حمّل ملف الـ APK مباشرة (Android APK Download)</span>
+              <span>أو حمّل ملف الـ APK مباشرة (Download Android App 📱 v1.0.0)</span>
             </a>
             <button
               type="button"
