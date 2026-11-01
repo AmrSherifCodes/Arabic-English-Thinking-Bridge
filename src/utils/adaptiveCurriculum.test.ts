@@ -66,3 +66,4 @@ test('adaptiveCurriculum prioritizes travel questions & locations', () => {
   assert.ok(rec.lessonIndex >= 0);
   assert.ok(rec.tag.length > 0);
 });
+

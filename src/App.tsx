@@ -382,6 +382,7 @@ export default function App() {
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [aiHelperRequest, setAiHelperRequest] = useState<AIHelperRequest | null>(null);
   const [showWhyEnglish, setShowWhyEnglish] = useState(false);
+  const [showLanding, setShowLanding] = useState<boolean>(false);
   const toastTimerRef = useRef<number | null>(null);
   const aiRequestIdRef = useRef(0);
 
@@ -1753,11 +1754,20 @@ export default function App() {
     );
   }
 
-  if (profile === null) {
+  if (showLanding || profile === null) {
     return (
       <LandingView
-        onStartWebApp={() => setShowOnboarding(true)}
-        onStartGuest={() => setIsGuest(true)}
+        onStartWebApp={() => {
+          setShowLanding(false);
+          if (!profile) {
+            setShowOnboarding(true);
+          }
+        }}
+        onStartGuest={() => {
+          setShowLanding(false);
+          setIsGuest(true);
+          openLesson(0);
+        }}
       />
     );
   }
@@ -1916,16 +1926,32 @@ export default function App() {
           dir={rtlUI ? 'rtl' : 'ltr'}
           className="relative z-40 mx-auto flex w-full max-w-md shrink-0 items-center justify-between px-4 py-3"
         >
-          <div className="flex items-center gap-2 font-semibold text-orange-700 dark:text-orange-300">
-            <Flame size={20} aria-hidden="true" />
-            <span>
-              {tUI(
-                `${progress.streak} day${progress.streak === 1 ? '' : 's'} streak`,
-                `${progress.streak} يوم متتالي`
-              )}
-            </span>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              id="global-home-nav-btn"
+              aria-label={tUI('Back to Home / Landing Page', 'العودة للصفحة الرئيسية')}
+              title={tUI('Back to Home / Landing Page', 'العودة للصفحة الرئيسية')}
+              onClick={() => {
+                setShowLanding(true);
+                setActiveTab('home');
+                setActiveLessonIdx(null);
+              }}
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-stone-300 bg-white/80 text-stone-700 shadow-sm hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive-600 dark:border-stone-700 dark:bg-stone-900/80 dark:text-stone-200 dark:hover:bg-stone-800"
+            >
+              <Home size={20} aria-hidden="true" />
+            </button>
+            <div className="flex items-center gap-1.5 font-semibold text-orange-700 dark:text-orange-300">
+              <Flame size={18} aria-hidden="true" />
+              <span className="text-xs sm:text-sm">
+                {tUI(
+                  `${progress.streak}d`,
+                  `${progress.streak}ي`
+                )}
+              </span>
+            </div>
           </div>
-          <span className="text-sm font-medium text-stone-600 dark:text-stone-300">
+          <span className="text-xs sm:text-sm font-medium text-stone-600 dark:text-stone-300 truncate max-w-[130px] sm:max-w-[180px]">
             {profile.language === 'arabic'
               ? `Learning Arabic (${profile.dialect === 'egyptian' ? 'Egyptian 🇪🇬' : 'MSA 📖'})`
               : `تعلم الإنجليزية (${profile.dialect === 'egyptian' ? 'عامية مصرية 🇪🇬' : 'فصحى 📖'})`}
