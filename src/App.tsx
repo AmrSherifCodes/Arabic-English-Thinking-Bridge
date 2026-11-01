@@ -65,6 +65,7 @@ import {
   applyHabitWin,
   computeNextHintWord
 } from './utils/habitPsychology';
+import { calculateSM2 } from './utils/sm2';
 import {
   BTN_GHOST,
   BTN_PRIMARY,
@@ -975,11 +976,8 @@ export default function App() {
     recordAnswer(g > 0);
     const [k, ...rest] = currentQueue;
     const existingSched = progress.cards?.[k];
-    const nextSched = cardSched(existingSched, g);
-    const intervals = isStruggling
-      ? [10 * 1000, 60 * 1000, 10 * 60 * 1000, 24 * 60 * 60 * 1000] as const
-      : [60 * 1000, 24 * 60 * 60 * 1000, 3 * 24 * 60 * 60 * 1000, 7 * 24 * 60 * 60 * 1000] as const;
-    const nextReviewDate = Date.now() + intervals[g];
+    const nextSched = calculateSM2(existingSched, g, { isStruggling });
+    const nextReviewDate = nextSched.due;
 
     const todayKey = new Date().toISOString().split('T')[0];
     const prevDateCount = progress.reviewHistory?.[todayKey] || 0;
@@ -993,7 +991,7 @@ export default function App() {
       previousDateCount: prevDateCount
     });
 
-    const updatedQueue = [...rest];
+    const updatedQueue = g === 0 ? [...rest, k] : [...rest];
     const baseCardXp = g === 0 ? 0 : 2;
     const winTransition = g > 0 ? applyHabitWin(progress, baseCardXp, todayKey) : null;
 
@@ -2521,6 +2519,9 @@ export default function App() {
                 activeQueue={activeCardQueue}
                 currentCardData={
                   activeCardQueue[0] ? getCardData(activeCardQueue[0], progress) : null
+                }
+                currentCardSchedule={
+                  activeCardQueue[0] ? progress.cards?.[activeCardQueue[0]] : undefined
                 }
                 cardAnswerShown={cardAnswerShown}
                 canUndo={undoSnapshot !== null}

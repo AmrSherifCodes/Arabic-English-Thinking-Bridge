@@ -2,8 +2,10 @@ import React from 'react';
 import confetti from 'canvas-confetti';
 import { PrebuiltDeck } from '../data/prebuiltDecks';
 import type { UserProfile } from '../hooks/useUserProfile';
+import type { CardSchedule } from '../types';
 import { speakWithRate } from '../utils/audio';
 import { isArabicUI, uiText } from '../utils/i18n';
+import { getCardIntervalPreviews } from '../utils/sm2';
 import { InteractiveArabicSentence } from './InteractiveArabicSentence';
 import { Flashcard } from './Flashcard';
 import { OliveBranchIcon } from './CulturalToast';
@@ -350,6 +352,7 @@ export interface ReviewViewProps {
   deckStats: DeckStats;
   activeQueue: string[];
   currentCardData: FlashcardItemData | null;
+  currentCardSchedule?: CardSchedule;
   cardAnswerShown: boolean;
   canUndo: boolean;
   isStruggling: boolean;
@@ -372,6 +375,7 @@ export function ReviewView({
   deckStats,
   activeQueue,
   currentCardData,
+  currentCardSchedule,
   cardAnswerShown,
   canUndo,
   isStruggling,
@@ -389,6 +393,7 @@ export function ReviewView({
   const rtl = isArabicUI(profile?.language);
   const t = (en: string, ar: string) => uiText(profile?.language, en, ar);
   const isEgyptian = profile?.dialect === 'egyptian';
+  const intervalPreviews = getCardIntervalPreviews(currentCardSchedule, isStruggling);
 
   return (
     <div id="anki-review-view" dir={rtl ? 'rtl' : 'ltr'} className="mx-auto w-full">
@@ -612,9 +617,7 @@ export function ReviewView({
                   ] as const
                 ).map(([idKey, friendlyLabel, bgClass], g) => {
                   const grade = g as 0 | 1 | 2 | 3;
-                  const intervalText = isStruggling
-                    ? ['10s', '1m', '10m', '1d'][grade]
-                    : ['1m', '1d', '3d', '7d'][grade];
+                  const intervalText = intervalPreviews[grade];
                   return (
                     <BouncyButton
                       key={idKey}

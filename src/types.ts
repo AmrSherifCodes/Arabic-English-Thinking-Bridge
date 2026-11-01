@@ -61,6 +61,8 @@ export interface CardSchedule {
   reps: number;
   due: number;
   nextReviewDate: number;
+  lapses?: number;
+  lastReviewed?: number;
 }
 
 export interface CustomCard {

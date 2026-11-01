@@ -146,7 +146,13 @@ export function sanitizeUserProgress(raw: unknown): UserProgress {
             nextReviewDate:
               typeof sc.nextReviewDate === 'number' && Number.isFinite(sc.nextReviewDate)
                 ? sc.nextReviewDate
-                : sc.due
+                : sc.due,
+            ...(typeof sc.lapses === 'number' && Number.isFinite(sc.lapses)
+              ? { lapses: Math.max(0, Math.floor(sc.lapses)) }
+              : {}),
+            ...(typeof sc.lastReviewed === 'number' && Number.isFinite(sc.lastReviewed)
+              ? { lastReviewed: Math.floor(sc.lastReviewed) }
+              : {})
           };
         }
       }

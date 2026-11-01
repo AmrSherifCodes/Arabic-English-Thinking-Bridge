@@ -1,4 +1,5 @@
 import { UserProgress } from '../types';
+import { calculateSM2, SM2Grade } from './sm2';
 
 export const LEVEL_NAMES = [
   'Silent Copula',
@@ -182,31 +183,20 @@ export function confetti() {
 }
 
 /**
- * Simplified SM-2 Spaced Repetition Scheduler.
+ * Full SuperMemo SM-2 Spaced Repetition Scheduler.
  * g: 0 Again, 1 Hard, 2 Good, 3 Easy. Intervals are in days.
  */
 export function cardSched(
-  c: { ease: number; int: number; reps: number } | undefined,
+  c: { ease: number; int: number; reps: number; lapses?: number; due?: number; nextReviewDate?: number } | undefined,
   g: 0 | 1 | 2 | 3
-): { ease: number; int: number; reps: number } {
-  const cur = c || { ease: 2.5, int: 0, reps: 0 };
-  let e = cur.ease,
-    i = cur.int,
-    r = cur.reps;
-  if (g === 0) {
-    e = Math.max(1.3, e - 0.2);
-    i = 0;
-    r = 0;
-  } else if (g === 1) {
-    e = Math.max(1.3, e - 0.15);
-    i = Math.max(1, Math.round(i * 1.2));
-  } else if (g === 2) {
-    i = r === 0 ? 1 : r === 1 ? 3 : Math.round(i * e);
-    r++;
-  } else {
-    e += 0.15;
-    i = r === 0 ? 3 : Math.round(Math.max(i, 1) * e * 1.3);
-    r++;
-  }
-  return { ease: e, int: i, reps: r };
+): { ease: number; int: number; reps: number; lapses?: number; due?: number; nextReviewDate?: number } {
+  const result = calculateSM2(c, g as SM2Grade);
+  return {
+    ease: result.ease,
+    int: result.int,
+    reps: result.reps,
+    lapses: result.lapses,
+    due: result.due,
+    nextReviewDate: result.nextReviewDate
+  };
 }
