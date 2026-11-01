@@ -70,9 +70,26 @@ export interface CustomCard {
   deckId?: string;
 }
 
+export type LearningGoal = 'academic' | 'travel' | 'business' | 'work' | 'general';
+export type LearningStyle = 'visual' | 'audio' | 'text';
+export type FocusArea = 'chemistry' | 'daily-speech' | 'business' | 'general' | string;
+
+export interface UserProfile {
+  name?: string;
+  goal: LearningGoal;
+  learningStyle?: LearningStyle;
+  focusArea?: FocusArea;
+  language: 'english' | 'arabic';
+  dialect: 'egyptian' | 'msa';
+  level: 'beginner' | 'intermediate' | 'advanced';
+}
+
 export interface UserProgress {
   completedExerciseIds: string[];
   completedLessonIds: string[];
+  completedExerciseCount?: number;
+  feedbackDismissed?: boolean;
+  feedbackSubmitted?: boolean;
   score: number;
   streak: number;
   bestStreak: number;

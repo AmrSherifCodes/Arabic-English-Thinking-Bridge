@@ -33,7 +33,7 @@ const HIGH_TRAFFIC_MESSAGE =
 const situations = ['student', 'call-center', 'public-matter'];
 const levels = ['beginner', 'intermediate', 'advanced'];
 const languages = ['english', 'arabic'];
-const goals = ['travel', 'work', 'general'];
+const goals = ['travel', 'work', 'academic', 'business', 'general'];
 const dialects = ['egyptian', 'msa'];
 
 const entryProperties = {
@@ -100,10 +100,10 @@ function isMember(value, values) {
 
 function validProfile(profile) {
   return isRecord(profile) &&
-    isMember(profile.language, languages) &&
-    isMember(profile.dialect, dialects) &&
-    isMember(profile.level, levels) &&
-    isMember(profile.goal, goals);
+    (profile.language === undefined || isMember(profile.language, languages)) &&
+    (profile.dialect === undefined || isMember(profile.dialect, dialects)) &&
+    (profile.level === undefined || isMember(profile.level, levels)) &&
+    (profile.goal === undefined || isMember(profile.goal, goals));
 }
 
 function sendJson(res, status, value, extraHeaders = {}) {
@@ -199,7 +199,7 @@ function buildCacheKey(operation, body) {
       ? ctx.currentWord.arabicWord.trim().toLowerCase()
       : '';
     if (!prompt) return null;
-    return `tb:cache:tutor:${prof.dialect || 'msa'}:${prof.language || 'english'}:${prof.level || 'beginner'}:${curWord}:${prompt}`;
+    return `tb:cache:tutor:${prof.dialect || 'msa'}:${prof.language || 'english'}:${prof.level || 'beginner'}:${prof.focusArea || ''}:${prof.goal || ''}:${curWord}:${prompt}`;
   }
   if (operation === 'deck') {
     const prof = isRecord(body.profile) ? body.profile : {};
@@ -425,11 +425,40 @@ async function generate(operation, body) {
     const wordContext = currentWord
       ? `The learner is currently studying: ${currentWord.arabicWord.slice(0, 100)} = ${currentWord.englishTranslation.slice(0, 100)}.`
       : 'No specific vocabulary card is currently selected.';
+
+    let adaptiveInstruction = '';
+    const prof = context.profile || {};
+    const focus = String(prof.focusArea || '').toLowerCase();
+    const goal = String(prof.goal || '').toLowerCase();
+    const style = String(prof.learningStyle || '').toLowerCase();
+
+    if (focus === 'chemistry' || focus.includes('chem') || focus.includes('science')) {
+      adaptiveInstruction += ' The learner specializes in chemistry. Use intuitive chemistry analogies (e.g., covalent bonding as subject-verb agreement, catalysts as auxiliary verbs, atomic valence, reaction equilibrium, or molecular stability) to explain English grammar mechanics and sentence structure.';
+    } else if (focus === 'daily-speech' || focus.includes('daily') || focus.includes('slang')) {
+      adaptiveInstruction += ' The learner focuses on natural daily speech, colloquial spoken rhythm, and real-life conversational shortcuts.';
+    }
+
+    if (goal === 'academic') {
+      adaptiveInstruction += ' The learner targets academic research, scientific papers, and university study; emphasize precise terminology, academic register, and logical clarity.';
+    } else if (goal === 'travel') {
+      adaptiveInstruction += ' The learner focuses on travel scenarios, asking directions, polite inquiries, and quick practical communication.';
+    } else if (goal === 'business' || goal === 'work') {
+      adaptiveInstruction += ' The learner focuses on professional workplace English, corporate meetings, customer retention, and professional correspondence.';
+    }
+
+    if (style === 'visual') {
+      adaptiveInstruction += ' The learner has a visual learning style: use structural formatting, clear brackets/diagrams [Subject] + [Verb], and mental layout imagery.';
+    } else if (style === 'audio') {
+      adaptiveInstruction += ' The learner has an auditory learning style: emphasize spoken rhythm, stress-timing, pronunciation flow, and how the sentence sounds spoken aloud.';
+    }
+
     const response = await generateContentWithFallback(ai, {
       contents: `${recentHistory.join('\n')}\nLearner's question: ${prompt.trim()}`,
       config: {
         systemInstruction:
-          'You are an English thinking tutor. When the user asks a question, explain the structural logic behind the English sentence and compare it to how the Arabic brain thinks. Example: Explain why English needs a copula (is/are) in nominal sentences when Arabic doesn\'t. NEVER just give a direct word-for-word translation; always explain the cognitive shift and structural thought-mapping. Keep it brief, beginner-friendly, and in the user\'s selected language and dialect (' +
+          'You are an English thinking tutor. When the user asks a question, explain the structural logic behind the English sentence and compare it to how the Arabic brain thinks. Example: Explain why English needs a copula (is/are) in nominal sentences when Arabic doesn\'t. NEVER just give a direct word-for-word translation; always explain the cognitive shift and structural thought-mapping.' +
+          adaptiveInstruction +
+          ' Keep it brief, beginner-friendly, and in the user\'s selected language and dialect (' +
           (context.profile.dialect === 'egyptian' ? 'Egyptian Arabic (Ammiya)' : 'Modern Standard Arabic (MSA/Fusha)') +
           `). ${wordContext} Keep answers concise and pedagogical (under four sentences).`,
         maxOutputTokens: 1024,

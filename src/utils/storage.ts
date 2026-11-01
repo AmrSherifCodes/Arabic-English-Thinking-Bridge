@@ -19,6 +19,9 @@ export const DEFAULT_PIN = TEACHER_PIN;
 export const DEFAULT_PROGRESS: UserProgress = {
   completedExerciseIds: [],
   completedLessonIds: [],
+  completedExerciseCount: 0,
+  feedbackDismissed: false,
+  feedbackSubmitted: false,
   score: 0,
   streak: 0,
   bestStreak: 0,
@@ -213,9 +216,21 @@ export function sanitizeUserProgress(raw: unknown): UserProgress {
       ? Math.min(5, Math.floor(obj.streakShields))
       : DEFAULT_PROGRESS.streakShields;
 
+  const completedExerciseCount =
+    typeof obj.completedExerciseCount === 'number' &&
+    Number.isFinite(obj.completedExerciseCount) &&
+    obj.completedExerciseCount >= 0
+      ? Math.floor(obj.completedExerciseCount)
+      : completedExerciseIds.length;
+  const feedbackDismissed = Boolean(obj.feedbackDismissed);
+  const feedbackSubmitted = Boolean(obj.feedbackSubmitted);
+
   return {
     completedExerciseIds,
     completedLessonIds,
+    completedExerciseCount,
+    feedbackDismissed,
+    feedbackSubmitted,
     score,
     streak,
     bestStreak,

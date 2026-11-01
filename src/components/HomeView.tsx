@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { BookOpen, CalendarDays, Github, Heart, Layers, Linkedin, MessageCircle, MessageSquare, Mic } from 'lucide-react';
+import { BookOpen, CalendarDays, Github, Heart, Layers, Linkedin, MessageCircle, MessageSquare, Mic, Sparkles, ArrowRight, Target } from 'lucide-react';
 import { UserProfile } from '../hooks/useUserProfile';
 import { UserProgress } from '../types';
 import { isArabicUI, uiText } from '../utils/i18n';
 import { ThinkingMap } from './ThinkingMap';
+import { getAdaptiveRecommendation, getProfileTrackInfo } from '../utils/adaptiveCurriculum';
 
 export type HomeAction = 'flashcards' | 'speaking' | 'situations' | 'daily-review' | 'messages';
 
@@ -80,6 +81,8 @@ export function HomeView({ profile, progress, onNavigate, onOpenWhyEnglish, onOp
 
   const rtl = isArabicUI(profile.language);
   const t = (en: string, ar: string) => uiText(profile.language, en, ar);
+  const trackInfo = getProfileTrackInfo(profile);
+  const adaptiveRec = getAdaptiveRecommendation(progress, profile);
 
   const levelLabel =
     profile.level === 'beginner'
@@ -87,39 +90,38 @@ export function HomeView({ profile, progress, onNavigate, onOpenWhyEnglish, onOp
       : profile.level === 'intermediate'
         ? t('Intermediate', 'متوسط')
         : t('Advanced', 'متقدم');
-  const goalLabel =
-    profile.goal === 'work'
-      ? t('Work', 'العمل')
-      : profile.goal === 'travel'
-        ? t('Travel', 'السفر')
-        : t('General', 'عام');
+
   const dialectLabel =
     profile.dialect === 'egyptian'
       ? t('Egyptian Arabic 🇪🇬', 'العامية المصرية 🇪🇬')
       : t('Modern Standard Arabic 📖', 'العربية الفصحى 📖');
 
-  const goalFeatureIds: Record<UserProfile['goal'], HomeAction[]> = {
-    travel: ['situations', 'speaking', 'flashcards', 'messages'],
-    work: ['situations', 'speaking', 'flashcards', 'messages'],
-    general: ['flashcards', 'speaking', 'situations', 'daily-review', 'messages']
-  };
-  const visibleFeatureIds = new Set(goalFeatureIds[profile.goal]);
-  const prioritizedFeatureIds: HomeAction[] =
-    profile.goal === 'work'
-      ? ['situations', 'speaking']
-      : profile.goal === 'travel'
-        ? ['situations', 'speaking']
-        : [];
-  const features = FEATURES.filter(feature => visibleFeatureIds.has(feature.id)).sort(
-    (first, second) => {
-      const firstPriority = prioritizedFeatureIds.indexOf(first.id);
-      const secondPriority = prioritizedFeatureIds.indexOf(second.id);
+  // Feature prioritization according to learningStyle & goal
+  const prioritizedFeatureIds: HomeAction[] = [];
+  if (profile.learningStyle === 'audio') {
+    prioritizedFeatureIds.push('speaking', 'situations');
+  } else if (profile.learningStyle === 'visual') {
+    prioritizedFeatureIds.push('flashcards', 'situations');
+  } else if (profile.learningStyle === 'text') {
+    prioritizedFeatureIds.push('daily-review', 'situations');
+  }
 
-      if (firstPriority === -1) return secondPriority === -1 ? 0 : 1;
-      if (secondPriority === -1) return -1;
-      return firstPriority - secondPriority;
-    }
-  );
+  if (profile.goal === 'travel') {
+    prioritizedFeatureIds.push('situations', 'speaking');
+  } else if (profile.goal === 'business' || profile.goal === 'work') {
+    prioritizedFeatureIds.push('situations', 'flashcards');
+  }
+
+  const features = [...FEATURES].sort((first, second) => {
+    const firstPriority = prioritizedFeatureIds.indexOf(first.id);
+    const secondPriority = prioritizedFeatureIds.indexOf(second.id);
+
+    if (firstPriority === -1) return secondPriority === -1 ? 0 : 1;
+    if (secondPriority === -1) return -1;
+    return firstPriority - secondPriority;
+  });
+
+  const userName = profile.name ? profile.name : t('Learner', 'المتعلم');
 
   return (
     <section
@@ -135,76 +137,96 @@ export function HomeView({ profile, progress, onNavigate, onOpenWhyEnglish, onOp
           {t('Offline Mode Active 🟢', 'وضع عدم الاتصال نشط 🟢')}
         </p>
       )}
+
       <header className="pt-1">
-        <p className="text-sm font-medium text-olive-800 dark:text-olive-300">
-          {t('Welcome back', 'مرحبًا بك من جديد')} · {dialectLabel}
-        </p>
+        <div className="flex items-center gap-2 flex-wrap mb-1">
+          <p className="text-sm font-semibold text-olive-800 dark:text-olive-300">
+            {t(`Welcome back, ${userName}! 👋`, `مرحبًا بك من جديد، ${userName}! 👋`)}
+          </p>
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-teal-500/15 text-teal-700 dark:text-teal-300 border border-teal-500/30">
+            <span>{trackInfo.icon}</span>
+            <span>{t(trackInfo.titleEn, trackInfo.titleAr)}</span>
+          </span>
+        </div>
+
         <h2
           id="home-heading"
-          className="mt-1 text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-3xl"
+          className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-3xl"
         >
           {profile.language === 'arabic'
             ? `Ready to learn ${profile.dialect === 'egyptian' ? 'Egyptian Arabic' : 'Arabic'}?`
-            : 'هل أنت مستعد لتعلم الإنجليزية؟'}
+            : 'هل أنت مستعد لبناء التفكير الإنجليزي؟'}
         </h2>
-        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
-          {profile.goal === 'work'
-            ? t(
-                'Build confidence for workplace conversations.',
-                'طوّر ثقتك ومهاراتك في محادثات العمل وخدمة العملاء.'
-              )
-            : profile.goal === 'travel'
-              ? t(
-                  'Practice the language you need for your next trip.',
-                  'تدرّب على المفردات والجمل التي تحتاجها في رحلتك القادمة.'
-                )
-              : t(
-                  'Choose a path and keep your learning momentum going.',
-                  'اختر مسارك واستمر في تقدمك اليومي.'
-                )}
-        </p>
         <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
           {t(
-            `Your ${levelLabel} · ${goalLabel} · ${dialectLabel} learning path`,
-            `مسارك التعليمي: المستوى ${levelLabel} · الهدف: ${goalLabel} · ${dialectLabel}`
+            `Adaptive Track: ${levelLabel} · Goal: ${profile.goal} (${profile.focusArea || 'General'}) · ${dialectLabel}`,
+            `المسار التكيفي: المستوى ${levelLabel} · الهدف: ${profile.goal} (${profile.focusArea || 'عام'}) · ${dialectLabel}`
           )}
         </p>
       </header>
+
+      {/* Adaptive Recommendation Card */}
+      <div className="overflow-hidden rounded-2xl border-2 border-teal-500/40 bg-gradient-to-r from-teal-900/30 via-stone-900 to-emerald-900/20 p-4 sm:p-5 shadow-lg border border-teal-500/30 text-white">
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wider bg-teal-500 text-stone-950">
+            <Target size={13} />
+            {t('Adaptive Focus Recommendation', 'الهدف التكيفي المقترح')}
+          </span>
+          <span className="text-xs font-bold text-teal-300">
+            {t(`Lesson #${adaptiveRec.lesson.number}`, `الدرس #${adaptiveRec.lesson.number}`)}
+          </span>
+        </div>
+        <h3 className="mt-2 text-base sm:text-lg font-black text-white">
+          {adaptiveRec.lesson.number}. {t(adaptiveRec.lesson.title, adaptiveRec.lesson.titleAr)}
+        </h3>
+        <p className="mt-1 text-xs text-stone-300 leading-relaxed">
+          {t(adaptiveRec.reasonEn, adaptiveRec.reasonAr)}
+        </p>
+        <button
+          type="button"
+          onClick={() => onOpenLesson(adaptiveRec.lessonIndex)}
+          className="mt-3.5 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-teal-500 hover:bg-teal-400 text-stone-950 font-extrabold text-xs shadow-md transition active:scale-[0.98]"
+        >
+          <span>{t('Launch Adaptive Lesson →', 'ابدأ الدرس التكيفي الآن ←')}</span>
+          <ArrowRight size={14} className="rtl-flip" />
+        </button>
+      </div>
 
       <motion.button
         type="button"
         onClick={onOpenWhyEnglish}
         whileTap={{ scale: 0.98 }}
         transition={{ duration: 0.15 }}
-        className={`flex min-h-24 w-full items-center gap-4 rounded-2xl border border-indigo-700/60 bg-gradient-to-r from-indigo-800 to-violet-700 p-4 ${
+        className={`flex min-h-20 w-full items-center gap-4 rounded-2xl border border-indigo-700/60 bg-gradient-to-r from-indigo-800 to-violet-700 p-4 ${
           rtl ? 'text-right' : 'text-left'
         } text-white shadow-lg shadow-indigo-950/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600`}
       >
-        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/15 text-white">
-          <BookOpen size={24} aria-hidden="true" />
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/15 text-white">
+          <BookOpen size={22} aria-hidden="true" />
         </span>
         <span>
           <span className="block font-semibold text-white">
             {t('Why Learn With Thinking Bridge? 📖', 'لماذا تتعلم الإنجليزية؟ 📖')}
           </span>
-          <span className="mt-1 block text-sm text-indigo-100">
-            {t('Discover your motivation', 'اكتشف دافعك الحقيقي للتعلم')}
+          <span className="mt-0.5 block text-xs text-indigo-100">
+            {t('Discover your motivation & cognitive shift', 'اكتشف دافعك الحقيقي والتحول الإدراكي')}
           </span>
         </span>
       </motion.button>
 
-      {/* Visual English Thinking Map (replacing generic progress bar) */}
+      {/* Visual English Thinking Map (Personalized by Profile) */}
       <ThinkingMap
         progress={progress}
         onOpenLesson={onOpenLesson}
         language={profile.language}
+        profile={profile}
       />
 
       <div className="grid w-full min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
         {features.map(({ id, titleEn, titleAr, descriptionEn, descriptionAr, Icon, iconClass }) => {
-          const isWorkFocus = profile.goal === 'work' && id === 'situations';
+          const isWorkFocus = (profile.goal === 'work' || profile.goal === 'business') && id === 'situations';
           const cardTitle = isWorkFocus
-            ? t('Situations (Call Center)', 'المواقف العملية (خدمة العملاء)')
+            ? t('Situations (Work & Career)', 'المواقف العملية (العمل والمهنة)')
             : t(titleEn, titleAr);
           const cardDescription =
             id === 'situations' && profile.goal === 'travel'
@@ -214,8 +236,8 @@ export function HomeView({ profile, progress, onNavigate, onOpenWhyEnglish, onOp
                 )
               : isWorkFocus
                 ? t(
-                    'Practice workplace and call center conversations',
-                    'تدرب على محادثات العمل ومراكز الاتصال'
+                    'Practice workplace, interview, and call center dialogs',
+                    'تدرب على محادثات العمل والمقابلات ومراكز الاتصال'
                   )
                 : t(descriptionEn, descriptionAr);
 
@@ -229,82 +251,28 @@ export function HomeView({ profile, progress, onNavigate, onOpenWhyEnglish, onOp
               transition={{ type: 'spring', stiffness: 380, damping: 24 }}
               className={`flex min-h-28 w-full min-w-0 touch-manipulation items-center gap-4 rounded-2xl border bg-white dark:bg-slate-800 p-4 ${
                 rtl ? 'text-right' : 'text-left'
-              } text-slate-900 dark:text-slate-100 shadow-md shadow-slate-900/5 dark:shadow-black/30 outline-none transition-shadow hover:shadow-lg focus-visible:ring-2 focus-visible:ring-olive-500 ${
-                isWorkFocus
-                  ? 'border-olive-500 dark:border-olive-400 ring-1 ring-olive-500/30'
-                  : 'border-slate-200 dark:border-slate-700'
-              }`}
+              } border-stone-200 dark:border-stone-700 shadow-sm transition-colors hover:border-olive-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-olive-600`}
             >
-              <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${iconClass}`}>
-                <Icon size={25} aria-hidden="true" />
+              <span
+                className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${iconClass}`}
+              >
+                <Icon size={24} aria-hidden="true" />
               </span>
-              <span className="min-w-0">
-                <span className="block font-semibold">{cardTitle}</span>
-                <span className="mt-1 block text-sm leading-snug text-slate-600 dark:text-slate-300">
+              <span className="min-w-0 flex-1">
+                <span className="block font-semibold text-slate-900 dark:text-white">
+                  {cardTitle}
+                </span>
+                <span className="mt-1 block text-sm text-slate-500 dark:text-slate-400">
                   {cardDescription}
                 </span>
-                {isWorkFocus && (
-                  <span className="mt-2 inline-block text-xs font-semibold text-olive-800 dark:text-olive-300">
-                    {t('Work focus', 'تركيز العمل')}
-                  </span>
-                )}
               </span>
             </motion.button>
           );
         })}
       </div>
 
-      {/* Creator Attribution & Social Footer */}
-      <footer
-        dir="ltr"
-        className="mt-6 rounded-2xl border border-slate-200/80 bg-white/80 p-4 text-xs text-slate-600 shadow-xs dark:border-slate-700/80 dark:bg-slate-800/60 dark:text-slate-300"
-      >
-        <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">
-          <div className="flex items-center gap-3">
-            <img
-              src="/amr.jpg"
-              alt="Amr Sherif"
-              className="h-10 w-10 rounded-full border-2 border-orange-500/80 object-cover object-top"
-            />
-            <div>
-              <p className="font-semibold text-slate-900 dark:text-white">
-                Built with ❤️ by Amr Sherif
-              </p>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                © 2026 Thinking English.
-              </p>
-            </div>
-          </div>
-          <nav aria-label="Creator social links" className="flex flex-wrap items-center gap-4">
-            <a
-              href="https://www.linkedin.com/in/sciamrsherif-abdelaal/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 font-semibold text-slate-700 transition hover:text-orange-600 dark:text-slate-200 dark:hover:text-orange-400"
-            >
-              <Linkedin size={14} aria-hidden="true" />
-              <span>LinkedIn</span>
-            </a>
-            <a
-              href="https://github.com/AmrSherifCodes"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 font-semibold text-slate-700 transition hover:text-orange-600 dark:text-slate-200 dark:hover:text-orange-400"
-            >
-              <Github size={14} aria-hidden="true" />
-              <span>GitHub</span>
-            </a>
-            <a
-              href="https://www.patreon.com/c/SciAmrSherif"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 font-semibold text-slate-700 transition hover:text-orange-600 dark:text-slate-200 dark:hover:text-orange-400"
-            >
-              <Heart size={14} aria-hidden="true" />
-              <span>Patreon</span>
-            </a>
-          </nav>
-        </div>
+      <footer className="pt-2 text-center text-xs text-stone-500 dark:text-stone-400">
+        <p>Thinking English · Personalized Adaptive Engine</p>
       </footer>
     </section>
   );

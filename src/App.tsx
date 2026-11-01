@@ -87,7 +87,8 @@ import { BlockScreen } from './components/BlockScreen';
 import { PWAInstallButton } from './components/PWAInstallButton';
 import { BottomNav, BottomNavTab } from './components/BottomNav';
 import { HomeAction, HomeView } from './components/HomeView';
-import { Onboarding } from './components/Onboarding';
+import { OnboardingModal } from './components/OnboardingModal';
+import { FeedbackModal } from './components/FeedbackModal';
 import { EncouragementToast } from './components/EncouragementToast';
 import { useUserProfile, type UserProfile } from './hooks/useUserProfile';
 import { AIHelper, OPEN_VIP_PASS_EVENT } from './components/AIHelper';
@@ -290,10 +291,13 @@ async function translateSingleLine(rawLine: string): Promise<{ ar: string; en: s
 }
 
 const GUEST_PROFILE: UserProfile = {
+  name: 'Honorary Guest',
   language: 'english',
   dialect: 'egyptian',
   level: 'beginner',
-  goal: 'general'
+  goal: 'general',
+  learningStyle: 'visual',
+  focusArea: 'daily-speech'
 };
 
 export default function App() {
@@ -384,6 +388,7 @@ export default function App() {
   // Settings & Open-Source Attribution Modals
   const [showSettingsMenu, setShowSettingsMenu] = useState<boolean>(false);
   const [showOnboarding, setShowOnboarding] = useState<boolean>(false);
+  const [showFeedbackModal, setShowFeedbackModal] = useState<boolean>(false);
   const [attributionDeck, setAttributionDeck] = useState<PrebuiltDeck | null>(null);
 
   // Unlock all mode for training demos / free exploration
@@ -1375,6 +1380,18 @@ export default function App() {
         showToast(`🔥 ${winTransition.nextProgress.streak} in a row!`);
       }
 
+      const currentDoneCount =
+        typeof progress.completedExerciseCount === 'number'
+          ? progress.completedExerciseCount
+          : (progress.completedExerciseIds || []).length;
+      const nextDoneCount = alreadyDone ? currentDoneCount : currentDoneCount + 1;
+
+      if (nextDoneCount === 5 && !progress.feedbackDismissed && !progress.feedbackSubmitted) {
+        window.setTimeout(() => {
+          setShowFeedbackModal(true);
+        }, 1200);
+      }
+
       updateAndSaveProgress(prev => {
         const habitNext = applyHabitWin(
           prev,
@@ -1395,7 +1412,8 @@ export default function App() {
         return {
           ...habitNext,
           completedExerciseIds: nextExIds,
-          completedLessonIds: nextLessonIds
+          completedLessonIds: nextLessonIds,
+          completedExerciseCount: nextDoneCount
         };
       });
 
@@ -1718,9 +1736,13 @@ export default function App() {
   if (showOnboarding) {
     return (
       <>
-        <Onboarding
+        <OnboardingModal
+          isOpen={showOnboarding}
           initialProfile={profile}
-          onCancel={() => setShowOnboarding(false)}
+          onSkip={() => {
+            saveProfile(GUEST_PROFILE);
+            setShowOnboarding(false);
+          }}
           onComplete={nextProfile => {
             saveProfile(nextProfile);
             setShowOnboarding(false);
@@ -2015,6 +2037,25 @@ export default function App() {
             </div>
           )}
         </header>
+
+      {/* 5-Exercise Milestone Feedback Modal */}
+      <FeedbackModal
+        isOpen={showFeedbackModal}
+        onClose={() => {
+          updateAndSaveProgress(prev => ({ ...prev, feedbackDismissed: true }));
+          setShowFeedbackModal(false);
+        }}
+        onSubmit={() => {
+          updateAndSaveProgress(prev => ({
+            ...prev,
+            feedbackSubmitted: true,
+            feedbackDismissed: true
+          }));
+          setShowFeedbackModal(false);
+        }}
+        onToast={showToast}
+        profile={profile}
+      />
 
       {/* Open-Source Deck Attribution Modal */}
       {attributionDeck && (
