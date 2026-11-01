@@ -20,10 +20,24 @@ function resolveGoogleLang(lang = 'en-US') {
   return 'en';
 }
 
+const ALLOWED_CORS_ORIGINS = new Set([
+  'https://arabicenglishthinkingbridge.vercel.app',
+  'http://localhost:5173',
+  'capacitor://localhost',
+  'https://localhost'
+]);
+
+function getCorsOrigin(origin) {
+  if (origin && ALLOWED_CORS_ORIGINS.has(origin)) return origin;
+  return 'https://arabicenglishthinkingbridge.vercel.app';
+}
+
 export default async function ttsHandler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  const origin = req.headers.origin;
+  res.setHeader('Access-Control-Allow-Origin', getCorsOrigin(origin));
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  res.setHeader('Vary', 'Origin');
 
   if (req.method === 'OPTIONS') {
     res.statusCode = 204;

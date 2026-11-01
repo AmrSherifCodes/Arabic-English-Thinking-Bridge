@@ -648,13 +648,13 @@ async function generate(operation, body) {
 
 const ALLOWED_CORS_ORIGINS = new Set([
   'https://arabicenglishthinkingbridge.vercel.app',
-  'capacitor://localhost'
+  'http://localhost:5173',
+  'capacitor://localhost',
+  'https://localhost'
 ]);
 
 function getCorsOrigin(origin) {
-  if (!origin) return 'https://arabicenglishthinkingbridge.vercel.app';
-  if (ALLOWED_CORS_ORIGINS.has(origin)) return origin;
-  if (/^https?:\/\/localhost(:\d+)?$/.test(origin)) return origin;
+  if (origin && ALLOWED_CORS_ORIGINS.has(origin)) return origin;
   return 'https://arabicenglishthinkingbridge.vercel.app';
 }
 

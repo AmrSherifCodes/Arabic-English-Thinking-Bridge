@@ -59,10 +59,10 @@ export class ErrorBoundary extends Component<Props, State> {
 
             <div className="space-y-2">
               <h1 className="ar text-xl sm:text-2xl font-black text-stone-900 dark:text-white">
-                حدث خطأ غير متوقع
+                حدث خطأ ما. يرجى تحديث الصفحة
               </h1>
               <p className="text-sm font-bold text-teal-700 dark:text-teal-400">
-                Something went wrong
+                Oops, something went wrong. Please refresh the page.
               </p>
               <p className="text-xs sm:text-sm font-medium text-stone-600 dark:text-stone-300 leading-relaxed pt-1">
                 واجه التطبيق مشكلة تقنية بسيطة. بياناتك وتقدمك محفوظان بأمان في جهازك.
