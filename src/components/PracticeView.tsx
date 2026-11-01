@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 import { Exercise, Lesson, UserProgress } from '../types';
 import { CLOUD_AI_VOICE_ID, speakWithRate } from '../utils/audio';

@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Flame, Moon, Sun, UserRound } from 'lucide-react';
+﻿import React, { useEffect, useRef, useState } from 'react';
+import { Flame, Home, Moon, Sun, UserRound } from 'lucide-react';
 import { PHASES_DATA } from './data/lessons';
 import { PREBUILT_DECKS, PrebuiltDeck } from './data/prebuiltDecks';
 import { EXPANDED_DECKS } from './data/expandedDecks';

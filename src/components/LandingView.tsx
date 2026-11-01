@@ -1,12 +1,13 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { ArrowRight, BookOpen, ExternalLink, Github, Heart, Linkedin, Smartphone, X, Youtube } from 'lucide-react';
 
 interface LandingViewProps {
   onStartWebApp: () => void;
   onStartGuest: () => void;
+  onResumeApp?: () => void;
 }
 
-export function LandingView({ onStartWebApp, onStartGuest }: LandingViewProps) {
+export function LandingView({ onStartWebApp, onStartGuest, onResumeApp }: LandingViewProps) {
   const [showInstallGuide, setShowInstallGuide] = useState(false);
   const [showCv, setShowCv] = useState(false);
 
@@ -71,13 +72,13 @@ export function LandingView({ onStartWebApp, onStartGuest }: LandingViewProps) {
               <div className="grid w-full max-w-md grid-cols-1 gap-3 sm:grid-cols-2">
                 <button
                   type="button"
-                  onClick={onStartWebApp}
+                  onClick={onResumeApp || onStartWebApp}
                   className="flex min-h-14 items-center justify-center gap-3 rounded-xl bg-orange-600 px-6 py-3.5 text-lg font-bold text-white shadow-md shadow-orange-600/20 transition hover:bg-orange-700 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-950"
                 >
                   <span className="text-center">
-                    <span className="block">Start Learning Now 🚀</span>
+                    <span className="block">{onResumeApp ? 'Resume Learning 🚀' : 'Start Learning Now 🚀'}</span>
                     <span dir="rtl" className="ar mt-0.5 block text-base">
-                      ابدأ التعلم الآن
+                      {onResumeApp ? 'استئناف التعلم' : 'ابدأ التعلم الآن'}
                     </span>
                   </span>
                   <ArrowRight size={20} aria-hidden="true" />
@@ -99,6 +100,16 @@ export function LandingView({ onStartWebApp, onStartGuest }: LandingViewProps) {
               <p className="text-sm font-medium tracking-wide text-slate-600 dark:text-slate-400">
                 Built with ❤️ by <span className="font-semibold text-slate-900 dark:text-slate-200">Amr Sherif</span>
               </p>
+
+              <a
+                href="https://youtu.be/All6Hz2NWLs"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-xl border border-red-500/30 bg-red-50/90 px-4 py-2 text-xs font-extrabold text-red-700 shadow-xs transition hover:bg-red-100 hover:text-red-800 hover:shadow-sm dark:border-red-500/40 dark:bg-red-950/40 dark:text-red-300 dark:hover:bg-red-950/60"
+              >
+                <Youtube size={16} className="text-red-600 dark:text-red-400" aria-hidden="true" />
+                <span>🎥 Watch the Story Behind the App</span>
+              </a>
 
               <button
                 type="button"
