@@ -178,6 +178,9 @@ export function useVoiceOrchestrator() {
       } catch (err: any) {
         if (err.name !== 'AbortError') {
           console.warn('[useVoiceOrchestrator] Sentence TTS error:', err);
+          if (!isPlayingRef.current && audioQueueRef.current.length === 0) {
+            setState('idle');
+          }
         }
       } finally {
         isFetchingTtsRef.current = false;
