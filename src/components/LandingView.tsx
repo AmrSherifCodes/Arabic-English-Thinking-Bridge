@@ -92,7 +92,7 @@ export function LandingView({ onStartWebApp, onStartGuest, onResumeApp }: Landin
             <div className="mt-8 flex flex-col items-start gap-3 w-full max-w-md">
               {/* Primary Action: Download Android App (v1.0.0) */}
               <a
-                href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v1.0.0/thinking-english-v1.0.0.apk"
+                href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v1.0.1/thinking-english-v1.0.1.apk"
                 id="download-android-apk-btn"
                 className="flex min-h-14 w-full items-center justify-center gap-3 rounded-2xl bg-teal-700 hover:bg-teal-800 active:scale-[0.98] px-6 py-3.5 text-lg font-bold text-white shadow-md shadow-teal-900/20 transition cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-stone-950"
               >
@@ -539,7 +539,7 @@ export function LandingView({ onStartWebApp, onStartGuest, onResumeApp }: Landin
               <strong>Add to Home Screen</strong>.
             </p>
             <a
-              href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v1.0.0/thinking-english-v1.0.0.apk"
+              href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v1.0.1/thinking-english-v1.0.1.apk"
               className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-teal-700/70 bg-teal-50 dark:bg-stone-800 px-4 py-2.5 text-xs font-bold text-teal-800 dark:text-teal-200 transition hover:bg-teal-100 dark:hover:bg-stone-700 cursor-pointer"
             >
               <Smartphone size={16} aria-hidden="true" />
