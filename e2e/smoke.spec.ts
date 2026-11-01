@@ -86,7 +86,7 @@ test.describe('Thinking Bridge Choice Menu & Preferences Smoke Suite', () => {
     // Verify Preferences title and categories
     await expect(page.locator('.pref-header h1')).toHaveText('Preferences');
     await expect(page.locator('text=Audio & Voice')).toBeVisible();
-    await expect(page.locator('text=System')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'System' })).toBeVisible();
 
     // Verify schema fields rendered
     const voiceSelect = page.locator('.pref-select').first();
@@ -153,5 +153,36 @@ test.describe('Thinking Bridge Choice Menu & Preferences Smoke Suite', () => {
     await expect(page.locator('text=flashcards screen is wired in Phase 2.3.')).toBeVisible();
     await page.locator('button:has-text("← Back")').click();
     await expect(page.locator('.menu__title')).toBeVisible();
+  });
+
+  test('Scenario 6: Voice Practice view mounts with interactive Orb, mic toggle, and text drawer', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForLoadState('domcontentloaded');
+
+    await page.locator('button:has-text("Voice Practice")').click();
+
+    // Verify Orb is visible
+    const orb = page.locator('.voice__orb');
+    await expect(orb).toBeVisible();
+
+    // Verify mic button has proper accessible role and label
+    const micBtn = page.locator('.voice__mic');
+    await expect(micBtn).toBeVisible();
+
+    // Verify fallback text toggle
+    const textToggle = page.locator('.voice__type-toggle');
+    await expect(textToggle).toBeVisible();
+    await textToggle.click();
+
+    // Verify input bar appears
+    const inputBar = page.locator('.voice__text-input');
+    await expect(inputBar).toBeVisible();
+
+    // Send a message via text fallback
+    await inputBar.fill('Hello Amr, how are you?');
+    await page.locator('.voice__send-btn').click();
+
+    // Verify history item renders user text
+    await expect(page.locator('.voice__history-item--user')).toContainText('Hello Amr, how are you?');
   });
 });

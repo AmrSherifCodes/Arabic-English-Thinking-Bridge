@@ -13,6 +13,8 @@ export interface ChatMessage {
   timestamp: number;
 }
 
+export const VOICE_V2_MARKER = 'voice-v2-profile';
+
 function getStoredProfile() {
   try {
     const raw = localStorage.getItem('tb.userProfile');
@@ -24,6 +26,7 @@ function getStoredProfile() {
         focusArea: typeof p.focusArea === 'string' ? p.focusArea : 'daily-speech',
         level: typeof p.level === 'string' ? p.level : 'beginner',
         dialect: p.dialect === 'msa' ? 'Modern Standard Arabic' : 'Egyptian Arabic',
+        pipeline: VOICE_V2_MARKER,
       };
     }
   } catch {
@@ -35,6 +38,7 @@ function getStoredProfile() {
     focusArea: 'daily-speech',
     level: 'beginner',
     dialect: 'Egyptian Arabic',
+    pipeline: VOICE_V2_MARKER,
   };
 }
 
@@ -428,6 +432,7 @@ export function useVoiceOrchestrator() {
     startTurn,
     stopTurn,
     handleManualText: handleUserSpeech,
+    voiceMarker: VOICE_V2_MARKER,
   };
 }
 
