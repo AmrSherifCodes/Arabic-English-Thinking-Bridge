@@ -406,6 +406,19 @@ async function generateContentWithFallback(ai, params) {
 }
 
 async function generate(operation, body) {
+  if (operation === 'explain-error') {
+    if (
+      typeof body.submitted !== 'string' ||
+      typeof body.target !== 'string' ||
+      body.submitted.length > 500 ||
+      body.target.length > 500 ||
+      (typeof body.conceptId === 'string' && body.conceptId.length > 80) ||
+      (typeof body.errorType === 'string' && body.errorType.length > 80)
+    ) {
+      return { status: 400, error: { code: 'bad-output', message: 'Input lengths exceed allowed maximum or are invalid.' } };
+    }
+  }
+
   const ai = getClient();
   if (!ai) return { status: 503, error: { code: 'missing-key', message: 'AI service is not configured (GEMINI_API_KEY missing in Vercel environment).' } };
 

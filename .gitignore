@@ -19,3 +19,6 @@ android/app/build/
 *.jks
 KEYSTORE_CREDENTIALS.txt
 thinking-english-release.keystore
+# Playwright
+test-results/
+playwright-report/
