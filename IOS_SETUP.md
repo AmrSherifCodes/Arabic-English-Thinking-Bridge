@@ -86,3 +86,4 @@ npx cap open ios
 - [ ] Microphone permission prompt appears on first tap of the mic button.
 - [ ] AudioContext autoplay policy allows audio playback after user interaction.
 - [ ] Offline banner correctly displays when device is in Airplane Mode.
+
