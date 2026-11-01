@@ -2,12 +2,11 @@ import { GoogleGenAI, Type } from '@google/genai';
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
 
-const MODEL = process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite';
+const MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
 const FALLBACK_MODELS = [
-  'gemini-3.5-flash-lite',
-  'gemini-flash-lite-latest',
-  'gemini-3.5-flash',
-  'gemini-3.6-flash',
+  'gemini-2.5-flash',
+  'gemini-2.5-flash-lite',
+  'gemini-2.0-flash',
   'gemini-1.5-flash',
   'gemini-1.5-flash-8b',
 ];
@@ -176,16 +175,38 @@ async function readBody(req) {
 }
 
 function getClientIp(req) {
+  const realIp = req.headers['x-real-ip'];
+  if (typeof realIp === 'string' && realIp.trim()) {
+    return realIp.trim();
+  }
+  const vercelForwarded = req.headers['x-vercel-forwarded-for'];
+  if (typeof vercelForwarded === 'string' && vercelForwarded.trim()) {
+    const parts = vercelForwarded.split(',');
+    return parts[parts.length - 1].trim();
+  }
   const forwardedFor = req.headers['x-forwarded-for'];
-  return typeof forwardedFor === 'string'
-    ? forwardedFor.split(',')[0].trim()
-    : req.socket?.remoteAddress || 'unknown';
+  if (typeof forwardedFor === 'string' && forwardedFor.trim()) {
+    const parts = forwardedFor.split(',');
+    return parts[parts.length - 1].trim();
+  }
+  return req.socket?.remoteAddress || 'unknown';
 }
 
 function checkMemoryRateLimit(address) {
   const now = Date.now();
   let record = rateLimits.get(address);
   if (!record) {
+    if (rateLimits.size > 5000) {
+      for (const [key, rec] of rateLimits.entries()) {
+        if (rec.dayResetAt <= now) {
+          rateLimits.delete(key);
+        }
+      }
+      if (rateLimits.size > 5000) {
+        const oldestKey = rateLimits.keys().next().value;
+        if (oldestKey) rateLimits.delete(oldestKey);
+      }
+    }
     record = {
       minuteCount: 0,
       minuteResetAt: now + RATE_WINDOW_MINUTE_MS,
@@ -258,10 +279,10 @@ function buildCacheKey(operation, body) {
     return `tb:cache:tr:${from}:${to}:${text}`;
   }
   if (operation === 'explain-error') {
-    const cid = typeof body.conceptId === 'string' ? body.conceptId : '';
-    const et = typeof body.errorType === 'string' ? body.errorType : '';
-    const sub = typeof body.submitted === 'string' ? body.submitted.trim().toLowerCase() : '';
-    const tgt = typeof body.target === 'string' ? body.target.trim().toLowerCase() : '';
+    const cid = typeof body.conceptId === 'string' ? body.conceptId.slice(0, 80) : '';
+    const et = typeof body.errorType === 'string' ? body.errorType.slice(0, 80) : '';
+    const sub = typeof body.submitted === 'string' ? body.submitted.trim().toLowerCase().slice(0, 500) : '';
+    const tgt = typeof body.target === 'string' ? body.target.trim().toLowerCase().slice(0, 500) : '';
     if (!sub || !tgt) return null;
     return `tb:cache:explain:${cid}:${et}:${sub}:${tgt}`;
   }
@@ -479,7 +500,7 @@ async function generate(operation, body) {
 
     let adaptiveInstruction = '';
     const prof = context.profile || {};
-    const focus = String(prof.focusArea || '').toLowerCase();
+    const focus = String(prof.focusArea || '').replace(/[\r\n<>]/g, '').slice(0, 50).toLowerCase();
     const goal = String(prof.goal || '').toLowerCase();
     const style = String(prof.learningStyle || '').toLowerCase();
 
@@ -549,7 +570,9 @@ async function generate(operation, body) {
     const level = isMember(profile.level, levels) ? profile.level : 'intermediate';
     const goal = isMember(profile.goal, goals) ? profile.goal : 'general';
     const dialect = isMember(profile.dialect, dialects) ? profile.dialect : 'msa';
-    const focusArea = typeof profile.focusArea === 'string' ? profile.focusArea.trim().slice(0, 50) : '';
+    const focusArea = typeof profile.focusArea === 'string'
+      ? profile.focusArea.replace(/[\r\n<>]/g, '').trim().slice(0, 50)
+      : '';
 
     const dialectName = dialect === 'egyptian' ? 'Egyptian Arabic (Ammiya)' : 'Modern Standard Arabic (MSA/Fusha)';
     
@@ -652,12 +675,15 @@ async function generate(operation, body) {
   }
 
   if (operation === 'explain-error') {
-    const { conceptId, errorType, submitted, target } = body;
-    if (typeof submitted !== 'string' || typeof target !== 'string') {
-      return { status: 400, error: { code: 'empty-input', message: 'Missing submitted or target text.' } };
+    const conceptId = typeof body.conceptId === 'string' ? body.conceptId.slice(0, 80) : 'general_syntax';
+    const errorType = typeof body.errorType === 'string' ? body.errorType.slice(0, 80) : 'syntax_error';
+    const submitted = typeof body.submitted === 'string' ? body.submitted.trim().slice(0, 500) : '';
+    const target = typeof body.target === 'string' ? body.target.trim().slice(0, 500) : '';
+    if (!submitted || !target) {
+      return { status: 400, error: { code: 'empty-input', message: 'Missing or invalid submitted or target text.' } };
     }
 
-    const contents = `Concept ID: ${conceptId || 'general_syntax'}\nError Type: ${errorType || 'syntax_error'}\nSubmitted sentence: "${submitted}"\nTarget English sentence: "${target}"`;
+    const contents = `Concept ID: ${conceptId}\nError Type: ${errorType}\nSubmitted sentence: "${submitted}"\nTarget English sentence: "${target}"`;
 
     const response = await generateContentWithFallback(ai, {
       contents,
@@ -680,12 +706,15 @@ async function generate(operation, body) {
 const ALLOWED_CORS_ORIGINS = new Set([
   'https://arabicenglishthinkingbridge.vercel.app',
   'http://localhost:5173',
+  'http://localhost:3000',
   'capacitor://localhost',
   'https://localhost'
 ]);
 
 function getCorsOrigin(origin) {
-  if (origin && ALLOWED_CORS_ORIGINS.has(origin)) return origin;
+  if (origin && (ALLOWED_CORS_ORIGINS.has(origin) || /^https?:\/\/localhost(:\d+)?$/.test(origin))) {
+    return origin;
+  }
   return 'https://arabicenglishthinkingbridge.vercel.app';
 }
 
@@ -711,21 +740,10 @@ export default async function handler(req, res) {
     return sendJson(res, 405, { error: { code: 'bad-output', message: 'Method not allowed.' } });
   }
 
-  const requestHost = String(req.headers['x-forwarded-host'] || req.headers.host || '').split(',')[0].trim();
-  const isCapacitorOrLocal =
-    !origin ||
-    origin === 'capacitor://localhost' ||
-    origin === 'http://localhost' ||
-    origin === 'https://localhost' ||
-    /^https?:\/\/localhost(:\d+)?$/.test(origin);
-
-  if (origin && !isCapacitorOrLocal) {
-    try {
-      if (requestHost && new URL(origin).host !== requestHost) {
-        return sendJson(res, 403, { error: { code: 'bad-output', message: 'Same-origin or authorized origin required.' } });
-      }
-    } catch {
-      return sendJson(res, 403, { error: { code: 'bad-output', message: 'Invalid request origin.' } });
+  if (origin) {
+    const isAllowed = ALLOWED_CORS_ORIGINS.has(origin) || /^https?:\/\/localhost(:\d+)?$/.test(origin);
+    if (!isAllowed) {
+      return sendJson(res, 403, { error: { code: 'bad-output', message: 'Origin not allowed.' } });
     }
   }
 
@@ -785,7 +803,6 @@ export default async function handler(req, res) {
       error: {
         code,
         message: cleanMessage,
-        details: rawMessage,
       },
     });
   }

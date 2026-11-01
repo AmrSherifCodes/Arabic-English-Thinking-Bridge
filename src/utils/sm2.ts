@@ -217,3 +217,4 @@ export function getCardIntervalPreviews(
     3: formatSM2Interval(easyResult.int, isStruggling)
   };
 }
+

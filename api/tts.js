@@ -23,13 +23,27 @@ function resolveGoogleLang(lang = 'en-US') {
 const ALLOWED_CORS_ORIGINS = new Set([
   'https://arabicenglishthinkingbridge.vercel.app',
   'http://localhost:5173',
+  'http://localhost:3000',
   'capacitor://localhost',
   'https://localhost'
 ]);
 
 function getCorsOrigin(origin) {
-  if (origin && ALLOWED_CORS_ORIGINS.has(origin)) return origin;
+  if (origin && (ALLOWED_CORS_ORIGINS.has(origin) || /^https?:\/\/localhost(:\d+)?$/.test(origin))) {
+    return origin;
+  }
   return 'https://arabicenglishthinkingbridge.vercel.app';
+}
+
+function isAllowedUrlOrigin(urlStr) {
+  if (!urlStr) return false;
+  try {
+    const u = new URL(urlStr);
+    const originOnly = `${u.protocol}//${u.host}`;
+    return ALLOWED_CORS_ORIGINS.has(originOnly) || /^https?:\/\/localhost(:\d+)?$/.test(originOnly);
+  } catch {
+    return false;
+  }
 }
 
 export default async function ttsHandler(req, res) {
@@ -43,6 +57,23 @@ export default async function ttsHandler(req, res) {
     res.statusCode = 204;
     res.end();
     return;
+  }
+
+  if (origin) {
+    const isAllowed = ALLOWED_CORS_ORIGINS.has(origin) || /^https?:\/\/localhost(:\d+)?$/.test(origin);
+    if (!isAllowed) {
+      res.statusCode = 403;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ error: 'Origin not allowed.' }));
+      return;
+    }
+  } else if (req.headers.referer) {
+    if (!isAllowedUrlOrigin(req.headers.referer)) {
+      res.statusCode = 403;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ error: 'Referer not allowed.' }));
+      return;
+    }
   }
 
   if (req.method !== 'GET' && req.method !== 'POST') {
@@ -64,14 +95,29 @@ export default async function ttsHandler(req, res) {
       let raw = '';
       for await (const chunk of req) {
         raw += chunk.toString();
-        if (raw.length > 8192) break;
+        if (raw.length > 8192) {
+          res.statusCode = 413;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ error: 'Payload too large.' }));
+          return;
+        }
       }
       if (raw) {
-        const body = JSON.parse(raw);
-        if (typeof body.text === 'string') text = body.text;
-        if (typeof body.lang === 'string') lang = body.lang;
-        if (typeof body.voice === 'string') voice = body.voice;
-        if (typeof body.rate === 'number') rate = body.rate;
+        let body;
+        try {
+          body = JSON.parse(raw);
+        } catch {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ error: 'Invalid JSON body.' }));
+          return;
+        }
+        if (body && typeof body === 'object') {
+          if (typeof body.text === 'string') text = body.text;
+          if (typeof body.lang === 'string') lang = body.lang;
+          if (typeof body.voice === 'string') voice = body.voice;
+          if (typeof body.rate === 'number') rate = body.rate;
+        }
       }
     }
 
@@ -114,11 +160,12 @@ export default async function ttsHandler(req, res) {
     res.setHeader('Cache-Control', 'public, s-maxage=31536000, immutable');
     res.end(audio.data);
   } catch (error) {
+    console.error('TTS error:', error);
     res.statusCode = 502;
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     res.end(
       JSON.stringify({
-        error: error instanceof Error ? error.message : 'Edge TTS synthesis failed.',
+        error: 'TTS synthesis failed.',
       })
     );
   }

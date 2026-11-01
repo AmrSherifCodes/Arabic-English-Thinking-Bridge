@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { BouncyButton } from './BouncyButton';
 import { BTN_GHOST, BTN_PRIMARY, CARD_CLASS } from './uiConstants';
-import { getSupabaseClient, supabase, supabaseAdminEmail } from '../services/supabase';
+import { getSupabaseClient, supabase } from '../services/supabase';
 
 interface AdminMessage {
   id: number | string;
@@ -49,9 +49,7 @@ export function MessagesView() {
   const [error, setError] = useState('');
   const [toast, setToast] = useState('');
 
-  const isAdmin = Boolean(
-    userEmail && supabaseAdminEmail && userEmail === supabaseAdminEmail
-  );
+  const isAdmin = Boolean(userEmail);
 
   useEffect(() => {
     if (!supabase) {
@@ -164,14 +162,6 @@ export function MessagesView() {
   const login = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError('');
-    if (!supabaseAdminEmail) {
-      setError('Set VITE_SUPABASE_ADMIN_EMAIL to enable admin sign-in.');
-      return;
-    }
-    if (loginEmail.trim().toLowerCase() !== supabaseAdminEmail) {
-      setError('Incorrect admin email or password.');
-      return;
-    }
 
     setIsLoading(true);
     try {
@@ -180,11 +170,11 @@ export function MessagesView() {
         password
       });
       if (loginError) throw loginError;
-      if (getSessionEmail(data.session) !== supabaseAdminEmail) {
-        await getSupabaseClient().auth.signOut();
-        throw new Error('The signed-in account is not the configured admin account.');
+      const email = getSessionEmail(data.session);
+      if (!email) {
+        throw new Error('No user session.');
       }
-      setUserEmail(supabaseAdminEmail);
+      setUserEmail(email);
       setPassword('');
       setShowLogin(false);
     } catch (loginError) {

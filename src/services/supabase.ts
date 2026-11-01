@@ -5,8 +5,6 @@ const supabaseKey =
   import.meta.env.VITE_SUPABASE_ANON_KEY ||
   import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-export const supabaseAdminEmail = import.meta.env.VITE_SUPABASE_ADMIN_EMAIL?.trim().toLowerCase();
-
 export const supabase = supabaseUrl && supabaseKey
   ? createClient(supabaseUrl, supabaseKey)
   : null;

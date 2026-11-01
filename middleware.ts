@@ -42,11 +42,15 @@ function checkMemoryRateLimit(ip: string): boolean {
   const record = memoryLimiter.get(ip);
 
   // Evict expired entries when map grows large
-  if (memoryLimiter.size > 2000) {
+  if (memoryLimiter.size > 5000) {
     for (const [key, val] of memoryLimiter.entries()) {
       if (val.resetAt <= now) {
         memoryLimiter.delete(key);
       }
+    }
+    if (memoryLimiter.size > 5000) {
+      const oldestKey = memoryLimiter.keys().next().value;
+      if (oldestKey) memoryLimiter.delete(oldestKey);
     }
   }
 
@@ -67,11 +71,21 @@ function checkMemoryRateLimit(ip: string): boolean {
 }
 
 function getClientIp(request: Request): string {
-  const xForwardedFor = request.headers.get('x-forwarded-for');
-  if (xForwardedFor) {
-    return xForwardedFor.split(',')[0].trim();
+  const xRealIp = request.headers.get('x-real-ip');
+  if (xRealIp && xRealIp.trim()) {
+    return xRealIp.trim();
   }
-  return request.headers.get('x-real-ip') || '127.0.0.1';
+  const xVercelForwarded = request.headers.get('x-vercel-forwarded-for');
+  if (xVercelForwarded && xVercelForwarded.trim()) {
+    const parts = xVercelForwarded.split(',');
+    return parts[parts.length - 1].trim();
+  }
+  const xForwardedFor = request.headers.get('x-forwarded-for');
+  if (xForwardedFor && xForwardedFor.trim()) {
+    const parts = xForwardedFor.split(',');
+    return parts[parts.length - 1].trim();
+  }
+  return '127.0.0.1';
 }
 
 export default async function middleware(request: Request): Promise<Response> {

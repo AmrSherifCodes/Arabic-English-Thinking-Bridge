@@ -135,3 +135,4 @@ test('getCardIntervalPreviews returns formatted previews for all 4 buttons', () 
   assert.equal(previewsMature[2], '15d');  // Good (6 * 2.5 = 15d)
   assert.equal(previewsMature[3], '20d');  // Easy (6 * 2.6 * 1.3 = ~20d)
 });
+
