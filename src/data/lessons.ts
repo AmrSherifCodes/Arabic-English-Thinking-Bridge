@@ -1426,6 +1426,191 @@ export const PHASES_DATA: Phase[] = [
             habitHint: 'In English, you "reach an agreement" or "reach a compromise", not "arrive to a compromise".'
           }
         ]
+      },
+      {
+        id: 'p3-l9',
+        phaseId: 3,
+        phaseTitle: 'Mastery & Register',
+        phaseLevel: 'B2+ – C1',
+        number: 25,
+        title: 'Idiomatic Expressions & Figurative Transfer',
+        titleAr: 'التعبيرات الاصطلاحية والنقل المجازي',
+        transferConcept: 'Idioms cannot be translated word-for-word. Arabic metaphors (e.g. "كسرنا الجليد", "قطعة حلوى", "على أحر من الجمر") map to specific English figurative idioms ("break the ice", "a piece of cake", "break a leg") that sound completely different in literal translation.',
+        transferConceptAr: 'التعبيرات الاصطلاحية (Idioms) لا تُترجم حرفياً أبداً. الاستعارات الإنجليزية لها قوالبها الثابتة الخاصة بها: كسر الجليد (break the ice)، وسهل جداً كقطعة الحلوى (a piece of cake)، والتمني بالتوفيق مسرحياً (break a leg).',
+        weakSpotTag: 'idiomatic-transfer',
+        exercises: [
+          {
+            id: 'ex-3-25-1',
+            arabicThought: 'هذا الاختبار كان سهلاً للغاية مثل شربة ماء',
+            englishTarget: 'This exam was a piece of cake',
+            acceptableAlternatives: [
+              'That exam was a piece of cake',
+              'The exam was a piece of cake'
+            ],
+            wordChips: ['This', 'exam', 'was', 'a', 'piece', 'of', 'cake', 'water', 'very', 'easy'],
+            breakdownChunks: [
+              { arabicText: 'هذا الاختبار', englishText: 'This exam', role: 'subject', explanation: 'Demonstrative + subject noun' },
+              { arabicText: 'كان', englishText: 'was', role: 'verb', explanation: 'Past copula linking verb' },
+              { arabicText: 'سهلاً للغاية (مثل قطعة حلوى)', englishText: 'a piece of cake', role: 'modifier', explanation: 'Idiom meaning effortless/very easy' }
+            ],
+            habitHint: 'In Arabic, we might say "مثل شربة ماء" (like drinking water). Native English speakers say "a piece of cake". Never translate figurative idioms literally!'
+          },
+          {
+            id: 'ex-3-25-2',
+            arabicThought: 'بدأ المقابلة بمزحة لطيفة لكسر الجليد',
+            englishTarget: 'He started the interview with a joke to break the ice',
+            acceptableAlternatives: [
+              'He began the interview with a joke to break the ice'
+            ],
+            wordChips: ['He', 'started', 'the', 'interview', 'with', 'a', 'joke', 'to', 'break', 'ice', 'cool', 'crush'],
+            breakdownChunks: [
+              { arabicText: 'هو بدأ', englishText: 'He started', role: 'verb', explanation: 'Subject pronoun + past verb' },
+              { arabicText: 'المقابلة بمزحة', englishText: 'the interview with a joke', role: 'object', explanation: 'Direct object + prepositional phrase' },
+              { arabicText: 'لكسر الجليد والتخفيف من التوتر', englishText: 'to break the ice', role: 'modifier', explanation: 'Infinitive idiom meaning relieving social tension' }
+            ],
+            habitHint: 'Both English and Arabic share the figurative concept of "breaking ice", but English strictly uses the set phrase "to break the ice".'
+          },
+          {
+            id: 'ex-3-25-3',
+            arabicThought: 'تمنى لها الحظ السعيد قبل صعودها إلى المسرح',
+            englishTarget: 'He told her to break a leg before the show',
+            acceptableAlternatives: [
+              'He wished her good luck before the show',
+              'He told her to break a leg before going on stage'
+            ],
+            wordChips: ['He', 'told', 'her', 'to', 'break', 'a', 'leg', 'before', 'the', 'show', 'wish', 'arm'],
+            breakdownChunks: [
+              { arabicText: 'أخبرها', englishText: 'He told her', role: 'verb', explanation: 'Reporting verb + object pronoun' },
+              { arabicText: 'بالتوفيق (اصطلاحاً: اكسري رجلاً)', englishText: 'to break a leg', role: 'object', explanation: 'Theatrical idiom meaning "good luck"' },
+              { arabicText: 'قبل العرض', englishText: 'before the show', role: 'connector', explanation: 'Time clause' }
+            ],
+            habitHint: 'In English performance culture, saying "break a leg" means "good luck". Literal word-for-word translation causes severe confusion!'
+          }
+        ]
+      },
+      {
+        id: 'p3-l10',
+        phaseId: 3,
+        phaseTitle: 'Mastery & Register',
+        phaseLevel: 'B2+ – C1',
+        number: 26,
+        title: 'Advanced Logical Connectors & Cohesion',
+        titleAr: 'الروابط المنطقية المتقدمة وتماسك الخطاب',
+        transferConcept: 'Arabic writing often chains ideas with repetitive "و..." (wa-) and "لذلك". English academic and business prose demands precise, high-order transitions: concessive ("nevertheless", "nonetheless"), causal ("consequently", "accordingly"), and additive ("furthermore", "moreover").',
+        transferConceptAr: 'تميل العربية إلى تكرار واو العطف وحرف الفاء. بينما تتطلب الإنجليزية الرفيعة روابط متقدمة تعكس التسلسل المنطقي الدقيق: الاستدراك (nevertheless / nonetheless)، والنتيجة الحتمية (consequently / accordingly)، والإضافة التأكيدية (furthermore / moreover).',
+        weakSpotTag: 'logical-connectors',
+        exercises: [
+          {
+            id: 'ex-3-26-1',
+            arabicThought: 'واجه المشروع صعوبات تقنية؛ ومع ذلك، حقق الفريق نجاحاً باهراً',
+            englishTarget: 'The project faced technical challenges; nevertheless, the team succeeded',
+            acceptableAlternatives: [
+              'The project faced technical challenges; nonetheless, the team succeeded',
+              'The project encountered technical challenges; nevertheless, the team succeeded'
+            ],
+            wordChips: ['The', 'project', 'faced', 'technical', 'challenges;', 'nevertheless,', 'the', 'team', 'succeeded', 'but', 'although', 'and'],
+            breakdownChunks: [
+              { arabicText: 'المشروع واجه تحديات تقنية', englishText: 'The project faced technical challenges', role: 'subject', explanation: 'Opening independent clause' },
+              { arabicText: 'ومع ذلك / برغم هذا', englishText: 'nevertheless,', role: 'connector', explanation: 'Concessive conjunctive adverb' },
+              { arabicText: 'الفريق نجح', englishText: 'the team succeeded', role: 'verb', explanation: 'Resulting independent clause' }
+            ],
+            habitHint: '"Nevertheless" creates a formal contrast between two clauses, avoiding informal repetitions of "but" in professional prose.'
+          },
+          {
+            id: 'ex-3-26-2',
+            arabicThought: 'ارتفعت تكاليف الإنتاج؛ وبناءً على ذلك، اضطرت الشركة إلى تعديل أسعارها',
+            englishTarget: 'Production costs increased; consequently, the company adjusted its prices',
+            acceptableAlternatives: [
+              'Production costs rose; consequently, the company adjusted its prices',
+              'Production costs increased; accordingly, the company adjusted its prices'
+            ],
+            wordChips: ['Production', 'costs', 'increased;', 'consequently,', 'the', 'company', 'adjusted', 'its', 'prices', 'so', 'because', 'why'],
+            breakdownChunks: [
+              { arabicText: 'تكاليف الإنتاج ارتفعت', englishText: 'Production costs increased', role: 'subject', explanation: 'Cause clause' },
+              { arabicText: 'وبناءً على ذلك / بالتبعية', englishText: 'consequently,', role: 'connector', explanation: 'High-register causal transition' },
+              { arabicText: 'عدلت الشركة أسعارها', englishText: 'the company adjusted its prices', role: 'verb', explanation: 'Consequence clause' }
+            ],
+            habitHint: 'Instead of repetitive "so", use "consequently" or "therefore" followed by a comma when showing direct institutional cause and effect.'
+          },
+          {
+            id: 'ex-3-26-3',
+            arabicThought: 'الدراسة شاملة للغاية؛ وعلاوة على ذلك، تقدم توصيات عملية قابلة للتطبيق',
+            englishTarget: 'The study is comprehensive; furthermore, it provides actionable recommendations',
+            acceptableAlternatives: [
+              'The study is comprehensive; moreover, it provides actionable recommendations',
+              'The research is comprehensive; furthermore, it offers actionable recommendations'
+            ],
+            wordChips: ['The', 'study', 'is', 'comprehensive;', 'furthermore,', 'it', 'provides', 'actionable', 'recommendations', 'and', 'also', 'too'],
+            breakdownChunks: [
+              { arabicText: 'الدراسة شاملة', englishText: 'The study is comprehensive', role: 'subject', explanation: 'Initial thesis proposition' },
+              { arabicText: 'علاوة على ذلك / بالإضافة إلى ذلك', englishText: 'furthermore,', role: 'connector', explanation: 'Additive conjunctive adverb' },
+              { arabicText: 'تقدم توصيات قابلة للتنفيذ', englishText: 'it provides actionable recommendations', role: 'verb', explanation: 'Reinforcing secondary proposition' }
+            ],
+            habitHint: 'Avoid stacking "And also...". In formal academic writing, introduce your supporting evidence with "furthermore" or "moreover".'
+          }
+        ]
+      },
+      {
+        id: 'p3-l11',
+        phaseId: 3,
+        phaseTitle: 'Mastery & Register',
+        phaseLevel: 'B2+ – C1',
+        number: 27,
+        title: 'Academic Hedging & Scientific Nuance',
+        titleAr: 'التحوط الأكاديمي والدقة العلمية (Hedging)',
+        transferConcept: 'Arabic scientific and argumentative writing is often assertive and definitive. In English academic discourse (STEM, chemistry, social sciences), scholars use "hedging" (e.g. "The evidence suggests...", "It is widely believed that...", "The preliminary findings appear to support...") to maintain scientific objectivity and avoid unprovable absolute claims.',
+        transferConceptAr: 'تميل الصياغات العربية إلى الجزم والتوكيد المباشر ("من المؤكد أن...", "يثبت البحث أن..."). أما في الأوساط الأكاديمية الإنجليزية، فيعتمد الباحثون أسلوب التحوط (Hedging) مثل: (The evidence suggests / It is widely believed that / The preliminary findings appear to support) للتعبير عن الموضوعية والاحتراز العلمي.',
+        weakSpotTag: 'academic-hedging',
+        exercises: [
+          {
+            id: 'ex-3-27-1',
+            arabicThought: 'تشير الأدلة إلى أن التفاعل الكيميائي يتبع مساراً مختلفاً',
+            englishTarget: 'The evidence suggests that the chemical reaction follows a different pathway',
+            acceptableAlternatives: [
+              'Evidence suggests that the chemical reaction follows a different mechanism',
+              'The data suggests that the chemical reaction follows a different pathway'
+            ],
+            wordChips: ['The', 'evidence', 'suggests', 'that', 'the', 'chemical', 'reaction', 'follows', 'a', 'different', 'pathway', 'proves', 'definitely', 'shows'],
+            breakdownChunks: [
+              { arabicText: 'الأدلة', englishText: 'The evidence', role: 'subject', explanation: 'Objective scientific subject' },
+              { arabicText: 'تشير إلى (تحوط علمي)', englishText: 'suggests', role: 'verb', explanation: 'Hedging verb (NOT "proves")' },
+              { arabicText: 'أن التفاعل الكيميائي يسلك مساراً مختلفاً', englishText: 'that the chemical reaction follows a different pathway', role: 'object', explanation: 'Subordinate content clause' }
+            ],
+            habitHint: 'In scientific papers, say "The evidence suggests..." rather than "The evidence proves...". English academic peer review demands careful hedging.'
+          },
+          {
+            id: 'ex-3-27-2',
+            arabicThought: 'من المعتقد على نطاق واسع أن درجة الحرارة تؤثر على معدل سرعة التفاعل',
+            englishTarget: 'It is widely believed that temperature affects the reaction rate',
+            acceptableAlternatives: [
+              'It is generally accepted that temperature affects the reaction rate',
+              'It is widely assumed that temperature influences the reaction rate'
+            ],
+            wordChips: ['It', 'is', 'widely', 'believed', 'that', 'temperature', 'affects', 'the', 'reaction', 'rate', 'everyone', 'knows', 'sure'],
+            breakdownChunks: [
+              { arabicText: 'من المعتقد على نطاق واسع', englishText: 'It is widely believed', role: 'auxiliary', explanation: 'Impersonal passive hedge' },
+              { arabicText: 'أن درجة الحرارة', englishText: 'that temperature', role: 'subject', explanation: 'Zero-article thermodynamic property' },
+              { arabicText: 'تؤثر على معدل سرعة التفاعل', englishText: 'affects the reaction rate', role: 'verb', explanation: 'Standard kinetics verb and noun phrase' }
+            ],
+            habitHint: 'Use the impersonal passive "It is widely believed that..." to report consensus without sounding dogmatic.'
+          },
+          {
+            id: 'ex-3-27-3',
+            arabicThought: 'يبدو أن النتائج الأولية تدعم هذه الفرضية',
+            englishTarget: 'The preliminary findings appear to support this hypothesis',
+            acceptableAlternatives: [
+              'Preliminary results seem to support this hypothesis',
+              'The initial findings appear to support this hypothesis'
+            ],
+            wordChips: ['The', 'preliminary', 'findings', 'appear', 'to', 'support', 'this', 'hypothesis', 'surely', 'prove', 'absolute', 'must'],
+            breakdownChunks: [
+              { arabicText: 'النتائج الأولية', englishText: 'The preliminary findings', role: 'subject', explanation: 'Empirical data subject' },
+              { arabicText: 'يبدو أنها تدعم (تحوط)', englishText: 'appear to support', role: 'verb', explanation: 'Hedging infinitive construction' },
+              { arabicText: 'هذه الفرضية', englishText: 'this hypothesis', role: 'object', explanation: 'Scientific claim complement' }
+            ],
+            habitHint: 'Saying "appear to support" protects the researcher against over-generalizing from incomplete experimental data.'
+          }
+        ]
       }
     ]
   }

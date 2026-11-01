@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Flame, Home, Moon, Sun, UserRound } from 'lucide-react';
 import { PHASES_DATA } from './data/lessons';
 import { PREBUILT_DECKS, PrebuiltDeck } from './data/prebuiltDecks';
@@ -95,7 +95,8 @@ import { useUserProfile, type UserProfile } from './hooks/useUserProfile';
 import { AIHelper, OPEN_VIP_PASS_EVENT } from './components/AIHelper';
 import type { AIHelperRequest } from './components/AIHelper';
 import { useAdaptiveLearning } from './hooks/useAdaptiveLearning';
-import { generateCustomDeck } from './services/geminiLexicon';
+import { generateCustomDeck, generateAIPracticeExercise } from './services/geminiLexicon';
+import { mixRetentionIntoDueQueue } from './utils/adaptiveCurriculum';
 import type { LexiconEntry, Situation } from './services/geminiLexicon';
 import { STATIC_DICTIONARY } from './data/staticDictionary';
 import { filterDictionaryForProfile, useMasterDictionary } from './services/dictionaryLoader';
@@ -415,6 +416,11 @@ export default function App() {
   const [showBlueprintPeek, setShowBlueprintPeek] = useState<boolean>(false);
   const [xpPopText, setXpPopText] = useState<string | null>(null);
   const answerInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Infinite AI Practice State
+  const [isAiPracticeMode, setIsAiPracticeMode] = useState<boolean>(false);
+  const [aiExercise, setAiExercise] = useState<Exercise | null>(null);
+  const [isGeneratingAiExercise, setIsGeneratingAiExercise] = useState<boolean>(false);
 
   // Audio & Pronunciation State
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
@@ -739,7 +745,7 @@ export default function App() {
     const now = Date.now();
     const keys = getDeckCardKeys(deckId, currentProgress);
 
-    return keys
+    const dueList = keys
       .filter(k => {
         if (!getCardData(k, currentProgress)) return false;
         const sched = cardsMap[k];
@@ -747,6 +753,8 @@ export default function App() {
         return (sched.nextReviewDate ?? sched.due) <= now;
       })
       .slice(0, 50);
+
+    return mixRetentionIntoDueQueue(dueList, currentProgress, 2);
   };
 
   useEffect(() => {
@@ -1221,6 +1229,30 @@ export default function App() {
     setFeedbackHtml('');
   };
 
+  const aiPracticeLesson: Lesson | null = useMemo(() => {
+    if (!aiExercise) return null;
+    return {
+      id: 'lesson-ai-infinite',
+      phaseId: 3,
+      phaseTitle: 'Infinite AI Adaptive Practice',
+      phaseLevel: profile?.level?.toUpperCase() || 'ADAPTIVE',
+      number: 0,
+      title: `Infinite AI Practice · ${profile?.focusArea ? profile.focusArea.charAt(0).toUpperCase() + profile.focusArea.slice(1) : 'Personalized'}`,
+      titleAr: 'تمرين الذكاء الاصطناعي اللانهائي المخصص',
+      transferConcept: 'Dynamically generated structural sentence tailored to your specific goal, focus area, and CEFR level.',
+      transferConceptAr: 'جملة تم توليدها بالذكاء الاصطناعي خصيصاً لمستواك ومجال اهتمامك لممارسة التفكير اللحظي.',
+      weakSpotTag: 'ai-adaptive',
+      exercises: [aiExercise],
+    };
+  }, [aiExercise, profile]);
+
+  const activePracticeLesson = isAiPracticeMode
+    ? aiPracticeLesson
+    : (activeLessonIdx !== null ? ALL_LESSONS[activeLessonIdx] ?? null : null);
+  const activePracticeExercise = isAiPracticeMode
+    ? aiExercise
+    : (activePracticeLesson !== null ? activePracticeLesson.exercises[activeExIdx] ?? null : null);
+
   const startExercise = (lessonIdx: number, exIdx: number) => {
     const lesson = ALL_LESSONS[lessonIdx];
     if (!lesson) return;
@@ -1229,6 +1261,7 @@ export default function App() {
 
     const mergedChips = buildExerciseBlocks(ex);
 
+    setIsAiPracticeMode(false);
     setActiveLessonIdx(lessonIdx);
     setActiveExIdx(exIdx);
     setTries(0);
@@ -1252,6 +1285,57 @@ export default function App() {
     startExercise(lessonIdx, firstIncomplete);
     setActiveTab('practice');
     window.scrollTo(0, 0);
+  };
+
+  const handleStartAiPractice = async () => {
+    setIsAiPracticeMode(true);
+    setActiveTab('practice');
+    window.scrollTo(0, 0);
+    if (!aiExercise) {
+      await handleGenerateNextAiExercise();
+    }
+  };
+
+  const handleExitAiPractice = () => {
+    setIsAiPracticeMode(false);
+    if (activeLessonIdx !== null) {
+      startExercise(activeLessonIdx, activeExIdx);
+    } else {
+      openLesson(0);
+    }
+  };
+
+  const handleGenerateNextAiExercise = async () => {
+    setIsGeneratingAiExercise(true);
+    try {
+      const generated = await generateAIPracticeExercise(
+        profile || {
+          goal: 'general',
+          language: 'arabic',
+          dialect: 'msa',
+          level: 'intermediate',
+        },
+        profile?.focusArea
+      );
+      setAiExercise(generated);
+      const mergedChips = buildExerciseBlocks(generated);
+      setShuffledChips(shuffleArray(mergedChips));
+      setTries(0);
+      setExState('ask');
+      setUserAnswer('');
+      setFeedbackHtml('');
+      setShowBlueprintPeek(false);
+      setPronAudioUrl(null);
+      setPronResultText('');
+      setPronWordMatches([]);
+      showToast('🎲 New AI practice sentence ready!');
+    } catch (err) {
+      console.error('Failed to generate AI exercise:', err);
+      showToast('AI service is busy right now. Please try again or practice standard lessons.');
+    } finally {
+      setIsGeneratingAiExercise(false);
+      window.scrollTo(0, 0);
+    }
   };
 
   // Guest mode: drop straight into the first (A1+) lesson once the guest session starts.
@@ -1285,9 +1369,7 @@ export default function App() {
   };
 
   const handleGiveNextWordHint = () => {
-    if (activeLessonIdx === null) return;
-    const lesson = ALL_LESSONS[activeLessonIdx];
-    const ex = lesson.exercises[activeExIdx];
+    const ex = activePracticeExercise;
     if (!ex) return;
     setUserAnswer(prev => {
       const { nextWord, prefixToKeep } = computeNextHintWord(ex.englishTarget, prev);
@@ -1340,9 +1422,9 @@ export default function App() {
   };
 
   const handleCheckAnswer = () => {
-    if (activeLessonIdx === null) return;
-    const lesson = ALL_LESSONS[activeLessonIdx];
-    const ex = lesson.exercises[activeExIdx];
+    const lesson = activePracticeLesson;
+    const ex = activePracticeExercise;
+    if (!lesson || !ex) return;
     const normInput = normalizeSentence(userAnswer);
     if (!normInput) {
       showToast('Tap the word blocks or type your English sentence first');
@@ -1452,15 +1534,18 @@ export default function App() {
   };
 
   const handleReveal = () => {
-    if (activeLessonIdx === null) return;
-    const lesson = ALL_LESSONS[activeLessonIdx];
-    const ex = lesson.exercises[activeExIdx];
+    const ex = activePracticeExercise;
+    if (!ex) return;
     updateAndSaveProgress(prev => applyHabitMistakeWithShield(prev).nextProgress);
     setExState('rev');
     speakWithRate(ex.englishTarget, 1, progress.preferredVoice);
   };
 
   const handleNextExercise = () => {
+    if (isAiPracticeMode) {
+      handleGenerateNextAiExercise();
+      return;
+    }
     if (activeLessonIdx === null) return;
     const lesson = ALL_LESSONS[activeLessonIdx];
     if (activeExIdx < lesson.exercises.length - 1) {
@@ -1480,9 +1565,8 @@ export default function App() {
   };
 
   const handlePronunciationPractice = async () => {
-    if (activeLessonIdx === null) return;
-    const lesson = ALL_LESSONS[activeLessonIdx];
-    const ex = lesson.exercises[activeExIdx];
+    const ex = activePracticeExercise;
+    if (!ex) return;
 
     if (isRecordingPron && pronRecorderRef.current) {
       if (pronTimeoutRef.current) {
@@ -1895,11 +1979,6 @@ export default function App() {
         ALL_PREBUILT_DECKS.find(d => d.id === activeDeckId)?.name ||
         tUI('Study Session', 'جلسة مراجعة');
 
-  const activePracticeLesson =
-    activeLessonIdx !== null ? ALL_LESSONS[activeLessonIdx] ?? null : null;
-  const activePracticeExercise =
-    activePracticeLesson !== null ? activePracticeLesson.exercises[activeExIdx] ?? null : null;
-
   const currentUnityPhrase =
     PAN_ARAB_UNITY_PHRASES[unityPhraseIdx % PAN_ARAB_UNITY_PHRASES.length] ||
     PAN_ARAB_UNITY_PHRASES[0];
@@ -2183,6 +2262,7 @@ export default function App() {
             progress={progress}
             onOpenLesson={openLesson}
             onOpenWhyEnglish={() => setShowWhyEnglish(true)}
+            onStartAiPractice={handleStartAiPractice}
             onNavigate={(action: HomeAction) => {
               if (action === 'messages') {
                 setActiveTab('messages');
@@ -2250,6 +2330,11 @@ export default function App() {
             pronResultText={pronResultText}
             pronWordMatches={pronWordMatches}
             answerInputRef={answerInputRef}
+            isAiPractice={isAiPracticeMode}
+            isGeneratingAi={isGeneratingAiExercise}
+            onStartAiPractice={handleStartAiPractice}
+            onGenerateNextAiExercise={handleGenerateNextAiExercise}
+            onExitAiPractice={handleExitAiPractice}
             onStartLessonOne={() => openLesson(0)}
             onToggleBlueprintPeek={() => setShowBlueprintPeek(p => !p)}
             onChangeAnswer={setUserAnswer}

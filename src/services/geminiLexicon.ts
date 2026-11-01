@@ -1,5 +1,6 @@
 import { GoogleGenAI, Type } from '@google/genai';
 import type { UserProfile } from '../hooks/useUserProfile';
+import type { Exercise, ChunkMapping, ChunkRole } from '../types';
 import { getStaticDictionaryEntries } from '../data/staticDictionary';
 import { API_BASE_URL } from '../utils/api';
 
@@ -113,6 +114,49 @@ const directWordSchema = {
   },
 };
 
+const directChunkSchema = {
+  type: Type.OBJECT,
+  properties: {
+    arabicText: { type: Type.STRING },
+    englishText: { type: Type.STRING },
+    role: {
+      type: Type.STRING,
+      enum: ['subject', 'verb', 'object', 'connector', 'modifier', 'auxiliary'],
+    },
+    explanation: { type: Type.STRING },
+  },
+  required: ['arabicText', 'englishText', 'role', 'explanation'],
+};
+
+const directExerciseSchema = {
+  type: Type.OBJECT,
+  properties: {
+    arabicThought: { type: Type.STRING },
+    englishTarget: { type: Type.STRING },
+    acceptableAlternatives: {
+      type: Type.ARRAY,
+      items: { type: Type.STRING },
+    },
+    wordChips: {
+      type: Type.ARRAY,
+      items: { type: Type.STRING },
+    },
+    breakdownChunks: {
+      type: Type.ARRAY,
+      items: directChunkSchema,
+    },
+    habitHint: { type: Type.STRING },
+  },
+  required: [
+    'arabicThought',
+    'englishTarget',
+    'acceptableAlternatives',
+    'wordChips',
+    'breakdownChunks',
+    'habitHint',
+  ],
+};
+
 function parseDirectJson(text: string | undefined): unknown {
   if (!text || !text.trim()) throw new Error('Empty model response.');
   return JSON.parse(text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim());
@@ -146,10 +190,57 @@ async function generateWithDirectFallback(
 
 async function requestGeminiWithUserKey<T>(
   userKey: string,
-  operation: 'entry' | 'deck' | 'tutor',
+  operation: 'entry' | 'deck' | 'tutor' | 'generate-exercise',
   payload: Record<string, unknown>
 ): Promise<T> {
   const ai = new GoogleGenAI({ apiKey: userKey });
+
+  if (operation === 'generate-exercise') {
+    const profile = (payload.profile || {}) as UserProfile;
+    const level = profile.level || 'intermediate';
+    const goal = profile.goal || 'general';
+    const dialect = profile.dialect || 'msa';
+    const focusArea = profile.focusArea || '';
+    const dialectName = dialect === 'egyptian' ? 'Egyptian Arabic (Ammiya)' : 'Modern Standard Arabic (MSA/Fusha)';
+
+    let domainGuidance = '';
+    const focusLower = String(focusArea).toLowerCase();
+    if (focusLower.includes('chem') || focusLower.includes('science')) {
+      domainGuidance = ' The learner specializes in chemistry / STEM. Focus the exercise on chemistry topics, lab work, scientific discoveries, molecular observations, or experimental results.';
+    } else if (goal === 'travel') {
+      domainGuidance = ' The learner is traveling. Focus the exercise on airport transit, hotel bookings, directions, dining, or practical travel conversation.';
+    } else if (goal === 'business' || goal === 'work') {
+      domainGuidance = ' The learner needs business and professional workplace English. Focus on client meetings, emails, negotiations, project status updates, or professional feedback.';
+    } else if (focusLower.includes('daily') || focusLower.includes('speech')) {
+      domainGuidance = ' The learner wants daily natural speech. Focus on conversational idioms, colloquial flow, or natural spoken patterns.';
+    } else {
+      domainGuidance = ' Focus on natural real-life communication and practical fluency.';
+    }
+
+    const promptText =
+      `Generate a single high-quality English sentence practice exercise for an Arabic speaker. ` +
+      `User CEFR Level: ${level}. Track Goal: ${goal}. Focus Area: ${focusArea || 'General'}. Arabic Dialect: ${dialectName}.${domainGuidance}\n\n` +
+      `CRITICAL REQUIREMENTS:\n` +
+      `1. "arabicThought": The natural sentence written in ${dialectName}.\n` +
+      `2. "englishTarget": The natural, idiomatic English translation matching the Arabic thought.\n` +
+      `3. "acceptableAlternatives": An array of 1 to 3 valid alternate phrasings (contractions, synonyms).\n` +
+      `4. "wordChips": An array of individual word chips needed to construct "englishTarget" PLUS 2 plausible distractor words (total 6 to 10 words). Distractor words must fit the domain but be grammatically or semantically incorrect for this exact sentence.\n` +
+      `5. "breakdownChunks": 2 to 4 structural grammatical chunks comparing the Arabic thought to English. Each chunk must specify: "arabicText", "englishText", "role" (one of: 'subject', 'verb', 'object', 'connector', 'modifier', 'auxiliary'), and "explanation" (pedagogical explanation in simple English).\n` +
+      `6. "habitHint": A concise 1-2 sentence tip contrasting how the Arabic mind structures this thought vs how native English expresses it.\n` +
+      `Return ONLY valid JSON according to the schema.`;
+
+    const response = await generateWithDirectFallback(ai, {
+      contents: promptText,
+      config: {
+        systemInstruction:
+          `You are an expert bilingual Arabic-English curriculum architect. You generate high-quality cognitive grammar exercises comparing Arabic and English sentence structures. Return ONLY valid JSON adhering to the schema.`,
+        responseMimeType: 'application/json',
+        responseSchema: directExerciseSchema,
+        temperature: 0.8,
+      },
+    });
+    return parseDirectJson(response.text) as T;
+  }
 
   if (operation === 'entry') {
     const word = str(payload.word);
@@ -262,7 +353,7 @@ function toLexiconError(e: unknown): LexiconError {
 }
 
 async function requestGemini<T>(
-  operation: 'entry' | 'deck' | 'tutor',
+  operation: 'entry' | 'deck' | 'tutor' | 'generate-exercise',
   payload: Record<string, unknown>,
   signal?: AbortSignal
 ): Promise<T> {
@@ -468,4 +559,83 @@ export async function generateTutorResponse(
 
 export async function safeGenerateLexiconEntry(word: string, opts: GenerateOptions = {}): Promise<LexiconResult> {
   try { return { ok: true, entry: await generateLexiconEntry(word, opts) }; } catch (e) { return { ok: false, error: toLexiconError(e) }; }
+}
+
+export async function generateAIPracticeExercise(
+  profile: UserProfile,
+  topicOrFocus?: string,
+  signal?: AbortSignal
+): Promise<Exercise> {
+  const effectiveFocus = topicOrFocus || profile.focusArea || '';
+  const payloadProfile = {
+    ...profile,
+    focusArea: effectiveFocus
+  };
+
+  const raw = await requestGemini<Record<string, unknown>>(
+    'generate-exercise',
+    { profile: payloadProfile, topicOrFocus: effectiveFocus },
+    signal
+  );
+
+  const VALID_ROLES: ChunkRole[] = ['subject', 'verb', 'object', 'connector', 'modifier', 'auxiliary'];
+
+  const id = `ai-ex-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+  const arabicThought = str(raw.arabicThought) || 'أنا جاهز لتعلم المزيد اليوم';
+  const englishTarget = str(raw.englishTarget) || 'I am ready to learn more today';
+  const acceptableAlternatives = Array.isArray(raw.acceptableAlternatives)
+    ? raw.acceptableAlternatives.map(str).filter(Boolean)
+    : [];
+  if (!acceptableAlternatives.includes(englishTarget)) {
+    acceptableAlternatives.unshift(englishTarget);
+  }
+
+  // Ensure wordChips contains target words + distractors
+  let wordChips = Array.isArray(raw.wordChips) ? raw.wordChips.map(str).filter(Boolean) : [];
+  if (wordChips.length === 0) {
+    wordChips = englishTarget.split(/\s+/).filter(Boolean);
+  }
+
+  // Validate breakdownChunks
+  const breakdownChunks: ChunkMapping[] = [];
+  if (Array.isArray(raw.breakdownChunks)) {
+    for (const chunk of raw.breakdownChunks) {
+      if (chunk && typeof chunk === 'object') {
+        const c = chunk as Record<string, unknown>;
+        const rawRole = str(c.role).toLowerCase();
+        const role = (VALID_ROLES as readonly string[]).includes(rawRole)
+          ? (rawRole as ChunkRole)
+          : 'modifier';
+        breakdownChunks.push({
+          arabicText: str(c.arabicText) || '—',
+          englishText: str(c.englishText) || '',
+          role,
+          explanation: str(c.explanation) || 'Structural block',
+        });
+      }
+    }
+  }
+
+  if (breakdownChunks.length === 0) {
+    breakdownChunks.push({
+      arabicText: arabicThought,
+      englishText: englishTarget,
+      role: 'verb',
+      explanation: 'Complete thought unit',
+    });
+  }
+
+  const habitHint =
+    str(raw.habitHint) ||
+    'Notice how English requires explicit linking structure where Arabic connects concepts directly.';
+
+  return {
+    id,
+    arabicThought,
+    englishTarget,
+    acceptableAlternatives,
+    wordChips,
+    breakdownChunks,
+    habitHint,
+  };
 }

@@ -5,7 +5,8 @@ import {
   getLessonRelevanceScore,
   isPriorityLessonForProfile,
   getProfileTrackInfo,
-  getAdaptiveRecommendation
+  getAdaptiveRecommendation,
+  mixRetentionIntoDueQueue
 } from './adaptiveCurriculum';
 import { DEFAULT_PROGRESS } from './storage';
 import type { UserProfile } from '../types';
@@ -65,5 +66,53 @@ test('adaptiveCurriculum prioritizes travel questions & locations', () => {
   const rec = getAdaptiveRecommendation(DEFAULT_PROGRESS, travelProfile);
   assert.ok(rec.lessonIndex >= 0);
   assert.ok(rec.tag.length > 0);
+});
+
+test('adaptiveCurriculum prioritizes deep dive lessons (hedging, connectors, idioms)', () => {
+  const academicProfile: UserProfile = {
+    name: 'Researcher',
+    goal: 'academic',
+    focusArea: 'chemistry',
+    language: 'english',
+    dialect: 'egyptian',
+    level: 'advanced'
+  };
+
+  const hedgingLesson = ALL_LESSONS.find(l => l.number === 27)!;
+  const connectorsLesson = ALL_LESSONS.find(l => l.number === 26)!;
+  const idiomsLesson = ALL_LESSONS.find(l => l.number === 25)!;
+
+  assert.ok(getLessonRelevanceScore(hedgingLesson, academicProfile) >= 10);
+  assert.ok(getLessonRelevanceScore(connectorsLesson, academicProfile) >= 10);
+
+  const dailyProfile: UserProfile = {
+    name: 'Speaker',
+    goal: 'general',
+    focusArea: 'daily-speech',
+    language: 'english',
+    dialect: 'egyptian',
+    level: 'intermediate'
+  };
+  assert.ok(getLessonRelevanceScore(idiomsLesson, dailyProfile) >= 10);
+});
+
+test('mixRetentionIntoDueQueue samples completed exercises and injects into review queue', () => {
+  const progressWithCompleted = {
+    ...DEFAULT_PROGRESS,
+    completedLessonIds: ['p1-l1', 'p1-l2'],
+    completedExerciseIds: ['ex-1-1-1', 'ex-1-1-2', 'ex-1-1-3', 'ex-1-2-1']
+  };
+
+  const emptyQueue: string[] = [];
+  const mixed = mixRetentionIntoDueQueue(emptyQueue, progressWithCompleted, 2);
+  assert.equal(mixed.length, 2, 'Should inject 2 retention exercises when queue is empty');
+  assert.ok(mixed.every(id => id.startsWith('ex-1-')));
+
+  const existingQueue = ['card-a', 'card-b', 'card-c'];
+  const mixedExisting = mixRetentionIntoDueQueue(existingQueue, progressWithCompleted, 2);
+  assert.equal(mixedExisting.length, 5, 'Should mix 2 retention exercises into existing 3 cards');
+  assert.ok(mixedExisting.includes('card-a'));
+  assert.ok(mixedExisting.includes('card-b'));
+  assert.ok(mixedExisting.includes('card-c'));
 });
 

@@ -32,6 +32,11 @@ export interface PracticeViewProps {
   pronResultText: string;
   pronWordMatches: Array<{ word: string; ok: boolean }>;
   answerInputRef: React.RefObject<HTMLInputElement | null>;
+  isAiPractice?: boolean;
+  isGeneratingAi?: boolean;
+  onStartAiPractice?: () => void;
+  onGenerateNextAiExercise?: () => void;
+  onExitAiPractice?: () => void;
   onStartLessonOne: () => void;
   onToggleBlueprintPeek: () => void;
   onChangeAnswer: (val: string) => void;
@@ -68,6 +73,11 @@ export const PracticeView = React.memo(function PracticeView({
   pronResultText,
   pronWordMatches,
   answerInputRef,
+  isAiPractice,
+  isGeneratingAi,
+  onStartAiPractice,
+  onGenerateNextAiExercise,
+  onExitAiPractice,
   onStartLessonOne,
   onToggleBlueprintPeek,
   onChangeAnswer,
@@ -129,17 +139,64 @@ export const PracticeView = React.memo(function PracticeView({
   return (
     <div className="flex flex-col gap-6">
       <div className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
-        <span className="min-w-0 font-semibold leading-snug">
-          {lesson.number}. {lesson.title} · {activeExIdx + 1}/{lesson.exercises.length}
-        </span>
+        {isAiPractice ? (
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-black bg-indigo-600 text-white shadow-xs">
+              🎲 AI Mode
+            </span>
+            <span className="min-w-0 font-bold leading-snug text-stone-900 dark:text-white">
+              Infinite Adaptive Practice
+            </span>
+          </div>
+        ) : (
+          <span className="min-w-0 font-semibold leading-snug">
+            {lesson.number}. {lesson.title} · {activeExIdx + 1}/{lesson.exercises.length}
+          </span>
+        )}
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 tabular-nums sm:justify-end">
-          <button
-            type="button"
-            onClick={() => setShowTutorial(true)}
-            className="rounded-full border border-orange-400/60 bg-orange-50 px-3.5 py-2 text-xs font-bold text-orange-800 transition hover:bg-orange-100 dark:border-orange-500/40 dark:bg-orange-950/30 dark:text-orange-200 dark:hover:bg-orange-950/50"
-          >
-            🎥 Watch Tutorial
-          </button>          <span className="text-xs text-teal-700 dark:text-teal-300 font-semibold">
+          {isAiPractice ? (
+            <>
+              <button
+                type="button"
+                onClick={onGenerateNextAiExercise}
+                disabled={isGeneratingAi}
+                className="rounded-full border border-indigo-500/60 bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 text-xs font-bold transition shadow-xs flex items-center gap-1.5 disabled:opacity-50"
+              >
+                <span>🎲</span>
+                <span>{isGeneratingAi ? 'Thinking...' : 'Next AI Sentence'}</span>
+              </button>
+              {onExitAiPractice && (
+                <button
+                  type="button"
+                  onClick={onExitAiPractice}
+                  className="rounded-full border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 px-3 py-2 text-xs font-semibold text-stone-700 dark:text-stone-300 transition hover:bg-stone-100 dark:hover:bg-stone-700"
+                >
+                  Exit AI
+                </button>
+              )}
+            </>
+          ) : (
+            <>
+              {onStartAiPractice && (
+                <button
+                  type="button"
+                  onClick={onStartAiPractice}
+                  className="rounded-full border border-indigo-400/60 bg-indigo-50 hover:bg-indigo-100 text-indigo-900 dark:border-indigo-500/40 dark:bg-indigo-950/40 dark:text-indigo-200 dark:hover:bg-indigo-950/60 px-3.5 py-2 text-xs font-bold transition shadow-xs flex items-center gap-1.5"
+                >
+                  <span>🎲</span>
+                  <span>Infinite AI Practice</span>
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setShowTutorial(true)}
+                className="rounded-full border border-orange-400/60 bg-orange-50 px-3.5 py-2 text-xs font-bold text-orange-800 transition hover:bg-orange-100 dark:border-orange-500/40 dark:bg-orange-950/30 dark:text-orange-200 dark:hover:bg-orange-950/50"
+              >
+                🎥 Watch Tutorial
+              </button>
+            </>
+          )}
+          <span className="text-xs text-teal-700 dark:text-teal-300 font-semibold">
             {tries === 0 ? '+10 XP first try' : '+5 XP retry'}
             {progress.streak >= 2 ? ' · 🔥 Combo +5 XP' : ''}
           </span>
@@ -153,6 +210,23 @@ export const PracticeView = React.memo(function PracticeView({
           </span>
         </div>
       </div>
+
+      {isGeneratingAi && (
+        <div className={`${CARD_CLASS} flex flex-col items-center justify-center p-8 text-center space-y-4 border-2 border-indigo-500/40 bg-indigo-50/40 dark:bg-indigo-950/20`}>
+          <div className="relative flex items-center justify-center">
+            <div className="h-12 w-12 animate-spin rounded-full border-4 border-indigo-300 border-t-indigo-600 dark:border-indigo-900 dark:border-t-indigo-400" />
+            <span className="absolute text-lg">🎲</span>
+          </div>
+          <div>
+            <h3 className="text-base font-bold text-stone-900 dark:text-white">
+              Consulting Gemini AI Tutor...
+            </h3>
+            <p className="mt-1 text-xs font-medium text-stone-600 dark:text-stone-300 max-w-sm">
+              Creating a brand new sentence tailored to your track goal and CEFR level.
+            </p>
+          </div>
+        </div>
+      )}
 
       <div
         role="progressbar"
@@ -462,10 +536,11 @@ export const PracticeView = React.memo(function PracticeView({
             type="button"
             id="next-exercise-btn"
             className={`${BTN_PRIMARY} mt-4 min-h-[52px] w-full`}
-            onClick={onNextExercise}
+            onClick={isAiPractice ? onGenerateNextAiExercise : onNextExercise}
           >
-            Next Sentence ({winsLeftForChest} more win{winsLeftForChest === 1 ? '' : 's'} to 🎁
-            Mystery Chest) →
+            {isAiPractice
+              ? '🎲 Next AI Sentence →'
+              : `Next Sentence (${winsLeftForChest} more win${winsLeftForChest === 1 ? '' : 's'} to 🎁 Mystery Chest) →`}
           </button>
         </div>
       )}

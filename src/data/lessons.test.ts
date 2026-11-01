@@ -2,10 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { PHASES_DATA } from './lessons';
 
-test('curriculum has 3 phases and 24 total lessons', () => {
+test('curriculum has 3 phases and 27 total lessons', () => {
   assert.equal(PHASES_DATA.length, 3);
   const totalLessons = PHASES_DATA.reduce((acc, p) => acc + p.lessons.length, 0);
-  assert.equal(totalLessons, 24);
+  assert.equal(totalLessons, 27);
 });
 
 test('every lesson has 3 interactive exercises with breakdown chunks', () => {
@@ -23,5 +23,5 @@ test('every lesson has 3 interactive exercises with breakdown chunks', () => {
       }
     }
   }
-  assert.equal(totalExercises, 72);
+  assert.equal(totalExercises, 81);
 });

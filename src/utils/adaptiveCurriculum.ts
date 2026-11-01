@@ -20,6 +20,10 @@ export function getLessonRelevanceScore(lesson: Lesson, profile: UserProfile): n
 
   // 1. Chemistry & Academic Focus
   if (focus === 'chemistry' || focus.includes('chem') || focus.includes('science') || goal === 'academic') {
+    // Academic Hedging & Scientific Nuance
+    if (lesson.id === 'p3-l11' || lesson.number === 27) score += 5;
+    // Advanced Logical Connectors
+    if (lesson.id === 'p3-l10' || lesson.number === 26) score += 5;
     // Passive voice (crucial for lab reports & scientific papers)
     if (lesson.id === 'l-flow-8' || lesson.number === 16) score += 5;
     // Subjunctive & Formal Directives
@@ -40,6 +44,8 @@ export function getLessonRelevanceScore(lesson: Lesson, profile: UserProfile): n
 
   // 2. Travel Goal
   if (goal === 'travel') {
+    // Idiomatic Expressions (practical colloquial understanding)
+    if (lesson.id === 'p3-l9' || lesson.number === 25) score += 3;
     // Questions with Do / Does (asking for directions, schedules)
     if (lesson.id === 'l-found-5' || lesson.number === 5) score += 5;
     // Prepositions: In, On, At (airports, locations, transit)
@@ -54,6 +60,10 @@ export function getLessonRelevanceScore(lesson: Lesson, profile: UserProfile): n
 
   // 3. Business & Workplace Goal
   if (goal === 'business' || goal === 'work') {
+    // Advanced Logical Connectors (executive emails, reports)
+    if (lesson.id === 'p3-l10' || lesson.number === 26) score += 5;
+    // Idiomatic Expressions & Metaphorical Transfer
+    if (lesson.id === 'p3-l9' || lesson.number === 25) score += 4;
     // Reported Speech & Tense Backshifting (updates, meetings)
     if (lesson.id === 'l-mas-2' || lesson.number === 18) score += 5;
     // Discourse Markers (professional emails, discussions)
@@ -68,6 +78,8 @@ export function getLessonRelevanceScore(lesson: Lesson, profile: UserProfile): n
 
   // 4. Daily Speech Focus
   if (focus === 'daily-speech' || focus.includes('daily') || focus.includes('slang')) {
+    // Idiomatic Expressions & Figurative Transfer
+    if (lesson.id === 'p3-l9' || lesson.number === 25) score += 5;
     // Phrasal Verbs & Spatial Particle Logic
     if (lesson.id === 'l-flow-5' || lesson.number === 13) score += 5;
     // Questions with Do / Does
@@ -169,13 +181,25 @@ export function getAdaptiveRecommendation(
     let reasonAr = `مفهوم عالي الأهمية يتطابق مع هدفك (${profile.goal}).`;
 
     if (focus === 'chemistry' || focus.includes('chem')) {
-      if (top.lesson.number === 16) {
+      if (top.lesson.number === 27) {
+        reasonEn = 'Master academic hedging (e.g. "evidence suggests", "widely believed") for rigorous research papers.';
+        reasonAr = 'إتقان أسلوب التحوط الأكاديمي (Hedging) لكتابة أوراق بحثية وعلمية دقيقة.';
+      } else if (top.lesson.number === 26) {
+        reasonEn = 'Connect scientific hypotheses with high-order logic: nevertheless, consequently, furthermore.';
+        reasonAr = 'ربط الفرضيات العلمية بروابط منطقية رفيعة: ومع ذلك، وبناءً على ذلك، وعلاوة على ذلك.';
+      } else if (top.lesson.number === 16) {
         reasonEn = 'Essential for chemistry research papers: master agent demotion in lab observations.';
         reasonAr = 'أساسي لأوراق أبحاث الكيمياء: إتقان المبني للمجهول لتقارير وتجارب المختبر.';
       } else if (top.lesson.number === 1) {
         reasonEn = 'Crucial for chemical compound definitions: understand required linking verbs in English.';
         reasonAr = 'جوهري لتعريفات المركبات الكيميائية: فهم رابط الجملة الإنجليزية الإلزامي.';
       }
+    } else if (top.lesson.number === 25) {
+      reasonEn = 'Master figurative English idioms (break the ice, piece of cake) without literal translation traps.';
+      reasonAr = 'إتقان التعبيرات الاصطلاحية والمجازية الإنجليزية دون الوقوع في فخ الترجمة الحرفية.';
+    } else if (top.lesson.number === 26) {
+      reasonEn = 'Elevate professional discourse: master nevertheless, consequently, and furthermore.';
+      reasonAr = 'الارتقاء بالحوار المهني والأكاديمي باستخدام روابط الربط المنطقي المتقدمة.';
     } else if (profile.goal === 'travel') {
       reasonEn = 'Essential travel pattern: master clear questions & location prepositions.';
       reasonAr = 'نمط أساسي للسفر: إتقان طرح الأسئلة وحروف الجر المكانية في المطار والمدينة.';
@@ -214,5 +238,68 @@ export function getAdaptiveRecommendation(
     reasonAr: 'عزز هذا التحول الإدراكي للحفاظ على الطلاقة والتركيز.',
     tag: 'Reinforcement'
   };
+}
+
+/**
+ * Randomly samples up to `count` completed exercise IDs from lessons the user has completed,
+ * ensuring they aren't already present in `existingQueue`.
+ */
+export function getRetentionExerciseKeys(
+  progress: UserProgress,
+  existingQueue: string[],
+  count: number = 2
+): string[] {
+  const existingSet = new Set(existingQueue);
+  const candidateIds: string[] = [];
+
+  // 1. First, search completed lessons
+  for (const lesson of ALL_LESSONS) {
+    if (progress.completedLessonIds?.includes(lesson.id)) {
+      for (const ex of lesson.exercises) {
+        if (!existingSet.has(ex.id)) {
+          candidateIds.push(ex.id);
+        }
+      }
+    }
+  }
+
+  // 2. Fallback to any completed exercises if needed
+  if (candidateIds.length < count) {
+    for (const exId of progress.completedExerciseIds || []) {
+      if (!existingSet.has(exId) && !candidateIds.includes(exId)) {
+        candidateIds.push(exId);
+      }
+    }
+  }
+
+  if (candidateIds.length === 0) return [];
+
+  // Shuffle candidate IDs and select up to `count`
+  const shuffled = [...candidateIds].sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, count);
+}
+
+/**
+ * Mixes retention review exercises from completed lessons into a due card queue.
+ */
+export function mixRetentionIntoDueQueue(
+  dueQueue: string[],
+  progress: UserProgress,
+  retentionCount: number = 2
+): string[] {
+  const retentionKeys = getRetentionExerciseKeys(progress, dueQueue, retentionCount);
+  if (retentionKeys.length === 0) return dueQueue;
+
+  if (dueQueue.length === 0) return retentionKeys;
+
+  const result = [...dueQueue];
+  for (const key of retentionKeys) {
+    const insertIdx = Math.min(
+      result.length,
+      Math.max(1, Math.floor(Math.random() * (result.length + 1)))
+    );
+    result.splice(insertIdx, 0, key);
+  }
+  return result;
 }
 

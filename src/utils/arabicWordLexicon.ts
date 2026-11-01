@@ -1832,6 +1832,237 @@ const RAW_LEXICON: Record<string, ArabicLexiconEntry> = {
     en: 'mutually (for both parties)',
     grammar: 'Adverbial modifier',
     tip: 'Condenses into the adverb “mutually” before “acceptable” (“mutually acceptable”).'
+  },
+  // Phase 3 Deep Dives (Lessons 25, 26, 27)
+  'الاختبار': {
+    en: 'exam / test',
+    grammar: 'Countable noun',
+    tip: 'Demonstrative subject: “This exam…”.'
+  },
+  'سهلا': {
+    en: 'easy / a piece of cake',
+    grammar: 'Predicate adjective / idiom',
+    tip: 'In native English idioms, very easy tasks are “a piece of cake”.'
+  },
+  'شربة': {
+    en: 'drink / piece of',
+    grammar: 'Noun in idiom',
+    tip: 'Arabic “مثل شربة ماء” translates idiomatically to “a piece of cake”.'
+  },
+  'ماء': {
+    en: 'water / cake (in idiom)',
+    grammar: 'Mass noun',
+    tip: 'Do not translate literally; say “a piece of cake”.'
+  },
+  'بمزحة': {
+    en: 'with a joke',
+    grammar: 'Preposition + noun',
+    tip: '“started the interview with a joke”.'
+  },
+  'مزحة': {
+    en: 'a joke',
+    grammar: 'Countable noun',
+    tip: 'Requires indefinite article: “a joke”.'
+  },
+  'لطيفة': {
+    en: 'nice / pleasant',
+    grammar: 'Adjective',
+    tip: 'Placed before noun: “a nice joke”.'
+  },
+  'لكسر': {
+    en: 'to break',
+    grammar: 'Purpose infinitive',
+    tip: 'Infinitive phrase: “to break the ice”.'
+  },
+  'الجليد': {
+    en: 'the ice',
+    grammar: 'Noun in idiom',
+    tip: '“break the ice” means relieving social or professional tension.'
+  },
+  'تمنى': {
+    en: 'wished / told',
+    grammar: 'Past reporting verb',
+    tip: '“He told her to break a leg before the show”.'
+  },
+  'الحظ': {
+    en: 'luck',
+    grammar: 'Noun',
+    tip: 'English theatrical idiom uses “break a leg” to wish good luck.'
+  },
+  'السعيد': {
+    en: 'good / happy',
+    grammar: 'Adjective',
+    tip: 'Modifies luck: “good luck”.'
+  },
+  'صعودها': {
+    en: 'her going up / before the show',
+    grammar: 'Noun / gerund phrase',
+    tip: 'Translated idiomatically to “before the show” or “before going on stage”.'
+  },
+  'لها': {
+    en: 'her / to her',
+    grammar: 'Preposition + pronoun',
+    tip: 'Object pronoun: “told her”.'
+  },
+  'حقق': {
+    en: 'achieved / succeeded',
+    grammar: 'Past verb',
+    tip: '“the team succeeded”.'
+  },
+  'نجاحا': {
+    en: 'success',
+    grammar: 'Accusative noun',
+    tip: '“succeeded / achieved success”.'
+  },
+  'تعديل': {
+    en: 'adjust / modify',
+    grammar: 'Verbal noun',
+    tip: '“adjusted its prices”.'
+  },
+  'يتبع': {
+    en: 'follows',
+    grammar: 'Present verb',
+    tip: '“follows a different pathway”.'
+  },
+  'المسرح': {
+    en: 'the stage / the show',
+    grammar: 'Noun',
+    tip: '“the show” or “the stage”.'
+  },
+  'صعوبات': {
+    en: 'challenges / difficulties',
+    grammar: 'Plural noun',
+    tip: 'Collocation: “technical challenges”.'
+  },
+  'تقنية': {
+    en: 'technical',
+    grammar: 'Adjective',
+    tip: 'Placed before noun: “technical challenges”.'
+  },
+  'باهرا': {
+    en: 'great / outstanding',
+    grammar: 'Adjective',
+    tip: '“succeeded greatly / achieved outstanding success”.'
+  },
+  'ارتفعت': {
+    en: 'increased / rose',
+    grammar: 'Past verb',
+    tip: '“Production costs increased”.'
+  },
+  'تكاليف': {
+    en: 'costs',
+    grammar: 'Plural noun',
+    tip: '“Production costs”.'
+  },
+  'الإنتاج': {
+    en: 'production',
+    grammar: 'Noun adjunct',
+    tip: '“Production costs”.'
+  },
+  'وبناء': {
+    en: 'consequently / accordingly',
+    grammar: 'Causal conjunctive adverb',
+    tip: 'High-register causal connector: “consequently,”.'
+  },
+  'اضطرت': {
+    en: 'was forced to / had to',
+    grammar: 'Past verb',
+    tip: '“the company adjusted its prices”.'
+  },
+  'أسعارها': {
+    en: 'its prices',
+    grammar: 'Plural noun + possessive',
+    tip: 'Inanimate possessive: “its prices”.'
+  },
+  'الدراسة': {
+    en: 'The study',
+    grammar: 'Subject noun',
+    tip: '“The study is comprehensive”.'
+  },
+  'شاملة': {
+    en: 'comprehensive',
+    grammar: 'Predicate adjective',
+    tip: 'Follows linking verb: “is comprehensive”.'
+  },
+  'وعلاوة': {
+    en: 'furthermore / moreover',
+    grammar: 'Additive conjunctive adverb',
+    tip: 'Formal academic connector: “furthermore,”.'
+  },
+  'توصيات': {
+    en: 'recommendations',
+    grammar: 'Plural noun',
+    tip: '“actionable recommendations”.'
+  },
+  'عملية': {
+    en: 'actionable / practical',
+    grammar: 'Adjective',
+    tip: '“actionable recommendations”.'
+  },
+  'قابلة': {
+    en: 'actionable / practical',
+    grammar: 'Adjective',
+    tip: 'Part of “actionable recommendations”.'
+  },
+  'للتطبيق': {
+    en: 'applicable / actionable',
+    grammar: 'Preposition + noun',
+    tip: 'Condenses into the adjective “actionable”.'
+  },
+  'المعتقد': {
+    en: 'believed',
+    grammar: 'Passive participle hedge',
+    tip: 'Impersonal hedge: “It is widely believed that…”.'
+  },
+  'نطاق': {
+    en: 'scale / widely',
+    grammar: 'Noun in adverbial phrase',
+    tip: '“على نطاق واسع” maps to the adverb “widely”.'
+  },
+  'واسع': {
+    en: 'widely',
+    grammar: 'Adverbial modifier',
+    tip: '“widely believed”.'
+  },
+  'درجة': {
+    en: 'temperature',
+    grammar: 'Noun',
+    tip: '“temperature affects…”.'
+  },
+  'الحرارة': {
+    en: 'heat / temperature',
+    grammar: 'Scientific noun',
+    tip: 'Zero-article in thermodynamics: “temperature affects the reaction rate”.'
+  },
+  'معدل': {
+    en: 'rate',
+    grammar: 'Noun',
+    tip: '“reaction rate”.'
+  },
+  'سرعة': {
+    en: 'rate / speed',
+    grammar: 'Noun',
+    tip: '“reaction rate” in chemical kinetics.'
+  },
+  'الأولية': {
+    en: 'preliminary / initial',
+    grammar: 'Adjective',
+    tip: 'Scientific hedge: “The preliminary findings appear to support…”.'
+  },
+  'الفرضية': {
+    en: 'hypothesis',
+    grammar: 'Countable scientific noun',
+    tip: '“this hypothesis”.'
+  },
+  'مسارا': {
+    en: 'pathway / mechanism',
+    grammar: 'Countable noun',
+    tip: 'Takes indefinite article: “a different pathway”.'
+  },
+  'مختلفا': {
+    en: 'different',
+    grammar: 'Adjective',
+    tip: 'Placed before noun: “a different pathway”.'
   }
 };
 

@@ -65,6 +65,49 @@ const wordSchema = {
   },
 };
 
+const chunkSchema = {
+  type: Type.OBJECT,
+  properties: {
+    arabicText: { type: Type.STRING },
+    englishText: { type: Type.STRING },
+    role: {
+      type: Type.STRING,
+      enum: ['subject', 'verb', 'object', 'connector', 'modifier', 'auxiliary'],
+    },
+    explanation: { type: Type.STRING },
+  },
+  required: ['arabicText', 'englishText', 'role', 'explanation'],
+};
+
+const exerciseSchema = {
+  type: Type.OBJECT,
+  properties: {
+    arabicThought: { type: Type.STRING },
+    englishTarget: { type: Type.STRING },
+    acceptableAlternatives: {
+      type: Type.ARRAY,
+      items: { type: Type.STRING },
+    },
+    wordChips: {
+      type: Type.ARRAY,
+      items: { type: Type.STRING },
+    },
+    breakdownChunks: {
+      type: Type.ARRAY,
+      items: chunkSchema,
+    },
+    habitHint: { type: Type.STRING },
+  },
+  required: [
+    'arabicThought',
+    'englishTarget',
+    'acceptableAlternatives',
+    'wordChips',
+    'breakdownChunks',
+    'habitHint',
+  ],
+};
+
 let client;
 let upstashRedis = null;
 let upstashRatelimitMinute = null;
@@ -491,6 +534,66 @@ async function generate(operation, body) {
 
     const data = response.text?.trim().replace(/^["'«»]+|["'«»]+$/g, '').trim();
     if (!data) throw new Error('Empty translation response.');
+    return { status: 200, data };
+  }
+
+  if (operation === 'generate-exercise') {
+    const profile = isRecord(body.profile) ? body.profile : {};
+    const level = isMember(profile.level, levels) ? profile.level : 'intermediate';
+    const goal = isMember(profile.goal, goals) ? profile.goal : 'general';
+    const dialect = isMember(profile.dialect, dialects) ? profile.dialect : 'msa';
+    const focusArea = typeof profile.focusArea === 'string' ? profile.focusArea.trim().slice(0, 50) : '';
+
+    const dialectName = dialect === 'egyptian' ? 'Egyptian Arabic (Ammiya)' : 'Modern Standard Arabic (MSA/Fusha)';
+    
+    let domainGuidance = '';
+    const focusLower = focusArea.toLowerCase();
+    if (focusLower.includes('chem') || focusLower.includes('science')) {
+      domainGuidance = ' The learner specializes in chemistry / STEM. Focus the exercise on chemistry topics, lab work, scientific discoveries, molecular observations, or experimental results.';
+    } else if (goal === 'travel') {
+      domainGuidance = ' The learner is traveling. Focus the exercise on airport transit, hotel bookings, directions, dining, or practical travel conversation.';
+    } else if (goal === 'business' || goal === 'work') {
+      domainGuidance = ' The learner needs business and professional workplace English. Focus on client meetings, emails, negotiations, project status updates, or professional feedback.';
+    } else if (focusLower.includes('daily') || focusLower.includes('speech')) {
+      domainGuidance = ' The learner wants daily natural speech. Focus on conversational idioms, colloquial flow, or natural spoken patterns.';
+    } else {
+      domainGuidance = ' Focus on natural real-life communication and practical fluency.';
+    }
+
+    const promptText =
+      `Generate a single high-quality English sentence practice exercise for an Arabic speaker. ` +
+      `User CEFR Level: ${level}. Track Goal: ${goal}. Focus Area: ${focusArea || 'General'}. Arabic Dialect: ${dialectName}.${domainGuidance}\n\n` +
+      `CRITICAL REQUIREMENTS:\n` +
+      `1. "arabicThought": The natural sentence written in ${dialectName}.\n` +
+      `2. "englishTarget": The natural, idiomatic English translation matching the Arabic thought.\n` +
+      `3. "acceptableAlternatives": An array of 1 to 3 valid alternate phrasings (contractions, synonyms).\n` +
+      `4. "wordChips": An array of individual word chips needed to construct "englishTarget" PLUS 2 plausible distractor words (total 6 to 10 words). Distractor words must fit the domain but be grammatically or semantically incorrect for this exact sentence.\n` +
+      `5. "breakdownChunks": 2 to 4 structural grammatical chunks comparing the Arabic thought to English. Each chunk must specify: "arabicText", "englishText", "role" (one of: 'subject', 'verb', 'object', 'connector', 'modifier', 'auxiliary'), and "explanation" (pedagogical explanation in simple English).\n` +
+      `6. "habitHint": A concise 1-2 sentence tip contrasting how the Arabic mind structures this thought vs how native English expresses it.\n` +
+      `Return ONLY valid JSON according to the schema.`;
+
+    const response = await generateContentWithFallback(ai, {
+      contents: promptText,
+      config: {
+        systemInstruction:
+          `You are an expert bilingual Arabic-English curriculum architect. You generate high-quality cognitive grammar exercises comparing Arabic and English sentence structures. Return ONLY valid JSON adhering to the schema.`,
+        responseMimeType: 'application/json',
+        responseSchema: exerciseSchema,
+        temperature: 0.8,
+      },
+    });
+
+    const data = parseModelJson(response.text);
+    if (
+      !isRecord(data) ||
+      typeof data.arabicThought !== 'string' ||
+      typeof data.englishTarget !== 'string' ||
+      !Array.isArray(data.wordChips) ||
+      !Array.isArray(data.breakdownChunks)
+    ) {
+      throw new Error('Invalid exercise response from AI.');
+    }
+
     return { status: 200, data };
   }
 

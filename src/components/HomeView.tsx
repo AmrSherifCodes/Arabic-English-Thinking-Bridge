@@ -9,12 +9,13 @@ import { getAdaptiveRecommendation, getProfileTrackInfo } from '../utils/adaptiv
 
 export type HomeAction = 'flashcards' | 'speaking' | 'situations' | 'daily-review' | 'messages';
 
-interface HomeViewProps {
+export interface HomeViewProps {
   profile: UserProfile;
   progress: UserProgress;
   onNavigate: (action: HomeAction) => void;
   onOpenWhyEnglish: () => void;
   onOpenLesson: (lessonIdx: number) => void;
+  onStartAiPractice?: () => void;
 }
 
 const FEATURES = [
@@ -65,7 +66,14 @@ const FEATURES = [
   }
 ] as const;
 
-export function HomeView({ profile, progress, onNavigate, onOpenWhyEnglish, onOpenLesson }: HomeViewProps) {
+export function HomeView({
+  profile,
+  progress,
+  onNavigate,
+  onOpenWhyEnglish,
+  onOpenLesson,
+  onStartAiPractice
+}: HomeViewProps) {
   const [isOffline, setIsOffline] = useState(
     () => typeof navigator !== 'undefined' && !navigator.onLine
   );
@@ -188,14 +196,25 @@ export function HomeView({ profile, progress, onNavigate, onOpenWhyEnglish, onOp
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={() => onOpenLesson(adaptiveRec.lessonIndex)}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs shadow-xs transition active:scale-[0.98]"
-        >
-          <span>{t('Launch Adaptive Lesson →', 'ابدأ الدرس التكيفي الآن ←')}</span>
-          <ArrowRight size={14} className="rtl-flip" />
-        </button>
+        <div className="flex flex-wrap items-center gap-2 pt-1">
+          <button
+            type="button"
+            onClick={() => onOpenLesson(adaptiveRec.lessonIndex)}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs shadow-xs transition active:scale-[0.98]"
+          >
+            <span>{t('Launch Adaptive Lesson →', 'ابدأ الدرس التكيفي الآن ←')}</span>
+            <ArrowRight size={14} className="rtl-flip" />
+          </button>
+          {onStartAiPractice && (
+            <button
+              type="button"
+              onClick={onStartAiPractice}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-indigo-400/60 bg-indigo-50 hover:bg-indigo-100 text-indigo-900 dark:border-indigo-500/40 dark:bg-indigo-950/40 dark:text-indigo-200 dark:hover:bg-indigo-950/60 font-bold text-xs shadow-xs transition active:scale-[0.98]"
+            >
+              <span>{t('🎲 Infinite AI Practice', '🎲 تمرين الذكاء الاصطناعي اللانهائي')}</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Soft secondary "Why Learn With Thinking Bridge?" card */}
