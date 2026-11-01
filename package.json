@@ -8,6 +8,7 @@
     "dev": "vite --port=3000 --host=0.0.0.0",
     "build": "vite build",
     "preview": "vite preview",
+    "test": "tsx --test src/**/*.test.ts api/*.test.js",
     "generate:dictionary": "node generate-dictionary.js",
     "build:dictionary": "node build-dictionary-from-sources.js",
     "clean:dictionary": "node clean-dictionary.js",

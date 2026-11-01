@@ -3,8 +3,15 @@ import { GoogleTTS } from 'voipi/google-tts';
 
 const MAX_TEXT_LENGTH = 600;
 
-function resolveEdgeVoice(lang = 'en-US', requestedVoice = '') {
-  if (typeof requestedVoice === 'string' && /^[a-z]{2,3}(-[A-Z][A-Za-z]+)+-.+Neural$/.test(requestedVoice)) {
+export const ALLOWED_EDGE_VOICES = new Set([
+  'ar-EG-SalmaNeural',
+  'ar-SA-HamedNeural',
+  'en-US-AvaNeural',
+  'en-GB-SoniaNeural'
+]);
+
+export function resolveEdgeVoice(lang = 'en-US', requestedVoice = '') {
+  if (typeof requestedVoice === 'string' && ALLOWED_EDGE_VOICES.has(requestedVoice)) {
     return requestedVoice;
   }
   const norm = String(lang || 'en-US').trim().toLowerCase().replace('_', '-');
@@ -14,13 +21,20 @@ function resolveEdgeVoice(lang = 'en-US', requestedVoice = '') {
   return 'en-US-AvaNeural';
 }
 
+export function validateLang(lang) {
+  if (typeof lang === 'string' && lang.trim().length <= 10 && /^[a-z]{2,3}([-_][A-Za-z]{2,4})?$/.test(lang.trim())) {
+    return lang.trim();
+  }
+  return 'en-US';
+}
+
 function resolveGoogleLang(lang = 'en-US') {
   const norm = String(lang || 'en-US').trim().toLowerCase().replace('_', '-');
   if (norm.startsWith('ar')) return 'ar';
   return 'en';
 }
 
-const ALLOWED_CORS_ORIGINS = new Set([
+export const ALLOWED_CORS_ORIGINS = new Set([
   'https://arabicenglishthinkingbridge.vercel.app',
   'http://localhost:5173',
   'http://localhost:3000',
@@ -48,6 +62,9 @@ function isAllowedUrlOrigin(urlStr) {
 
 export default async function ttsHandler(req, res) {
   const origin = req.headers.origin;
+  const referer = req.headers.referer;
+  const secFetchSite = req.headers['sec-fetch-site'];
+
   res.setHeader('Access-Control-Allow-Origin', getCorsOrigin(origin));
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
@@ -67,13 +84,18 @@ export default async function ttsHandler(req, res) {
       res.end(JSON.stringify({ error: 'Origin not allowed.' }));
       return;
     }
-  } else if (req.headers.referer) {
-    if (!isAllowedUrlOrigin(req.headers.referer)) {
+  } else if (referer) {
+    if (!isAllowedUrlOrigin(referer)) {
       res.statusCode = 403;
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
       res.end(JSON.stringify({ error: 'Referer not allowed.' }));
       return;
     }
+  } else if (secFetchSite === 'cross-site') {
+    res.statusCode = 403;
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.end(JSON.stringify({ error: 'Cross-site request rejected.' }));
+    return;
   }
 
   if (req.method !== 'GET' && req.method !== 'POST') {
@@ -92,17 +114,21 @@ export default async function ttsHandler(req, res) {
     let rate = Number(url.searchParams.get('rate') || '1');
 
     if (req.method === 'POST') {
-      let raw = '';
+      const chunks = [];
+      let totalBytes = 0;
       for await (const chunk of req) {
-        raw += chunk.toString();
-        if (raw.length > 8192) {
+        const buf = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+        totalBytes += buf.length;
+        if (totalBytes > 8192) {
           res.statusCode = 413;
           res.setHeader('Content-Type', 'application/json; charset=utf-8');
           res.end(JSON.stringify({ error: 'Payload too large.' }));
           return;
         }
+        chunks.push(buf);
       }
-      if (raw) {
+      if (chunks.length > 0) {
+        const raw = Buffer.concat(chunks).toString('utf8');
         let body;
         try {
           body = JSON.parse(raw);
@@ -129,8 +155,9 @@ export default async function ttsHandler(req, res) {
       return;
     }
 
+    const safeLang = validateLang(lang);
     const safeRate = Number.isFinite(rate) ? Math.min(2, Math.max(0.5, rate)) : 1;
-    const selectedVoice = resolveEdgeVoice(lang, voice);
+    const selectedVoice = resolveEdgeVoice(safeLang, voice);
 
     let audio;
     let provider = 'edge-tts';
@@ -138,12 +165,12 @@ export default async function ttsHandler(req, res) {
       const edgeTts = new EdgeTTS({ voice: selectedVoice });
       audio = await edgeTts.synthesize(cleanText, {
         voice: selectedVoice,
-        lang,
+        lang: safeLang,
         rate: safeRate,
       });
     } catch {
       provider = 'google-tts';
-      const googleLang = resolveGoogleLang(lang);
+      const googleLang = resolveGoogleLang(safeLang);
       const googleTts = new GoogleTTS({
         voice: googleLang,
         slow: safeRate < 0.78,
@@ -170,4 +197,3 @@ export default async function ttsHandler(req, res) {
     );
   }
 }
-

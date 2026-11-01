@@ -1,11 +1,11 @@
 {
   "headers": [
     {
-      "source": "/api/tts",
+      "source": "/api/gemini",
       "headers": [
         {
           "key": "Cache-Control",
-          "value": "public, s-maxage=31536000, immutable"
+          "value": "no-store"
         }
       ]
     },
@@ -25,8 +25,12 @@
           "value": "strict-origin-when-cross-origin"
         },
         {
+          "key": "Permissions-Policy",
+          "value": "microphone=(self), camera=(), geolocation=()"
+        },
+        {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self' capacitor: http://localhost; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' capacitor: http://localhost https://arabicenglishthinkingbridge.vercel.app https://generativelanguage.googleapis.com https://api.mymemory.translated.net https://*.supabase.co https://*.upstash.io wss://*.supabase.co; worker-src 'self' blob:;"
+          "value": "default-src 'self' capacitor: http://localhost; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' capacitor: http://localhost https://arabicenglishthinkingbridge.vercel.app https://api.mymemory.translated.net https://*.supabase.co https://*.upstash.io wss://*.supabase.co; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';"
         }
       ]
     }
