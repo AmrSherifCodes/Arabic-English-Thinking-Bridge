@@ -6,6 +6,7 @@ import { createSpeechRecognition, isSpeechRecognitionSupported, speakWithRate, C
 import { sendConversationMessage, ConversationHistoryItem } from '../services/geminiLexicon';
 import { generateLocalTutorResponse } from '../services/localAI';
 import { localOfflineTranslate } from '../App';
+import { API_BASE_URL } from '../utils/api';
 
 export interface ChatMessage {
   id: string;
@@ -110,6 +111,7 @@ export function ConversationView({ profile, onToast, preferredVoice }: Conversat
   const silenceTimerRef = useRef<any | null>(null);
   const chatBottomRef = useRef<HTMLDivElement | null>(null);
   const speakingTimeoutRef = useRef<any | null>(null);
+  const currentAudioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     setRecognitionSupported(isSpeechRecognitionSupported());
@@ -127,11 +129,17 @@ export function ConversationView({ profile, onToast, preferredVoice }: Conversat
     chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, liveTranscript, conversationState]);
 
-  // Clean up timers & recognizer on unmount
+  // Clean up timers, audio & recognizer on unmount
   useEffect(() => {
     return () => {
       if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
       if (speakingTimeoutRef.current) clearTimeout(speakingTimeoutRef.current);
+      if (currentAudioRef.current) {
+        try {
+          currentAudioRef.current.pause();
+        } catch {}
+        currentAudioRef.current = null;
+      }
       if (recognizerRef.current) {
         try {
           recognizerRef.current.abort();
@@ -159,6 +167,13 @@ export function ConversationView({ profile, onToast, preferredVoice }: Conversat
   };
 
   const stopAudioPlayback = () => {
+    if (currentAudioRef.current) {
+      try {
+        currentAudioRef.current.pause();
+        currentAudioRef.current.currentTime = 0;
+      } catch {}
+      currentAudioRef.current = null;
+    }
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       try {
         window.speechSynthesis.cancel();
@@ -173,19 +188,45 @@ export function ConversationView({ profile, onToast, preferredVoice }: Conversat
     }
   };
 
-  const speakAiResponse = (text: string) => {
-    stopAudioPlayback();
-    setConversationState('speaking');
+  const playBackendAudio = async (text: string) => {
+    try {
+      stopAudioPlayback();
+      setConversationState('speaking');
 
-    // Approximate duration in ms to auto-revert speaking state
-    const wordsCount = text.split(/\s+/).length;
-    const estimatedDurationMs = Math.max(2500, Math.min(25000, wordsCount * 420));
+      // Strip markdown / punctuation noise for clean speech synthesis
+      const cleanText = text.replace(/[*_#`~]/g, '').trim();
+      if (!cleanText) {
+        setConversationState('idle');
+        return;
+      }
 
-    speakWithRate(text, 1, preferredVoice || CLOUD_AI_VOICE_ID);
+      // Route through our edge-tts backend
+      const url = `${API_BASE_URL}/api/tts?text=${encodeURIComponent(cleanText)}&lang=en-US`;
+      const audio = new Audio(url);
+      currentAudioRef.current = audio;
 
-    speakingTimeoutRef.current = setTimeout(() => {
+      audio.onended = () => {
+        currentAudioRef.current = null;
+        setConversationState('idle');
+      };
+
+      audio.onerror = (e) => {
+        console.warn('[ConversationView] Backend TTS failed, falling back to native speechSynthesis:', e);
+        currentAudioRef.current = null;
+        speakWithRate(cleanText, 1, preferredVoice || CLOUD_AI_VOICE_ID);
+        const wordsCount = cleanText.split(/\s+/).length;
+        const estimatedDurationMs = Math.max(2500, Math.min(25000, wordsCount * 420));
+        speakingTimeoutRef.current = setTimeout(() => {
+          setConversationState('idle');
+        }, estimatedDurationMs);
+      };
+
+      await audio.play();
+    } catch (err) {
+      console.error('[ConversationView] Audio playback failed:', err);
+      speakWithRate(text, 1, preferredVoice || CLOUD_AI_VOICE_ID);
       setConversationState('idle');
-    }, estimatedDurationMs);
+    }
   };
 
   const handleSendPrompt = async (userText: string) => {
@@ -217,6 +258,7 @@ export function ConversationView({ profile, onToast, preferredVoice }: Conversat
       if (onlineNow) {
         try {
           replyText = await sendConversationMessage(clean, historyPayload, profile);
+          console.log('[ConversationView] Raw reply from backend:', replyText);
         } catch (cloudErr) {
           console.warn('[ConversationView] Cloud AI failed, attempting on-device Gemma 3n:', cloudErr);
         }
@@ -229,6 +271,7 @@ export function ConversationView({ profile, onToast, preferredVoice }: Conversat
             clean,
             'You are an offline conversational English-Arabic tutor. Answer in 1-2 friendly, natural English sentences.'
           );
+          console.log('[ConversationView] Raw reply from local SLM:', replyText);
         } catch (localErr) {
           console.warn('[ConversationView] Local SLM failed, falling back to offline dictionary:', localErr);
           const isAr = /[\u0600-\u06FF]/.test(clean);
@@ -247,7 +290,7 @@ export function ConversationView({ profile, onToast, preferredVoice }: Conversat
       };
 
       setMessages(prev => [...prev, aiMessage]);
-      speakAiResponse(replyText);
+      await playBackendAudio(replyText);
     } catch (err) {
       console.error('[ConversationView] Error communicating with tutor:', err);
       setConversationState('idle');
@@ -576,22 +619,23 @@ export function ConversationView({ profile, onToast, preferredVoice }: Conversat
 
                     {/* Audio replay button for AI messages */}
                     {!isUser && (
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1.5">
                         <button
                           type="button"
-                          onClick={() => speakAiResponse(msg.text)}
-                          title="استمع للرد مرة ثانية"
-                          className="flex h-6 w-6 items-center justify-center rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300 transition"
+                          onClick={() => playBackendAudio(msg.text)}
+                          title="استمع للرد (Listen)"
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-teal-50 dark:bg-stone-800 hover:bg-teal-100 dark:hover:bg-stone-700 text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-stone-700 transition text-xs font-bold shadow-xs active:scale-95"
                         >
-                          <Volume2 size={13} />
+                          <Volume2 size={13} className="shrink-0 text-teal-700 dark:text-teal-400" />
+                          <span>🔊 Listen</span>
                         </button>
                         <button
                           type="button"
                           onClick={() => speakWithRate(msg.text, 0.75, preferredVoice || CLOUD_AI_VOICE_ID)}
                           title="استمع ببطء (Slow)"
-                          className="text-[10px] px-1 rounded-md hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300 transition font-bold"
+                          className="inline-flex items-center gap-1 px-2 py-1 rounded-xl hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300 border border-stone-200 dark:border-stone-700 transition text-xs font-bold"
                         >
-                          🐢
+                          <span>🐢 Slow</span>
                         </button>
                       </div>
                     )}
