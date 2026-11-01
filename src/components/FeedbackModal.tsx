@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Star, MessageSquareHeart, Lightbulb, X, Send } from 'lucide-react';
 import type { UserProfile } from '../types';
+import { supabase } from '../services/supabase';
 
 export interface UserFeedbackData {
   rating: number;
@@ -57,6 +58,17 @@ export function FeedbackModal({
       const existingList: UserFeedbackData[] = existingRaw ? JSON.parse(existingRaw) : [];
       existingList.push(feedbackData);
       localStorage.setItem(FEEDBACK_STORAGE_KEY, JSON.stringify(existingList));
+
+      if (supabase) {
+        void supabase.from('feedback_submissions').insert({
+          rating,
+          message: feedbackData.generalFeedback.slice(0, 1000),
+          feature_idea: feedbackData.featureIdea.slice(0, 1000) || null,
+          user_name: feedbackData.userName || null,
+          profile_goal: feedbackData.profileGoal || null,
+          focus_area: feedbackData.focusArea || null
+        });
+      }
     } catch {
       // LocalStorage quota or restricted mode fallback
     }
@@ -148,6 +160,7 @@ export function FeedbackModal({
             <textarea
               id="general-feedback-input"
               rows={3}
+              maxLength={1000}
               value={generalFeedback}
               onChange={e => setGeneralFeedback(e.target.value)}
               placeholder="e.g. The word blocks really helped me stop translating word-for-word, but I'd like more practice with..."
@@ -164,6 +177,7 @@ export function FeedbackModal({
             <textarea
               id="feature-idea-input"
               rows={2}
+              maxLength={1000}
               value={featureIdea}
               onChange={e => setFeatureIdea(e.target.value)}
               placeholder="e.g. Chemistry vocabulary deck, WhatsApp voice feedback, spaced repetition widget..."

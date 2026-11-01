@@ -1,6 +1,15 @@
 {
   "headers": [
     {
+      "source": "/api/tts",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, s-maxage=31536000, immutable"
+        }
+      ]
+    },
+    {
       "source": "/api/(.*)",
       "has": [
         {

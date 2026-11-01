@@ -1,0 +1,125 @@
+import { Ratelimit } from '@upstash/ratelimit';
+import { Redis } from '@upstash/redis';
+
+export const config = {
+  matcher: ['/api/:path*']
+};
+
+const RATE_LIMIT_PER_MINUTE = 20;
+const RATE_WINDOW_MS = 60_000;
+
+interface MemoryRateRecord {
+  count: number;
+  resetAt: number;
+}
+
+const memoryLimiter = new Map<string, MemoryRateRecord>();
+
+// Initialize Upstash Redis if environment variables are provided
+let upstashRatelimit: Ratelimit | null = null;
+const upstashUrl = process.env.UPSTASH_REDIS_REST_URL;
+const upstashToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+
+if (upstashUrl && upstashToken) {
+  try {
+    const redis = new Redis({
+      url: upstashUrl,
+      token: upstashToken
+    });
+    upstashRatelimit = new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(RATE_LIMIT_PER_MINUTE, '1 m'),
+      analytics: false,
+      prefix: 'tb:edge_ratelimit'
+    });
+  } catch {
+    upstashRatelimit = null;
+  }
+}
+
+function checkMemoryRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const record = memoryLimiter.get(ip);
+
+  // Evict expired entries when map grows large
+  if (memoryLimiter.size > 2000) {
+    for (const [key, val] of memoryLimiter.entries()) {
+      if (val.resetAt <= now) {
+        memoryLimiter.delete(key);
+      }
+    }
+  }
+
+  if (!record || record.resetAt <= now) {
+    memoryLimiter.set(ip, {
+      count: 1,
+      resetAt: now + RATE_WINDOW_MS
+    });
+    return true;
+  }
+
+  if (record.count >= RATE_LIMIT_PER_MINUTE) {
+    return false;
+  }
+
+  record.count += 1;
+  return true;
+}
+
+function getClientIp(request: Request): string {
+  const xForwardedFor = request.headers.get('x-forwarded-for');
+  if (xForwardedFor) {
+    return xForwardedFor.split(',')[0].trim();
+  }
+  return request.headers.get('x-real-ip') || '127.0.0.1';
+}
+
+export default async function middleware(request: Request): Promise<Response> {
+  // Allow preflight OPTIONS requests without consuming rate limit
+  if (request.method === 'OPTIONS') {
+    return new Response(null, {
+      headers: {
+        'x-middleware-next': '1'
+      }
+    });
+  }
+
+  const ip = getClientIp(request);
+
+  let allowed = true;
+  if (upstashRatelimit) {
+    try {
+      const { success } = await upstashRatelimit.limit(ip);
+      allowed = success;
+    } catch {
+      allowed = checkMemoryRateLimit(ip);
+    }
+  } else {
+    allowed = checkMemoryRateLimit(ip);
+  }
+
+  if (!allowed) {
+    return new Response(
+      JSON.stringify({
+        error: {
+          code: 'rate-limit-exceeded',
+          message: 'Rate limit exceeded: maximum 20 requests per minute per IP. Please slow down.'
+        }
+      }),
+      {
+        status: 429,
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+          'Retry-After': '60',
+          'Access-Control-Allow-Origin': request.headers.get('origin') || '*'
+        }
+      }
+    );
+  }
+
+  return new Response(null, {
+    headers: {
+      'x-middleware-next': '1'
+    }
+  });
+}
