@@ -2,14 +2,18 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { BookOpen, CalendarDays, Github, Heart, Layers, Linkedin, MessageCircle, MessageSquare, Mic } from 'lucide-react';
 import { UserProfile } from '../hooks/useUserProfile';
+import { UserProgress } from '../types';
 import { isArabicUI, uiText } from '../utils/i18n';
+import { ThinkingMap } from './ThinkingMap';
 
 export type HomeAction = 'flashcards' | 'speaking' | 'situations' | 'daily-review' | 'messages';
 
 interface HomeViewProps {
   profile: UserProfile;
+  progress: UserProgress;
   onNavigate: (action: HomeAction) => void;
   onOpenWhyEnglish: () => void;
+  onOpenLesson: (lessonIdx: number) => void;
 }
 
 const FEATURES = [
@@ -60,7 +64,7 @@ const FEATURES = [
   }
 ] as const;
 
-export function HomeView({ profile, onNavigate, onOpenWhyEnglish }: HomeViewProps) {
+export function HomeView({ profile, progress, onNavigate, onOpenWhyEnglish, onOpenLesson }: HomeViewProps) {
   const [isOffline, setIsOffline] = useState(
     () => typeof navigator !== 'undefined' && !navigator.onLine
   );
@@ -188,6 +192,13 @@ export function HomeView({ profile, onNavigate, onOpenWhyEnglish }: HomeViewProp
           </span>
         </span>
       </motion.button>
+
+      {/* Visual English Thinking Map (replacing generic progress bar) */}
+      <ThinkingMap
+        progress={progress}
+        onOpenLesson={onOpenLesson}
+        language={profile.language}
+      />
 
       <div className="grid w-full min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
         {features.map(({ id, titleEn, titleAr, descriptionEn, descriptionAr, Icon, iconClass }) => {

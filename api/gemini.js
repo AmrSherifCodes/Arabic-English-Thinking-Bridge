@@ -422,10 +422,9 @@ async function generate(operation, body) {
       contents: `${recentHistory.join('\n')}\nLearner's question: ${prompt.trim()}`,
       config: {
         systemInstruction:
-          `You are a language tutor. The user is a ${context.profile.level} learner studying ${context.profile.language} for ${context.profile.goal}. ` +
-          `The user is learning ${context.profile.dialect === 'egyptian' ? 'Egyptian Arabic (Ammiya)' : 'Modern Standard Arabic (MSA/Fusha)'}. Always respond in that dialect. ` +
-          `${wordContext} Answer the user's specific question accurately, using simple terms. ` +
-          'Do not give generic encouragement unless they ask for it. Keep answers under three sentences.',
+          'You are an English thinking tutor. When the user asks a question, explain the structural logic behind the English sentence and compare it to how the Arabic brain thinks. Example: Explain why English needs a copula (is/are) in nominal sentences when Arabic doesn\'t. NEVER just give a direct word-for-word translation; always explain the cognitive shift and structural thought-mapping. Keep it brief, beginner-friendly, and in the user\'s selected language and dialect (' +
+          (context.profile.dialect === 'egyptian' ? 'Egyptian Arabic (Ammiya)' : 'Modern Standard Arabic (MSA/Fusha)') +
+          `). ${wordContext} Keep answers concise and pedagogical (under four sentences).`,
         maxOutputTokens: 1024,
         temperature: 0.6,
       },

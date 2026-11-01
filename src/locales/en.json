@@ -1,0 +1,101 @@
+{
+  "app": {
+    "title": "Thinking English",
+    "subtitle": "Arabic-to-English Cognitive Transfer Journey",
+    "offlineActive": "Offline Mode Active 🟢",
+    "freeAndOpen": "100% Free, Open Source, and Private. No Ads. No Subscriptions."
+  },
+  "nav": {
+    "home": "Home",
+    "lessons": "Lessons",
+    "practice": "Practice",
+    "cards": "Flashcards",
+    "hub": "Situations",
+    "translate": "Translate",
+    "messages": "Contact"
+  },
+  "landing": {
+    "heroTitle": "Master English",
+    "heroTitleGradient": "the Smart Way",
+    "heroArabic": "تعلم الإنجليزية بذكاء",
+    "startLearning": "Start Learning Now 🚀",
+    "startLearningAr": "ابدأ التعلم الآن",
+    "tryGuest": "Try as Guest 🚀",
+    "tryGuestAr": "جرّب كضيف",
+    "honoraryGuestBadge": "🎟️ Honorary Guest Mode",
+    "createProfile": "Create profile",
+    "installPwa": "📱 Install as an App on your phone",
+    "builtBy": "Built with ❤️ by Amr Sherif",
+    "viewCv": "📄 View My CV",
+    "copyright": "© 2026 Thinking English.",
+    "badges": "🔒 No tracking · 5,000+ Words & Phrases · Open Source"
+  },
+  "home": {
+    "welcomeBack": "Welcome back",
+    "readyHeading": "Ready to master English thinking?",
+    "pathSummary": "Your {{level}} · {{goal}} · {{dialect}} learning journey",
+    "whyLearn": "Why Learn With Thinking Bridge? 📖",
+    "whyLearnSub": "Discover the cognitive transfer difference"
+  },
+  "thinkingMap": {
+    "title": "🧠 Personal Thinking Map",
+    "titleAr": "خريطة التفكير الإنجليزي",
+    "subtitle": "Track how your brain is shifting from Arabic grammar to English cognitive structures.",
+    "recommendedNext": "Recommended Next Shift",
+    "jumpToPractice": "Practice This Shift →",
+    "mastered": "Mastered",
+    "attention": "Needs Focus",
+    "nextUp": "Up Next",
+    "allMastered": "All core cognitive shifts unlocked! 🎉"
+  },
+  "practice": {
+    "sayThought": "Say this thought in English",
+    "structurePeek": "🔍 Structure Peek",
+    "hideStructurePeek": "Hide Structure Peek",
+    "stepBlocks": "Step-by-Step Blocks:",
+    "buildSentence": "Build your English sentence",
+    "inputPlaceholder": "Tap the words below or type here…",
+    "checkAnswer": "✅ Check Answer",
+    "nextWord": "🪄 Next Word (كلمة مساعدة)",
+    "reset": "↺ Reset",
+    "reveal": "Reveal",
+    "hearNormal": "🔊 Hear",
+    "hearSlow": "🐢 Slow",
+    "recordYourself": "🎙 Record yourself",
+    "stopRecording": "⏹ Stop",
+    "watchTutorial": "🎥 Watch Tutorial",
+    "nextSentence": "Next Sentence →",
+    "areYouLost": "🤔 Are you lost? Do you need help with this sentence?",
+    "yesGuideMe": "Yes, guide me",
+    "noImGood": "No, I'm good",
+    "easyThinkingSecret": "💡 Easy Thinking Secret (السر الذهني ببساطة — اضغط للعرض)"
+  },
+  "tutorial": {
+    "title": "🎥 How to practice",
+    "step1": "Read the Arabic sentence.",
+    "step2": "Tap the blocks to build the English.",
+    "step3": "Hit Check and listen to the audio.",
+    "watchYoutube": "▶ Watch the full video on YouTube"
+  },
+  "ai": {
+    "tutorTitle": "Language Tutor",
+    "tutorStatus": "Gemini tutor",
+    "askPlaceholder": "Ask a language question…",
+    "thinking": "Thinking…",
+    "offlineFallback": "Looking in the offline dictionary…",
+    "vipPassButton": "Unlock Smart AI (Free VIP Pass) 🚀",
+    "vipPassActive": "🌟 Smart AI (VIP Active)"
+  },
+  "cv": {
+    "title": "Amr Sherif",
+    "subtitle": "Retention Specialist & Chemistry Student",
+    "contact": "Contact",
+    "skills": "Skills",
+    "volunteering": "Volunteering",
+    "profile": "Profile",
+    "experience": "Experience",
+    "internships": "Technical Internships",
+    "education": "Education",
+    "close": "Close"
+  }
+}

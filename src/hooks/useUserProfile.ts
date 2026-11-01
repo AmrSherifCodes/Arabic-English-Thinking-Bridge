@@ -41,6 +41,13 @@ function readUserProfile(): UserProfile | null {
   }
 }
 
+export function detectBrowserLanguage(): 'arabic' | 'english' {
+  if (typeof window === 'undefined') return 'arabic';
+  const navLang = (navigator.language || (navigator as { userLanguage?: string }).userLanguage || '').toLowerCase();
+  if (navLang.startsWith('ar')) return 'arabic';
+  return 'english';
+}
+
 export function useUserProfile() {
   const [profile, setProfile] = useState<UserProfile | null>(readUserProfile);
 

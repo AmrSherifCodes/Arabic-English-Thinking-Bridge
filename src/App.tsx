@@ -2134,6 +2134,8 @@ export default function App() {
         {activeTab === 'home' && (
           <HomeView
             profile={profile}
+            progress={progress}
+            onOpenLesson={openLesson}
             onOpenWhyEnglish={() => setShowWhyEnglish(true)}
             onNavigate={(action: HomeAction) => {
               if (action === 'messages') {

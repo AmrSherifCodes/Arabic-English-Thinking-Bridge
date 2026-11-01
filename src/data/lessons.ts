@@ -1,4 +1,4 @@
-import { Phase } from '../types';
+import { Lesson, Phase } from '../types';
 
 export const PHASES_DATA: Phase[] = [
   {
@@ -1430,6 +1430,8 @@ export const PHASES_DATA: Phase[] = [
     ]
   }
 ];
+
+export const ALL_LESSONS: Lesson[] = PHASES_DATA.flatMap(p => p.lessons);
 
 export const INITIAL_BROADCASTS = [
   {

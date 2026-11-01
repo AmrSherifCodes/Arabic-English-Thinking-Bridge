@@ -1,0 +1,101 @@
+{
+  "app": {
+    "title": "Thinking English",
+    "subtitle": "رحلة التحول الذهني من العربية إلى الإنجليزية",
+    "offlineActive": "وضع عدم الاتصال نشط 🟢",
+    "freeAndOpen": "مجاني 100% ومفتوح المصدر وخاص بالكامل. بدون إعلانات أو اشتراكات."
+  },
+  "nav": {
+    "home": "الرئيسية",
+    "lessons": "الدروس",
+    "practice": "التدريب",
+    "cards": "البطاقات",
+    "hub": "المواقف",
+    "translate": "الترجمة",
+    "messages": "تواصل"
+  },
+  "landing": {
+    "heroTitle": "Master English",
+    "heroTitleGradient": "the Smart Way",
+    "heroArabic": "تعلم الإنجليزية بذكاء",
+    "startLearning": "Start Learning Now 🚀",
+    "startLearningAr": "ابدأ التعلم الآن",
+    "tryGuest": "Try as Guest 🚀",
+    "tryGuestAr": "جرّب كضيف",
+    "honoraryGuestBadge": "🎟️ وضع الضيف الشرفي",
+    "createProfile": "إنشاء حسابي",
+    "installPwa": "📱 تثبيت كتطبيق على الهاتف",
+    "builtBy": "صُنع بـ ❤️ بواسطة عمرو شريف",
+    "viewCv": "📄 عرض سيرتي الذاتية (CV)",
+    "copyright": "© 2026 Thinking English.",
+    "badges": "🔒 بدون تتبع · أكثر من 5,000 كلمة وعبارة · مفتوح المصدر"
+  },
+  "home": {
+    "welcomeBack": "مرحبًا بك من جديد",
+    "readyHeading": "هل أنت مستعد للتفكير بالإنجليزية؟",
+    "pathSummary": "مسارك التعليمي: المستوى {{level}} · الهدف: {{goal}} · {{dialect}}",
+    "whyLearn": "لماذا تتعلم مع Thinking Bridge؟ 📖",
+    "whyLearnSub": "اكتشف الفارق الجوهري للتحول الذهني"
+  },
+  "thinkingMap": {
+    "title": "🧠 خريطة التفكير الإنجليزي الشخصية",
+    "titleAr": "English Thinking Map",
+    "subtitle": "تابع كيف يتحول عقلك تدريجياً من منطق الجملة العربية إلى الهيكل الإدراكي الإنجليزي.",
+    "recommendedNext": "التحول الذهني المقترح التالي",
+    "jumpToPractice": "تدرب على هذا التحول الآن ←",
+    "mastered": "متقن",
+    "attention": "يحتاج تركيز",
+    "nextUp": "التالي في المسار",
+    "allMastered": "تم فتح جميع التحولات الذهنية الأساسية بنجاح! 🎉"
+  },
+  "practice": {
+    "sayThought": "عبّر عن هذه الفكرة بالإنجليزية",
+    "structurePeek": "🔍 نظرة على الهيكل",
+    "hideStructurePeek": "إخفاء الهيكل",
+    "stepBlocks": "الكتل البنائية خطوة بخطوة:",
+    "buildSentence": "ابنِ جملتك الإنجليزية بالترتيب الصحيح",
+    "inputPlaceholder": "اضغط على الكلمات بالأسفل أو اكتب هنا…",
+    "checkAnswer": "✅ تحقق من الإجابة",
+    "nextWord": "🪄 كلمة مساعدة",
+    "reset": "↺ إعادة ضبط",
+    "reveal": "إظهار الحل",
+    "hearNormal": "🔊 استماع",
+    "hearSlow": "🐢 نطق بطيء",
+    "recordYourself": "🎙 سجّل نطقك",
+    "stopRecording": "⏹ إيقاف التسجيل",
+    "watchTutorial": "🎥 طريقة التدريب",
+    "nextSentence": "الجملة التالية ←",
+    "areYouLost": "🤔 هل تشعر بالحيرة؟ هل تحتاج لمساعدة في هذه الجملة؟",
+    "yesGuideMe": "نعم، ساعدني خطوة بخطوة",
+    "noImGood": "لا، أنا بخير",
+    "easyThinkingSecret": "💡 السر الذهني ببساطة (اضغط للعرض)"
+  },
+  "tutorial": {
+    "title": "🎥 كيف تتدرب بذكاء",
+    "step1": "اقرأ الفكرة العربية بتمعن.",
+    "step2": "اضغط على الكلمات الإنجليزية بالترتيب الذهني الصحيح.",
+    "step3": "اضغط تحقق واستمع للنطق السليم.",
+    "watchYoutube": "▶ شاهد الفيديو التوضيحي بالكامل على يوتيوب"
+  },
+  "ai": {
+    "tutorTitle": "المعلم اللغوي الذكي",
+    "tutorStatus": "معلم Gemini الذكي",
+    "askPlaceholder": "اطرح سؤالاً لغوياً عن الهيكل أو المعنى…",
+    "thinking": "جاري التفكير اللغوي…",
+    "offlineFallback": "جاري البحث في القاموس المحلي بدون إنترنت…",
+    "vipPassButton": "افتح المساعد الذكي (مجاني) 🚀",
+    "vipPassActive": "🌟 المساعد الذكي (كود VIP نشط)"
+  },
+  "cv": {
+    "title": "عمرو شريف",
+    "subtitle": "أخصائي ولاء العملاء وحفظ الحسابات & طالب كيمياء",
+    "contact": "بيانات التواصل",
+    "skills": "المهارات القيادية والعملية",
+    "volunteering": "العمل التطوعي",
+    "profile": "الملف المهني",
+    "experience": "الخبرات العملية",
+    "internships": "التدريبات الميدانية",
+    "education": "المؤهل الدراسي",
+    "close": "إغلاق"
+  }
+}
