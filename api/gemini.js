@@ -362,6 +362,108 @@ function withStrictTimeout(promise, ms = GEMINI_TIMEOUT_MS) {
   return Promise.race([promise, timeoutPromise]).finally(() => clearTimeout(timer));
 }
 
+
+async function generateContentStreamWithFallback(ai, params) {
+  const uniqueModels = Array.from(new Set([MODEL, ...FALLBACK_MODELS]));
+  let lastError;
+  for (let i = 0; i < uniqueModels.length; i++) {
+    const model = uniqueModels[i];
+    try {
+      return await ai.models.generateContentStream({ ...params, model });
+    } catch (err) {
+      lastError = err;
+      const msg = err instanceof Error ? err.message : String(err || '');
+      const status = Number(err?.status || err?.statusCode || err?.httpStatusCode || 0);
+      if (status === 404 || /404|NOT_FOUND|no longer available/i.test(msg)) {
+        continue;
+      }
+      if (
+        status === 503 ||
+        status === 429 ||
+        status === 500 ||
+        status === 502 ||
+        status === 504 ||
+        /503|429|UNAVAILABLE|high demand|overloaded|RESOURCE_EXHAUSTED|temporarily/i.test(msg)
+      ) {
+        await sleep(200 + i * 150);
+        continue;
+      }
+      throw err;
+    }
+  }
+  throw lastError;
+}
+
+function buildTutorSystemPrompt(profile) {
+  let domainHint = '';
+  let learnerName = '';
+  let learnerLevel = 'beginner';
+  let learnerDialect = 'Egyptian Arabic';
+
+  if (isRecord(profile)) {
+    if (typeof profile.name === 'string' && profile.name.trim()) {
+      learnerName = profile.name.trim();
+    }
+    if (typeof profile.level === 'string' && profile.level.trim()) {
+      learnerLevel = profile.level.trim();
+    }
+    if (typeof profile.dialect === 'string' && profile.dialect.trim()) {
+      learnerDialect = profile.dialect.trim();
+    }
+    const focus = String(profile.focusArea || '').toLowerCase();
+    const goal = String(profile.goal || '').toLowerCase();
+    if (focus.includes('chem') || focus.includes('science')) {
+      domainHint = ' Goal/focus: chemistry and science academic communication.';
+    } else if (goal === 'travel') {
+      domainHint = ' Goal/focus: international travel, airports, and hotels.';
+    } else if (goal === 'business' || goal === 'work') {
+      domainHint = ' Goal/focus: professional workplace communication and interviews.';
+    } else if (goal) {
+      domainHint = ` Goal/focus: ${goal} (${focus || 'daily-speech'}).`;
+    }
+  }
+
+  const nameAddress = learnerName ? ` Address the learner as "${learnerName}".` : '';
+
+  return (
+    `You are Amr, a warm and encouraging Egyptian AI English speaking partner.` +
+    nameAddress +
+    ` The learner's English level is ${learnerLevel}, and their native dialect is ${learnerDialect}.${domainHint} ` +
+    `Follow these 4 rules strictly:\n` +
+    `1. Reply mostly in natural English tailored to the learner's ${learnerLevel} level (1-2 clear sentences).\n` +
+    `2. If the learner makes an Arabic-to-English transfer mistake (e.g. missing copula 'is/are', missing 'a/an', preposition transfer 'afraid from', 'open the light', 'I am agree'), answer naturally first, then gently provide a short 1-sentence tip in ${learnerDialect}.\n` +
+    `3. Naturally reference or connect to their goal when relevant.\n` +
+    `4. Always end your response with exactly ONE engaging follow-up question in English to keep the conversation flowing.`
+  );
+}
+
+async function generateStream(operation, body) {
+  const ai = getClient();
+  if (!ai) throw new Error('AI service is not configured (GEMINI_API_KEY missing in Vercel environment).');
+
+  const { prompt, history, profile } = body;
+  const conversationHistory = Array.isArray(history)
+    ? history
+        .filter(item => isRecord(item) && typeof item.text === 'string')
+        .slice(-8)
+        .map(item => `${item.role === 'user' ? 'Learner' : 'Tutor'}: ${item.text.slice(0, 1000)}`)
+        .join('\n')
+    : '';
+
+  const contents = conversationHistory
+    ? `${conversationHistory}\nLearner: ${prompt.trim()}`
+    : `Learner: ${prompt.trim()}`;
+
+  return generateContentStreamWithFallback(ai, {
+    contents,
+    config: {
+      systemInstruction: buildTutorSystemPrompt(profile),
+      maxOutputTokens: 300,
+      temperature: 0.7,
+    },
+  });
+}
+
 async function generateContentWithFallback(ai, params) {
   const uniqueModels = Array.from(new Set([MODEL, ...FALLBACK_MODELS]));
   const attempts = uniqueModels;
@@ -670,9 +772,7 @@ async function generate(operation, body) {
       const response = await generateContentWithFallback(ai, {
         contents,
         config: {
-          systemInstruction:
-            'You are a friendly Egyptian AI English tutor named Amr. The user is practicing speaking. Keep your replies short (1-2 sentences), natural, and conversational in simple English. If the user makes a grammar mistake, answer them naturally first, then gently explain the correction in Egyptian Arabic.' +
-            domainHint,
+          systemInstruction: buildTutorSystemPrompt(profile),
           maxOutputTokens: 300,
           temperature: 0.7,
         },
@@ -822,6 +922,35 @@ export default async function handler(req, res) {
     });
   }
 
+  
+  // 3. Handle Streaming SSE if requested
+  if (body.stream === true || (req.headers.accept && req.headers.accept.includes('text/event-stream'))) {
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-cache, no-transform');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('X-Accel-Buffering', 'no');
+
+    try {
+      const stream = await generateStream(body.operation || 'conversation', body);
+      for await (const chunk of stream) {
+        const text = chunk.text || '';
+        if (text) {
+          res.write(`data: ${JSON.stringify({ text })}\n\n`);
+        }
+      }
+      res.write('data: [DONE]\n\n');
+      res.end();
+      return;
+    } catch (streamErr) {
+      console.error('Gemini stream error:', streamErr);
+      res.write(`data: ${JSON.stringify({ error: 'Stream error occurred.' })}\n\n`);
+      res.write('data: [DONE]\n\n');
+      res.end();
+      return;
+    }
+  }
+
   try {
     const result = await generate(body.operation, body);
     if (result.status === 200 && result.data !== undefined) {
@@ -860,8 +989,10 @@ export default async function handler(req, res) {
   }
 }
 
+export const config = { maxDuration: 60 };
 export {
   handler,
+  generateContentStreamWithFallback,
   getClientIp,
   checkMemoryRateLimit,
   rateLimits,

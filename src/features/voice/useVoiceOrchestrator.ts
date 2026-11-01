@@ -13,6 +13,31 @@ export interface ChatMessage {
   timestamp: number;
 }
 
+function getStoredProfile() {
+  try {
+    const raw = localStorage.getItem('tb.userProfile');
+    if (raw) {
+      const p = JSON.parse(raw);
+      return {
+        name: typeof p.name === 'string' ? p.name.trim() : '',
+        goal: typeof p.goal === 'string' ? p.goal : 'general',
+        focusArea: typeof p.focusArea === 'string' ? p.focusArea : 'daily-speech',
+        level: typeof p.level === 'string' ? p.level : 'beginner',
+        dialect: p.dialect === 'msa' ? 'Modern Standard Arabic' : 'Egyptian Arabic',
+      };
+    }
+  } catch {
+    /* noop */
+  }
+  return {
+    name: '',
+    goal: 'general',
+    focusArea: 'daily-speech',
+    level: 'beginner',
+    dialect: 'Egyptian Arabic',
+  };
+}
+
 export function useVoiceOrchestrator() {
   const { values } = usePreferences();
   const voiceModel = String(values.voiceModel || 'ar-EG-SalmaNeural');
@@ -210,6 +235,7 @@ export function useVoiceOrchestrator() {
             operation: 'conversation',
             prompt: userText,
             history: historyPayload,
+            profile: getStoredProfile(),
             stream: true,
           }),
           signal: abortCtrl.signal,
