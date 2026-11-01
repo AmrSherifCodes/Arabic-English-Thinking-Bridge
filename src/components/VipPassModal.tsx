@@ -176,7 +176,7 @@ export function VipPassModal({ isOpen, onClose, onStatusChange }: VipPassModalPr
               </div>
 
               {/* Step 1: Big Direct Button to Google AI Studio */}
-              <div className="rounded-2xl border border-stone-200 bg-stone-50 p-3.5 dark:border-stone-700 dark:bg-stone-800/60">
+              <div className="rounded-2xl border border-stone-300 bg-stone-50 p-3.5 dark:border-stone-700 dark:bg-stone-800/60">
                 <a
                   href={GOOGLE_AI_STUDIO_URL}
                   target="_blank"
@@ -196,7 +196,7 @@ export function VipPassModal({ isOpen, onClose, onStatusChange }: VipPassModalPr
               </div>
 
               {/* Accordion: "إزاي أعمل ده؟" with Visual Guide */}
-              <div className="rounded-2xl border border-stone-200 dark:border-stone-700">
+              <div className="rounded-2xl border border-stone-300 dark:border-stone-700">
                 <button
                   type="button"
                   onClick={() => setShowHowTo(prev => !prev)}
@@ -213,7 +213,7 @@ export function VipPassModal({ isOpen, onClose, onStatusChange }: VipPassModalPr
                   />
                 </button>
                 {showHowTo && (
-                  <div className="ar space-y-3 border-t border-stone-200 px-3.5 py-3 text-xs leading-relaxed text-stone-700 dark:border-stone-700 dark:text-stone-300">
+                  <div className="ar space-y-3 border-t border-stone-300 px-3.5 py-3 text-xs leading-relaxed text-stone-700 dark:border-stone-700 dark:text-stone-300">
                     <ol className="list-decimal space-y-1.5 pr-4">
                       <li>
                         افتح الرابط فوق وسجّل دخول بحساب جوجل العادي بتاعك (الجيميل).
@@ -324,7 +324,7 @@ export function VipPassModal({ isOpen, onClose, onStatusChange }: VipPassModalPr
               </form>
 
               {/* Privacy Reassurance Footer */}
-              <p className="ar flex items-center justify-center gap-1.5 border-t border-stone-200/80 pt-3 text-center text-[11px] text-stone-500 dark:border-stone-800 dark:text-stone-400">
+              <p className="ar flex items-center justify-center gap-1.5 border-t border-stone-300 pt-3 text-center text-[11px] font-medium text-stone-700 dark:border-stone-700 dark:text-stone-300">
                 <Lock size={13} className="shrink-0 text-emerald-600 dark:text-emerald-400" />
                 <span>
                   الكود ده بيتحفظ على جهازك أنت بس. إحنا مش بنشوفه ولا بنخزنه على السيرفر.

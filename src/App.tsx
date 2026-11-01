@@ -1952,7 +1952,7 @@ export default function App() {
               </span>
             </div>
           </div>
-          <span className="text-xs sm:text-sm font-medium text-stone-600 dark:text-stone-300 truncate max-w-[130px] sm:max-w-[180px]">
+          <span className="text-xs sm:text-sm font-semibold text-stone-800 dark:text-stone-200 truncate max-w-[130px] sm:max-w-[180px]">
             {profile.language === 'arabic'
               ? `Learning Arabic (${profile.dialect === 'egyptian' ? 'Egyptian 🇪🇬' : 'MSA 📖'})`
               : `تعلم الإنجليزية (${profile.dialect === 'egyptian' ? 'عامية مصرية 🇪🇬' : 'فصحى 📖'})`}

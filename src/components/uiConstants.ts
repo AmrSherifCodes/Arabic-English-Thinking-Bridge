@@ -43,8 +43,8 @@ export const CHUNK_LABELS: Record<ChunkRole, string> = {
 };
 
 export const CARD_CLASS =
-  'rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 p-4 mb-3 shadow-md shadow-slate-900/5 dark:shadow-black/30';
+  'rounded-2xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 p-4 mb-3 shadow-md shadow-stone-900/5 dark:shadow-black/30 font-medium';
 export const BTN_PRIMARY =
   'rounded-full border border-teal-400/30 bg-gradient-to-r from-teal-600 to-cyan-600 text-white px-4 py-2 text-sm font-semibold shadow-md shadow-black/30 hover:from-teal-500 hover:to-cyan-500 active:scale-[0.98] transition-all disabled:opacity-45 disabled:pointer-events-none';
 export const BTN_GHOST =
-  'rounded-full border border-slate-300 dark:border-slate-600 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 active:scale-[0.98] transition-all disabled:opacity-40 disabled:pointer-events-none';
+  'rounded-full border border-stone-400 dark:border-stone-600 px-4 py-2 text-sm font-semibold text-stone-800 dark:text-stone-200 hover:bg-stone-100 dark:hover:bg-stone-800 active:scale-[0.98] transition-all disabled:opacity-40 disabled:pointer-events-none';

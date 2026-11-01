@@ -42,7 +42,7 @@ export function BlockScreen({ isBlocked, onUnlock, busy = false, error = null, h
         </div>
         <h1 id="block-title" className="text-2xl font-bold">Time&apos;s Up!</h1>
         <p className="mt-2 text-lg text-slate-200">Please subscribe to continue.</p>
-        <p className="mt-1 text-sm text-slate-400" dir="rtl">انتهى الوقت! اشترك للمتابعة</p>
+        <p className="mt-1 text-sm font-medium text-slate-300" dir="rtl">انتهى الوقت! اشترك للمتابعة</p>
 
         <div className="mt-8 flex flex-col gap-3">
           <a ref={firstRef} href={youtubeUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 rounded-xl bg-red-600 px-5 py-3 font-semibold text-white transition hover:bg-red-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-white">
@@ -51,7 +51,7 @@ export function BlockScreen({ isBlocked, onUnlock, busy = false, error = null, h
           <BouncyButton type="button" onClick={() => void onUnlock()} disabled={busy} className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-600 px-5 py-3 font-semibold text-white transition hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-white disabled:opacity-60">
             {busy && <Loader2 size={18} className="animate-spin" />} I&apos;ve Subscribed, Unlock App
           </BouncyButton>
-          {hint && !error && <p className="text-xs text-slate-400">{hint}</p>}
+          {hint && !error && <p className="text-xs font-medium text-slate-300">{hint}</p>}
           {error && <p role="alert" className="rounded-lg bg-red-500/15 p-3 text-sm text-red-200">{error}</p>}
         </div>
       </div>

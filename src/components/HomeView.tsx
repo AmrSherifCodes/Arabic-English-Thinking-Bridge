@@ -157,7 +157,7 @@ export function HomeView({ profile, progress, onNavigate, onOpenWhyEnglish, onOp
             ? `Ready to learn ${profile.dialect === 'egyptian' ? 'Egyptian Arabic' : 'Arabic'}?`
             : 'هل أنت مستعد لبناء التفكير الإنجليزي؟'}
         </h2>
-        <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
+        <p className="mt-1 text-xs font-medium text-slate-700 dark:text-slate-300">
           {t(
             `Adaptive Track: ${levelLabel} · Goal: ${profile.goal} (${profile.focusArea || 'General'}) · ${dialectLabel}`,
             `المسار التكيفي: المستوى ${levelLabel} · الهدف: ${profile.goal} (${profile.focusArea || 'عام'}) · ${dialectLabel}`
@@ -251,7 +251,7 @@ export function HomeView({ profile, progress, onNavigate, onOpenWhyEnglish, onOp
               transition={{ type: 'spring', stiffness: 380, damping: 24 }}
               className={`flex min-h-28 w-full min-w-0 touch-manipulation items-center gap-4 rounded-2xl border bg-white dark:bg-slate-800 p-4 ${
                 rtl ? 'text-right' : 'text-left'
-              } border-stone-200 dark:border-stone-700 shadow-sm transition-colors hover:border-olive-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-olive-600`}
+              } border-stone-300 dark:border-stone-700 shadow-sm transition-colors hover:border-olive-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-olive-600`}
             >
               <span
                 className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${iconClass}`}
@@ -262,7 +262,7 @@ export function HomeView({ profile, progress, onNavigate, onOpenWhyEnglish, onOp
                 <span className="block font-semibold text-slate-900 dark:text-white">
                   {cardTitle}
                 </span>
-                <span className="mt-1 block text-sm text-slate-500 dark:text-slate-400">
+                <span className="mt-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
                   {cardDescription}
                 </span>
               </span>
@@ -271,7 +271,7 @@ export function HomeView({ profile, progress, onNavigate, onOpenWhyEnglish, onOp
         })}
       </div>
 
-      <footer className="pt-2 text-center text-xs text-stone-500 dark:text-stone-400">
+      <footer className="pt-2 text-center text-xs font-medium text-stone-700 dark:text-stone-300">
         <p>Thinking English · Personalized Adaptive Engine</p>
       </footer>
     </section>

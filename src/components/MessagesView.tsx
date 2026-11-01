@@ -239,7 +239,7 @@ export function MessagesView() {
         <h1 id="messages-heading" className="text-2xl font-bold text-slate-900 dark:text-white">
           {isAdmin ? 'Admin Inbox' : 'Contact Admin'}
         </h1>
-        <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+        <p className="mt-1 text-sm text-slate-700 dark:text-slate-300 font-medium">
           {isAdmin ? 'Messages received from app users.' : 'Share feedback or ask a question.'}
         </p>
       </header>
@@ -263,10 +263,10 @@ export function MessagesView() {
               rows={5}
               maxLength={2000}
               placeholder="Write your feedback here..."
-              className="w-full resize-y rounded-xl border border-slate-300 bg-white p-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-600/20 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500"
+              className="w-full resize-y rounded-xl border border-slate-300 bg-white p-3 text-sm text-slate-900 placeholder:text-slate-500 dark:placeholder:text-slate-400 font-medium focus:border-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-600/20 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500"
             />
             <div className="flex items-center justify-between gap-3">
-              <span className="text-xs text-slate-500 dark:text-slate-400">
+              <span className="text-xs text-slate-700 dark:text-slate-300 font-medium">
                 {messageText.length}/2000
               </span>
               <BouncyButton type="submit" className={BTN_PRIMARY} disabled={isLoading}>
@@ -292,7 +292,7 @@ export function MessagesView() {
       ) : (
         <>
           <div className="flex items-center justify-between">
-            <p className="text-sm text-slate-600 dark:text-slate-400">
+            <p className="text-sm text-slate-700 dark:text-slate-300 font-medium">
               {messages.length} {messages.length === 1 ? 'message' : 'messages'}
             </p>
             <button type="button" onClick={logout} disabled={isLoading} className={BTN_GHOST}>
@@ -312,10 +312,10 @@ export function MessagesView() {
               {messages.map(item => (
                 <li key={item.id} className={`${CARD_CLASS} space-y-3`}>
                   <p className="whitespace-pre-wrap break-words text-sm">{item.message}</p>
-                  <div className="flex items-center justify-between gap-3 border-t border-slate-200 pt-2 dark:border-slate-700">
+                  <div className="flex items-center justify-between gap-3 border-t border-slate-300 pt-2 dark:border-slate-700">
                     <time
                       dateTime={item.created_at}
-                      className="text-xs text-slate-500 dark:text-slate-400"
+                      className="text-xs text-slate-700 dark:text-slate-300 font-medium"
                     >
                       {new Date(item.created_at).toLocaleString()}
                     </time>
@@ -347,7 +347,7 @@ export function MessagesView() {
             aria-modal="true"
             aria-labelledby="admin-login-heading"
             onSubmit={login}
-            className="w-full max-w-sm space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-xl dark:border-slate-700 dark:bg-slate-800"
+            className="w-full max-w-sm space-y-4 rounded-2xl border border-slate-300 bg-white p-5 shadow-xl dark:border-slate-700 dark:bg-slate-800"
           >
             <h2 id="admin-login-heading" className="text-lg font-bold text-slate-900 dark:text-white">
               Admin Login

@@ -41,7 +41,7 @@ export const PWAInstallButton: React.FC = () => {
             aria-label="Install on iPhone or iPad"
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
           >
-            <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl dark:bg-stone-900 border border-stone-200 dark:border-stone-700">
+            <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl dark:bg-stone-900 border border-stone-300 dark:border-stone-700">
               <h3 className="text-base font-bold text-stone-900 dark:text-white">
                 Install Thinking Bridge on iOS
               </h3>

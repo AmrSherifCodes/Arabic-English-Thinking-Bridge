@@ -91,14 +91,14 @@ export function FeedbackModal({
             </span>
             <div>
               <h3 className="text-base font-bold text-white">5-Exercise Milestone 🎉</h3>
-              <p className="text-xs text-stone-400">You just completed your 5th cognitive exercise!</p>
+              <p className="text-xs font-medium text-stone-600 dark:text-stone-300">You just completed your 5th cognitive exercise!</p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
             aria-label="Skip feedback"
-            className="flex h-8 w-8 items-center justify-center rounded-full text-stone-400 hover:text-white hover:bg-stone-800 transition"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-stone-600 hover:text-stone-900 dark:text-stone-300 dark:hover:text-white hover:bg-stone-800 transition"
           >
             <X size={18} />
           </button>
@@ -176,7 +176,7 @@ export function FeedbackModal({
             <button
               type="button"
               onClick={onClose}
-              className="text-xs font-semibold text-stone-400 hover:text-stone-200 px-3 py-2 transition"
+              className="text-xs font-semibold text-stone-600 hover:text-stone-900 dark:text-stone-300 dark:hover:text-stone-100 px-3 py-2 transition"
             >
               Skip for now
             </button>

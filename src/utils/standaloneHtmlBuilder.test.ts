@@ -45,7 +45,7 @@ test('standalone HTML includes the Kuffiyeh & olive-knot stationery background v
   assert.ok(html.includes('--kuffiyeh-line:rgba(67,90,45,0.055)'));
   assert.ok(html.includes('--kuffiyeh-tile:url("data:image/svg+xml'));
   assert.ok(html.includes('--kuffiyeh-band:url("data:image/svg+xml'));
-  assert.ok(html.includes('--sand-bg:#faf6ee'));
+  assert.ok(html.includes('--sand-bg:#f5f2eb'));
   assert.ok(html.includes('--sand-bg:#141310'));
 });
 

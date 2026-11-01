@@ -83,9 +83,9 @@ export function TranslateView({
 
       <div className={CARD_CLASS} id="tro">
         {trBusy ? (
-          <p className="text-sm opacity-70">Translating…</p>
+          <p className="text-sm font-medium text-stone-700 dark:text-stone-300">Translating…</p>
         ) : !trOut ? (
-          <p className="text-sm opacity-60">Your translation appears here.</p>
+          <p className="text-sm font-medium text-stone-600 dark:text-stone-300">Your translation appears here.</p>
         ) : (
           <div>
             <div
@@ -171,7 +171,7 @@ export function TranslateView({
             </button>
           )}
         </div>
-        <div className="mt-3 border-t border-stone-200 pt-3 dark:border-stone-700">
+        <div className="mt-3 border-t border-stone-300 pt-3 dark:border-stone-700">
           {isStruggling && (
             <p className="mb-2 text-xs text-amber-800 dark:text-amber-200">
               We&apos;ll keep these new words simple and focused on your learning goal.

@@ -108,7 +108,7 @@ export function OnboardingModal({
             <button
               type="button"
               onClick={handleSkip}
-              className="ml-2 text-xs font-semibold text-stone-400 hover:text-stone-200 transition px-2 py-1 rounded-lg hover:bg-stone-800"
+              className="ml-2 text-xs font-semibold text-stone-600 hover:text-stone-900 dark:text-stone-300 dark:hover:text-stone-100 transition px-2 py-1 rounded-lg hover:bg-stone-800"
             >
               Skip
             </button>
@@ -188,7 +188,7 @@ export function OnboardingModal({
                           {isSelected && <Check size={16} className="text-teal-400" />}
                         </div>
                         <span className="mt-2 text-sm font-bold text-white">{option.title}</span>
-                        <span className="mt-0.5 text-xs text-stone-400 leading-snug">{option.desc}</span>
+                        <span className="mt-0.5 text-xs font-medium text-stone-600 dark:text-stone-300 leading-snug">{option.desc}</span>
                       </button>
                     );
                   })}
@@ -211,7 +211,7 @@ export function OnboardingModal({
                 <p className="block text-xs font-bold uppercase tracking-wider text-stone-300 mb-1">
                   How does your brain process new thoughts best?
                 </p>
-                <p className="text-xs text-stone-400 mb-3">
+                <p className="text-xs font-medium text-stone-600 dark:text-stone-300 mb-3">
                   We customize the exercises and AI tutor explanations to your cognitive style.
                 </p>
               </div>
@@ -253,7 +253,7 @@ export function OnboardingModal({
                           : 'bg-stone-800/50 border-stone-700/70 hover:bg-stone-800 hover:border-stone-600'
                       }`}
                     >
-                      <div className={`p-2 rounded-xl shrink-0 ${isSelected ? 'bg-teal-500/30 text-teal-300' : 'bg-stone-700/50 text-stone-400'}`}>
+                      <div className={`p-2 rounded-xl shrink-0 ${isSelected ? 'bg-teal-500/30 text-teal-300' : 'bg-stone-700/50 text-stone-300 font-medium'}`}>
                         <Icon size={20} />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -263,7 +263,7 @@ export function OnboardingModal({
                             {option.badge}
                           </span>
                         </div>
-                        <p className="text-xs text-stone-400 mt-1 leading-relaxed">{option.desc}</p>
+                        <p className="text-xs font-medium text-stone-600 dark:text-stone-300 mt-1 leading-relaxed">{option.desc}</p>
                       </div>
                     </button>
                   );
@@ -286,7 +286,7 @@ export function OnboardingModal({
                 <p className="block text-xs font-bold uppercase tracking-wider text-stone-300 mb-1">
                   Choose your specialized focus area:
                 </p>
-                <p className="text-xs text-stone-400 mb-3">
+                <p className="text-xs font-medium text-stone-600 dark:text-stone-300 mb-3">
                   This customizes the AI tutor metaphors (e.g. using chemistry analogies for grammar) and curriculum order.
                 </p>
               </div>
@@ -342,7 +342,7 @@ export function OnboardingModal({
                             {option.highlight}
                           </span>
                         </div>
-                        <p className="text-xs text-stone-400 mt-1 leading-relaxed">{option.desc}</p>
+                        <p className="text-xs font-medium text-stone-600 dark:text-stone-300 mt-1 leading-relaxed">{option.desc}</p>
                       </div>
                     </button>
                   );
@@ -367,7 +367,7 @@ export function OnboardingModal({
             <button
               type="button"
               onClick={handleSkip}
-              className="text-xs font-semibold text-stone-400 hover:text-stone-300 px-3 py-2"
+              className="text-xs font-semibold text-stone-600 hover:text-stone-900 dark:text-stone-300 dark:hover:text-stone-100 px-3 py-2"
             >
               Continue with Defaults
             </button>

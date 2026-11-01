@@ -26,7 +26,7 @@ export function LandingView({ onStartWebApp, onStartGuest, onResumeApp }: Landin
   }, [showInstallGuide, showCv]);
 
   return (
-    <main className="relative flex min-h-dvh flex-col justify-between overflow-hidden bg-[#fffdf9] px-5 py-8 text-slate-900 dark:bg-slate-950 dark:text-slate-100 sm:px-8 sm:py-12">
+    <main className="relative flex min-h-dvh flex-col justify-between overflow-hidden bg-[#f5f2eb] px-5 py-8 text-slate-900 dark:bg-slate-950 dark:text-slate-100 sm:px-8 sm:py-12">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 opacity-60 dark:opacity-20"
@@ -97,7 +97,7 @@ export function LandingView({ onStartWebApp, onStartGuest, onResumeApp }: Landin
                 </button>
               </div>
 
-              <p className="text-sm font-medium tracking-wide text-slate-600 dark:text-slate-400">
+              <p className="text-sm font-medium tracking-wide text-slate-700 dark:text-slate-300 font-semibold">
                 Built with ❤️ by <span className="font-semibold text-slate-900 dark:text-slate-200">Amr Sherif</span>
               </p>
 
@@ -161,7 +161,7 @@ export function LandingView({ onStartWebApp, onStartGuest, onResumeApp }: Landin
       </div>
 
       {/* Footer Section */}
-      <footer className="relative mx-auto mt-10 w-full max-w-6xl border-t border-slate-200/80 pt-6 text-sm text-slate-600 dark:border-slate-800/80 dark:text-slate-400">
+      <footer className="relative mx-auto mt-10 w-full max-w-6xl border-t border-slate-300 pt-6 text-sm text-slate-800 dark:border-slate-700 dark:text-slate-200 font-medium">
         <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
           <p className="font-medium">© 2026 Thinking English.</p>
           <nav aria-label="Creator social links" className="flex flex-wrap items-center gap-5">
@@ -216,7 +216,7 @@ export function LandingView({ onStartWebApp, onStartGuest, onResumeApp }: Landin
             role="dialog"
             aria-modal="true"
             aria-labelledby="cv-title"
-            className="relative my-3 w-full max-w-4xl overflow-hidden rounded-3xl border border-slate-200 bg-white text-slate-900 shadow-2xl dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+            className="relative my-3 w-full max-w-4xl overflow-hidden rounded-3xl border border-slate-300 bg-white text-slate-900 shadow-2xl dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
           >
             <header className="bg-gradient-to-r from-orange-600 to-amber-500 px-6 py-6 pr-16 text-white sm:px-8">
               <button
@@ -409,7 +409,7 @@ export function LandingView({ onStartWebApp, onStartGuest, onResumeApp }: Landin
               </div>
             </div>
 
-            <footer className="border-t border-slate-200 px-6 py-4 dark:border-slate-700 sm:px-8">
+            <footer className="border-t border-slate-300 px-6 py-4 dark:border-slate-700 sm:px-8">
               <button
                 type="button"
                 onClick={() => setShowCv(false)}
@@ -433,7 +433,7 @@ export function LandingView({ onStartWebApp, onStartGuest, onResumeApp }: Landin
             role="dialog"
             aria-modal="true"
             aria-labelledby="install-guide-title"
-            className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-6 text-slate-900 shadow-2xl dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 sm:p-8"
+            className="w-full max-w-md rounded-3xl border border-slate-300 bg-white p-6 text-slate-900 shadow-2xl dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 sm:p-8"
           >
             <div className="flex items-start justify-between gap-4">
               <div>
@@ -449,7 +449,7 @@ export function LandingView({ onStartWebApp, onStartGuest, onResumeApp }: Landin
                 type="button"
                 onClick={() => setShowInstallGuide(false)}
                 aria-label="Close install instructions"
-                className="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 dark:hover:bg-slate-800 dark:hover:text-white"
+                className="rounded-lg p-2 text-slate-700 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 dark:hover:bg-slate-800 dark:hover:text-white"
               >
                 <X size={20} aria-hidden="true" />
               </button>

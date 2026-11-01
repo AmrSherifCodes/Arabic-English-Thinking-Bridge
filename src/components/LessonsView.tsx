@@ -52,7 +52,7 @@ export function LessonsView({
       {/* Pan-Arab 23 Nations Unity Header Banner */}
       <div
         id="pan-arab-unity-header"
-        className={`${CARD_CLASS} kuffiyeh-card-watermark border-olive-600/30 dark:border-olive-500/30 bg-[#f7f2e7]/90 dark:bg-stone-900/90`}
+        className={`${CARD_CLASS} kuffiyeh-card-watermark border-olive-600/30 dark:border-olive-500/30 bg-[#f5f2eb]/95 dark:bg-stone-900/95 border-stone-300 dark:border-stone-700`}
       >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
           <div className="min-w-0 flex-1">
@@ -104,14 +104,14 @@ export function LessonsView({
             id="pan-arab-23-nations-grid"
             className="mt-3 pt-3 border-t border-olive-600/20 dark:border-olive-500/20"
           >
-            <p className="text-xs opacity-75 mb-2">
+            <p className="text-xs font-medium text-stone-700 dark:text-stone-300 mb-2">
               Connected by one living tongue across 23 homelands — from the Atlantic Ocean to the Arabian Sea:
             </p>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-1.5 text-xs">
               {PAN_ARAB_NATIONS.map((nation, idx) => (
                 <div
                   key={nation.nameEn}
-                  className="rounded-lg border border-stone-200/80 dark:border-stone-700/80 bg-white/80 dark:bg-stone-800/70 px-2.5 py-1.5 flex items-center justify-between gap-1.5"
+                  className="rounded-lg border border-stone-300 dark:border-stone-700/80 bg-white/80 dark:bg-stone-800/70 px-2.5 py-1.5 flex items-center justify-between gap-1.5"
                 >
                   <span className="font-medium truncate">
                     <span className="opacity-50 tabular-nums mr-1">{idx + 1}.</span>
@@ -141,7 +141,7 @@ export function LessonsView({
             <h2 className="text-lg font-bold mt-0.5">
               Start Your 60-Second Quick Win (ابدأ في 60 ثانية بدون تعقيد)
             </h2>
-            <p className="text-xs opacity-80 mt-1 leading-relaxed">
+            <p className="text-xs font-medium text-stone-700 dark:text-stone-300 mt-1 leading-relaxed">
               Don’t know where to start? Tap below to jump straight into{' '}
               <strong>
                 Lesson {nextLesson.number}: {nextLesson.title}
@@ -176,7 +176,7 @@ export function LessonsView({
           <div className="text-xs font-semibold text-olive-700 dark:text-olive-300">
             Interactive Thinking Journey · 100% Copyright-Free (CC0 Public Domain)
           </div>
-          <div className="text-sm opacity-80 mt-0.5 tabular-nums">
+          <div className="text-sm font-semibold text-stone-700 dark:text-stone-300 mt-0.5 tabular-nums">
             ⭐ {progress.score} XP · 🔥 {progress.streak} streak ·{' '}
             {progress.completedLessonIds.length}/{allLessons.length} lessons mastered
           </div>
@@ -226,10 +226,10 @@ export function LessonsView({
                   <div className="font-semibold">
                     {locked ? '🔒' : completed ? '✅' : '▶️'} {lesson.number}. {lesson.title}
                   </div>
-                  <div dir="rtl" className="ar text-xs opacity-75 mt-0.5 text-right">
+                  <div dir="rtl" className="ar text-xs font-medium text-stone-700 dark:text-stone-300 mt-0.5 text-right">
                     {lesson.titleAr}
                   </div>
-                  <div className="text-xs opacity-70 mt-0.5 tabular-nums">
+                  <div className="text-xs font-semibold text-stone-700 dark:text-stone-300 mt-0.5 tabular-nums">
                     {doneCount}/{lesson.exercises.length} exercises
                   </div>
                 </div>
@@ -248,7 +248,7 @@ export function LessonsView({
         </div>
       ))}
 
-      <p className="text-xs opacity-65 mt-3">
+      <p className="text-xs font-medium text-stone-700 dark:text-stone-300 mt-3">
         Full course: 24 lessons across three phases · Built in Alexandria, Egypt by Amr Sherif, inspired by Mihalis Eleftheriou &amp; The Thinking Method.
       </p>
     </div>

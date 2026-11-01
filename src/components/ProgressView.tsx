@@ -64,15 +64,15 @@ export function ProgressView({
       <div className={`${CARD_CLASS} grid grid-cols-3 text-center`}>
         <div>
           <div className="text-2xl font-semibold">{progress.score}</div>
-          <div className="text-xs opacity-70">score</div>
+          <div className="text-xs font-semibold text-stone-700 dark:text-stone-300">score</div>
         </div>
         <div>
           <div className="text-2xl font-semibold">{progress.streak}</div>
-          <div className="text-xs opacity-70">streak</div>
+          <div className="text-xs font-semibold text-stone-700 dark:text-stone-300">streak</div>
         </div>
         <div>
           <div className="text-2xl font-semibold">{progress.bestStreak || 0}</div>
-          <div className="text-xs opacity-70">best streak</div>
+          <div className="text-xs font-semibold text-stone-700 dark:text-stone-300">best streak</div>
         </div>
       </div>
 
@@ -98,7 +98,7 @@ export function ProgressView({
             style={{ width: `${levelInfo.progressPercent}%` }}
           />
         </div>
-        <div className="text-xs opacity-70 mt-1.5">
+        <div className="text-xs font-medium text-stone-700 dark:text-stone-300 mt-1.5">
           {levelInfo.level < 4
             ? `${progress.score} / ${levelInfo.nextLevelThreshold} XP to next level`
             : 'Maximum level achieved!'}
@@ -115,7 +115,7 @@ export function ProgressView({
               className={`rounded-xl border p-3 text-center transition-all ${
                 b.unlocked
                   ? 'border-teal-500/50 bg-teal-50/60 dark:bg-teal-950/30'
-                  : 'border-stone-200 dark:border-stone-700 opacity-45 grayscale'
+                  : 'border-stone-300 dark:border-stone-700 opacity-45 grayscale'
               }`}
             >
               <div className="text-2xl mb-1">{b.icon}</div>
@@ -184,7 +184,7 @@ export function ProgressView({
             );
           })
         ) : (
-          <p className="text-sm opacity-70">No mistakes recorded yet.</p>
+          <p className="text-sm font-medium text-stone-700 dark:text-stone-300">No mistakes recorded yet.</p>
         )}
       </div>
 
@@ -207,7 +207,7 @@ export function ProgressView({
           Send your friends the live app link along with the review form (
           <span className="underline">{FEEDBACK_FORM_URL}</span>) in one tap:
         </p>
-        <pre className="whitespace-pre-wrap text-xs rounded-xl bg-stone-100 dark:bg-stone-900/70 p-3 border border-stone-200 dark:border-stone-700 mb-2.5 leading-relaxed">
+        <pre className="whitespace-pre-wrap text-xs rounded-xl bg-stone-100 dark:bg-stone-900/70 p-3 border border-stone-300 dark:border-stone-700 mb-2.5 leading-relaxed">
           {buildFriendShareWhatsAppMessage()}
         </pre>
         <div className="flex flex-wrap gap-2">
@@ -320,7 +320,7 @@ export function ProgressView({
         {allLessons.map(l => {
           const sampleEx = l.exercises[0];
           return (
-            <details key={l.id} className="border-t border-stone-200 dark:border-stone-700">
+            <details key={l.id} className="border-t border-stone-300 dark:border-stone-700">
               <summary className="py-3 text-sm font-semibold">
                 <span>
                   {l.number}. {l.title}
@@ -335,7 +335,7 @@ export function ProgressView({
                   {l.transferConceptAr}
                 </p>
                 {sampleEx && (
-                  <div className="mt-2 pt-2 border-t border-stone-200/70 dark:border-stone-700/70">
+                  <div className="mt-2 pt-2 border-t border-stone-300 dark:border-stone-700">
                     <InteractiveArabicSentence
                       sentence={sampleEx.arabicThought}
                       exercise={sampleEx}

@@ -169,12 +169,12 @@ export const PracticeView = React.memo(function PracticeView({
       </div>
 
       {/* Collapsible Transfer Concept Reminder */}
-      <details className="mb-3 rounded-2xl border border-stone-200 dark:border-stone-700 bg-white/80 dark:bg-stone-800/80 px-3 py-1 sm:px-4">
+      <details className="mb-3 rounded-2xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800/80 px-3 py-1 sm:px-4">
         <summary className="py-2 text-xs font-semibold flex items-center justify-between">
           <span className="pr-2">💡 Easy Thinking Secret (السر الذهني ببساطة — اضغط للعرض)</span>
           <span className="opacity-60">▼</span>
         </summary>
-        <div className="pb-3 pt-1 border-t border-stone-200 dark:border-stone-700 space-y-1.5 text-xs">
+        <div className="pb-3 pt-1 border-t border-stone-300 dark:border-stone-700 space-y-1.5 font-medium text-xs">
           <p className="leading-relaxed">{lesson.transferConcept}</p>
           <p
             dir="rtl"
@@ -188,7 +188,7 @@ export const PracticeView = React.memo(function PracticeView({
       {/* Arabic Prompt Card with Double-Tap Word Auto-Translator */}
       <div key={exercise.id} className={`${CARD_CLASS} practice-card-enter !mb-0 !p-6 sm:!p-8`}>
         <div className="mb-2 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-          <span className="text-xs font-semibold uppercase tracking-wide text-stone-500 dark:text-stone-400">
+          <span className="text-xs font-semibold uppercase tracking-wide text-stone-700 dark:text-stone-300 font-bold">
             Say this thought in English
           </span>
           <button
@@ -210,14 +210,14 @@ export const PracticeView = React.memo(function PracticeView({
         />
 
         {exercise.arabicContext && (
-          <div dir="rtl" className="ar text-xs opacity-70 mt-1">
+          <div dir="rtl" className="ar text-xs font-medium text-stone-700 dark:text-stone-300 mt-1">
             {exercise.arabicContext}
           </div>
         )}
 
         {(showBlueprintPeek || beginnerOn) && (
-          <div className="mt-3 pt-2.5 border-t border-stone-200 dark:border-stone-700 flex flex-wrap gap-1.5 items-center text-xs">
-            <span className="opacity-70 mr-1"> Step-by-Step Blocks:</span>
+          <div className="mt-3 pt-2.5 border-t border-stone-300 dark:border-stone-700 flex flex-wrap gap-1.5 items-center text-xs">
+            <span className="font-medium text-stone-700 dark:text-stone-300 mr-1"> Step-by-Step Blocks:</span>
             {exercise.breakdownChunks.map((ch, idx) => (
               <span
                 key={idx}
@@ -375,7 +375,7 @@ export const PracticeView = React.memo(function PracticeView({
                 key={idx}
                 className={`flex-1 min-w-[130px] rounded-xl p-2.5 text-center ${CHUNK_COLORS[chunk.role]}`}
               >
-                <div className="text-[10px] tracking-wider opacity-70 font-semibold">
+                <div className="text-[10px] tracking-wider font-bold text-stone-700 dark:text-stone-300">
                   {CHUNK_LABELS[chunk.role]}
                 </div>
                 <div dir="rtl" className="ar text-base font-semibold mt-0.5">
@@ -484,7 +484,7 @@ export const PracticeView = React.memo(function PracticeView({
               setShowLostPrompt(false);
               setLostDismissedFor(exercise.id);
             }}
-            className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+            className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
           >
             <X size={16} aria-hidden="true" />
           </button>
@@ -532,13 +532,13 @@ export const PracticeView = React.memo(function PracticeView({
             role="dialog"
             aria-modal="true"
             aria-labelledby="tutorial-title"
-            className="relative w-full max-w-md rounded-3xl border border-slate-200 bg-white p-6 text-slate-900 shadow-2xl dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 sm:p-8"
+            className="relative w-full max-w-md rounded-3xl border border-slate-300 bg-white p-6 text-slate-900 shadow-2xl dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 sm:p-8"
           >
             <button
               type="button"
               aria-label="Close tutorial"
               onClick={() => setShowTutorial(false)}
-              className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+              className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
             >
               <X size={20} aria-hidden="true" />
             </button>

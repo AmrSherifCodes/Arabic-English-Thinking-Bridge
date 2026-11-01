@@ -99,7 +99,7 @@ export function ThinkingMap({ progress, onOpenLesson, language, profile }: Think
       className={`${CARD_CLASS} !p-4 sm:!p-5 mb-4 border-2 border-teal-500/20 dark:border-teal-400/20`}
     >
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-stone-200 dark:border-stone-700/80 pb-3">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-stone-300 dark:border-stone-700 pb-3">
         <div className="flex items-center gap-2">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-teal-100 text-teal-800 dark:bg-teal-950/60 dark:text-teal-300">
             <Compass size={20} aria-hidden="true" />
@@ -114,7 +114,7 @@ export function ThinkingMap({ progress, onOpenLesson, language, profile }: Think
                 <span>{t(trackInfo.titleEn, trackInfo.titleAr)}</span>
               </span>
             </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            <p className="text-xs text-slate-700 dark:text-slate-300 font-medium mt-0.5">
               {t(
                 `${masteredCount} of ${concepts.length} structural shifts mastered · Tailored for your profile`,
                 `تم إتقان ${masteredCount} من ${concepts.length} تحولات إدراكية · مسار مخصص لملفك`
@@ -174,7 +174,7 @@ export function ThinkingMap({ progress, onOpenLesson, language, profile }: Think
 
       {/* Filter Tabs: Tailored Track vs All 24 Shifts */}
       <div className="flex items-center justify-between gap-2 pt-1 pb-2">
-        <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+        <p className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
           {filterMode === 'priority'
             ? t(`🎯 Tailored Track (${displayedConcepts.length} shifts)`, `🎯 المسار المخصص (${displayedConcepts.length} تحولات)`)
             : t(`All Core Shifts (24)`, `جميع التحولات (24)`)}
@@ -187,7 +187,7 @@ export function ThinkingMap({ progress, onOpenLesson, language, profile }: Think
             className={`px-2.5 py-1 text-xs font-bold rounded-lg transition ${
               filterMode === 'priority'
                 ? 'bg-white dark:bg-stone-700 text-teal-700 dark:text-teal-300 shadow-xs'
-                : 'text-stone-500 hover:text-stone-800 dark:text-stone-400'
+                : 'text-stone-700 hover:text-stone-900 dark:text-stone-300 font-medium'
             }`}
           >
             {t('🎯 Tailored', '🎯 مخصص لك')}
@@ -198,7 +198,7 @@ export function ThinkingMap({ progress, onOpenLesson, language, profile }: Think
             className={`px-2.5 py-1 text-xs font-bold rounded-lg transition ${
               filterMode === 'all'
                 ? 'bg-white dark:bg-stone-700 text-teal-700 dark:text-teal-300 shadow-xs'
-                : 'text-stone-500 hover:text-stone-800 dark:text-stone-400'
+                : 'text-stone-700 hover:text-stone-900 dark:text-stone-300 font-medium'
             }`}
           >
             {t('All 24', 'الكل (24)')}
@@ -228,8 +228,8 @@ export function ThinkingMap({ progress, onOpenLesson, language, profile }: Think
                     : isAttention
                     ? 'border-amber-400/60 bg-amber-50/30 dark:border-amber-500/40 dark:bg-amber-950/20'
                     : isMastered
-                    ? 'border-slate-200/80 bg-white dark:border-slate-800 dark:bg-slate-800/60'
-                    : 'border-slate-200/50 bg-slate-50/50 opacity-70 dark:border-slate-800/50 dark:bg-slate-900/40'
+                    ? 'border-slate-300 bg-white dark:border-slate-700 dark:bg-slate-800/60'
+                    : 'border-slate-300 bg-slate-100/70 opacity-90 dark:border-slate-700 dark:bg-slate-900/60 font-medium'
                 }`}
               >
                 <div
@@ -284,7 +284,7 @@ export function ThinkingMap({ progress, onOpenLesson, language, profile }: Think
                           ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
                           : isNext
                           ? 'bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-300'
-                          : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
+                          : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 font-medium'
                       }`}
                     >
                       {isMastered
@@ -312,7 +312,7 @@ export function ThinkingMap({ progress, onOpenLesson, language, profile }: Think
                         {t(concept.concept, concept.conceptAr)}
                       </p>
                       <div className="mt-3 flex items-center justify-between gap-2">
-                        <span className="text-[11px] text-slate-500">
+                        <span className="text-[11px] font-medium text-slate-700 dark:text-slate-300">
                           {concept.weakSpotCount > 0
                             ? t(
                                 `Logged mistakes: ${concept.weakSpotCount}`,

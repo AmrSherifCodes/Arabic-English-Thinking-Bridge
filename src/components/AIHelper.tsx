@@ -140,14 +140,14 @@ export function AIHelper({ profile, request }: AIHelperProps) {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 14, scale: 0.98 }}
               transition={{ duration: 0.2, ease: 'easeOut' }}
-              className="flex max-h-[calc(100dvh-8rem-env(safe-area-inset-bottom))] min-h-64 w-full flex-col overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-2xl dark:border-stone-700 dark:bg-stone-900"
+              className="flex max-h-[calc(100dvh-8rem-env(safe-area-inset-bottom))] min-h-64 w-full flex-col overflow-hidden rounded-3xl border border-stone-300 bg-white shadow-2xl dark:border-stone-700 dark:bg-stone-900"
             >
-              <header className="flex items-center justify-between gap-2 border-b border-stone-200 px-4 py-3 dark:border-stone-700">
+              <header className="flex items-center justify-between gap-2 border-b border-stone-300 px-4 py-3 dark:border-stone-700">
                 <div className="flex min-w-0 items-center gap-2">
                   <Sparkles size={19} className="shrink-0 text-olive-600 dark:text-olive-300" />
                   <div className="min-w-0">
                     <h2 className="text-sm font-bold">{t('Language Tutor', 'المعلم اللغوي الذكي')}</h2>
-                    <p className="flex items-center gap-1.5 text-xs text-stone-500 dark:text-stone-400">
+                    <p className="flex items-center gap-1.5 text-xs font-medium text-stone-700 dark:text-stone-300">
                       <span
                         aria-hidden="true"
                         className={`h-2 w-2 rounded-full ${cloudAvailable ? 'bg-emerald-500' : 'bg-amber-500'}`}
@@ -174,7 +174,7 @@ export function AIHelper({ profile, request }: AIHelperProps) {
                     type="button"
                     aria-label={t('Close tutor', 'إغلاق المعلم الذكي')}
                     onClick={() => setIsOpen(false)}
-                    className="flex h-10 w-10 items-center justify-center rounded-full text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-800"
+                    className="flex h-10 w-10 items-center justify-center rounded-full text-stone-700 hover:bg-stone-100 dark:text-stone-300 dark:hover:bg-stone-800"
                   >
                     <X size={18} />
                   </button>
@@ -229,7 +229,7 @@ export function AIHelper({ profile, request }: AIHelperProps) {
 
               <form
                 onSubmit={event => void sendMessage(event)}
-                className="flex flex-col gap-1.5 border-t border-stone-200 p-3 dark:border-stone-700"
+                className="flex flex-col gap-1.5 border-t border-stone-300 p-3 dark:border-stone-700"
               >
                 <div className="flex items-center gap-2">
                   <label className="sr-only" htmlFor="ai-tutor-message">

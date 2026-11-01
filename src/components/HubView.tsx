@@ -305,7 +305,7 @@ export function HubView({
                   ))}
                 </div>
               ) : (
-                <p className="mt-1 text-sm opacity-70">No mistakes recorded yet.</p>
+                <p className="mt-1 text-sm font-medium text-stone-700 dark:text-stone-300">No mistakes recorded yet.</p>
               )}
             </div>
 

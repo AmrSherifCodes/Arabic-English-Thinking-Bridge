@@ -75,7 +75,7 @@ export function HabitLoopBar({
           <span aria-hidden="true" className="opacity-40">
             ·
           </span>
-          <span className="opacity-70">{t('🔓 Free & Open Source', '🔓 مجاني ومفتوح المصدر')}</span>
+          <span className="font-medium text-stone-700 dark:text-stone-300">{t('🔓 Free & Open Source', '🔓 مجاني ومفتوح المصدر')}</span>
         </div>
 
         <div className="flex items-center gap-1.5">

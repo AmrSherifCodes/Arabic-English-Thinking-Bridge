@@ -268,7 +268,7 @@ export function DeckListView({
                       />
                     )}
                   </div>
-                  <div className="text-xs opacity-70 truncate mt-0.5">
+                  <div className="text-xs font-medium text-stone-700 dark:text-stone-300 truncate mt-0.5">
                     {isEmptyCustom
                       ? t(
                           'Empty deck · Plant your first custom translation seed in the Translate tab',
@@ -363,7 +363,7 @@ export function DeckListView({
               <span>
                 {t('Starter & Public Domain Community Decks', 'مجموعات البداية والمجتمع المفتوحة')}
               </span>
-              <span className="text-[11px] font-normal">CC0 1.0 Public Domain</span>
+              <span className="text-[11px] font-medium">CC0 1.0 Public Domain</span>
             </div>
 
             <div className="space-y-2.5">{prebuiltDecks.map(renderPrebuiltDeckRow)}</div>
@@ -477,7 +477,7 @@ export function ReviewView({
       {activeQueue.length === 0 || !currentCardData ? (
         <div
           id="review-empty-state"
-          className={`${CARD_CLASS} kuffiyeh-card-watermark text-center py-8 border-olive-600/30 dark:border-olive-500/30`}
+          className={`${CARD_CLASS} kuffiyeh-card-watermark text-center py-8 border-stone-300 dark:border-stone-700`}
         >
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-olive-600/15 dark:bg-olive-500/20 text-olive-800 dark:text-olive-300 mb-3">
             <OliveBranchIcon size={32} className="text-olive-700 dark:text-olive-400" />
@@ -503,7 +503,7 @@ export function ReviewView({
                     'أحسنت! لقد أنهيت مراجعة هذه المجموعة في الوقت الحالي.'
                   )}
           </p>
-          <p className="text-sm opacity-75 mt-1 max-w-md mx-auto">
+          <p className="text-sm font-medium text-stone-700 dark:text-stone-300 mt-1 max-w-md mx-auto">
             {deckStats.totalCards === 0 ? (
               isEgyptian ? (
                 t(
@@ -577,7 +577,7 @@ export function ReviewView({
                 <div dir="rtl" className="ar text-3xl leading-relaxed font-semibold">
                   {currentCardData.ar}
                 </div>
-                <hr className="my-4 border-slate-200 dark:border-slate-700" />
+                <hr className="my-4 border-slate-300 dark:border-slate-700" />
                 <div dir="ltr" translate="no" className="text-xl font-semibold mb-3">
                   {currentCardData.en}
                 </div>
@@ -672,7 +672,7 @@ export function ReviewView({
                   );
                 })}
               </div>
-              <p className="mt-4 block rounded-xl p-3 text-center text-xs opacity-70">
+              <p className="mt-4 block rounded-xl p-3 text-center text-xs font-medium text-stone-700 dark:text-stone-300">
                 {t(
                   'No stress! Tap Forgot if you want to see this card again in a minute, or Got It! to earn XP toward your 🎁 Mystery Chest.',
                   'بدون توتر! اضغط «نسيتها» لرؤية البطاقة مجدداً بعد دقيقة، أو «عرفتها» لكسب نقاط الخبرة نحو 🎁 صندوق المكافآت.'

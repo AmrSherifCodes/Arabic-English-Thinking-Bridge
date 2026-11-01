@@ -26,7 +26,7 @@ export function BottomNav({ activeTab, onTabChange, language }: BottomNavProps) 
     <nav
       dir={rtl ? 'rtl' : 'ltr'}
       aria-label={uiText(language, 'Main navigation', 'التنقل الرئيسي')}
-      className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950"
+      className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950"
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
       <div className="mx-auto flex max-w-3xl">
@@ -42,7 +42,7 @@ export function BottomNav({ activeTab, onTabChange, language }: BottomNavProps) 
               className={`flex min-h-16 min-w-0 flex-1 touch-manipulation flex-col items-center justify-center gap-1 px-2 py-2 text-xs transition-colors ${
                 isActive
                   ? 'font-semibold text-olive-800 dark:text-olive-300'
-                  : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100'
+                  : 'text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-slate-100 font-semibold'
               }`}
             >
               <motion.span

@@ -112,7 +112,7 @@ export function CulturalToast({
       role="status"
       aria-live="polite"
       aria-label="Cultural Heritage & Motivation"
-      className="cultural-toast-enter fixed left-3 right-3 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:w-full sm:max-w-xl bottom-20 z-30 rounded-2xl border border-olive-600/35 dark:border-olive-500/40 bg-[#f6f1e6]/95 dark:bg-[#1f241b]/95 text-stone-900 dark:text-stone-100 px-4 py-3.5 shadow-xl backdrop-blur-md"
+      className="cultural-toast-enter fixed left-3 right-3 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:w-full sm:max-w-xl bottom-20 z-30 rounded-2xl border border-olive-600/35 dark:border-olive-500/40 bg-[#f5f2eb]/95 border-stone-300 dark:border-stone-700 dark:bg-[#1f241b]/95 text-stone-900 dark:text-stone-100 px-4 py-3.5 shadow-xl backdrop-blur-md"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-2.5 min-w-0 flex-1">

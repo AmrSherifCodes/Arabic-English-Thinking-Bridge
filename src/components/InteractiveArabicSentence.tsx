@@ -94,7 +94,7 @@ export const InteractiveArabicSentence = React.memo(function InteractiveArabicSe
       </div>
 
       {showCaption && (
-        <div className="mt-1.5 text-[11px] opacity-70 flex flex-wrap items-center justify-between gap-1">
+        <div className="mt-1.5 text-[11px] font-medium text-stone-700 dark:text-stone-300 flex flex-wrap items-center justify-between gap-1">
           <span>💡 Tap any Arabic word to translate it</span>
           <span dir="rtl" className="ar font-medium">
             (اضغط على أي كلمة لترجمتها)
@@ -114,7 +114,7 @@ export const InteractiveArabicSentence = React.memo(function InteractiveArabicSe
               <span dir="rtl" className="ar font-extrabold text-xl text-emerald-400">
                 {selectedRawWord}
               </span>
-              <span className="text-stone-400">→</span>
+              <span className="text-stone-600 dark:text-stone-300 font-medium">→</span>
               <span translate="no" className="font-extrabold text-base text-white">
                 {activeEntry.en}
               </span>

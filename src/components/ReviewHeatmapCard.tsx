@@ -35,12 +35,12 @@ export function ReviewHeatmapCard({ reviewHistory }: { reviewHistory: Record<str
       <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
         <div>
           <h3 className="font-semibold">Review Heatmap</h3>
-          <p className="text-xs opacity-70">
+          <p className="text-xs font-medium text-stone-700 dark:text-stone-300">
             Last 20 weeks · Today: <strong>{todayReviews}</strong> · Total:{' '}
             <strong>{totalReviews}</strong> reviews across <strong>{activeDays}</strong> days
           </p>
         </div>
-        <div className="flex items-center gap-1 text-[10px] opacity-70">
+        <div className="flex items-center gap-1 text-[10px] font-medium text-stone-700 dark:text-stone-300">
           <span>Less</span>
           <span className="w-2.5 h-2.5 rounded-[2px] bg-stone-200 dark:bg-stone-700/70 inline-block" />
           <span className="w-2.5 h-2.5 rounded-[2px] bg-emerald-200 dark:bg-emerald-900/80 inline-block" />
