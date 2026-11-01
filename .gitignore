@@ -12,3 +12,5 @@ public/*.backup.json
 
 .vercel
 .env*
+*.apk
+android/app/build/

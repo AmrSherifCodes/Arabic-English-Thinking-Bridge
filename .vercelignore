@@ -1,0 +1,6 @@
+.git
+node_modules
+android/
+coverage/
+.cache/
+build/

@@ -101,3 +101,4 @@ export function CreditsModal({ isOpen, onClose }: CreditsModalProps) {
     </div>
   );
 }
+

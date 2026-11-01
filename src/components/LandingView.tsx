@@ -10,6 +10,19 @@ interface LandingViewProps {
 export function LandingView({ onStartWebApp, onStartGuest, onResumeApp }: LandingViewProps) {
   const [showInstallGuide, setShowInstallGuide] = useState(false);
   const [showCv, setShowCv] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      const userAgent = typeof navigator !== 'undefined' ? navigator.userAgent : '';
+      const mobileWidth = typeof window !== 'undefined' && window.innerWidth < 768;
+      const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+      setIsMobile(mobileWidth || isMobileDevice);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     if (!showInstallGuide && !showCv) return;
@@ -101,6 +114,36 @@ export function LandingView({ onStartWebApp, onStartGuest, onResumeApp }: Landin
                     </span>
                   </span>
                 </button>
+              </div>
+
+              {/* Secondary Android APK Download / Mobile CTA */}
+              <div className="w-full max-w-md space-y-1.5 pt-1">
+                <a
+                  href="/thinking-english.apk"
+                  download="thinking-english.apk"
+                  id="download-android-apk-btn"
+                  className="flex w-full min-h-12 items-center justify-center gap-2.5 rounded-2xl border-2 border-stone-300 dark:border-stone-700 bg-white/80 dark:bg-stone-900/80 hover:bg-teal-50 dark:hover:bg-stone-800 hover:border-teal-600 dark:hover:border-teal-500 py-3 px-5 text-stone-900 dark:text-stone-100 font-bold text-base transition-all shadow-xs group cursor-pointer"
+                >
+                  <Smartphone size={19} className="text-teal-700 dark:text-teal-400 group-hover:scale-110 transition-transform shrink-0" aria-hidden="true" />
+                  <span className="truncate">Download Android App 📱</span>
+                </a>
+                <p className="text-xs text-stone-500 dark:text-stone-400 font-medium text-center">
+                  {isMobile ? (
+                    <span>
+                      Install the APK directly on your phone for the best experience.
+                      <br className="sm:hidden" />
+                      <button
+                        type="button"
+                        onClick={() => setShowInstallGuide(true)}
+                        className="underline hover:text-teal-700 dark:hover:text-teal-300 transition ms-1 font-semibold cursor-pointer"
+                      >
+                        (Or Add to Home Screen instead)
+                      </button>
+                    </span>
+                  ) : (
+                    'Install the APK directly on your phone for the best experience.'
+                  )}
+                </p>
               </div>
 
               <p className="text-sm font-medium tracking-wide text-stone-700 dark:text-stone-300 font-semibold">
@@ -465,6 +508,14 @@ export function LandingView({ onStartWebApp, onStartGuest, onResumeApp }: Landin
               على أجهزة iPhone: افتح الصفحة في Safari، واضغط على زر المشاركة (Share)، ثم اختر{' '}
               <strong>Add to Home Screen</strong>.
             </p>
+            <a
+              href="/thinking-english.apk"
+              download="thinking-english.apk"
+              className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-teal-700/70 bg-teal-50 dark:bg-stone-800 px-4 py-2.5 text-xs font-bold text-teal-800 dark:text-teal-200 transition hover:bg-teal-100 dark:hover:bg-stone-700 cursor-pointer"
+            >
+              <Smartphone size={16} aria-hidden="true" />
+              <span>أو حمّل ملف الـ APK مباشرة (Android APK Download)</span>
+            </a>
             <button
               type="button"
               onClick={() => setShowInstallGuide(false)}
