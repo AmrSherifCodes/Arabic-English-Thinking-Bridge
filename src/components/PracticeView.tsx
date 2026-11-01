@@ -7,6 +7,9 @@ import { CLOUD_AI_VOICE_ID, speakWithRate } from '../utils/audio';
 import { computeNextHintWord, MYSTERY_CHEST_THRESHOLD } from '../utils/habitPsychology';
 import { normalizeSentence } from '../utils/transferLogic';
 import { InteractiveArabicSentence } from './InteractiveArabicSentence';
+import { TutorAvatar } from './TutorAvatar';
+import { useLessonEngine } from '../hooks/useLessonEngine';
+import { explainStructuralError } from '../services/geminiLexicon';
 import {
   BTN_GHOST,
   BTN_PRIMARY,
@@ -94,8 +97,66 @@ export const PracticeView = React.memo(function PracticeView({
   onAskTutor,
   onToast
 }: PracticeViewProps) {
+  const lessonEngine = useLessonEngine({ preferredVoice: progress.preferredVoice });
+  const [isAvatarSpeaking, setIsAvatarSpeaking] = useState(false);
+  const speechTimerRef = useRef<any>(null);
+
+  const triggerAvatarSpeech = (text: string, rate: number = 1) => {
+    if (speechTimerRef.current) clearTimeout(speechTimerRef.current);
+    setIsAvatarSpeaking(true);
+    const ok = speakWithRate(text, rate, CLOUD_AI_VOICE_ID);
+    const wordCount = text.split(/\s+/).length;
+    const durationMs = Math.max(1600, wordCount * (rate < 1 ? 550 : 420));
+    speechTimerRef.current = setTimeout(() => {
+      setIsAvatarSpeaking(false);
+    }, durationMs);
+    return ok;
+  };
+
+  useEffect(() => {
+    return () => {
+      if (speechTimerRef.current) clearTimeout(speechTimerRef.current);
+    };
+  }, []);
+
+  const handleCheckWithEngine = () => {
+    if (userAnswer.trim()) {
+      lessonEngine.submitAnswer(userAnswer);
+    }
+    onCheckAnswer();
+  };
+
+  const [isExplainingError, setIsExplainingError] = useState(false);
+  const [aiErrorExplanation, setAiErrorExplanation] = useState<string | null>(null);
+
+  useEffect(() => {
+    setAiErrorExplanation(null);
+  }, [exercise?.id, exState]);
+
+  const handleAskWhyWrong = async () => {
+    if (!exercise) return;
+    setIsExplainingError(true);
+    try {
+      const explanation = await explainStructuralError(
+        lessonEngine.concept?.id || 'syntax',
+        lessonEngine.lastError || 'syntax_error',
+        userAnswer || 'incomplete',
+        exercise.englishTarget
+      );
+      setAiErrorExplanation(explanation || 'This sentence requires a specific structural transfer pattern from Arabic.');
+    } catch (err) {
+      console.warn('Explain error failed:', err);
+      setAiErrorExplanation(
+        lessonEngine.concept?.contrast_note ||
+          'In English, this sentence structure cannot be translated directly from Arabic word-for-word.'
+      );
+    } finally {
+      setIsExplainingError(false);
+    }
+  };
+
   const [showTutorial, setShowTutorial] = useState(false);
-    // Native Haptic Vibrations on answer & lesson complete
+  // Native Haptic Vibrations on answer & lesson complete
   const prevExStateRef = useRef(exState);
   useEffect(() => {
     if (prevExStateRef.current === 'ask') {
@@ -154,6 +215,24 @@ export const PracticeView = React.memo(function PracticeView({
     window.addEventListener('keydown', closeOnEscape);
     return () => window.removeEventListener('keydown', closeOnEscape);
   }, [showTutorial]);
+
+  if (lessonEngine.isDailyLimitReached) {
+    return (
+      <div className={`${CARD_CLASS} text-center p-8 space-y-4 border-2 border-amber-500/40 bg-amber-50/40 dark:bg-amber-950/20`}>
+        <div className="flex justify-center">
+          <TutorAvatar
+            expression="happy"
+            size="lg"
+            speechText="You have reached today's structural limit. Retention happens during rest. Go study Chemistry (or ride a horse)."
+          />
+        </div>
+        <h2 className="text-xl font-black text-stone-900 dark:text-white">Daily Structural Limit Reached 🛑</h2>
+        <p className="text-sm font-semibold text-stone-600 dark:text-stone-300 max-w-md mx-auto">
+          You have completed {lessonEngine.dailyCompletedCount} exercises today. Retention happens during rest. Go study Chemistry (or ride a horse).
+        </p>
+      </div>
+    );
+  }
 
   if (!lesson || !exercise) {
     return (
@@ -290,6 +369,40 @@ export const PracticeView = React.memo(function PracticeView({
         />
       </div>
 
+      {/* Amr Animated AI Tutor Avatar & Pedagogical Contrast Note */}
+      <div className="mb-3 rounded-3xl border border-teal-500/20 bg-gradient-to-r from-teal-50/50 via-white to-white dark:from-stone-900 dark:via-stone-900/90 dark:to-stone-900 p-4 shadow-sm">
+        <TutorAvatar
+          isSpeaking={isAvatarSpeaking}
+          expression={
+            exState === 'ok'
+              ? 'celebrating'
+              : exState === 'rev' || Boolean(feedbackHtml)
+              ? 'thinking'
+              : isRecordingPron
+              ? 'thinking'
+              : 'happy'
+          }
+          size="md"
+          speechText={
+            exState === 'ok'
+              ? '🎉 برافو عليك! إجابة ممتازة وفكرت بالتركيب الصح!'
+              : exState === 'rev' || Boolean(feedbackHtml)
+              ? `💡 ركز في الفارق التركيبي: ${lessonEngine.concept?.contrast_note || lesson.transferConcept}`
+              : `💡 السر الذهني: ${lessonEngine.concept?.contrast_note || lesson.transferConcept}`
+          }
+        />
+      </div>
+
+      {/* Main Structural Contrast Note Hint Card */}
+      <div className="mb-3 rounded-2xl border border-teal-600/30 bg-teal-50/70 dark:bg-teal-950/40 p-3.5 text-xs sm:text-sm font-semibold text-teal-900 dark:text-teal-200">
+        <div className="flex items-center gap-1.5 font-bold mb-1">
+          <span>🧠 Contrast Note (ملاحظة الفروق الهيكلية):</span>
+        </div>
+        <p className="leading-relaxed">
+          {lessonEngine.concept?.contrast_note || lesson.transferConcept}
+        </p>
+      </div>
+
       {/* Collapsible Transfer Concept Reminder */}
       <details className="mb-3 rounded-2xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800/80 px-3 py-1 sm:px-4">
         <summary className="py-2 text-xs font-semibold flex items-center justify-between">
@@ -405,7 +518,7 @@ export const PracticeView = React.memo(function PracticeView({
             value={userAnswer}
             onChange={e => onChangeAnswer(e.target.value)}
             onKeyDown={e => {
-              if (e.key === 'Enter') onCheckAnswer();
+              if (e.key === 'Enter') handleCheckWithEngine();
             }}
             placeholder="Tap the words below or type here…"
             autoComplete="off"
@@ -448,7 +561,27 @@ export const PracticeView = React.memo(function PracticeView({
               aria-live="polite"
               className="mt-5 rounded-xl bg-rose-50 p-4 text-sm text-rose-700 dark:bg-rose-950/30 dark:text-rose-300 font-medium leading-relaxed"
             >
-              🧭 {feedbackHtml}
+              <div>🧭 {feedbackHtml}</div>
+              <div className="mt-3">
+                <button
+                  type="button"
+                  onClick={handleAskWhyWrong}
+                  disabled={isExplainingError}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-rose-300 dark:border-rose-800 bg-white dark:bg-rose-900/40 hover:bg-rose-100 dark:hover:bg-rose-900 text-xs font-bold text-rose-800 dark:text-rose-200 transition shadow-xs cursor-pointer"
+                >
+                  <span>🤔</span>
+                  <span>{isExplainingError ? 'Analyzing error with Gemini...' : 'Why did I get this wrong? (ليه إجابتي غلط؟)'}</span>
+                </button>
+
+                {aiErrorExplanation && (
+                  <div className="mt-2.5 p-3 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-700/60 text-xs sm:text-sm font-semibold text-amber-900 dark:text-amber-200 leading-relaxed">
+                    <div className="flex items-center gap-1 font-bold mb-1 text-amber-800 dark:text-amber-300">
+                      <span>💡 Structural Diagnosis (التحليل الهيكلي):</span>
+                    </div>
+                    <p>{aiErrorExplanation}</p>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
@@ -457,7 +590,7 @@ export const PracticeView = React.memo(function PracticeView({
               type="button"
               id="check-answer-btn"
               className={`${BTN_PRIMARY} col-span-2 min-h-[48px] w-full sm:col-span-1 sm:w-auto sm:flex-1`}
-              onClick={onCheckAnswer}
+              onClick={handleCheckWithEngine}
             >
               ✅ Check Answer
             </button>
@@ -518,12 +651,35 @@ export const PracticeView = React.memo(function PracticeView({
             <p className="text-sm mt-2 opacity-80">{tries < 2 ? exercise.habitHint : null}</p>
           )}
 
+          {exState === 'rev' && (
+            <div className="mt-3">
+              <button
+                type="button"
+                onClick={handleAskWhyWrong}
+                disabled={isExplainingError}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-rose-300 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/50 hover:bg-rose-100 dark:hover:bg-rose-900 text-xs font-bold text-rose-800 dark:text-rose-200 transition shadow-xs cursor-pointer"
+              >
+                <span>🤔</span>
+                <span>{isExplainingError ? 'Analyzing error with Gemini...' : 'Why did I get this wrong? (ليه إجابتي غلط؟)'}</span>
+              </button>
+
+              {aiErrorExplanation && (
+                <div className="mt-2.5 p-3 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-700/60 text-xs sm:text-sm font-semibold text-amber-900 dark:text-amber-200 leading-relaxed">
+                  <div className="flex items-center gap-1 font-bold mb-1 text-amber-800 dark:text-amber-300">
+                    <span>💡 Structural Diagnosis (التحليل الهيكلي):</span>
+                  </div>
+                  <p>{aiErrorExplanation}</p>
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="mt-5 space-y-2.5">
             <button
               type="button"
               className="w-full min-h-[56px] rounded-2xl bg-teal-700 hover:bg-teal-800 active:scale-[0.98] text-white font-black text-base sm:text-lg shadow-md transition-all flex items-center justify-center gap-2 ar"
               onClick={() => {
-                const ok = speakWithRate(exercise.englishTarget, 1, CLOUD_AI_VOICE_ID);
+                const ok = triggerAvatarSpeech(exercise.englishTarget, 1);
                 if (!ok) onToast('Speech not supported here');
               }}
             >
@@ -535,7 +691,7 @@ export const PracticeView = React.memo(function PracticeView({
                 type="button"
                 className={`${BTN_GHOST} min-h-[48px] text-sm font-bold`}
                 onClick={() => {
-                  const ok = speakWithRate(exercise.englishTarget, 0.75, CLOUD_AI_VOICE_ID);
+                  const ok = triggerAvatarSpeech(exercise.englishTarget, 0.75);
                   if (!ok) onToast('Speech not supported here');
                 }}
               >

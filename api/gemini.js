@@ -257,6 +257,14 @@ function buildCacheKey(operation, body) {
     if (!text) return null;
     return `tb:cache:tr:${from}:${to}:${text}`;
   }
+  if (operation === 'explain-error') {
+    const cid = typeof body.conceptId === 'string' ? body.conceptId : '';
+    const et = typeof body.errorType === 'string' ? body.errorType : '';
+    const sub = typeof body.submitted === 'string' ? body.submitted.trim().toLowerCase() : '';
+    const tgt = typeof body.target === 'string' ? body.target.trim().toLowerCase() : '';
+    if (!sub || !tgt) return null;
+    return `tb:cache:explain:${cid}:${et}:${sub}:${tgt}`;
+  }
   return null;
 }
 
@@ -640,6 +648,29 @@ async function generate(operation, body) {
 
     const data = response.text?.trim();
     if (!data) throw new Error('Empty conversation response.');
+    return { status: 200, data };
+  }
+
+  if (operation === 'explain-error') {
+    const { conceptId, errorType, submitted, target } = body;
+    if (typeof submitted !== 'string' || typeof target !== 'string') {
+      return { status: 400, error: { code: 'empty-input', message: 'Missing submitted or target text.' } };
+    }
+
+    const contents = `Concept ID: ${conceptId || 'general_syntax'}\nError Type: ${errorType || 'syntax_error'}\nSubmitted sentence: "${submitted}"\nTarget English sentence: "${target}"`;
+
+    const response = await generateContentWithFallback(ai, {
+      contents,
+      config: {
+        systemInstruction:
+          'You are an Arabic->English structural tutor. Explain the specific L1 interference for this error in exactly 2 sentences. Do not generate new exercises. Do not teach vocabulary. Focus strictly on syntax.',
+        maxOutputTokens: 200,
+        temperature: 0.3,
+      },
+    });
+
+    const data = response.text?.trim();
+    if (!data) throw new Error('Empty explanation response.');
     return { status: 200, data };
   }
 

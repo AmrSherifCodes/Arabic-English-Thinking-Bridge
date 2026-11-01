@@ -190,10 +190,27 @@ async function generateWithDirectFallback(
 
 async function requestGeminiWithUserKey<T>(
   userKey: string,
-  operation: 'entry' | 'deck' | 'tutor' | 'generate-exercise' | 'conversation',
+  operation: 'entry' | 'deck' | 'tutor' | 'generate-exercise' | 'conversation' | 'explain-error',
   payload: Record<string, unknown>
 ): Promise<T> {
   const ai = new GoogleGenAI({ apiKey: userKey });
+
+  if (operation === 'explain-error') {
+    const conceptId = String(payload.conceptId || 'syntax');
+    const errorType = String(payload.errorType || 'syntax_error');
+    const submitted = String(payload.submitted || '');
+    const target = String(payload.target || '');
+    const response = await generateWithDirectFallback(ai, {
+      contents: `Concept: ${conceptId}\nError Type: ${errorType}\nSubmitted: "${submitted}"\nTarget: "${target}"`,
+      config: {
+        systemInstruction:
+          'You are an Arabic->English structural tutor. Explain the specific L1 interference for this error in exactly 2 sentences. Do not generate new exercises. Do not teach vocabulary. Focus strictly on syntax.',
+        maxOutputTokens: 200,
+        temperature: 0.3,
+      },
+    });
+    return (response.text?.trim() || '') as unknown as T;
+  }
 
   if (operation === 'generate-exercise') {
     const profile = (payload.profile || {}) as UserProfile;
@@ -393,7 +410,7 @@ function toLexiconError(e: unknown): LexiconError {
 }
 
 async function requestGemini<T>(
-  operation: 'entry' | 'deck' | 'tutor' | 'generate-exercise' | 'conversation',
+  operation: 'entry' | 'deck' | 'tutor' | 'generate-exercise' | 'conversation' | 'explain-error',
   payload: Record<string, unknown>,
   signal?: AbortSignal
 ): Promise<T> {
@@ -707,4 +724,19 @@ export async function sendConversationMessage(
   }
 
   return answer.trim();
+}
+
+export async function explainStructuralError(
+  conceptId: string,
+  errorType: string,
+  submitted: string,
+  target: string,
+  signal?: AbortSignal
+): Promise<string> {
+  const answer = await requestGemini<string>(
+    'explain-error',
+    { conceptId, errorType, submitted, target },
+    signal
+  );
+  return typeof answer === 'string' ? answer.trim() : '';
 }

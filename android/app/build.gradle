@@ -76,3 +76,24 @@ try {
 } catch(Exception e) {
     logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
 }
+
+task copyFinalApk {
+    dependsOn 'assembleRelease'
+    doLast {
+        def desktopDir = new File(System.getProperty("user.home"), "Desktop")
+        def targetApk = file("build/outputs/apk/release/app-arm64-v8a-release.apk")
+        if (!targetApk.exists()) {
+            targetApk = file("build/outputs/apk/release/app-universal-release.apk")
+        }
+        if (targetApk.exists()) {
+            copy {
+                from targetApk
+                into desktopDir
+                rename { "thinking-english-v1.1.0.apk" }
+            }
+            println "SUCCESS: Copied APK to ${desktopDir.absolutePath}/thinking-english-v1.1.0.apk"
+        } else {
+            println "WARNING: Release APK not found."
+        }
+    }
+}
