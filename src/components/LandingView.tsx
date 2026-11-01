@@ -10,6 +10,7 @@ interface LandingViewProps {
 export function LandingView({ onStartWebApp, onStartGuest, onResumeApp }: LandingViewProps) {
   const [showInstallGuide, setShowInstallGuide] = useState(false);
   const [showCv, setShowCv] = useState(false);
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -25,18 +26,19 @@ export function LandingView({ onStartWebApp, onStartGuest, onResumeApp }: Landin
   }, []);
 
   useEffect(() => {
-    if (!showInstallGuide && !showCv) return;
+    if (!showInstallGuide && !showCv && !showPrivacyModal) return;
 
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setShowInstallGuide(false);
         setShowCv(false);
+        setShowPrivacyModal(false);
       }
     };
 
     window.addEventListener('keydown', closeOnEscape);
     return () => window.removeEventListener('keydown', closeOnEscape);
-  }, [showInstallGuide, showCv]);
+  }, [showInstallGuide, showCv, showPrivacyModal]);
 
   return (
     <main className="relative flex min-h-dvh flex-col justify-between overflow-hidden bg-[#f8f9fa] px-5 py-8 text-stone-900 dark:bg-stone-950 dark:text-stone-100 sm:px-8 sm:py-12">
@@ -144,6 +146,15 @@ export function LandingView({ onStartWebApp, onStartGuest, onResumeApp }: Landin
                     'Install the APK directly on your phone for the best experience.'
                   )}
                 </p>
+                <div className="text-center pt-0.5">
+                  <button
+                    type="button"
+                    onClick={() => setShowPrivacyModal(true)}
+                    className="text-xs text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200 underline decoration-stone-300 dark:decoration-stone-600 underline-offset-2 transition cursor-pointer font-medium"
+                  >
+                    🔒 ليه التطبيق ده آمن؟ (الخصوصية والأمان)
+                  </button>
+                </div>
               </div>
 
               <p className="text-sm font-medium tracking-wide text-stone-700 dark:text-stone-300 font-semibold">
@@ -523,6 +534,114 @@ export function LandingView({ onStartWebApp, onStartGuest, onResumeApp }: Landin
             >
               فهمت (Got it)
             </button>
+          </section>
+        </div>
+      )}
+
+      {showPrivacyModal && (
+        <div
+          className="fixed inset-0 z-[999] flex items-center justify-center bg-stone-950/70 p-4 backdrop-blur-sm overflow-y-auto"
+          onMouseDown={event => {
+            if (event.target === event.currentTarget) setShowPrivacyModal(false);
+          }}
+        >
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="privacy-modal-title"
+            dir="rtl"
+            className="w-full max-w-lg rounded-3xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-6 sm:p-7 text-stone-900 dark:text-stone-100 shadow-2xl space-y-5 my-auto max-h-[90vh] flex flex-col ar"
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-stone-200 dark:border-stone-800 pb-3 shrink-0">
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-teal-100 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 text-lg">
+                  🛡️
+                </span>
+                <h2 id="privacy-modal-title" className="text-xl font-black text-stone-900 dark:text-white">
+                  الخصوصية والأمان
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowPrivacyModal(false)}
+                aria-label="إغلاق"
+                className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200 transition cursor-pointer"
+              >
+                <X size={20} aria-hidden="true" />
+              </button>
+            </div>
+
+            {/* Content Body */}
+            <div className="overflow-y-auto space-y-3.5 text-xs sm:text-sm font-medium leading-relaxed pr-1 text-right">
+              {/* No data taken */}
+              <div className="p-3.5 rounded-2xl bg-teal-50/70 dark:bg-teal-950/40 border border-teal-200/80 dark:border-teal-900/60 space-y-1.5">
+                <p className="font-bold text-teal-950 dark:text-teal-200 text-sm">
+                  إحنا مش بناخد منك أي حاجة:
+                </p>
+                <p className="text-stone-700 dark:text-stone-300">
+                  ❌ <strong>مفيش تسجيل:</strong> التطبيق مش بيطلب إيميلك ولا رقمك.
+                </p>
+                <p className="text-stone-700 dark:text-stone-300">
+                  ❌ <strong>مفيش تتبع:</strong> إحنا مش بنجمع أي إحصائيات عنك.
+                </p>
+              </div>
+
+              {/* Mic Security */}
+              <div className="p-3.5 rounded-2xl bg-stone-50 dark:bg-stone-800/60 border border-stone-200 dark:border-stone-700/60">
+                <p className="font-bold text-stone-900 dark:text-white text-sm mb-1 flex items-center gap-1.5">
+                  <span>🎙️</span>
+                  <span>المايك بأمان:</span>
+                </p>
+                <p className="text-stone-700 dark:text-stone-300">
+                  المايك بيشتغل بس عشان يسمعك في تمارين المحادثة. الصوت بيتحول لنص وبس، ومفيش أي تسجيل بيتم تخزينه على السيرفرات.
+                </p>
+              </div>
+
+              {/* Local Storage */}
+              <div className="p-3.5 rounded-2xl bg-stone-50 dark:bg-stone-800/60 border border-stone-200 dark:border-stone-700/60">
+                <p className="font-bold text-stone-900 dark:text-white text-sm mb-1 flex items-center gap-1.5">
+                  <span>💾</span>
+                  <span>بياناتك على موبايلك:</span>
+                </p>
+                <p className="text-stone-700 dark:text-stone-300">
+                  كل تقدمك في الدروس محفوظ جوه موبايلك أنت بس (Local Storage).
+                </p>
+              </div>
+
+              {/* Android Warning explanation */}
+              <div className="p-3.5 rounded-2xl bg-amber-50/70 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-900/60">
+                <p className="font-bold text-amber-950 dark:text-amber-200 text-sm mb-1 flex items-center gap-1.5">
+                  <span>🛡️</span>
+                  <span>ليه الأندرويد بيحذرني؟</span>
+                </p>
+                <p className="text-stone-700 dark:text-stone-300">
+                  لأن التطبيق مش على Google Play (عشان نوفر فلوس النشر). ده تحذير عادي جداً لأي تطبيق بيتحمل مباشرة.
+                </p>
+              </div>
+
+              {/* Open Source GitHub */}
+              <div className="p-3.5 rounded-2xl bg-stone-50 dark:bg-stone-800/60 border border-stone-200 dark:border-stone-700/60">
+                <p className="font-bold text-stone-900 dark:text-white text-sm mb-1 flex items-center gap-1.5">
+                  <span>💻</span>
+                  <span>الكود مفتوح للكل:</span>
+                </p>
+                <p className="text-stone-700 dark:text-stone-300">
+                  التطبيق كله مفتوح المصدر على GitHub، يعني أي مبرمج يقدر يشوف الكود ويتأكد إن مفيش أي فيروسات أو تجسس.
+                </p>
+              </div>
+            </div>
+
+            {/* Bottom Button */}
+            <div className="pt-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => setShowPrivacyModal(false)}
+                className="w-full py-3 px-5 rounded-2xl bg-teal-700 hover:bg-teal-800 active:scale-[0.98] text-white font-black text-sm sm:text-base shadow-md transition-all cursor-pointer"
+              >
+                تمام، فهمت
+              </button>
+            </div>
           </section>
         </div>
       )}
