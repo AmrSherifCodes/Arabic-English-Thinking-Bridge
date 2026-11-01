@@ -1,3 +1,4 @@
+import { TutorAvatar } from './TutorAvatar';
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mic, MicOff, Volume2, Square, Send, RotateCcw, Sparkles, Bot, User, AlertCircle } from 'lucide-react';
@@ -451,6 +452,25 @@ export function ConversationView({ profile, onToast, preferredVoice }: Conversat
           </div>
         </div>
       </header>
+
+      {/* Amr Animated AI Tutor Avatar & Speech Bubble */}
+      <div className="mb-4 p-3.5 sm:p-4 rounded-3xl border border-teal-500/20 bg-gradient-to-r from-teal-50/50 via-white to-white dark:from-stone-900 dark:via-stone-900/90 dark:to-stone-900 shadow-sm">
+        <TutorAvatar
+          isSpeaking={conversationState === 'speaking'}
+          expression={conversationState === 'thinking' ? 'thinking' : 'happy'}
+          size="md"
+          speechText={
+            conversationState === 'speaking'
+              ? '🔊 بكلمك دلوقتي بالذكاء الاصطناعي... اسمع كويس وركز في النطق!'
+              : conversationState === 'thinking'
+              ? '🧠 بفكر في أفضل رد بالإنجليزي علشانك...'
+              : conversationState === 'listening'
+              ? '🔴 سامعك! اتكلم براحتك بالإنجليزي من غير قلق...'
+              : 'أهلاً بيك! أنا عمرو شريف، شريكك الذكي للمحادثة. اضغط على المايك تحت وابدأ اتكلم معايا!'
+          }
+        />
+      </div>
+
 
       {/* Center Stage: Giant Glowing Microphone Controller */}
       <div className="relative my-2 flex flex-col items-center justify-center rounded-3xl border border-teal-600/20 bg-gradient-to-b from-teal-50/50 via-white to-white dark:from-stone-900 dark:via-stone-900/90 dark:to-stone-900 p-6 sm:p-8 shadow-sm text-center overflow-hidden">

@@ -108,6 +108,7 @@ export interface UserProgress {
   dailyGoalCount?: number;
   dailyGoalDate?: string;
   comboCount?: number;
+  todayWins?: number;
   streakShields?: number;
 }
 

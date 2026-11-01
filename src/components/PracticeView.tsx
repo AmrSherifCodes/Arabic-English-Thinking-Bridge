@@ -514,6 +514,9 @@ export const PracticeView = React.memo(function PracticeView({
           <p dir="rtl" className="ar text-sm mt-1.5 opacity-85 leading-relaxed text-right">
             {lesson.transferConceptAr}
           </p>
+          {exercise.habitHint && (
+            <p className="text-sm mt-2 opacity-80">{tries < 2 ? exercise.habitHint : null}</p>
+          )}
 
           <div className="mt-5 space-y-2.5">
             <button
@@ -582,11 +585,27 @@ export const PracticeView = React.memo(function PracticeView({
             </div>
           )}
 
+          {/* XP Progress & Quick AI Win */}
+          <div className="mb-4 mt-5 text-center">
+            <div className="mb-2 text-sm font-bold text-teal-700 dark:text-teal-300">
+              ⭐ You are only <span className="text-orange-600 text-xl font-black">{Math.max(0, 60 - ((progress.score || 0) % 60))} XP</span> away from Level {Math.floor((progress.score || 0) / 60) + 2}!
+            </div>
+            {onStartAiPractice && (
+              <button
+                type="button"
+                onClick={onStartAiPractice}
+                className="w-full rounded-full bg-gradient-to-r from-teal-600 to-emerald-600 text-white py-3 font-black text-sm shadow-lg animate-pulse mb-3"
+              >
+                🚀 Continue Learning (Quick AI Win)
+              </button>
+            )}
+          </div>
+
           {/* Zeigarnik Effect Nudge on the Next Button */}
           <button
             type="button"
             id="next-exercise-btn"
-            className={`${BTN_PRIMARY} mt-4 min-h-[52px] w-full`}
+            className={`${BTN_PRIMARY} mt-2 min-h-[52px] w-full`}
             onClick={isAiPractice ? onGenerateNextAiExercise : onNextExercise}
           >
             {isAiPractice

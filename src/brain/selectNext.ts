@@ -1,0 +1,112 @@
+import { ConceptNode, LearnerState } from './types';
+
+export interface SelectNextOptions {
+  activeTrack?: 'general' | 'academic' | 'sustainability';
+  now?: number;
+}
+
+/**
+ * Deterministic concept selector:
+ * 1. Due reviews first, ranked by risk (lowest ease * highest transfer_weight).
+ * 2. The Frontier: prerequisites mastered (>= 0.7), current mastery < 0.7.
+ * Prioritizes concepts that match the user's active track.
+ */
+export function selectNext(
+  concepts: ConceptNode[],
+  learnerStates: Record<string, LearnerState>,
+  options: SelectNextOptions = {}
+): ConceptNode | null {
+  if (!concepts || concepts.length === 0) {
+    return null;
+  }
+
+  const activeTrack = options.activeTrack || 'general';
+  const now = options.now ?? Date.now();
+
+  // Helper to check if a concept belongs to the active track
+  const matchesTrack = (c: ConceptNode): boolean => c.tracks.includes(activeTrack);
+
+  // 1. DUE REVIEWS
+  // A concept is due if it has been encountered before (interval > 0) and next_due <= now
+  const dueReviews: { concept: ConceptNode; risk: number; trackMatch: boolean }[] = [];
+
+  for (const concept of concepts) {
+    const state = learnerStates[concept.id];
+    if (state && state.interval > 0 && state.next_due <= now) {
+      // Risk formula: highest risk = lowest ease * highest transfer_weight
+      // (transfer_weight / ease) directly maximizes when ease is low and transfer_weight is high.
+      const safeEase = Math.max(state.ease, 0.1);
+      const risk = concept.transfer_weight / safeEase;
+      dueReviews.push({
+        concept,
+        risk,
+        trackMatch: matchesTrack(concept)
+      });
+    }
+  }
+
+  if (dueReviews.length > 0) {
+    // Sort due reviews:
+    // First by matching active track, then by risk descending
+    dueReviews.sort((a, b) => {
+      if (a.trackMatch !== b.trackMatch) {
+        return a.trackMatch ? -1 : 1;
+      }
+      return b.risk - a.risk;
+    });
+
+    return dueReviews[0].concept;
+  }
+
+  // 2. THE FRONTIER
+  // Concepts where prerequisites have mastery >= 0.7, but current concept is not yet mastered (< 0.7)
+  const frontier: { concept: ConceptNode; trackMatch: boolean; weight: number }[] = [];
+
+  for (const concept of concepts) {
+    const currentMastery = learnerStates[concept.id]?.mastery ?? 0;
+    if (currentMastery >= 0.7) {
+      continue; // already mastered
+    }
+
+    // Check prerequisites
+    const prereqsMet = concept.prerequisites.every((preId) => {
+      const preState = learnerStates[preId];
+      return preState && preState.mastery >= 0.7;
+    });
+
+    if (prereqsMet) {
+      frontier.push({
+        concept,
+        trackMatch: matchesTrack(concept),
+        weight: concept.transfer_weight
+      });
+    }
+  }
+
+  if (frontier.length > 0) {
+    // Sort frontier:
+    // 1. Matches active track first
+    // 2. Highest transfer_weight first
+    frontier.sort((a, b) => {
+      if (a.trackMatch !== b.trackMatch) {
+        return a.trackMatch ? -1 : 1;
+      }
+      return b.weight - a.weight;
+    });
+
+    return frontier[0].concept;
+  }
+
+  // 3. Fallback: If everything on the frontier is exhausted or blocked,
+  // return the concept with lowest mastery matching track (or simply first concept)
+  const allCandidates = [...concepts].sort((a, b) => {
+    const aTrack = matchesTrack(a);
+    const bTrack = matchesTrack(b);
+    if (aTrack !== bTrack) return aTrack ? -1 : 1;
+    const aMastery = learnerStates[a.id]?.mastery ?? 0;
+    const bMastery = learnerStates[b.id]?.mastery ?? 0;
+    return aMastery - bMastery;
+  });
+
+  return allCandidates[0] || null;
+}

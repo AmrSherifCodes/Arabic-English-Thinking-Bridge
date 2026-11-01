@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { CalendarDays, Layers, MessageSquare, Mic } from 'lucide-react';
+import { CalendarDays, Flame, Layers, MessageSquare, Mic } from 'lucide-react';
 import { UserProfile } from '../hooks/useUserProfile';
 import { UserProgress } from '../types';
 import { ThinkingMap } from './ThinkingMap';
 import { getAdaptiveRecommendation } from '../utils/adaptiveCurriculum';
+import { TutorAvatar } from './TutorAvatar';
 
 export type HomeAction = 'flashcards' | 'speaking' | 'situations' | 'daily-review' | 'messages';
 
@@ -76,6 +77,17 @@ export function HomeView({
 
   const displayName = profile.name ? `يا ${profile.name} ` : '';
 
+  // Dynamic Mascot Tip based on user state
+  const getAvatarTip = () => {
+    if ((progress.streak || 0) === 0) {
+      return "Welcome! Let's start your first lesson today. (أهلاً بيك! يلا نبدأ أول درس النهاردة)";
+    }
+    if ((progress.todayWins ?? 0) < 5) {
+      return "You're close to your daily goal! One more lesson? (قربت من هدفك اليومي! يلا درس كمان؟)";
+    }
+    return "Welcome back! Ready to learn? (أهلاً بيك تاني يا بطل! جاهز نكمل؟)";
+  };
+
   return (
     <section
       dir="rtl"
@@ -106,16 +118,31 @@ export function HomeView({
             </p>
           </div>
 
-          {/* Tiny streak flame */}
+          {/* Massive streak flame */}
           <div
             title={`حماسك مستمر منذ ${progress.streak || 0} يوم`}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/25 text-amber-700 dark:text-amber-400 font-black text-sm shrink-0"
+            className="flex items-center gap-2 font-black text-orange-600 dark:text-orange-400 animate-pulse text-2xl sm:text-3xl shrink-0"
           >
-            <span aria-hidden="true">🔥</span>
-            <span>{progress.streak || 0} يوم</span>
+            <Flame size={28} aria-hidden="true" />
+            <span>🔥 {progress.streak || 0} Day Streak</span>
           </div>
         </div>
       </header>
+
+      {/* Amr Animated AI Avatar with Speech Bubble at Top of HomeView */}
+      <div className="my-2 p-3 sm:p-4 rounded-3xl border border-teal-500/20 bg-gradient-to-r from-teal-50/50 via-white to-white dark:from-stone-900 dark:via-stone-900/90 dark:to-stone-900 shadow-sm">
+        <TutorAvatar
+          expression="happy"
+          size="md"
+          speechText={getAvatarTip()}
+        />
+      </div>
+
+      {(progress.todayWins ?? 0) < 5 && (
+        <div className="my-3 rounded-2xl bg-red-600 text-white p-3 text-center font-bold text-sm animate-pulse shadow-md">
+          🔥 Your {progress.streak || 0}-day streak is about to end! Complete 1 lesson to keep it alive.
+        </div>
+      )}
 
       {/* ONE Huge Prominent Button: Continue Your Lesson */}
       <div className="space-y-3">
@@ -145,6 +172,40 @@ export function HomeView({
         )}
       </div>
 
+      {/* Daily Missions Card */}
+      <div className="rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-4 shadow-sm mt-4">
+        <h3 className="font-black text-lg mb-3 flex items-center gap-2 text-stone-900 dark:text-white">
+          🎯 Daily Missions
+        </h3>
+        <div className="space-y-2 text-sm font-medium text-stone-700 dark:text-stone-300">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" className="w-4 h-4 rounded" /> Complete 2 lessons
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" className="w-4 h-4 rounded" /> Talk to AI Tutor for 1 minute
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" className="w-4 h-4 rounded" /> Review 10 flashcards
+          </label>
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            // Simple visual reward trigger
+            const btn = document.getElementById('mystery-chest-btn');
+            if (btn) {
+              btn.textContent = '✅ Chest Claimed!';
+              (btn as HTMLButtonElement).disabled = true;
+            }
+            alert('🎁 You found +50 XP and a Streak Shield!');
+          }}
+          id="mystery-chest-btn"
+          className="mt-4 w-full rounded-full bg-gradient-to-r from-amber-500 to-orange-600 text-white py-3 font-black text-sm shadow-md transition hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
+        >
+          🎁 Claim Mystery Chest
+        </button>
+      </div>
+
       {/* Visual English Thinking Map (Curriculum Map) */}
       <ThinkingMap
         progress={progress}
@@ -160,41 +221,37 @@ export function HomeView({
             key={id}
             type="button"
             onClick={() => onNavigate(id)}
+            whileHover={{ scale: 1.01 }}
             whileTap={{ scale: 0.98 }}
-            transition={{ duration: 0.15 }}
-            className="flex min-h-20 w-full min-w-0 touch-manipulation items-center gap-3.5 rounded-2xl border bg-white dark:bg-stone-900 p-4 text-right border-stone-200/90 dark:border-stone-800 shadow-xs transition-colors hover:border-teal-500/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600"
+            className="flex items-start gap-4 p-4 rounded-2xl border border-stone-200/90 dark:border-stone-800 bg-white dark:bg-stone-900 shadow-xs hover:border-teal-500/50 transition-all text-right group"
           >
-            <span
-              className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${iconClass}`}
-            >
-              <Icon size={22} aria-hidden="true" />
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block font-black text-sm text-stone-900 dark:text-white">
+            <div className={`p-3 rounded-xl shrink-0 transition-transform group-hover:scale-105 ${iconClass}`}>
+              <Icon size={24} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h2 className="font-bold text-base text-stone-900 dark:text-white">
                 {titleAr}
-              </span>
-              <span className="mt-0.5 block text-xs font-medium text-stone-600 dark:text-stone-400">
+              </h2>
+              <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5 line-clamp-2 leading-relaxed">
                 {descriptionAr}
-              </span>
-            </span>
+              </p>
+            </div>
           </motion.button>
         ))}
       </div>
 
-      <footer className="pt-2 text-center space-y-1.5 text-xs font-semibold text-stone-500 dark:text-stone-400">
-        <p>فكّر إنجليزي · خطوة بخطوة كل يوم 🚀</p>
-        {onOpenCredits && (
-          <div>
-            <button
-              type="button"
-              onClick={onOpenCredits}
-              className="text-[11px] font-semibold text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200 underline transition cursor-pointer"
-            >
-              Privacy, Credits &amp; Licenses · الخصوصية والتراخيص
-            </button>
-          </div>
-        )}
-      </footer>
+      {/* Credits Footer */}
+      {onOpenCredits && (
+        <div className="pt-4 text-center border-t border-stone-200/60 dark:border-stone-800/60">
+          <button
+            type="button"
+            onClick={onOpenCredits}
+            className="text-xs font-bold text-stone-400 hover:text-stone-600 dark:hover:text-stone-300 transition"
+          >
+            عن التطبيق وفريق العمل · Credits
+          </button>
+        </div>
+      )}
     </section>
   );
 }
