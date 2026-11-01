@@ -4,6 +4,8 @@ import { Mic, MicOff, Volume2, Square, Send, RotateCcw, Sparkles, Bot, User, Ale
 import type { UserProfile } from '../types';
 import { createSpeechRecognition, isSpeechRecognitionSupported, speakWithRate, CLOUD_AI_VOICE_ID } from '../utils/audio';
 import { sendConversationMessage, ConversationHistoryItem } from '../services/geminiLexicon';
+import { generateLocalTutorResponse } from '../services/localAI';
+import { localOfflineTranslate } from '../App';
 
 export interface ChatMessage {
   id: string;
@@ -91,6 +93,18 @@ export function ConversationView({ profile, onToast, preferredVoice }: Conversat
   const [liveTranscript, setLiveTranscript] = useState<string>('');
   const [manualInput, setManualInput] = useState<string>('');
   const [recognitionSupported, setRecognitionSupported] = useState<boolean>(true);
+  const [isOnline, setIsOnline] = useState<boolean>(() => (typeof navigator !== 'undefined' ? navigator.onLine : true));
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   const recognizerRef = useRef<any | null>(null);
   const silenceTimerRef = useRef<any | null>(null);
@@ -197,7 +211,33 @@ export function ConversationView({ profile, onToast, preferredVoice }: Conversat
         .slice(-8)
         .map(m => ({ role: m.role, text: m.text }));
 
-      const replyText = await sendConversationMessage(clean, historyPayload, profile);
+      let replyText = '';
+      const onlineNow = typeof navigator !== 'undefined' ? navigator.onLine : true;
+
+      if (onlineNow) {
+        try {
+          replyText = await sendConversationMessage(clean, historyPayload, profile);
+        } catch (cloudErr) {
+          console.warn('[ConversationView] Cloud AI failed, attempting on-device Gemma 3n:', cloudErr);
+        }
+      }
+
+      if (!replyText) {
+        // Offline or cloud failed -> fallback to local Gemma 3n SLM
+        try {
+          replyText = await generateLocalTutorResponse(
+            clean,
+            'You are an offline conversational English-Arabic tutor. Answer in 1-2 friendly, natural English sentences.'
+          );
+        } catch (localErr) {
+          console.warn('[ConversationView] Local SLM failed, falling back to offline dictionary:', localErr);
+          const isAr = /[\u0600-\u06FF]/.test(clean);
+          const tr = localOfflineTranslate(clean, isAr ? 'ar' : 'en');
+          replyText = tr
+            ? `(Offline) ${clean} = ${tr}`
+            : 'I am in offline mode. Connect to the internet or download local weights to chat freely!';
+        }
+      }
 
       const aiMessage: ChatMessage = {
         id: `msg-${Date.now()}-ai`,
@@ -345,15 +385,27 @@ export function ConversationView({ profile, onToast, preferredVoice }: Conversat
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={handleResetConversation}
-            title="بدء محادثة جديدة"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 hover:bg-stone-100 dark:hover:bg-stone-700 text-xs font-bold text-stone-700 dark:text-stone-300 transition"
-          >
-            <RotateCcw size={14} />
-            <span>محادثة جديدة</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <span
+              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold transition shadow-xs ${
+                isOnline
+                  ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800'
+                  : 'bg-purple-50 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-300 dark:border-purple-800'
+              }`}
+            >
+              {isOnline ? '🌐 Cloud AI' : '📱 Offline AI'}
+            </span>
+
+            <button
+              type="button"
+              onClick={handleResetConversation}
+              title="بدء محادثة جديدة"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 hover:bg-stone-100 dark:hover:bg-stone-700 text-xs font-bold text-stone-700 dark:text-stone-300 transition"
+            >
+              <RotateCcw size={14} />
+              <span>محادثة جديدة</span>
+            </button>
+          </div>
         </div>
       </header>
 
