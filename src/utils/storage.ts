@@ -325,9 +325,11 @@ export function saveUserProgress(progress: UserProgress): boolean {
   }
 }
 
+export const APP_STORAGE_VERSION = '3.0.1';
+
 export interface ProgressBackupPayload {
   app: 'Arabic-English-Thinking-Bridge';
-  version: '3.0.0';
+  version: string;
   exportedAt: string;
   checksum: string;
   progress: UserProgress;
@@ -338,7 +340,7 @@ export function exportUserProgressJson(progress: UserProgress): string {
   const serialized = JSON.stringify(clean);
   const payload: ProgressBackupPayload = {
     app: 'Arabic-English-Thinking-Bridge',
-    version: '3.0.0',
+    version: APP_STORAGE_VERSION,
     exportedAt: new Date().toISOString(),
     checksum: computeVaultChecksum(serialized),
     progress: clean

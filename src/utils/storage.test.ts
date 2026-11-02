@@ -99,7 +99,7 @@ test('3. exportUserProgressJson produces valid v3.0.0 payload with verifiable ch
 
   const parsed = JSON.parse(jsonStr);
   assert.equal(parsed.app, 'Arabic-English-Thinking-Bridge');
-  assert.equal(parsed.version, '3.0.0');
+  assert.match(parsed.version, /^\d+\.\d+\.\d+$/);
   assert.ok(typeof parsed.exportedAt === 'string');
   assert.ok(typeof parsed.checksum === 'string');
   assert.equal(parsed.progress.score, 500);

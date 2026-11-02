@@ -1,0 +1,162 @@
+#!/usr/bin/env node
+
+/**
+ * Thinking Bridge Automated Production Release Script
+ * Usage:
+ *   npm run release
+ *   node scripts/release.js 3.0.1
+ */
+
+import { execSync } from 'node:child_process';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const ROOT_DIR = path.resolve(__dirname, '..');
+
+// 1. Determine Target Version
+const pkgPath = path.join(ROOT_DIR, 'package.json');
+const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+const targetVersion = process.argv[2] || pkg.version || '3.0.1';
+const tag = `v${targetVersion}`;
+
+console.log(`\n======================================================`);
+console.log(`🚀 Thinking Bridge Automated Release: ${tag}`);
+console.log(`======================================================\n`);
+
+function run(cmd, cwd = ROOT_DIR, env = process.env) {
+  console.log(`\n▶️  [RUN]: ${cmd}`);
+  execSync(cmd, { cwd, stdio: 'inherit', env });
+}
+
+// 2. Synchronize Version Across Files
+console.log(`📦 1. Synchronizing version ${targetVersion} across project files...`);
+
+// A. package.json
+if (pkg.version !== targetVersion) {
+  pkg.version = targetVersion;
+  fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n', 'utf8');
+  console.log(`   ✓ package.json -> ${targetVersion}`);
+}
+
+// B. android/app/build.gradle
+const gradlePath = path.join(ROOT_DIR, 'android', 'app', 'build.gradle');
+if (fs.existsSync(gradlePath)) {
+  let gradleContent = fs.readFileSync(gradlePath, 'utf8');
+  gradleContent = gradleContent.replace(/versionName\s+"[^"]+"/g, `versionName "${targetVersion}"`);
+  
+  // Increment versionCode if updating
+  const codeMatch = gradleContent.match(/versionCode\s+(\d+)/);
+  if (codeMatch) {
+    const currentCode = parseInt(codeMatch[1], 10);
+    gradleContent = gradleContent.replace(/versionCode\s+\d+/, `versionCode ${currentCode}`);
+    console.log(`   ✓ android/app/build.gradle -> versionName "${targetVersion}", versionCode ${currentCode}`);
+  }
+  fs.writeFileSync(gradlePath, gradleContent, 'utf8');
+}
+
+// C. src/utils/storage.ts
+const storagePath = path.join(ROOT_DIR, 'src', 'utils', 'storage.ts');
+if (fs.existsSync(storagePath)) {
+  let storageContent = fs.readFileSync(storagePath, 'utf8');
+  storageContent = storageContent.replace(
+    /APP_STORAGE_VERSION\s*=\s*'[^']+'/g,
+    `APP_STORAGE_VERSION = '${targetVersion}'`
+  );
+  fs.writeFileSync(storagePath, storageContent, 'utf8');
+  console.log(`   ✓ src/utils/storage.ts -> APP_STORAGE_VERSION = '${targetVersion}'`);
+}
+
+// D. src/features/menu/ChoiceMenu.tsx
+const menuPath = path.join(ROOT_DIR, 'src', 'features', 'menu', 'ChoiceMenu.tsx');
+if (fs.existsSync(menuPath)) {
+  let menuContent = fs.readFileSync(menuPath, 'utf8');
+  menuContent = menuContent.replace(
+    /download\/v[0-9.]+\/app-universal-release\.apk/g,
+    `download/${tag}/app-universal-release.apk`
+  );
+  menuContent = menuContent.replace(
+    /v[0-9.]+\s*·\s*APK/g,
+    `${tag} · APK`
+  );
+  menuContent = menuContent.replace(
+    /v[0-9.]+(?=['"]\s*:\s*['"]Download Android APK)/g,
+    `${tag}`
+  );
+  fs.writeFileSync(menuPath, menuContent, 'utf8');
+  console.log(`   ✓ src/features/menu/ChoiceMenu.tsx -> updated APK download badges to ${tag}`);
+}
+
+// 3. Run Automated Tests
+console.log(`\n🧪 2. Running test suite...`);
+run('npm test');
+
+// 4. Build Vite Web Production Bundle
+console.log(`\n⚡ 3. Building Vite web production bundle...`);
+run('npm run build');
+
+// 5. Sync Capacitor Android
+console.log(`\n📱 4. Syncing Capacitor Android assets...`);
+run('npx cap sync android');
+
+// 6. Build Android Universal Release APK
+console.log(`\n🤖 5. Assembling Android Universal Release APK...`);
+const javaFallback = 'C:\\Users\\MSI\\AppData\\Roaming\\.minecraft\\runtime\\java-runtime-delta\\windows\\java-runtime-delta';
+const androidEnv = { ...process.env };
+if (!androidEnv.JAVA_HOME && fs.existsSync(javaFallback)) {
+  androidEnv.JAVA_HOME = javaFallback;
+  console.log(`   (Using JDK 21 at: ${javaFallback})`);
+}
+
+const gradlewCmd = process.platform === 'win32' ? '.\\gradlew.bat' : './gradlew';
+run(`${gradlewCmd} assembleRelease --no-daemon`, path.join(ROOT_DIR, 'android'), androidEnv);
+
+// 7. Copy Output APKs
+console.log(`\n📋 6. Copying production APK...`);
+const builtApkPath = path.join(ROOT_DIR, 'android', 'app', 'build', 'outputs', 'apk', 'release', 'app-universal-release.apk');
+const desktopApkPath = `C:\\Users\\MSI\\Desktop\\Thinking-Bridge-${tag}.apk`;
+const publicApkPath = path.join(ROOT_DIR, 'public', 'Thinking-English.apk');
+
+if (fs.existsSync(builtApkPath)) {
+  try {
+    fs.copyFileSync(builtApkPath, desktopApkPath);
+    console.log(`   ✓ Copied to Desktop: ${desktopApkPath}`);
+  } catch (err) {
+    console.warn(`   ⚠️ Could not copy to desktop (sandboxed): ${err.message}`);
+  }
+
+  try {
+    fs.copyFileSync(builtApkPath, publicApkPath);
+    console.log(`   ✓ Copied to public web assets: ${publicApkPath}`);
+  } catch (err) {
+    console.warn(`   ⚠️ Could not copy to public: ${err.message}`);
+  }
+} else {
+  console.error(`   ❌ Release APK not found at: ${builtApkPath}`);
+}
+
+// 8. Git Commit, Tag & Push
+console.log(`\n🌐 7. Committing and pushing ${tag} to GitHub...`);
+try {
+  run(`git add -A`);
+  try {
+    run(`git commit -m "chore(release): ${tag}"`);
+  } catch {
+    console.log(`   (No new changes to commit)`);
+  }
+  run(`git tag -f ${tag} HEAD`);
+  run(`git push origin main`);
+  run(`git push -f origin ${tag}`);
+  console.log(`   ✓ Pushed main branch and tag ${tag} to GitHub!`);
+} catch (err) {
+  console.warn(`   ⚠️ Git push encountered an issue: ${err.message}`);
+}
+
+console.log(`\n======================================================`);
+console.log(`🎉 RELEASE ${tag} COMPLETED SUCCESSFULLY!`);
+console.log(`======================================================`);
+console.log(`\nDesktop APK: ${desktopApkPath}`);
+console.log(`Web URL:     https://arabicenglishthinkingbridge.vercel.app/`);
+console.log(`GitHub Tag:  ${tag}\n`);

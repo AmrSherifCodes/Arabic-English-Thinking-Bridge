@@ -223,11 +223,11 @@ export function ChoiceMenu({
 
         {/* 6. Download App Button */}
         <a
-          href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v3.0.0/app-universal-release.apk"
+          href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v3.0.1/app-universal-release.apk"
           target="_blank"
           rel="noopener noreferrer"
           className="menu__download-btn"
-          aria-label={isArabic ? 'تحميل تطبيق الأندرويد v3.0.0' : 'Download Android APK v3.0.0'}
+          aria-label={isArabic ? 'تحميل تطبيق الأندرويد v3.0.1' : 'Download Android APK v3.0.1'}
         >
           <div className="menu__download-info">
             <Download className="menu__download-icon" />
@@ -242,7 +242,7 @@ export function ChoiceMenu({
               </span>
             </div>
           </div>
-          <span className="menu__download-badge">v3.0.0 · APK</span>
+          <span className="menu__download-badge">v3.0.1 · APK</span>
         </a>
 
         {/* 7. Two-line Footer + Socials */}
