@@ -13,7 +13,7 @@
 
 ---
 
-## 🚀 What's New in v2.0.0
+## 🚀 What's New in v3.0.0
 
 - Interactive Onboarding & Adaptive Leveling Algorithm (A1 to C1)
 - Sub-Second Voice Streaming with Parallel TTS Prefetch
