@@ -62,7 +62,57 @@
   margin-inline: auto;
 }
 
-/* 2. Stats Strip */
+/* 2. Tracked Learner Progress HUD */
+.menu__progress-hud {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  align-items: center;
+  padding: 10px 14px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(20, 184, 166, 0.12) 0%, rgba(28, 25, 23, 0.95) 100%);
+  border: 1px solid rgba(45, 212, 191, 0.35);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
+}
+
+.menu__hud-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.menu__hud-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.menu__hud-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.menu__hud-val {
+  font-size: 13.5px;
+  font-weight: 900;
+  color: #ffffff;
+  line-height: 1.1;
+}
+
+.menu__hud-lbl {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #5eead4;
+  letter-spacing: 0.02em;
+}
+
+.menu__hud-divider {
+  width: 1px;
+  height: 20px;
+  background: rgba(87, 83, 78, 0.6);
+  margin: 0 auto;
+}
+
+/* 3. Stats Strip */
 .menu__stats-strip {
   display: flex;
   align-items: center;

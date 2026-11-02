@@ -6,6 +6,7 @@ import { TabTutorialModal } from '../../components/TabTutorialModal';
 import { Exercise, Lesson, Phase, UserProfile, UserProgress } from '../../types';
 import { PHASES_DATA } from '../../data/lessons';
 import { checkAnswerMatch, diagnoseArabicInterference } from '../../utils/transferLogic';
+import { applyHabitWin, applyHabitMistakeWithShield } from '../../utils/habitPsychology';
 import { speakWithRate } from '../../utils/audio';
 import { BTN_GHOST, BTN_PRIMARY, CARD_CLASS, CHUNK_COLORS, CHUNK_LABELS, FlashcardItemData } from '../../components/uiConstants';
 import { getLessonRelevanceScore } from '../../utils/adaptiveCurriculum';
@@ -75,6 +76,7 @@ export function LessonView({
   const handleCheck = () => {
     if (!exercise || !activeLesson || !input.trim() || status === 'correct') return;
     const currentLesson = activeLesson;
+    const todayKey = new Date().toISOString().split('T')[0];
 
     const match = checkAnswerMatch(input, exercise);
     if (match.isCorrect) {
@@ -83,6 +85,9 @@ export function LessonView({
       speakWithRate(match.matchedTarget || exercise.englishTarget, 1, preferredVoice);
 
       updateAndSaveProgress(prev => {
+        const habitTransition = applyHabitWin(prev, 10, todayKey);
+        const baseNext = habitTransition.nextProgress;
+
         const nextExIds = prev.completedExerciseIds.includes(exercise.id)
           ? prev.completedExerciseIds
           : [...prev.completedExerciseIds, exercise.id];
@@ -92,18 +97,48 @@ export function LessonView({
           ? [...prev.completedLessonIds, currentLesson.id]
           : prev.completedLessonIds;
 
+        const prevReviewCount = prev.reviewHistory?.[todayKey] || 0;
+
         return {
-          ...prev,
+          ...baseNext,
           completedExerciseIds: nextExIds,
           completedLessonIds: nextLessonIds,
-          score: prev.score + 10,
-          completedExerciseCount: (prev.completedExerciseCount || 0) + 1
+          completedExerciseCount: (prev.completedExerciseCount || 0) + 1,
+          lastActiveDate: todayKey,
+          reviewHistory: {
+            ...(prev.reviewHistory || {}),
+            [todayKey]: prevReviewCount + 1
+          }
         };
       });
+
+      if (Capacitor.isNativePlatform()) {
+        try {
+          Haptics.impact({ style: ImpactStyle.Light });
+        } catch {}
+      }
     } else {
       setStatus('incorrect');
       const diagnosis = diagnoseArabicInterference(input, exercise);
       setFeedback(diagnosis);
+
+      updateAndSaveProgress(prev => {
+        const shielded = applyHabitMistakeWithShield(prev);
+        const weakKey = currentLesson.weakSpotTag || 'general';
+        const nextWeakSpots = {
+          ...prev.weakSpotCounts,
+          [weakKey]: (prev.weakSpotCounts?.[weakKey] || 0) + 1
+        };
+
+        if (shielded.shieldUsed) {
+          onToast('🛡️ Streak Shield protected your streak!');
+        }
+
+        return {
+          ...shielded.nextProgress,
+          weakSpotCounts: nextWeakSpots
+        };
+      });
     }
   };
 

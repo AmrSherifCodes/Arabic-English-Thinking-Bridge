@@ -319,6 +319,112 @@
   border-radius: 8px;
 }
 
+/* Progress & Data Vault Card */
+.pref-vault-card {
+  margin-top: 24px;
+  margin-bottom: 24px;
+  padding: 18px 20px;
+  background: linear-gradient(135deg, rgba(28, 25, 23, 0.95), rgba(12, 10, 9, 0.95));
+  border: 1px solid rgba(45, 212, 191, 0.3);
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.pref-vault-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.pref-vault-card__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #2dd4bf;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0;
+}
+
+.pref-vault-card__badge {
+  font-size: 11px;
+  font-weight: 700;
+  color: #5eead4;
+  background: rgba(20, 184, 166, 0.15);
+  border: 1px solid rgba(20, 184, 166, 0.35);
+  padding: 3px 8px;
+  border-radius: 10px;
+}
+
+.pref-vault-card__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 480px) {
+  .pref-vault-card__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.pref-vault-item {
+  background: rgba(41, 37, 36, 0.6);
+  border: 1px solid rgba(87, 83, 78, 0.4);
+  border-radius: 14px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.pref-vault-item__val {
+  font-size: 17px;
+  font-weight: 900;
+  color: #fafaf9;
+  letter-spacing: -0.02em;
+}
+
+.pref-vault-item__lbl {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #a8a29e;
+  margin-top: 2px;
+}
+
+.pref-vault-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.pref-vault-btn {
+  flex: 1;
+  min-width: 140px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 16px;
+  border-radius: 14px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid rgba(87, 83, 78, 0.6);
+  background: rgba(41, 37, 36, 0.85);
+  color: #f5f5f4;
+}
+
+.pref-vault-btn:hover {
+  background: rgba(20, 184, 166, 0.15);
+  border-color: #2dd4bf;
+  color: #2dd4bf;
+}
+
 /* Creator & Socials Card */
 .pref-creator-card {
   margin-top: 24px;

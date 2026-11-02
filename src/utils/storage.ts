@@ -9,6 +9,7 @@ import {
 import { INITIAL_BROADCASTS, INITIAL_MENTOR_QUESTIONS } from '../data/lessons';
 
 const PROGRESS_KEY = 'thinking_english_progress_v1';
+const PROGRESS_BACKUP_KEY = 'thinking_english_progress_backup_v1';
 const MENTOR_QUESTIONS_KEY = 'thinking_english_mentor_q_v1';
 const BROADCASTS_KEY = 'thinking_english_broadcasts_v2';
 const TEACHER_PIN_KEY = 'thinking_english_teacher_pin_v2';
@@ -262,18 +263,44 @@ export function sanitizeUserProgress(raw: unknown): UserProgress {
 export function loadUserProgress(): UserProgress {
   try {
     const data = localStorage.getItem(PROGRESS_KEY);
-    if (!data) {
-      const fresh = sanitizeUserProgress(memoryFallback.progress ?? DEFAULT_PROGRESS);
-      memoryFallback.progress = fresh;
-      memoryFallback.lastChecksum = computeVaultChecksum(JSON.stringify(fresh));
-      return fresh;
+    if (data) {
+      const parsed = JSON.parse(data);
+      const clean = sanitizeUserProgress(parsed);
+      memoryFallback.progress = clean;
+      memoryFallback.lastChecksum = computeVaultChecksum(JSON.stringify(clean));
+      return clean;
     }
-    const parsed = JSON.parse(data);
-    const clean = sanitizeUserProgress(parsed);
-    memoryFallback.progress = clean;
-    memoryFallback.lastChecksum = computeVaultChecksum(JSON.stringify(clean));
-    return clean;
+
+    // Try secondary redundant backup if primary storage was cleared
+    const backup = localStorage.getItem(PROGRESS_BACKUP_KEY);
+    if (backup) {
+      const parsedBackup = JSON.parse(backup);
+      const recovered = sanitizeUserProgress(parsedBackup);
+      try {
+        localStorage.setItem(PROGRESS_KEY, JSON.stringify(recovered));
+      } catch {}
+      memoryFallback.progress = recovered;
+      memoryFallback.lastChecksum = computeVaultChecksum(JSON.stringify(recovered));
+      return recovered;
+    }
+
+    const fresh = sanitizeUserProgress(memoryFallback.progress ?? DEFAULT_PROGRESS);
+    memoryFallback.progress = fresh;
+    memoryFallback.lastChecksum = computeVaultChecksum(JSON.stringify(fresh));
+    return fresh;
   } catch {
+    // If primary parse failed, attempt recovery from redundant backup
+    try {
+      const backup = localStorage.getItem(PROGRESS_BACKUP_KEY);
+      if (backup) {
+        const parsedBackup = JSON.parse(backup);
+        const recovered = sanitizeUserProgress(parsedBackup);
+        memoryFallback.progress = recovered;
+        memoryFallback.lastChecksum = computeVaultChecksum(JSON.stringify(recovered));
+        return recovered;
+      }
+    } catch {}
+
     const fallback = sanitizeUserProgress(memoryFallback.progress ?? DEFAULT_PROGRESS);
     memoryFallback.progress = fallback;
     memoryFallback.lastChecksum = computeVaultChecksum(JSON.stringify(fallback));
@@ -288,10 +315,73 @@ export function saveUserProgress(progress: UserProgress): boolean {
   memoryFallback.lastChecksum = computeVaultChecksum(serialized);
   try {
     localStorage.setItem(PROGRESS_KEY, serialized);
+    // Persist redundant backup key so progress is dual-buffered against accidental loss
+    try {
+      localStorage.setItem(PROGRESS_BACKUP_KEY, serialized);
+    } catch {}
     return true;
   } catch {
     return false;
   }
+}
+
+export interface ProgressBackupPayload {
+  app: 'Arabic-English-Thinking-Bridge';
+  version: '3.0.0';
+  exportedAt: string;
+  checksum: string;
+  progress: UserProgress;
+}
+
+export function exportUserProgressJson(progress: UserProgress): string {
+  const clean = sanitizeUserProgress(progress);
+  const serialized = JSON.stringify(clean);
+  const payload: ProgressBackupPayload = {
+    app: 'Arabic-English-Thinking-Bridge',
+    version: '3.0.0',
+    exportedAt: new Date().toISOString(),
+    checksum: computeVaultChecksum(serialized),
+    progress: clean
+  };
+  return JSON.stringify(payload, null, 2);
+}
+
+export function importUserProgressJson(jsonStr: string): {
+  success: boolean;
+  progress?: UserProgress;
+  error?: string;
+} {
+  try {
+    const parsed = JSON.parse(jsonStr);
+    const rawProgress =
+      parsed && typeof parsed === 'object' && 'progress' in parsed
+        ? (parsed as Record<string, unknown>).progress
+        : parsed;
+
+    if (!rawProgress || typeof rawProgress !== 'object') {
+      return { success: false, error: 'Invalid backup format' };
+    }
+
+    const clean = sanitizeUserProgress(rawProgress);
+    saveUserProgress(clean);
+    return { success: true, progress: clean };
+  } catch {
+    return { success: false, error: 'Malformed JSON data' };
+  }
+}
+
+export function downloadProgressBackup(progress: UserProgress): void {
+  const jsonStr = exportUserProgressJson(progress);
+  const blob = new Blob([jsonStr], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const dateStr = new Date().toISOString().split('T')[0];
+  a.href = url;
+  a.download = `thinking-bridge-progress-${dateStr}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 export function getVaultAuditSnapshot(progress: UserProgress) {

@@ -1,7 +1,9 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { useVoiceOrchestrator, VoiceState } from './useVoiceOrchestrator';
-import { UserProgress } from '../../types';
+import { UserProfile, UserProgress } from '../../types';
 import { unlockAudio } from '../../utils/audio';
+import { TabTutorialModal } from '../../components/TabTutorialModal';
+import { applyHabitWin } from '../../utils/habitPsychology';
 import './voice.css';
 
 const LABELS: Record<VoiceState, string> = {
@@ -25,16 +27,21 @@ const STOP_WORDS = new Set([
   'hello', 'good', 'morning', 'evening', 'amr', 'thanks', 'thank'
 ]);
 
-import { TabTutorialModal } from '../../components/TabTutorialModal';
-import { UserProfile } from '../../types';
-
 interface VoicePracticeViewProps {
   onBack: () => void;
   progress?: UserProgress;
   profile?: UserProfile | null;
+  updateAndSaveProgress?: (updater: (prev: UserProgress) => UserProgress) => void;
+  onToast?: (msg: string) => void;
 }
 
-export function VoicePracticeView({ onBack, progress, profile }: VoicePracticeViewProps) {
+export function VoicePracticeView({
+  onBack,
+  progress,
+  profile,
+  updateAndSaveProgress,
+  onToast
+}: VoicePracticeViewProps) {
   const [showGuide, setShowGuide] = useState(false);
   const {
     state,
@@ -59,6 +66,29 @@ export function VoicePracticeView({ onBack, progress, profile }: VoicePracticeVi
   useEffect(() => {
     if (error) setShowInput(true);
   }, [error]);
+
+  const prevMsgCountRef = useRef(messages.length);
+  useEffect(() => {
+    if (messages.length > prevMsgCountRef.current) {
+      const lastMsg = messages[messages.length - 1];
+      if (lastMsg && lastMsg.role === 'assistant' && updateAndSaveProgress) {
+        const todayKey = new Date().toISOString().split('T')[0];
+        updateAndSaveProgress(prev => {
+          const habit = applyHabitWin(prev, 5, todayKey);
+          const prevReviewCount = prev.reviewHistory?.[todayKey] || 0;
+          return {
+            ...habit.nextProgress,
+            lastActiveDate: todayKey,
+            reviewHistory: {
+              ...(prev.reviewHistory || {}),
+              [todayKey]: prevReviewCount + 1
+            }
+          };
+        });
+      }
+      prevMsgCountRef.current = messages.length;
+    }
+  }, [messages, updateAndSaveProgress]);
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);

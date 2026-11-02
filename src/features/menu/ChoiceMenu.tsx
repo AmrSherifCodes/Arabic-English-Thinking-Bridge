@@ -1,7 +1,8 @@
 import React from 'react';
 import { ActionTile } from './ActionTile';
 import { UserRound, ScrollText, Zap, Shield, BookMarked, Download, ExternalLink, HelpCircle } from 'lucide-react';
-import { UserProfile } from '../../types';
+import { UserProfile, UserProgress } from '../../types';
+import { PHASES_DATA } from '../../data/lessons';
 import './menu.css';
 
 export type MenuRoute = 'voice' | 'lesson' | 'flashcards' | 'preferences';
@@ -9,6 +10,7 @@ export type MenuRoute = 'voice' | 'lesson' | 'flashcards' | 'preferences';
 export interface ChoiceMenuProps {
   dueCards: number;
   profile?: UserProfile | null;
+  progress?: UserProgress;
   onLanguageChange?: (lang: 'arabic' | 'english') => void;
   onSelect: (r: MenuRoute) => void;
   onOpenCV?: () => void;
@@ -19,6 +21,7 @@ export interface ChoiceMenuProps {
 export function ChoiceMenu({
   dueCards,
   profile,
+  progress,
   onLanguageChange,
   onSelect,
   onOpenCV,
@@ -26,6 +29,7 @@ export function ChoiceMenu({
   onOpenTutorial,
 }: ChoiceMenuProps) {
   const isArabic = profile?.language === 'arabic';
+  const totalLessons = PHASES_DATA.reduce((acc, p) => acc + p.lessons.length, 0);
 
   return (
     <div className="menu" dir={isArabic ? 'rtl' : 'ltr'}>
@@ -77,7 +81,46 @@ export function ChoiceMenu({
           </p>
         </header>
 
-        {/* 2. Stats Strip */}
+        {/* 2. Tracked Learner Progress HUD */}
+        {progress && (
+          <section className="menu__progress-hud" aria-label="Tracked learner progress">
+            <div className="menu__hud-item" title={isArabic ? 'أيام الاستمرارية' : 'Day streak'}>
+              <span className="menu__hud-icon">🔥</span>
+              <div className="menu__hud-text">
+                <span className="menu__hud-val">{progress.streak || 0}</span>
+                <span className="menu__hud-lbl">{isArabic ? 'حماسة' : 'Streak'}</span>
+              </div>
+            </div>
+            <div className="menu__hud-divider" />
+            <div className="menu__hud-item" title={isArabic ? 'مجموع نقاط الخبرة' : 'Total XP Earned'}>
+              <span className="menu__hud-icon">🏆</span>
+              <div className="menu__hud-text">
+                <span className="menu__hud-val">{progress.score || 0}</span>
+                <span className="menu__hud-lbl">XP</span>
+              </div>
+            </div>
+            <div className="menu__hud-divider" />
+            <div className="menu__hud-item" title={isArabic ? 'الدروس المكتملة' : 'Completed Lessons'}>
+              <span className="menu__hud-icon">📚</span>
+              <div className="menu__hud-text">
+                <span className="menu__hud-val">
+                  {progress.completedLessonIds?.length || 0}/{totalLessons}
+                </span>
+                <span className="menu__hud-lbl">{isArabic ? 'دروس' : 'Lessons'}</span>
+              </div>
+            </div>
+            <div className="menu__hud-divider" />
+            <div className="menu__hud-item" title={isArabic ? 'دروع حماية الاستمرارية' : 'Streak Shields'}>
+              <span className="menu__hud-icon">🛡️</span>
+              <div className="menu__hud-text">
+                <span className="menu__hud-val">{progress.streakShields ?? 2}</span>
+                <span className="menu__hud-lbl">{isArabic ? 'دروع' : 'Shields'}</span>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* 3. Stats Strip */}
         <section className="menu__stats-strip" aria-label="Key app features">
           <div className="menu__stat-item">
             <Zap className="menu__stat-icon" />

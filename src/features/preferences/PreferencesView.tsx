@@ -1,22 +1,38 @@
-import React, { useState, useMemo } from 'react';
-import { Youtube } from 'lucide-react';
+import React, { useState, useMemo, useRef } from 'react';
+import { Youtube, Download, Upload, ShieldCheck, Database, CheckCircle2 } from 'lucide-react';
 import { TabTutorialModal } from '../../components/TabTutorialModal';
 import { CATEGORY_LABELS, CATEGORY_LABELS_AR, PreferenceCategory } from './settingsSchema';
 import { usePreferences } from './usePreferences';
 import { FieldRenderer } from './FieldRenderer';
-import { UserProfile } from '../../types';
+import { UserProfile, UserProgress } from '../../types';
+import { downloadProgressBackup, importUserProgressJson, getVaultAuditSnapshot } from '../../utils/storage';
 import './preferences.css';
 
 interface PreferencesViewProps {
   onBack: () => void;
   profile?: UserProfile | null;
   onSaveProfile?: (profile: UserProfile) => void;
+  progress?: UserProgress;
+  updateAndSaveProgress?: (updater: (prev: UserProgress) => UserProgress) => void;
+  onToast?: (msg: string) => void;
 }
 
-export function PreferencesView({ onBack, profile, onSaveProfile }: PreferencesViewProps) {
+export function PreferencesView({
+  onBack,
+  profile,
+  onSaveProfile,
+  progress,
+  updateAndSaveProgress,
+  onToast
+}: PreferencesViewProps) {
   const [showGuide, setShowGuide] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { values, set, reset, schema } = usePreferences();
   const isArabic = profile?.language === 'arabic';
+
+  const vaultAudit = useMemo(() => {
+    return progress ? getVaultAuditSnapshot(progress) : null;
+  }, [progress]);
 
   const grouped = useMemo(() => {
     const m = new Map<PreferenceCategory, typeof schema>();
@@ -38,6 +54,34 @@ export function PreferencesView({ onBack, profile, onSaveProfile }: PreferencesV
         });
       }
     }
+  };
+
+  const handleExportBackup = () => {
+    if (!progress) return;
+    downloadProgressBackup(progress);
+    onToast?.(isArabic ? '📥 تم تنزيل النسخة الاحتياطية بنجاح!' : '📥 Backup file downloaded successfully!');
+  };
+
+  const handleImportFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const content = event.target?.result as string;
+      const res = importUserProgressJson(content);
+      if (res.success && res.progress && updateAndSaveProgress) {
+        updateAndSaveProgress(() => res.progress!);
+        onToast?.(
+          isArabic
+            ? '✅ تم استعادة تقدمك ونسختك الاحتياطية بنجاح!'
+            : '✅ Progress restored successfully from backup!'
+        );
+      } else {
+        onToast?.(isArabic ? '❌ ملف غير صالح' : `❌ ${res.error || 'Failed to restore backup'}`);
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
   };
 
   return (
@@ -128,6 +172,94 @@ export function PreferencesView({ onBack, profile, onSaveProfile }: PreferencesV
             )}
           </section>
         ))}
+        {/* Progress & Data Vault Section */}
+        {progress && (
+          <section className="pref-vault-card" aria-label="Progress and Data Vault">
+            <div className="pref-vault-card__header">
+              <h3 className="pref-vault-card__title">
+                <Database className="w-4 h-4 text-teal-400" />
+                <span>{isArabic ? 'مخزن البيانات والتقدم' : 'Progress & Data Vault'}</span>
+              </h3>
+              <span className="pref-vault-card__badge flex items-center gap-1">
+                <ShieldCheck className="w-3.5 h-3.5 text-teal-300" />
+                <span>{isArabic ? 'تخزين آمن ومحمي' : 'Dual-Layer Secured'}</span>
+              </span>
+            </div>
+
+            <div className="pref-vault-card__grid">
+              <div className="pref-vault-item">
+                <span className="pref-vault-item__val">{progress.score || 0}</span>
+                <span className="pref-vault-item__lbl">
+                  {isArabic ? 'نقاط الخبرة (XP)' : 'Total Score (XP)'}
+                </span>
+              </div>
+              <div className="pref-vault-item">
+                <span className="pref-vault-item__val">🔥 {progress.streak || 0}</span>
+                <span className="pref-vault-item__lbl">
+                  {isArabic ? 'أيام الاستمرارية' : 'Current Streak'}
+                </span>
+              </div>
+              <div className="pref-vault-item">
+                <span className="pref-vault-item__val">⭐ {progress.bestStreak || 0}</span>
+                <span className="pref-vault-item__lbl">
+                  {isArabic ? 'أعلى استمرارية' : 'Best Streak'}
+                </span>
+              </div>
+              <div className="pref-vault-item">
+                <span className="pref-vault-item__val">
+                  {progress.completedLessonIds?.length || 0}
+                </span>
+                <span className="pref-vault-item__lbl">
+                  {isArabic ? 'الدروس المنجزة' : 'Lessons Mastered'}
+                </span>
+              </div>
+              <div className="pref-vault-item">
+                <span className="pref-vault-item__val">
+                  {progress.completedExerciseCount || progress.completedExerciseIds?.length || 0}
+                </span>
+                <span className="pref-vault-item__lbl">
+                  {isArabic ? 'التمارين المحلولة' : 'Exercises Solved'}
+                </span>
+              </div>
+              <div className="pref-vault-item">
+                <span className="pref-vault-item__val">🛡️ {progress.streakShields ?? 2}/5</span>
+                <span className="pref-vault-item__lbl">
+                  {isArabic ? 'دروع الحماية' : 'Streak Shields'}
+                </span>
+              </div>
+            </div>
+
+            <input
+              type="file"
+              ref={fileInputRef}
+              accept=".json"
+              style={{ display: 'none' }}
+              onChange={handleImportFile}
+            />
+
+            <div className="pref-vault-actions">
+              <button
+                type="button"
+                onClick={handleExportBackup}
+                className="pref-vault-btn"
+                aria-label={isArabic ? 'تصدير نسخة احتياطية' : 'Export progress backup'}
+              >
+                <Download className="w-4 h-4 text-teal-400" />
+                <span>{isArabic ? 'تصدير نسخة احتياطية (JSON)' : 'Export Backup (JSON)'}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="pref-vault-btn"
+                aria-label={isArabic ? 'استعادة من نسخة احتياطية' : 'Restore from backup'}
+              >
+                <Upload className="w-4 h-4 text-teal-400" />
+                <span>{isArabic ? 'استعادة من ملف (Restore)' : 'Restore from File'}</span>
+              </button>
+            </div>
+          </section>
+        )}
+
         {/* Creator & Socials Card */}
         <div className="pref-creator-card">
           <div className="pref-creator-card__header">

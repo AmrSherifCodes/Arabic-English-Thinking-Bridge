@@ -186,6 +186,7 @@ export default function App() {
         <ChoiceMenu
           dueCards={dueCards}
           profile={profile}
+          progress={progress}
           onLanguageChange={handleLanguageChange}
           onSelect={(route) => setView({ name: 'route', route })}
           onOpenCV={() => setCvOpen(true)}
@@ -195,11 +196,24 @@ export default function App() {
       )}
 
       {view.name === 'route' && view.route === 'voice' && (
-        <VoicePracticeView onBack={goHome} progress={progress} profile={profile} />
+        <VoicePracticeView
+          onBack={goHome}
+          progress={progress}
+          profile={profile}
+          updateAndSaveProgress={updateAndSaveProgress}
+          onToast={showToast}
+        />
       )}
 
       {view.name === 'route' && view.route === 'preferences' && (
-        <PreferencesView onBack={goHome} profile={profile} onSaveProfile={saveProfile} />
+        <PreferencesView
+          onBack={goHome}
+          profile={profile}
+          onSaveProfile={saveProfile}
+          progress={progress}
+          updateAndSaveProgress={updateAndSaveProgress}
+          onToast={showToast}
+        />
       )}
 
       {view.name === 'route' && view.route === 'flashcards' && (
