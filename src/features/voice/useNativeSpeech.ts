@@ -15,6 +15,7 @@ export function useNativeSpeech({
   silenceTimeoutMs = 1200,
 }: UseNativeSpeechOptions = {}) {
   const [isListening, setIsListening] = useState(false);
+  const isListeningRef = useRef(false);
   const [transcript, setTranscript] = useState('');
   const [interimTranscript, setInterimTranscript] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -26,13 +27,38 @@ export function useNativeSpeech({
   const partialListenerRef = useRef<PluginListenerHandle | null>(null);
   const stateListenerRef = useRef<PluginListenerHandle | null>(null);
 
-  // Audio Recording (MediaRecorder) fallback for Brave/privacy browsers
+  // Audio Recording (MediaRecorder + Web Audio Silence Detection) for Brave & privacy browsers
   const isAudioModeRef = useRef(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const rafIdRef = useRef<number | null>(null);
 
   const isNative = Capacitor.isNativePlatform();
+
+  // Detect Brave Browser upfront so we never hit Google's blocked speech proxy
+  useEffect(() => {
+    if (typeof navigator !== 'undefined') {
+      const nav = navigator as any;
+      if (nav.brave && typeof nav.brave.isBrave === 'function') {
+        nav.brave
+          .isBrave()
+          .then((isB: boolean) => {
+            if (isB) {
+              console.log('[useNativeSpeech] Brave browser detected. Enabling seamless direct audio engine.');
+              isAudioModeRef.current = true;
+            }
+          })
+          .catch(() => {});
+      }
+    }
+  }, []);
+
+  const updateListening = (val: boolean) => {
+    isListeningRef.current = val;
+    setIsListening(val);
+  };
 
   const clearSilenceTimer = useCallback(() => {
     if (silenceTimerRef.current) {
@@ -41,9 +67,25 @@ export function useNativeSpeech({
     }
   }, []);
 
+  const stopAudioTracks = useCallback(() => {
+    if (rafIdRef.current) {
+      cancelAnimationFrame(rafIdRef.current);
+      rafIdRef.current = null;
+    }
+    if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+      audioContextRef.current.close().catch(() => {});
+      audioContextRef.current = null;
+    }
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach((t) => t.stop());
+      mediaStreamRef.current = null;
+    }
+  }, []);
+
   const triggerSpeechEnd = useCallback(
     (text: string) => {
       clearSilenceTimer();
+      stopAudioTracks();
       const clean = text.trim();
       if (clean && !finalizedRef.current) {
         finalizedRef.current = true;
@@ -52,7 +94,7 @@ export function useNativeSpeech({
         onSpeechEnd?.(clean);
       }
     },
-    [clearSilenceTimer, onSpeechEnd]
+    [clearSilenceTimer, onSpeechEnd, stopAudioTracks]
   );
 
   const resetSilenceTimer = useCallback(
@@ -75,20 +117,28 @@ export function useNativeSpeech({
             /* noop */
           }
         }
-        setIsListening(false);
+        updateListening(false);
         triggerSpeechEnd(textToFinalize);
       }, silenceTimeoutMs);
     },
     [clearSilenceTimer, isNative, silenceTimeoutMs, triggerSpeechEnd]
   );
 
-  // Fallback Audio Recording using standard MediaRecorder (Supported 100% in Brave/Firefox/Safari)
+  // Fallback Audio Recording using standard MediaRecorder with smart silence detection
   const startAudioRecording = useCallback(async () => {
     try {
       if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
         throw new Error('Audio recording not supported in this browser.');
       }
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stopAudioTracks();
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        },
+      });
       mediaStreamRef.current = stream;
       audioChunksRef.current = [];
 
@@ -109,54 +159,97 @@ export function useNativeSpeech({
       };
 
       recorder.onstart = () => {
-        setIsListening(true);
+        updateListening(true);
         setError(null);
-        setInterimTranscript('🎙️ Speak now... tap mic when done');
+        setInterimTranscript('🎙️ Listening... speak naturally');
       };
 
+      // Set up real-time silence analysis so Brave users enjoy automatic hands-free conversation
+      try {
+        const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+        if (AudioCtx) {
+          const audioCtx = new AudioCtx();
+          audioContextRef.current = audioCtx;
+          const source = audioCtx.createMediaStreamSource(stream);
+          const analyser = audioCtx.createAnalyser();
+          analyser.fftSize = 512;
+          analyser.smoothingTimeConstant = 0.25;
+          source.connect(analyser);
+
+          const dataArray = new Uint8Array(analyser.frequencyBinCount);
+          let silenceStart = Date.now();
+          let userHasSpoken = false;
+
+          const checkAudioLevel = () => {
+            if (!isListeningRef.current || !mediaRecorderRef.current || mediaRecorderRef.current.state !== 'recording') {
+              return;
+            }
+            analyser.getByteFrequencyData(dataArray);
+            let sum = 0;
+            for (let i = 0; i < dataArray.length; i++) {
+              sum += dataArray[i];
+            }
+            const average = sum / dataArray.length;
+
+            if (average > 10) {
+              userHasSpoken = true;
+              silenceStart = Date.now();
+            } else if (userHasSpoken && Date.now() - silenceStart > 1650) {
+              console.log('[useNativeSpeech] Silence detected in audio mode. Finalizing turn.');
+              stopListening();
+              return;
+            }
+
+            rafIdRef.current = requestAnimationFrame(checkAudioLevel);
+          };
+
+          rafIdRef.current = requestAnimationFrame(checkAudioLevel);
+        }
+      } catch (audioCtxErr) {
+        console.warn('[useNativeSpeech] Silence analyzer skipped:', audioCtxErr);
+      }
+
       recorder.start(250);
-      setIsListening(true);
+      updateListening(true);
     } catch (err: any) {
-      console.warn('[useNativeSpeech] Audio recording fallback failed:', err);
+      console.warn('[useNativeSpeech] Audio recording failed:', err);
       const msg =
         err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError'
           ? 'Microphone permission denied. Tap the lock icon in your browser address bar to allow microphone access.'
           : 'Microphone access failed. Please use text input below to practice.';
       setError(msg);
       onError?.(msg);
-      setIsListening(false);
+      updateListening(false);
+      stopAudioTracks();
     }
-  }, [onError]);
+  }, [onError, stopAudioTracks]);
 
   const stopAudioRecording = useCallback(async () => {
     const recorder = mediaRecorderRef.current;
     if (!recorder || recorder.state === 'inactive') {
-      setIsListening(false);
+      updateListening(false);
+      stopAudioTracks();
       return;
     }
 
     return new Promise<void>((resolve) => {
       recorder.onstop = async () => {
         try {
-          if (mediaStreamRef.current) {
-            mediaStreamRef.current.getTracks().forEach((t) => t.stop());
-            mediaStreamRef.current = null;
-          }
+          stopAudioTracks();
 
           const blob = new Blob(audioChunksRef.current, {
             type: recorder.mimeType || 'audio/webm',
           });
 
           if (blob.size < 1200) {
-            // Empty or instant tap without speaking
-            setIsListening(false);
+            updateListening(false);
             setInterimTranscript('');
             resolve();
             return;
           }
 
           setInterimTranscript('Transcribing speech…');
-          setIsListening(false);
+          updateListening(false);
 
           // Convert blob to base64 for /api/gemini transcription
           const reader = new FileReader();
@@ -197,7 +290,7 @@ export function useNativeSpeech({
           reader.readAsDataURL(blob);
         } catch (err) {
           console.warn('[useNativeSpeech] Error in recorder onstop:', err);
-          setIsListening(false);
+          updateListening(false);
           resolve();
         }
       };
@@ -208,7 +301,7 @@ export function useNativeSpeech({
         resolve();
       }
     });
-  }, [onError, triggerSpeechEnd]);
+  }, [onError, stopAudioTracks, triggerSpeechEnd]);
 
   const startListening = useCallback(
     async (lang = 'en-US') => {
@@ -263,7 +356,7 @@ export function useNativeSpeech({
                 if (latestTranscriptRef.current.trim()) {
                   triggerSpeechEnd(latestTranscriptRef.current);
                 }
-                setIsListening(false);
+                updateListening(false);
               }
             }
           );
@@ -276,16 +369,16 @@ export function useNativeSpeech({
             popup: false,
           });
 
-          setIsListening(true);
+          updateListening(true);
         } catch (err: any) {
           console.error('[useNativeSpeech] Native start error:', err);
           const msg = 'Failed to start native microphone.';
           setError(msg);
           onError?.(msg);
-          setIsListening(false);
+          updateListening(false);
         }
       } else {
-        // If Brave/browser previously blocked Web Speech, go straight to Audio Recording
+        // If Brave or browser previously blocked Web Speech, use direct Audio Recording immediately
         if (isAudioModeRef.current) {
           await startAudioRecording();
           return;
@@ -297,7 +390,6 @@ export function useNativeSpeech({
           (window as any).webkitSpeechRecognition;
 
         if (!SpeechRec) {
-          // No SpeechRecognition support -> use Audio Recording directly
           isAudioModeRef.current = true;
           await startAudioRecording();
           return;
@@ -313,7 +405,7 @@ export function useNativeSpeech({
                 const msg = 'Microphone permission denied. Tap the lock icon in your browser address bar to allow access.';
                 setError(msg);
                 onError?.(msg);
-                setIsListening(false);
+                updateListening(false);
                 return;
               }
             }
@@ -334,7 +426,7 @@ export function useNativeSpeech({
           rec.maxAlternatives = 1;
 
           rec.onstart = () => {
-            setIsListening(true);
+            updateListening(true);
           };
 
           rec.onresult = (event: any) => {
@@ -355,7 +447,7 @@ export function useNativeSpeech({
           rec.onerror = (e: any) => {
             console.warn('[useNativeSpeech] Web speech error:', e.error);
 
-            // In Brave browser or restricted networks, Google Speech is blocked
+            // In Brave browser or restricted networks, Google Speech proxy is blocked
             if (e.error === 'network') {
               console.log('[useNativeSpeech] Web Speech API blocked by browser (Brave/privacy shield). Engaging Audio Recording fallback.');
               isAudioModeRef.current = true;
@@ -377,11 +469,11 @@ export function useNativeSpeech({
               setError(msg);
               onError?.(msg);
             }
-            setIsListening(false);
+            updateListening(false);
           };
 
           rec.onend = () => {
-            setIsListening(false);
+            updateListening(false);
             if (latestTranscriptRef.current.trim()) {
               triggerSpeechEnd(latestTranscriptRef.current);
             }
@@ -391,7 +483,6 @@ export function useNativeSpeech({
           rec.start();
         } catch (err: any) {
           console.error('[useNativeSpeech] Browser speech start failed:', err);
-          // If browser speech constructor throws, fall back to Audio Recording
           isAudioModeRef.current = true;
           await startAudioRecording();
         }
@@ -403,13 +494,12 @@ export function useNativeSpeech({
   const stopListening = useCallback(async () => {
     clearSilenceTimer();
 
-    // If recording via MediaRecorder, finalize it
     if (isAudioModeRef.current && mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
       await stopAudioRecording();
       return;
     }
 
-    setIsListening(false);
+    updateListening(false);
 
     if (isNative) {
       try {
@@ -432,7 +522,8 @@ export function useNativeSpeech({
 
   const abortListening = useCallback(async () => {
     clearSilenceTimer();
-    setIsListening(false);
+    stopAudioTracks();
+    updateListening(false);
     latestTranscriptRef.current = '';
     setTranscript('');
     setInterimTranscript('');
@@ -444,11 +535,6 @@ export function useNativeSpeech({
         /* noop */
       }
       mediaRecorderRef.current = null;
-    }
-
-    if (mediaStreamRef.current) {
-      mediaStreamRef.current.getTracks().forEach((t) => t.stop());
-      mediaStreamRef.current = null;
     }
 
     if (isNative) {
@@ -464,16 +550,14 @@ export function useNativeSpeech({
         /* noop */
       }
     }
-  }, [clearSilenceTimer, isNative]);
+  }, [clearSilenceTimer, isNative, stopAudioTracks]);
 
   useEffect(() => {
     return () => {
       clearSilenceTimer();
+      stopAudioTracks();
       if (partialListenerRef.current) partialListenerRef.current.remove();
       if (stateListenerRef.current) stateListenerRef.current.remove();
-      if (mediaStreamRef.current) {
-        mediaStreamRef.current.getTracks().forEach((t) => t.stop());
-      }
       if (webRecognizerRef.current) {
         try {
           webRecognizerRef.current.abort();
@@ -482,7 +566,7 @@ export function useNativeSpeech({
         }
       }
     };
-  }, [clearSilenceTimer]);
+  }, [clearSilenceTimer, stopAudioTracks]);
 
   return {
     isListening,
