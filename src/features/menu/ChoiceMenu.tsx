@@ -229,9 +229,7 @@ export function ChoiceMenu({
 
         {/* 6. Download App Button */}
         <a
-          href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v3.0.1/Thinking-Bridge-v3.0.1.apk"
-          target="_blank"
-          rel="noopener noreferrer"
+          href="/apk"
           className="menu__download-btn"
           aria-label={isArabic ? 'تحميل تطبيق الأندرويد v3.0.1' : 'Download Android APK v3.0.1'}
         >

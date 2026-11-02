@@ -183,12 +183,12 @@ export function LandingView({ onStartWebApp, onStartGuest, onResumeApp }: Landin
 
             {/* Primary Action 2: Direct Download APK (Verified Release Asset) */}
             <a
-              href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/1.1.2/thinking-english-v1.1.2.apk"
+              href="/apk"
               id="download-android-apk-btn"
               className="w-full flex items-center justify-center gap-3 rounded-2xl bg-teal-700 hover:bg-teal-600 active:translate-y-1 text-white font-black text-base sm:text-lg py-3.5 px-6 shadow-[0_4px_0_#115e59] active:shadow-none transition-all cursor-pointer"
             >
               <Smartphone size={22} className="shrink-0" />
-              <span>تحميل تطبيق الأندرويد مباشرة (v1.1.2 APK) 📱</span>
+              <span>تحميل تطبيق الأندرويد مباشرة (v3.0.1 APK) 📱</span>
             </a>
 
             {/* Releases page fallback link */}
@@ -527,11 +527,11 @@ export function LandingView({ onStartWebApp, onStartGuest, onResumeApp }: Landin
               </button>
             </div>
             <a
-              href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/1.1.2/thinking-english-v1.1.2.apk"
+              href="/apk"
               className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white transition hover:bg-emerald-700 cursor-pointer"
             >
               <Smartphone size={18} aria-hidden="true" />
-              <span>تحميل ملف APK مباشرة (v1.1.2)</span>
+              <span>تحميل ملف APK مباشرة (v3.0.1)</span>
             </a>
             <button
               type="button"

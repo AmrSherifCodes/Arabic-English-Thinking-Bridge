@@ -74,10 +74,6 @@ const menuPath = path.join(ROOT_DIR, 'src', 'features', 'menu', 'ChoiceMenu.tsx'
 if (fs.existsSync(menuPath)) {
   let menuContent = fs.readFileSync(menuPath, 'utf8');
   menuContent = menuContent.replace(
-    /download\/v[0-9.]+\/[a-zA-Z0-9.-]+\.apk/g,
-    `download/${tag}/Thinking-Bridge-${tag}.apk`
-  );
-  menuContent = menuContent.replace(
     /v[0-9.]+\s*·\s*APK/g,
     `${tag} · APK`
   );
@@ -85,8 +81,44 @@ if (fs.existsSync(menuPath)) {
     /v[0-9.]+(?=['"]\s*:\s*['"]Download Android APK)/g,
     `${tag}`
   );
+  menuContent = menuContent.replace(
+    /تحميل تطبيق الأندرويد v[0-9.]+/g,
+    `تحميل تطبيق الأندرويد ${tag}`
+  );
   fs.writeFileSync(menuPath, menuContent, 'utf8');
   console.log(`   ✓ src/features/menu/ChoiceMenu.tsx -> updated APK download badges to ${tag}`);
+}
+
+// E. vercel.json redirects
+const vercelPath = path.join(ROOT_DIR, 'vercel.json');
+if (fs.existsSync(vercelPath)) {
+  let vercelContent = fs.readFileSync(vercelPath, 'utf8');
+  vercelContent = vercelContent.replace(
+    /download\/v[0-9.]+\/Thinking-Bridge-v[0-9.]+\.apk/g,
+    `download/${tag}/Thinking-Bridge-${tag}.apk`
+  );
+  fs.writeFileSync(vercelPath, vercelContent, 'utf8');
+  console.log(`   ✓ vercel.json -> updated /apk and /download redirects to ${tag}`);
+}
+
+// F. src/components/LandingView.tsx & locales
+const landingPath = path.join(ROOT_DIR, 'src', 'components', 'LandingView.tsx');
+if (fs.existsSync(landingPath)) {
+  let landingContent = fs.readFileSync(landingPath, 'utf8');
+  landingContent = landingContent.replace(/v[0-9.]+\s*APK/g, `${tag} APK`);
+  landingContent = landingContent.replace(/APK مباشرة \(v[0-9.]+\)/g, `APK مباشرة (${tag})`);
+  fs.writeFileSync(landingPath, landingContent, 'utf8');
+  console.log(`   ✓ src/components/LandingView.tsx -> updated APK badges to ${tag}`);
+}
+
+for (const locFile of ['ar.json', 'en.json']) {
+  const locPath = path.join(ROOT_DIR, 'src', 'locales', locFile);
+  if (fs.existsSync(locPath)) {
+    let locContent = fs.readFileSync(locPath, 'utf8');
+    locContent = locContent.replace(/v[0-9.]+\)/g, `${tag})`);
+    fs.writeFileSync(locPath, locContent, 'utf8');
+    console.log(`   ✓ src/locales/${locFile} -> updated versions to ${tag}`);
+  }
 }
 
 // 3. Run Automated Tests
