@@ -243,6 +243,10 @@ async function checkRateLimit(req) {
 function buildCacheKey(operation, body) {
   if (!isRecord(body)) return null;
   if (operation === 'transcribe') return null;
+  if (operation === 'corporate-bridge') {
+    const t = typeof body.thought === 'string' ? body.thought.trim().toLowerCase().slice(0, 150) : '';
+    return t ? `tb:cache:corporate:${t}` : null;
+  }
   if (operation === 'entry') {
     const word = typeof body.word === 'string' ? body.word.trim().toLowerCase() : '';
     const dialect = typeof body.dialect === 'string' ? body.dialect : 'msa';
@@ -519,6 +523,13 @@ async function generate(operation, body) {
     const { audioData } = body;
     if (typeof audioData !== 'string' || !audioData.trim()) {
       return { status: 400, error: { code: 'empty-audio', message: 'Audio data is required.' } };
+    }
+  }
+
+  if (operation === 'corporate-bridge') {
+    const thought = typeof body.thought === 'string' ? body.thought.trim() : '';
+    if (!thought || thought.length > 500) {
+      return { status: 400, error: { code: 'empty-input', message: 'Thought is required and cannot exceed 500 characters.' } };
     }
   }
 
@@ -880,7 +891,158 @@ async function generate(operation, body) {
     return { status: 200, data };
   }
 
+  if (operation === 'corporate-bridge') {
+    const thought = typeof body.thought === 'string' ? body.thought.trim() : '';
+    if (!thought || thought.length > 500) {
+      return { status: 400, error: { code: 'empty-input', message: 'Thought is required and cannot exceed 500 characters.' } };
+    }
+
+    const systemPrompt = `You are an elite bilingual executive communication coach specializing in Egyptian Arabic and corporate English.
+The user provides an informal thought or frustration expressed in Egyptian Arabic (or Egyptian Franco-Arabic).
+Transform the raw thought into 3 professional corporate English expressions and explain the mindset/thinking shift in Arabic.
+
+Format your response strictly as valid JSON without markdown formatting or code blocks:
+{
+  "originalThought": string,
+  "thinkingShift": string,
+  "tones": {
+    "polite": {
+      "label": "Professional Polite (Daily Slack & Email)",
+      "english": string,
+      "context": string
+    },
+    "assertive": {
+      "label": "Firm & Assertive (Deadlines & Escalation)",
+      "english": string,
+      "context": string
+    },
+    "executive": {
+      "label": "Executive & Client-Facing (Strategic & Polished)",
+      "english": string,
+      "context": string
+    }
+  }
+}`;
+
+    try {
+      const response = await generateContentWithFallback(ai, {
+        contents: `Egyptian Thought: "${thought}"`,
+        config: {
+          systemInstruction: systemPrompt,
+          maxOutputTokens: 600,
+          temperature: 0.3,
+        },
+      });
+
+      const rawText = response.text?.trim() || '';
+      const cleanJson = rawText.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
+      const parsed = JSON.parse(cleanJson);
+      return { status: 200, data: parsed };
+    } catch (modelErr) {
+      console.warn('[gemini.js] corporate-bridge model call error, using deterministic fallback:', modelErr?.message || modelErr);
+      const fallback = getDeterministicCorporateBridge(thought);
+      return { status: 200, data: fallback };
+    }
+  }
+
   return { status: 400, error: { code: 'bad-output', message: 'Unknown AI operation.' } };
+}
+
+function getDeterministicCorporateBridge(thought) {
+  const t = thought.toLowerCase();
+  if (t.includes('داتا') || t.includes('يسلم') || t.includes('يبعت') || t.includes('مأخر') || t.includes('data') || t.includes('deliverable') || t.includes('بيتلكك')) {
+    return {
+      originalThought: thought,
+      thinkingShift: 'في العامية المصرية بنركز على إلقاء اللوم أو العطلة الشخصية ("العميل مأخرنا وبيتلكك"). في ثقافة الشركات العالمية، بنحوّل التركيز من إلقاء اللوم إلى أثر التأخير على تسليم المشروع وتحديد المسئولية والجدول الزمني بوضوح واحترافية.',
+      tones: {
+        polite: {
+          label: 'Professional Polite (Daily Slack & Email)',
+          english: 'Hi [Name], following up regarding the pending deliverables. Could you kindly provide an update so we can ensure the project timeline stays on schedule?',
+          context: 'مناسبة للمتابعة اليومية المهذبة دون إحراج أو خلق توتر مع الزميل أو العميل.'
+        },
+        assertive: {
+          label: 'Firm & Assertive (Deadlines & Escalation)',
+          english: 'To ensure we meet our project milestones, we urgently require the pending data deliverables. Please note that continued delay will directly shift our delivery target.',
+          context: 'استخدمها عندما يقترب الموعد النهائي وتحتاج لإثبات أن التأخير خارج مسؤوليتك وحماية فريقك.'
+        },
+        executive: {
+          label: 'Executive & Client-Facing (Strategic & Polished)',
+          english: 'We are currently pending essential client inputs required to progress to the next implementation phase. Timely receipt will ensure uninterrupted project execution.',
+          context: 'مثالية للإيميلات الموجهة للإدارة العليا، تقارير الحالة (Status Reports)، والعملاء الكبار.'
+        }
+      }
+    };
+  }
+
+  if (t.includes('ميتنج') || t.includes('اجتماع') || t.includes('meeting') || t.includes('معلش') || t.includes('مشوفتش') || t.includes('busy')) {
+    return {
+      originalThought: thought,
+      thinkingShift: 'بدلاً من الاعتذار المفرط ("معلش والله كنت مشغول")، الأسلوب الاحترافي يشكر الطرف الآخر على الصبر ("Thank you for your patience") ويعطيه التحديث المطلوب فوراً بثقة.',
+      tones: {
+        polite: {
+          label: 'Professional Polite (Daily Slack & Email)',
+          english: 'Thanks for your patience—I was wrapped up in meetings and just seeing this now. Regarding your request...',
+          context: 'طريقة ودية واحترافية للرد على الرسائل المتأخرة بدون اعتذارات مهزوزة.'
+        },
+        assertive: {
+          label: 'Firm & Assertive (Setting Boundaries)',
+          english: 'Thank you for following up. I was in back-to-back meetings today; I will review this thoroughly and get back to you by [Time/Date].',
+          context: 'توضح أنك محترف ومشغول وتحدد موعداً دقيقاً للرد لمنع الإلحاح.'
+        },
+        executive: {
+          label: 'Executive & Client-Facing',
+          english: 'Thank you for your note. I was engaged in stakeholder discussions earlier today. I have prioritized your inquiry and will follow up with actionable next steps.',
+          context: 'نبرة رفيعة المستوى تعطي ثقة وأهمية للمستلم.'
+        }
+      }
+    };
+  }
+
+  if (t.includes('غلط') || t.includes('حسابات') || t.includes('أرقام') || t.includes('راجع') || t.includes('check') || t.includes('review') || t.includes('error')) {
+    return {
+      originalThought: thought,
+      thinkingShift: 'بدل ما تقول "أنت غلطان في الحسابات" (اتهام مباشر)، حوّلها لـ "لاحظت وجود اختلاف بسيط وحابب نتأكد إننا متوافقين" (Aligning on figures & reconciliation).',
+      tones: {
+        polite: {
+          label: 'Professional Polite (Collaborative)',
+          english: 'Could we double-check these figures together? I noticed a slight variance on our end and want to make sure we are fully aligned.',
+          context: 'لفت نظر بلباقة واحترافية دون إحراج الطرف الآخر.'
+        },
+        assertive: {
+          label: 'Firm & Assertive (Audit & Compliance)',
+          english: 'Upon reviewing the calculation breakdown, I identified a discrepancy that requires reconciliation before we finalize this document.',
+          context: 'عند مراجعة العقود، الفواتير، ومستندات الحسابات الرسمية.'
+        },
+        executive: {
+          label: 'Executive & Client-Facing',
+          english: 'We have identified a preliminary variance in the reported metrics. We are reconciling the figures now to guarantee 100% data integrity.',
+          context: 'للتقارير المالية والمديرين التنفيذيين.'
+        }
+      }
+    };
+  }
+
+  return {
+    originalThought: thought,
+    thinkingShift: 'في الإنجليزية المهنية، نركز على النتيجة المرجوة (Solution-Oriented) والوضوح التام، مع حذف الانفعالات والتعبير بأفعال مباشرة مبنية على الحلول.',
+    tones: {
+      polite: {
+        label: 'Professional Polite (Everyday Workplace)',
+        english: `Regarding "${thought}": I would appreciate your guidance on the best way to move this forward smoothly.`,
+        context: 'نبرة تعاونية للاستفسار وحل المشاكل بأسلوب لطيف ومحترم.'
+      },
+      assertive: {
+        label: 'Firm & Assertive (Action Oriented)',
+        english: `Regarding our action items: We need to finalize the next steps promptly to prevent any schedule impact.`,
+        context: 'للحسم وطلب تحرك سريع ومحدد بالوقت.'
+      },
+      executive: {
+        label: 'Executive & Client-Facing',
+        english: `We are proactively managing this milestone to ensure alignment with our overarching strategic objectives.`,
+        context: 'صياغة استراتيجية رفيعة المستوى تظهر القيادة والمبادرة.'
+      }
+    }
+  };
 }
 
 const ALLOWED_CORS_ORIGINS = new Set([

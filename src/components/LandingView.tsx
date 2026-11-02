@@ -458,7 +458,7 @@ export function LandingView({ onStartWebApp, onStartGuest, onResumeApp }: Landin
                       About & Executive Summary
                     </h3>
                     <p>
-                      Passionate software engineer, chemist, and educator dedicated to democratizing cognitive English learning for native Arabic speakers. Sole architect and creator of <strong>Thinking Bridge (+44,000 lines of production code across 188 files)</strong>, featuring deterministic SM-2 algorithms, real-time multimodal conversation, dual-engine speech resilience for Chrome and privacy browsers (Brave), and 108 automated unit tests.
+                      Passionate software engineer, chemist, and educator dedicated to democratizing cognitive English learning for native Arabic speakers. Sole architect and creator of <strong>Thinking Bridge (+44,000 lines of production code across 188 files)</strong>, featuring deterministic SM-2 algorithms, real-time multimodal conversation, dual-engine speech resilience for Chrome and privacy browsers (Brave), and 111 automated unit tests.
                     </p>
                   </section>
 
@@ -469,7 +469,7 @@ export function LandingView({ onStartWebApp, onStartGuest, onResumeApp }: Landin
                     <div className="rounded-xl border border-stone-200 bg-stone-50 p-3.5 dark:border-stone-700 dark:bg-stone-800">
                       <div className="flex items-center justify-between font-bold text-xs text-stone-900 dark:text-stone-100">
                         <span>Thinking Bridge Ecosystem</span>
-                        <span className="text-emerald-600 dark:text-emerald-400">44,236 LOC · 108 Tests</span>
+                        <span className="text-emerald-600 dark:text-emerald-400">44,236 LOC · 111 Tests</span>
                       </div>
                       <p className="mt-1 text-xs text-stone-600 dark:text-stone-300">
                         Built completely from scratch with React 19, TypeScript, Capacitor 8 native Android packaging, Edge TTS neural streaming, and offline-first storage.

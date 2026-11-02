@@ -258,3 +258,19 @@ test('10. transcribe operation rejects empty audio data with 400 Bad Request', a
     error: { code: 'empty-audio', message: 'Audio data is required.' }
   });
 });
+
+
+test('11. corporate-bridge operation rejects empty thought with 400 Bad Request', async () => {
+  const req = createMockReq({
+    method: 'POST',
+    body: { operation: 'corporate-bridge', thought: '' }
+  });
+  const res = createMockRes();
+
+  await handler(req, res);
+
+  assert.equal(res.statusCode, 400);
+  assert.deepEqual(res.json, {
+    error: { code: 'empty-input', message: 'Thought is required and cannot exceed 500 characters.' }
+  });
+});

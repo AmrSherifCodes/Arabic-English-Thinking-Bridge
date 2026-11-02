@@ -101,13 +101,13 @@ export function CVModal({ isOpen, onClose }: CVModalProps) {
       accentColor: 'border-teal-500/30 bg-teal-950/20 text-teal-300',
       badge: '44K+ Lines',
       summary:
-        'Architected and built a complete production-grade language learning ecosystem from scratch (+44,000 lines of code across 188 files) with 108 automated unit tests.',
+        'Architected and built a complete production-grade language learning ecosystem from scratch (+44,000 lines of code across 188 files) with 111 automated unit tests.',
       highlights: [
         'Engineered +44,000 lines of robust code in React 19, TypeScript, Node.js, and Capacitor 8 spanning 188 modular files with 0 bloated UI frameworks.',
         'Engineered universal cross-browser speech engine with seamless automatic fallback for privacy browsers like Brave and Firefox.',
         'Implemented Anki-grade SM-2 Spaced Repetition mathematical algorithm to handle +10,000 dictionary flashcards.',
         'Packaged lean 28MB native Android APK with Capacitor 8, custom release keystore signing, and haptic feedback integration.',
-        'Authored 108/108 automated unit tests covering rate limiters, proxy headers, audio chunks, and SM-2 interval progressions.',
+        'Authored 111/111 automated unit tests covering rate limiters, proxy headers, audio chunks, and SM-2 interval progressions.',
       ],
       skills: ['React 19', 'TypeScript (+44K LOC)', 'Capacitor 8', 'Tailwind CSS', 'SM-2 Algorithm', 'Vite & Workbox PWA', 'Brave/Chrome Audio Engine'],
     },
@@ -227,7 +227,7 @@ export function CVModal({ isOpen, onClose }: CVModalProps) {
             About & Executive Summary
           </h3>
           <p className="text-xs sm:text-sm text-stone-300 leading-relaxed">
-            Dedicated Chemistry and Environmental Studies undergraduate combining laboratory analytical rigor with real-world corporate leadership and advanced AI-native software engineering. Sole architect and developer of Thinking Bridge—a massive cross-platform ecosystem built from scratch spanning <strong>+44,000 lines of production code</strong> across 188 files (React 19, TypeScript, Node.js serverless streaming, and native Android), backed by 108/108 passing automated tests.
+            Dedicated Chemistry and Environmental Studies undergraduate combining laboratory analytical rigor with real-world corporate leadership and advanced AI-native software engineering. Sole architect and developer of Thinking Bridge—a massive cross-platform ecosystem built from scratch spanning <strong>+44,000 lines of production code</strong> across 188 files (React 19, TypeScript, Node.js serverless streaming, and native Android), backed by 111/111 passing automated tests.
           </p>
         </section>
 

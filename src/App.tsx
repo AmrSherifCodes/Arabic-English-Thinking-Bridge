@@ -8,6 +8,7 @@ import { PreferencesView } from './features/preferences/PreferencesView';
 import { VoicePracticeView } from './features/voice/VoicePracticeView';
 import { FlashcardsView } from './features/flashcards/FlashcardsView';
 import { LessonView } from './features/lesson/LessonView';
+import { CorporateBridgeView } from './features/corporate/CorporateBridgeView';
 import { CVModal } from './components/CVModal';
 import { TutorialModal } from './components/TutorialModal';
 import { OnboardingModal } from './components/OnboardingModal';
@@ -228,6 +229,14 @@ export default function App() {
           profile={profile}
           updateAndSaveProgress={updateAndSaveProgress}
           onToast={showToast}
+        />
+      )}
+
+      {view.name === 'route' && view.route === 'corporate' && (
+        <CorporateBridgeView
+          onBack={goHome}
+          onToast={showToast}
+          preferredVoice={progress.preferredVoice}
         />
       )}
 

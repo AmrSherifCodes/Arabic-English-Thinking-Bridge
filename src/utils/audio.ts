@@ -346,6 +346,10 @@ export class VoiceRecorder {
 
 export function isSpeechRecognitionSupported(): boolean {
   if (typeof window === 'undefined') return false;
+  // Brave blocks Google Speech API servers by default for privacy
+  if (typeof navigator !== 'undefined' && Boolean((navigator as any).brave)) {
+    return false;
+  }
   return Boolean(
     (window as unknown as { SpeechRecognition?: unknown; webkitSpeechRecognition?: unknown }).SpeechRecognition ||
       (window as unknown as { SpeechRecognition?: unknown; webkitSpeechRecognition?: unknown }).webkitSpeechRecognition
@@ -354,6 +358,10 @@ export function isSpeechRecognitionSupported(): boolean {
 
 export function createSpeechRecognition(): any | null {
   if (typeof window === 'undefined') return null;
+  // In Brave, webkitSpeechRecognition triggers network errors; do not instantiate
+  if (typeof navigator !== 'undefined' && Boolean((navigator as any).brave)) {
+    return null;
+  }
   const SpeechRecognition =
     (window as unknown as { SpeechRecognition?: any; webkitSpeechRecognition?: any }).SpeechRecognition ||
     (window as unknown as { SpeechRecognition?: any; webkitSpeechRecognition?: any }).webkitSpeechRecognition;

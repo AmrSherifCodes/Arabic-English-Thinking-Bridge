@@ -3,6 +3,12 @@ import { Capacitor, type PluginListenerHandle } from '@capacitor/core';
 import { SpeechRecognition } from '@capacitor-community/speech-recognition';
 import { API_BASE_URL } from '../../utils/api';
 
+export function isBraveBrowser(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  const nav = navigator as any;
+  return Boolean(nav.brave);
+}
+
 interface UseNativeSpeechOptions {
   onSpeechEnd?: (finalTranscript: string) => void;
   onError?: (errorMessage: string) => void;
@@ -28,7 +34,7 @@ export function useNativeSpeech({
   const stateListenerRef = useRef<PluginListenerHandle | null>(null);
 
   // Audio Recording (MediaRecorder + Web Audio Silence Detection) for Brave & privacy browsers
-  const isAudioModeRef = useRef(false);
+  const isAudioModeRef = useRef<boolean>(isBraveBrowser());
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -41,16 +47,19 @@ export function useNativeSpeech({
   useEffect(() => {
     if (typeof navigator !== 'undefined') {
       const nav = navigator as any;
-      if (nav.brave && typeof nav.brave.isBrave === 'function') {
-        nav.brave
-          .isBrave()
-          .then((isB: boolean) => {
-            if (isB) {
-              console.log('[useNativeSpeech] Brave browser detected. Enabling seamless direct audio engine.');
-              isAudioModeRef.current = true;
-            }
-          })
-          .catch(() => {});
+      if (nav.brave) {
+        isAudioModeRef.current = true;
+        if (typeof nav.brave.isBrave === 'function') {
+          nav.brave
+            .isBrave()
+            .then((isB: boolean) => {
+              if (isB) {
+                console.log('[useNativeSpeech] Brave browser verified. Direct audio engine engaged.');
+                isAudioModeRef.current = true;
+              }
+            })
+            .catch(() => {});
+        }
       }
     }
   }, []);
@@ -241,7 +250,7 @@ export function useNativeSpeech({
             type: recorder.mimeType || 'audio/webm',
           });
 
-          if (blob.size < 1200) {
+          if (blob.size < 300) {
             updateListening(false);
             setInterimTranscript('');
             resolve();
@@ -379,7 +388,8 @@ export function useNativeSpeech({
         }
       } else {
         // If Brave or browser previously blocked Web Speech, use direct Audio Recording immediately
-        if (isAudioModeRef.current) {
+        if (isAudioModeRef.current || isBraveBrowser()) {
+          isAudioModeRef.current = true;
           await startAudioRecording();
           return;
         }
@@ -448,13 +458,19 @@ export function useNativeSpeech({
             console.warn('[useNativeSpeech] Web speech error:', e.error);
 
             // In Brave browser or restricted networks, Google Speech proxy is blocked
-            if (e.error === 'network') {
-              console.log('[useNativeSpeech] Web Speech API blocked by browser (Brave/privacy shield). Engaging Audio Recording fallback.');
+            if (e.error === 'network' || e.error === 'service-not-allowed') {
+              console.log('[useNativeSpeech] Speech recognition blocked by browser (Brave/privacy shield). Engaging Audio Recording fallback.');
               isAudioModeRef.current = true;
-              try {
-                rec.abort();
-              } catch {
-                /* noop */
+              if (webRecognizerRef.current) {
+                webRecognizerRef.current.onend = null;
+                webRecognizerRef.current.onerror = null;
+                webRecognizerRef.current.onresult = null;
+                try {
+                  webRecognizerRef.current.abort();
+                } catch {
+                  /* noop */
+                }
+                webRecognizerRef.current = null;
               }
               startAudioRecording();
               return;

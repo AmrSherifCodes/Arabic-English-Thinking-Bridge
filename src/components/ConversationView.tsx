@@ -648,7 +648,7 @@ export function ConversationView({ profile, onToast, preferredVoice }: Conversat
         <div className="my-2 p-3 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700/60 text-amber-900 dark:text-amber-200 text-xs font-semibold flex items-center gap-2">
           <AlertCircle size={16} className="shrink-0" />
           <span>
-            متصفحك لا يدعم التعرف الصوتي المباشر. يمكنك استخدام المربع النصي بالأسفل للكتابة وسيصلك الرد الصوتي فوراً!
+            متصفحك يحجب التعرف الصوتي السحابي (Brave/حماية الخصوصية). يمكنك الكتابة في المربع بالأسفل وسيصلك الرد الصوتي فوراً، أو تجربة شاشة &quot;Voice Practice&quot; المزودة بنظام التسجيل المباشر!
           </span>
         </div>
       )}

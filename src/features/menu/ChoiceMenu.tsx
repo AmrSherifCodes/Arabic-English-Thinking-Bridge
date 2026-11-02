@@ -5,7 +5,7 @@ import { UserProfile, UserProgress } from '../../types';
 import { PHASES_DATA } from '../../data/lessons';
 import './menu.css';
 
-export type MenuRoute = 'voice' | 'lesson' | 'flashcards' | 'preferences';
+export type MenuRoute = 'voice' | 'lesson' | 'flashcards' | 'preferences' | 'corporate';
 
 export interface ChoiceMenuProps {
   dueCards: number;
@@ -212,6 +212,12 @@ export function ChoiceMenu({
             hint={isArabic ? `${dueCards} بطاقة مستحقة اليوم · +10k كلمة جديدة` : `${dueCards} cards due today · +10k new words`}
             badge={dueCards}
             onClick={() => onSelect('flashcards')}
+          />
+          <ActionTile
+            icon="💼"
+            label={isArabic ? 'من البلدي لـ Corporate' : 'Corporate Bridge'}
+            hint={isArabic ? 'حوّل أفكارك بالعامية لصياغة إنجليزية احترافية' : 'Turn raw Egyptian thoughts into executive English'}
+            onClick={() => onSelect('corporate')}
           />
           <ActionTile
             icon="⚙️"
