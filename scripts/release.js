@@ -116,25 +116,26 @@ run(`${gradlewCmd} assembleRelease --no-daemon`, path.join(ROOT_DIR, 'android'),
 // 7. Copy Output APKs
 console.log(`\n📋 6. Copying production APK...`);
 const builtApkPath = path.join(ROOT_DIR, 'android', 'app', 'build', 'outputs', 'apk', 'release', 'app-universal-release.apk');
+const arm64ApkPath = path.join(ROOT_DIR, 'android', 'app', 'build', 'outputs', 'apk', 'release', 'app-arm64-v8a-release.apk');
 const desktopApkPath = `C:\\Users\\MSI\\Desktop\\Thinking-Bridge-${tag}.apk`;
-const publicApkPath = path.join(ROOT_DIR, 'public', 'Thinking-English.apk');
+const desktopArm64Path = `C:\\Users\\MSI\\Desktop\\Thinking-Bridge-${tag}-arm64.apk`;
 
 if (fs.existsSync(builtApkPath)) {
   try {
     fs.copyFileSync(builtApkPath, desktopApkPath);
-    console.log(`   ✓ Copied to Desktop: ${desktopApkPath}`);
+    console.log(`   ✓ Copied Universal APK to Desktop: ${desktopApkPath}`);
   } catch (err) {
-    console.warn(`   ⚠️ Could not copy to desktop (sandboxed): ${err.message}`);
+    console.warn(`   ⚠️ Could not copy universal APK to desktop: ${err.message}`);
   }
+}
 
+if (fs.existsSync(arm64ApkPath)) {
   try {
-    fs.copyFileSync(builtApkPath, publicApkPath);
-    console.log(`   ✓ Copied to public web assets: ${publicApkPath}`);
+    fs.copyFileSync(arm64ApkPath, desktopArm64Path);
+    console.log(`   ✓ Copied Lean ARM64 APK to Desktop: ${desktopArm64Path}`);
   } catch (err) {
-    console.warn(`   ⚠️ Could not copy to public: ${err.message}`);
+    console.warn(`   ⚠️ Could not copy arm64 APK to desktop: ${err.message}`);
   }
-} else {
-  console.error(`   ❌ Release APK not found at: ${builtApkPath}`);
 }
 
 // 8. Git Commit, Tag & Push
@@ -160,3 +161,4 @@ console.log(`======================================================`);
 console.log(`\nDesktop APK: ${desktopApkPath}`);
 console.log(`Web URL:     https://arabicenglishthinkingbridge.vercel.app/`);
 console.log(`GitHub Tag:  ${tag}\n`);
+
