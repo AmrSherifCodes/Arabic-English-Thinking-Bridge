@@ -373,7 +373,7 @@ function lessonsV(){
       </div>\`;
     });
   });
-  return h+\`<p class="text-xs opacity-70 mt-4 pt-3 border-t border-stone-200 dark:border-stone-700 text-center">🌊 Crafted in <strong>Alexandria, Egypt</strong> by <strong>Amr Sherif</strong> · Gratefully inspired by <strong>Mihalis Eleftheriou</strong> &amp; <em>The Thinking Method</em> · 100% Free &amp; Ad-Free (CC0 1.0 · Thinking English™)</p>\`;
+  return h+\`<p class="text-xs opacity-70 mt-4 pt-3 border-t border-stone-200 dark:border-stone-700 text-center">🌊 Crafted in <strong>Alexandria, Egypt</strong> by <strong>Amr Sherif</strong> · Gratefully inspired by <strong>Mihalis Eleftheriou</strong> &amp; <em>The Thinking Method</em> · 100% Free &amp; Ad-Free (CC0 1.0 · Thinking English™)<br><span style="margin-top: 6px; display: inline-flex; gap: 8px;"><a href="https://www.linkedin.com/in/sciamrsherif-abdelaal/">LinkedIn</a> <a href="https://github.com/AmrSherifCodes">GitHub</a> <a href="https://www.patreon.com/c/SciAmrSherif">Patreon</a> <a href="https://www.youtube.com/@SciAmrSherif">YouTube</a> <a href="https://x.com/SciAmrSherif">X</a> <a href="mailto:amrsherifbusiness@gmail.com">Email</a></span></p>\`;
 }
 
 function shuffleArray(array){const a=[...array];let c=a.length,r;while(c!==0){r=Math.floor(Math.random()*c);c--;[a[c],a[r]]=[a[r],a[c]]}if(a.length>1&&a.every((v,i)=>v===array[i])){const s=a.findIndex(v=>v!==a[0]);if(s>0)[a[0],a[s]]=[a[s],a[0]]}return a}
