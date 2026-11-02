@@ -60,16 +60,49 @@ export function selectBestArabicVoice(
 
 export const CLOUD_AI_VOICE_ID = 'cloud-ai';
 
-function speakWithNativeSpeechSynthesis(
+/**
+ * Prime and unlock audio playback on mobile browsers, WebView and iOS Safari.
+ * Call this on any initial user touch/click.
+ */
+export function unlockAudio(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.resume();
+    }
+    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+    if (AudioCtx) {
+      const ctx = new AudioCtx();
+      if (ctx.state === 'suspended') {
+        ctx.resume().catch(() => {});
+      }
+      const buffer = ctx.createBuffer(1, 1, 22050);
+      const source = ctx.createBufferSource();
+      source.buffer = buffer;
+      source.connect(ctx.destination);
+      source.start(0);
+    }
+    // Also unlock HTML5 Audio element
+    const silent = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA');
+    silent.volume = 0.01;
+    silent.play().then(() => silent.pause()).catch(() => {});
+  } catch {
+    /* ignore */
+  }
+}
+
+export function speakWithNativeSpeechSynthesis(
   text: string,
   requestedRate: number = 1,
-  preferredVoiceName?: string
+  preferredVoiceName?: string,
+  onBoundary?: (charIndex: number) => void,
+  onEnd?: () => void
 ): boolean {
   if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
     return false;
   }
   try {
-    window.speechSynthesis.cancel();
+    window.speechSynthesis.resume();
     const utterance = new SpeechSynthesisUtterance(text);
     const allVoices = window.speechSynthesis.getVoices();
     const isArabic = /[\u0600-\u06FF]/.test(text);
@@ -103,11 +136,36 @@ function speakWithNativeSpeechSynthesis(
       }
     }
 
-    utterance.rate = requestedRate * 0.9;
+    utterance.rate = Math.max(0.7, Math.min(1.5, requestedRate * 0.95));
     utterance.pitch = 1;
-    window.speechSynthesis.speak(utterance);
+
+    if (onBoundary) {
+      utterance.onboundary = (e: SpeechSynthesisEvent) => {
+        onBoundary(e.charIndex);
+      };
+    }
+    if (onEnd) {
+      utterance.onend = () => onEnd();
+      utterance.onerror = () => onEnd();
+    }
+
+    // Workaround Chromium speech cancellation bug by canceling and deferring speak 15ms
+    try {
+      window.speechSynthesis.cancel();
+    } catch {}
+
+    setTimeout(() => {
+      try {
+        window.speechSynthesis.resume();
+        window.speechSynthesis.speak(utterance);
+      } catch (err) {
+        console.warn('[speechSynthesis] speak invocation error:', err);
+      }
+    }, 15);
+
     return true;
-  } catch {
+  } catch (err) {
+    console.warn('[speechSynthesis] Setup error:', err);
     return false;
   }
 }
@@ -120,12 +178,8 @@ export function speakWithRate(
   const clean = text.trim();
   if (!clean) return false;
 
+  unlockAudio();
   activeSpeakAbortController?.abort();
-  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-    try {
-      window.speechSynthesis.cancel();
-    } catch {}
-  }
 
   const isArabic = /[\u0600-\u06FF]/.test(clean);
   const enVoices = !isArabic ? getEnglishVoices() : [];
@@ -150,6 +204,12 @@ export function speakWithRate(
   const controller = new AbortController();
   activeSpeakAbortController = controller;
 
+  // Set a safety timeout for remote TTS so the user is never left in silence
+  const timeoutId = setTimeout(() => {
+    controller.abort();
+    speakWithNativeSpeechSynthesis(clean, requestedRate, preferredVoiceName);
+  }, 3500);
+
   const voipi = createVoiPiVoice();
   void voipi
     .speak(clean, {
@@ -158,7 +218,11 @@ export function speakWithRate(
       rate: requestedRate * 0.95,
       signal: controller.signal,
     })
+    .then(() => {
+      clearTimeout(timeoutId);
+    })
     .catch(() => {
+      clearTimeout(timeoutId);
       if (controller.signal.aborted) return;
       speakWithNativeSpeechSynthesis(clean, requestedRate, preferredVoiceName);
     });

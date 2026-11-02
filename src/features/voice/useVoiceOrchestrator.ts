@@ -5,6 +5,7 @@ import { API_BASE_URL } from '../../utils/api';
 import { generateSmartConversationReply } from '../../services/smartConversation';
 import { useNativeSpeech } from './useNativeSpeech';
 import { usePreferences } from '../preferences/usePreferences';
+import { unlockAudio, speakWithNativeSpeechSynthesis } from '../../utils/audio';
 
 export type VoiceState = 'idle' | 'listening' | 'transcribing' | 'thinking' | 'speaking';
 
@@ -44,6 +45,18 @@ function getStoredProfile() {
   };
 }
 
+
+export interface PlayableAudioSlot {
+  play: () => Promise<void>;
+  pause: () => void;
+  duration: number;
+  currentTime: number;
+  onended?: () => void;
+  onerror?: (err?: any) => void;
+  __words?: string[];
+  __startWordIndex?: number;
+}
+
 export function useVoiceOrchestrator() {
   const { values } = usePreferences();
   const voiceModel = String(values.voiceModel || 'ar-EG-SalmaNeural');
@@ -64,12 +77,12 @@ export function useVoiceOrchestrator() {
   const abortControllerRef = useRef<AbortController | null>(null);
 
   // Parallel prefetch & sequenced playback queue
-  const audioSlotsRef = useRef<Map<number, HTMLAudioElement>>(new Map());
+  const audioSlotsRef = useRef<Map<number, PlayableAudioSlot>>(new Map());
   const nextPlayIndexRef = useRef(0);
   const totalDispatchedRef = useRef(0);
   const streamDoneRef = useRef(false);
   const isPlayingRef = useRef(false);
-  const currentAudioRef = useRef<HTMLAudioElement | null>(null);
+  const currentAudioRef = useRef<PlayableAudioSlot | null>(null);
   const syncAnimFrameRef = useRef<number | null>(null);
 
   // Stop any active audio immediately
@@ -185,7 +198,7 @@ export function useVoiceOrchestrator() {
       setAudioProgress(0);
       setCurrentSpokenWordIndex(-1);
       if (stateRef.current === 'speaking') {
-        if (autoListen && Capacitor.isNativePlatform()) {
+        if (autoListen) {
           setTimeout(() => {
             if (stateRef.current === 'speaking' || stateRef.current === 'idle') {
               startTurn();
@@ -198,6 +211,75 @@ export function useVoiceOrchestrator() {
     }
   }, [autoListen]);
 
+  // Helper to create a fallback slot powered by on-device SpeechSynthesis
+  const createFallbackAudioSlot = useCallback(
+    (
+      sentenceText: string,
+      wordsList: string[],
+      startWordIdx: number,
+      rate: number,
+      preferredVoice?: string
+    ): PlayableAudioSlot => {
+      let isEnded = false;
+      let startTime = 0;
+      const estimatedDuration = Math.max(1.0, (wordsList.length * 0.35) / Math.max(0.7, rate));
+      let fallbackTimer: any = null;
+
+      const slot: PlayableAudioSlot = {
+        duration: estimatedDuration,
+        get currentTime() {
+          if (!startTime) return 0;
+          return Math.min(estimatedDuration, (Date.now() - startTime) / 1000);
+        },
+        __words: wordsList,
+        __startWordIndex: startWordIdx,
+        play: () => {
+          return new Promise<void>((resolve) => {
+            startTime = Date.now();
+            const spoken = speakWithNativeSpeechSynthesis(
+              sentenceText,
+              rate,
+              preferredVoice,
+              (charIndex) => {
+                const before = sentenceText.slice(0, charIndex);
+                const count = before.split(/\s+/).filter(Boolean).length;
+                const wordIdx = Math.min(wordsList.length - 1, Math.max(0, count));
+                setCurrentSpokenWordIndex(startWordIdx + wordIdx);
+              },
+              () => {
+                if (!isEnded) {
+                  isEnded = true;
+                  if (fallbackTimer) clearTimeout(fallbackTimer);
+                  if (slot.onended) slot.onended();
+                }
+                resolve();
+              }
+            );
+
+            if (!spoken) {
+              fallbackTimer = setTimeout(() => {
+                if (!isEnded) {
+                  isEnded = true;
+                  if (slot.onended) slot.onended();
+                }
+                resolve();
+              }, estimatedDuration * 1000);
+            }
+          });
+        },
+        pause: () => {
+          try {
+            window.speechSynthesis.cancel();
+          } catch {}
+          isEnded = true;
+          if (fallbackTimer) clearTimeout(fallbackTimer);
+        },
+      };
+      return slot;
+    },
+    []
+  );
+
   // Parallel prefetch for a single sentence
   const prefetchSentence = useCallback(
     async (sentence: string, signal: AbortSignal, chunkIndex: number, startWordIndex: number = 0) => {
@@ -207,8 +289,13 @@ export function useVoiceOrchestrator() {
       const isArabic = /[\u0600-\u06FF]/.test(clean);
       const targetLang = isArabic ? 'ar-EG' : 'en-US';
       const targetVoice = isArabic ? voiceModel : englishVoice;
+      const words = clean.split(/\s+/).filter(Boolean);
+      let slotCreated = false;
 
       try {
+        const timeoutCtrl = new AbortController();
+        const timeoutId = setTimeout(() => timeoutCtrl.abort(), 3500);
+
         const res = await fetch(`${API_BASE_URL}/api/tts`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -218,48 +305,69 @@ export function useVoiceOrchestrator() {
             voice: targetVoice,
             rate: speechRate,
           }),
-          signal,
-        });
+          signal: signal || timeoutCtrl.signal,
+        }).finally(() => clearTimeout(timeoutId));
 
         if (!res.ok) throw new Error(`TTS failed with status ${res.status}`);
 
         const blob = await res.blob();
-        if (blob.size < 50) return;
+        if (blob.size >= 50) {
+          const blobUrl = URL.createObjectURL(blob);
+          const audio = new Audio(blobUrl);
+          audio.playbackRate = speechRate;
+          (audio as any).__words = words;
+          (audio as any).__startWordIndex = startWordIndex;
 
-        const blobUrl = URL.createObjectURL(blob);
-        const audio = new Audio(blobUrl);
+          const playableSlot: PlayableAudioSlot = {
+            play: () => audio.play(),
+            pause: () => {
+              try { audio.pause(); } catch {}
+            },
+            get duration() { return audio.duration || 0; },
+            get currentTime() { return audio.currentTime || 0; },
+            set onended(fn: any) { audio.onended = fn; },
+            get onended() { return audio.onended as any; },
+            set onerror(fn: any) { audio.onerror = fn; },
+            get onerror() { return audio.onerror as any; },
+            __words: words,
+            __startWordIndex: startWordIndex,
+          };
 
-        const words = clean.split(/\s+/).filter(Boolean);
-        (audio as any).__words = words;
-        (audio as any).__startWordIndex = startWordIndex;
-
-        if (chunkIndex === 0) {
-          performance.mark('tts-first-chunk');
-          try {
-            performance.measure('ttfa', 'speech-end', 'tts-first-chunk');
-            const entries = performance.getEntriesByName('ttfa');
-            const ttfa = Math.round(entries[entries.length - 1]?.duration || 0);
-            setLatencyMetrics((prev) => ({ ...prev, ttfa }));
-            console.log(`[VoiceLatency] Time-to-First-Audio (TTFA): ${ttfa} ms`);
-          } catch {
-            /* noop */
+          if (chunkIndex === 0) {
+            performance.mark('tts-first-chunk');
+            try {
+              performance.measure('ttfa', 'speech-end', 'tts-first-chunk');
+              const entries = performance.getEntriesByName('ttfa');
+              const ttfa = Math.round(entries[entries.length - 1]?.duration || 0);
+              setLatencyMetrics((prev) => ({ ...prev, ttfa }));
+            } catch {
+              /* noop */
+            }
           }
-        }
 
-        audioSlotsRef.current.set(chunkIndex, audio);
-        checkAndPlayQueue();
+          audioSlotsRef.current.set(chunkIndex, playableSlot);
+          slotCreated = true;
+          checkAndPlayQueue();
+        }
       } catch (err: any) {
-        if (err.name !== 'AbortError') {
-          console.warn('[useVoiceOrchestrator] Sentence TTS prefetch error:', err);
-          // Advance play index if this chunk failed so queue does not stall
-          if (nextPlayIndexRef.current === chunkIndex) {
-            nextPlayIndexRef.current++;
-            checkAndPlayQueue();
-          }
-        }
+        if (err.name === 'AbortError') return;
+        console.warn('[useVoiceOrchestrator] Remote TTS prefetch failed, engaging on-device speech:', err);
+      }
+
+      // If remote Edge TTS did not create a slot, immediately engage native speech synthesis fallback!
+      if (!slotCreated) {
+        const fallbackSlot = createFallbackAudioSlot(
+          clean,
+          words,
+          startWordIndex,
+          speechRate,
+          targetVoice
+        );
+        audioSlotsRef.current.set(chunkIndex, fallbackSlot);
+        checkAndPlayQueue();
       }
     },
-    [checkAndPlayQueue, englishVoice, speechRate, voiceModel]
+    [checkAndPlayQueue, createFallbackAudioSlot, englishVoice, speechRate, voiceModel]
   );
 
   // Handle incoming final speech from user
@@ -445,7 +553,7 @@ export function useVoiceOrchestrator() {
         handleUserSpeech(text);
       }, 50);
     },
-    silenceTimeoutMs: 500,
+    silenceTimeoutMs: 1500,
   });
 
   // Start turn / tap to speak
@@ -466,6 +574,7 @@ export function useVoiceOrchestrator() {
       }
     }
 
+    unlockAudio();
     stopAudio();
     setState('listening');
     startListening('en-US');

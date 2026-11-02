@@ -1,13 +1,21 @@
 import { Capacitor } from '@capacitor/core';
 
-/**
- * Base URL for API requests.
- * On native mobile platforms (Android/iOS via Capacitor), relative paths like /api/gemini
- * fail because the app runs locally from capacitor://localhost or http://localhost.
- * In native environments, this points to the hosted Vercel backend.
- * In web browsers, it stays empty ('') so existing relative proxying/routing continues working.
- */
-export const API_BASE_URL: string = Capacitor.isNativePlatform()
-  ? 'https://arabicenglishthinkingbridge.vercel.app'
-  : '';
+export const REMOTE_API_BASE_URL = 'https://arabicenglishthinkingbridge.vercel.app';
 
+export function getApiBaseUrl(): string {
+  if (typeof window === 'undefined') return REMOTE_API_BASE_URL;
+  if (Capacitor.isNativePlatform()) return REMOTE_API_BASE_URL;
+
+  // If running directly on the production Vercel domain, use relative paths
+  if (typeof window.location !== 'undefined') {
+    const origin = window.location.origin || '';
+    if (origin.includes('arabicenglishthinkingbridge.vercel.app')) {
+      return '';
+    }
+  }
+
+  // In local development (localhost), Android Capacitor, PWA, or other hostings:
+  return REMOTE_API_BASE_URL;
+}
+
+export const API_BASE_URL: string = getApiBaseUrl();

@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useVoiceOrchestrator, VoiceState } from './useVoiceOrchestrator';
 import { UserProgress } from '../../types';
+import { unlockAudio } from '../../utils/audio';
 import './voice.css';
 
 const LABELS: Record<VoiceState, string> = {
@@ -74,6 +75,7 @@ export function VoicePracticeView({ onBack, progress, profile }: VoicePracticeVi
   }, []);
 
   const handleMicClick = () => {
+    unlockAudio();
     if (state === 'listening') {
       stopTurn();
     } else {
@@ -84,6 +86,7 @@ export function VoicePracticeView({ onBack, progress, profile }: VoicePracticeVi
   const handleSendText = (e: React.FormEvent) => {
     e.preventDefault();
     if (!textInput.trim()) return;
+    unlockAudio();
     handleManualText(textInput);
     setTextInput('');
     setShowInput(false);

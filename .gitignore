@@ -26,3 +26,5 @@ playwright-report/
 android/key.properties
 *.keystore
 *.jks
+
+*.mp4
