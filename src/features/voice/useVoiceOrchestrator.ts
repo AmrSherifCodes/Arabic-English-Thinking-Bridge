@@ -185,7 +185,7 @@ export function useVoiceOrchestrator() {
       setAudioProgress(0);
       setCurrentSpokenWordIndex(-1);
       if (stateRef.current === 'speaking') {
-        if (autoListen) {
+        if (autoListen && Capacitor.isNativePlatform()) {
           setTimeout(() => {
             if (stateRef.current === 'speaking' || stateRef.current === 'idle') {
               startTurn();

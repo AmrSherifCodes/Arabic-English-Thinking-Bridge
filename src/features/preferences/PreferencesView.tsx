@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { Youtube } from 'lucide-react';
 import { CATEGORY_LABELS, CATEGORY_LABELS_AR, PreferenceCategory } from './settingsSchema';
 import { usePreferences } from './usePreferences';
 import { FieldRenderer } from './FieldRenderer';
@@ -108,6 +109,79 @@ export function PreferencesView({ onBack, profile, onSaveProfile }: PreferencesV
             )}
           </section>
         ))}
+        {/* Creator & Socials Card */}
+        <div className="pref-creator-card">
+          <div className="pref-creator-card__header">
+            <div className="pref-creator-card__avatar-wrap">
+              <img
+                src="/amr-avatar.png"
+                alt="Amr Sherif"
+                className="pref-creator-card__avatar"
+              />
+            </div>
+            <div>
+              <h3 className="pref-creator-card__name">Amr Sherif</h3>
+              <p className="pref-creator-card__sub">
+                {isArabic ? 'مبتكر جسر التفكير · الإسكندرية، مصر 🇪🇬' : 'Creator & Architect · Alexandria, Egypt 🇪🇬'}
+              </p>
+            </div>
+          </div>
+          <p className="pref-creator-card__bio">
+            {isArabic
+              ? 'صممت هذا التطبيق مجاناً وبدون أي تتبّع لمساعدة كل عربي على التفكير بالإنجليزية كالمتحدث الأصلي وكسر حواجز الترجمة الحرفية.'
+              : 'Designed to help every Arabic speaker bridge the cognitive gap into natural English thinking, 100% free and ad-free.'}
+          </p>
+          <div className="pref-creator-card__socials">
+            <a
+              href="https://www.youtube.com/@SciAmrSherif?sub_confirmation=1"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="pref-creator-card__link pref-creator-card__link--yt"
+            >
+              <Youtube className="w-4 h-4 fill-current" />
+              <span>YouTube @SciAmrSherif</span>
+            </a>
+            <a
+              href="https://www.linkedin.com/in/sciamrsherif-abdelaal/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="pref-creator-card__link"
+            >
+              LinkedIn
+            </a>
+            <a
+              href="https://github.com/AmrSherifCodes"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="pref-creator-card__link"
+            >
+              GitHub
+            </a>
+            <a
+              href="https://www.patreon.com/c/SciAmrSherif"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="pref-creator-card__link"
+            >
+              Patreon
+            </a>
+            <a
+              href="https://x.com/SciAmrSherif"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="pref-creator-card__link"
+            >
+              X
+            </a>
+            <a
+              href="mailto:amrsherifbusiness@gmail.com"
+              className="pref-creator-card__link"
+            >
+              Email
+            </a>
+          </div>
+        </div>
+
         <button type="button" className="pref-reset" onClick={reset}>
           {isArabic ? '↺ استعادة الإعدادات الافتراضية' : '↺ Reset to defaults'}
         </button>

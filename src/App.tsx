@@ -30,18 +30,6 @@ export default function App() {
   const [progress, setProgress] = useState<UserProgress>(loadUserProgress());
   const { recordAnswer } = useAdaptiveLearning();
 
-  // Automatically show tutorial on first-ever launch
-  useEffect(() => {
-    try {
-      const seen = localStorage.getItem('tb.tutorial_seen');
-      if (!seen) {
-        setTutorialOpen(true);
-      }
-    } catch {
-      // ignore in environments with blocked storage
-    }
-  }, []);
-
   const handleCloseTutorial = () => {
     setTutorialOpen(false);
     try {

@@ -153,6 +153,20 @@ export function useNativeSpeech({
         }
 
         try {
+          // Explicitly check/request browser media permission if supported
+          if (typeof navigator !== 'undefined' && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            try {
+              const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+              stream.getTracks().forEach(t => t.stop());
+            } catch (permErr: any) {
+              if (permErr.name === 'NotAllowedError' || permErr.name === 'PermissionDeniedError') {
+                setError('Microphone permission denied (not-allowed). Tap lock icon in browser bar to allow access.');
+                setIsListening(false);
+                return;
+              }
+            }
+          }
+
           if (webRecognizerRef.current) {
             try {
               webRecognizerRef.current.abort();
@@ -189,7 +203,11 @@ export function useNativeSpeech({
           rec.onerror = (e: any) => {
             if (e.error !== 'no-speech') {
               console.warn('[useNativeSpeech] Web speech error:', e.error);
-              setError(`Voice input error (${e.error})`);
+              if (e.error === 'not-allowed') {
+                setError('Microphone permission denied (not-allowed). Tap lock icon in browser bar to allow access.');
+              } else {
+                setError(`Voice input error (${e.error})`);
+              }
             }
             setIsListening(false);
           };

@@ -1,14 +1,14 @@
 import { Capacitor } from '@capacitor/core';
-import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Volume2, Sparkles, AlertCircle, CheckCircle2, ChevronRight, BookOpen } from 'lucide-react';
+import { ArrowLeft, Volume2, Sparkles, AlertCircle, CheckCircle2, ChevronRight, BookOpen, Star, Youtube } from 'lucide-react';
 import { Exercise, Lesson, Phase, UserProfile, UserProgress } from '../../types';
 import { PHASES_DATA } from '../../data/lessons';
 import { checkAnswerMatch, diagnoseArabicInterference } from '../../utils/transferLogic';
 import { speakWithRate } from '../../utils/audio';
-import { BTN_GHOST, BTN_PRIMARY, CARD_CLASS, CHUNK_COLORS, CHUNK_LABELS } from '../../components/uiConstants';
-
-import { FlashcardItemData } from '../../components/uiConstants';
+import { BTN_GHOST, BTN_PRIMARY, CARD_CLASS, CHUNK_COLORS, CHUNK_LABELS, FlashcardItemData } from '../../components/uiConstants';
+import { getLessonRelevanceScore } from '../../utils/adaptiveCurriculum';
+import { getArabicPhoneticSpelling } from '../../utils/arabicPhonetics';
 
 export interface LessonViewProps {
   profile: UserProfile | null;
@@ -34,6 +34,7 @@ export function LessonView({
   const firstIncomplete = allLessons.find(l => !progress.completedLessonIds.includes(l.id)) || allLessons[0];
 
   const [activeLesson, setActiveLesson] = useState<Lesson | null>(firstIncomplete);
+  const [syllabusFilter, setSyllabusFilter] = useState<'all' | 'recommended' | 1 | 2 | 3>('all');
   const [exerciseIndex, setExerciseIndex] = useState<number>(0);
   const [input, setInput] = useState<string>('');
   const [status, setStatus] = useState<'idle' | 'correct' | 'incorrect'>('idle');
@@ -128,64 +129,211 @@ export function LessonView({
 
   // Syllabus / Overview mode
   if (!activeLesson || !exercise) {
+    const isArabic = profile?.language === 'arabic';
+    const goalLabel = profile?.goal || 'General';
+
+    // Filter phases based on user preference
+    const filteredPhases = PHASES_DATA.filter(phase => {
+      if (typeof syllabusFilter === 'number') {
+        return phase.id === syllabusFilter;
+      }
+      return true;
+    }).map(phase => {
+      if (syllabusFilter === 'recommended' && profile) {
+        return {
+          ...phase,
+          lessons: phase.lessons.filter(l => getLessonRelevanceScore(l, profile) >= 8)
+        };
+      }
+      return phase;
+    }).filter(phase => phase.lessons.length > 0);
+
     return (
       <div className="min-h-dvh bg-stone-950 text-stone-100 p-4 sm:p-6 pb-20">
-        <header className="max-w-2xl mx-auto flex items-center justify-between mb-6">
+        <header className="max-w-2xl mx-auto flex items-center justify-between mb-4">
           <button type="button" onClick={onBack} className={BTN_GHOST}>
             <ArrowLeft className="w-4 h-4 mr-1.5" />
-            Home
+            {isArabic ? 'الرئيسية' : 'Home'}
           </button>
-          <h1 className="text-lg font-bold text-stone-200">Curriculum Syllabus</h1>
+          <h1 className="text-lg font-bold text-stone-200">
+            {isArabic ? 'خطة المنهج التفاعلي' : 'Curriculum Syllabus'}
+          </h1>
           <div className="w-16" />
         </header>
 
+        {/* Adaptive Goal & Level Filter Bar */}
+        <div className="max-w-2xl mx-auto mb-6">
+          <div className="flex items-center justify-between text-xs text-stone-400 mb-2">
+            <span>{isArabic ? 'تخصيص الدروس حسب هدفك ومستواك:' : 'Customize lessons for your goal & level:'}</span>
+            {profile?.goal && (
+              <span className="font-semibold text-teal-400">
+                🎯 {profile.goal}
+              </span>
+            )}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setSyllabusFilter('all')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition ${
+                syllabusFilter === 'all'
+                  ? 'bg-teal-500 text-stone-950 shadow-md'
+                  : 'bg-stone-900 text-stone-300 border border-stone-800 hover:border-stone-700'
+              }`}
+            >
+              {isArabic ? 'جميع الدروس' : 'All Lessons'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setSyllabusFilter('recommended')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 ${
+                syllabusFilter === 'recommended'
+                  ? 'bg-amber-400 text-stone-950 shadow-md font-bold'
+                  : 'bg-stone-900 text-amber-300 border border-amber-500/30 hover:border-amber-500/60'
+              }`}
+            >
+              <Star className="w-3.5 h-3.5 fill-current" />
+              <span>{isArabic ? `⭐ موصى به لهدفي (${goalLabel})` : `⭐ Recommended for My Goal (${goalLabel})`}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setSyllabusFilter(1)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition ${
+                syllabusFilter === 1
+                  ? 'bg-teal-500 text-stone-950 shadow-md'
+                  : 'bg-stone-900 text-stone-300 border border-stone-800 hover:border-stone-700'
+              }`}
+            >
+              Phase 1 (A1-A2)
+            </button>
+            <button
+              type="button"
+              onClick={() => setSyllabusFilter(2)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition ${
+                syllabusFilter === 2
+                  ? 'bg-teal-500 text-stone-950 shadow-md'
+                  : 'bg-stone-900 text-stone-300 border border-stone-800 hover:border-stone-700'
+              }`}
+            >
+              Phase 2 (B1-B2)
+            </button>
+            <button
+              type="button"
+              onClick={() => setSyllabusFilter(3)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition ${
+                syllabusFilter === 3
+                  ? 'bg-teal-500 text-stone-950 shadow-md'
+                  : 'bg-stone-900 text-stone-300 border border-stone-800 hover:border-stone-700'
+              }`}
+            >
+              Phase 3 (C1)
+            </button>
+          </div>
+        </div>
+
         <div className="max-w-2xl mx-auto space-y-6">
-          {PHASES_DATA.map((phase: Phase) => (
-            <div key={phase.id} className="space-y-3">
-              <div className="border-b border-stone-800 pb-2">
-                <span className="text-xs uppercase tracking-wider text-teal-400 font-bold">
-                  Phase {phase.id} • {phase.level}
-                </span>
-                <h2 className="text-xl font-black text-stone-100">{phase.title}</h2>
-                <p className="text-xs text-stone-400">{phase.tagline}</p>
-              </div>
-
-              <div className="grid gap-2.5">
-                {phase.lessons.map(lesson => {
-                  const isComplete = progress.completedLessonIds.includes(lesson.id);
-                  const completedCount = lesson.exercises.filter(ex => progress.completedExerciseIds.includes(ex.id)).length;
-
-                  return (
-                    <button
-                      key={lesson.id}
-                      type="button"
-                      onClick={() => handleSelectLesson(lesson)}
-                      className={`${CARD_CLASS} text-left flex items-center justify-between p-3.5 hover:border-teal-500/50 transition cursor-pointer`}
-                    >
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-bold text-stone-400">Lesson {lesson.number}</span>
-                          {isComplete && (
-                            <span className="text-[10px] bg-teal-500/20 text-teal-300 font-semibold px-2 py-0.5 rounded-full border border-teal-500/30">
-                              Completed
-                            </span>
-                          )}
-                        </div>
-                        <h3 className="text-sm font-bold text-stone-200 mt-0.5">{lesson.title}</h3>
-                        <p className="text-xs text-stone-400" dir="rtl">{lesson.titleAr}</p>
-                      </div>
-                      <div className="text-right">
-                        <span className="text-xs font-semibold text-stone-400">
-                          {completedCount}/{lesson.exercises.length}
-                        </span>
-                        <ChevronRight className="w-4 h-4 text-stone-500 ml-2 inline" />
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
+          {filteredPhases.length === 0 ? (
+            <div className="text-center py-12 rounded-2xl border border-stone-800 bg-stone-900/50">
+              <p className="text-stone-400 text-sm">
+                {isArabic ? 'لا توجد دروس تطابق هذا الفلتر حالياً.' : 'No lessons match this filter.'}
+              </p>
+              <button
+                type="button"
+                onClick={() => setSyllabusFilter('all')}
+                className="mt-3 px-4 py-2 rounded-xl bg-teal-500 text-stone-950 font-bold text-xs"
+              >
+                {isArabic ? 'عرض جميع الدروس' : 'Show All Lessons'}
+              </button>
             </div>
-          ))}
+          ) : (
+            filteredPhases.map((phase: Phase) => (
+              <div key={phase.id} className="space-y-3">
+                <div className="border-b border-stone-800 pb-2">
+                  <span className="text-xs uppercase tracking-wider text-teal-400 font-bold">
+                    Phase {phase.id} • {phase.level}
+                  </span>
+                  <h2 className="text-xl font-black text-stone-100">{phase.title}</h2>
+                  <p className="text-xs text-stone-400">{phase.tagline}</p>
+                </div>
+
+                <div className="grid gap-2.5">
+                  {phase.lessons.map(lesson => {
+                    const isComplete = progress.completedLessonIds.includes(lesson.id);
+                    const completedCount = lesson.exercises.filter(ex => progress.completedExerciseIds.includes(ex.id)).length;
+                    const relevance = profile ? getLessonRelevanceScore(lesson, profile) : 5;
+                    const isRecommended = relevance >= 8;
+
+                    return (
+                      <button
+                        key={lesson.id}
+                        type="button"
+                        onClick={() => handleSelectLesson(lesson)}
+                        className={`${CARD_CLASS} text-left flex items-center justify-between p-3.5 hover:border-teal-500/50 transition cursor-pointer ${
+                          isRecommended ? 'border-amber-500/40 bg-stone-900/90' : ''
+                        }`}
+                      >
+                        <div className="flex-1 pr-3">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-xs font-bold text-stone-400">Lesson {lesson.number}</span>
+                            {isRecommended && (
+                              <span className="text-[10px] bg-amber-500/20 text-amber-300 font-semibold px-2 py-0.5 rounded-full border border-amber-500/30 flex items-center gap-1">
+                                <Star className="w-3 h-3 fill-current text-amber-400" />
+                                {isArabic ? 'موصى به لهدفك' : 'Recommended for your goal'}
+                              </span>
+                            )}
+                            {isComplete && (
+                              <span className="text-[10px] bg-teal-500/20 text-teal-300 font-semibold px-2 py-0.5 rounded-full border border-teal-500/30">
+                                {isArabic ? 'مكتمل' : 'Completed'}
+                              </span>
+                            )}
+                          </div>
+                          <h3 className="text-sm font-bold text-stone-200 mt-1">{lesson.title}</h3>
+                          <p className="text-xs text-stone-400" dir="rtl">{lesson.titleAr}</p>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <span className="text-xs font-semibold text-stone-400">
+                            {completedCount}/{lesson.exercises.length}
+                          </span>
+                          <ChevronRight className="w-4 h-4 text-stone-500 ml-2 inline" />
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))
+          )}
+
+          {/* Amr Sherif Creator Footer */}
+          <footer className="mt-10 pt-6 border-t border-stone-800 text-center">
+            <div className="inline-flex flex-wrap items-center justify-center gap-2 px-4 py-2 rounded-full bg-stone-900 border border-stone-800 text-xs text-stone-400 mb-2">
+              <span>Crafted by Amr Sherif</span>
+              <span className="text-stone-600">•</span>
+              <a
+                href="https://www.youtube.com/@SciAmrSherif?sub_confirmation=1"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-red-400 hover:text-red-300 font-semibold inline-flex items-center gap-1 transition"
+              >
+                <Youtube className="w-3.5 h-3.5 fill-current" />
+                <span>YouTube @SciAmrSherif</span>
+              </a>
+              <span className="text-stone-600">•</span>
+              <a
+                href="https://github.com/AmrSherifCodes"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-stone-300 hover:text-white transition"
+              >
+                GitHub
+              </a>
+            </div>
+            <p className="text-[11px] text-stone-500">
+              {isArabic
+                ? 'جسر التفكير · مجاني بالكامل وبدون إعلانات · صُمم لكسر عادات الترجمة الحرفية'
+                : 'Thinking Bridge · 100% Free · No Ads · Designed to bridge native Arabic thinking to English'}
+            </p>
+          </footer>
         </div>
       </div>
     );
@@ -329,12 +477,19 @@ export function LessonView({
             <div className="space-y-4 pt-1">
               <div className="rounded-2xl border border-teal-500/30 bg-teal-950/20 p-3.5 flex items-start gap-3">
                 <CheckCircle2 className="w-5 h-5 text-teal-400 shrink-0 mt-0.5" />
-                <div>
+                <div className="flex-1">
                   <div className="text-xs font-bold text-teal-300">
                     {status === 'correct' ? 'Target Matched (+10 pts)' : 'Model Translation'}
                   </div>
                   <div className="text-sm font-semibold text-stone-100 mt-0.5">
                     {exercise.englishTarget}
+                  </div>
+                  {/* Arabic Literal Phonetic Pronunciation */}
+                  <div className="mt-1.5 text-xs text-teal-400/90 font-medium flex items-center gap-1.5" dir="rtl">
+                    <span className="text-stone-400 text-[11px]">النطق الصوتي بالعربي:</span>
+                    <span className="font-bold text-teal-200 bg-stone-900/90 px-2 py-0.5 rounded-md border border-stone-800">
+                      {getArabicPhoneticSpelling(exercise.englishTarget)}
+                    </span>
                   </div>
                 </div>
               </div>
