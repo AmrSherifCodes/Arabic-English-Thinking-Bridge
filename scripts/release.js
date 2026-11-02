@@ -74,8 +74,8 @@ const menuPath = path.join(ROOT_DIR, 'src', 'features', 'menu', 'ChoiceMenu.tsx'
 if (fs.existsSync(menuPath)) {
   let menuContent = fs.readFileSync(menuPath, 'utf8');
   menuContent = menuContent.replace(
-    /download\/v[0-9.]+\/app-universal-release\.apk/g,
-    `download/${tag}/app-universal-release.apk`
+    /download\/v[0-9.]+\/[a-zA-Z0-9.-]+\.apk/g,
+    `download/${tag}/Thinking-Bridge-${tag}.apk`
   );
   menuContent = menuContent.replace(
     /v[0-9.]+\s*·\s*APK/g,
@@ -162,6 +162,7 @@ console.log(`\n======================================================`);
 console.log(`🎉 RELEASE ${tag} COMPLETED SUCCESSFULLY!`);
 console.log(`======================================================`);
 console.log(`\nDesktop APK: ${desktopApkPath}`);
-console.log(`Web URL:     https://arabicenglishthinkingbridge.vercel.app/`);
+console.log(`Web URL:     https://tb-eg.vercel.app/`);
+console.log(`Direct APK:  https://tb-eg.vercel.app/apk`);
 console.log(`GitHub Tag:  ${tag}\n`);
 

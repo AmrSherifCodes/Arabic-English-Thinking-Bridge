@@ -229,7 +229,7 @@ export function ChoiceMenu({
 
         {/* 6. Download App Button */}
         <a
-          href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v3.0.1/app-universal-release.apk"
+          href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v3.0.1/Thinking-Bridge-v3.0.1.apk"
           target="_blank"
           rel="noopener noreferrer"
           className="menu__download-btn"
