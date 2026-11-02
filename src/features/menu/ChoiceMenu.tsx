@@ -77,7 +77,7 @@ export function ChoiceMenu({
           <div className="menu__stat-divider" />
           <div className="menu__stat-item">
             <BookMarked className="menu__stat-icon" />
-            <span className="menu__stat-label">{isArabic ? '٥,٢٩٩ كلمة' : '5,299 Words'}</span>
+            <span className="menu__stat-label">{isArabic ? '+١٠,٠٠٠ كلمة' : '+10,000 Words'}</span>
           </div>
         </section>
 
@@ -131,7 +131,7 @@ export function ChoiceMenu({
           <ActionTile
             icon="🗂️"
             label={isArabic ? 'البطاقات التعليمية' : 'Flashcards'}
-            hint={isArabic ? `${dueCards} بطاقة مستحقة اليوم` : `${dueCards} cards due today`}
+            hint={isArabic ? `${dueCards} بطاقة مستحقة اليوم · +10k كلمة جديدة` : `${dueCards} cards due today · +10k new words`}
             badge={dueCards}
             onClick={() => onSelect('flashcards')}
           />

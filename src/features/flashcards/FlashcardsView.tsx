@@ -33,7 +33,7 @@ const CORE_DECKS: DeckDefinition[] = [
   {
     id: 'master-dictionary',
     name: 'Master Dictionary',
-    subtitle: 'Profile-matched Arabic vocabulary with examples'
+    subtitle: 'Profile-matched Arabic vocabulary with examples (+10k words)'
   }
 ];
 

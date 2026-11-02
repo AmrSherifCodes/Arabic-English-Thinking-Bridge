@@ -143,7 +143,7 @@ export default function App() {
       )}
 
       {view.name === 'route' && view.route === 'preferences' && (
-        <PreferencesView onBack={goHome} profile={profile} />
+        <PreferencesView onBack={goHome} profile={profile} onSaveProfile={saveProfile} />
       )}
 
       {view.name === 'route' && view.route === 'flashcards' && (

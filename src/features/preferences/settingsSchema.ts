@@ -88,6 +88,44 @@ export const SETTINGS_SCHEMA: readonly PreferenceField[] = [
     default: true,
   },
   {
+    id: 'dialect',
+    type: 'select',
+    category: 'pedagogy',
+    labelKey: 'Target Dialect',
+    labelAr: 'اللهجة المستهدفة في القاموس',
+    default: 'egyptian',
+    options: [
+      { label: 'Egyptian Arabic (Ammiya)', labelAr: 'العامية المصرية (Ammiya)', value: 'egyptian' },
+      { label: 'Modern Standard Arabic (Fusha)', labelAr: 'العربية الفصحى (Fusha)', value: 'msa' },
+    ],
+  },
+  {
+    id: 'level',
+    type: 'select',
+    category: 'pedagogy',
+    labelKey: 'Proficiency Level',
+    labelAr: 'مستوى صعوبة الكلمات',
+    default: 'beginner',
+    options: [
+      { label: 'Beginner (A1–A2)', labelAr: 'مبتدئ (A1–A2)', value: 'beginner' },
+      { label: 'Intermediate (B1–B2)', labelAr: 'متوسط (B1–B2)', value: 'intermediate' },
+      { label: 'Advanced (C1)', labelAr: 'متقدم (C1)', value: 'advanced' },
+    ],
+  },
+  {
+    id: 'goal',
+    type: 'select',
+    category: 'pedagogy',
+    labelKey: 'Vocabulary Situation / Context',
+    labelAr: 'سياق الكلمات والمواقف اليومية',
+    default: 'general',
+    options: [
+      { label: 'General / Academic (Student)', labelAr: 'عام وأكاديمي (مواقف الطلاب)', value: 'general' },
+      { label: 'Work (Call Center & Business)', labelAr: 'العمل (كول سنتر وشركات)', value: 'work' },
+      { label: 'Travel (Public Matters & Streets)', labelAr: 'السفر (معاملات ومواقف عامة)', value: 'travel' },
+    ],
+  },
+  {
     id: 'hapticsEnabled',
     type: 'toggle',
     category: 'system',
@@ -112,14 +150,14 @@ export const SETTINGS_SCHEMA: readonly PreferenceField[] = [
 
 export const CATEGORY_LABELS: Record<PreferenceCategory, string> = {
   audio: 'Audio & Voice',
-  pedagogy: 'Learning',
+  pedagogy: 'Dictionary & Curriculum',
   system: 'System',
   advanced: 'Advanced',
 };
 
 export const CATEGORY_LABELS_AR: Record<PreferenceCategory, string> = {
   audio: 'الصوت والمحادثة',
-  pedagogy: 'التعلم',
+  pedagogy: 'القاموس والمسار اللغوي (+10,000 كلمة)',
   system: 'إعدادات النظام',
   advanced: 'متقدم',
 };
