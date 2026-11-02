@@ -930,6 +930,9 @@ export default async function handler(req, res) {
     res.setHeader('Cache-Control', 'no-cache, no-transform');
     res.setHeader('Connection', 'keep-alive');
     res.setHeader('X-Accel-Buffering', 'no');
+    if (typeof res.flushHeaders === 'function') {
+      res.flushHeaders();
+    }
 
     try {
       const stream = await generateStream(body.operation || 'conversation', body);

@@ -1,3 +1,5 @@
+import { Capacitor } from '@capacitor/core';
+import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
 import { useState } from 'react';
 import { CardSchedule, UserProgress, UserProfile } from '../../types';
 import { calculateSM2 } from '../../utils/sm2';
@@ -58,6 +60,16 @@ export function useDeckEngine(
   const handleCardGrade = (g: 0 | 1 | 2 | 3, currentQueue: string[]) => {
     if (!currentQueue.length) return;
     if (onAnswer) onAnswer(g > 0);
+
+    if (Capacitor.isNativePlatform()) {
+      if (g === 0) {
+        Haptics.notification({ type: NotificationType.Warning }).catch(() => {});
+      } else if (g === 3) {
+        Haptics.notification({ type: NotificationType.Success }).catch(() => {});
+      } else {
+        Haptics.impact({ style: ImpactStyle.Light }).catch(() => {});
+      }
+    }
 
     const [k, ...rest] = currentQueue;
     const existingSched = progress.cards?.[k];

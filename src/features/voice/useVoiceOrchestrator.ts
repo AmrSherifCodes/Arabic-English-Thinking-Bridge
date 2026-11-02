@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { Capacitor } from '@capacitor/core';
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { API_BASE_URL } from '../../utils/api';
 import { generateSmartConversationReply } from '../../services/smartConversation';
 import { useNativeSpeech } from './useNativeSpeech';
@@ -58,11 +60,14 @@ export function useVoiceOrchestrator() {
   stateRef.current = state;
 
   const abortControllerRef = useRef<AbortController | null>(null);
-  const audioQueueRef = useRef<HTMLAudioElement[]>([]);
-  const currentAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Parallel prefetch & sequenced playback queue
+  const audioSlotsRef = useRef<Map<number, HTMLAudioElement>>(new Map());
+  const nextPlayIndexRef = useRef(0);
+  const totalDispatchedRef = useRef(0);
+  const streamDoneRef = useRef(false);
   const isPlayingRef = useRef(false);
-  const sentenceQueueRef = useRef<string[]>([]);
-  const isFetchingTtsRef = useRef(false);
+  const currentAudioRef = useRef<HTMLAudioElement | null>(null);
 
   // Stop any active audio immediately
   const stopAudio = useCallback(() => {
@@ -75,62 +80,77 @@ export function useVoiceOrchestrator() {
       }
       currentAudioRef.current = null;
     }
-    audioQueueRef.current.forEach((audio) => {
+    audioSlotsRef.current.forEach((audio) => {
       try {
         audio.pause();
       } catch {
         /* noop */
       }
     });
-    audioQueueRef.current = [];
+    audioSlotsRef.current.clear();
+    nextPlayIndexRef.current = 0;
+    totalDispatchedRef.current = 0;
     isPlayingRef.current = false;
+    streamDoneRef.current = false;
   }, []);
 
-  // Play next audio in queue seamlessly
-  const playNextInQueue = useCallback(() => {
-    if (audioQueueRef.current.length === 0) {
-      isPlayingRef.current = false;
-      currentAudioRef.current = null;
+  // Sequentially play next audio in queue as soon as slot is ready
+  const checkAndPlayQueue = useCallback(() => {
+    if (isPlayingRef.current) return;
 
-      // If we are still synthesizing sentences or streaming tokens, stay in speaking
-      if (sentenceQueueRef.current.length === 0 && !isFetchingTtsRef.current) {
-        if (stateRef.current === 'speaking') {
-          if (autoListen) {
-            setTimeout(() => {
-              if (stateRef.current === 'speaking' || stateRef.current === 'idle') {
-                startTurn();
-              }
-            }, 300);
-          } else {
-            setState('idle');
-          }
-        }
-      }
+    const nextIndex = nextPlayIndexRef.current;
+    if (audioSlotsRef.current.has(nextIndex)) {
+      const nextAudio = audioSlotsRef.current.get(nextIndex)!;
+      audioSlotsRef.current.delete(nextIndex);
+      nextPlayIndexRef.current++;
+
+      isPlayingRef.current = true;
+      currentAudioRef.current = nextAudio;
+      setState('speaking');
+
+      nextAudio.onended = () => {
+        isPlayingRef.current = false;
+        currentAudioRef.current = null;
+        checkAndPlayQueue();
+      };
+
+      nextAudio.onerror = () => {
+        console.warn('[useVoiceOrchestrator] Audio playback chunk error, checking next.');
+        isPlayingRef.current = false;
+        currentAudioRef.current = null;
+        checkAndPlayQueue();
+      };
+
+      nextAudio.play().catch((err) => {
+        console.warn('[useVoiceOrchestrator] Audio play rejected:', err);
+        isPlayingRef.current = false;
+        currentAudioRef.current = null;
+        checkAndPlayQueue();
+      });
       return;
     }
 
-    isPlayingRef.current = true;
-    const nextAudio = audioQueueRef.current.shift()!;
-    currentAudioRef.current = nextAudio;
-
-    nextAudio.onended = () => {
-      playNextInQueue();
-    };
-
-    nextAudio.onerror = () => {
-      console.warn('[useVoiceOrchestrator] Audio playback chunk error, playing next.');
-      playNextInQueue();
-    };
-
-    nextAudio.play().catch((err) => {
-      console.warn('[useVoiceOrchestrator] Audio play rejected:', err);
-      playNextInQueue();
-    });
+    // If stream is done and all dispatched slots have been played:
+    if (streamDoneRef.current && nextIndex >= totalDispatchedRef.current) {
+      isPlayingRef.current = false;
+      currentAudioRef.current = null;
+      if (stateRef.current === 'speaking') {
+        if (autoListen) {
+          setTimeout(() => {
+            if (stateRef.current === 'speaking' || stateRef.current === 'idle') {
+              startTurn();
+            }
+          }, 300);
+        } else {
+          setState('idle');
+        }
+      }
+    }
   }, [autoListen]);
 
-  // Fetch TTS for a single sentence and queue it
-  const synthesizeSentence = useCallback(
-    async (sentence: string, signal: AbortSignal, isFirstSentence: boolean) => {
+  // Parallel prefetch for a single sentence
+  const prefetchSentence = useCallback(
+    async (sentence: string, signal: AbortSignal, chunkIndex: number) => {
       const clean = sentence.trim();
       if (!clean) return;
 
@@ -139,7 +159,6 @@ export function useVoiceOrchestrator() {
       const targetVoice = isArabic ? voiceModel : englishVoice;
 
       try {
-        isFetchingTtsRef.current = true;
         const res = await fetch(`${API_BASE_URL}/api/tts`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -160,7 +179,7 @@ export function useVoiceOrchestrator() {
         const blobUrl = URL.createObjectURL(blob);
         const audio = new Audio(blobUrl);
 
-        if (isFirstSentence) {
+        if (chunkIndex === 0) {
           performance.mark('tts-first-chunk');
           try {
             performance.measure('ttfa', 'speech-end', 'tts-first-chunk');
@@ -171,31 +190,22 @@ export function useVoiceOrchestrator() {
           } catch {
             /* noop */
           }
-
-          setState('speaking');
         }
 
-        audioQueueRef.current.push(audio);
-        if (!isPlayingRef.current) {
-          playNextInQueue();
-        }
+        audioSlotsRef.current.set(chunkIndex, audio);
+        checkAndPlayQueue();
       } catch (err: any) {
         if (err.name !== 'AbortError') {
-          console.warn('[useVoiceOrchestrator] Sentence TTS error:', err);
-          if (!isPlayingRef.current && audioQueueRef.current.length === 0) {
-            setState('idle');
+          console.warn('[useVoiceOrchestrator] Sentence TTS prefetch error:', err);
+          // Advance play index if this chunk failed so queue does not stall
+          if (nextPlayIndexRef.current === chunkIndex) {
+            nextPlayIndexRef.current++;
+            checkAndPlayQueue();
           }
-        }
-      } finally {
-        isFetchingTtsRef.current = false;
-        // Process next queued sentence if any
-        if (sentenceQueueRef.current.length > 0) {
-          const next = sentenceQueueRef.current.shift()!;
-          synthesizeSentence(next, signal, false);
         }
       }
     },
-    [englishVoice, playNextInQueue, speechRate, voiceModel]
+    [checkAndPlayQueue, englishVoice, speechRate, voiceModel]
   );
 
   // Handle incoming final speech from user
@@ -224,7 +234,9 @@ export function useVoiceOrchestrator() {
 
       let accumulatedReply = '';
       let sentenceBuffer = '';
-      let isFirstChunkDispatched = false;
+      totalDispatchedRef.current = 0;
+      nextPlayIndexRef.current = 0;
+      streamDoneRef.current = false;
 
       try {
         const historyPayload = messages.slice(-6).map((m) => ({
@@ -297,14 +309,8 @@ export function useVoiceOrchestrator() {
                   sentenceBuffer = sentenceMatch[2] || '';
 
                   if (completedSentence) {
-                    if (!isFirstChunkDispatched) {
-                      isFirstChunkDispatched = true;
-                      synthesizeSentence(completedSentence, abortCtrl.signal, true);
-                    } else if (isFetchingTtsRef.current) {
-                      sentenceQueueRef.current.push(completedSentence);
-                    } else {
-                      synthesizeSentence(completedSentence, abortCtrl.signal, false);
-                    }
+                    const idx = totalDispatchedRef.current++;
+                    prefetchSentence(completedSentence, abortCtrl.signal, idx);
                   }
                 }
               }
@@ -317,14 +323,12 @@ export function useVoiceOrchestrator() {
         // Flush remaining buffer text if any
         if (sentenceBuffer.trim()) {
           const remaining = sentenceBuffer.trim();
-          if (!isFirstChunkDispatched) {
-            synthesizeSentence(remaining, abortCtrl.signal, true);
-          } else if (isFetchingTtsRef.current) {
-            sentenceQueueRef.current.push(remaining);
-          } else {
-            synthesizeSentence(remaining, abortCtrl.signal, false);
-          }
+          const idx = totalDispatchedRef.current++;
+          prefetchSentence(remaining, abortCtrl.signal, idx);
         }
+
+        streamDoneRef.current = true;
+        checkAndPlayQueue();
 
         if (accumulatedReply.trim()) {
           setMessages((prev) => [
@@ -361,10 +365,12 @@ export function useVoiceOrchestrator() {
             timestamp: Date.now(),
           },
         ]);
-        synthesizeSentence(fallbackReply, abortCtrl.signal, true);
+        const idx = totalDispatchedRef.current++;
+        streamDoneRef.current = true;
+        prefetchSentence(fallbackReply, abortCtrl.signal, idx);
       }
     },
-    [messages, stopAudio, synthesizeSentence]
+    [checkAndPlayQueue, messages, prefetchSentence, stopAudio]
   );
 
   const {
@@ -388,11 +394,18 @@ export function useVoiceOrchestrator() {
   const startTurn = useCallback(() => {
     // If speaking or thinking -> BARGE-IN!
     if (stateRef.current === 'speaking' || stateRef.current === 'thinking') {
+      if (Capacitor.isNativePlatform()) {
+        Haptics.impact({ style: ImpactStyle.Medium }).catch(() => {});
+      }
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
         abortControllerRef.current = null;
       }
       stopAudio();
+    } else {
+      if (Capacitor.isNativePlatform()) {
+        Haptics.impact({ style: ImpactStyle.Light }).catch(() => {});
+      }
     }
 
     stopAudio();
@@ -435,4 +448,3 @@ export function useVoiceOrchestrator() {
     voiceMarker: VOICE_V2_MARKER,
   };
 }
-

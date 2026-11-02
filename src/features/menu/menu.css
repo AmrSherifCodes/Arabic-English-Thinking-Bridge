@@ -1,13 +1,310 @@
-.menu { display: flex; flex-direction: column; min-height: 100dvh; background: var(--bg, #0b0d10); color: var(--fg, #e9ecf1); padding: max(16px, env(safe-area-inset-top)) 20px max(24px, env(safe-area-inset-bottom)); }
-.menu__header { padding: 8px 0 20px; }
-.menu__title { font-size: 22px; font-weight: 600; margin: 0; }
-.menu__tiles { display: flex; flex-direction: column; gap: 12px; flex: 1; }
-.tile { display: flex; align-items: center; gap: 16px; padding: 20px; min-height: 120px; border-radius: 20px; background: #ffffff0a; border: 1px solid #ffffff0f; color: inherit; text-align: start; cursor: pointer; transition: transform 0.08s, background 0.15s; }
-.tile:active { transform: scale(0.985); }
-.tile--primary { background: linear-gradient(135deg, #4f8cff22, #7a5cff22); border-color: #4f8cff44; }
-.tile__icon { font-size: 34px; flex-shrink: 0; width: 56px; height: 56px; display: grid; place-items: center; background: #ffffff0d; border-radius: 16px; }
-.tile__copy { display: flex; flex-direction: column; gap: 4px; flex: 1; }
-.tile__label { font-size: 18px; font-weight: 600; }
-.tile__hint { font-size: 14px; color: #9aa4b2; }
-.tile__badge { font-size: 13px; font-weight: 600; background: #ff5c7c; color: #fff; border-radius: 999px; padding: 4px 10px; min-width: 32px; text-align: center; }
+/* ChoiceMenu Premium Dark Theme Styling */
+.menu {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  background: var(--bg, #0c0a09);
+  color: var(--fg, #f5f5f4);
+  padding: max(16px, env(safe-area-inset-top)) 16px max(32px, env(safe-area-inset-bottom));
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
 
+.menu__container {
+  max-width: 540px;
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+}
+
+/* a) Hero Section */
+.menu__hero {
+  padding: 8px 4px 4px;
+  text-align: center;
+}
+
+.menu__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  background: rgba(20, 184, 166, 0.12);
+  color: #2dd4bf;
+  border: 1px solid rgba(45, 212, 191, 0.25);
+  margin-bottom: 12px;
+}
+
+.menu__badge-icon {
+  width: 13px;
+  height: 13px;
+}
+
+.menu__title {
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  margin: 0 0 6px;
+  background: linear-gradient(135deg, #ffffff 40%, #d6d3d1 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.menu__tagline {
+  font-size: 13px;
+  line-height: 1.45;
+  color: #a8a29e;
+  margin: 0;
+  max-width: 380px;
+  margin-inline: auto;
+}
+
+/* b) Stats / Pillar Strip */
+.menu__stats-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 10px 14px;
+  border-radius: 16px;
+  background: rgba(28, 25, 23, 0.7);
+  border: 1px solid rgba(68, 64, 60, 0.4);
+  backdrop-filter: blur(8px);
+}
+
+.menu__stat-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.menu__stat-icon {
+  width: 14px;
+  height: 14px;
+  color: #14b8a6;
+}
+
+.menu__stat-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #e7e5e4;
+  letter-spacing: 0.02em;
+}
+
+.menu__stat-divider {
+  width: 1px;
+  height: 14px;
+  background: rgba(68, 64, 60, 0.6);
+}
+
+/* c) Quote Banner */
+.menu__quote-banner {
+  padding: 12px 16px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(28, 25, 23, 0.85) 0%, rgba(20, 184, 166, 0.08) 100%);
+  border: 1px solid rgba(45, 212, 191, 0.2);
+  text-align: center;
+}
+
+.menu__quote-en {
+  font-size: 12px;
+  font-weight: 600;
+  color: #f5f5f4;
+  margin: 0 0 2px;
+}
+
+.menu__quote-ar {
+  font-size: 12px;
+  font-weight: 700;
+  color: #fbbf24;
+  margin: 0;
+  font-family: inherit;
+}
+
+/* d) 2-Column Action Grid */
+.menu__action-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.menu__sub-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 14px;
+  border-radius: 14px;
+  background: rgba(28, 25, 23, 0.8);
+  border: 1px solid rgba(68, 64, 60, 0.5);
+  color: #d6d3d1;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.menu__sub-btn:hover {
+  background: rgba(41, 37, 36, 0.9);
+  color: #ffffff;
+  border-color: rgba(120, 113, 108, 0.6);
+}
+
+.menu__sub-btn:active {
+  transform: scale(0.98);
+}
+
+.menu__sub-btn--cv {
+  border-color: rgba(245, 158, 11, 0.25);
+  color: #fde68a;
+}
+
+.menu__sub-btn--cv:hover {
+  border-color: rgba(245, 158, 11, 0.5);
+  color: #fef3c7;
+}
+
+.menu__sub-btn--constitution {
+  border-color: rgba(45, 212, 191, 0.25);
+  color: #99f6e4;
+}
+
+.menu__sub-btn--constitution:hover {
+  border-color: rgba(45, 212, 191, 0.5);
+  color: #ccfbf1;
+}
+
+.menu__sub-btn-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+/* e) Core 4 Action Navigation Tiles */
+.menu__tiles {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+}
+
+.tile {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 18px;
+  min-height: 94px;
+  border-radius: 20px;
+  background: rgba(28, 25, 23, 0.65);
+  border: 1px solid rgba(68, 64, 60, 0.45);
+  color: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition: transform 0.1s ease, background 0.15s ease, border-color 0.15s ease;
+  backdrop-filter: blur(6px);
+}
+
+.tile:hover {
+  background: rgba(41, 37, 36, 0.85);
+  border-color: rgba(120, 113, 108, 0.6);
+}
+
+.tile:active {
+  transform: scale(0.985);
+}
+
+.tile--primary {
+  background: linear-gradient(135deg, rgba(20, 184, 166, 0.14) 0%, rgba(99, 102, 241, 0.14) 100%);
+  border-color: rgba(45, 212, 191, 0.35);
+  box-shadow: 0 4px 20px rgba(20, 184, 166, 0.08);
+}
+
+.tile--primary:hover {
+  border-color: rgba(45, 212, 191, 0.6);
+  background: linear-gradient(135deg, rgba(20, 184, 166, 0.2) 0%, rgba(99, 102, 241, 0.2) 100%);
+}
+
+.tile__icon {
+  font-size: 28px;
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.tile__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
+}
+
+.tile__label {
+  font-size: 16px;
+  font-weight: 700;
+  color: #f5f5f4;
+  letter-spacing: -0.01em;
+}
+
+.tile__hint {
+  font-size: 12px;
+  color: #a8a29e;
+  line-height: 1.35;
+}
+
+.tile__badge {
+  font-size: 11px;
+  font-weight: 800;
+  background: #f43f5e;
+  color: #ffffff;
+  border-radius: 9999px;
+  padding: 3px 8px;
+  min-width: 24px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(244, 63, 94, 0.4);
+}
+
+/* f) Footer */
+.menu__footer {
+  margin-top: 8px;
+  padding: 12px 4px 6px;
+  text-align: center;
+  border-top: 1px solid rgba(68, 64, 60, 0.3);
+}
+
+.menu__footer-location {
+  font-size: 11px;
+  font-weight: 600;
+  color: #a8a29e;
+  margin: 0 0 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.menu__footer-heart {
+  width: 12px;
+  height: 12px;
+  color: #f43f5e;
+  fill: #f43f5e;
+  display: inline-block;
+}
+
+.menu__footer-method {
+  font-size: 10px;
+  color: #78716c;
+  margin: 0;
+}

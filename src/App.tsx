@@ -1,8 +1,14 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { Capacitor } from '@capacitor/core';
+import { App as CapApp } from '@capacitor/app';
+import { StatusBar, Style } from '@capacitor/status-bar';
+import { Keyboard, KeyboardResize } from '@capacitor/keyboard';
 import { ChoiceMenu, MenuRoute } from './features/menu/ChoiceMenu';
 import { PreferencesView } from './features/preferences/PreferencesView';
 import { VoicePracticeView } from './features/voice/VoicePracticeView';
 import { FlashcardsView } from './features/flashcards/FlashcardsView';
+import { LessonView } from './features/lesson/LessonView';
+import { CVModal } from './components/CVModal';
 import { useUserProfile } from './hooks/useUserProfile';
 import { loadUserProgress, saveUserProgress } from './utils/storage';
 import { UserProgress } from './types';
@@ -16,6 +22,7 @@ type View = { name: 'menu' } | { name: 'route'; route: MenuRoute };
 
 export default function App() {
   const [view, setView] = useState<View>({ name: 'menu' });
+  const [cvOpen, setCvOpen] = useState(false);
   const { profile } = useUserProfile();
   const [progress, setProgress] = useState<UserProgress>(loadUserProgress());
   const { recordAnswer } = useAdaptiveLearning();
@@ -32,6 +39,44 @@ export default function App() {
   };
 
   const goHome = () => setView({ name: 'menu' });
+
+  // Native Android Shell & Back Button Configuration
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) {
+      StatusBar.setStyle({ style: Style.Dark }).catch(() => {});
+      StatusBar.setBackgroundColor({ color: '#0c0a09' }).catch(() => {});
+      Keyboard.setResizeMode({ mode: KeyboardResize.Body }).catch(() => {});
+    }
+  }, []);
+
+  // Android Hardware Back Button Handler
+  useEffect(() => {
+    let sub: Promise<any> | null = null;
+    try {
+      sub = CapApp.addListener('backButton', () => {
+        setView(curr => {
+          if (curr.name === 'route') {
+            return { name: 'menu' };
+          }
+          CapApp.exitApp();
+          return curr;
+        });
+      });
+    } catch {
+      // Non-native fallback
+    }
+    return () => {
+      sub?.then(h => h.remove?.()).catch(() => {});
+    };
+  }, []);
+
+  const openConstitution = () => {
+    window.open(
+      'https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/blob/main/CONSTITUTION.md',
+      '_blank',
+      'noopener,noreferrer'
+    );
+  };
 
   const updateAndSaveProgress = (updater: (prev: UserProgress) => UserProgress) => {
     setProgress(prev => {
@@ -61,14 +106,26 @@ export default function App() {
 
   const dueCards = useDueCount(profile, progress);
 
-  if (view.name === 'menu')
-    return <ChoiceMenu dueCards={dueCards} onSelect={(route) => setView({ name: 'route', route })} />;
+  return (
+    <>
+      {view.name === 'menu' && (
+        <ChoiceMenu
+          dueCards={dueCards}
+          onSelect={(route) => setView({ name: 'route', route })}
+          onOpenCV={() => setCvOpen(true)}
+          onOpenConstitution={openConstitution}
+        />
+      )}
 
-  if (view.route === 'voice')       return <VoicePracticeView onBack={goHome} />;
-  if (view.route === 'preferences') return <PreferencesView onBack={goHome} />;
-  if (view.route === 'flashcards') {
-    return (
-      <>
+      {view.name === 'route' && view.route === 'voice' && (
+        <VoicePracticeView onBack={goHome} />
+      )}
+
+      {view.name === 'route' && view.route === 'preferences' && (
+        <PreferencesView onBack={goHome} />
+      )}
+
+      {view.name === 'route' && view.route === 'flashcards' && (
         <FlashcardsView
           profile={profile}
           progress={progress}
@@ -78,28 +135,50 @@ export default function App() {
           onAnswer={recordAnswer}
           onAskAIAboutCard={handleAskAIAboutCard}
         />
-        {profile && <AIHelper profile={profile} request={aiHelperRequest} />}
-        {toastMsg && (
-          <div style={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', zIndex: 9999, background: '#1c1917', color: '#f5f5f4', padding: '10px 20px', borderRadius: 9999, fontSize: 13, fontWeight: 600, border: '1px solid #44403c', boxShadow: '0 10px 25px rgba(0,0,0,0.5)', pointerEvents: 'none' }}>
-            {toastMsg}
-          </div>
-        )}
-      </>
-    );
-  }
+      )}
 
-  return (
-    <div style={{ padding: 24, minHeight: '100dvh', background: 'var(--bg, #0b0d10)', color: 'var(--fg, #e9ecf1)' }}>
-      <button onClick={goHome} style={{ minHeight: 48, padding: '8px 16px', borderRadius: 8, background: '#ffffff1a', color: 'inherit', border: 0, cursor: 'pointer', marginBottom: 16 }}>
-        ← Back
-      </button>
-      <p>{view.route} screen is wired in Phase 2.3.</p>
+      {view.name === 'route' && view.route === 'lesson' && (
+        <LessonView
+          profile={profile}
+          progress={progress}
+          updateAndSaveProgress={updateAndSaveProgress}
+          onBack={goHome}
+          onToast={showToast}
+          preferredVoice={progress.preferredVoice}
+        />
+      )}
 
+      {/* Floating CV Modal */}
+      <CVModal isOpen={cvOpen} onClose={() => setCvOpen(false)} />
+
+      {/* Floating AI Helper */}
+      {profile && <AIHelper profile={profile} request={aiHelperRequest} />}
+
+      {/* Floating Toast Notification */}
       {toastMsg && (
-        <div style={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', zIndex: 9999, background: '#1c1917', color: '#f5f5f4', padding: '10px 20px', borderRadius: 9999, fontSize: 13, fontWeight: 600, border: '1px solid #44403c', boxShadow: '0 10px 25px rgba(0,0,0,0.5)', pointerEvents: 'none' }}>
+        <div
+          role="status"
+          aria-live="polite"
+          style={{
+            position: 'fixed',
+            bottom: 24,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 9999,
+            background: '#1c1917',
+            color: '#f5f5f4',
+            padding: '10px 20px',
+            borderRadius: 9999,
+            fontSize: 13,
+            fontWeight: 600,
+            border: '1px solid #44403c',
+            boxShadow: '0 10px 25px rgba(0,0,0,0.5)',
+            pointerEvents: 'none'
+          }}
+        >
           {toastMsg}
         </div>
       )}
-    </div>
+    </>
   );
 }

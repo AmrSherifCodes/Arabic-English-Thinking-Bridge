@@ -1,3 +1,5 @@
+import { Capacitor } from '@capacitor/core';
+import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
 import React, { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Volume2, Sparkles, AlertCircle, CheckCircle2, ChevronRight, BookOpen } from 'lucide-react';
 import { Exercise, Lesson, Phase, UserProfile, UserProgress } from '../../types';
@@ -52,6 +54,9 @@ export function LessonView({
   };
 
   const handleChipClick = (word: string) => {
+    if (Capacitor.isNativePlatform()) {
+      Haptics.impact({ style: ImpactStyle.Light }).catch(() => {});
+    }
     if (status === 'correct') return;
     setInput(prev => {
       const trimmed = prev.trim();
