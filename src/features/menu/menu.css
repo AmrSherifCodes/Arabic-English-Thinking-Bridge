@@ -1,4 +1,4 @@
-/* ChoiceMenu Refined Premium Dark Theme */
+/* ChoiceMenu Refined Premium Dark Theme with High-Contrast Legibility */
 .menu {
   display: flex;
   flex-direction: column;
@@ -32,14 +32,14 @@
   justify-content: center;
   padding: 4px 14px;
   border-radius: 9999px;
-  font-size: 11px;
-  font-weight: 700;
+  font-size: 11.5px;
+  font-weight: 800;
   letter-spacing: 0.04em;
-  background: rgba(19, 78, 74, 0.4); /* bg-teal-950/40 */
-  border: 1px solid rgba(17, 94, 89, 0.5); /* border-teal-800/50 */
-  color: #2dd4bf; /* text-teal-400 */
+  background: rgba(19, 78, 74, 0.5); /* bg-teal-950/50 */
+  border: 1px solid rgba(45, 212, 191, 0.5); /* border-teal-400/50 */
+  color: #5eead4; /* text-teal-300 */
   margin-bottom: 12px;
-  box-shadow: 0 1px 6px rgba(13, 148, 136, 0.1);
+  box-shadow: 0 1px 6px rgba(13, 148, 136, 0.2);
 }
 
 .menu__title {
@@ -48,15 +48,15 @@
   letter-spacing: -0.035em;
   line-height: 1.15;
   margin: 0 0 6px;
-  background: linear-gradient(135deg, #ffffff 30%, #d6d3d1 100%);
+  background: linear-gradient(135deg, #ffffff 30%, #e7e5e4 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .menu__tagline {
-  font-size: 13px;
+  font-size: 13.5px;
   line-height: 1.45;
-  color: #a8a29e;
+  color: #d6d3d1; /* stone-300 for WCAG AAA contrast */
   margin: 0;
   max-width: 380px;
   margin-inline: auto;
@@ -69,8 +69,8 @@
   justify-content: space-around;
   padding: 11px 16px;
   border-radius: 16px;
-  background: rgba(28, 25, 23, 0.75);
-  border: 1px solid rgba(68, 64, 60, 0.5);
+  background: rgba(28, 25, 23, 0.85);
+  border: 1px solid rgba(87, 83, 78, 0.6);
   backdrop-filter: blur(10px);
 }
 
@@ -88,39 +88,39 @@
 }
 
 .menu__stat-label {
-  font-size: 11px;
-  font-weight: 700;
-  color: #2dd4bf; /* text-teal-400 */
+  font-size: 11.5px;
+  font-weight: 800;
+  color: #5eead4; /* text-teal-300 */
   letter-spacing: 0.02em;
 }
 
 .menu__stat-divider {
   width: 1px;
   height: 16px;
-  background: rgba(68, 64, 60, 0.7); /* border-l border-stone-800 */
+  background: rgba(87, 83, 78, 0.8);
 }
 
 /* 3. Quote Banner */
 .menu__quote-banner {
   padding: 14px 18px;
   border-radius: 18px;
-  background: linear-gradient(135deg, #1c1917 0%, #0c0a09 100%); /* from-stone-900 to-stone-950 */
-  border: 1px solid rgba(68, 64, 60, 0.6); /* border-stone-800 */
+  background: linear-gradient(135deg, #1c1917 0%, #0c0a09 100%);
+  border: 1px solid rgba(87, 83, 78, 0.7);
   text-align: center;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .menu__quote-en {
-  font-size: 12.5px;
+  font-size: 13px;
   font-style: italic;
   font-weight: 500;
-  color: #e7e5e4;
+  color: #f5f5f4;
   margin: 0 0 4px;
   letter-spacing: -0.01em;
 }
 
 .menu__quote-ar {
-  font-size: 16px; /* text-lg */
+  font-size: 16px;
   font-weight: 800;
   color: #fbbf24; /* amber-300 */
   margin: 0;
@@ -141,9 +141,9 @@
   gap: 6px;
   padding: 11px 8px;
   border-radius: 16px;
-  background: rgba(28, 25, 23, 0.85); /* bg-stone-900/80 */
-  border: 1px solid rgba(68, 64, 60, 0.7); /* border-stone-700 */
-  color: #e7e5e4;
+  background: rgba(28, 25, 23, 0.9);
+  border: 1px solid rgba(87, 83, 78, 0.8);
+  color: #f5f5f4;
   font-size: 11.5px;
   font-weight: 700;
   cursor: pointer;
@@ -154,22 +154,22 @@
 }
 
 .menu__sub-btn:hover {
-  background: #292524; /* hover:bg-stone-800 */
-  border-color: #14b8a6; /* hover:border-teal-500 */
+  background: #292524;
+  border-color: #2dd4bf;
   color: #ffffff;
-  box-shadow: 0 4px 14px rgba(20, 184, 166, 0.15);
+  box-shadow: 0 4px 14px rgba(20, 184, 166, 0.2);
 }
 
 .menu__sub-btn--highlight {
-  background: rgba(19, 78, 74, 0.25);
-  border-color: rgba(20, 184, 166, 0.5);
-  color: #2dd4bf;
+  background: rgba(19, 78, 74, 0.35);
+  border-color: rgba(45, 212, 191, 0.6);
+  color: #5eead4;
 }
 
 .menu__sub-btn--highlight:hover {
-  background: rgba(19, 78, 74, 0.45);
-  border-color: #14b8a6;
-  color: #5eead4;
+  background: rgba(19, 78, 74, 0.55);
+  border-color: #2dd4bf;
+  color: #ffffff;
 }
 
 .menu__sub-btn:active {
@@ -179,7 +179,7 @@
 .menu__sub-btn-icon {
   width: 14px;
   height: 14px;
-  color: #2dd4bf; /* teal icon */
+  color: #2dd4bf;
   flex-shrink: 0;
 }
 
@@ -195,11 +195,11 @@
   display: flex;
   align-items: center;
   gap: 16px;
-  padding: 18px 20px; /* p-4 sm:p-5 consistent padding */
+  padding: 18px 20px;
   min-height: 96px;
   border-radius: 22px;
-  background: rgba(28, 25, 23, 0.65);
-  border: 1px solid rgba(68, 64, 60, 0.5);
+  background: rgba(28, 25, 23, 0.75);
+  border: 1px solid rgba(87, 83, 78, 0.6);
   color: inherit;
   text-align: start;
   cursor: pointer;
@@ -208,8 +208,8 @@
 }
 
 .tile:hover {
-  background: rgba(41, 37, 36, 0.85);
-  border-color: rgba(120, 113, 108, 0.6);
+  background: rgba(41, 37, 36, 0.9);
+  border-color: rgba(168, 162, 158, 0.7);
 }
 
 .tile:active {
@@ -217,15 +217,15 @@
 }
 
 .tile--primary {
-  background: linear-gradient(135deg, rgba(20, 184, 166, 0.14) 0%, rgba(99, 102, 241, 0.12) 100%);
-  border-color: rgba(45, 212, 191, 0.35);
-  box-shadow: 0 4px 20px rgba(20, 184, 166, 0.08);
+  background: linear-gradient(135deg, rgba(20, 184, 166, 0.18) 0%, rgba(99, 102, 241, 0.15) 100%);
+  border-color: rgba(45, 212, 191, 0.5);
+  box-shadow: 0 4px 20px rgba(20, 184, 166, 0.12);
 }
 
 .tile--primary:hover {
-  border-color: rgba(45, 212, 191, 0.6);
-  background: linear-gradient(135deg, rgba(20, 184, 166, 0.22) 0%, rgba(99, 102, 241, 0.18) 100%);
-  box-shadow: 0 6px 24px rgba(20, 184, 166, 0.15);
+  border-color: rgba(45, 212, 191, 0.75);
+  background: linear-gradient(135deg, rgba(20, 184, 166, 0.26) 0%, rgba(99, 102, 241, 0.22) 100%);
+  box-shadow: 0 6px 24px rgba(20, 184, 166, 0.2);
 }
 
 /* Rounded square wrapper for icons */
@@ -233,12 +233,12 @@
   width: 52px;
   height: 52px;
   border-radius: 16px;
-  background: rgba(41, 37, 36, 0.7); /* bg-stone-800/50 */
-  border: 1px solid rgba(87, 83, 78, 0.5); /* border-stone-700/50 */
+  background: rgba(41, 37, 36, 0.85);
+  border: 1px solid rgba(120, 113, 108, 0.6);
   display: grid;
   place-items: center;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .tile__icon {
@@ -256,22 +256,22 @@
 }
 
 .tile__label {
-  font-size: 16.5px;
-  font-weight: 700;
-  color: #f5f5f4;
+  font-size: 17px;
+  font-weight: 800;
+  color: #ffffff;
   letter-spacing: -0.015em;
 }
 
 .tile__hint {
-  font-size: 12.5px;
-  color: #a8a29e;
+  font-size: 13px;
+  color: #d6d3d1; /* stone-300 for crisp readability */
   line-height: 1.35;
 }
 
 /* Clean, non-clashing badges */
 .tile__badge {
-  font-size: 11.5px;
-  font-weight: 700;
+  font-size: 12px;
+  font-weight: 800;
   border-radius: 9999px;
   padding: 3px 10px;
   min-width: 26px;
@@ -281,16 +281,16 @@
 
 /* Muted badge for 0 */
 .tile__badge--zero {
-  background: #292524; /* bg-stone-800 */
-  color: #a8a29e; /* text-stone-300 */
-  border: 1px solid #44403c; /* border-stone-700 */
+  background: #292524;
+  color: #d6d3d1;
+  border: 1px solid #57534e;
 }
 
 /* Vibrant teal badge for > 0 */
 .tile__badge--active {
-  background: #0d9488; /* bg-teal-600 */
+  background: #0d9488;
   color: #ffffff;
-  box-shadow: 0 2px 10px rgba(13, 148, 136, 0.4);
+  box-shadow: 0 2px 10px rgba(13, 148, 136, 0.5);
 }
 
 /* 6. Two-line Footer */
@@ -298,22 +298,21 @@
   margin-top: 6px;
   padding: 14px 4px 6px;
   text-align: center;
-  border-top: 1px solid rgba(68, 64, 60, 0.35);
+  border-top: 1px solid rgba(87, 83, 78, 0.5);
 }
 
 .menu__footer-line1 {
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 600;
-  color: #a8a29e;
+  color: #d6d3d1;
   margin: 0 0 3px;
 }
 
 .menu__footer-line2 {
-  font-size: 10.5px;
-  color: #78716c;
+  font-size: 11px;
+  color: #a8a29e;
   margin: 0;
 }
-
 
 /* Top Bar: Switcher + Quick Tutorial */
 .menu__top-bar {
@@ -333,9 +332,9 @@
   font-size: 11.5px;
   font-weight: 700;
   border-radius: 9999px;
-  background: rgba(28, 25, 23, 0.85);
-  border: 1px solid rgba(245, 158, 11, 0.4); /* amber border */
-  color: #fbbf24; /* amber-400 */
+  background: rgba(28, 25, 23, 0.9);
+  border: 1px solid rgba(245, 158, 11, 0.6);
+  color: #fbbf24;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
@@ -347,7 +346,7 @@
   border-color: #fbbf24;
   color: #fef3c7;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);
 }
 
 .menu__guide-pill:active {
@@ -364,12 +363,12 @@
 .menu__lang-switch {
   display: inline-flex;
   align-items: center;
-  background: rgba(28, 25, 23, 0.85);
-  border: 1px solid rgba(68, 64, 60, 0.7);
+  background: rgba(28, 25, 23, 0.9);
+  border: 1px solid rgba(87, 83, 78, 0.8);
   border-radius: 9999px;
   padding: 3px;
   gap: 2px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
 .menu__lang-btn {
@@ -379,7 +378,7 @@
   border-radius: 9999px;
   border: 0;
   background: transparent;
-  color: #a8a29e;
+  color: #d6d3d1;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -387,7 +386,7 @@
 .menu__lang-btn--active {
   background: #14b8a6;
   color: #0c0a09;
-  box-shadow: 0 2px 8px rgba(20, 184, 166, 0.4);
+  box-shadow: 0 2px 8px rgba(20, 184, 166, 0.5);
 }
 
 /* Download APK Button */
@@ -397,7 +396,7 @@
   justify-content: space-between;
   padding: 14px 18px;
   background: linear-gradient(135deg, rgba(28, 25, 23, 0.95), rgba(41, 37, 36, 0.85));
-  border: 1px solid rgba(68, 64, 60, 0.8);
+  border: 1px solid rgba(87, 83, 78, 0.8);
   border-radius: 18px;
   color: #f5f5f4;
   text-decoration: none;
@@ -408,9 +407,9 @@
 
 .menu__download-btn:hover,
 .menu__download-btn:active {
-  border-color: #14b8a6;
-  background: linear-gradient(135deg, rgba(19, 78, 74, 0.35), rgba(28, 25, 23, 0.95));
-  box-shadow: 0 4px 20px rgba(20, 184, 166, 0.25);
+  border-color: #2dd4bf;
+  background: linear-gradient(135deg, rgba(19, 78, 74, 0.45), rgba(28, 25, 23, 0.95));
+  box-shadow: 0 4px 20px rgba(20, 184, 166, 0.3);
   transform: translateY(-1px);
 }
 
@@ -434,24 +433,24 @@
 }
 
 .menu__download-title {
-  font-size: 14px;
-  font-weight: 700;
-  color: #fafaf9;
+  font-size: 14.5px;
+  font-weight: 800;
+  color: #ffffff;
 }
 
 .menu__download-sub {
-  font-size: 11px;
-  color: #a8a29e;
+  font-size: 11.5px;
+  color: #d6d3d1;
 }
 
 .menu__download-badge {
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 800;
   padding: 4px 8px;
   border-radius: 8px;
-  background: rgba(20, 184, 166, 0.15);
-  border: 1px solid rgba(20, 184, 166, 0.4);
-  color: #2dd4bf;
+  background: rgba(20, 184, 166, 0.2);
+  border: 1px solid rgba(45, 212, 191, 0.5);
+  color: #5eead4;
   flex-shrink: 0;
 }
 

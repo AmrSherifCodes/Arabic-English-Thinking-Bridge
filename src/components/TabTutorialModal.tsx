@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import {
   X,
   ChevronRight,
@@ -39,6 +40,7 @@ interface TabGuide {
   label: { en: string; ar: string };
   icon: React.ReactNode;
   badge: { en: string; ar: string };
+  avatarPose: string;
   steps: Step[];
 }
 
@@ -48,6 +50,7 @@ const TAB_GUIDES: Record<TabId, TabGuide> = {
     label: { en: 'Voice Practice', ar: 'تدريب المحادثة' },
     icon: <Mic className="w-4 h-4 text-purple-400" />,
     badge: { en: '🎙️ Live Conversational AI', ar: '🎙️ محادثة صوتية ذكية' },
+    avatarPose: '/amr-guide/pose1.png',
     steps: [
       {
         icon: <Mic className="w-8 h-8 text-teal-400" />,
@@ -96,6 +99,7 @@ const TAB_GUIDES: Record<TabId, TabGuide> = {
     label: { en: 'Interactive Lessons', ar: 'الدروس التفاعلية' },
     icon: <BookOpen className="w-4 h-4 text-teal-400" />,
     badge: { en: '📖 Cognitive Structure Track', ar: '📖 منهج التفكير العقلي' },
+    avatarPose: '/amr-guide/pose2.png',
     steps: [
       {
         icon: <Brain className="w-8 h-8 text-teal-400" />,
@@ -144,6 +148,7 @@ const TAB_GUIDES: Record<TabId, TabGuide> = {
     label: { en: 'Smart Flashcards', ar: 'البطاقات الذكية' },
     icon: <Layers className="w-4 h-4 text-emerald-400" />,
     badge: { en: '🧠 SM-2 Spaced Repetition', ar: '🧠 التكرار المتباعد الذكي' },
+    avatarPose: '/amr-guide/pose3.png',
     steps: [
       {
         icon: <Layers className="w-8 h-8 text-teal-400" />,
@@ -180,6 +185,7 @@ const TAB_GUIDES: Record<TabId, TabGuide> = {
     label: { en: 'Preferences', ar: 'الإعدادات' },
     icon: <Settings className="w-4 h-4 text-sky-400" />,
     badge: { en: '⚙️ Personalized Learning Engine', ar: '⚙️ تخصيص تجربة التعلم' },
+    avatarPose: '/amr-guide/pose4.png',
     steps: [
       {
         icon: <Target className="w-8 h-8 text-emerald-400" />,
@@ -346,16 +352,31 @@ export function TabTutorialModal({
         {/* Step Content Card */}
         <div className="space-y-4 min-h-[220px]">
           <div className="flex items-start gap-3.5">
-            <div className="p-3 rounded-2xl bg-stone-800/80 border border-stone-700 shrink-0">
-              {currentStep.icon}
+            <div className="relative shrink-0 flex flex-col items-center">
+              <motion.img
+                key={guide.avatarPose}
+                src={guide.avatarPose}
+                alt="Amr Sherif"
+                className="w-16 sm:w-20 h-auto object-contain drop-shadow-[0_4px_12px_rgba(20,184,166,0.3)] select-none"
+                animate={{ y: [0, -3, 0] }}
+                transition={{ repeat: Infinity, duration: 2.8, ease: 'easeInOut' }}
+              />
+              <span className="text-[9px] font-bold text-teal-400 mt-1">
+                عمرو شريف
+              </span>
             </div>
-            <div>
-              <h3
-                id="tab-tutorial-title"
-                className="text-lg font-black text-stone-100"
-              >
-                {isArabic ? currentStep.title.ar : currentStep.title.en}
-              </h3>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="p-1 rounded-lg bg-stone-800 text-teal-400 shrink-0">
+                  {currentStep.icon}
+                </span>
+                <h3
+                  id="tab-tutorial-title"
+                  className="text-base sm:text-lg font-black text-stone-100"
+                >
+                  {isArabic ? currentStep.title.ar : currentStep.title.en}
+                </h3>
+              </div>
               <p className="text-xs sm:text-sm text-stone-300 mt-1 leading-relaxed">
                 {isArabic ? currentStep.desc.ar : currentStep.desc.en}
               </p>
