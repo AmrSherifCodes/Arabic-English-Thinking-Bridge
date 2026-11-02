@@ -15,16 +15,20 @@ function isArabic(text: string): boolean {
  */
 export function getOfflineAnswer(prompt: string, context?: TutorContext, reason?: string): string {
   const query = prompt.trim();
-  const from = isArabic(query) ? 'ar' : 'en';
 
   // 1. If context specifically centers on an active word/flashcard, provide structured lesson explanation
   const dialect = context?.profile?.dialect ?? 'msa';
+  const queryLower = query.toLocaleLowerCase();
   const entry =
     (context?.currentWord?.dialect === dialect ? context?.currentWord : undefined) ??
     STATIC_DICTIONARY.find(candidate =>
       candidate.dialect === dialect &&
-      (query.toLocaleLowerCase().includes(candidate.arabicWord.toLocaleLowerCase()) ||
-        query.toLocaleLowerCase().includes(candidate.englishTranslation.toLocaleLowerCase()))
+      (queryLower.includes(candidate.arabicWord.toLocaleLowerCase()) ||
+        queryLower.includes(candidate.englishTranslation.toLocaleLowerCase()))
+    ) ??
+    STATIC_DICTIONARY.find(candidate =>
+      queryLower.includes(candidate.arabicWord.toLocaleLowerCase()) ||
+      queryLower.includes(candidate.englishTranslation.toLocaleLowerCase())
     );
 
   if (entry) {

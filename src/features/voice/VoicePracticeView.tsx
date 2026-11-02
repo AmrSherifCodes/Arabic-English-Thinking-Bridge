@@ -24,12 +24,17 @@ const STOP_WORDS = new Set([
   'hello', 'good', 'morning', 'evening', 'amr', 'thanks', 'thank'
 ]);
 
+import { TabTutorialModal } from '../../components/TabTutorialModal';
+import { UserProfile } from '../../types';
+
 interface VoicePracticeViewProps {
   onBack: () => void;
   progress?: UserProgress;
+  profile?: UserProfile | null;
 }
 
-export function VoicePracticeView({ onBack, progress }: VoicePracticeViewProps) {
+export function VoicePracticeView({ onBack, progress, profile }: VoicePracticeViewProps) {
+  const [showGuide, setShowGuide] = useState(false);
   const {
     state,
     interimTranscript,
@@ -169,13 +174,24 @@ export function VoicePracticeView({ onBack, progress }: VoicePracticeViewProps) 
             </span>
           )}
         </div>
-        <button
-          className="voice__type-toggle"
-          onClick={() => setShowInput((prev) => !prev)}
-          aria-label="Toggle text input"
-        >
-          ⌨️
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <button
+            type="button"
+            className="voice__type-toggle"
+            onClick={() => setShowGuide(true)}
+            aria-label="How voice practice works"
+            title="Voice Guide"
+          >
+            ❓
+          </button>
+          <button
+            className="voice__type-toggle"
+            onClick={() => setShowInput((prev) => !prev)}
+            aria-label="Toggle text input"
+          >
+            ⌨️
+          </button>
+        </div>
       </header>
 
       <div className="voice__stage">
@@ -279,6 +295,13 @@ export function VoicePracticeView({ onBack, progress }: VoicePracticeViewProps) 
           {state === 'speaking' || state === 'thinking' ? '✋' : '🎙️'}
         </button>
       </footer>
+
+      <TabTutorialModal
+        isOpen={showGuide}
+        onClose={() => setShowGuide(false)}
+        language={profile?.language === 'arabic' ? 'arabic' : 'english'}
+        initialTab="voice"
+      />
     </div>
   );
 }

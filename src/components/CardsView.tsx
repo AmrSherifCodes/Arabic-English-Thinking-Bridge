@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { TabTutorialModal } from './TabTutorialModal';
 import confetti from 'canvas-confetti';
 import { PrebuiltDeck } from '../data/prebuiltDecks';
 import type { UserProfile } from '../hooks/useUserProfile';
@@ -55,6 +56,7 @@ export function DeckListView({
   const rtl = isArabicUI(profile?.language);
   const t = (en: string, ar: string) => uiText(profile?.language, en, ar);
   const isEgyptianOnly = profile?.dialect === 'egyptian';
+  const [showGuide, setShowGuide] = useState(false);
 
   const allStats = getDeckStats('all');
   const totalDueOrNew = allStats.newCount + allStats.learningCount + allStats.dueCount;
@@ -182,17 +184,28 @@ export function DeckListView({
     <div id="anki-deck-list" dir={rtl ? 'rtl' : 'ltr'} className="space-y-5">
       {/* Top Header & Study CTA */}
       <div className="space-y-3">
-        <div className="text-right sm:text-start px-1">
-          <h2 className="text-xl sm:text-2xl font-black text-stone-900 dark:text-white flex items-center gap-2">
-            <span>🧠</span>
-            <span>{t('Flashcards & Review', 'البطاقات والمراجعة')}</span>
-          </h2>
-          <p className="text-xs font-semibold text-stone-600 dark:text-stone-300 mt-1">
-            {t(
-              'Spaced repetition for long-term memory',
-              'مراجعة ذكية بالتكرار المتباعد لتثبيت الكلمات في الذاكرة'
-            )}
-          </p>
+        <div className="flex items-center justify-between px-1">
+          <div>
+            <h2 className="text-xl sm:text-2xl font-black text-stone-900 dark:text-white flex items-center gap-2">
+              <span>🧠</span>
+              <span>{t('Flashcards & Review', 'البطاقات والمراجعة')}</span>
+            </h2>
+            <p className="text-xs font-semibold text-stone-600 dark:text-stone-300 mt-1">
+              {t(
+                'Spaced repetition for long-term memory',
+                'مراجعة ذكية بالتكرار المتباعد لتثبيت الكلمات في الذاكرة'
+              )}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowGuide(true)}
+            className="px-2.5 py-1.5 rounded-xl bg-stone-100 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-xs font-semibold text-stone-700 dark:text-stone-300 hover:text-teal-600 dark:hover:text-teal-400 flex items-center gap-1.5 transition"
+            aria-label="How flashcards work"
+          >
+            <span>❓</span>
+            <span>{t('Guide', 'دليل البطاقات')}</span>
+          </button>
         </div>
 
         {/* Primary Full-Width CTA Button */}
@@ -343,6 +356,13 @@ export function DeckListView({
           </div>
         </>
       )}
+
+      <TabTutorialModal
+        isOpen={showGuide}
+        onClose={() => setShowGuide(false)}
+        language={rtl ? 'arabic' : 'english'}
+        initialTab="flashcards"
+      />
     </div>
   );
 }

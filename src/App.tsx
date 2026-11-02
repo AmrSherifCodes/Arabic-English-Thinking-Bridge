@@ -161,7 +161,7 @@ export default function App() {
       )}
 
       {view.name === 'route' && view.route === 'voice' && (
-        <VoicePracticeView onBack={goHome} progress={progress} />
+        <VoicePracticeView onBack={goHome} progress={progress} profile={profile} />
       )}
 
       {view.name === 'route' && view.route === 'preferences' && (

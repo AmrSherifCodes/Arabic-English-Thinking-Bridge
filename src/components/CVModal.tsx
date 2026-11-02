@@ -100,12 +100,12 @@ export function CVModal({ isOpen, onClose }: CVModalProps) {
       accentColor: 'border-teal-500/30 bg-teal-950/20 text-teal-300',
       badge: 'Creator',
       summary:
-        'Built a complete cross-platform language learning ecosystem from scratch with 98 automated unit tests.',
+        'Built a complete cross-platform language learning ecosystem from scratch with 101 automated unit tests.',
       highlights: [
         'Built modern frontend in React 19, TypeScript, and Vite with 60 FPS mobile transitions and dark theme styling.',
         'Implemented Anki-grade SM-2 Spaced Repetition mathematical algorithm to handle +10,000 dictionary flashcards.',
         'Packaged native Android APK with Capacitor 8, custom release keystore signing, and haptic feedback integration.',
-        'Authored 98/98 unit tests covering rate limiters, proxy headers, audio chunks, and SM-2 interval progressions.',
+        'Authored 101/101 unit tests covering rate limiters, proxy headers, audio chunks, and SM-2 interval progressions.',
       ],
       skills: ['React 19', 'TypeScript', 'Capacitor 8', 'Tailwind CSS', 'SM-2 Algorithm', 'Vite & Workbox PWA', 'Android Studio'],
     },

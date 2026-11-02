@@ -1,5 +1,6 @@
-import React, { useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Youtube } from 'lucide-react';
+import { TabTutorialModal } from '../../components/TabTutorialModal';
 import { CATEGORY_LABELS, CATEGORY_LABELS_AR, PreferenceCategory } from './settingsSchema';
 import { usePreferences } from './usePreferences';
 import { FieldRenderer } from './FieldRenderer';
@@ -13,6 +14,7 @@ interface PreferencesViewProps {
 }
 
 export function PreferencesView({ onBack, profile, onSaveProfile }: PreferencesViewProps) {
+  const [showGuide, setShowGuide] = useState(false);
   const { values, set, reset, schema } = usePreferences();
   const isArabic = profile?.language === 'arabic';
 
@@ -49,6 +51,23 @@ export function PreferencesView({ onBack, profile, onSaveProfile }: PreferencesV
           {isArabic ? '→' : '←'}
         </button>
         <h1>{isArabic ? 'الإعدادات' : 'Preferences'}</h1>
+        <button
+          type="button"
+          onClick={() => setShowGuide(true)}
+          style={{
+            background: 'none',
+            border: 'none',
+            fontSize: '18px',
+            cursor: 'pointer',
+            padding: '8px',
+            borderRadius: '12px',
+            color: 'var(--text-dim, #a8a29e)',
+          }}
+          aria-label={isArabic ? 'دليل الإعدادات' : 'Preferences Guide'}
+          title="Guide"
+        >
+          ❓
+        </button>
       </header>
       <div className="pref-body">
         {Array.from(grouped.entries()).map(([cat, fields]) => (
@@ -186,6 +205,13 @@ export function PreferencesView({ onBack, profile, onSaveProfile }: PreferencesV
           {isArabic ? '↺ استعادة الإعدادات الافتراضية' : '↺ Reset to defaults'}
         </button>
       </div>
+
+      <TabTutorialModal
+        isOpen={showGuide}
+        onClose={() => setShowGuide(false)}
+        language={isArabic ? 'arabic' : 'english'}
+        initialTab="preferences"
+      />
     </div>
   );
 }

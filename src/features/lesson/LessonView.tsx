@@ -1,7 +1,8 @@
 import { Capacitor } from '@capacitor/core';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Volume2, Sparkles, AlertCircle, CheckCircle2, ChevronRight, BookOpen, Star, Youtube } from 'lucide-react';
+import { ArrowLeft, Volume2, Sparkles, AlertCircle, CheckCircle2, ChevronRight, BookOpen, Star, Youtube, HelpCircle } from 'lucide-react';
+import { TabTutorialModal } from '../../components/TabTutorialModal';
 import { Exercise, Lesson, Phase, UserProfile, UserProgress } from '../../types';
 import { PHASES_DATA } from '../../data/lessons';
 import { checkAnswerMatch, diagnoseArabicInterference } from '../../utils/transferLogic';
@@ -34,6 +35,7 @@ export function LessonView({
   const firstIncomplete = allLessons.find(l => !progress.completedLessonIds.includes(l.id)) || allLessons[0];
 
   const [activeLesson, setActiveLesson] = useState<Lesson | null>(firstIncomplete);
+  const [showGuide, setShowGuide] = useState(false);
   const [syllabusFilter, setSyllabusFilter] = useState<'all' | 'recommended' | 1 | 2 | 3>('all');
   const [exerciseIndex, setExerciseIndex] = useState<number>(0);
   const [input, setInput] = useState<string>('');
@@ -158,7 +160,15 @@ export function LessonView({
           <h1 className="text-lg font-bold text-stone-200">
             {isArabic ? 'خطة المنهج التفاعلي' : 'Curriculum Syllabus'}
           </h1>
-          <div className="w-16" />
+          <button
+            type="button"
+            onClick={() => setShowGuide(true)}
+            className="px-2.5 py-1.5 rounded-xl bg-stone-900 border border-stone-800 text-xs font-semibold text-stone-300 hover:text-white flex items-center gap-1 transition"
+            aria-label="How lessons work"
+          >
+            <HelpCircle className="w-3.5 h-3.5 text-teal-400" />
+            <span>{isArabic ? 'دليل الدروس' : 'Guide'}</span>
+          </button>
         </header>
 
         {/* Adaptive Goal & Level Filter Bar */}
@@ -335,6 +345,12 @@ export function LessonView({
             </p>
           </footer>
         </div>
+        <TabTutorialModal
+          isOpen={showGuide}
+          onClose={() => setShowGuide(false)}
+          language={isArabic ? 'arabic' : 'english'}
+          initialTab="lesson"
+        />
       </div>
     );
   }
@@ -355,9 +371,20 @@ export function LessonView({
             {activeLesson.title}
           </div>
         </div>
-        <button type="button" onClick={onBack} className={BTN_GHOST}>
-          Exit
-        </button>
+        <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => setShowGuide(true)}
+            className="p-2 rounded-xl text-stone-400 hover:text-white transition"
+            title="How lessons work"
+            aria-label="How lessons work"
+          >
+            <HelpCircle className="w-4 h-4" />
+          </button>
+          <button type="button" onClick={onBack} className={BTN_GHOST}>
+            Exit
+          </button>
+        </div>
       </header>
 
       <main className="max-w-2xl mx-auto w-full flex-1 flex flex-col justify-center space-y-5">
@@ -560,6 +587,13 @@ export function LessonView({
           )}
         </section>
       </main>
+
+      <TabTutorialModal
+        isOpen={showGuide}
+        onClose={() => setShowGuide(false)}
+        language={profile?.language === 'arabic' ? 'arabic' : 'english'}
+        initialTab="lesson"
+      />
     </div>
   );
 }
