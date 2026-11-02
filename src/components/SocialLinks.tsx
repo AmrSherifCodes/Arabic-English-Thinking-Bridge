@@ -43,15 +43,15 @@ export function SocialLinks() {
   return (
     <section
       aria-labelledby="social-links-heading"
-      className="rounded-2xl border border-slate-300 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800"
+      className="rounded-2xl border border-stone-800 bg-stone-950/70 p-4 shadow-inner text-stone-100"
     >
       <h3
         id="social-links-heading"
-        className="text-sm font-semibold text-slate-900 dark:text-slate-100"
+        className="text-xs font-bold uppercase tracking-wider text-teal-400 flex items-center gap-1.5"
       >
-        Connect with the Creator
+        <span>Connect with the Creator</span>
       </h3>
-      <div className="mt-3 flex flex-wrap gap-2">
+      <div className="mt-2.5 flex flex-wrap gap-2">
         {SOCIAL_LINKS.map(({ label, href, Icon, className }) => (
           <a
             key={label}
@@ -59,10 +59,10 @@ export function SocialLinks() {
             target="_blank"
             rel="noopener noreferrer"
             aria-label={`Visit the creator on ${label} (opens in a new tab)`}
-            className={`inline-flex min-h-10 items-center gap-2 rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive-500 dark:border-slate-600 dark:text-slate-300 ${className}`}
+            className={`inline-flex min-h-9 items-center gap-2 rounded-xl border border-stone-800 bg-stone-900/90 px-3 py-1.5 text-xs font-semibold text-stone-300 hover:text-white hover:border-teal-500/50 hover:bg-stone-800 transition-all ${className}`}
           >
-            <Icon size={18} aria-hidden="true" />
-            {label}
+            <Icon size={16} aria-hidden="true" />
+            <span>{label}</span>
           </a>
         ))}
       </div>

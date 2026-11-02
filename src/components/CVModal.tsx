@@ -18,6 +18,7 @@ import {
   CheckCircle2,
   SlidersHorizontal,
 } from 'lucide-react';
+import { SocialLinks } from './SocialLinks';
 
 export interface CVModalProps {
   isOpen: boolean;
@@ -198,11 +199,11 @@ export function CVModal({ isOpen, onClose }: CVModalProps) {
               Alexandria, Egypt 🇪🇬
             </span>
             <a
-              href="mailto:amrsherifwork@gmail.com"
+              href="mailto:amrsherifbusiness@gmail.com"
               className="inline-flex items-center gap-1.5 text-teal-400 hover:underline font-medium"
             >
               <Mail className="w-3.5 h-3.5" />
-              amrsherifwork@gmail.com
+              amrsherifbusiness@gmail.com
             </a>
           </div>
 
@@ -318,6 +319,9 @@ export function CVModal({ isOpen, onClose }: CVModalProps) {
             })}
           </div>
         </section>
+
+        {/* Social & Channel Links */}
+        <SocialLinks />
 
         {/* Footer */}
         <footer className="pt-2 border-t border-stone-800 text-center">
