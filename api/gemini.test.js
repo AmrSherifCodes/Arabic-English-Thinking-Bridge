@@ -238,6 +238,7 @@ test('9. Active Gemini models are valid and exclude retired 404 models', () => {
   for (const retired of retiredModels) {
     assert.ok(!FALLBACK_MODELS.includes(retired), `FALLBACK_MODELS should not contain retired model ${retired}`);
   }
+  assert.ok(FALLBACK_MODELS.includes('gemini-3.6-flash'));
   assert.ok(FALLBACK_MODELS.includes('gemini-2.5-flash'));
   assert.ok(FALLBACK_MODELS.includes('gemini-2.5-flash-lite'));
 });

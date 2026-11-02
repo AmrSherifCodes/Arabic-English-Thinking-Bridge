@@ -11,8 +11,8 @@ import { getClientIp as getMiddlewareClientIp } from '../middleware.ts';
 // ---------------------------------------------------------------------------
 // 1. Models Configuration & 404 Skip Tests
 // ---------------------------------------------------------------------------
-test('Models config: default model is gemini-2.5-flash and fallbacks exclude retired 404 models', () => {
-  assert.equal(MODEL, 'gemini-2.5-flash');
+test('Models config: default model is gemini-3.6-flash and fallbacks exclude retired 404 models', () => {
+  assert.equal(MODEL, 'gemini-3.6-flash');
 
   const retired404Models = ['gemini-1.5-flash', 'gemini-1.5-flash-8b', 'gemini-2.0-flash'];
   for (const retired of retired404Models) {
@@ -22,6 +22,7 @@ test('Models config: default model is gemini-2.5-flash and fallbacks exclude ret
     );
   }
 
+  assert.ok(FALLBACK_MODELS.includes('gemini-3.6-flash'));
   assert.ok(FALLBACK_MODELS.includes('gemini-2.5-flash'));
   assert.ok(FALLBACK_MODELS.includes('gemini-2.5-flash-lite'));
   assert.ok(FALLBACK_MODELS.includes('gemini-flash-lite-latest'));
@@ -34,8 +35,8 @@ test('Models runtime: generateContentWithFallback skips 404 models immediately w
     models: {
       async generateContent({ model }) {
         queriedModels.push(model);
-        if (model === 'gemini-2.5-flash') {
-          const err = new Error('Model gemini-2.5-flash was not found (404 NOT_FOUND).');
+        if (model === 'gemini-3.6-flash') {
+          const err = new Error('Model gemini-3.6-flash was not found (404 NOT_FOUND).');
           err.status = 404;
           throw err;
         }
@@ -49,7 +50,7 @@ test('Models runtime: generateContentWithFallback skips 404 models immediately w
   const duration = Date.now() - startTime;
 
   assert.equal(res.text, 'Fallback model answered successfully!');
-  assert.ok(queriedModels.includes('gemini-2.5-flash'));
+  assert.ok(queriedModels.includes('gemini-3.6-flash'));
   assert.ok(queriedModels.length >= 2, 'Must have attempted fallback model after 404');
   assert.ok(duration < 2000, `Expected fast skip without delay, took ${duration}ms`);
 });
