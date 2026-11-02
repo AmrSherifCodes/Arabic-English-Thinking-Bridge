@@ -13,6 +13,14 @@
 
 ---
 
+## 🚀 What's New in v2.0.0
+
+- Interactive Onboarding & Adaptive Leveling Algorithm (A1 to C1)
+- Sub-Second Voice Streaming with Parallel TTS Prefetch
+- Native Android Haptics, Status Bar, and Keyboard integration
+- Premium UI Landing Page with Creator CV and Project Constitution
+- 98/98 Unit Tests Passing
+
 ## 🚀 The Mission
 
 Most language apps charge you a monthly subscription, track your every move, and force you to learn stiff, formal textbook Arabic that nobody actually speaks in the streets. 
