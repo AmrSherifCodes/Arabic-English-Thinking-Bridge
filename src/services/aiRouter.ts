@@ -58,12 +58,19 @@ export async function sendMessage(
 
   const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
 
-  // 1. ONLINE: Attempt cloud Gemini API
+  // 1. ONLINE: Attempt cloud Gemini API with automatic fallback context if omitted
   if (isOnline) {
     try {
-      if (context) {
-        return await generateTutorResponse(question, context);
-      }
+      const effectiveContext: TutorContext = context || {
+        profile: {
+          goal: 'general',
+          language: 'english',
+          dialect: 'egyptian',
+          level: 'beginner'
+        },
+        history: []
+      };
+      return await generateTutorResponse(question, effectiveContext);
     } catch (err) {
       console.warn('[aiRouter] Cloud /api/gemini failed or rate-limited. Falling back to local AI:', err);
       const errorObj = err instanceof Error ? err : new Error(String(err));
