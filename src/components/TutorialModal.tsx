@@ -80,8 +80,7 @@ const AOT_STEPS: StepData[] = [
 // 2. Standard Edition Steps
 const STANDARD_STEPS: StepData[] = [
   {
-    illustrationType: 'avatar',
-    image: '/amr-avatar.png',
+    image: '/amr-guide/pose1.png',
     badge: { en: '👋 Step 1: Foundation', ar: '👋 الخطوة ١: الأساس' },
     title: { en: 'Welcome to Thinking Bridge!', ar: 'أهلاً بك في جسر التفكير!' },
     desc: {
@@ -90,7 +89,7 @@ const STANDARD_STEPS: StepData[] = [
     }
   },
   {
-    illustrationType: 'features',
+    image: '/amr-guide/pose2.png',
     badge: { en: '🧭 Step 2: 3 Learning Paths', ar: '🧭 الخطوة ٢: ٣ مسارات تعليمية' },
     title: { en: 'Practice, Lessons & Cards', ar: 'المحادثة، الدروس، والبطاقات' },
     desc: {
@@ -99,21 +98,21 @@ const STANDARD_STEPS: StepData[] = [
     }
   },
   {
-    illustrationType: 'karaoke',
-    badge: { en: '✨ Step 3: Smart Karaoke', ar: '✨ الخطوة ٣: تظليل الكلمات الذكي' },
+    image: '/amr-guide/pose3.png',
+    badge: { en: '✨ Step 3: Smart Karaoke', ar: '✨ الخطوة ٣: لحظة الإلهام' },
     title: { en: 'Live Audio & New Words', ar: 'التظليل الصوتي والكلمات الجديدة' },
     desc: {
       en: 'Follow along word-by-word with live audio streaming. Words marked with a purple ★ are new to your active dictionary.',
-      ar: 'تابع النطق كلمة بكلمة مع التظليل الحي. الكلمات المميزة بنجمة بنفسجية ★ هي مصطلحات جديدة تضاف لقاموسك.'
+      ar: 'شاهد الذكاء الاصطناعي يتحدث مع تظليل الكلمات. الكلمات المميزة بنجمة بنفسجية ★ هي جديدة في قاموسك.'
     }
   },
   {
-    illustrationType: 'offline',
+    image: '/amr-guide/pose4.png',
     badge: { en: '📱 Step 4: 100% Offline', ar: '📱 الخطوة ٤: بدون إنترنت تماماً' },
     title: { en: 'Ready to Master English', ar: 'جاهز للانطلاق' },
     desc: {
       en: 'The app works completely offline without tracking. Download the official Android APK directly from the main menu.',
-      ar: 'التطبيق يعمل بالكامل بدون اتصال بالإنترنت وبدون أي تتبّع. يمكنك تحميل تطبيق الأندرويد الرسمي مباشرة من القائمة.'
+      ar: 'كل شيء جاهز! يمكنك تحميل تطبيق الأندرويد من القائمة وبدء رحلتك.'
     },
     actionText: {
       en: 'Start Learning Now 🚀',
@@ -251,7 +250,7 @@ export function TutorialModal({ isOpen, onClose, language }: TutorialModalProps)
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="relative w-full max-w-md bg-stone-900/95 border border-stone-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+      <div className="relative w-full max-w-md bg-stone-900/95 border border-stone-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92dvh]">
         {/* Ambient Backdrops: Green for AoT mode, Teal/Blue for Standard */}
         {mode === 'aot' && isSubscribed ? (
           <>
@@ -325,14 +324,18 @@ export function TutorialModal({ isOpen, onClose, language }: TutorialModalProps)
 
           {/* Visual Showcase (AoT Image vs Standard Clean Illustrative Elements) */}
           <div className="relative w-full rounded-2xl overflow-hidden bg-gradient-to-b from-stone-800/40 via-stone-900/80 to-stone-950 border border-stone-800/70 shadow-inner flex items-center justify-center p-3 mb-4 min-h-[220px]">
-            {mode === 'aot' && isSubscribed && step.image ? (
+            {step.image ? (
               <>
-                <div className="absolute inset-0 bg-radial from-emerald-500/10 via-transparent to-transparent opacity-60" />
+                <div
+                  className={`absolute inset-0 bg-radial ${
+                    mode === 'aot' ? 'from-emerald-500/15' : 'from-teal-500/15'
+                  } via-transparent to-transparent opacity-70`}
+                />
                 <img
                   key={step.image}
                   src={step.image}
                   alt={isArabic ? step.title.ar : step.title.en}
-                  className="relative z-10 w-auto h-auto max-h-[250px] sm:max-h-[280px] object-contain rounded-xl drop-shadow-2xl transition-all duration-300 hover:scale-[1.02]"
+                  className="relative z-10 w-auto h-auto max-h-[230px] sm:max-h-[270px] object-contain rounded-xl drop-shadow-2xl transition-all duration-300 hover:scale-[1.02]"
                   loading="eager"
                 />
               </>

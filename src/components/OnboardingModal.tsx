@@ -163,9 +163,9 @@ export function OnboardingModal({
       aria-modal="true"
       aria-label="تخصيص تفضيلاتك التعليمية مع عمرو"
       dir="rtl"
-      className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4 bg-stone-950/85 backdrop-blur-md overflow-y-auto animate-fade-in"
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-2.5 sm:p-4 bg-stone-950/85 backdrop-blur-md overflow-y-auto animate-fade-in"
     >
-      <div className="relative w-full max-w-lg overflow-hidden rounded-3xl border border-stone-800 bg-stone-900 p-5 sm:p-7 text-stone-100 shadow-2xl transition-all my-auto">
+      <div className="relative w-full max-w-lg max-h-[92dvh] overflow-y-auto rounded-3xl border border-stone-800 bg-stone-900 p-4 sm:p-7 text-stone-100 shadow-2xl transition-all my-auto">
         {/* Header Bar */}
         <div className="flex items-center justify-between border-b border-stone-800 pb-3 mb-4">
           <div className="flex items-center gap-2">

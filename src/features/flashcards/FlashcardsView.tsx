@@ -114,7 +114,8 @@ export function FlashcardsView({
         'Review';
 
   return (
-    <div style={{ padding: 16, minHeight: '100dvh', background: 'var(--bg, #0b0d10)', color: 'var(--fg, #e9ecf1)' }}>
+    <div className="p-3 sm:p-5 md:p-6 min-h-[100dvh] bg-[var(--bg,#0b0d10)] text-[var(--fg,#e9ecf1)]">
+      <div className="max-w-4xl mx-auto w-full">
       <button onClick={onBack} style={{ minHeight: 48, padding: '8px 16px', borderRadius: 8, background: '#ffffff1a', color: 'inherit', border: 0, cursor: 'pointer', marginBottom: 16 }}>
         ← Back to Menu
       </button>
@@ -196,6 +197,7 @@ export function FlashcardsView({
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

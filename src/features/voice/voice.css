@@ -354,3 +354,52 @@
   font-weight: 700;
   margin: 0 2px;
 }
+
+
+/* ==========================================================================
+   MULTI-PLATFORM RESPONSIVE STYLES (Voice Interface)
+   ========================================================================== */
+
+/* Tablets, Laptops & Desktops (>= 768px) */
+@media (min-width: 768px) {
+  .voice__header {
+    max-width: 720px;
+    margin: 0 auto;
+    width: 100%;
+  }
+  .voice__stage {
+    max-width: 680px;
+    gap: 28px;
+  }
+  .voice__orb {
+    width: 160px;
+    height: 160px;
+  }
+  .voice__transcript {
+    max-width: 680px;
+    margin: 0 auto;
+    width: 100%;
+  }
+  .voice__controls {
+    max-width: 680px;
+    margin: 0 auto;
+    width: 100%;
+  }
+}
+
+/* Compact Screens / Smart Fridges (<= 360px) */
+@media (max-width: 360px) {
+  .voice {
+    padding: max(10px, env(safe-area-inset-top)) 10px max(14px, env(safe-area-inset-bottom));
+  }
+  .voice__orb {
+    width: 110px;
+    height: 110px;
+  }
+  .voice__title {
+    font-size: 16px;
+  }
+  .voice__transcript {
+    max-height: 180px;
+  }
+}

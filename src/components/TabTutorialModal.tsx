@@ -279,13 +279,13 @@ export function TabTutorialModal({
       role="dialog"
       aria-modal="true"
       aria-labelledby="tab-tutorial-title"
-      className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-fade-in"
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-2.5 sm:p-4 bg-black/85 backdrop-blur-md overflow-y-auto animate-fade-in"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
       dir={isArabic ? 'rtl' : 'ltr'}
     >
-      <div className="relative w-full max-w-lg rounded-3xl bg-stone-900 border border-stone-800 text-stone-100 shadow-2xl p-5 sm:p-7 space-y-5">
+      <div className="relative w-full max-w-lg max-h-[92dvh] overflow-y-auto rounded-3xl bg-stone-900 border border-stone-800 text-stone-100 shadow-2xl p-4 sm:p-7 space-y-4 my-auto">
         {/* Close Button */}
         <button
           type="button"

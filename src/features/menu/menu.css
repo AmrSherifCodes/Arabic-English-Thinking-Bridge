@@ -464,3 +464,127 @@
 .menu[dir="rtl"] .menu__footer {
   text-align: center;
 }
+
+
+/* ==========================================================================
+   MULTI-PLATFORM RESPONSIVE STYLES (Fridges -> Phones -> Tablets -> Desktops)
+   ========================================================================== */
+
+/* Tablets, Laptops & Desktops (>= 768px) */
+@media (min-width: 768px) {
+  .menu {
+    padding: max(24px, env(safe-area-inset-top)) 28px max(36px, env(safe-area-inset-bottom));
+  }
+  .menu__container {
+    max-width: 840px;
+    gap: 20px;
+  }
+  .menu__hero {
+    padding: 12px 0 6px;
+  }
+  .menu__title {
+    font-size: 38px;
+  }
+  .menu__tagline {
+    font-size: 15.5px;
+    max-width: 540px;
+  }
+  .menu__stats-strip {
+    padding: 14px 24px;
+    max-width: 640px;
+    margin: 0 auto;
+    width: 100%;
+  }
+  .menu__quote-banner {
+    max-width: 720px;
+    margin: 0 auto;
+    width: 100%;
+  }
+  .menu__action-grid {
+    max-width: 720px;
+    margin: 0 auto;
+    width: 100%;
+  }
+  .menu__tiles {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+  .tile {
+    min-height: 106px;
+    padding: 20px 22px;
+  }
+  .menu__download-btn {
+    max-width: 720px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+  }
+  .menu__footer {
+    max-width: 720px;
+    margin: 0 auto;
+    width: 100%;
+  }
+}
+
+/* Widescreen & 4K (>= 1280px) */
+@media (min-width: 1280px) {
+  .menu__container {
+    max-width: 900px;
+  }
+  .tile {
+    padding: 24px;
+  }
+}
+
+/* Compact Screens / Smart Fridges / Narrow Embeds (<= 360px) */
+@media (max-width: 360px) {
+  .menu {
+    padding: max(10px, env(safe-area-inset-top)) 10px max(18px, env(safe-area-inset-bottom));
+  }
+  .menu__top-bar {
+    gap: 6px;
+  }
+  .menu__title {
+    font-size: 24px;
+  }
+  .menu__tagline {
+    font-size: 12px;
+  }
+  .menu__stats-strip {
+    padding: 8px 10px;
+  }
+  .menu__stat-label {
+    font-size: 10px;
+  }
+  .menu__quote-banner {
+    padding: 10px 12px;
+  }
+  .menu__quote-en,
+  .menu__quote-ar {
+    font-size: 11.5px;
+  }
+  .tile {
+    padding: 12px 14px;
+    min-height: 80px;
+    gap: 12px;
+  }
+  .tile__icon-wrapper {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+  }
+  .tile__icon {
+    font-size: 22px;
+  }
+  .tile__label {
+    font-size: 15px;
+  }
+  .tile__hint {
+    font-size: 11.5px;
+  }
+  .menu__sub-btn {
+    padding: 8px 10px;
+    font-size: 11px;
+  }
+}
