@@ -152,3 +152,4 @@ test('6. getVaultAuditSnapshot produces verified deterministic checksum', () => 
   assert.equal(snap.streak, 2);
   assert.ok(typeof snap.integrityChecksum === 'string');
 });
+
