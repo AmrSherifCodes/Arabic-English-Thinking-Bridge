@@ -167,14 +167,22 @@ export function ChoiceMenu({
           <span className="menu__download-badge">v3.0.0 · APK</span>
         </a>
 
-        {/* 7. Two-line Footer */}
-        <footer className="menu__footer">
+        {/* 7. Two-line Footer + Socials */}
+        <footer className="menu__footer" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <p className="menu__footer-line1">
             {isArabic ? 'صُنع في الإسكندرية، مصر 🇪🇬' : 'Crafted in Alexandria, Egypt 🇪🇬'}
           </p>
           <p className="menu__footer-line2">
             {isArabic ? 'مستوحى من ميهاليس إلفثيريو · CC0 1.0' : 'Inspired by Mihalis Eleftheriou · CC0 1.0'}
           </p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '12px', fontSize: '12px', marginTop: '4px' }}>
+            <a href="https://www.linkedin.com/in/sciamrsherif-abdelaal/" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent, #14b8a6)', textDecoration: 'none' }}>LinkedIn</a>
+            <a href="https://github.com/AmrSherifCodes" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent, #14b8a6)', textDecoration: 'none' }}>GitHub</a>
+            <a href="https://www.patreon.com/c/SciAmrSherif" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent, #14b8a6)', textDecoration: 'none' }}>Patreon</a>
+            <a href="https://www.youtube.com/@SciAmrSherif" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent, #14b8a6)', textDecoration: 'none' }}>YouTube</a>
+            <a href="https://x.com/SciAmrSherif" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent, #14b8a6)', textDecoration: 'none' }}>X</a>
+            <a href="mailto:amrsherifbusiness@gmail.com" style={{ color: 'var(--accent, #14b8a6)', textDecoration: 'none' }}>Email</a>
+          </div>
         </footer>
       </div>
     </div>

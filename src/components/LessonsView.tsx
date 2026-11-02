@@ -251,6 +251,14 @@ export function LessonsView({
       <p className="text-xs font-medium text-stone-700 dark:text-stone-300 mt-3">
         Full course: 24 lessons across three phases · Built in Alexandria, Egypt by Amr Sherif, inspired by Mihalis Eleftheriou &amp; The Thinking Method.
       </p>
+      <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 mt-2 text-xs font-semibold text-teal-600 dark:text-teal-400">
+        <a href="https://www.linkedin.com/in/sciamrsherif-abdelaal/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+        <a href="https://github.com/AmrSherifCodes" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a href="https://www.patreon.com/c/SciAmrSherif" target="_blank" rel="noopener noreferrer">Patreon</a>
+        <a href="https://www.youtube.com/@SciAmrSherif" target="_blank" rel="noopener noreferrer">YouTube</a>
+        <a href="https://x.com/SciAmrSherif" target="_blank" rel="noopener noreferrer">X</a>
+        <a href="mailto:amrsherifbusiness@gmail.com">Email</a>
+      </div>
     </div>
   );
 }
