@@ -10,6 +10,7 @@ import { FlashcardsView } from './features/flashcards/FlashcardsView';
 import { LessonView } from './features/lesson/LessonView';
 import { CVModal } from './components/CVModal';
 import { TutorialModal } from './components/TutorialModal';
+import { OnboardingModal } from './components/OnboardingModal';
 import { useUserProfile } from './hooks/useUserProfile';
 import { loadUserProgress, saveUserProgress } from './utils/storage';
 import { UserProfile, UserProgress } from './types';
@@ -27,8 +28,41 @@ export default function App() {
   const [cvOpen, setCvOpen] = useState(false);
   const [tutorialOpen, setTutorialOpen] = useState(false);
   const { profile, saveProfile } = useUserProfile();
+  const [onboardingOpen, setOnboardingOpen] = useState<boolean>(() => {
+    try {
+      const stored = localStorage.getItem('tb.userProfile');
+      return stored === null;
+    } catch {
+      return false;
+    }
+  });
   const [progress, setProgress] = useState<UserProgress>(loadUserProgress());
   const { recordAnswer } = useAdaptiveLearning();
+
+  const handleCompleteOnboarding = (newProfile: UserProfile) => {
+    saveProfile(newProfile);
+    setOnboardingOpen(false);
+    if (newProfile.language) {
+      i18n.changeLanguage(newProfile.language === 'arabic' ? 'ar' : 'en');
+      if (typeof document !== 'undefined') {
+        document.documentElement.dir = newProfile.language === 'arabic' ? 'rtl' : 'ltr';
+      }
+    }
+  };
+
+  const handleSkipOnboarding = () => {
+    const defaultProfile: UserProfile = {
+      name: 'Learner',
+      goal: 'general',
+      learningStyle: 'visual',
+      focusArea: 'daily-speech',
+      language: 'arabic',
+      dialect: 'egyptian',
+      level: 'beginner'
+    };
+    saveProfile(defaultProfile);
+    setOnboardingOpen(false);
+  };
 
   const handleCloseTutorial = () => {
     setTutorialOpen(false);
@@ -191,6 +225,14 @@ export default function App() {
           onAskAIAboutCard={handleAskAIAboutCard}
         />
       )}
+
+      {/* First-Launch Preferences Setup Onboarding */}
+      <OnboardingModal
+        isOpen={onboardingOpen}
+        initialProfile={profile}
+        onComplete={handleCompleteOnboarding}
+        onSkip={handleSkipOnboarding}
+      />
 
       {/* Floating CV Modal */}
       <CVModal isOpen={cvOpen} onClose={() => setCvOpen(false)} />
