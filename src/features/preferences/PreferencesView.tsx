@@ -89,31 +89,26 @@ export function PreferencesView({
   return (
     <div className="pref-screen" dir={isArabic ? 'rtl' : 'ltr'}>
       <header className="pref-header">
-        <button
-          className="pref-back"
-          onClick={onBack}
-          aria-label={isArabic ? 'رجوع' : 'Back'}
-        >
-          {isArabic ? '→' : '←'}
-        </button>
-        <h1>{isArabic ? 'الإعدادات' : 'Preferences'}</h1>
-        <button
-          type="button"
-          onClick={() => setShowGuide(true)}
-          style={{
-            background: 'none',
-            border: 'none',
-            fontSize: '18px',
-            cursor: 'pointer',
-            padding: '8px',
-            borderRadius: '12px',
-            color: 'var(--text-dim, #a8a29e)',
-          }}
-          aria-label={isArabic ? 'دليل الإعدادات' : 'Preferences Guide'}
-          title="Guide"
-        >
-          ❓
-        </button>
+        <div className="pref-header__inner">
+          <button
+            type="button"
+            className="pref-back"
+            onClick={onBack}
+            aria-label={isArabic ? 'رجوع' : 'Back'}
+          >
+            {isArabic ? '→' : '←'}
+          </button>
+          <h1>{isArabic ? 'الإعدادات' : 'Preferences'}</h1>
+          <button
+            type="button"
+            className="pref-guide-btn"
+            onClick={() => setShowGuide(true)}
+            aria-label={isArabic ? 'دليل الإعدادات' : 'Preferences Guide'}
+            title="Guide"
+          >
+            ❓
+          </button>
+        </div>
       </header>
       <div className="pref-body">
         {Array.from(grouped.entries()).map(([cat, fields]) => (

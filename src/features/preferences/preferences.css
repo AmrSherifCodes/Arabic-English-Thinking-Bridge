@@ -15,10 +15,7 @@
 }
 
 .pref-header {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: max(16px, env(safe-area-inset-top)) 20px 16px;
+  padding: max(14px, env(safe-area-inset-top)) 20px 14px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(12, 10, 9, 0.85);
   backdrop-filter: blur(12px);
@@ -27,34 +24,52 @@
   z-index: 20;
 }
 
+.pref-header__inner {
+  max-width: 640px;
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
 .pref-header h1 {
   font-size: 20px;
-  font-weight: 700;
+  font-weight: 800;
   margin: 0;
   color: #fafaf9;
   letter-spacing: -0.02em;
+  text-align: center;
+  flex: 1;
 }
 
-.pref-back {
+.pref-back,
+.pref-guide-btn {
   width: 44px;
   height: 44px;
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: #e7e5e4;
-  font-size: 20px;
+  font-size: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0;
+  padding: 0;
 }
 
 .pref-back:hover,
-.pref-back:active {
+.pref-back:active,
+.pref-guide-btn:hover,
+.pref-guide-btn:active {
   background: rgba(20, 184, 166, 0.15);
   border-color: rgba(20, 184, 166, 0.4);
   color: #14b8a6;
+  transform: scale(1.04);
 }
 
 .pref-body {
