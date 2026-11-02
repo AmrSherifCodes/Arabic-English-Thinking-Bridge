@@ -97,8 +97,11 @@ run('npm test');
 console.log(`\n⚡ 3. Building Vite web production bundle...`);
 run('npm run build');
 
-// 5. Sync Capacitor Android
-console.log(`\n📱 4. Syncing Capacitor Android assets...`);
+// 5. Sync Capacitor Android (guaranteed offline standalone mode)
+console.log(`\n📱 4. Syncing Capacitor Android assets (offline mode)...`);
+delete process.env.CAPACITOR_LIVE_RELOAD;
+delete process.env.CAPACITOR_LIVE_URL;
+run('node scripts/live-reload.js off');
 run('npx cap sync android');
 
 // 6. Build Android Universal Release APK
