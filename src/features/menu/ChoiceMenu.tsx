@@ -231,7 +231,7 @@ export function ChoiceMenu({
         <a
           href="/apk"
           className="menu__download-btn"
-          aria-label={isArabic ? 'تحميل تطبيق الأندرويد v3.0.1' : 'Download Android APK v3.0.1'}
+          aria-label={isArabic ? 'تحميل تطبيق الأندرويد v3.0.3' : 'Download Android APK v3.0.1'}
         >
           <div className="menu__download-info">
             <Download className="menu__download-icon" />
@@ -246,7 +246,7 @@ export function ChoiceMenu({
               </span>
             </div>
           </div>
-          <span className="menu__download-badge">v3.0.1 · APK</span>
+          <span className="menu__download-badge">v3.0.3 · APK</span>
         </a>
 
         {/* 7. Two-line Footer + Socials */}

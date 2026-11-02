@@ -51,8 +51,9 @@ if (fs.existsSync(gradlePath)) {
   const codeMatch = gradleContent.match(/versionCode\s+(\d+)/);
   if (codeMatch) {
     const currentCode = parseInt(codeMatch[1], 10);
-    gradleContent = gradleContent.replace(/versionCode\s+\d+/, `versionCode ${currentCode}`);
-    console.log(`   ✓ android/app/build.gradle -> versionName "${targetVersion}", versionCode ${currentCode}`);
+    const nextCode = currentCode + 1;
+    gradleContent = gradleContent.replace(/versionCode\s+\d+/, `versionCode ${nextCode}`);
+    console.log(`   ✓ android/app/build.gradle -> versionName "${targetVersion}", versionCode ${nextCode}`);
   }
   fs.writeFileSync(gradlePath, gradleContent, 'utf8');
 }
@@ -153,12 +154,15 @@ console.log(`\n📋 6. Copying production APK...`);
 const builtApkPath = path.join(ROOT_DIR, 'android', 'app', 'build', 'outputs', 'apk', 'release', 'app-universal-release.apk');
 const arm64ApkPath = path.join(ROOT_DIR, 'android', 'app', 'build', 'outputs', 'apk', 'release', 'app-arm64-v8a-release.apk');
 const desktopApkPath = `C:\\Users\\MSI\\Desktop\\Thinking-Bridge-${tag}.apk`;
+const desktopAliasPath = `C:\\Users\\MSI\\Desktop\\app-universal-release.apk`;
 const desktopArm64Path = `C:\\Users\\MSI\\Desktop\\Thinking-Bridge-${tag}-arm64.apk`;
 
 if (fs.existsSync(builtApkPath)) {
   try {
     fs.copyFileSync(builtApkPath, desktopApkPath);
+    fs.copyFileSync(builtApkPath, desktopAliasPath);
     console.log(`   ✓ Copied Universal APK to Desktop: ${desktopApkPath}`);
+    console.log(`   ✓ Copied Alias APK to Desktop: ${desktopAliasPath}`);
   } catch (err) {
     console.warn(`   ⚠️ Could not copy universal APK to desktop: ${err.message}`);
   }
