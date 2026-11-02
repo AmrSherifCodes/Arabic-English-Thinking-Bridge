@@ -127,28 +127,30 @@
   line-height: 1.4;
 }
 
-/* 4. 2-Column Action Grid */
+/* 4. Action Grid (Tutorial, CV & Constitution) */
 .menu__action-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
 }
 
 .menu__sub-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 12px 14px;
+  gap: 6px;
+  padding: 11px 8px;
   border-radius: 16px;
   background: rgba(28, 25, 23, 0.85); /* bg-stone-900/80 */
   border: 1px solid rgba(68, 64, 60, 0.7); /* border-stone-700 */
   color: #e7e5e4;
-  font-size: 12.5px;
+  font-size: 11.5px;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.15s ease;
   user-select: none;
+  text-align: center;
+  white-space: nowrap;
 }
 
 .menu__sub-btn:hover {
@@ -158,13 +160,25 @@
   box-shadow: 0 4px 14px rgba(20, 184, 166, 0.15);
 }
 
+.menu__sub-btn--highlight {
+  background: rgba(19, 78, 74, 0.25);
+  border-color: rgba(20, 184, 166, 0.5);
+  color: #2dd4bf;
+}
+
+.menu__sub-btn--highlight:hover {
+  background: rgba(19, 78, 74, 0.45);
+  border-color: #14b8a6;
+  color: #5eead4;
+}
+
 .menu__sub-btn:active {
   transform: scale(0.98);
 }
 
 .menu__sub-btn-icon {
-  width: 15px;
-  height: 15px;
+  width: 14px;
+  height: 14px;
   color: #2dd4bf; /* teal icon */
   flex-shrink: 0;
 }
@@ -301,18 +315,61 @@
 }
 
 
+/* Top Bar: Switcher + Quick Tutorial */
+.menu__top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+.menu__guide-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 13px;
+  font-size: 11.5px;
+  font-weight: 700;
+  border-radius: 9999px;
+  background: rgba(28, 25, 23, 0.85);
+  border: 1px solid rgba(245, 158, 11, 0.4); /* amber border */
+  color: #fbbf24; /* amber-400 */
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  white-space: nowrap;
+}
+
+.menu__guide-pill:hover {
+  background: rgba(41, 37, 36, 0.95);
+  border-color: #fbbf24;
+  color: #fef3c7;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+}
+
+.menu__guide-pill:active {
+  transform: scale(0.97);
+}
+
+.menu__guide-pill-icon {
+  width: 13px;
+  height: 13px;
+  color: #fbbf24;
+}
+
 /* Language Switcher */
 .menu__lang-switch {
   display: inline-flex;
   align-items: center;
-  align-self: center;
   background: rgba(28, 25, 23, 0.85);
   border: 1px solid rgba(68, 64, 60, 0.7);
   border-radius: 9999px;
   padding: 3px;
   gap: 2px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
-  margin-bottom: 2px;
 }
 
 .menu__lang-btn {

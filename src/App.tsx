@@ -9,6 +9,7 @@ import { VoicePracticeView } from './features/voice/VoicePracticeView';
 import { FlashcardsView } from './features/flashcards/FlashcardsView';
 import { LessonView } from './features/lesson/LessonView';
 import { CVModal } from './components/CVModal';
+import { TutorialModal } from './components/TutorialModal';
 import { useUserProfile } from './hooks/useUserProfile';
 import { loadUserProgress, saveUserProgress } from './utils/storage';
 import { UserProgress } from './types';
@@ -24,9 +25,31 @@ type View = { name: 'menu' } | { name: 'route'; route: MenuRoute };
 export default function App() {
   const [view, setView] = useState<View>({ name: 'menu' });
   const [cvOpen, setCvOpen] = useState(false);
+  const [tutorialOpen, setTutorialOpen] = useState(false);
   const { profile, saveProfile } = useUserProfile();
   const [progress, setProgress] = useState<UserProgress>(loadUserProgress());
   const { recordAnswer } = useAdaptiveLearning();
+
+  // Automatically show tutorial on first-ever launch
+  useEffect(() => {
+    try {
+      const seen = localStorage.getItem('tb.tutorial_seen');
+      if (!seen) {
+        setTutorialOpen(true);
+      }
+    } catch {
+      // ignore in environments with blocked storage
+    }
+  }, []);
+
+  const handleCloseTutorial = () => {
+    setTutorialOpen(false);
+    try {
+      localStorage.setItem('tb.tutorial_seen', 'true');
+    } catch {
+      // ignore
+    }
+  };
 
   const handleLanguageChange = (lang: 'arabic' | 'english') => {
     const next = profile
@@ -135,6 +158,7 @@ export default function App() {
           onSelect={(route) => setView({ name: 'route', route })}
           onOpenCV={() => setCvOpen(true)}
           onOpenConstitution={openConstitution}
+          onOpenTutorial={() => setTutorialOpen(true)}
         />
       )}
 
@@ -171,6 +195,13 @@ export default function App() {
 
       {/* Floating CV Modal */}
       <CVModal isOpen={cvOpen} onClose={() => setCvOpen(false)} />
+
+      {/* Floating AoT Survey Corps Interactive Tutorial */}
+      <TutorialModal
+        isOpen={tutorialOpen}
+        onClose={handleCloseTutorial}
+        language={profile?.language || 'english'}
+      />
 
       {/* Floating AI Helper */}
       {profile && <AIHelper profile={profile} request={aiHelperRequest} />}

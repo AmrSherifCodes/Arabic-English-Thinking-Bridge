@@ -1,6 +1,6 @@
 import React from 'react';
 import { ActionTile } from './ActionTile';
-import { UserRound, ScrollText, Zap, Shield, BookMarked, Download, ExternalLink } from 'lucide-react';
+import { UserRound, ScrollText, Zap, Shield, BookMarked, Download, ExternalLink, HelpCircle } from 'lucide-react';
 import { UserProfile } from '../../types';
 import './menu.css';
 
@@ -13,6 +13,7 @@ export interface ChoiceMenuProps {
   onSelect: (r: MenuRoute) => void;
   onOpenCV?: () => void;
   onOpenConstitution?: () => void;
+  onOpenTutorial?: () => void;
 }
 
 export function ChoiceMenu({
@@ -22,29 +23,42 @@ export function ChoiceMenu({
   onSelect,
   onOpenCV,
   onOpenConstitution,
+  onOpenTutorial,
 }: ChoiceMenuProps) {
   const isArabic = profile?.language === 'arabic';
 
   return (
     <div className="menu" dir={isArabic ? 'rtl' : 'ltr'}>
       <div className="menu__container">
-        {/* 0. Top Language Switcher */}
-        <div className="menu__lang-switch" role="group" aria-label="Language selection">
+        {/* 0. Top Bar: Language Switcher & Quick Tutorial */}
+        <div className="menu__top-bar">
+          <div className="menu__lang-switch" role="group" aria-label="Language selection">
+            <button
+              type="button"
+              className={`menu__lang-btn ${isArabic ? 'menu__lang-btn--active' : ''}`}
+              onClick={() => onLanguageChange?.('arabic')}
+              aria-label="Switch to Arabic"
+            >
+              العربية
+            </button>
+            <button
+              type="button"
+              className={`menu__lang-btn ${!isArabic ? 'menu__lang-btn--active' : ''}`}
+              onClick={() => onLanguageChange?.('english')}
+              aria-label="Switch to English"
+            >
+              English
+            </button>
+          </div>
+
           <button
             type="button"
-            className={`menu__lang-btn ${isArabic ? 'menu__lang-btn--active' : ''}`}
-            onClick={() => onLanguageChange?.('arabic')}
-            aria-label="Switch to Arabic"
+            onClick={onOpenTutorial}
+            className="menu__guide-pill"
+            aria-label={isArabic ? 'دليل الاستخدام السريع' : 'Quick Tutorial'}
           >
-            العربية
-          </button>
-          <button
-            type="button"
-            className={`menu__lang-btn ${!isArabic ? 'menu__lang-btn--active' : ''}`}
-            onClick={() => onLanguageChange?.('english')}
-            aria-label="Switch to English"
-          >
-            English
+            <HelpCircle className="menu__guide-pill-icon" />
+            <span>{isArabic ? '❓ كيفية الاستخدام' : '❓ How to use'}</span>
           </button>
         </div>
 
@@ -91,8 +105,17 @@ export function ChoiceMenu({
           </p>
         </aside>
 
-        {/* 4. 2-Column Action Grid (CV & Constitution) */}
+        {/* 4. Action Grid (Tutorial, CV & Constitution) */}
         <div className="menu__action-grid">
+          <button
+            type="button"
+            onClick={onOpenTutorial}
+            className="menu__sub-btn menu__sub-btn--highlight"
+            aria-label={isArabic ? 'دليل الاستخدام السريع' : 'How to use tutorial'}
+          >
+            <HelpCircle className="menu__sub-btn-icon" />
+            <span>{isArabic ? 'دليل الاستخدام' : 'How to use'}</span>
+          </button>
           <button
             type="button"
             onClick={onOpenCV}
