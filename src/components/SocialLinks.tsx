@@ -1,4 +1,4 @@
-import { Github, Linkedin, Youtube, Heart } from 'lucide-react';
+import { Github, Linkedin, Youtube, Heart, Twitter, Mail } from 'lucide-react';
 
 const SOCIAL_LINKS = [
   {
@@ -20,10 +20,22 @@ const SOCIAL_LINKS = [
     className: 'hover:border-sky-300 hover:text-sky-700 dark:hover:border-sky-800 dark:hover:text-sky-300'
   },
   {
+    label: 'X (Twitter)',
+    href: 'https://x.com/SciAmrSherif',
+    Icon: Twitter,
+    className: 'hover:border-stone-400 hover:text-stone-900 dark:hover:border-stone-500 dark:hover:text-white'
+  },
+  {
     label: 'Patreon',
     href: 'https://www.patreon.com/c/SciAmrSherif',
     Icon: Heart,
     className: 'hover:border-amber-300 hover:text-amber-700 dark:hover:border-amber-800 dark:hover:text-amber-400'
+  },
+  {
+    label: 'Email',
+    href: 'mailto:amrsherifbusiness@gmail.com',
+    Icon: Mail,
+    className: 'hover:border-teal-300 hover:text-teal-700 dark:hover:border-teal-800 dark:hover:text-teal-400'
   }
 ] as const;
 

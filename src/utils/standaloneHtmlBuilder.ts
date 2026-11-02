@@ -15,7 +15,7 @@ Thinking English™ project.
 
 **Amr Sherif** — Alexandria, Egypt
 GitHub: https://github.com/AmrSherifCodes
-LinkedIn: https://www.linkedin.com/in/amrsherif-abdelaal-08a287349/
+LinkedIn: https://www.linkedin.com/in/sciamrsherif-abdelaal/
 
 ## Statement
 
