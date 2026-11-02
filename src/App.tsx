@@ -11,6 +11,7 @@ import { LessonView } from './features/lesson/LessonView';
 import { CVModal } from './components/CVModal';
 import { TutorialModal } from './components/TutorialModal';
 import { OnboardingModal } from './components/OnboardingModal';
+import { FeedbackModal, UserFeedbackData } from './components/FeedbackModal';
 import { useUserProfile } from './hooks/useUserProfile';
 import { loadUserProgress, saveUserProgress } from './utils/storage';
 import { UserProfile, UserProgress } from './types';
@@ -27,6 +28,7 @@ export default function App() {
   const [view, setView] = useState<View>({ name: 'menu' });
   const [cvOpen, setCvOpen] = useState(false);
   const [tutorialOpen, setTutorialOpen] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const { profile, saveProfile } = useUserProfile();
   const [onboardingOpen, setOnboardingOpen] = useState<boolean>(() => {
     try {
@@ -71,6 +73,29 @@ export default function App() {
     } catch {
       // ignore
     }
+  };
+
+  useEffect(() => {
+    const totalDone =
+      (progress.completedExerciseCount || 0) || progress.completedExerciseIds.length;
+    if (totalDone >= 5 && !progress.feedbackDismissed && !progress.feedbackSubmitted) {
+      setFeedbackOpen(true);
+    }
+  }, [
+    progress.completedExerciseCount,
+    progress.completedExerciseIds.length,
+    progress.feedbackDismissed,
+    progress.feedbackSubmitted
+  ]);
+
+  const handleFeedbackSubmit = (_data: UserFeedbackData) => {
+    updateAndSaveProgress(prev => ({
+      ...prev,
+      score: (prev.score || 0) + 100,
+      streakShields: Math.min(5, (prev.streakShields ?? 2) + 1),
+      feedbackSubmitted: true,
+      feedbackDismissed: true
+    }));
   };
 
   const handleLanguageChange = (lang: 'arabic' | 'english') => {
@@ -192,6 +217,7 @@ export default function App() {
           onOpenCV={() => setCvOpen(true)}
           onOpenConstitution={openConstitution}
           onOpenTutorial={() => setTutorialOpen(true)}
+          onOpenReview={() => setFeedbackOpen(true)}
         />
       )}
 
@@ -213,6 +239,7 @@ export default function App() {
           progress={progress}
           updateAndSaveProgress={updateAndSaveProgress}
           onToast={showToast}
+          onOpenReview={() => setFeedbackOpen(true)}
         />
       )}
 
@@ -256,6 +283,18 @@ export default function App() {
         isOpen={tutorialOpen}
         onClose={handleCloseTutorial}
         language={profile?.language || 'english'}
+      />
+
+      {/* Floating Anonymous Review & Feedback Modal */}
+      <FeedbackModal
+        isOpen={feedbackOpen}
+        onClose={() => {
+          setFeedbackOpen(false);
+          updateAndSaveProgress(p => ({ ...p, feedbackDismissed: true }));
+        }}
+        onSubmit={handleFeedbackSubmit}
+        onToast={showToast}
+        profile={profile}
       />
 
       {/* Floating AI Helper */}

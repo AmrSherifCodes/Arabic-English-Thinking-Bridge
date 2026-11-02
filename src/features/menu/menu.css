@@ -177,11 +177,29 @@
   line-height: 1.4;
 }
 
-/* 4. Action Grid (Tutorial, CV & Constitution) */
+/* 4. Action Grid (Tutorial, CV, Constitution & Review) */
 .menu__action-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 8px;
+}
+
+@media (max-width: 520px) {
+  .menu__action-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.menu__sub-btn--reward {
+  border-color: rgba(251, 191, 36, 0.45);
+  background: linear-gradient(135deg, rgba(28, 25, 23, 0.95), rgba(41, 37, 36, 0.9));
+  color: #fef08a;
+}
+
+.menu__sub-btn--reward:hover {
+  border-color: #fbbf24;
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(251, 191, 36, 0.25);
 }
 
 .menu__sub-btn {

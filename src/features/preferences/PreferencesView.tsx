@@ -15,6 +15,7 @@ interface PreferencesViewProps {
   progress?: UserProgress;
   updateAndSaveProgress?: (updater: (prev: UserProgress) => UserProgress) => void;
   onToast?: (msg: string) => void;
+  onOpenReview?: () => void;
 }
 
 export function PreferencesView({
@@ -23,7 +24,8 @@ export function PreferencesView({
   onSaveProfile,
   progress,
   updateAndSaveProgress,
-  onToast
+  onToast,
+  onOpenReview
 }: PreferencesViewProps) {
   const [showGuide, setShowGuide] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -256,6 +258,17 @@ export function PreferencesView({
                 <Upload className="w-4 h-4 text-teal-400" />
                 <span>{isArabic ? 'استعادة من ملف (Restore)' : 'Restore from File'}</span>
               </button>
+              {onOpenReview && (
+                <button
+                  type="button"
+                  onClick={onOpenReview}
+                  className="pref-vault-btn"
+                  style={{ borderColor: 'rgba(251, 191, 36, 0.45)', color: '#fbbf24' }}
+                  aria-label={isArabic ? 'تقييم التطبيق واكسب ١٠٠ نقطة' : 'Review app & earn 100 XP'}
+                >
+                  <span>⭐ {isArabic ? 'قيّم واكسب 100 XP 🎁' : 'Review & Earn 100 XP 🎁'}</span>
+                </button>
+              )}
             </div>
           </section>
         )}

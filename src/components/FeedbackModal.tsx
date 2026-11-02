@@ -1,17 +1,21 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Star, MessageSquareHeart, Lightbulb, X, Send } from 'lucide-react';
+import { Star, MessageSquareHeart, Lightbulb, X, Send, ShieldCheck, Clock, Gift, Bug, Sparkles } from 'lucide-react';
+import { Capacitor } from '@capacitor/core';
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import type { UserProfile } from '../types';
 import { supabase } from '../services/supabase';
 
 export interface UserFeedbackData {
   rating: number;
-  generalFeedback: string;
-  featureIdea: string;
-  createdAt: string;
+  category: 'bug' | 'feature' | 'content' | 'general';
+  message: string;
+  isAnonymous: boolean;
   userName?: string;
   profileGoal?: string;
   focusArea?: string;
+  dialect?: string;
+  createdAt: string;
 }
 
 export interface FeedbackModalProps {
@@ -22,7 +26,7 @@ export interface FeedbackModalProps {
   profile?: UserProfile | null;
 }
 
-const FEEDBACK_STORAGE_KEY = 'user_feedback';
+const FEEDBACK_STORAGE_KEY = 'thinking_english_anonymous_reviews_v1';
 
 export function FeedbackModal({
   isOpen,
@@ -33,118 +37,164 @@ export function FeedbackModal({
 }: FeedbackModalProps) {
   const [rating, setRating] = useState<number>(5);
   const [hoverRating, setHoverRating] = useState<number | null>(null);
-  const [generalFeedback, setGeneralFeedback] = useState<string>('');
-  const [featureIdea, setFeatureIdea] = useState<string>('');
-  const [optInLeaderboard, setOptInLeaderboard] = useState<boolean>(false);
-  const [leaderboardName, setLeaderboardName] = useState<string>('');
+  const [category, setCategory] = useState<'bug' | 'feature' | 'content' | 'general'>('general');
+  const [message, setMessage] = useState<string>('');
+  const [isAnonymous, setIsAnonymous] = useState<boolean>(true);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   if (!isOpen) return null;
 
+  const isArabic = profile?.language === 'arabic';
+
+  const ratingLabels: Record<number, { en: string; ar: string }> = {
+    1: { en: 'Needs Work 🛠️', ar: 'يحتاج تحسين 🛠️' },
+    2: { en: 'Could be Better 😐', ar: 'مقبول ولكن فيه مشاكل 😐' },
+    3: { en: 'Good Experience 🙂', ar: 'تجربة جيدة 🙂' },
+    4: { en: 'Very Helpful! 😃', ar: 'ممتاز ومفيد جداً 😃' },
+    5: { en: 'Mind-Blowing Innovation 🚀', ar: 'ابتكار مبهر يفوق التوقعات 🚀' }
+  };
+
+  const categories = [
+    { id: 'general' as const, labelEn: '💬 General Review', labelAr: '💬 رأي عام' },
+    { id: 'bug' as const, labelEn: '🐛 Bug / Issue', labelAr: '🐛 مشكلة تقنية' },
+    { id: 'feature' as const, labelEn: '💡 Feature Idea', labelAr: '💡 فكرة جديدة' },
+    { id: 'content' as const, labelEn: '📖 Vocabulary & Accent', labelAr: '📖 مفردات ولهجات' },
+  ];
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
-
-    if (optInLeaderboard) {
-      if (leaderboardName.length < 3 || leaderboardName.length > 20 || !/^[a-zA-Z0-9_ \-]+$/.test(leaderboardName)) {
-        onToast('Leaderboard name must be 3-20 characters (letters, numbers, spaces, -, _).');
-        setIsSubmitting(false);
-        return;
-      }
+    if (!message.trim() && rating === 0) {
+      onToast(isArabic ? 'يرجى كتابة رأيك أو اختيار تقييم.' : 'Please add a comment or rating.');
+      return;
     }
+
+    setIsSubmitting(true);
 
     const feedbackData: UserFeedbackData = {
       rating,
-      generalFeedback: generalFeedback.trim(),
-      featureIdea: featureIdea.trim(),
-      createdAt: new Date().toISOString(),
-      userName: profile?.name,
+      category,
+      message: message.trim(),
+      isAnonymous,
+      userName: isAnonymous ? undefined : profile?.name,
       profileGoal: profile?.goal,
-      focusArea: profile?.focusArea
+      focusArea: profile?.focusArea,
+      dialect: profile?.dialect,
+      createdAt: new Date().toISOString()
     };
 
     try {
+      // 1. Save to local anonymous review log
       const existingRaw = localStorage.getItem(FEEDBACK_STORAGE_KEY);
       const existingList: UserFeedbackData[] = existingRaw ? JSON.parse(existingRaw) : [];
       existingList.push(feedbackData);
-      localStorage.setItem(FEEDBACK_STORAGE_KEY, JSON.stringify(existingList));
+      localStorage.setItem(FEEDBACK_STORAGE_KEY, JSON.stringify(existingList.slice(-50)));
 
+      // 2. Submit to Supabase if configured
       if (supabase) {
-        if (optInLeaderboard) {
-          const { data, error } = await supabase.rpc('join_leaderboard', { p_name: leaderboardName });
-          if (error) {
-            if (error.code === '23505') { // Unique violation
-              onToast('That display name is already taken! Please choose another.');
-              setIsSubmitting(false);
-              return;
-            }
-            console.error('Failed to join leaderboard:', error);
-          } else if (data) {
-            localStorage.setItem('tb.leaderboard_token', data);
-          }
-        }
-
         void supabase.from('feedback_submissions').insert({
           rating,
-          message: feedbackData.generalFeedback.slice(0, 1000),
-          feature_idea: feedbackData.featureIdea.slice(0, 1000) || null,
-          user_name: optInLeaderboard ? leaderboardName : (feedbackData.userName || null),
-          profile_goal: feedbackData.profileGoal || null,
-          focus_area: feedbackData.focusArea || null,
+          category,
+          message: feedbackData.message.slice(0, 1000),
+          is_anonymous: isAnonymous,
+          user_name: isAnonymous ? null : (profile?.name || null),
+          profile_goal: profile?.goal || null,
+          focus_area: profile?.focusArea || null,
+          dialect: profile?.dialect || null
         });
       }
+
+      if (Capacitor.isNativePlatform()) {
+        try {
+          await Haptics.impact({ style: ImpactStyle.Medium });
+        } catch {}
+      }
     } catch {
-      // LocalStorage quota or restricted mode fallback
+      // Graceful fallback
     }
 
-    onToast('Thank you! Your feedback directly shapes the future of this app.');
+    onToast(
+      isArabic
+        ? '🎉 شكراً لرأيك الصريح! تم إضافة +100 XP ودرع استمرارية 🛡️'
+        : '🎉 Thank you for your review! +100 XP & 1 Streak Shield awarded! 🛡️'
+    );
+
     onSubmit(feedbackData);
     setIsSubmitting(false);
+    onClose();
   };
 
   const currentDisplayRating = hoverRating !== null ? hoverRating : rating;
-  const ratingLabels: Record<number, string> = {
-    1: 'Needs Work 🛠️',
-    2: 'Fair 😐',
-    3: 'Good 🙂',
-    4: 'Great! 😃',
-    5: 'Mind-Blowing 🚀'
-  };
 
   return (
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Experience Feedback"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-950/80 backdrop-blur-xs overflow-y-auto"
+      aria-label={isArabic ? 'تقييم ومراجعة التطبيق' : 'App Review and Feedback'}
+      dir={isArabic ? 'rtl' : 'ltr'}
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4 bg-stone-950/85 backdrop-blur-md overflow-y-auto animate-fade-in"
     >
-      <div className="relative w-full max-w-md overflow-hidden rounded-3xl border border-stone-700/80 bg-stone-900 p-6 sm:p-7 text-stone-100 shadow-2xl my-auto">
+      <div className="relative w-full max-w-lg max-h-[92dvh] overflow-y-auto rounded-3xl border border-stone-800 bg-stone-900 p-5 sm:p-7 text-stone-100 shadow-2xl my-auto">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-stone-800 pb-3 mb-4">
           <div className="flex items-center gap-2.5">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-teal-500/20 text-teal-400">
-              <MessageSquareHeart size={20} />
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500/15 text-amber-400 border border-amber-500/30">
+              <Star size={18} className="fill-amber-400 text-amber-400" />
             </span>
             <div>
-              <h3 className="text-base font-bold text-white">5-Exercise Milestone 🎉</h3>
-              <p className="text-xs font-medium text-stone-600 dark:text-stone-300">You just completed your 5th cognitive exercise!</p>
+              <h3 className="text-sm sm:text-base font-extrabold text-white">
+                {isArabic ? 'تقييم وتطوير التطبيق بدون هوية' : 'Anonymous Review & Feedback'}
+              </h3>
+              <p className="text-[11px] font-semibold text-stone-400">
+                {isArabic ? 'صوتك هو الأساس لتطوير جسر التفكير' : 'Your honest review directly shapes the platform'}
+              </p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            aria-label="Skip feedback"
-            className="flex h-8 w-8 items-center justify-center rounded-full text-stone-600 hover:text-stone-900 dark:text-stone-300 dark:hover:text-white hover:bg-stone-800 transition"
+            aria-label={isArabic ? 'إغلاق' : 'Close'}
+            className="flex h-8 w-8 items-center justify-center rounded-xl text-stone-400 hover:text-white hover:bg-stone-800 transition"
           >
             <X size={18} />
           </button>
         </div>
 
+        {/* 🎁 Reward Announcement Banner */}
+        <div className="mb-4 rounded-2xl border border-teal-500/30 bg-teal-950/40 p-3.5 flex items-center gap-3">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-500/20 text-teal-300 border border-teal-500/30">
+            <Gift size={20} />
+          </span>
+          <div>
+            <div className="flex items-center gap-1.5 text-xs font-bold text-teal-300">
+              <Sparkles size={13} />
+              <span>{isArabic ? 'مكافأة المشاركة الفورية' : 'Instant Reviewer Reward'}</span>
+            </div>
+            <p className="text-xs font-medium text-stone-300 mt-0.5 leading-relaxed">
+              {isArabic
+                ? 'شاركنا رأيك الصريح بدون هوية واكسب فوراً +100 نقطة خبرة (XP) ودرع حماية لاستمراريتك 🛡️!'
+                : 'Leave your honest review to instantly claim +100 Bonus XP & 1 Streak Shield 🛡️!'}
+            </p>
+          </div>
+        </div>
+
+        {/* ⏱️ 7-Day Resolution Pledge */}
+        <div className="mb-4 rounded-2xl border border-amber-500/30 bg-amber-950/30 p-3 flex items-center gap-3">
+          <Clock size={18} className="text-amber-400 shrink-0" />
+          <p className="text-[11px] font-medium text-amber-200/90 leading-relaxed">
+            <strong className="text-amber-300 font-bold">
+              {isArabic ? 'ضمان الإصلاح خلال أقل من أسبوع ⏱️: ' : '7-Day Resolution Pledge ⏱️: '}
+            </strong>
+            {isArabic
+              ? 'يتابع عمرو شريف شخصياً كل الملاحظات والمشاكل ويضمن حلها وتحديث التطبيق خلال أقل من ٧ أيام.'
+              : 'Amr Sherif personally reviews all reports and guarantees bugs or ideas are addressed in under 7 days.'}
+          </p>
+        </div>
+
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Star Rating */}
-          <div className="rounded-2xl border border-stone-800 bg-stone-800/40 p-4 text-center">
-            <p className="text-xs font-bold uppercase tracking-wider text-stone-300 mb-2">
-              How is your experience so far?
+          <div className="rounded-2xl border border-stone-800 bg-stone-950/70 p-4 text-center">
+            <p className="text-xs font-bold uppercase tracking-wider text-stone-400 mb-2">
+              {isArabic ? 'ما تقييمك للتجربة العامة؟' : 'How is your experience overall?'}
             </p>
             <div className="flex items-center justify-center gap-2">
               {[1, 2, 3, 4, 5].map(starValue => {
@@ -160,11 +210,11 @@ export function FeedbackModal({
                     aria-label={`${starValue} star`}
                   >
                     <Star
-                      size={28}
+                      size={30}
                       className={`transition-colors ${
                         isFilled
-                          ? 'fill-amber-400 text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]'
-                          : 'text-stone-600'
+                          ? 'fill-amber-400 text-amber-400 drop-shadow-[0_0_10px_rgba(251,191,36,0.6)]'
+                          : 'text-stone-700'
                       }`}
                     />
                   </button>
@@ -172,78 +222,73 @@ export function FeedbackModal({
               })}
             </div>
             <p className="text-xs font-bold text-amber-300 mt-2">
-              {ratingLabels[currentDisplayRating] || 'Tap to rate'}
+              {ratingLabels[currentDisplayRating]?.[isArabic ? 'ar' : 'en'] || ''}
             </p>
           </div>
 
-          {/* General Feedback Textarea */}
+          {/* Category Chips */}
           <div>
-            <label htmlFor="general-feedback-input" className="block text-xs font-bold uppercase tracking-wider text-stone-300 mb-1.5">
-              General Feedback (What felt great or confusing?)
+            <label className="block text-xs font-bold uppercase tracking-wider text-stone-400 mb-2">
+              {isArabic ? 'نوع الملاحظة:' : 'Feedback Category:'}
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              {categories.map(c => (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => setCategory(c.id)}
+                  className={`px-3 py-2 rounded-xl text-xs font-bold text-center transition border ${
+                    category === c.id
+                      ? 'bg-teal-500/20 border-teal-500 text-teal-300 shadow-sm'
+                      : 'bg-stone-950/60 border-stone-800 text-stone-400 hover:text-stone-200 hover:border-stone-700'
+                  }`}
+                >
+                  {isArabic ? c.labelAr : c.labelEn}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Feedback Textarea */}
+          <div>
+            <label htmlFor="review-message-input" className="block text-xs font-bold uppercase tracking-wider text-stone-400 mb-1.5">
+              {isArabic ? 'ملاحظاتك، المشاكل اللي قابلتك، أو اقتراحاتك:' : 'Your review, bugs found, or feature requests:'}
             </label>
             <textarea
-              id="general-feedback-input"
+              id="review-message-input"
               rows={3}
               maxLength={1000}
-              value={generalFeedback}
-              onChange={e => setGeneralFeedback(e.target.value)}
-              placeholder="e.g. The word blocks really helped me stop translating word-for-word, but I'd like more practice with..."
-              className="w-full rounded-xl border border-stone-700 bg-stone-800/80 p-3 text-xs text-white placeholder-stone-500 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20 resize-none leading-relaxed"
+              value={message}
+              onChange={e => setMessage(e.target.value)}
+              placeholder={
+                isArabic
+                  ? 'اكتب براحتك.. إيه اللي عجبك؟ إيه اللي محتاج يتصلح؟ أي فكرة حابب تشوفها؟'
+                  : 'Tell us anything! What felt great? What should be fixed? What feature would you love to see?'
+              }
+              className="w-full rounded-2xl border border-stone-800 bg-stone-950/80 p-3.5 text-xs text-white placeholder-stone-500 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20 resize-none leading-relaxed"
             />
           </div>
 
-          {/* Feature Idea Textarea */}
-          <div>
-            <label htmlFor="feature-idea-input" className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-teal-300 mb-1.5">
-              <Lightbulb size={14} className="text-amber-400" />
-              <span>Suggest a New Feature / Idea</span>
-            </label>
-            <textarea
-              id="feature-idea-input"
-              rows={2}
-              maxLength={1000}
-              value={featureIdea}
-              onChange={e => setFeatureIdea(e.target.value)}
-              placeholder="e.g. Chemistry vocabulary deck, WhatsApp voice feedback, spaced repetition widget..."
-              className="w-full rounded-xl border border-teal-500/40 bg-stone-800/80 p-3 text-xs text-white placeholder-stone-500 focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-400/20 resize-none leading-relaxed"
-            />
-          </div>
-
-          {/* Leaderboard Opt-In Checkbox */}
-          <div className="flex flex-col gap-2 pt-1">
-            <div className="flex items-start gap-2">
-              <input
-                type="checkbox"
-                id="leaderboard-optin"
-                checked={optInLeaderboard}
-                onChange={e => setOptInLeaderboard(e.target.checked)}
-                className="mt-0.5 h-4 w-4 rounded border-stone-600 bg-stone-800 text-teal-500 focus:ring-teal-500 focus:ring-offset-stone-900"
-              />
-              <label htmlFor="leaderboard-optin" className="text-xs text-stone-300 leading-tight">
-                <span className="font-bold text-amber-400">🏆 Show me on the leaderboard</span><br/>
-                Earn points for confirmed bug reports and ideas.
-              </label>
+          {/* 100% Anonymous Mode Toggle */}
+          <div className="rounded-xl border border-stone-800 bg-stone-950/50 p-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <ShieldCheck size={16} className="text-teal-400 shrink-0" />
+              <div className="text-xs">
+                <span className="font-bold text-stone-200">
+                  {isArabic ? 'إرسال بدون هوية (100% Anonymous)' : 'Submit 100% Anonymously'}
+                </span>
+                <p className="text-[10px] text-stone-400">
+                  {isArabic ? 'لن يتم إرسال اسمك أو أي بيانات تعريفية' : 'Zero identifiers or personal data are collected'}
+                </p>
+              </div>
             </div>
-
-            <AnimatePresence>
-              {optInLeaderboard && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="overflow-hidden"
-                >
-                  <input
-                    type="text"
-                    maxLength={20}
-                    value={leaderboardName}
-                    onChange={e => setLeaderboardName(e.target.value)}
-                    placeholder="Choose a display name (3-20 chars)"
-                    className="w-full mt-2 rounded-xl border border-amber-500/40 bg-stone-800/80 p-3 text-xs text-white placeholder-stone-500 focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-400/20"
-                  />
-                </motion.div>
-              )}
-            </AnimatePresence>
+            <input
+              type="checkbox"
+              id="anon-mode"
+              checked={isAnonymous}
+              onChange={e => setIsAnonymous(e.target.checked)}
+              className="h-4 w-4 rounded border-stone-600 bg-stone-800 text-teal-500 focus:ring-teal-500"
+            />
           </div>
 
           {/* Actions */}
@@ -251,18 +296,18 @@ export function FeedbackModal({
             <button
               type="button"
               onClick={onClose}
-              className="text-xs font-semibold text-stone-600 hover:text-stone-900 dark:text-stone-300 dark:hover:text-stone-100 px-3 py-2 transition"
+              className="text-xs font-semibold text-stone-400 hover:text-white px-3 py-2 transition"
             >
-              Skip for now
+              {isArabic ? 'تخطي الآن' : 'Skip for now'}
             </button>
 
             <button
               type="submit"
               disabled={isSubmitting}
-              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs shadow-lg shadow-teal-900/40 transition active:scale-[0.98] disabled:opacity-50"
+              className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-extrabold text-xs shadow-lg shadow-teal-900/40 transition active:scale-[0.98] disabled:opacity-50"
             >
               <Send size={14} />
-              <span>Submit Feedback ✓</span>
+              <span>{isArabic ? 'إرسال واكسب 100 XP 🎁' : 'Submit & Claim 100 XP 🎁'}</span>
             </button>
           </div>
         </form>
@@ -270,4 +315,3 @@ export function FeedbackModal({
     </div>
   );
 }
-

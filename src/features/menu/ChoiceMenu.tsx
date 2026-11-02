@@ -1,6 +1,6 @@
 import React from 'react';
 import { ActionTile } from './ActionTile';
-import { UserRound, ScrollText, Zap, Shield, BookMarked, Download, ExternalLink, HelpCircle } from 'lucide-react';
+import { UserRound, ScrollText, Zap, Shield, BookMarked, Download, ExternalLink, HelpCircle, Star } from 'lucide-react';
 import { UserProfile, UserProgress } from '../../types';
 import { PHASES_DATA } from '../../data/lessons';
 import './menu.css';
@@ -16,6 +16,7 @@ export interface ChoiceMenuProps {
   onOpenCV?: () => void;
   onOpenConstitution?: () => void;
   onOpenTutorial?: () => void;
+  onOpenReview?: () => void;
 }
 
 export function ChoiceMenu({
@@ -27,6 +28,7 @@ export function ChoiceMenu({
   onOpenCV,
   onOpenConstitution,
   onOpenTutorial,
+  onOpenReview,
 }: ChoiceMenuProps) {
   const isArabic = profile?.language === 'arabic';
   const totalLessons = PHASES_DATA.reduce((acc, p) => acc + p.lessons.length, 0);
@@ -148,7 +150,7 @@ export function ChoiceMenu({
           </p>
         </aside>
 
-        {/* 4. Action Grid (Tutorial, CV & Constitution) */}
+        {/* 4. Action Grid (Tutorial, CV, Constitution & Review) */}
         <div className="menu__action-grid">
           <button
             type="button"
@@ -176,6 +178,16 @@ export function ChoiceMenu({
           >
             <ScrollText className="menu__sub-btn-icon" />
             <span>{isArabic ? 'الدستور' : 'Constitution'}</span>
+          </button>
+          <button
+            type="button"
+            onClick={onOpenReview}
+            className="menu__sub-btn menu__sub-btn--reward"
+            aria-label={isArabic ? 'قيّم التطبيق واكسب ١٠٠ نقطة' : 'Review app and earn 100 XP'}
+            title={isArabic ? 'ضمان مراجعة وحل المشاكل في أقل من أسبوع' : '7-Day Resolution Pledge'}
+          >
+            <Star className="menu__sub-btn-icon text-amber-400 fill-amber-400" />
+            <span>{isArabic ? '⭐ تقييم (+100 XP)' : '⭐ Review (+100 XP)'}</span>
           </button>
         </div>
 
