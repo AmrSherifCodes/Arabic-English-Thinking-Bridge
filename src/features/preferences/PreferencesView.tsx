@@ -1,11 +1,18 @@
-import { useMemo } from 'react';
-import { CATEGORY_LABELS, PreferenceCategory } from './settingsSchema';
+import React, { useMemo } from 'react';
+import { CATEGORY_LABELS, CATEGORY_LABELS_AR, PreferenceCategory } from './settingsSchema';
 import { usePreferences } from './usePreferences';
 import { FieldRenderer } from './FieldRenderer';
+import { UserProfile } from '../../types';
 import './preferences.css';
 
-export function PreferencesView({ onBack }: { onBack: () => void }) {
+interface PreferencesViewProps {
+  onBack: () => void;
+  profile?: UserProfile | null;
+}
+
+export function PreferencesView({ onBack, profile }: PreferencesViewProps) {
   const { values, set, reset, schema } = usePreferences();
+  const isArabic = profile?.language === 'arabic';
 
   const grouped = useMemo(() => {
     const m = new Map<PreferenceCategory, typeof schema>();
@@ -18,26 +25,40 @@ export function PreferencesView({ onBack }: { onBack: () => void }) {
   }, [schema]);
 
   return (
-    <div className="pref-screen">
+    <div className="pref-screen" dir={isArabic ? 'rtl' : 'ltr'}>
       <header className="pref-header">
-        <button className="pref-back" onClick={onBack} aria-label="Back">←</button>
-        <h1>Preferences</h1>
+        <button
+          className="pref-back"
+          onClick={onBack}
+          aria-label={isArabic ? 'رجوع' : 'Back'}
+        >
+          {isArabic ? '→' : '←'}
+        </button>
+        <h1>{isArabic ? 'الإعدادات' : 'Preferences'}</h1>
       </header>
       <div className="pref-body">
         {Array.from(grouped.entries()).map(([cat, fields]) => (
           <section key={cat} className="pref-section">
-            <h2 className="pref-section__title">{CATEGORY_LABELS[cat]}</h2>
+            <h2 className="pref-section__title">
+              {isArabic ? CATEGORY_LABELS_AR[cat] : CATEGORY_LABELS[cat]}
+            </h2>
             <div className="pref-section__fields">
               {fields.map((f) => (
-                <FieldRenderer key={f.id} field={f} value={values[f.id]}
-                  onChange={(v) => set(f.id, v)} />
+                <FieldRenderer
+                  key={f.id}
+                  field={f}
+                  value={values[f.id]}
+                  isArabic={isArabic}
+                  onChange={(v) => set(f.id, v)}
+                />
               ))}
             </div>
           </section>
         ))}
-        <button className="pref-reset" onClick={reset}>Reset to defaults</button>
+        <button type="button" className="pref-reset" onClick={reset}>
+          {isArabic ? '↺ استعادة الإعدادات الافتراضية' : '↺ Reset to defaults'}
+        </button>
       </div>
     </div>
   );
 }
-

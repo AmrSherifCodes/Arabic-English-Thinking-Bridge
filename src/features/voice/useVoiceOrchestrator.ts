@@ -55,6 +55,7 @@ export function useVoiceOrchestrator() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [currentAssistantText, setCurrentAssistantText] = useState('');
   const [latencyMetrics, setLatencyMetrics] = useState<{ ttft?: number; ttfa?: number; total?: number }>({});
+  const [audioProgress, setAudioProgress] = useState(0);
 
   const stateRef = useRef<VoiceState>('idle');
   stateRef.current = state;
@@ -92,6 +93,7 @@ export function useVoiceOrchestrator() {
     totalDispatchedRef.current = 0;
     isPlayingRef.current = false;
     streamDoneRef.current = false;
+    setAudioProgress(0);
   }, []);
 
   // Sequentially play next audio in queue as soon as slot is ready
@@ -108,9 +110,16 @@ export function useVoiceOrchestrator() {
       currentAudioRef.current = nextAudio;
       setState('speaking');
 
+      nextAudio.ontimeupdate = () => {
+        if (nextAudio.duration > 0) {
+          setAudioProgress(nextAudio.currentTime / nextAudio.duration);
+        }
+      };
+
       nextAudio.onended = () => {
         isPlayingRef.current = false;
         currentAudioRef.current = null;
+        setAudioProgress(0);
         checkAndPlayQueue();
       };
 
@@ -118,6 +127,7 @@ export function useVoiceOrchestrator() {
         console.warn('[useVoiceOrchestrator] Audio playback chunk error, checking next.');
         isPlayingRef.current = false;
         currentAudioRef.current = null;
+        setAudioProgress(0);
         checkAndPlayQueue();
       };
 
@@ -445,6 +455,7 @@ export function useVoiceOrchestrator() {
     startTurn,
     stopTurn,
     handleManualText: handleUserSpeech,
+    audioProgress,
     voiceMarker: VOICE_V2_MARKER,
   };
 }

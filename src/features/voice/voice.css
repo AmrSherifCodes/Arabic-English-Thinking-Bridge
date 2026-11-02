@@ -276,3 +276,58 @@
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+
+/* Duolingo-style Karaoke & New Word Gamification */
+.voice__bubble-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.voice__new-word-badge {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  padding: 3px 8px;
+  border-radius: 9999px;
+  background: rgba(126, 34, 206, 0.35);
+  border: 1px solid rgba(168, 85, 247, 0.5);
+  color: #d8b4fe;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 1px 6px rgba(147, 51, 234, 0.25);
+  animation: pulse-badge 2s infinite ease-in-out;
+}
+
+@keyframes pulse-badge {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(1.03); }
+}
+
+.voice__karaoke-word {
+  display: inline-block;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 4px;
+  padding: 1px 2px;
+}
+
+.voice__karaoke-word--active {
+  background: rgba(19, 78, 74, 0.5);
+  border-bottom: 2px solid #2dd4bf;
+  color: #5eead4;
+  font-weight: 600;
+  transform: translateY(-1px);
+}
+
+.voice__word--new {
+  background: rgba(88, 28, 135, 0.45);
+  color: #e9d5ff;
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  padding: 1px 5px;
+  border-radius: 6px;
+  font-weight: 600;
+  margin: 0 2px;
+}

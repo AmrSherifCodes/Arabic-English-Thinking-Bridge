@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useVoiceOrchestrator, VoiceState } from './useVoiceOrchestrator';
+import { UserProgress } from '../../types';
 import './voice.css';
 
 const LABELS: Record<VoiceState, string> = {
@@ -10,7 +11,25 @@ const LABELS: Record<VoiceState, string> = {
   speaking: 'Speaking… (Tap to interrupt)',
 };
 
-export function VoicePracticeView({ onBack }: { onBack: () => void }) {
+// Common conversational words that should not be flagged as "New Words"
+const STOP_WORDS = new Set([
+  'the', 'be', 'to', 'of', 'and', 'a', 'in', 'that', 'have', 'i',
+  'it', 'for', 'not', 'on', 'with', 'he', 'as', 'you', 'do', 'at',
+  'this', 'but', 'his', 'by', 'from', 'they', 'we', 'say', 'her',
+  'she', 'or', 'an', 'will', 'my', 'one', 'all', 'would', 'there',
+  'their', 'what', 'so', 'up', 'out', 'if', 'about', 'who', 'get',
+  'which', 'go', 'me', 'am', 'is', 'are', 'was', 'were', 'been',
+  'has', 'had', 'did', 'yes', 'no', 'can', 'could', 'how', 'why',
+  'here', 'now', 'very', 'well', 'your', 'our', 'them', 'him',
+  'hello', 'good', 'morning', 'evening', 'amr', 'thanks', 'thank'
+]);
+
+interface VoicePracticeViewProps {
+  onBack: () => void;
+  progress?: UserProgress;
+}
+
+export function VoicePracticeView({ onBack, progress }: VoicePracticeViewProps) {
   const {
     state,
     interimTranscript,
@@ -18,6 +37,7 @@ export function VoicePracticeView({ onBack }: { onBack: () => void }) {
     messages,
     error,
     latencyMetrics,
+    audioProgress,
     startTurn,
     stopTurn,
     handleManualText,
@@ -61,6 +81,74 @@ export function VoicePracticeView({ onBack }: { onBack: () => void }) {
     handleManualText(textInput);
     setTextInput('');
     setShowInput(false);
+  };
+
+  // Build a set of words already practiced or known by the user
+  const knownWordsSet = useMemo(() => {
+    const set = new Set<string>();
+    STOP_WORDS.forEach((w) => set.add(w));
+
+    if (progress?.cards) {
+      for (const key of Object.keys(progress.cards)) {
+        const parts = key.split(':');
+        if (parts[2]) {
+          try {
+            const phrase = decodeURIComponent(parts[2]).toLowerCase();
+            phrase.split(/\s+/).forEach((w) => {
+              const clean = w.replace(/[^\w]/g, '');
+              if (clean) set.add(clean);
+            });
+          } catch {
+            /* noop */
+          }
+        }
+      }
+    }
+    return set;
+  }, [progress?.cards]);
+
+  // Determine active text for karaoke rendering
+  const activeAiText =
+    currentAssistantText ||
+    (state === 'speaking' && messages.length > 0 && messages[messages.length - 1].role === 'assistant'
+      ? messages[messages.length - 1].text
+      : '');
+
+  const words = useMemo(() => {
+    return activeAiText.trim() ? activeAiText.trim().split(/\s+/) : [];
+  }, [activeAiText]);
+
+  const activeWordIndex = useMemo(() => {
+    if (state !== 'speaking' || words.length === 0) return -1;
+    return Math.min(words.length - 1, Math.max(0, Math.floor(audioProgress * words.length)));
+  }, [state, words.length, audioProgress]);
+
+  // Check if active sentence contains any new words
+  const hasNewWordsInActive = useMemo(() => {
+    return words.some((word) => {
+      const clean = word.replace(/[^\w]/g, '').toLowerCase();
+      return clean.length >= 4 && !knownWordsSet.has(clean) && !/[\u0600-\u06FF]/.test(word);
+    });
+  }, [words, knownWordsSet]);
+
+  const renderKaraokeWords = (textWords: string[], isLive: boolean) => {
+    return textWords.map((word, idx) => {
+      const clean = word.replace(/[^\w]/g, '').toLowerCase();
+      const isNewWord = clean.length >= 4 && !knownWordsSet.has(clean) && !/[\u0600-\u06FF]/.test(word);
+      const isCurrentlySpoken = isLive && idx === activeWordIndex;
+
+      return (
+        <span
+          key={`${word}-${idx}`}
+          className={`voice__karaoke-word ${
+            isCurrentlySpoken ? 'voice__karaoke-word--active' : ''
+          } ${isNewWord ? 'voice__word--new' : ''}`}
+        >
+          {isNewWord ? '★ ' : ''}
+          {word}{' '}
+        </span>
+      );
+    });
   };
 
   return (
@@ -111,33 +199,45 @@ export function VoicePracticeView({ onBack }: { onBack: () => void }) {
           </div>
         )}
 
-        {/* Live Transcription Bubble */}
-        {(interimTranscript || currentAssistantText) && (
+        {/* Live Transcription Bubble with Duolingo-style Karaoke & New Word Badge */}
+        {(interimTranscript || activeAiText) && (
           <div className="voice__bubble" aria-live="polite">
             {interimTranscript && (
               <div className="voice__bubble-user">
                 <span className="voice__bubble-label">You:</span> {interimTranscript}
               </div>
             )}
-            {currentAssistantText && (
+            {activeAiText && (
               <div className="voice__bubble-ai">
-                <span className="voice__bubble-label">Amr:</span> {currentAssistantText}
+                <div className="voice__bubble-header">
+                  <span className="voice__bubble-label">Amr:</span>
+                  {hasNewWordsInActive && (
+                    <span className="voice__new-word-badge">★ NEW WORD</span>
+                  )}
+                </div>
+                <div className="voice__bubble-text">
+                  {renderKaraokeWords(words, true)}
+                </div>
               </div>
             )}
           </div>
         )}
 
         {/* Last few messages transcript preview */}
-        {messages.length > 0 && !interimTranscript && !currentAssistantText && (
+        {messages.length > 0 && !interimTranscript && !activeAiText && (
           <div className="voice__history-preview">
-            {messages.slice(-2).map((m) => (
-              <div
-                key={m.id}
-                className={`voice__history-item voice__history-item--${m.role}`}
-              >
-                <strong>{m.role === 'user' ? 'You' : 'Amr'}:</strong> {m.text}
-              </div>
-            ))}
+            {messages.slice(-2).map((m) => {
+              const msgWords = m.text.trim().split(/\s+/);
+              return (
+                <div
+                  key={m.id}
+                  className={`voice__history-item voice__history-item--${m.role}`}
+                >
+                  <strong>{m.role === 'user' ? 'You' : 'Amr'}:</strong>{' '}
+                  {m.role === 'assistant' ? renderKaraokeWords(msgWords, false) : m.text}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
@@ -160,7 +260,9 @@ export function VoicePracticeView({ onBack }: { onBack: () => void }) {
 
       <footer className="voice__footer">
         <button
-          className={`voice__mic ${state === 'speaking' || state === 'thinking' ? 'voice__mic--interrupt' : ''} ${state === 'listening' ? 'voice__mic--active' : ''}`}
+          className={`voice__mic ${
+            state === 'speaking' || state === 'thinking' ? 'voice__mic--interrupt' : ''
+          } ${state === 'listening' ? 'voice__mic--active' : ''}`}
           onClick={handleMicClick}
           aria-label={
             state === 'speaking' || state === 'thinking'

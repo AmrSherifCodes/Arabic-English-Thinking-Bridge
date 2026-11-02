@@ -17,15 +17,34 @@ import { AIHelper, AIHelperRequest } from './components/AIHelper';
 import { LexiconEntry } from './services/geminiLexicon';
 import { FlashcardItemData } from './components/uiConstants';
 import { useDueCount } from './features/flashcards/useDueCount';
+import i18n from './i18n';
 
 type View = { name: 'menu' } | { name: 'route'; route: MenuRoute };
 
 export default function App() {
   const [view, setView] = useState<View>({ name: 'menu' });
   const [cvOpen, setCvOpen] = useState(false);
-  const { profile } = useUserProfile();
+  const { profile, saveProfile } = useUserProfile();
   const [progress, setProgress] = useState<UserProgress>(loadUserProgress());
   const { recordAnswer } = useAdaptiveLearning();
+
+  const handleLanguageChange = (lang: 'arabic' | 'english') => {
+    const next = profile
+      ? { ...profile, language: lang }
+      : {
+          name: '',
+          goal: 'general' as const,
+          language: lang,
+          dialect: 'egyptian' as const,
+          level: 'beginner' as const,
+        };
+    saveProfile(next);
+    i18n.changeLanguage(lang === 'arabic' ? 'ar' : 'en');
+    if (typeof document !== 'undefined') {
+      document.documentElement.dir = lang === 'arabic' ? 'rtl' : 'ltr';
+      document.documentElement.lang = lang === 'arabic' ? 'ar' : 'en';
+    }
+  };
 
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const toastTimerRef = useRef<number | null>(null);
@@ -111,6 +130,8 @@ export default function App() {
       {view.name === 'menu' && (
         <ChoiceMenu
           dueCards={dueCards}
+          profile={profile}
+          onLanguageChange={handleLanguageChange}
           onSelect={(route) => setView({ name: 'route', route })}
           onOpenCV={() => setCvOpen(true)}
           onOpenConstitution={openConstitution}
@@ -118,11 +139,11 @@ export default function App() {
       )}
 
       {view.name === 'route' && view.route === 'voice' && (
-        <VoicePracticeView onBack={goHome} />
+        <VoicePracticeView onBack={goHome} progress={progress} />
       )}
 
       {view.name === 'route' && view.route === 'preferences' && (
-        <PreferencesView onBack={goHome} />
+        <PreferencesView onBack={goHome} profile={profile} />
       )}
 
       {view.name === 'route' && view.route === 'flashcards' && (
