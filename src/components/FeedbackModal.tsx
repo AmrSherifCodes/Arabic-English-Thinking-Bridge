@@ -35,13 +35,23 @@ export function FeedbackModal({
   const [hoverRating, setHoverRating] = useState<number | null>(null);
   const [generalFeedback, setGeneralFeedback] = useState<string>('');
   const [featureIdea, setFeatureIdea] = useState<string>('');
+  const [optInLeaderboard, setOptInLeaderboard] = useState<boolean>(false);
+  const [leaderboardName, setLeaderboardName] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+
+    if (optInLeaderboard) {
+      if (leaderboardName.length < 3 || leaderboardName.length > 20 || !/^[a-zA-Z0-9_ \-]+$/.test(leaderboardName)) {
+        onToast('Leaderboard name must be 3-20 characters (letters, numbers, spaces, -, _).');
+        setIsSubmitting(false);
+        return;
+      }
+    }
 
     const feedbackData: UserFeedbackData = {
       rating,
@@ -60,13 +70,27 @@ export function FeedbackModal({
       localStorage.setItem(FEEDBACK_STORAGE_KEY, JSON.stringify(existingList));
 
       if (supabase) {
+        if (optInLeaderboard) {
+          const { data, error } = await supabase.rpc('join_leaderboard', { p_name: leaderboardName });
+          if (error) {
+            if (error.code === '23505') { // Unique violation
+              onToast('That display name is already taken! Please choose another.');
+              setIsSubmitting(false);
+              return;
+            }
+            console.error('Failed to join leaderboard:', error);
+          } else if (data) {
+            localStorage.setItem('tb.leaderboard_token', data);
+          }
+        }
+
         void supabase.from('feedback_submissions').insert({
           rating,
           message: feedbackData.generalFeedback.slice(0, 1000),
           feature_idea: feedbackData.featureIdea.slice(0, 1000) || null,
-          user_name: feedbackData.userName || null,
+          user_name: optInLeaderboard ? leaderboardName : (feedbackData.userName || null),
           profile_goal: feedbackData.profileGoal || null,
-          focus_area: feedbackData.focusArea || null
+          focus_area: feedbackData.focusArea || null,
         });
       }
     } catch {
@@ -183,6 +207,43 @@ export function FeedbackModal({
               placeholder="e.g. Chemistry vocabulary deck, WhatsApp voice feedback, spaced repetition widget..."
               className="w-full rounded-xl border border-teal-500/40 bg-stone-800/80 p-3 text-xs text-white placeholder-stone-500 focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-400/20 resize-none leading-relaxed"
             />
+          </div>
+
+          {/* Leaderboard Opt-In Checkbox */}
+          <div className="flex flex-col gap-2 pt-1">
+            <div className="flex items-start gap-2">
+              <input
+                type="checkbox"
+                id="leaderboard-optin"
+                checked={optInLeaderboard}
+                onChange={e => setOptInLeaderboard(e.target.checked)}
+                className="mt-0.5 h-4 w-4 rounded border-stone-600 bg-stone-800 text-teal-500 focus:ring-teal-500 focus:ring-offset-stone-900"
+              />
+              <label htmlFor="leaderboard-optin" className="text-xs text-stone-300 leading-tight">
+                <span className="font-bold text-amber-400">🏆 Show me on the leaderboard</span><br/>
+                Earn points for confirmed bug reports and ideas.
+              </label>
+            </div>
+
+            <AnimatePresence>
+              {optInLeaderboard && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="overflow-hidden"
+                >
+                  <input
+                    type="text"
+                    maxLength={20}
+                    value={leaderboardName}
+                    onChange={e => setLeaderboardName(e.target.value)}
+                    placeholder="Choose a display name (3-20 chars)"
+                    className="w-full mt-2 rounded-xl border border-amber-500/40 bg-stone-800/80 p-3 text-xs text-white placeholder-stone-500 focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-400/20"
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           {/* Actions */}

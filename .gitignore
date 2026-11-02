@@ -22,3 +22,7 @@ thinking-english-release.keystore
 # Playwright
 test-results/
 playwright-report/
+
+android/key.properties
+*.keystore
+*.jks

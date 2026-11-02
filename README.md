@@ -58,3 +58,8 @@ Want to spin up your own version? It takes less than a minute.
    ```bash
    git clone https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge.git
    cd Arabic-English-Thinking-Bridge
+
+## ⚖️ License & Attribution
+
+- **Application Software & Codebase:** Licensed under [Creative Commons Zero v1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/) (CC0 1.0 — Public Domain Dedication). You may copy, modify, distribute, and perform the work, even for commercial purposes, without asking permission.
+- **Linguistic & Dictionary Dataset:** The curated 5,299-entry Arabic-English dictionary dataset incorporates lexical data derived from Kaikki.org / Wiktionary, licensed under [Creative Commons Attribution-ShareAlike 4.0 International](https://creativecommons.org/licenses/by-sa/4.0/) (CC BY-SA 4.0).

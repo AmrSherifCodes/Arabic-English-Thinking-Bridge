@@ -14,6 +14,7 @@ import { InteractiveArabicSentence } from './InteractiveArabicSentence';
 import { ReviewHeatmapCard } from './ReviewHeatmapCard';
 import { BTN_GHOST, BTN_PRIMARY, CARD_CLASS } from './uiConstants';
 import { SocialLinks } from './SocialLinks';
+import { LeaderboardCard } from './LeaderboardCard';
 
 export interface ProgressViewProps {
   progress: UserProgress;
@@ -361,6 +362,9 @@ export function ProgressView({
       <button type="button" className={BTN_GHOST} onClick={onResetProgress}>
         Reset progress
       </button>
+      <div className="mt-5">
+        <LeaderboardCard />
+      </div>
       <div className="mt-5">
         <SocialLinks />
       </div>
