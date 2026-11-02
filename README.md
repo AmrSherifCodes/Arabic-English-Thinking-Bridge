@@ -71,3 +71,16 @@ Want to spin up your own version? It takes less than a minute.
 
 - **Application Software & Codebase:** Licensed under [Creative Commons Zero v1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/) (CC0 1.0 — Public Domain Dedication). You may copy, modify, distribute, and perform the work, even for commercial purposes, without asking permission.
 - **Linguistic & Dictionary Dataset:** The curated 5,299-entry Arabic-English dictionary dataset incorporates lexical data derived from Kaikki.org / Wiktionary, licensed under [Creative Commons Attribution-ShareAlike 4.0 International](https://creativecommons.org/licenses/by-sa/4.0/) (CC BY-SA 4.0).
+
+---
+
+### Inspired By & Connect
+Gratefully inspired by **Mihalis Eleftheriou** & *The Thinking Method* (Language Transfer).
+
+**Connect with me:**
+- [LinkedIn](https://www.linkedin.com/in/sciamrsherif-abdelaal/)
+- [GitHub](https://github.com/AmrSherifCodes)
+- [Patreon](https://www.patreon.com/c/SciAmrSherif)
+- [YouTube](https://www.youtube.com/@SciAmrSherif)
+- [X (Twitter)](https://x.com/SciAmrSherif)
+- Email: amrsherifbusiness@gmail.com
