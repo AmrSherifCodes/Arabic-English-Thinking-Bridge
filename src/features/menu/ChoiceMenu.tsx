@@ -1,6 +1,6 @@
 import React from 'react';
 import { ActionTile } from './ActionTile';
-import { FileText, Shield, Sparkles, BookMarked, Zap, Heart } from 'lucide-react';
+import { UserRound, ScrollText, Zap, Shield, BookMarked } from 'lucide-react';
 import './menu.css';
 
 export type MenuRoute = 'voice' | 'lesson' | 'flashcards' | 'preferences';
@@ -21,11 +21,10 @@ export function ChoiceMenu({
   return (
     <div className="menu">
       <div className="menu__container">
-        {/* a) Hero Section */}
+        {/* 1. Top Badge & Hero */}
         <header className="menu__hero">
           <div className="menu__badge">
-            <Sparkles className="menu__badge-icon" />
-            <span>v2.0 • Offline-Ready & Private</span>
+            <span>✦ Offline Ready</span>
           </div>
           <h1 className="menu__title">Thinking Bridge</h1>
           <p className="menu__tagline">
@@ -33,7 +32,7 @@ export function ChoiceMenu({
           </p>
         </header>
 
-        {/* b) Stats / Pillar Strip */}
+        {/* 2. Stats Strip */}
         <section className="menu__stats-strip" aria-label="Key app features">
           <div className="menu__stat-item">
             <Zap className="menu__stat-icon" />
@@ -51,35 +50,35 @@ export function ChoiceMenu({
           </div>
         </section>
 
-        {/* c) Quote Banner */}
+        {/* 3. Quote Banner */}
         <aside className="menu__quote-banner">
           <p className="menu__quote-en">“Think the structure, don't memorize words.”</p>
           <p className="menu__quote-ar" dir="rtl">«افهم بناء الفكرة، مش حفظ الجداول»</p>
         </aside>
 
-        {/* d) 2-Column Action Grid (CV & Constitution) */}
+        {/* 4. 2-Column Action Grid (CV & Constitution) */}
         <div className="menu__action-grid">
           <button
             type="button"
             onClick={onOpenCV}
-            className="menu__sub-btn menu__sub-btn--cv"
+            className="menu__sub-btn"
             aria-label="View Creator CV"
           >
-            <FileText className="menu__sub-btn-icon" />
+            <UserRound className="menu__sub-btn-icon" />
             <span>View CV</span>
           </button>
           <button
             type="button"
             onClick={onOpenConstitution}
-            className="menu__sub-btn menu__sub-btn--constitution"
+            className="menu__sub-btn"
             aria-label="Read Channel Constitution"
           >
-            <Shield className="menu__sub-btn-icon" />
+            <ScrollText className="menu__sub-btn-icon" />
             <span>Constitution</span>
           </button>
         </div>
 
-        {/* e) The 4 Core Navigation Tiles */}
+        {/* 5. Core Navigation Tiles */}
         <nav className="menu__tiles" aria-label="Main navigation">
           <ActionTile
             primary
@@ -98,7 +97,7 @@ export function ChoiceMenu({
             icon="🗂️"
             label="Flashcards"
             hint={`${dueCards} cards due today`}
-            badge={dueCards > 0 ? dueCards : undefined}
+            badge={dueCards}
             onClick={() => onSelect('flashcards')}
           />
           <ActionTile
@@ -109,13 +108,13 @@ export function ChoiceMenu({
           />
         </nav>
 
-        {/* f) Footer */}
+        {/* 6. Two-line Footer */}
         <footer className="menu__footer">
-          <p className="menu__footer-location">
-            Crafted with <Heart className="menu__footer-heart" /> in Alexandria, Egypt
+          <p className="menu__footer-line1">
+            Crafted in Alexandria, Egypt 🇪🇬
           </p>
-          <p className="menu__footer-method">
-            Inspired by Mihalis Eleftheriou &amp; The Thinking Method · CC0 1.0
+          <p className="menu__footer-line2">
+            Inspired by Mihalis Eleftheriou · CC0 1.0
           </p>
         </footer>
       </div>
