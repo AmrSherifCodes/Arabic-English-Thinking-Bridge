@@ -543,6 +543,7 @@ export function useVoiceOrchestrator() {
     isListening,
     interimTranscript,
     error: sttError,
+    clearError,
     startListening,
     stopListening,
     abortListening,
@@ -553,8 +554,18 @@ export function useVoiceOrchestrator() {
         handleUserSpeech(text);
       }, 50);
     },
+    onError: (_err) => {
+      setState('idle');
+    },
     silenceTimeoutMs: 1500,
   });
+
+  // Ensure state resets to idle if speech recognition encounters an error
+  useEffect(() => {
+    if (sttError && stateRef.current === 'listening') {
+      setState('idle');
+    }
+  }, [sttError]);
 
   // Start turn / tap to speak
   const startTurn = useCallback(() => {
@@ -577,7 +588,9 @@ export function useVoiceOrchestrator() {
     unlockAudio();
     stopAudio();
     setState('listening');
-    startListening('en-US');
+    startListening('en-US').catch(() => {
+      setState('idle');
+    });
   }, [startListening, stopAudio]);
 
   // Stop turn manually
@@ -586,8 +599,8 @@ export function useVoiceOrchestrator() {
       stopListening();
     } else {
       stopAudio();
-      setState('idle');
     }
+    setState('idle');
   }, [stopAudio, stopListening]);
 
   // Clean up on unmount
@@ -608,6 +621,7 @@ export function useVoiceOrchestrator() {
     currentAssistantText,
     messages,
     error: sttError,
+    clearError,
     latencyMetrics,
     startTurn,
     stopTurn,

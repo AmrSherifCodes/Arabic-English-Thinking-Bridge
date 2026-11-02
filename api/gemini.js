@@ -4,7 +4,7 @@ import { Redis } from '@upstash/redis';
 
 const MODEL = process.env.GEMINI_MODEL || 'gemini-3.6-flash';
 const FALLBACK_MODELS = process.env.GEMINI_FALLBACK_MODELS ? process.env.GEMINI_FALLBACK_MODELS.split(',').map((s) => s.trim()).filter(Boolean) : ['gemini-3.6-flash', 'gemini-3.5-flash', 'gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-flash-lite-latest', 'gemini-3.5-flash-lite'];
-const MAX_BODY_BYTES = 16 * 1024;
+const MAX_BODY_BYTES = 512 * 1024;
 const GEMINI_TIMEOUT_MS = 7_000;
 
 // Rate limit thresholds: max 10 requests/minute and 50 requests/day per IP
@@ -242,6 +242,7 @@ async function checkRateLimit(req) {
 
 function buildCacheKey(operation, body) {
   if (!isRecord(body)) return null;
+  if (operation === 'transcribe') return null;
   if (operation === 'entry') {
     const word = typeof body.word === 'string' ? body.word.trim().toLowerCase() : '';
     const dialect = typeof body.dialect === 'string' ? body.dialect : 'msa';
@@ -514,8 +515,44 @@ async function generate(operation, body) {
     }
   }
 
+  if (operation === 'transcribe') {
+    const { audioData } = body;
+    if (typeof audioData !== 'string' || !audioData.trim()) {
+      return { status: 400, error: { code: 'empty-audio', message: 'Audio data is required.' } };
+    }
+  }
+
   const ai = getClient();
   if (!ai) return { status: 503, error: { code: 'missing-key', message: 'AI service is not configured (GEMINI_API_KEY missing in Vercel environment).' } };
+
+  if (operation === 'transcribe') {
+    const { audioData, mimeType } = body;
+
+    try {
+      const cleanData = audioData.replace(/^data:audio\/[a-zA-Z0-9.+_-]+;base64,/, '');
+      const response = await generateContentWithFallback(ai, {
+        contents: [
+          {
+            inlineData: {
+              mimeType: typeof mimeType === 'string' && mimeType ? mimeType : 'audio/webm',
+              data: cleanData,
+            },
+          },
+          'Listen to this student speaking. Transcribe exactly what they said into text. Return ONLY the transcribed text in the spoken language (English or Arabic), with no explanations, punctuation commentary, or markdown formatting. If silence or inaudible, return an empty string.',
+        ],
+        config: {
+          maxOutputTokens: 120,
+          temperature: 0.1,
+        },
+      });
+
+      const transcribed = response.text?.trim().replace(/^["']|["']$/g, '') || '';
+      return { status: 200, data: transcribed };
+    } catch (err) {
+      console.warn('[gemini.js] Audio transcribe error:', err?.message || err);
+      return { status: 500, error: { code: 'transcribe-failed', message: 'Speech transcription failed.' } };
+    }
+  }
 
   if (operation === 'entry') {
     const word = typeof body.word === 'string' ? body.word.trim() : '';

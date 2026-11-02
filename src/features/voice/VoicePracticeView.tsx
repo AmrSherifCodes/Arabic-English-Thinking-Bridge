@@ -49,6 +49,7 @@ export function VoicePracticeView({
     currentAssistantText,
     messages,
     error,
+    clearError,
     latencyMetrics,
     audioProgress,
     currentSpokenWordIndex,
@@ -106,6 +107,7 @@ export function VoicePracticeView({
 
   const handleMicClick = () => {
     unlockAudio();
+    if (error) clearError();
     if (state === 'listening') {
       stopTurn();
     } else {
@@ -117,6 +119,7 @@ export function VoicePracticeView({
     e.preventDefault();
     if (!textInput.trim()) return;
     unlockAudio();
+    if (error) clearError();
     handleManualText(textInput);
     setTextInput('');
     setShowInput(false);
@@ -243,10 +246,26 @@ export function VoicePracticeView({
 
         {error && (
           <div className="voice__error-box">
-            <p className="voice__error">{error}</p>
+            <div className="voice__error-row">
+              <p className="voice__error">{error}</p>
+              <button
+                type="button"
+                className="voice__error-dismiss"
+                onClick={clearError}
+                aria-label="Dismiss error"
+              >
+                ✕
+              </button>
+            </div>
             {error.toLowerCase().includes('permission') && (
               <p className="voice__hint">
-                Microphone access is blocked. Please enable permissions in your device settings or browser bar to speak with Amr.
+                Microphone access is blocked. Please enable permissions in your device settings or browser address bar to speak with Amr.
+              </p>
+            )}
+            {error.toLowerCase().includes('network') && (
+              <p className="voice__hint">
+                🦁 <strong>Using Brave or privacy shields?</strong> Browser speech recognition is blocked by default.
+                Direct audio recording is now active (tap mic to speak), or you can practice by typing below!
               </p>
             )}
           </div>

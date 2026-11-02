@@ -242,3 +242,19 @@ test('9. Active Gemini models are valid and exclude retired 404 models', () => {
   assert.ok(FALLBACK_MODELS.includes('gemini-2.5-flash'));
   assert.ok(FALLBACK_MODELS.includes('gemini-2.5-flash-lite'));
 });
+
+
+test('10. transcribe operation rejects empty audio data with 400 Bad Request', async () => {
+  const req = createMockReq({
+    method: 'POST',
+    body: { operation: 'transcribe', audioData: '' }
+  });
+  const res = createMockRes();
+
+  await handler(req, res);
+
+  assert.equal(res.statusCode, 400);
+  assert.deepEqual(res.json, {
+    error: { code: 'empty-audio', message: 'Audio data is required.' }
+  });
+});
