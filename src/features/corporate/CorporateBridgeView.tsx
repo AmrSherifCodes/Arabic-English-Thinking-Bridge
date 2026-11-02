@@ -297,3 +297,4 @@ export function CorporateBridgeView({ onBack, onToast, preferredVoice }: Corpora
     </div>
   );
 }
+

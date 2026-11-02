@@ -475,7 +475,6 @@ export function LandingView({ onStartWebApp, onStartGuest, onResumeApp }: Landin
                         Built completely from scratch with React 19, TypeScript, Capacitor 8 native Android packaging, Edge TTS neural streaming, and offline-first storage.
                       </p>
                     </div>
-                    </p>
                   </section>
                 </div>
               </div>

@@ -14,3 +14,4 @@ test('francoToArabic converts numbers and common words', () => {
   assert.ok(converted.includes('مش'));
   assert.ok(converted.includes('عميل'));
 });
+
