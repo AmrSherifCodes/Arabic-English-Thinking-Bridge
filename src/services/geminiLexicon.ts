@@ -49,6 +49,7 @@ export interface LexiconEntry {
   situations: Situation[]; exampleSentenceArabic: string; exampleSentenceEnglish: string;
   dialect: ArabicDialect;
   level?: DifficultyLevel;
+  arabicPronunciation?: string;
 }
 
 export interface TutorContext {

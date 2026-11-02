@@ -56,6 +56,7 @@ export function useVoiceOrchestrator() {
   const [currentAssistantText, setCurrentAssistantText] = useState('');
   const [latencyMetrics, setLatencyMetrics] = useState<{ ttft?: number; ttfa?: number; total?: number }>({});
   const [audioProgress, setAudioProgress] = useState(0);
+  const [currentSpokenWordIndex, setCurrentSpokenWordIndex] = useState(-1);
 
   const stateRef = useRef<VoiceState>('idle');
   stateRef.current = state;
@@ -69,9 +70,14 @@ export function useVoiceOrchestrator() {
   const streamDoneRef = useRef(false);
   const isPlayingRef = useRef(false);
   const currentAudioRef = useRef<HTMLAudioElement | null>(null);
+  const syncAnimFrameRef = useRef<number | null>(null);
 
   // Stop any active audio immediately
   const stopAudio = useCallback(() => {
+    if (syncAnimFrameRef.current) {
+      cancelAnimationFrame(syncAnimFrameRef.current);
+      syncAnimFrameRef.current = null;
+    }
     if (currentAudioRef.current) {
       try {
         currentAudioRef.current.pause();
@@ -94,6 +100,7 @@ export function useVoiceOrchestrator() {
     isPlayingRef.current = false;
     streamDoneRef.current = false;
     setAudioProgress(0);
+    setCurrentSpokenWordIndex(-1);
   }, []);
 
   // Sequentially play next audio in queue as soon as slot is ready
@@ -110,13 +117,32 @@ export function useVoiceOrchestrator() {
       currentAudioRef.current = nextAudio;
       setState('speaking');
 
-      nextAudio.ontimeupdate = () => {
+      const chunkWords: string[] = (nextAudio as any).__words || [];
+      const chunkStart: number = (nextAudio as any).__startWordIndex ?? 0;
+
+      // Sub-frame word synchronization loop matching exact audio timestamp
+      const updateWordSync = () => {
+        if (!isPlayingRef.current || currentAudioRef.current !== nextAudio) return;
         if (nextAudio.duration > 0) {
-          setAudioProgress(nextAudio.currentTime / nextAudio.duration);
+          const progress = Math.min(1, Math.max(0, nextAudio.currentTime / nextAudio.duration));
+          setAudioProgress(progress);
+          if (chunkWords.length > 0) {
+            const offset = Math.min(
+              chunkWords.length - 1,
+              Math.max(0, Math.floor(progress * chunkWords.length))
+            );
+            setCurrentSpokenWordIndex(chunkStart + offset);
+          }
         }
+        syncAnimFrameRef.current = requestAnimationFrame(updateWordSync);
       };
+      syncAnimFrameRef.current = requestAnimationFrame(updateWordSync);
 
       nextAudio.onended = () => {
+        if (syncAnimFrameRef.current) {
+          cancelAnimationFrame(syncAnimFrameRef.current);
+          syncAnimFrameRef.current = null;
+        }
         isPlayingRef.current = false;
         currentAudioRef.current = null;
         setAudioProgress(0);
@@ -124,6 +150,10 @@ export function useVoiceOrchestrator() {
       };
 
       nextAudio.onerror = () => {
+        if (syncAnimFrameRef.current) {
+          cancelAnimationFrame(syncAnimFrameRef.current);
+          syncAnimFrameRef.current = null;
+        }
         console.warn('[useVoiceOrchestrator] Audio playback chunk error, checking next.');
         isPlayingRef.current = false;
         currentAudioRef.current = null;
@@ -132,6 +162,10 @@ export function useVoiceOrchestrator() {
       };
 
       nextAudio.play().catch((err) => {
+        if (syncAnimFrameRef.current) {
+          cancelAnimationFrame(syncAnimFrameRef.current);
+          syncAnimFrameRef.current = null;
+        }
         console.warn('[useVoiceOrchestrator] Audio play rejected:', err);
         isPlayingRef.current = false;
         currentAudioRef.current = null;
@@ -142,8 +176,14 @@ export function useVoiceOrchestrator() {
 
     // If stream is done and all dispatched slots have been played:
     if (streamDoneRef.current && nextIndex >= totalDispatchedRef.current) {
+      if (syncAnimFrameRef.current) {
+        cancelAnimationFrame(syncAnimFrameRef.current);
+        syncAnimFrameRef.current = null;
+      }
       isPlayingRef.current = false;
       currentAudioRef.current = null;
+      setAudioProgress(0);
+      setCurrentSpokenWordIndex(-1);
       if (stateRef.current === 'speaking') {
         if (autoListen) {
           setTimeout(() => {
@@ -160,7 +200,7 @@ export function useVoiceOrchestrator() {
 
   // Parallel prefetch for a single sentence
   const prefetchSentence = useCallback(
-    async (sentence: string, signal: AbortSignal, chunkIndex: number) => {
+    async (sentence: string, signal: AbortSignal, chunkIndex: number, startWordIndex: number = 0) => {
       const clean = sentence.trim();
       if (!clean) return;
 
@@ -188,6 +228,10 @@ export function useVoiceOrchestrator() {
 
         const blobUrl = URL.createObjectURL(blob);
         const audio = new Audio(blobUrl);
+
+        const words = clean.split(/\s+/).filter(Boolean);
+        (audio as any).__words = words;
+        (audio as any).__startWordIndex = startWordIndex;
 
         if (chunkIndex === 0) {
           performance.mark('tts-first-chunk');
@@ -244,6 +288,7 @@ export function useVoiceOrchestrator() {
 
       let accumulatedReply = '';
       let sentenceBuffer = '';
+      let runningWordIndex = 0;
       totalDispatchedRef.current = 0;
       nextPlayIndexRef.current = 0;
       streamDoneRef.current = false;
@@ -320,7 +365,10 @@ export function useVoiceOrchestrator() {
 
                   if (completedSentence) {
                     const idx = totalDispatchedRef.current++;
-                    prefetchSentence(completedSentence, abortCtrl.signal, idx);
+                    const wordCount = completedSentence.split(/\s+/).filter(Boolean).length;
+                    const startWordIdx = runningWordIndex;
+                    runningWordIndex += wordCount;
+                    prefetchSentence(completedSentence, abortCtrl.signal, idx, startWordIdx);
                   }
                 }
               }
@@ -334,7 +382,7 @@ export function useVoiceOrchestrator() {
         if (sentenceBuffer.trim()) {
           const remaining = sentenceBuffer.trim();
           const idx = totalDispatchedRef.current++;
-          prefetchSentence(remaining, abortCtrl.signal, idx);
+          prefetchSentence(remaining, abortCtrl.signal, idx, runningWordIndex);
         }
 
         streamDoneRef.current = true;
@@ -456,6 +504,7 @@ export function useVoiceOrchestrator() {
     stopTurn,
     handleManualText: handleUserSpeech,
     audioProgress,
+    currentSpokenWordIndex,
     voiceMarker: VOICE_V2_MARKER,
   };
 }

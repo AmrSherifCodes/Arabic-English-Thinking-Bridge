@@ -12,7 +12,7 @@ import { CVModal } from './components/CVModal';
 import { TutorialModal } from './components/TutorialModal';
 import { useUserProfile } from './hooks/useUserProfile';
 import { loadUserProgress, saveUserProgress } from './utils/storage';
-import { UserProgress } from './types';
+import { UserProfile, UserProgress } from './types';
 import { useAdaptiveLearning } from './hooks/useAdaptiveLearning';
 import { AIHelper, AIHelperRequest } from './components/AIHelper';
 import { LexiconEntry } from './services/geminiLexicon';
@@ -142,11 +142,21 @@ export default function App() {
     setAiHelperRequest({
       id: ++aiRequestIdRef.current,
       currentWord,
-      prompt: `Explain this flashcard and its use: Arabic “${card.ar}” means “${card.en}”. Give one brief usage tip.`
+      prompt: `Explain this flashcard and its use: Arabic “${card.ar}” means “${card.en}”. Give one brief usage tip.`,
+      autoSend: true
     });
   };
 
   const dueCards = useDueCount(profile, progress);
+
+  const activeProfile: UserProfile = profile || {
+    name: 'Learner',
+    goal: 'general',
+    focusArea: 'daily-speech',
+    level: 'beginner',
+    dialect: 'egyptian',
+    language: 'english'
+  };
 
   return (
     <>
@@ -190,6 +200,7 @@ export default function App() {
           onBack={goHome}
           onToast={showToast}
           preferredVoice={progress.preferredVoice}
+          onAskAIAboutCard={handleAskAIAboutCard}
         />
       )}
 
@@ -204,7 +215,7 @@ export default function App() {
       />
 
       {/* Floating AI Helper */}
-      {profile && <AIHelper profile={profile} request={aiHelperRequest} />}
+      <AIHelper profile={activeProfile} request={aiHelperRequest} />
 
       {/* Floating Toast Notification */}
       {toastMsg && (

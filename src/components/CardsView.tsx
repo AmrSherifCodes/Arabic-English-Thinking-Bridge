@@ -6,6 +6,7 @@ import type { CardSchedule } from '../types';
 import { speakWithRate } from '../utils/audio';
 import { isArabicUI, uiText } from '../utils/i18n';
 import { getCardIntervalPreviews } from '../utils/sm2';
+import { getArabicPhoneticSpelling } from '../utils/arabicPhonetics';
 import { InteractiveArabicSentence } from './InteractiveArabicSentence';
 import { Flashcard } from './Flashcard';
 import { OliveBranchIcon } from './CulturalToast';
@@ -553,8 +554,16 @@ export function ReviewView({
                   {currentCardData.ar}
                 </div>
                 <hr className="my-4 border-slate-300 dark:border-slate-700" />
-                <div dir="ltr" translate="no" className="text-xl font-semibold mb-3">
+                <div dir="ltr" translate="no" className="text-xl font-semibold mb-1">
                   {currentCardData.en}
+                </div>
+                <div dir="rtl" className="text-sm font-bold text-amber-600 dark:text-amber-400 mb-3 flex items-center justify-center gap-1.5 flex-wrap">
+                  <span className="text-xs opacity-75 font-normal text-stone-500 dark:text-stone-400">
+                    {t('Pronounced:', 'النطق بالعربي:')}
+                  </span>
+                  <span className="bg-amber-500/10 dark:bg-amber-400/15 text-amber-700 dark:text-amber-300 px-2.5 py-0.5 rounded-lg border border-amber-500/30 font-semibold tracking-wide">
+                    {getArabicPhoneticSpelling(currentCardData.en)}
+                  </span>
                 </div>
                 {currentCardData.breakdownChunks && (
                   <div className="grid grid-cols-2 gap-2 text-left">

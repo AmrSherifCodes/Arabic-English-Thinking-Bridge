@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import type { DifficultyLevel, LexiconEntry, Situation } from './geminiLexicon';
 import type { UserProfile } from '../hooks/useUserProfile';
 import { isValidEntry } from '../data/staticDictionary';
+import { getArabicPhoneticSpelling } from '../utils/arabicPhonetics';
 
 export const MASTER_DICTIONARY_STORAGE_KEY = 'tb.masterDictionary.v2';
 const MAX_LOCALSTORAGE_ENTRIES = 1500;
@@ -111,8 +112,12 @@ export function useMasterDictionary(): { entries: LexiconEntry[] } {
           console.warn(`Ignored ${payload.length - validEntries.length} invalid dictionary entries.`);
         }
 
-        cacheDictionary(validEntries);
-        setEntries(validEntries);
+        const enriched = validEntries.map((e) => ({
+          ...e,
+          arabicPronunciation: e.arabicPronunciation || getArabicPhoneticSpelling(e.englishTranslation),
+        }));
+        cacheDictionary(enriched);
+        setEntries(enriched);
       } catch (error) {
         if (controller.signal.aborted) return;
         console.warn('Could not load the master dictionary; using cached or static entries.', error);

@@ -8,6 +8,8 @@ import { checkAnswerMatch, diagnoseArabicInterference } from '../../utils/transf
 import { speakWithRate } from '../../utils/audio';
 import { BTN_GHOST, BTN_PRIMARY, CARD_CLASS, CHUNK_COLORS, CHUNK_LABELS } from '../../components/uiConstants';
 
+import { FlashcardItemData } from '../../components/uiConstants';
+
 export interface LessonViewProps {
   profile: UserProfile | null;
   progress: UserProgress;
@@ -15,6 +17,7 @@ export interface LessonViewProps {
   onBack: () => void;
   onToast: (msg: string) => void;
   preferredVoice?: string;
+  onAskAIAboutCard?: (card: FlashcardItemData) => void;
 }
 
 export function LessonView({
@@ -23,7 +26,8 @@ export function LessonView({
   updateAndSaveProgress,
   onBack,
   onToast,
-  preferredVoice
+  preferredVoice,
+  onAskAIAboutCard
 }: LessonViewProps) {
   // Find first incomplete lesson or default to phase 1, lesson 1
   const allLessons = PHASES_DATA.flatMap(p => p.lessons);
@@ -368,6 +372,16 @@ export function LessonView({
                   <Sparkles className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
                   <p className="text-xs text-stone-300 leading-relaxed">{exercise.habitHint}</p>
                 </div>
+              )}
+
+              {onAskAIAboutCard && (
+                <button
+                  type="button"
+                  onClick={() => onAskAIAboutCard({ ar: exercise.arabicThought, en: exercise.englishTarget, breakdownChunks: null, nextReviewDate: Date.now() })}
+                  className={`${BTN_GHOST} w-full text-xs py-2`}
+                >
+                  ✨ Ask AI Tutor about this sentence
+                </button>
               )}
 
               <button

@@ -140,6 +140,7 @@ export function isValidEntry(entry: unknown): entry is LexiconEntry {
         typeof situation === 'string' && VALID_SITUATIONS.includes(situation as Situation)
     ) &&
     (candidate.dialect === 'msa' || candidate.dialect === 'egyptian') &&
+    (candidate.arabicPronunciation === undefined || typeof candidate.arabicPronunciation === 'string') &&
     (candidate.level === undefined ||
       (typeof candidate.level === 'string' &&
         ['beginner', 'intermediate', 'advanced'].includes(candidate.level)))

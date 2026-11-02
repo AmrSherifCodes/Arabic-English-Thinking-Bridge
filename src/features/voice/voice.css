@@ -315,11 +315,12 @@
 }
 
 .voice__karaoke-word--active {
-  background: rgba(19, 78, 74, 0.5);
-  border-bottom: 2px solid #2dd4bf;
+  background: rgba(19, 78, 74, 0.6);
+  border-bottom: 2.5px solid #2dd4bf;
   color: #5eead4;
-  font-weight: 600;
+  font-weight: 700;
   transform: translateY(-1px);
+  box-shadow: 0 2px 10px rgba(45, 212, 191, 0.4);
 }
 
 .voice__word--new {

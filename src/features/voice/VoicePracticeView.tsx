@@ -38,6 +38,7 @@ export function VoicePracticeView({ onBack, progress }: VoicePracticeViewProps) 
     error,
     latencyMetrics,
     audioProgress,
+    currentSpokenWordIndex,
     startTurn,
     stopTurn,
     handleManualText,
@@ -120,8 +121,11 @@ export function VoicePracticeView({ onBack, progress }: VoicePracticeViewProps) 
 
   const activeWordIndex = useMemo(() => {
     if (state !== 'speaking' || words.length === 0) return -1;
+    if (currentSpokenWordIndex >= 0 && currentSpokenWordIndex < words.length) {
+      return currentSpokenWordIndex;
+    }
     return Math.min(words.length - 1, Math.max(0, Math.floor(audioProgress * words.length)));
-  }, [state, words.length, audioProgress]);
+  }, [state, words.length, currentSpokenWordIndex, audioProgress]);
 
   // Check if active sentence contains any new words
   const hasNewWordsInActive = useMemo(() => {
