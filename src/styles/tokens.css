@@ -3,33 +3,33 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  /* Dark Theme Default Tokens */
-  --color-bg: #0B1324;
-  --color-surface: #14213D;
-  --color-surface-2: #1D2F55;
-  --color-border: #2B3F66;
-  --color-text: #FFFFFF;
-  --color-text-soft: #E5E5E5;
-  --color-muted: #A9B4C8;
+  /* Dark Theme Default Tokens (Deep Midnight Obsidian & Vibrant Emerald/Gold) */
+  --color-bg: #090D16;
+  --color-surface: #111827;
+  --color-surface-2: #1F2937;
+  --color-border: #2E3D52;
+  --color-text: #F9FAFB;
+  --color-text-soft: #E5E7EB;
+  --color-muted: #9CA3AF;
   --color-primary: #FCA311;
-  --color-on-primary: #14213D;
-  --color-success: #2DD4BF;
-  --color-danger: #FF6B6B;
+  --color-on-primary: #090D16;
+  --color-success: #10B981;
+  --color-danger: #EF4444;
 }
 
 html.light {
   /* Light Theme Tokens */
   --color-bg: #FFFFFF;
-  --color-surface: #F4F6FA;
-  --color-surface-2: #E5E5E5;
-  --color-border: #D5D9E2;
-  --color-text: #14213D;
-  --color-text-soft: #2B3B5E;
-  --color-muted: #5B6784;
+  --color-surface: #F3F4F6;
+  --color-surface-2: #E5E7EB;
+  --color-border: #D1D5DB;
+  --color-text: #111827;
+  --color-text-soft: #1F2937;
+  --color-muted: #4B5563;
   --color-primary: #FCA311;
-  --color-on-primary: #14213D;
-  --color-success: #0F766E;
-  --color-danger: #C62828;
+  --color-on-primary: #111827;
+  --color-success: #047857;
+  --color-danger: #DC2626;
 }
 
 @theme {

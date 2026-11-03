@@ -16,25 +16,21 @@ import { PrivacyPolicyModal } from './components/progression/PrivacyPolicyModal'
 
 import { VoicePracticeView } from './features/voice/VoicePracticeView';
 import { FlashcardsView } from './features/flashcards/FlashcardsView';
-import { LessonView } from './features/lesson/LessonView';
 import { CorporateBridgeView } from './features/corporate/CorporateBridgeView';
 import { PreferencesView } from './features/preferences/PreferencesView';
 
-import { FeedbackModal, UserFeedbackData } from './components/FeedbackModal';
+import { FeedbackModal } from './components/FeedbackModal';
 import { LandingView } from './components/LandingView';
 import { PwaInstallBanner } from './components/PwaInstallBanner';
 import { useUserProfile } from './hooks/useUserProfile';
-import { loadUserProgress, saveUserProgress } from './utils/storage';
-import { UserProfile, UserProgress } from './types';
+import { loadUserProgress } from './utils/storage';
+import { UserProgress } from './types';
 import { AIHelper, AIHelperRequest } from './components/AIHelper';
-import { LexiconEntry } from './services/geminiLexicon';
-import { FlashcardItemData } from './components/uiConstants';
 import { useLanguagePair } from './hooks/useLanguagePair';
 import { LanguageSelectorModal } from './components/LanguageSelectorModal';
 import { LanguagePairBanner } from './components/LanguagePairBanner';
-import i18n from './i18n';
 
-import { ProgressionState, LessonNode, CefrStage } from './progression/types';
+import { ProgressionState, LessonNode } from './progression/types';
 import { migrateLegacyStorageToProgression } from './progression/migration';
 import { updateStreakAndShields } from './progression/engine';
 
@@ -43,7 +39,6 @@ type View =
   | { name: 'landing' }
   | { name: 'voice' }
   | { name: 'flashcards' }
-  | { name: 'lesson' }
   | { name: 'corporate' }
   | { name: 'preferences' };
 
@@ -80,7 +75,7 @@ export default function App() {
 
   const { profile, saveProfile } = useUserProfile();
   const { sourceLang, targetLang, setPair } = useLanguagePair();
-  const [progress, setProgress] = useState<UserProgress>(loadUserProgress());
+  const [progress] = useState<UserProgress>(loadUserProgress());
 
   const isArabic = (profile?.language || 'arabic') === 'arabic';
 
@@ -97,8 +92,7 @@ export default function App() {
 
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const toastTimerRef = useRef<number | null>(null);
-  const [aiHelperRequest, setAiHelperRequest] = useState<AIHelperRequest | null>(null);
-  const aiRequestIdRef = useRef(0);
+  const [aiHelperRequest] = useState<AIHelperRequest | null>(null);
 
   const showToast = (msg: string) => {
     if (toastTimerRef.current) window.clearTimeout(toastTimerRef.current);
@@ -110,7 +104,7 @@ export default function App() {
   useEffect(() => {
     if (Capacitor.isNativePlatform()) {
       StatusBar.setStyle({ style: Style.Dark }).catch(() => {});
-      StatusBar.setBackgroundColor({ color: '#0B1324' }).catch(() => {});
+      StatusBar.setBackgroundColor({ color: '#090D16' }).catch(() => {});
       Keyboard.setResizeMode({ mode: KeyboardResize.Body }).catch(() => {});
 
       const backListener = CapApp.addListener('backButton', () => {
@@ -278,12 +272,27 @@ export default function App() {
         isOpen={onboardingOpen}
         onComplete={(goal, dailyMin, stage, source, target) => {
           setPair(source, target);
+          saveProfile({
+            ...profile,
+            goal: goal,
+            sourceLanguage: source,
+            targetLanguage: target,
+          });
           updateProgression((p) => ({
             ...p,
             dailyDailyTargetMin: dailyMin,
             currentStage: stage,
           }));
           setOnboardingOpen(false);
+          const goalLabel =
+            goal === 'work'
+              ? 'الشغل والشركات 💼'
+              : goal === 'travel'
+              ? 'السفر والتواصل ✈️'
+              : goal === 'study'
+              ? 'الدراسة والأبحاث 🎓'
+              : 'الطلاقة التلقائية 🚀';
+          showToast(`🚀 تم تخصيص المسار والمحتوى خصيصاً لهدفك: ${goalLabel}`);
         }}
         isArabic={isArabic}
         initialSource={sourceLang}

@@ -26,31 +26,31 @@ function contrastRatio(hex1: string, hex2: string): number {
 }
 
 const DARK_TOKENS = {
-  bg: '#0B1324',
-  surface: '#14213D',
-  surface2: '#1D2F55',
-  border: '#2B3F66',
-  text: '#FFFFFF',
-  textSoft: '#E5E5E5',
-  muted: '#A9B4C8',
+  bg: '#090D16',
+  surface: '#111827',
+  surface2: '#1F2937',
+  border: '#2E3D52',
+  text: '#F9FAFB',
+  textSoft: '#E5E7EB',
+  muted: '#9CA3AF',
   primary: '#FCA311',
-  onPrimary: '#14213D',
-  success: '#2DD4BF',
-  danger: '#FF6B6B',
+  onPrimary: '#090D16',
+  success: '#10B981',
+  danger: '#EF4444',
 };
 
 const LIGHT_TOKENS = {
   bg: '#FFFFFF',
-  surface: '#F4F6FA',
+  surface: '#F3F4F6',
   surface2: '#E5E5E5',
-  border: '#D5D9E2',
-  text: '#14213D',
-  textSoft: '#2B3B5E',
-  muted: '#5B6784',
+  border: '#D1D5DB',
+  text: '#111827',
+  textSoft: '#1F2937',
+  muted: '#4B5563',
   primary: '#FCA311',
-  onPrimary: '#14213D',
-  success: '#0F766E',
-  danger: '#C62828',
+  onPrimary: '#111827',
+  success: '#047857',
+  danger: '#DC2626',
 };
 
 test('1. Dark theme text/background contrast ratios meet WCAG AA (>= 4.5:1)', () => {
