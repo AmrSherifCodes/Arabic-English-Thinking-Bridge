@@ -1,3 +1,4 @@
+/// <reference types="vite-plugin-pwa/client" />
 import {createRoot} from 'react-dom/client';
 import { Capacitor } from '@capacitor/core';
 import './i18n';

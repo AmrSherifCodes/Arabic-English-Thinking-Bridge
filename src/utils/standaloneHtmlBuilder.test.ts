@@ -36,7 +36,7 @@ test('standalone HTML includes MyMemory.net privacy disclosure and Thinking Engl
   const html = buildStandaloneHtmlString();
   assert.ok(html.includes('Thinking English™'));
   assert.ok(
-    html.includes('Translations are sent to MyMemory.net. Don’t paste anything private.')
+    html.includes('الترجمة بتروح لـ MyMemory.net — متكتبش حاجة سرية.')
   );
 });
 

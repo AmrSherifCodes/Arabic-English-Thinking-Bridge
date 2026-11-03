@@ -1,318 +1,68 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>حمّل تطبيق فكّر إنجليزي</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet" />
   <style>
-    :root {
-      --bg: #0A0E13;
-      --surface: #0F151C;
-      --border: #1E2933;
-      --text: #EEF2F5;
-      --muted: #9AA7B2;
-      --accent: #2DD4BF;
-      --amber: #F5B942;
-      --accent-glow: rgba(45, 212, 191, 0.35);
-      --card-bg: #141C24;
-    }
-
-    @media (prefers-color-scheme: light) {
-      :root {
-        --bg: #F8FAFC;
-        --surface: #FFFFFF;
-        --border: #E2E8F0;
-        --text: #0F172A;
-        --muted: #64748B;
-        --accent: #0D9488;
-        --amber: #D97706;
-        --accent-glow: rgba(13, 148, 136, 0.25);
-        --card-bg: #F1F5F9;
-      }
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
     body {
-      font-family: 'Cairo', system-ui, -apple-system, sans-serif;
-      background-color: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      align-items: center;
+      font-family: 'Cairo', sans-serif;
+      background-color: #090D16;
+      color: #F9FAFB;
+      text-align: center;
       padding: 2rem 1rem;
-      line-height: 1.6;
+      margin: 0;
     }
-
-    header {
-      text-align: center;
-      margin-top: 1.5rem;
-      margin-bottom: 2rem;
-    }
-
-    .logo-container {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.75rem;
-      margin-bottom: 1rem;
-    }
-
-    .logo-badge {
-      background: linear-gradient(135deg, var(--accent), var(--amber));
-      color: #0A0E13;
-      font-weight: 900;
-      font-size: 1.25rem;
-      padding: 0.5rem 1rem;
-      border-radius: 16px;
-      box-shadow: 0 4px 20px var(--accent-glow);
-    }
-
-    h1 {
-      font-size: 2.25rem;
-      font-weight: 900;
-      color: var(--text);
-      letter-spacing: -0.02em;
-      margin-bottom: 0.5rem;
-    }
-
-    .subtitle {
-      color: var(--muted);
-      font-size: 1.1rem;
-      font-weight: 600;
-    }
-
-    main {
-      width: 100%;
-      max-width: 540px;
+    .container {
+      max-w: 500px;
+      margin: 0 auto;
       display: flex;
       flex-direction: column;
-      align-items: center;
+      gap: 1.5rem;
     }
-
-    .wifi-note {
-      color: var(--amber);
-      font-weight: 700;
-      font-size: 0.95rem;
-      margin-bottom: 1rem;
-      text-align: center;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-    }
-
-    .download-btn-glow-wrapper {
-      position: relative;
-      width: 100%;
-      display: flex;
-      justify-content: center;
-      margin-bottom: 2.5rem;
-    }
-
-    .download-btn {
-      position: relative;
-      width: 100%;
-      max-width: 440px;
-      padding: 1.25rem 2rem;
-      background: linear-gradient(135deg, var(--accent) 0%, #14B8A6 100%);
-      color: #042F2E;
-      font-size: 1.35rem;
+    .btn {
+      display: inline-block;
+      padding: 1rem 1.5rem;
+      background-color: #10B981;
+      color: #090D16;
       font-weight: 900;
       text-decoration: none;
-      text-align: center;
-      border-radius: 20px;
-      box-shadow: 0 0 30px var(--accent-glow), 0 8px 25px rgba(0,0,0,0.3);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.75rem;
-      animation: pulse-glow 2.5s infinite alternate;
-    }
-
-    .download-btn:hover {
-      transform: translateY(-3px) scale(1.02);
-      box-shadow: 0 0 45px var(--accent-glow), 0 12px 30px rgba(0,0,0,0.4);
-      filter: brightness(1.1);
-    }
-
-    .download-btn:active {
-      transform: translateY(1px) scale(0.99);
-    }
-
-    @keyframes pulse-glow {
-      0% {
-        box-shadow: 0 0 25px var(--accent-glow), 0 8px 25px rgba(0,0,0,0.3);
-      }
-      100% {
-        box-shadow: 0 0 45px rgba(45, 212, 191, 0.6), 0 10px 30px rgba(0,0,0,0.4);
-      }
-    }
-
-    .steps-card {
-      width: 100%;
-      background-color: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 24px;
-      padding: 1.75rem 1.5rem;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-    }
-
-    .steps-title {
-      font-size: 1.2rem;
-      font-weight: 800;
-      color: var(--text);
-      margin-bottom: 1.5rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 0.75rem;
-    }
-
-    .steps-list {
-      display: flex;
-      flex-direction: column;
-      gap: 1.25rem;
-    }
-
-    .step-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 1rem;
-      background-color: var(--card-bg);
-      border: 1px solid var(--border);
-      padding: 1.1rem 1rem;
-      border-radius: 16px;
-    }
-
-    .step-icon {
-      flex-shrink: 0;
-      width: 42px;
-      height: 42px;
       border-radius: 12px;
-      background: rgba(45, 212, 191, 0.1);
-      border: 1px solid rgba(45, 212, 191, 0.2);
-      color: var(--accent);
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      font-size: 1.1rem;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     }
-
-    .step-content {
-      font-size: 0.98rem;
-      font-weight: 600;
-      color: var(--text);
-      line-height: 1.6;
+    .guide-step {
+      background: #111827;
+      padding: 1rem;
+      border-radius: 12px;
+      border: 1px solid #1F2937;
+      text-align: right;
     }
-
-    footer {
-      margin-top: 3rem;
-      text-align: center;
-      font-size: 0.9rem;
-      font-weight: 700;
-      color: var(--muted);
-      border-top: 1px solid var(--border);
-      width: 100%;
-      max-width: 540px;
-      padding-top: 1.5rem;
+    .footer {
+      margin-top: 2rem;
+      font-size: 0.8rem;
+      color: #9CA3AF;
     }
   </style>
 </head>
 <body>
-  <header>
-    <div class="logo-container">
-      <span class="logo-badge">🌉 فكّر إنجليزي</span>
+  <div class="container">
+    <h2>حمّل تطبيق فكّر إنجليزي</h2>
+    <p>حمّل على واي فاي لو تقدر — التطبيق 51.5 ميجا.</p>
+    <a href="/Thinking-Bridge-v3.1.0.apk" download class="btn">حمّل التطبيق (51.5 ميجا)</a>
+
+    <div class="guide-step">
+      <strong>١.</strong> اضغط على الرابط فوق، التحميل هيبدأ.
     </div>
-    <h1>حمّل تطبيق فكّر إنجليزي</h1>
-    <p class="subtitle">تعلم التفكير بالإنجليزية بدون ترجمة حرفية</p>
-  </header>
-
-  <main>
-    <p class="wifi-note">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M5 12.55a11 11 0 0 1 14.08 0"></path>
-        <path d="M1.42 9a16 16 0 0 1 21.16 0"></path>
-        <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
-        <line x1="12" y1="20" x2="12.01" y2="20"></line>
-      </svg>
-      <span>حمّل على واي فاي لو تقدر — التطبيق ٢٥ ميجا.</span>
-    </p>
-
-    <div class="download-btn-glow-wrapper">
-      <a href="/Thinking-Bridge-v3.1.0.apk" download class="download-btn">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-          <polyline points="7 10 12 15 17 10"></polyline>
-          <line x1="12" y1="15" x2="12" y2="3"></line>
-        </svg>
-        <span>حمّل التطبيق (٢٥ ميجا)</span>
-      </a>
+    <div class="guide-step">
+      <strong>٢.</strong> لما يخلص، هتلاقي رسالة 'السماح بالتركيب من هذا المصدر' — اضغط 'الإعدادات' ثم 'السماح' ثم 'رجوع' ثم 'تثبيت'.
+    </div>
+    <div class="guide-step">
+      <strong>٣.</strong> افتح التطبيق، ولو ظهرت أي مشكلة كلّم عمرو على واتساب على الرقم 201272718167.
     </div>
 
-    <div class="steps-card">
-      <div class="steps-title">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
-          <line x1="12" y1="18" x2="12.01" y2="18"></line>
-        </svg>
-        <span>خطوات التثبيت السريعة:</span>
-      </div>
-
-      <div class="steps-list">
-        <!-- Step 1 -->
-        <div class="step-item">
-          <div class="step-icon">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-              <polyline points="7 10 12 15 17 10"></polyline>
-              <line x1="12" y1="15" x2="12" y2="3"></line>
-            </svg>
-          </div>
-          <div class="step-content">
-            ١. اضغط على الرابط فوق، التحميل هيبدأ.
-          </div>
-        </div>
-
-        <!-- Step 2 -->
-        <div class="step-item">
-          <div class="step-icon">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-            </svg>
-          </div>
-          <div class="step-content">
-            ٢. لما يخلص، هتلاقي رسالة 'السماح بالتركيب من هذا المصدر' — اضغط 'الإعدادات' ثم 'السماح' ثم 'رجوع' ثم 'تثبيت'.
-          </div>
-        </div>
-
-        <!-- Step 3 -->
-        <div class="step-item">
-          <div class="step-icon">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
-            </svg>
-          </div>
-          <div class="step-content">
-            ٣. افتح التطبيق، ولو ظهرت أي مشكلة كلّم عمرو على واتساب على الرقم +20 100 000 0000.
-          </div>
-        </div>
-      </div>
-    </div>
-  </main>
-
-  <footer>
-    صُنع في الإسكندرية — ١٠٠٪ مجاني
-  </footer>
+    <div class="footer">صُنع في الإسكندرية — ١٠٠٪ مجاني</div>
+  </div>
 </body>
 </html>

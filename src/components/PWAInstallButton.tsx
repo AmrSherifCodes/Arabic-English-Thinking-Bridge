@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { usePwaInstall } from '../hooks/usePwaInstall';
+import { usePwaInstall } from '../hooks/usePWAInstall';
 
 export const PWAInstallButton: React.FC = () => {
   const { isInstallable, isStandalone, isIos, triggerInstall } = usePwaInstall();

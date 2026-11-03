@@ -142,7 +142,7 @@ export function useDeckEngine(
     setReviewQueue(snap.previousQueue);
     setCardAnswerShown(false);
     setUndoSnapshot(null);
-    showToast('Undid last card review ↩️');
+    showToast('تراجعت عن آخر كارت ↩️'); // Will be wrapped in App.tsx T()
   };
 
   const handleAskAIAboutCard = () => {
