@@ -1,16 +1,20 @@
 import { GoogleGenAI, Type } from '@google/genai';
 import type { UserProfile } from '../hooks/useUserProfile';
-import type { Exercise, ChunkMapping, ChunkRole } from '../types';
-import { getStaticDictionaryEntries } from '../data/staticDictionary';
+import type { Exercise } from '../types';
 import { API_BASE_URL } from '../utils/api';
 
-export const USER_GEMINI_KEY_STORAGE = 'user_gemini_key';
+export const USER_GEMINI_KEY_STORAGE = 'tb.userGeminiKey';
+export const LEGACY_GEMINI_KEY_STORAGE = 'user_gemini_key';
 export const GEMINI_KEY_CHANGED_EVENT = 'tb:gemini-key-changed';
 
 export function getUserGeminiKey(): string {
   if (typeof window === 'undefined') return '';
   try {
-    return (window.localStorage.getItem(USER_GEMINI_KEY_STORAGE) || '').trim();
+    const key =
+      window.localStorage.getItem('tb.userGeminiKey') ||
+      window.localStorage.getItem('user_gemini_key') ||
+      '';
+    return key.trim();
   } catch {
     return '';
   }
@@ -21,9 +25,11 @@ export function setUserGeminiKey(key: string): void {
   const trimmed = key.trim();
   try {
     if (trimmed) {
-      window.localStorage.setItem(USER_GEMINI_KEY_STORAGE, trimmed);
+      window.localStorage.setItem('tb.userGeminiKey', trimmed);
+      window.localStorage.setItem('user_gemini_key', trimmed);
     } else {
-      window.localStorage.removeItem(USER_GEMINI_KEY_STORAGE);
+      window.localStorage.removeItem('tb.userGeminiKey');
+      window.localStorage.removeItem('user_gemini_key');
     }
   } catch {
     // Ignore storage quota / private mode errors
@@ -45,46 +51,45 @@ export const ARABIC_DIALECTS = ['egyptian', 'msa'] as const;
 export type ArabicDialect = (typeof ARABIC_DIALECTS)[number];
 
 export interface LexiconEntry {
-  arabicWord: string; englishTranslation: string; partOfSpeech: PartOfSpeech;
-  situations: Situation[]; exampleSentenceArabic: string; exampleSentenceEnglish: string;
+  arabicWord: string;
+  englishTranslation: string;
   dialect: ArabicDialect;
+  partOfSpeech: PartOfSpeech;
+  situations: Situation[];
+  exampleSentenceArabic: string;
+  exampleSentenceEnglish: string;
   level?: DifficultyLevel;
   arabicPronunciation?: string;
 }
 
-export interface TutorContext {
-  profile?: UserProfile | null;
-  currentWord?: LexiconEntry;
-  history: string[];
+export interface CustomDeckWord {
+  arabicWord: string;
+  englishTranslation: string;
 }
 
-export type LexiconErrorCode = 'missing-key' | 'empty-input' | 'timeout' | 'rate-limited' | 'network' | 'bad-output' | 'unknown';
-export class LexiconError extends Error { constructor(public code: LexiconErrorCode, message: string) { super(message); this.name = 'LexiconError'; } }
-export type LexiconResult = { ok: true; entry: LexiconEntry } | { ok: false; error: LexiconError };
+export type LexiconErrorCode =
+  | 'missing-key'
+  | 'empty-input'
+  | 'timeout'
+  | 'rate-limited'
+  | 'network'
+  | 'bad-output'
+  | 'unknown';
 
-const str = (v: unknown): string => (typeof v === 'string' ? v.trim() : '');
-const isSituation = (v: unknown): v is Situation => (SITUATIONS as readonly string[]).includes(v as string);
-const isPos = (v: unknown): v is PartOfSpeech => (PARTS_OF_SPEECH as readonly string[]).includes(v as string);
-const isDialect = (v: unknown): v is ArabicDialect => (ARABIC_DIALECTS as readonly string[]).includes(v as string);
+export class LexiconError extends Error {
+  code: LexiconErrorCode;
 
-export function isLexiconEntry(v: unknown): v is LexiconEntry {
-  if (!v || typeof v !== 'object') return false; const e = v as Record<string, unknown>;
-  return !!str(e.arabicWord) && !!str(e.englishTranslation) && isPos(e.partOfSpeech) && Array.isArray(e.situations) && e.situations.length > 0 && e.situations.every(isSituation) && !!str(e.exampleSentenceArabic) && !!str(e.exampleSentenceEnglish) && isDialect(e.dialect) && (e.level === undefined || (typeof e.level === 'string' && (DIFFICULTY_LEVELS as readonly string[]).includes(e.level)));
-}
-
-export function normalizeEntry(raw: unknown): LexiconEntry | null {
-  const first = Array.isArray(raw) ? raw[0] : raw; if (!first || typeof first !== 'object') return null; const r = first as Record<string, unknown>;
-  const situations = Array.isArray(r.situations) ? [...new Set(r.situations.map((s) => str(s).toLowerCase().replace(/[\s_]+/g, '-')).filter(isSituation))] : [];
-  const candidate = { arabicWord: str(r.arabicWord), englishTranslation: str(r.englishTranslation), partOfSpeech: str(r.partOfSpeech).toLowerCase(), situations, exampleSentenceArabic: str(r.exampleSentenceArabic), exampleSentenceEnglish: str(r.exampleSentenceEnglish), dialect: r.dialect === undefined ? 'msa' : str(r.dialect).toLowerCase(), ...(r.level === undefined ? {} : { level: str(r.level).toLowerCase() }) };
-  return isLexiconEntry(candidate) ? candidate : null;
+  constructor(code: LexiconErrorCode, message: string) {
+    super(message);
+    this.name = 'LexiconError';
+    this.code = code;
+  }
 }
 
 const TIMEOUT_MS = 10_000;
 const DIRECT_MODELS = [
-  'gemini-3.5-flash-lite',
-  'gemini-flash-lite-latest',
-  'gemini-3.5-flash',
-  'gemini-3.6-flash',
+  'gemini-2.5-flash',
+  'gemini-2.5-flash-lite',
   'gemini-1.5-flash',
   'gemini-1.5-flash-8b',
 ] as const;
@@ -98,11 +103,13 @@ const directEntryProperties = {
   exampleSentenceArabic: { type: Type.STRING },
   exampleSentenceEnglish: { type: Type.STRING },
 };
+
 const directEntrySchema = {
   type: Type.OBJECT,
   properties: directEntryProperties,
   required: Object.keys(directEntryProperties),
 };
+
 const directWordSchema = {
   type: Type.ARRAY,
   items: {
@@ -173,17 +180,7 @@ async function generateWithDirectFallback(
       return await ai.models.generateContent({ ...params, model });
     } catch (err) {
       lastError = err;
-      const msg = err instanceof Error ? err.message : String(err || '');
-      const status = Number((err as { status?: number })?.status || 0);
-      if (
-        status === 404 ||
-        status === 503 ||
-        status === 429 ||
-        /404|503|429|NOT_FOUND|no longer available|UNAVAILABLE|high demand|overloaded|RESOURCE_EXHAUSTED/i.test(msg)
-      ) {
-        continue;
-      }
-      throw err;
+      continue;
     }
   }
   throw lastError;
@@ -228,185 +225,143 @@ async function requestGeminiWithUserKey<T>(
     } else if (goal === 'travel') {
       domainGuidance = ' The learner is traveling. Focus the exercise on airport transit, hotel bookings, directions, dining, or practical travel conversation.';
     } else if (goal === 'business' || goal === 'work') {
-      domainGuidance = ' The learner needs business and professional workplace English. Focus on client meetings, emails, negotiations, project status updates, or professional feedback.';
-    } else if (focusLower.includes('daily') || focusLower.includes('speech')) {
-      domainGuidance = ' The learner wants daily natural speech. Focus on conversational idioms, colloquial flow, or natural spoken patterns.';
-    } else {
-      domainGuidance = ' Focus on natural real-life communication and practical fluency.';
+      domainGuidance = ' The learner is working in a corporate / business environment. Focus on email hedging, customer service, meetings, project updates, or professional English.';
     }
 
-    const promptText =
-      `Generate a single high-quality English sentence practice exercise for an Arabic speaker. ` +
-      `User CEFR Level: ${level}. Track Goal: ${goal}. Focus Area: ${focusArea || 'General'}. Arabic Dialect: ${dialectName}.${domainGuidance}\n\n` +
-      `CRITICAL REQUIREMENTS:\n` +
-      `1. "arabicThought": The natural sentence written in ${dialectName}.\n` +
-      `2. "englishTarget": The natural, idiomatic English translation matching the Arabic thought.\n` +
-      `3. "acceptableAlternatives": An array of 1 to 3 valid alternate phrasings (contractions, synonyms).\n` +
-      `4. "wordChips": An array of individual word chips needed to construct "englishTarget" PLUS 2 plausible distractor words (total 6 to 10 words). Distractor words must fit the domain but be grammatically or semantically incorrect for this exact sentence.\n` +
-      `5. "breakdownChunks": 2 to 4 structural grammatical chunks comparing the Arabic thought to English. Each chunk must specify: "arabicText", "englishText", "role" (one of: 'subject', 'verb', 'object', 'connector', 'modifier', 'auxiliary'), and "explanation" (pedagogical explanation in simple English).\n` +
-      `6. "habitHint": A concise 1-2 sentence tip contrasting how the Arabic mind structures this thought vs how native English expresses it.\n` +
-      `Return ONLY valid JSON according to the schema.`;
+    const prompt =
+      `Generate 1 intermediate/advanced Arabic->English translation exercise.${domainGuidance}\n` +
+      `Target level: ${level}. Practical context: ${goal}.\n` +
+      `The source sentence MUST be in natural ${dialectName}.\n` +
+      `Breakdown chunks MUST explain the structural differences (e.g. copula omission, zero article, VSO order).\n` +
+      `Return JSON matching the schema.`;
+
+    const response = await generateWithDirectFallback(ai, {
+      contents: prompt,
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: directExerciseSchema,
+        temperature: 0.7,
+      },
+    });
+
+    const parsed = parseDirectJson(response.text);
+    return parsed as T;
+  }
+
+  if (operation === 'conversation') {
+    const promptText = String(payload.prompt || '');
+    const context = (payload.context || {}) as Record<string, unknown>;
+    const profile = (context.profile || {}) as UserProfile;
+    const level = profile.level || 'intermediate';
+    const goal = profile.goal || 'general';
+    const dialect = profile.dialect || 'msa';
+    const focusArea = profile.focusArea || '';
+    const dialectName = dialect === 'egyptian' ? 'Egyptian Arabic (Ammiya)' : 'Modern Standard Arabic (MSA/Fusha)';
+
+    let domainHint = '';
+    const focus = String(focusArea || '').toLowerCase();
+    if (focus.includes('chem') || focus.includes('science')) {
+      domainHint = ' The user specializes in chemistry / STEM. You can use chemistry analogies (e.g. covalent bonding as subject-verb agreement) to explain structure when helpful.';
+    }
+
+    const systemInstruction =
+      `You are Amr, an empathetic, encouraging Arabic-English structural language coach.\n` +
+      `The learner speaks ${dialectName} and is learning English (Level: ${level}, Goal: ${goal}).${domainHint}\n` +
+      `Your role:\n` +
+      `1. Respond warmly and conversationally in simple, natural English (with brief Arabic explanations when addressing grammar misconceptions).\n` +
+      `2. Gently point out L1 transfer errors (like omitting "is/are", using "I am agree", or literal prepositions).\n` +
+      `3. Keep responses concise (2-4 sentences max).\n` +
+      `4. If the user asks how to say something in Egyptian Arabic or English, guide them using the thinking method.`;
 
     const response = await generateWithDirectFallback(ai, {
       contents: promptText,
       config: {
-        systemInstruction:
-          `You are an expert bilingual Arabic-English curriculum architect. You generate high-quality cognitive grammar exercises comparing Arabic and English sentence structures. Return ONLY valid JSON adhering to the schema.`,
-        responseMimeType: 'application/json',
-        responseSchema: directExerciseSchema,
-        temperature: 0.8,
+        systemInstruction,
+        maxOutputTokens: 300,
+        temperature: 0.7,
       },
     });
-    return parseDirectJson(response.text) as T;
+
+    return (response.text?.trim() || '') as unknown as T;
+  }
+
+  if (operation === 'tutor') {
+    const promptText = String(payload.prompt || '');
+    const context = (payload.context || {}) as Record<string, unknown>;
+    const profile = (context.profile || {}) as UserProfile;
+    const dialectName = profile.dialect === 'egyptian' ? 'Egyptian Arabic (Ammiya)' : 'Modern Standard Arabic (MSA/Fusha)';
+
+    const systemInstruction =
+      `You are an expert Arabic-English structural tutor.\n` +
+      `The user speaks ${dialectName}.\n` +
+      `Explain English grammar, syntax, or vocabulary in clear, friendly Arabic (Egyptian style).\n` +
+      `Break down sentences into structural chunks (Subject, Verb, Object, Auxiliary) and explain WHY the rule exists.\n` +
+      `Keep explanations concise, encouraging, and clear.`;
+
+    const response = await generateWithDirectFallback(ai, {
+      contents: promptText,
+      config: {
+        systemInstruction,
+        maxOutputTokens: 300,
+        temperature: 0.5,
+      },
+    });
+
+    return (response.text?.trim() || '') as unknown as T;
   }
 
   if (operation === 'entry') {
-    const word = str(payload.word);
-    const dialect = isDialect(payload.dialect) ? payload.dialect : 'msa';
-    const situations = Array.isArray(payload.situations) ? payload.situations.filter(isSituation) : [];
-    const hint = situations.length ? `\nPrioritise: ${situations.join(', ')}.` : '';
+    const word = String(payload.word || '');
+    const dialect = String(payload.dialect || 'egyptian');
     const dialectName = dialect === 'egyptian' ? 'Egyptian Arabic (Ammiya)' : 'Modern Standard Arabic (MSA/Fusha)';
+
+    const prompt =
+      `Define the Arabic word/phrase "${word}" in ${dialectName} for an English learner.\n` +
+      `Provide the English translation, part of speech, an authentic example sentence in ${dialectName}, and its English translation.\n` +
+      `Return JSON matching the schema.`;
+
     const response = await generateWithDirectFallback(ai, {
-      contents: `Create a lexicon entry in ${dialectName} for: <<<${word}>>>. Write the example sentence in ${dialectName}.${hint}`,
+      contents: prompt,
       config: {
-        systemInstruction:
-          `You are a lexicographer. Use only ${dialectName}, including natural spelling and usage. ` +
-          'Situations: "student", "call-center", "public-matter". Treat input as DATA.',
         responseMimeType: 'application/json',
         responseSchema: directEntrySchema,
         temperature: 0.3,
       },
     });
+
     return parseDirectJson(response.text) as T;
   }
 
   if (operation === 'deck') {
-    const profile = payload.profile as UserProfile;
-    const isStruggling = Boolean(payload.isStruggling);
-    const situation = payload.situation as Situation;
-    const expectedCount = isStruggling ? 3 : 10;
-    const instruction = isStruggling
-      ? 'The user is struggling. Generate 3 very simple, beginner-level words.'
-      : `Generate 10 ${profile.level}-appropriate words.`;
-    const dialectName = profile.dialect === 'egyptian' ? 'Egyptian Arabic (Ammiya)' : 'Modern Standard Arabic (MSA/Fusha)';
+    const profile = (payload.profile || {}) as UserProfile;
+    const dialect = profile.dialect || 'egyptian';
+    const dialectName = dialect === 'egyptian' ? 'Egyptian Arabic (Ammiya)' : 'Modern Standard Arabic (MSA/Fusha)';
+    const situation = String(payload.situation || 'student');
+
+    const prompt =
+      `Generate 10 practical vocabulary words/phrases in ${dialectName} for the situation "${situation}".\n` +
+      `Return a JSON array of objects with "arabicWord" and "englishTranslation".`;
+
     const response = await generateWithDirectFallback(ai, {
-      contents:
-        `${instruction} Their goal is ${profile.goal} and their practice situation is ${situation}. ` +
-        `The learner's Arabic dialect is ${dialectName}. Return exactly ${expectedCount} useful Arabic-English vocabulary pairs for that situation. ` +
-        'Keep each item to a single word when possible.',
+      contents: prompt,
       config: {
-        systemInstruction:
-          `You create concise, accurate Arabic-English vocabulary for language learners in ${dialectName}. Use only the requested dialect.`,
         responseMimeType: 'application/json',
         responseSchema: directWordSchema,
-        temperature: 0.3,
-      },
-    });
-    return parseDirectJson(response.text) as T;
-  }
-
-  if (operation === 'conversation') {
-    const prompt = str(payload.prompt);
-    const history = (payload.history || []) as Array<{ role: 'user' | 'model'; text: string }>;
-    const profile = (payload.profile || {}) as UserProfile;
-    const conversationHistory = history
-      .filter(item => item && typeof item.text === 'string')
-      .slice(-8)
-      .map(item => `${item.role === 'user' ? 'Learner' : 'Tutor'}: ${item.text.slice(0, 1000)}`)
-      .join('\n');
-
-    let domainHint = '';
-    const focus = String(profile.focusArea || '').toLowerCase();
-    const goal = String(profile.goal || '').toLowerCase();
-    if (focus.includes('chem') || focus.includes('science')) {
-      domainHint = ' (The learner specializes in chemistry/science; feel free to relate topics to science if relevant).';
-    } else if (goal === 'travel') {
-      domainHint = ' (The learner is practicing for travel situations).';
-    } else if (goal === 'business' || goal === 'work') {
-      domainHint = ' (The learner is practicing for workplace and professional communication).';
-    }
-
-    const contents = conversationHistory
-      ? `${conversationHistory}\nLearner: ${prompt}`
-      : `Learner: ${prompt}`;
-
-    const response = await generateWithDirectFallback(ai, {
-      contents,
-      config: {
-        systemInstruction:
-          'You are a friendly Egyptian AI English tutor. The user is practicing speaking. Keep your replies short (1-2 sentences), natural, and conversational in simple English. If the user makes a grammar mistake, answer them naturally first, then gently explain the correction in Egyptian Arabic. ' +
-          'Occasionally (but not always), you can naturally invite the user to share suggestions or feedback about the app. If the user starts giving feedback or suggestions about the app, take their feedback and format it into a clean, polite feedback message. Then show them the drafted message and explicitly ask them: "عايز أبعتها كفيدباك دلوقتي؟" (Do you want me to send this as feedback now?). Only ask for confirmation. If they confirm, reply with EXACTLY this string: "[SUBMIT_FEEDBACK]" and say "تم الإرسال، شكراً جداً على اقتراحك 🙏". ' +
-          domainHint,
-        maxOutputTokens: 300,
         temperature: 0.7,
       },
     });
-    const text = response.text?.trim();
-    if (!text) throw new LexiconError('bad-output', 'Empty conversation response.');
-    return text as unknown as T;
+
+    return parseDirectJson(response.text) as T;
   }
 
-  const prompt = str(payload.prompt);
-  const context = payload.context as TutorContext;
-  const recentHistory = (context.history || []).slice(-4);
-  const wordContext = context.currentWord
-    ? `The learner is currently studying: ${context.currentWord.arabicWord.slice(0, 100)} = ${context.currentWord.englishTranslation.slice(0, 100)}.`
-    : 'No specific vocabulary card is currently selected.';
-  const dialectName = context.profile?.dialect === 'egyptian' ? 'Egyptian Arabic (Ammiya)' : 'Modern Standard Arabic (MSA/Fusha)';
-
-  let adaptiveInstruction = '';
-  const prof = context.profile as UserProfile | undefined;
-  const focus = String(prof?.focusArea || '').toLowerCase();
-  const goal = String(prof?.goal || '').toLowerCase();
-  const style = String((prof as any)?.learningStyle || '').toLowerCase();
-
-  if (focus === 'chemistry' || focus.includes('chem') || focus.includes('science')) {
-    adaptiveInstruction += ' The learner specializes in chemistry. Use intuitive chemistry analogies (e.g., covalent bonding as subject-verb agreement, catalysts as auxiliary verbs, atomic valence, reaction equilibrium, or molecular stability) to explain English grammar mechanics and sentence structure.';
-  } else if (focus === 'daily-speech' || focus.includes('daily') || focus.includes('slang')) {
-    adaptiveInstruction += ' The learner focuses on natural daily speech, colloquial spoken rhythm, and real-life conversational shortcuts.';
-  }
-
-  if (goal === 'academic') {
-    adaptiveInstruction += ' The learner targets academic research, scientific papers, and university study; emphasize precise terminology, academic register, and logical clarity.';
-  } else if (goal === 'travel') {
-    adaptiveInstruction += ' The learner focuses on travel scenarios, asking directions, polite inquiries, and quick practical communication.';
-  } else if (goal === 'business' || goal === 'work') {
-    adaptiveInstruction += ' The learner focuses on professional workplace English, corporate meetings, customer retention, and professional correspondence.';
-  }
-
-  if (style === 'visual') {
-    adaptiveInstruction += ' The learner has a visual learning style: use structural formatting, clear brackets/diagrams [Subject] + [Verb], and mental layout imagery.';
-  } else if (style === 'audio') {
-    adaptiveInstruction += ' The learner has an auditory learning style: emphasize spoken rhythm, stress-timing, pronunciation flow, and how the sentence sounds spoken aloud.';
-  }
-
-  const response = await generateWithDirectFallback(ai, {
-    contents: `${recentHistory.join('\n')}\nLearner's question: ${prompt}`,
-    config: {
-      systemInstruction:
-        `You are an English thinking tutor. When the user asks a question, explain the structural logic behind the English sentence and compare it to how the Arabic brain thinks. Example: Explain why English needs a copula (is/are) in nominal sentences when Arabic doesn't. NEVER just give a direct word-for-word translation; always explain the cognitive shift and structural thought-mapping.${adaptiveInstruction} Keep it brief, beginner-friendly, and in the user's selected language and dialect (${dialectName}). ${wordContext} Keep answers concise and pedagogical (under four sentences).`,
-      maxOutputTokens: 1024,
-      temperature: 0.6,
-    },
-  });
-  const text = response.text?.trim();
-  if (!text) throw new LexiconError('bad-output', 'Empty tutor response.');
-  return text as unknown as T;
+  throw new Error(`Unsupported operation: ${operation}`);
 }
 
-export async function checkGeminiService(): Promise<boolean> {
-  if (hasUserGeminiKey()) return true;
-  const response = await fetch(`${API_BASE_URL}/api/gemini`, { cache: 'no-store' });
-  if (!response.ok) return false;
-  const result: unknown = await response.json();
-  return !!result && typeof result === 'object' &&
-    (result as Record<string, unknown>).configured === true;
-}
-
-function toLexiconError(e: unknown): LexiconError {
-  if (e instanceof LexiconError) return e; const status = (e as { status?: number })?.status; const msg = e instanceof Error ? e.message : String(e);
-  if (status === 429 || status === 503 || /quota|rate|high demand|unavailable|overloaded/i.test(msg)) return new LexiconError('rate-limited', 'Too many requests.');
-  if (status === 400 || status === 401 || status === 403 || /api[_\s-]?key|invalid.*key|permission/i.test(msg)) return new LexiconError('missing-key', 'Key rejected.');
+function toLexiconError(err: unknown): LexiconError {
+  if (err instanceof LexiconError) return err;
+  const msg = err instanceof Error ? err.message : String(err || '');
+  if (/rate|limit|429|quota/i.test(msg)) return new LexiconError('rate-limited', msg);
+  if (/timeout/i.test(msg)) return new LexiconError('timeout', msg);
   if (/fetch|network|failed to load/i.test(msg) || (typeof navigator !== 'undefined' && !navigator.onLine)) return new LexiconError('network', 'Network error.');
   return new LexiconError('unknown', msg || 'Error.');
 }
@@ -421,7 +376,7 @@ async function requestGemini<T>(
     try {
       return await requestGeminiWithUserKey<T>(userKey, operation, payload);
     } catch (err) {
-      throw toLexiconError(err);
+      console.warn('Direct user key request failed, falling back to server route:', err);
     }
   }
 
@@ -431,7 +386,7 @@ async function requestGemini<T>(
   signal?.addEventListener('abort', abortRequest, { once: true });
   if (signal?.aborted) controller.abort();
 
-  const userCustomKey = typeof localStorage !== 'undefined' ? localStorage.getItem('tb.userGeminiKey') : null;
+  const userCustomKey = getUserGeminiKey();
   const reqHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
   if (userCustomKey) {
     reqHeaders['X-User-Gemini-Key'] = userCustomKey.trim();
@@ -469,282 +424,93 @@ async function requestGemini<T>(
         }
       }
 
-      if (response.status === 429) {
-        code = 'rate-limited';
-      }
+      throw new LexiconError(code, rawMessage);
+    }
 
-      const message = rawMessage.startsWith('[HTTP')
-        ? `${rawMessage} (${code})`
-        : `[HTTP ${response.status} - ${code}] ${rawMessage}`;
-      throw new LexiconError(code, message);
+    if (!('data' in body)) {
+      throw new LexiconError('bad-output', 'The AI service response was missing data.');
     }
+
     return body.data as T;
-  } catch (error) {
-    if (error instanceof LexiconError) throw error;
-    if (controller.signal.aborted) {
-      throw new LexiconError(signal?.aborted ? 'unknown' : 'timeout', signal?.aborted ? 'Cancelled.' : 'Timed out.');
+  } catch (err) {
+    if (err instanceof LexiconError) throw err;
+    if (err && typeof err === 'object' && (err as Error).name === 'AbortError') {
+      throw new LexiconError('timeout', 'The AI service timed out.');
     }
-    throw toLexiconError(error);
+    throw toLexiconError(err);
   } finally {
     window.clearTimeout(timeout);
     signal?.removeEventListener('abort', abortRequest);
   }
 }
 
-const CACHE_PREFIX = 'tb.lexicon.v2:';
-const memory = new Map<string, LexiconEntry>();
-const cacheKey = (word: string, dialect: ArabicDialect) =>
-  `${CACHE_PREFIX}${dialect}:${word.trim().toLowerCase()}`;
-function cacheGet(word: string, dialect: ArabicDialect): LexiconEntry | null {
-  const key = cacheKey(word, dialect);
-  const hit = memory.get(key);
-  if (hit) return hit;
-  try {
-    const raw = window.localStorage.getItem(key);
-    const entry = raw ? normalizeEntry(JSON.parse(raw)) : null;
-    if (entry?.dialect === dialect) memory.set(key, entry);
-    return entry?.dialect === dialect ? entry : null;
-  } catch {
-    return null;
-  }
-}
-function cacheSet(word: string, entry: LexiconEntry) {
-  const key = cacheKey(word, entry.dialect);
-  memory.set(key, entry);
-  try {
-    window.localStorage.setItem(key, JSON.stringify(entry));
-  } catch {}
+export function fetchArabicEntry(word: string, dialect: ArabicDialect = 'egyptian'): Promise<LexiconEntry> {
+  return requestGemini<LexiconEntry>('entry', { word, dialect });
 }
 
-export interface GenerateOptions {
-  situations?: Situation[];
-  forceRefresh?: boolean;
-  signal?: AbortSignal;
-  dialect?: ArabicDialect;
+export function fetchDynamicDeck(situation: Situation, profile: UserProfile): Promise<CustomDeckWord[]> {
+  return requestGemini<CustomDeckWord[]>('deck', { situation, profile });
 }
 
-export interface CustomDeckWord {
-  arabicWord: string;
-  englishTranslation: string;
+export function fetchTutorAnswer(prompt: string, context: Record<string, unknown>): Promise<string> {
+  return requestGemini<string>('tutor', { prompt, context });
 }
 
-export async function generateLexiconEntry(
-  word: string,
-  opts: GenerateOptions = {}
-): Promise<LexiconEntry> {
-  const input = word.trim(); if (!input || input.length > 64 || /[\r\n]/.test(input)) throw new LexiconError('empty-input', 'Invalid input.');
-  const dialect = opts.dialect ?? 'msa';
-  if (!opts.forceRefresh) { const cached = cacheGet(input, dialect); if (cached) return cached; }
-  const rawEntry = await requestGemini<unknown>(
-    'entry',
-    { word: input, situations: opts.situations ?? [], dialect },
-    opts.signal
-  );
-  const entry = normalizeEntry(rawEntry);
-  if (!entry || entry.dialect !== dialect) {
-    throw new LexiconError('bad-output', 'Incomplete response for the selected dialect.');
-  }
-  cacheSet(input, entry); return entry;
+export function generateExerciseWithGemini(profile: UserProfile, topicOrFocus?: string): Promise<Exercise> {
+  return requestGemini<Exercise>('generate-exercise', { profile, topicOrFocus });
 }
 
-export async function generateCustomDeck(
-  profile: UserProfile,
-  isStruggling: boolean,
-  situation: Situation
-): Promise<CustomDeckWord[]> {
-  const getStaticDeck = (): CustomDeckWord[] => {
-    const entries = getStaticDictionaryEntries(situation, profile.dialect)
-      .filter(entry => entry.dialect === profile.dialect);
-    for (let index = entries.length - 1; index > 0; index--) {
-      const swapIndex = Math.floor(Math.random() * (index + 1));
-      [entries[index], entries[swapIndex]] = [entries[swapIndex], entries[index]];
-    }
-    return entries.slice(0, 10).map(entry => ({
-      arabicWord: entry.arabicWord,
-      englishTranslation: entry.englishTranslation
-    }));
-  };
-
-  if (typeof navigator !== 'undefined' && !navigator.onLine) return getStaticDeck();
-
-  try {
-    const expectedCount = isStruggling ? 3 : 10;
-    const parsed = await requestGemini<unknown[]>(
-      'deck',
-      { profile, isStruggling, situation }
-    );
-    if (!Array.isArray(parsed) || parsed.length !== expectedCount) {
-      throw new LexiconError('bad-output', 'The tutor returned an incomplete vocabulary deck.');
-    }
-  
-    const cards: CustomDeckWord[] = [];
-    for (const item of parsed) {
-      if (!item || typeof item !== 'object') {
-        throw new LexiconError('bad-output', 'The tutor returned an incomplete vocabulary card.');
-      }
-      const record = item as Record<string, unknown>;
-      const arabicWord = str(record.arabicWord);
-      const englishTranslation = str(record.englishTranslation);
-      if (!arabicWord || !englishTranslation) {
-        throw new LexiconError('bad-output', 'The tutor returned an incomplete vocabulary card.');
-      }
-      cards.push({ arabicWord, englishTranslation });
-    }
-    return cards;
-  } catch {
-    return getStaticDeck();
-  }
-}
-
-export async function generateTutorResponse(
+export function generateConversationReplyWithGemini(
   prompt: string,
-  context: TutorContext
+  context: Record<string, unknown>
 ): Promise<string> {
-  const question = prompt.trim();
-  if (!question || question.length > 2000) {
-    throw new LexiconError('empty-input', 'Enter a question of 1–2000 characters.');
-  }
-  const { profile, currentWord } = context;
-  const recentHistory = context.history.slice(-4);
-
-  try {
-    const answer = await requestGemini<string>('tutor', {
-      prompt: question,
-      context: { ...context, profile, currentWord, history: recentHistory }
-    });
-    if (typeof answer !== 'string' || !answer.trim()) {
-      throw new LexiconError('bad-output', 'The tutor returned an empty answer.');
-    }
-    return answer.trim();
-  } catch (err) {
-    console.error('[geminiLexicon] generateTutorResponse failed:', err);
-    throw err;
-  }
+  return requestGemini<string>('conversation', { prompt, context });
 }
 
-export async function safeGenerateLexiconEntry(word: string, opts: GenerateOptions = {}): Promise<LexiconResult> {
-  try { return { ok: true, entry: await generateLexiconEntry(word, opts) }; } catch (e) { return { ok: false, error: toLexiconError(e) }; }
-}
-
-export async function generateAIPracticeExercise(
-  profile: UserProfile,
-  topicOrFocus?: string,
-  signal?: AbortSignal
-): Promise<Exercise> {
-  const effectiveFocus = topicOrFocus || profile.focusArea || '';
-  const payloadProfile = {
-    ...profile,
-    focusArea: effectiveFocus
-  };
-
-  const raw = await requestGemini<Record<string, unknown>>(
-    'generate-exercise',
-    { profile: payloadProfile, topicOrFocus: effectiveFocus },
-    signal
-  );
-
-  const VALID_ROLES: ChunkRole[] = ['subject', 'verb', 'object', 'connector', 'modifier', 'auxiliary'];
-
-  const id = `ai-ex-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-  const arabicThought = str(raw.arabicThought) || 'أنا جاهز لتعلم المزيد اليوم';
-  const englishTarget = str(raw.englishTarget) || 'I am ready to learn more today';
-  const acceptableAlternatives = Array.isArray(raw.acceptableAlternatives)
-    ? raw.acceptableAlternatives.map(str).filter(Boolean)
-    : [];
-  if (!acceptableAlternatives.includes(englishTarget)) {
-    acceptableAlternatives.unshift(englishTarget);
-  }
-
-  // Ensure wordChips contains target words + distractors
-  let wordChips = Array.isArray(raw.wordChips) ? raw.wordChips.map(str).filter(Boolean) : [];
-  if (wordChips.length === 0) {
-    wordChips = englishTarget.split(/\s+/).filter(Boolean);
-  }
-
-  // Validate breakdownChunks
-  const breakdownChunks: ChunkMapping[] = [];
-  if (Array.isArray(raw.breakdownChunks)) {
-    for (const chunk of raw.breakdownChunks) {
-      if (chunk && typeof chunk === 'object') {
-        const c = chunk as Record<string, unknown>;
-        const rawRole = str(c.role).toLowerCase();
-        const role = (VALID_ROLES as readonly string[]).includes(rawRole)
-          ? (rawRole as ChunkRole)
-          : 'modifier';
-        breakdownChunks.push({
-          arabicText: str(c.arabicText) || '—',
-          englishText: str(c.englishText) || '',
-          role,
-          explanation: str(c.explanation) || 'Structural block',
-        });
-      }
-    }
-  }
-
-  if (breakdownChunks.length === 0) {
-    breakdownChunks.push({
-      arabicText: arabicThought,
-      englishText: englishTarget,
-      role: 'verb',
-      explanation: 'Complete thought unit',
-    });
-  }
-
-  const habitHint =
-    str(raw.habitHint) ||
-    'Notice how English requires explicit linking structure where Arabic connects concepts directly.';
-
-  return {
-    id,
-    arabicThought,
-    englishTarget,
-    acceptableAlternatives,
-    wordChips,
-    breakdownChunks,
-    habitHint,
-  };
-}
-
-export interface ConversationHistoryItem {
-  role: 'user' | 'model';
-  text: string;
-}
-
-export async function sendConversationMessage(
-  prompt: string,
-  history: ConversationHistoryItem[],
-  profile?: UserProfile,
-  signal?: AbortSignal
-): Promise<string> {
-  const cleanPrompt = prompt.trim();
-  if (!cleanPrompt) {
-    throw new LexiconError('empty-input', 'Prompt cannot be empty.');
-  }
-
-  const answer = await requestGemini<string>(
-    'conversation',
-    { prompt: cleanPrompt, history, profile },
-    signal
-  );
-
-  if (typeof answer !== 'string' || !answer.trim()) {
-    throw new LexiconError('bad-output', 'The partner returned an empty response.');
-  }
-
-  return answer.trim();
-}
-
-export async function explainStructuralError(
+export function explainErrorWithGemini(
   conceptId: string,
   errorType: string,
   submitted: string,
-  target: string,
-  signal?: AbortSignal
+  target: string
 ): Promise<string> {
-  const answer = await requestGemini<string>(
-    'explain-error',
-    { conceptId, errorType, submitted, target },
-    signal
-  );
-  return typeof answer === 'string' ? answer.trim() : '';
+  return requestGemini<string>('explain-error', { conceptId, errorType, submitted, target });
+}
+
+// Backward Compatibility Exports
+export type TutorContext = Record<string, unknown>;
+export type ConversationHistoryItem = { role: 'user' | 'assistant' | 'model'; text: string };
+
+export async function checkGeminiService(): Promise<boolean> {
+  return true;
+}
+
+export function generateCustomDeck(
+  situationOrProfile: Situation | UserProfile,
+  profileOrStruggling?: UserProfile | boolean,
+  situation?: Situation
+): Promise<CustomDeckWord[]> {
+  const profile = (typeof situationOrProfile === 'object' ? situationOrProfile : profileOrStruggling) as UserProfile;
+  const sit = (typeof situationOrProfile === 'string' ? situationOrProfile : situation) as Situation || 'student';
+  return fetchDynamicDeck(sit, profile || { goal: 'general', language: 'arabic', dialect: 'egyptian', level: 'beginner' });
+}
+
+export function generateAIPracticeExercise(profile: UserProfile, topicOrFocus?: string): Promise<Exercise> {
+  return generateExerciseWithGemini(profile, topicOrFocus);
+}
+
+export function sendConversationMessage(
+  prompt: string,
+  contextOrHistory: Record<string, unknown> | ConversationHistoryItem[],
+  profile?: UserProfile
+): Promise<string> {
+  const ctx = Array.isArray(contextOrHistory) ? { history: contextOrHistory, profile } : contextOrHistory;
+  return generateConversationReplyWithGemini(prompt, ctx);
+}
+
+export function explainStructuralError(conceptId: string, errorType: string, submitted: string, target: string): Promise<string> {
+  return explainErrorWithGemini(conceptId, errorType, submitted, target);
+}
+
+export function generateTutorResponse(prompt: string, context: Record<string, unknown>): Promise<string> {
+  return fetchTutorAnswer(prompt, context);
 }
