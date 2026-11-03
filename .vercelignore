@@ -4,3 +4,11 @@ android/
 coverage/
 .cache/
 build/
+*.mp4
+*.webm
+*.avi
+*.mov
+*.jsonl
+*.log
+Thinking-English-v4.html
+scripts/

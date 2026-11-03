@@ -62,6 +62,7 @@ export default defineConfig(({ mode }) => {
           maximumFileSizeToCacheInBytes: 8 * 1024 * 1024,
           globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,json}'],
           navigateFallback: `${BASE}index.html`,
+          navigateFallbackDenylist: [/^\/apk/, /^\/download/, /^\/api/],
           cleanupOutdatedCaches: true,
           runtimeCaching: [
             { urlPattern: ({ url }) => url.hostname === 'generativelanguage.googleapis.com', handler: 'NetworkOnly' },
