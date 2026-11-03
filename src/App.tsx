@@ -326,7 +326,7 @@ export default function App() {
               : goal === 'study'
               ? 'الدراسة والأبحاث 🎓'
               : 'الطلاقة التلقائية 🚀';
-          showToast(`🚀 تم تخصيص المسار والمحتوى خصيصاً لهدفك: ${goalLabel}`);
+          showToast(T(`🚀 تم تخصيص المسار والمحتوى خصيصاً لهدفك: ${goalLabel}`, `Path tailored for: ${goalLabel}`));
         }}
         isArabic={isArabic}
         initialSource={sourceLang}
@@ -340,7 +340,7 @@ export default function App() {
         currentSource={sourceLang}
         currentTarget={targetLang}
         onSelectPair={setPair}
-        onToast={showToast}
+        onToast={(msg) => showToast(T(msg, msg))}
       />
 
       {/* Privacy Policy Modal */}
@@ -355,7 +355,7 @@ export default function App() {
         isOpen={feedbackOpen}
         onClose={() => setFeedbackOpen(false)}
         onSubmit={() => {}}
-        onToast={showToast}
+        onToast={(msg) => showToast(T(msg, msg))}
         profile={profile}
       />
 

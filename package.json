@@ -34,6 +34,7 @@
     "@capacitor/network": "^8.0.1",
     "@capacitor/status-bar": "^8.0.4",
     "@google/genai": "^2.32.0",
+    "@libsql/client": "^0.18.0",
     "@neondatabase/serverless": "^1.2.0",
     "@supabase/supabase-js": "^2.118.0",
     "@tailwindcss/vite": "^4.3.3",
@@ -43,6 +44,7 @@
     "ai": "^7.0.162",
     "canvas-confetti": "^1.9.4",
     "capacitor-gemma-3n": "^1.0.0",
+    "drizzle-orm": "^0.45.4",
     "framer-motion": "^14.8.0",
     "i18next": "^26.6.0",
     "lucide-react": "^0.546.0",
@@ -63,9 +65,11 @@
     "@vitejs/plugin-basic-ssl": "^2.3.0",
     "autoprefixer": "^10.4.21",
     "cross-env": "^10.1.0",
+    "dotenv": "^18.0.9",
+    "drizzle-kit": "^0.31.11",
     "tailwindcss": "^4.3.3",
     "tsx": "^4.21.0",
     "typescript": "^7.0.2",
-    "vite-plugin-pwa": "^2.0.0"
+    "vite-plugin-pwa": "^1.1.0"
   }
 }

@@ -241,7 +241,6 @@ export const LEXICON_AR: Record<string, LexiconArEntry> = {
     tipAr: "بينقسم لفاعل وفعل بعد Do زي Do you speak?"
   },
   "الإنجليزية": {
-    en: "English",
     grammarAr: "اسم لغة معرفة",
     tipAr: "تبدأ بحرف كبير ومبتاخدش the قبلها (speak English)."
   },

@@ -225,8 +225,9 @@ const esc=s=>String(s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&
 const D=()=>({done:{},score:0,streak:0,best:0,wrong:{},notes:"",msgs:[],bc:[],dark:null,cards:{},custom:[],importedDecks:[],reviewHistory:{},free:false});
 let S;try{S=Object.assign(D(),JSON.parse(localStorage.getItem("te_standalone_v2")||"{}"))}catch(e){S=D()}
 let SND=true, tab=0, cur=null, T=false, mvoice=null, FR=0, FT="";
-const save=()=>{try{localStorage.setItem("te_standalone_v2",JSON.stringify(S))}catch(e){toast("Couldn’t save (storage full or blocked)")}};
-function toast(m){const t=$("toast");t.textContent=m;t.classList.remove("hidden");clearTimeout(t._t);t._t=setTimeout(()=>t.classList.add("hidden"),2600)}
+const save=()=>{try{localStorage.setItem("te_standalone_v2",JSON.stringify(S))}catch(e){toast(T("مقدرتش أحفظ — المساحة على الموبايل مليانة أو المتصفح مانع الحفظ", "Could not save"))}};
+const T = (ar, en) => \`<span dir="rtl" lang="ar" class="ar" style="display:block">\${ar}</span><span style="display:block;opacity:.6;font-size:11px;margin-top:2px">\${en}</span>\`;
+function toast(m){const t=$("toast");t.innerHTML=m;t.classList.remove("hidden");clearTimeout(t._t);t._t=setTimeout(()=>t.classList.add("hidden"),2600)}
 function theme(){S.dark=!document.documentElement.classList.contains("dark");save();applyTheme()}
 function applyTheme(){const d=S.dark===null?matchMedia("(prefers-color-scheme: dark)").matches:S.dark;document.documentElement.classList.toggle("dark",d)}
 const norm=s=>String(s||"").toLowerCase().replace(/[’‘]/g,"'").replace(/won't/g,"will not").replace(/can't/g,"cannot").replace(/n't/g," not").replace(/'m\\b/g," am").replace(/'re\\b/g," are").replace(/'s\\b/g," is").replace(/'ve\\b/g," have").replace(/'ll\\b/g," will").replace(/'d\\b/g," would").replace(/[^a-z0-9 ]/g," ").replace(/\\s+/g," ").trim();
@@ -313,26 +314,31 @@ function renderInteractiveAr(sentence, prefixKey) {
   </div>\`;
   if (popWord && popEntry) {
     const cleanSpeak = String(popEntry.en || "").replace(/\\(.*?\\)/g, "").split("/")[0].trim();
-    h += \`<div class="mt-3 p-3.5 rounded-2xl bg-emerald-950/95 text-white border border-emerald-500/40 shadow-xl text-left">
-      <div class="flex flex-wrap items-center justify-between gap-2">
+    const grammarAr = popEntry.grammarAr || popEntry.grammar;
+    const tipAr = popEntry.tipAr || "قارن الكلمة دي بجملة الإنجليزي عشان تشوف مكانها.";
+    h += \`<div class="mt-3 p-3.5 rounded-2xl bg-emerald-950/95 text-white border border-emerald-500/40 shadow-xl text-right">
+      <div class="flex flex-wrap items-center justify-between gap-2" dir="rtl">
         <div class="flex items-center gap-2 flex-wrap">
           <span dir="rtl" class="ar font-bold text-xl text-emerald-400">\${esc(popWord)}</span>
-          <span class="text-stone-400">→</span>
-          <span translate="no" class="font-bold text-base text-white">\${esc(popEntry.en)}</span>
+          <span class="text-stone-400">←</span>
+          <span translate="no" class="font-bold text-base text-white" dir="ltr">\${esc(popEntry.en)}</span>
         </div>
-        <div class="flex items-center gap-1.5">
-          <button class="px-2.5 py-1 rounded-lg bg-emerald-600 text-xs font-bold !min-h-[34px]" data-speak="\${esc(cleanSpeak)}" data-rate="0.95">🔊 Listen</button>
+        <div class="flex items-center gap-1.5" dir="ltr">
+          <button class="px-2.5 py-1 rounded-lg bg-emerald-600 text-xs font-bold !min-h-[34px]" data-speak="\${esc(cleanSpeak)}" data-rate="0.95">🔊 اسمع</button>
           <button class="px-2.5 py-1 rounded-lg bg-stone-800 text-xs !min-h-[34px]" onclick="popWord=null;popEntry=null;render()">✕</button>
         </div>
       </div>
-      <div class="text-[11px] text-emerald-300 font-semibold mt-1">\${esc(popEntry.grammar)}</div>
-      <p class="text-xs text-stone-200 mt-1">💡 \${esc(popEntry.tip)}</p>
+      <div class="text-[11px] text-emerald-300 font-semibold mt-1" dir="rtl">\${esc(grammarAr)}</div>
+      <p class="text-xs text-stone-200 mt-1" dir="rtl">💡 \${esc(tipAr)}</p>
     </div>\`;
   }
   return h;
 }
 
 function render() {
+  if((!S.done || Object.keys(S.done).length === 0) && !S.seenIntro) {
+    tab = 1; go(0); S.seenIntro = true; save();
+  }
   const ICONS = ["📚", "✍️", "👩‍🏫", "📊", "🃏", "🌐"];
   const hl = $("hdr-lvl");
   if (hl) hl.textContent = "· Lv." + (lvl() + 1) + " " + LV[lvl()];
@@ -383,13 +389,15 @@ function go(li){let ei=L[li].ex.findIndex((_,i)=>!S.done[li+"-"+i]);if(ei<0)ei=0
 function setEx(li,ei){const e=L[li].ex[ei];popWord=null;cur={li,ei,tries:0,st:"ask",fb:"",chips:shuffleArray(buildBlocks(e))}}
 
 function practiceV(){
-  if(!cur)return \`<div class="\${CARD}"><p class="mb-3">Pick a lesson in the Lessons tab to begin.</p><button class="\${BTN}" onclick="go(0)">Start Lesson 1 →</button></div>\`;
+  if(!cur)return \`<div class="\${CARD} text-center py-6" dir="rtl" lang="ar"><p class="mb-3 font-semibold text-lg text-stone-300">اختار درس من تبويب الدروس عشان تبدأ.</p><button class="\${BTN}" onclick="go(0)">ابدأ الدرس الأول →</button></div>\`;
   const l=L[cur.li],e=l.ex[cur.ei],open=cur.st=="ask";
   let h=\`<div class="flex justify-between text-sm mb-2"><span>\${l.num}. \${esc(l.t)} · \${cur.ei+1}/\${l.ex.length}</span><span id="sc">⭐ \${S.score} · 🔥 \${S.streak}</span></div>
   <div class="h-1.5 rounded-full bg-stone-200 dark:bg-stone-700 mb-3"><div class="h-1.5 rounded-full bg-teal-600" style="width:\${100*(cur.ei+(cur.st=="ask"?0:1))/l.ex.length}%"></div></div>
-  <div class="\${CARD}"><div class="text-xs uppercase opacity-60 mb-1">Say this thought in English</div>\${renderInteractiveAr(e.ar, "pr-"+cur.li+"-"+cur.ei)}</div>\`;
+  <div class="\${CARD}"><div class="text-xs uppercase opacity-60 mb-1" dir="rtl" lang="ar">عبّر عن الفكرة بترتيب إنجليزي صحيح</div>\${renderInteractiveAr(e.ar, "pr-"+cur.li+"-"+cur.ei)}</div>\`;
   if(open){
-    h+=\`<div class="\${CARD}"><input id="ans" translate="no" class="w-full rounded-xl border border-stone-300 dark:border-stone-600 bg-transparent p-3" placeholder="Type or tap the blocks…" autocomplete="off" onkeydown="if(event.key=='Enter')check()">
+    const showKbHint = (S.score < 30) ? \`<div class="text-center text-xs opacity-70 mb-2 font-semibold text-amber-500" dir="rtl" lang="ar">⌨️ بدّل الكيبورد للإنجليزي — اضغط على أيقونة الكرة الأرضية على الكيبورد</div>\` : '';
+    const firstLaunchHint = (S.score === 0) ? \`<div class="text-center text-lg font-black text-amber-400 mb-3" dir="rtl" lang="ar">اضغط ▶️ اسمع الجملة، وبعدين اكتبها بالإنجليزي</div>\` : '';
+    h+=\`<div class="\${CARD}">\${firstLaunchHint}\${showKbHint}<input id="ans" translate="no" class="w-full rounded-xl border border-stone-300 dark:border-stone-600 bg-transparent p-3" placeholder="Type or tap the blocks…" autocomplete="off" onkeydown="if(event.key=='Enter')check()">
     <div class="flex flex-wrap gap-2 mt-3">\${cur.chips.map(c=>\`<button class="\${GH} !px-4 text-base" translate="no" data-chip="\${esc(c)}">\${esc(c)}</button>\`).join("")}</div>
     <div id="fb" class="mt-3 text-sm">\${cur.fb}</div>
     <div class="flex gap-2 mt-3"><button class="\${BTN} flex-1" onclick="check()">Check</button><button class="\${GH}" onclick="resetAttemptState()">↺ Reset</button><button class="\${GH}" onclick="reveal()">Reveal</button></div></div>\`;
@@ -408,7 +416,7 @@ function check(){
   const e=L[cur.li].ex[cur.ei],n=norm($("ans").value);if(!n)return;
   if(e.a.some(x=>norm(x)==n)){
     const k=cur.li+"-"+cur.ei;if(!S.done[k]){S.score+=cur.tries?5:10;S.done[k]=1}
-    S.streak++;S.best=Math.max(S.best,S.streak);RQ=null;save();beep(1);confetti();if([3,5,10].includes(S.streak))toast("🔥 "+S.streak+" in a row!");cur.st="ok";render();speak(e.a[0],1);return;
+    S.streak++;S.best=Math.max(S.best,S.streak);RQ=null;save();beep(1);confetti();if([3,5,10].includes(S.streak))toast(T("🔥 "+S.streak+" إجابات صحيحة ورا بعض!", "🔥 "+S.streak+" in a row!"));cur.st="ok";render();speak(e.a[0],1);return;
   }
   cur.tries++;S.streak=0;S.wrong[e.g]=(S.wrong[e.g]||0)+1;save();
   const hit=e.h.find(([r])=>r.test(n));
@@ -419,7 +427,7 @@ function reveal(){S.streak=0;save();cur.st="rev";render()}
 function nextEx(){
   const l=L[cur.li];
   if(cur.ei<l.ex.length-1){setEx(cur.li,cur.ei+1)}
-  else{toast(comp(cur.li)?"Lesson complete! 🎉":"Lesson finished. Retry skipped items to unlock the next.");tab=0}
+  else{toast(comp(cur.li)?T("درس مكتمل بنجاح! 🎉", "Lesson complete! 🎉"):T("الدرس خلص. حل الأخطاء عشان تفتح اللي بعده.", "Lesson finished. Retry skipped items to unlock the next."));tab=0}
   render();
 }
 
@@ -431,7 +439,21 @@ function best(){
   const sc=v=>(/natural|neural|online/i.test(v.name)?50:0)+(/aria|jenny|guy|ava|andrew|emma|samantha|allison|serena|daniel|karen|google/i.test(v.name)?20:0)+(/en-US/i.test(v.lang)?10:/en-GB/i.test(v.lang)?6:0);
   return [...VO].sort((a,b)=>sc(b)-sc(a))[0];
 }
-function speak(t,r){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t),v=best();if(v){u.voice=v;u.lang=v.lang}else u.lang="en-US";u.rate=(r||1)*.92;u.pitch=1;speechSynthesis.speak(u)}catch(e){toast("Speech not supported here")}}
+function speak(t,r){
+  try{
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(t),v=best();
+    if(v){u.voice=v;u.lang=v.lang}else u.lang="en-US";
+    u.rate=(r||1)*.92;u.pitch=1;
+    if(!v){
+      toast(T("الصوت الإنجليزي مش متوفر على الجهاز ده — ثبّت صوت من إعدادات الموبايل › اللغة والإدخال › إخراج تحويل النص لكلام", "No English voice installed"));
+      return;
+    }
+    speechSynthesis.speak(u);
+  }catch(e){
+    toast(T("الصوت مش مدعوم على الجهاز ده — جرّب تحديث الكروم", "Speech unsupported"));
+  }
+}}
 
 // ============================================================================
 // ANKI MULTI-DECK CARDS + OPEN SOURCE DECKS + UNDO + SM-2
@@ -529,7 +551,7 @@ function downloadPrebuilt(id) {
     if (!existing.has(cid)) S.custom.push({ id: cid, ar: c.ar, en: c.en, deckId: pb.id });
   });
   save();
-  toast("Downloaded “" + pb.name + "” (" + pb.cards.length + " cards) ✓");
+  toast(T("تم تحميل المجموعة ✓", "Deck downloaded"));
   render();
 }
 
@@ -652,7 +674,7 @@ function undoCard() {
   UNDO = null;
   RS = false;
   save();
-  toast("Undid last card review ↩️");
+  toast(T("تراجعت عن آخر كارت ↩️", "Undone"));
   render();
 }
 
@@ -661,28 +683,28 @@ let TR = { src: "", out: "", from: "", to: "", busy: false }, trTimer = null;
 const trIsAr = s => /[\\u0600-\\u06FF]/.test(s);
 
 function translateV() {
-  return \`<div class="\${CARD}"><div class="text-xs uppercase opacity-60 mb-2">Type or paste Arabic or English. It detects the language and translates automatically.</div>
-    <textarea id="tri" rows="3" class="w-full rounded-xl border border-stone-300 dark:border-stone-700 bg-transparent p-3" style="font-size:16px" oninput="trType(this.value)" placeholder="اكتب هنا… / Type here…">\${esc(TR.src)}</textarea>
-    <p class="text-[11px] opacity-70 mt-2">🔒 <strong>Privacy note:</strong> Translations are sent to MyMemory.net. Don’t paste anything private.</p>
-    <div class="flex gap-2 mt-2"><button class="\${GH} flex-1" onclick="trPaste()">📋 Paste</button><button class="\${GH} flex-1" onclick="trClear()">Clear</button></div></div>
+  return \`<div class="\${CARD}"><div class="text-xs uppercase opacity-60 mb-2" dir="rtl" lang="ar">اكتب أو الزق جملة. التطبيق هيكتشف اللغة ويترجمها تلقائياً.</div>
+    <textarea id="tri" rows="3" class="w-full rounded-xl border border-stone-300 dark:border-stone-700 bg-transparent p-3" style="font-size:16px" oninput="trType(this.value)" placeholder="اكتب هنا بالعربي أو الإنجليزي…">\${esc(TR.src)}</textarea>
+    <p class="text-[11px] opacity-70 mt-2" dir="rtl" lang="ar">🔒 <strong>ملاحظة خصوصية:</strong> الترجمة بتروح لـ MyMemory.net — متكتبش حاجة سرية.</p>
+    <div class="flex gap-2 mt-2"><button class="\${GH} flex-1" onclick="trPaste()">📋 الصق</button><button class="\${GH} flex-1" onclick="trClear()">مسح</button></div></div>
     <div class="\${CARD}" id="tro">\${trOut()}</div>
-    <p class="text-xs opacity-60">Machine translation can be wrong. Check new sentences with your teacher before you learn them.</p>\`;
+    <p class="text-xs opacity-60" dir="rtl" lang="ar">الترجمة الآلية ممكن تغلط. اتأكد من الجمل الجديدة من معلمك قبل ما تذاكرها.</p>\`;
 }
 
 function trOut() {
-  if (TR.busy) return \`<p class="text-sm opacity-70">Translating…</p>\`;
-  if (!TR.out) return \`<p class="text-sm opacity-60">Your translation appears here.</p>\`;
+  if (TR.busy) return \`<p class="text-sm opacity-70" dir="rtl" lang="ar">بيترجم…</p>\`;
+  if (!TR.out) return \`<p class="text-sm opacity-60" dir="rtl" lang="ar">الترجمة كلمة بكلمة هتظهر هنا.</p>\`;
   const ar = TR.to === "ar";
   return \`<div translate="no" \${ar ? 'dir="rtl" class="ar text-2xl leading-relaxed font-semibold"' : 'class="text-xl font-semibold"'}>\${esc(TR.out)}</div>
-    <div class="text-xs opacity-60 mt-1">\${TR.from === "ar" ? "Arabic → English" : "English → Arabic"}</div>
-    <div class="flex flex-wrap gap-2 mt-3"><button class="\${GH}" onclick="trHear()">🔊 Hear English</button><button class="\${GH}" onclick="trCopy()">Copy</button><button class="\${BTN}" onclick="trSave()">➕ Save as card</button></div>\`;
+    <div class="text-xs opacity-60 mt-1">\${TR.from === "ar" ? "عربي ← إنجليزي" : "إنجليزي ← عربي"}</div>
+    <div class="flex flex-wrap gap-2 mt-3"><button class="\${GH}" onclick="trHear()">🔊 اسمع الإنجليزي</button><button class="\${GH}" onclick="trCopy()">📋 انسخ</button><button class="\${BTN}" onclick="trSave()">➕ احفظ كارت</button></div>\`;
 }
 function trShow() { const o = $("tro"); if (o) o.innerHTML = trOut(); }
 function trType(v) { TR.src = v; clearTimeout(trTimer); trTimer = setTimeout(trRun, 600); }
 function trClear() { TR = { src: "", out: "", from: "", to: "", busy: false }; render(); }
 async function trPaste() {
   try { TR.src = await navigator.clipboard.readText(); const i = $("tri"); if (i) i.value = TR.src; trRun(); }
-  catch (e) { toast("Paste blocked. Long-press the box and paste instead."); }
+  catch (e) { toast(T("اللصق متوقف — اضغط مطوّل على الصندوق والصق", "Paste blocked")); }
 }
 async function trRun() {
   const q = TR.src.trim();
@@ -693,16 +715,16 @@ async function trRun() {
     const j = await r.json(), t = j && j.responseData && j.responseData.translatedText;
     if (!t || /MYMEMORY WARNING/i.test(t)) throw new Error("quota");
     TR.out = t;
-  } catch (e) { TR.out = ""; toast("Couldn’t translate right now. Try again in a moment."); }
+  } catch (e) { TR.out = ""; toast(T("الخدمة مش متوفرة دلوقتي، جرّب كمان شوية.", "Translation unavailable.")); }
   TR.busy = false; trShow();
 }
 function trHear() { speak(TR.to === "en" ? TR.out : TR.src, 1); }
-function trCopy() { try { navigator.clipboard.writeText(TR.out).then(() => toast("Copied")); } catch (e) { toast("Couldn’t copy"); } }
+function trCopy() { try { navigator.clipboard.writeText(TR.out).then(() => toast(T("اتنسخ — الصقه لمعلمك", "Copied"))); } catch (e) { toast(T("مقدرتش أنسخ", "Copy failed")); } }
 function trSave() {
   if (!TR.out) return;
   const arS = TR.from === "ar" ? TR.src : TR.out, enS = TR.from === "ar" ? TR.out : TR.src;
   (S.custom = S.custom || []).push({ id: Date.now().toString(36), ar: arS.trim(), en: enS.trim(), deckId: "custom" });
-  save(); RQ = null; toast("Saved to Cards ✓");
+  save(); RQ = null; toast(T("تم الحفظ في الكروت ✓", "Saved to Cards ✓"));
 }
 
 function hubV(){
@@ -722,7 +744,7 @@ function hubV(){
   }
   return h+"</div>";
 }
-function send(){const q=$("q").value.trim();if(!q)return toast("Write a question first");S.msgs.push({q,r:""});save();render();toast("Sent to your mentor")}
+function send(){const q=$("q").value.trim();if(!q)return toast(T("اكتب سؤالك الأول", "Write a question first"));S.msgs.push({q,r:""});save();render();toast(T("اتبعت لمعلمك ✓", "Sent to your mentor"))}
 function reply(i){const r=$("r"+i).value.trim();if(!r)return;S.msgs[i].r=r;save();render()}
 function bcast(){const b=$("bt").value.trim();if(!b)return;S.bc.unshift(b);save();render();toast("Broadcast published")}
 function weakV(){const w=Object.entries(S.wrong).sort((a,b)=>b[1]-a[1]);
@@ -758,12 +780,12 @@ function progV(){
   return h;
 }
 function shareFriends(){
-  const msg=\`🧠 *Thinking English™: Arabic-to-English Transfer Journey*\\nجرب تطبيق *Thinking English™* لتعلم التفكير بالإنجليزية من منطق اللغة العربية بدون حفظ قوائم أو قواعد معقدة 🚀\\n\\n✨ *Try the app here / جرب التطبيق من هنا:*\\n\${APP_URL}\\n\\n📝 *Share your review & feedback / شاركنا رأيك وتقييمك بعد التجربة:*\\n\${FORM}\`;
+  const msg=\`🧠 *فكّر إنجليزي* — تطبيق مجاني ١٠٠٪ لتعلم التفكير بالإنجليزية\\nحمّل من هنا: tb-eg.vercel.app/download\\nالحجم 51.5 ميجا — الأفضل تحمّله على واي فاي.\\nلو ظهرتلك رسالة "السماح بالتركيب": الإعدادات › السماح › رجوع › تثبيت.\\n\\n(Thinking English™: Arabic-to-English Transfer Journey)\`;
   window.open("https://wa.me/?text="+encodeURIComponent(msg),"_blank");
 }
 function fbMsg(){const d=L.filter((_,i)=>comp(i)).length,w=Object.entries(S.wrong).sort((a,b)=>b[1]-a[1]).slice(0,3).map(x=>x[0]).join(", ")||"none";return \`Thinking English™ feedback\\nRating: \${FR?FR+"/5":"-"}\\nLessons done: \${d}/\${L.length} · Score: \${S.score}\\nHardest: \${w}\\n\\n\${FT}\\n\\nReview Form: \${FORM}\`}
 function fbLink(){return (TEACHER?"https://wa.me/"+TEACHER:"https://wa.me/")+"?text="+encodeURIComponent(fbMsg())}
-function copyFb(){try{navigator.clipboard.writeText(fbMsg()).then(()=>toast("Copied. Paste it to your teacher"))}catch(e){toast("Couldn’t copy")}}
+function copyFb(){try{navigator.clipboard.writeText(fbMsg()).then(()=>toast(T("اتنسخ — الصقه لمعلمك", "Copied")))}catch(e){toast(T("مقدرتش أنسخ", "Copy failed"))}}
 function beep(ok){
   if(SND){try{const a=new (window.AudioContext||window.webkitAudioContext)();(ok?[523,659,784]:[200,150]).forEach((f,i)=>{const o=a.createOscillator(),g=a.createGain(),t=a.currentTime+i*.1;o.frequency.value=f;o.type=ok?"triangle":"sawtooth";o.connect(g);g.connect(a.destination);g.gain.setValueAtTime(.12,t);g.gain.exponentialRampToValueAtTime(.001,t+.18);o.start(t);o.stop(t+.2)})}catch(e){}}
   try{navigator.vibrate&&navigator.vibrate(ok?[20,40,20]:80)}catch(e){}

@@ -1,23 +1,28 @@
 {
-  "redirects": [
-    {
-      "source": "/apk",
-      "destination": "https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v3.1.0/Thinking-Bridge-v3.1.0.apk",
-      "permanent": false
-    },
+  "rewrites": [
     {
       "source": "/download",
-      "destination": "https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v3.1.0/Thinking-Bridge-v3.1.0.apk",
-      "permanent": false
-    }
-  ],
-  "rewrites": [
+      "destination": "/download.html"
+    },
+    {
+      "source": "/apk",
+      "destination": "/download.html"
+    },
     {
       "source": "/((?!api/.*|assets/.*|.*\\..*).*)",
       "destination": "/index.html"
     }
   ],
   "headers": [
+    {
+      "source": "/download.html",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=300"
+        }
+      ]
+    },
     {
       "source": "/api/agent",
       "headers": [

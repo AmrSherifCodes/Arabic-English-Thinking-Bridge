@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { usePwaInstall } from '../hooks/usePwaInstall';
+import { usePwaInstall } from '../hooks/usePWAInstall';
 import { Download, Share, X, PlusSquare } from 'lucide-react';
 
 export function PwaInstallBanner() {
