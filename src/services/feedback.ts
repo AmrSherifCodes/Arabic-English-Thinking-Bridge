@@ -42,7 +42,7 @@ export async function saveFeedback(data: FeedbackData): Promise<boolean> {
     }
 
     // 2. Submit to PostgreSQL backend via Vercel Serverless
-    const endpoint = typeof window !== 'undefined' ? '/api/feedback' : `${API_BASE_URL || 'http://localhost:3000'}/api/feedback`;
+    const endpoint = `${API_BASE_URL}/api/feedback`;
     const res = await fetch(endpoint, {
       method: 'POST',
       headers: {

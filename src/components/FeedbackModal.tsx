@@ -6,6 +6,7 @@ import { Capacitor } from '@capacitor/core';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import type { UserProfile } from '../types';
 import { supabase } from '../services/supabase';
+import { API_BASE_URL } from '../utils/api';
 
 export interface UserFeedbackData {
   rating: number;
@@ -92,7 +93,7 @@ export function FeedbackModal({
 
       // 2. Submit directly to PostgreSQL via Vercel Serverless API
       try {
-        void fetch('/api/feedback', {
+        void fetch(`${API_BASE_URL}/api/feedback`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(feedbackData)
