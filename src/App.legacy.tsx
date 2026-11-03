@@ -1935,11 +1935,6 @@ export default function App() {
             setShowOnboarding(true);
           }
         }}
-        onStartGuest={() => {
-          setShowLanding(false);
-          setIsGuest(true);
-          openLesson(0);
-        }}
       />
     );
   }

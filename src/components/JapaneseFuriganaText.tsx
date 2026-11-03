@@ -13,6 +13,61 @@ export function sanitizeFuriganaHtml(html: string): string {
     .trim();
 }
 
+/**
+ * Parses furigana HTML markup into native React nodes (<ruby>, <rt>, strings)
+ * eliminating dangerouslySetInnerHTML completely.
+ */
+export function parseFuriganaNodes(html: string): React.ReactNode[] {
+  if (!html || typeof html !== 'string') return [];
+
+  const sanitized = html.replace(/<(?!\/?(?:ruby|rt|rp|rb)\b)[^>]*>/gi, '');
+  const nodes: React.ReactNode[] = [];
+  const rubyTagRegex = /<ruby[^>]*>([\s\S]*?)<\/ruby>/gi;
+  let lastIndex = 0;
+  let rubyMatch: RegExpExecArray | null;
+
+  while ((rubyMatch = rubyTagRegex.exec(sanitized)) !== null) {
+    if (rubyMatch.index > lastIndex) {
+      const text = sanitized.substring(lastIndex, rubyMatch.index).replace(/<[^>]+>/g, '');
+      if (text) {
+        nodes.push(text);
+      }
+    }
+
+    const rubyContent = rubyMatch[1];
+    const pairRegex = /(?:<rb[^>]*>)?([^<]+?)(?:<\/rb>)?\s*(?:<rp>[^<]*<\/rp>)?\s*<rt[^>]*>([^<]+?)<\/rt>\s*(?:<rp>[^<]*<\/rp>)?/gi;
+    const children: React.ReactNode[] = [];
+    let pairMatch: RegExpExecArray | null;
+    let hasPairs = false;
+
+    while ((pairMatch = pairRegex.exec(rubyContent)) !== null) {
+      hasPairs = true;
+      const base = pairMatch[1];
+      const rt = pairMatch[2];
+      children.push(base);
+      children.push(React.createElement('rt', { key: `rt-${children.length}` }, rt));
+    }
+
+    if (hasPairs) {
+      nodes.push(React.createElement('ruby', { key: `ruby-${rubyMatch.index}` }, ...children));
+    } else {
+      const fallback = rubyContent.replace(/<[^>]+>/g, '');
+      if (fallback) nodes.push(fallback);
+    }
+
+    lastIndex = rubyTagRegex.lastIndex;
+  }
+
+  if (lastIndex < sanitized.length) {
+    const trailing = sanitized.substring(lastIndex).replace(/<[^>]+>/g, '');
+    if (trailing) {
+      nodes.push(trailing);
+    }
+  }
+
+  return nodes;
+}
+
 interface JapaneseFuriganaTextProps {
   kanjiText: string;
   furiganaHtml?: string;
@@ -33,12 +88,10 @@ export function JapaneseFuriganaText({
   }
 
   if (displayMode === 'furigana' && furiganaHtml) {
-    const cleanHtml = sanitizeFuriganaHtml(furiganaHtml);
     return (
-      <span
-        className={`japanese-text japanese-text--furigana leading-loose ${className}`}
-        dangerouslySetInnerHTML={{ __html: cleanHtml }}
-      />
+      <span className={`japanese-text japanese-text--furigana leading-loose ${className}`}>
+        {parseFuriganaNodes(furiganaHtml)}
+      </span>
     );
   }
 

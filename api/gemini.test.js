@@ -91,6 +91,26 @@ test('1. Disallowed origin returns 403 Forbidden with sanitized error', async ()
   });
 });
 
+test('1b. Evil Vercel preview origin (https://evil-attacker.vercel.app) is rejected with 403 Forbidden while https://tb-eg.vercel.app is allowed', async () => {
+  const evilReq = createMockReq({
+    method: 'POST',
+    headers: { origin: 'https://evil-attacker.vercel.app' },
+    body: { operation: 'explain-error', submitted: 'test', target: 'test' }
+  });
+  const evilRes = createMockRes();
+  await handler(evilReq, evilRes);
+  assert.equal(evilRes.statusCode, 403);
+
+  const validReq = createMockReq({
+    method: 'OPTIONS',
+    headers: { origin: 'https://tb-eg.vercel.app' }
+  });
+  const validRes = createMockRes();
+  await handler(validReq, validRes);
+  assert.equal(validRes.statusCode, 204);
+  assert.equal(validRes.getHeader('access-control-allow-origin'), 'https://tb-eg.vercel.app');
+});
+
 test('2. Android origin (https://localhost) preflight OPTIONS returns 204 with CORS headers', async () => {
   const req = createMockReq({
     method: 'OPTIONS',

@@ -96,3 +96,37 @@ test('5. checkFeedbackRateLimit limits repeated submissions per IP', () => {
   const blocked = checkFeedbackRateLimit(testIp);
   assert.equal(blocked, false, '6th submission must be rate limited');
 });
+
+test('6. isAdminAuthorized validates valid admin keys via x-admin-key and Bearer headers', () => {
+  const envBackup = { ...process.env };
+  process.env.FEEDBACK_ADMIN_KEY = 'super-secret-admin-key-2026';
+
+  try {
+    const validHeaderReq = { headers: { 'x-admin-key': 'super-secret-admin-key-2026' } };
+    assert.equal(isAdminAuthorized(validHeaderReq), true);
+
+    const validBearerReq = { headers: { authorization: 'Bearer super-secret-admin-key-2026' } };
+    assert.equal(isAdminAuthorized(validBearerReq), true);
+
+    const invalidReq = { headers: { 'x-admin-key': 'wrong-key-guess-12345678' } };
+    assert.equal(isAdminAuthorized(invalidReq), false);
+  } finally {
+    process.env = envBackup;
+  }
+});
+
+test('7. isAdminAuthorized fails closed if secret key is missing or shorter than 16 chars', () => {
+  const envBackup = { ...process.env };
+  delete process.env.FEEDBACK_ADMIN_KEY;
+  delete process.env.ADMIN_SECRET;
+  delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  try {
+    assert.equal(isAdminAuthorized({ headers: { 'x-admin-key': 'short' } }), false);
+
+    process.env.FEEDBACK_ADMIN_KEY = 'short-key'; // < 16 chars
+    assert.equal(isAdminAuthorized({ headers: { 'x-admin-key': 'short-key' } }), false);
+  } finally {
+    process.env = envBackup;
+  }
+});

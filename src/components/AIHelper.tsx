@@ -25,7 +25,7 @@ export interface AIHelperRequest {
 }
 
 interface AIHelperProps {
-  profile: UserProfile;
+  profile?: UserProfile | null;
   request?: AIHelperRequest | null;
 }
 

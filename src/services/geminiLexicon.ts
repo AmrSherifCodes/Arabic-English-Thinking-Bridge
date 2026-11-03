@@ -53,7 +53,7 @@ export interface LexiconEntry {
 }
 
 export interface TutorContext {
-  profile: UserProfile;
+  profile?: UserProfile | null;
   currentWord?: LexiconEntry;
   history: string[];
 }
@@ -352,13 +352,13 @@ async function requestGeminiWithUserKey<T>(
   const wordContext = context.currentWord
     ? `The learner is currently studying: ${context.currentWord.arabicWord.slice(0, 100)} = ${context.currentWord.englishTranslation.slice(0, 100)}.`
     : 'No specific vocabulary card is currently selected.';
-  const dialectName = context.profile.dialect === 'egyptian' ? 'Egyptian Arabic (Ammiya)' : 'Modern Standard Arabic (MSA/Fusha)';
+  const dialectName = context.profile?.dialect === 'egyptian' ? 'Egyptian Arabic (Ammiya)' : 'Modern Standard Arabic (MSA/Fusha)';
 
   let adaptiveInstruction = '';
-  const prof = context.profile || {};
-  const focus = String(prof.focusArea || '').toLowerCase();
-  const goal = String(prof.goal || '').toLowerCase();
-  const style = String(prof.learningStyle || '').toLowerCase();
+  const prof = context.profile as UserProfile | undefined;
+  const focus = String(prof?.focusArea || '').toLowerCase();
+  const goal = String(prof?.goal || '').toLowerCase();
+  const style = String((prof as any)?.learningStyle || '').toLowerCase();
 
   if (focus === 'chemistry' || focus.includes('chem') || focus.includes('science')) {
     adaptiveInstruction += ' The learner specializes in chemistry. Use intuitive chemistry analogies (e.g., covalent bonding as subject-verb agreement, catalysts as auxiliary verbs, atomic valence, reaction equilibrium, or molecular stability) to explain English grammar mechanics and sentence structure.';

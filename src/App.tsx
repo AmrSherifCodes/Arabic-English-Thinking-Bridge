@@ -23,8 +23,8 @@ import { FeedbackModal } from './components/FeedbackModal';
 import { LandingView } from './components/LandingView';
 import { PwaInstallBanner } from './components/PwaInstallBanner';
 import { useUserProfile } from './hooks/useUserProfile';
-import { loadUserProgress } from './utils/storage';
-import { UserProgress } from './types';
+import { loadUserProgress, saveUserProgress } from './utils/storage';
+import { UserProgress, LearningGoal } from './types';
 import { AIHelper, AIHelperRequest } from './components/AIHelper';
 import { useLanguagePair } from './hooks/useLanguagePair';
 import { LanguageSelectorModal } from './components/LanguageSelectorModal';
@@ -75,7 +75,15 @@ export default function App() {
 
   const { profile, saveProfile } = useUserProfile();
   const { sourceLang, targetLang, setPair } = useLanguagePair();
-  const [progress] = useState<UserProgress>(loadUserProgress());
+  const [progress, setProgress] = useState<UserProgress>(loadUserProgress());
+
+  const updateAndSaveProgress = (updater: (prev: UserProgress) => UserProgress) => {
+    setProgress((prev) => {
+      const next = updater(prev);
+      saveUserProgress(next);
+      return next;
+    });
+  };
 
   const isArabic = (profile?.language || 'arabic') === 'arabic';
 
@@ -144,7 +152,7 @@ export default function App() {
   };
 
   if (view.name === 'landing') {
-    return <LandingView onStartApp={() => setView({ name: 'shell' })} isArabic={isArabic} />;
+    return <LandingView onStartWebApp={() => setView({ name: 'shell' })} isArabic={isArabic} />;
   }
 
   return (
@@ -177,6 +185,7 @@ export default function App() {
 
           {activeTab === 'practice' && (
             <PracticeHubView
+              state={progression}
               onOpenVoice={() => setView({ name: 'voice' })}
               onOpenFlashcards={() => setView({ name: 'flashcards' })}
               onOpenCorporate={() => setView({ name: 'corporate' })}
@@ -202,13 +211,23 @@ export default function App() {
             <ProfileView
               state={progression}
               profile={profile}
-              onOpenPreferences={() => setView({ name: 'preferences' })}
-              onOpenPrivacy={() => setPrivacyOpen(true)}
-              onResetProgress={() => {
-                const fresh = migrateLegacyStorageToProgression();
-                setProgression(fresh);
-                showToast(isArabic ? 'تم إعادة تعيين التقدم' : 'Progress Reset');
+              onUpdateState={updateProgression}
+              onExportData={() => {
+                const data = JSON.stringify({ progression, profile, progress }, null, 2);
+                const blob = new Blob([data], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `thinking-bridge-backup-${new Date().toISOString().slice(0, 10)}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+                showToast(isArabic ? 'تم تصدير البيانات بنجاح' : 'Data exported successfully');
               }}
+              onDeleteData={() => {
+                localStorage.clear();
+                window.location.reload();
+              }}
+              onOpenPrivacyPolicy={() => setPrivacyOpen(true)}
               isArabic={isArabic}
             />
           )}
@@ -231,6 +250,7 @@ export default function App() {
         <FlashcardsView
           profile={profile}
           progress={progress}
+          updateAndSaveProgress={updateAndSaveProgress}
           onBack={goHome}
           onToast={showToast}
         />
@@ -273,8 +293,11 @@ export default function App() {
         onComplete={(goal, dailyMin, stage, source, target) => {
           setPair(source, target);
           saveProfile({
+            language: profile?.language || 'arabic',
+            dialect: profile?.dialect || 'egyptian',
+            level: profile?.level || 'beginner',
             ...profile,
-            goal: goal,
+            goal: (['academic', 'travel', 'business', 'work', 'general', 'daily'].includes(goal) ? goal : 'general') as LearningGoal,
             sourceLanguage: source,
             targetLanguage: target,
           });
@@ -320,6 +343,7 @@ export default function App() {
       <FeedbackModal
         isOpen={feedbackOpen}
         onClose={() => setFeedbackOpen(false)}
+        onSubmit={() => {}}
         onToast={showToast}
         profile={profile}
       />

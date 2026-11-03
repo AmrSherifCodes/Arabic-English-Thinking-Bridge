@@ -1,6 +1,6 @@
 import { Capacitor } from '@capacitor/core';
 
-export const REMOTE_API_BASE_URL = 'https://arabicenglishthinkingbridge.vercel.app';
+export const REMOTE_API_BASE_URL = 'https://tb-eg.vercel.app';
 
 export function getApiBaseUrl(): string {
   if (typeof window === 'undefined') return REMOTE_API_BASE_URL;
@@ -18,4 +18,6 @@ export function getApiBaseUrl(): string {
   return REMOTE_API_BASE_URL;
 }
 
-export const API_BASE_URL: string = getApiBaseUrl();
+export const API_BASE_URL: string = Capacitor.isNativePlatform()
+  ? 'https://tb-eg.vercel.app'
+  : getApiBaseUrl();

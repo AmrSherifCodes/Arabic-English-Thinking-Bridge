@@ -1,16 +1,15 @@
 import path from 'path';
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
-import basicSsl from '@vitejs/plugin-basic-ssl';
 import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
-import geminiHandler from './api/gemini.js';
-import ttsHandler from './api/tts.js';
 
 const BASE = process.env.VITE_BASE ?? '/';
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(async ({ command, mode }) => {
   const env = loadEnv(mode, '.', '');
+  const isDev = command === 'serve';
+
   if (!process.env.GEMINI_API_KEY && env.GEMINI_API_KEY) {
     process.env.GEMINI_API_KEY = env.GEMINI_API_KEY;
   }
@@ -18,19 +17,29 @@ export default defineConfig(({ mode }) => {
     process.env.GEMINI_MODEL = env.GEMINI_MODEL;
   }
 
+  const devPlugins = [];
+  if (isDev) {
+    const { default: basicSsl } = await import('@vitejs/plugin-basic-ssl');
+    const { default: geminiHandler } = await import('./api/gemini.js');
+    const { default: ttsHandler } = await import('./api/tts.js');
+    devPlugins.push(
+      basicSsl(),
+      {
+        name: 'local-gemini-api',
+        configureServer(server: any) {
+          server.middlewares.use('/api/gemini', geminiHandler);
+          server.middlewares.use('/api/tts', ttsHandler);
+        },
+      }
+    );
+  }
+
   return {
     base: BASE,
     plugins: [
       react(),
-      basicSsl(),
+      ...devPlugins,
       tailwindcss(),
-      {
-        name: 'local-gemini-api',
-        configureServer(server) {
-          server.middlewares.use('/api/gemini', geminiHandler);
-          server.middlewares.use('/api/tts', ttsHandler);
-        },
-      },
       VitePWA({
         registerType: 'autoUpdate',
         injectRegister: 'auto',
@@ -82,6 +91,15 @@ export default defineConfig(({ mode }) => {
     ],
     build: {
       sourcemap: false,
+      rollupOptions: {
+        output: {
+          manualChunks(id: string) {
+            if (id.includes('node_modules/framer-motion') || id.includes('node_modules/lucide-react')) return 'ui-vendor';
+            if (id.includes('node_modules/@supabase') || id.includes('node_modules/@google/genai')) return 'sdk-vendor';
+            if (id.includes('src/data/') || id.includes('src/utils/arabicWordLexicon')) return 'curriculum-data';
+          },
+        },
+      },
     },
     resolve: { alias: { '@': path.resolve(import.meta.dirname, '.') } },
     server: { port: 3000, strictPort: true },

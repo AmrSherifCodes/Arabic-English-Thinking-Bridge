@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { usePWAInstall } from '../hooks/usePWAInstall';
+import { usePwaInstall } from '../hooks/usePwaInstall';
 
 export const PWAInstallButton: React.FC = () => {
-  const { isInstallable, isInstalled, isIOS, install } = usePWAInstall();
+  const { isInstallable, isStandalone, isIos, triggerInstall } = usePwaInstall();
   const [showIOSGuide, setShowIOSGuide] = useState(false);
 
-  if (isInstalled) {
+  if (isStandalone) {
     return null;
   }
 
@@ -13,7 +13,7 @@ export const PWAInstallButton: React.FC = () => {
     return (
       <button
         type="button"
-        onClick={install}
+        onClick={() => triggerInstall()}
         title="Install Thinking Bridge App"
         className="rounded-full bg-indigo-600 text-white px-3 py-1 text-xs font-semibold flex items-center justify-center gap-1 hover:bg-indigo-700 cursor-pointer"
       >
@@ -22,7 +22,7 @@ export const PWAInstallButton: React.FC = () => {
     );
   }
 
-  if (isIOS) {
+  if (isIos) {
     return (
       <>
         <button
@@ -49,13 +49,15 @@ export const PWAInstallButton: React.FC = () => {
                 1. Tap the <strong>Share</strong> button in Safari toolbar.
                 <br />
                 2. Scroll down and tap <strong>Add to Home Screen</strong>.
+                <br />
+                3. Tap <strong>Add</strong> in the top right corner.
               </p>
               <button
                 type="button"
                 onClick={() => setShowIOSGuide(false)}
-                className="mt-4 w-full rounded-xl bg-teal-700 py-2 text-xs font-semibold text-white hover:bg-teal-800"
+                className="mt-4 w-full rounded-xl bg-stone-900 py-2 text-xs font-semibold text-white dark:bg-stone-100 dark:text-stone-900 cursor-pointer"
               >
-                Close
+                Got it
               </button>
             </div>
           </div>

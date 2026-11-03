@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { LessonNode, ExerciseItem } from '../../progression/types';
-import { CheckCircle2, XCircle, ArrowRight, Zap, Timer } from 'lucide-react';
+import { CheckCircle2, XCircle, ArrowRight, Zap, Timer, Sparkles } from 'lucide-react';
+import { computeNextHintWord } from '../../utils/habitPsychology';
 import confetti from 'canvas-confetti';
 
 interface LessonRunnerProps {
@@ -29,11 +30,58 @@ export function LessonRunner({
   const exerciseStartTimeRef = useRef<number>(Date.now());
   const [responseTimesMs, setResponseTimesMs] = useState<number[]>([]);
 
+  // 3.5s Keyboard/Selection Inactivity Auto-Complete (Beginner Feature)
+  const [autoHintPill, setAutoHintPill] = useState<string | null>(null);
+
   const currentExercise: ExerciseItem = exercises[currentIndex] || exercises[0];
 
   useEffect(() => {
     exerciseStartTimeRef.current = Date.now();
   }, [currentIndex]);
+
+  // Auto-complete missing word after 3.5 seconds of inactivity
+  useEffect(() => {
+    if (isAnswered || showSummary) return;
+
+    const timer = window.setTimeout(() => {
+      const targetSentence = currentExercise.targetSentence || '';
+
+      if (currentExercise.type === 'structure_builder') {
+        const currentChoice = selectedChips.join(' ');
+        const { nextWord } = computeNextHintWord(targetSentence, currentChoice);
+        if (nextWord) {
+          const availableOption = (currentExercise.options || []).find(
+            (opt) => opt.toLowerCase() === nextWord.toLowerCase() && !selectedChips.includes(opt)
+          );
+          if (availableOption) {
+            setSelectedChips((prev) => [...prev, availableOption]);
+            setAutoHintPill(
+              isArabic ? `💡 تم اختيار الكلمة التالية تلقائياً: "${availableOption}"` : `💡 Auto-selected: "${availableOption}"`
+            );
+          }
+        }
+      } else {
+        const { nextWord, prefixToKeep } = computeNextHintWord(targetSentence, userInput);
+        if (nextWord) {
+          const updatedInput = prefixToKeep ? `${prefixToKeep} ${nextWord}` : nextWord;
+          setUserInput(updatedInput);
+          setAutoHintPill(
+            isArabic ? `💡 تم إكمال الكلمة التالية تلقائياً: "${nextWord}"` : `💡 Auto-inserted: "${nextWord}"`
+          );
+        }
+      }
+    }, 3500); // 3.5 seconds inactivity
+
+    return () => window.clearTimeout(timer);
+  }, [userInput, selectedChips, currentIndex, isAnswered, showSummary, currentExercise, isArabic]);
+
+  // Dismiss auto-hint notification after 2.5s
+  useEffect(() => {
+    if (autoHintPill) {
+      const t = window.setTimeout(() => setAutoHintPill(null), 2500);
+      return () => window.clearTimeout(t);
+    }
+  }, [autoHintPill]);
 
   const handleCheckAnswer = () => {
     if (isAnswered) return;
@@ -73,6 +121,7 @@ export function LessonRunner({
     setIsCorrect(false);
     setSelectedChips([]);
     setUserInput('');
+    setAutoHintPill(null);
 
     if (currentIndex + 1 < exercises.length) {
       setCurrentIndex((prev) => prev + 1);
@@ -189,13 +238,21 @@ export function LessonRunner({
 
         {/* Exercise Body */}
         <div className="flex-1 p-6 overflow-y-auto space-y-6">
+          {/* Auto-Complete Beginner Hint Pill Banner */}
+          {autoHintPill && (
+            <div className="p-3 rounded-2xl bg-primary/20 border border-primary/40 text-primary text-xs font-bold flex items-center gap-2 animate-bounce shadow-md">
+              <Sparkles size={16} className="shrink-0" />
+              <span>{autoHintPill}</span>
+            </div>
+          )}
+
           {/* Source Thought Prompt */}
           <div className="p-4 rounded-3xl bg-surface border border-border space-y-2">
             <span className="text-[10px] font-black uppercase tracking-wider text-success block">
               {isArabic ? 'عَبّر عن الفكرة بترتيب إنجليزي صحيح:' : 'Express thought in English:'}
             </span>
             <h2 className="text-lg font-black text-text" dir="auto">
-              "{currentExercise.sourcePrompt}"
+              "{isArabic ? currentExercise.promptAr : currentExercise.promptEn}"
             </h2>
           </div>
 
@@ -292,10 +349,10 @@ export function LessonRunner({
                 <span dir="ltr" className="font-bold">{currentExercise.targetSentence}</span>
               </p>
 
-              {currentExercise.ruleExplanationAr && (
+              {currentExercise.explanationAr && (
                 <p className="text-xs text-muted mt-2 border-t border-border/50 pt-2" dir="auto">
                   💡 <strong>{isArabic ? 'سبب القاعدة:' : 'Rule Explanation:'}</strong>{' '}
-                  {isArabic ? currentExercise.ruleExplanationAr : currentExercise.ruleExplanationEn}
+                  {isArabic ? currentExercise.explanationAr : currentExercise.explanationEn}
                 </p>
               )}
             </div>

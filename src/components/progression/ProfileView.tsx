@@ -7,10 +7,13 @@ import { Shield, Download, Trash2, Settings, HelpCircle, Moon, Sun, Lock } from 
 interface ProfileViewProps {
   state: ProgressionState;
   profile?: UserProfile | null;
-  onUpdateState: (updater: (prev: ProgressionState) => ProgressionState) => void;
-  onExportData: () => void;
-  onDeleteData: () => void;
-  onOpenPrivacyPolicy: () => void;
+  onUpdateState?: (updater: (prev: ProgressionState) => ProgressionState) => void;
+  onExportData?: () => void;
+  onDeleteData?: () => void;
+  onOpenPrivacyPolicy?: () => void;
+  onOpenPreferences?: () => void;
+  onResetProgress?: () => void;
+  onOpenPrivacy?: () => void;
   isArabic?: boolean;
 }
 
@@ -86,7 +89,7 @@ export function ProfileView({
               value={state.dailyCardsCap}
               onChange={(e) => {
                 const cap = Number(e.target.value);
-                onUpdateState((prev) => ({ ...prev, dailyCardsCap: cap }));
+                onUpdateState?.((prev) => ({ ...prev, dailyCardsCap: cap }));
               }}
               className="bg-stone-900 border border-stone-700 text-teal-400 rounded-lg px-2 py-1 font-bold"
             >
@@ -103,7 +106,7 @@ export function ProfileView({
             </span>
             <button
               onClick={() => {
-                onUpdateState((prev) => ({ ...prev, weekendPauseActive: !prev.weekendPauseActive }));
+                onUpdateState?.((prev) => ({ ...prev, weekendPauseActive: !prev.weekendPauseActive }));
               }}
               className={`px-3 py-1 rounded-lg font-bold transition ${
                 state.weekendPauseActive ? 'bg-teal-500 text-stone-950' : 'bg-stone-800 text-stone-400'

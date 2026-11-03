@@ -1,22 +1,25 @@
 // Vercel Serverless Function — PostgreSQL (Supabase / Neon) Feedback API
+import crypto from 'node:crypto';
 import { neon } from '@neondatabase/serverless';
 import { createClient } from '@supabase/supabase-js';
 
-const ALLOWED_CORS_ORIGINS = new Set([
+export const ALLOWED_CORS_ORIGINS = new Set([
+  'https://tb-eg.vercel.app',
   'https://thinkingbridge.vercel.app',
   'https://arabicenglishthinkingbridge.vercel.app',
-  'https://tb-eg.vercel.app',
   'http://localhost:5173',
   'http://localhost:3000',
   'capacitor://localhost',
   'https://localhost'
 ]);
 
+const PROJECT_PREVIEW_ORIGIN_RE = /^https:\/\/(?:tb-eg|thinkingbridge|arabic-?english-?thinking-?bridge)(?:-[a-z0-9-]+)?\.vercel\.app$/i;
+
 export function isAllowedOrigin(origin) {
   if (!origin) return false;
   if (ALLOWED_CORS_ORIGINS.has(origin)) return true;
   if (/^https?:\/\/localhost(:\d+)?$/.test(origin)) return true;
-  if (/^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin)) return true;
+  if (PROJECT_PREVIEW_ORIGIN_RE.test(origin)) return true;
   return false;
 }
 
@@ -24,7 +27,7 @@ export function getCorsOrigin(origin) {
   if (isAllowedOrigin(origin)) {
     return origin;
   }
-  return 'https://arabicenglishthinkingbridge.vercel.app';
+  return 'https://tb-eg.vercel.app';
 }
 
 function isAllowedUrlOrigin(urlStr) {
@@ -73,6 +76,14 @@ export function getClientIp(req) {
   return req.socket?.remoteAddress || '127.0.0.1';
 }
 
+function safeCompare(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string') return false;
+  const bufA = Buffer.from(a);
+  const bufB = Buffer.from(b);
+  if (bufA.length !== bufB.length) return false;
+  return crypto.timingSafeEqual(bufA, bufB);
+}
+
 export function isAdminAuthorized(req) {
   const headers = req.headers || {};
   const authHeader = headers.authorization || '';
@@ -82,13 +93,15 @@ export function isAdminAuthorized(req) {
     process.env.ADMIN_SECRET ||
     process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  if (!secretKey) {
+  if (!secretKey || typeof secretKey !== 'string' || secretKey.length < 16) {
     return false;
   }
 
-  if (adminKey && adminKey === secretKey) return true;
-  if (authHeader.startsWith('Bearer ') && authHeader.slice(7).trim() === secretKey) return true;
-  return false;
+  const bearerCandidate = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : '';
+  const candidate = adminKey || bearerCandidate;
+  if (!candidate) return false;
+
+  return safeCompare(candidate, secretKey);
 }
 
 function getSupabase() {

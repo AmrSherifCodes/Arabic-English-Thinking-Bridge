@@ -22,6 +22,7 @@ import {
 
 interface LandingViewProps {
   onStartWebApp: () => void;
+  isArabic?: boolean;
 }
 
 export function LandingView({ onStartWebApp }: LandingViewProps) {

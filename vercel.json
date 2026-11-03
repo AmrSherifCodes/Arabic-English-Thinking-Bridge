@@ -92,7 +92,7 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self' capacitor: http://localhost; script-src 'self' https://va.vercel-scripts.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; media-src 'self' data: blob:; connect-src 'self' capacitor: http://localhost https://*.vercel.app https://arabicenglishthinkingbridge.vercel.app https://tb-eg.vercel.app https://api.mymemory.translated.net https://*.supabase.co https://*.upstash.io https://generativelanguage.googleapis.com https://vitals.vercel-insights.com wss://*.supabase.co; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';"
+          "value": "default-src 'self' capacitor: http://localhost https://localhost; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; style-src-attr 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https://flagcdn.com; media-src 'self' data: blob:; connect-src 'self' capacitor: http://localhost https://localhost https://tb-eg.vercel.app https://arabicenglishthinkingbridge.vercel.app https://generativelanguage.googleapis.com https://vitals.vercel-insights.com https://api.mymemory.translated.net https://*.supabase.co https://*.upstash.io wss://*.supabase.co; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';"
         }
       ]
     }

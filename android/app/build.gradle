@@ -13,7 +13,7 @@ android {
         applicationId "com.amrsherif.thinkingenglish"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 9
+        versionCode 310
         versionName "3.1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
@@ -32,15 +32,21 @@ android {
     }
     signingConfigs {
         release {
-            storeFile file(keystoreProperties['storeFile'])
-            storePassword keystoreProperties['storePassword']
-            keyAlias keystoreProperties['keyAlias']
-            keyPassword keystoreProperties['keyPassword']
+            def storePath = keystoreProperties['storeFile'] ?: System.getenv('ANDROID_KEYSTORE_PATH')
+            if (storePath) {
+                storeFile file(storePath)
+                storePassword keystoreProperties['storePassword'] ?: System.getenv('ANDROID_KEYSTORE_PASSWORD') ?: ''
+                keyAlias keystoreProperties['keyAlias'] ?: System.getenv('ANDROID_KEY_ALIAS') ?: ''
+                keyPassword keystoreProperties['keyPassword'] ?: System.getenv('ANDROID_KEY_PASSWORD') ?: ''
+            }
         }
     }
     buildTypes {
         release {
-            signingConfig signingConfigs.release
+            def hasKey = keystoreProperties['storeFile'] || System.getenv('ANDROID_KEYSTORE_PATH')
+            if (hasKey) {
+                signingConfig signingConfigs.release
+            }
             minifyEnabled false
             shrinkResources false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'

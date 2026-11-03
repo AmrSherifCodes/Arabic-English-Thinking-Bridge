@@ -1052,15 +1052,17 @@ function getDeterministicCorporateBridge(thought) {
   };
 }
 
-const ALLOWED_CORS_ORIGINS = new Set([
+export const ALLOWED_CORS_ORIGINS = new Set([
+  'https://tb-eg.vercel.app',
   'https://thinkingbridge.vercel.app',
   'https://arabicenglishthinkingbridge.vercel.app',
-  'https://tb-eg.vercel.app',
   'http://localhost:5173',
   'http://localhost:3000',
   'capacitor://localhost',
   'https://localhost'
 ]);
+
+const PROJECT_PREVIEW_ORIGIN_RE = /^https:\/\/(?:tb-eg|thinkingbridge|arabic-?english-?thinking-?bridge)(?:-[a-z0-9-]+)?\.vercel\.app$/i;
 
 function isAllowedUrlOrigin(urlStr) {
   if (!urlStr) return false;
@@ -1073,11 +1075,11 @@ function isAllowedUrlOrigin(urlStr) {
   }
 }
 
-function isAllowedOrigin(origin) {
+export function isAllowedOrigin(origin) {
   if (!origin) return false;
   if (ALLOWED_CORS_ORIGINS.has(origin)) return true;
   if (/^https?:\/\/localhost(:\d+)?$/.test(origin)) return true;
-  if (/^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin)) return true;
+  if (PROJECT_PREVIEW_ORIGIN_RE.test(origin)) return true;
   return false;
 }
 
@@ -1085,7 +1087,7 @@ function getCorsOrigin(origin) {
   if (isAllowedOrigin(origin)) {
     return origin;
   }
-  return 'https://arabicenglishthinkingbridge.vercel.app';
+  return 'https://tb-eg.vercel.app';
 }
 
 export default async function handler(req, res) {
@@ -1232,7 +1234,6 @@ export {
   checkMemoryRateLimit,
   rateLimits,
   getCorsOrigin,
-  ALLOWED_CORS_ORIGINS,
   MODEL,
   FALLBACK_MODELS,
   generateContentWithFallback,
