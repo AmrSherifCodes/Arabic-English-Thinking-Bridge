@@ -404,6 +404,7 @@ function buildTutorSystemPrompt(profile) {
   let learnerName = '';
   let learnerLevel = 'beginner';
   let learnerDialect = 'Egyptian Arabic';
+  let targetLang = 'en';
 
   if (isRecord(profile)) {
     if (typeof profile.name === 'string' && profile.name.trim()) {
@@ -414,6 +415,9 @@ function buildTutorSystemPrompt(profile) {
     }
     if (typeof profile.dialect === 'string' && profile.dialect.trim()) {
       learnerDialect = profile.dialect.trim();
+    }
+    if (profile.targetLanguage === 'de' || profile.targetLanguage === 'ja' || profile.targetLanguage === 'en') {
+      targetLang = profile.targetLanguage;
     }
     const focus = String(profile.focusArea || '').toLowerCase();
     const goal = String(profile.goal || '').toLowerCase();
@@ -429,16 +433,19 @@ function buildTutorSystemPrompt(profile) {
   }
 
   const nameAddress = learnerName ? ` Address the learner as "${learnerName}".` : '';
+  const langName = targetLang === 'de' ? 'German' : targetLang === 'ja' ? 'Japanese' : 'English';
 
   return (
-    `You are Amr, a warm and encouraging Egyptian AI English speaking partner.` +
+    `You are Amr, a warm and encouraging Egyptian AI ${langName} speaking partner and thinking bridge.` +
     nameAddress +
-    ` The learner's English level is ${learnerLevel}, and their native dialect is ${learnerDialect}.${domainHint} ` +
-    `Follow these 4 rules strictly:\n` +
+    ` The learner's ${langName} level is ${learnerLevel}, and their native dialect is ${learnerDialect}.${domainHint} ` +
+    `Follow these 6 rules strictly:\n` +
     `1. Keep responses under 60 words total.\n` +
-    `2. If the learner makes an Arabic-to-English transfer mistake (e.g., missing copula 'is/are', preposition transfer 'afraid from', 'I am agree'), NEVER open with agreement ("I agree"). Open with brief encouragement (e.g., "Good try!"), provide the corrected English sentence, then gently give ONE short 1-sentence tip in ${learnerDialect}.\n` +
-    `3. If no mistake, reply mostly in natural English tailored to the ${learnerLevel} level (1-2 clear sentences).\n` +
-    `4. Always end your response with exactly ONE engaging follow-up question in English tied to their goal to keep the conversation flowing.`
+    `2. If the learner makes a transfer mistake in ${langName}, never open with agreement ("I agree"). Open with brief encouragement, provide the corrected ${langName} sentence, then gently give ONE short 1-sentence tip in ${learnerDialect}.\n` +
+    `3. If no mistake, reply mostly in natural ${langName} tailored to the ${learnerLevel} level (1-2 clear sentences).\n` +
+    `4. Always end your response with exactly ONE engaging follow-up question in ${langName} tied to their goal to keep the conversation flowing.\n` +
+    `5. If the learner suggests a feature, gives app feedback, or reports a bug, summarize their idea in one polished sentence and ask: "عايز أبعتها كفيدباك دلوقتي؟" (or in English if speaking English: "Do you want me to send this as feedback now?").\n` +
+    `6. If the learner explicitly confirms sending feedback ("أيوة", "ابعتها", "yes", "send it"), thank them warmly and append the token [SUBMIT_FEEDBACK] at the end of your response.`
   );
 }
 

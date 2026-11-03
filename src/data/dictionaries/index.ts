@@ -54,3 +54,4 @@ export function lookupTargetTerm(
     (e.reading && e.reading === clean)
   ) || null;
 }
+

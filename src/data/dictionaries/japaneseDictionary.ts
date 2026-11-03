@@ -285,3 +285,4 @@ export const JAPANESE_DICTIONARY: MultiLangDictionaryEntry[] = [
     ]
   }
 ];
+

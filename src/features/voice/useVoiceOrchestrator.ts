@@ -2,10 +2,18 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { API_BASE_URL } from '../../utils/api';
-import { generateSmartConversationReply } from '../../services/smartConversation';
+import {
+  generateSmartConversationReply,
+  extractFeedbackDraft,
+  isFeedbackConfirmation,
+  isFeedbackCancellation,
+  FeedbackDraft
+} from '../../services/smartConversation';
 import { useNativeSpeech } from './useNativeSpeech';
 import { usePreferences } from '../preferences/usePreferences';
 import { unlockAudio, speakWithNativeSpeechSynthesis } from '../../utils/audio';
+import { saveFeedback } from '../../services/feedback';
+import { SourceLanguage, TargetLanguage } from '../../types';
 
 export type VoiceState = 'idle' | 'listening' | 'transcribing' | 'thinking' | 'speaking';
 
@@ -14,6 +22,8 @@ export interface ChatMessage {
   role: 'user' | 'assistant';
   text: string;
   timestamp: number;
+  feedbackDraft?: FeedbackDraft;
+  feedbackStatus?: 'pending' | 'sent' | 'cancelled';
 }
 
 export const VOICE_V2_MARKER = 'voice-v2-profile';
@@ -29,6 +39,8 @@ function getStoredProfile() {
         focusArea: typeof p.focusArea === 'string' ? p.focusArea : 'daily-speech',
         level: typeof p.level === 'string' ? p.level : 'beginner',
         dialect: p.dialect === 'msa' ? 'Modern Standard Arabic' : 'Egyptian Arabic',
+        sourceLanguage: (localStorage.getItem('tb.sourceLang') as SourceLanguage) || p.sourceLanguage || 'ar',
+        targetLanguage: (localStorage.getItem('tb.targetLang') as TargetLanguage) || p.targetLanguage || 'en',
         pipeline: VOICE_V2_MARKER,
       };
     }
@@ -41,10 +53,11 @@ function getStoredProfile() {
     focusArea: 'daily-speech',
     level: 'beginner',
     dialect: 'Egyptian Arabic',
+    sourceLanguage: 'ar' as SourceLanguage,
+    targetLanguage: 'en' as TargetLanguage,
     pipeline: VOICE_V2_MARKER,
   };
 }
-
 
 export interface PlayableAudioSlot {
   play: () => Promise<void>;
@@ -57,7 +70,21 @@ export interface PlayableAudioSlot {
   __startWordIndex?: number;
 }
 
-export function useVoiceOrchestrator() {
+export function useVoiceOrchestrator(
+  propTargetLang?: TargetLanguage,
+  propSourceLang?: SourceLanguage
+) {
+  const effectiveTargetLang: TargetLanguage =
+    propTargetLang ||
+    (typeof window !== 'undefined'
+      ? (window.localStorage.getItem('tb.targetLang') as TargetLanguage) || 'en'
+      : 'en');
+  const effectiveSourceLang: SourceLanguage =
+    propSourceLang ||
+    (typeof window !== 'undefined'
+      ? (window.localStorage.getItem('tb.sourceLang') as SourceLanguage) || 'ar'
+      : 'ar');
+
   const { values } = usePreferences();
   const voiceModel = String(values.voiceModel || 'ar-EG-SalmaNeural');
   const englishVoice = String(values.englishVoice || 'en-US-AvaNeural');
@@ -70,6 +97,7 @@ export function useVoiceOrchestrator() {
   const [latencyMetrics, setLatencyMetrics] = useState<{ ttft?: number; ttfa?: number; total?: number }>({});
   const [audioProgress, setAudioProgress] = useState(0);
   const [currentSpokenWordIndex, setCurrentSpokenWordIndex] = useState(-1);
+  const [pendingFeedbackDraft, setPendingFeedbackDraft] = useState<FeedbackDraft | null>(null);
 
   const stateRef = useRef<VoiceState>('idle');
   stateRef.current = state;
@@ -370,6 +398,92 @@ export function useVoiceOrchestrator() {
     [checkAndPlayQueue, createFallbackAudioSlot, englishVoice, speechRate, voiceModel]
   );
 
+  // Submit confirmed feedback directly to PostgreSQL/Supabase backend
+  const submitPendingFeedback = useCallback(
+    async (draft: FeedbackDraft, editedText?: string) => {
+      try {
+        const stored = getStoredProfile();
+        const success = await saveFeedback({
+          originalText: draft.originalThought,
+          draftedMessage: (editedText || draft.polishedMessage).trim(),
+          category: draft.category,
+          rating: 5,
+          userName: stored.name || 'AI Coach Learner',
+          profileGoal: stored.goal,
+          focusArea: `${effectiveSourceLang}->${effectiveTargetLang} (Amr Voice Coach)`,
+          dialect: stored.dialect,
+          timestamp: Date.now(),
+          status: 'confirmed'
+        });
+
+        setPendingFeedbackDraft(null);
+
+        // Mark messages with this draft as sent
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.feedbackDraft ? { ...m, feedbackStatus: 'sent' } : m
+          )
+        );
+
+        const isAr = effectiveSourceLang === 'ar';
+        const thankText = isAr
+          ? 'تسلم يا بطل! تم إرسال رسالتك لفريق التطوير مباشرة 🚀 ملاحظاتك بتفرق جداً في تطوير التطبيق. يلا نرجع لتمريننا!'
+          : "Thank you so much! Your feedback has been sent directly to the development team 🚀 Let's resume our practice!";
+
+        const thankMsg: ChatMessage = {
+          id: `assistant-${Date.now()}`,
+          role: 'assistant',
+          text: thankText,
+          timestamp: Date.now(),
+          feedbackStatus: 'sent'
+        };
+
+        setMessages((prev) => [...prev, thankMsg]);
+        setCurrentAssistantText(thankText);
+
+        const idx = totalDispatchedRef.current++;
+        prefetchSentence(thankText, new AbortController().signal, idx);
+        return success;
+      } catch (err) {
+        console.error('Failed to submit feedback from coach:', err);
+        return false;
+      }
+    },
+    [effectiveSourceLang, effectiveTargetLang, prefetchSentence]
+  );
+
+  // Cancel feedback submission
+  const cancelPendingFeedback = useCallback(
+    (draft?: FeedbackDraft) => {
+      setPendingFeedbackDraft(null);
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.feedbackDraft ? { ...m, feedbackStatus: 'cancelled' } : m
+        )
+      );
+
+      const isAr = effectiveSourceLang === 'ar';
+      const cancelText = isAr
+        ? 'تمام ولا يهمك خالص يا بطل! لغيت الإرسال. تحب نكمل تمريننا في إيه؟'
+        : 'No problem at all! Cancelled. What would you like to practice next?';
+
+      const cancelMsg: ChatMessage = {
+        id: `assistant-${Date.now()}`,
+        role: 'assistant',
+        text: cancelText,
+        timestamp: Date.now(),
+        feedbackStatus: 'cancelled'
+      };
+
+      setMessages((prev) => [...prev, cancelMsg]);
+      setCurrentAssistantText(cancelText);
+
+      const idx = totalDispatchedRef.current++;
+      prefetchSentence(cancelText, new AbortController().signal, idx);
+    },
+    [effectiveSourceLang, prefetchSentence]
+  );
+
   // Handle incoming final speech from user
   const handleUserSpeech = useCallback(
     async (userText: string) => {
@@ -390,6 +504,26 @@ export function useVoiceOrchestrator() {
       setMessages((prev) => [...prev, userMsg]);
       setCurrentAssistantText('');
       setState('thinking');
+
+      // 1. Check if user is confirming or cancelling an active feedback draft
+      if (pendingFeedbackDraft) {
+        if (isFeedbackConfirmation(userText)) {
+          await submitPendingFeedback(pendingFeedbackDraft);
+          setState('idle');
+          return;
+        }
+        if (isFeedbackCancellation(userText)) {
+          cancelPendingFeedback(pendingFeedbackDraft);
+          setState('idle');
+          return;
+        }
+      }
+
+      // 2. Check if userText expresses feedback/suggestion
+      const newFeedbackDraft = extractFeedbackDraft(userText);
+      if (newFeedbackDraft) {
+        setPendingFeedbackDraft(newFeedbackDraft);
+      }
 
       const abortCtrl = new AbortController();
       abortControllerRef.current = abortCtrl;
@@ -463,13 +597,20 @@ export function useVoiceOrchestrator() {
 
                 accumulatedReply += parsed.text;
                 sentenceBuffer += parsed.text;
-                setCurrentAssistantText(accumulatedReply);
+
+                // Hide [SUBMIT_FEEDBACK] token from UI
+                setCurrentAssistantText(accumulatedReply.replace('[SUBMIT_FEEDBACK]', '').trim());
 
                 // Sentence chunking regex: split by punctuation followed by space or line end
                 const sentenceMatch = sentenceBuffer.match(/^([\s\S]+?[.!?؟\n])(?:\s+|$)([\s\S]*)$/);
                 if (sentenceMatch) {
-                  const completedSentence = sentenceMatch[1].trim();
+                  let completedSentence = sentenceMatch[1].trim();
                   sentenceBuffer = sentenceMatch[2] || '';
+
+                  // Prevent speaking the system token
+                  if (completedSentence.includes('[SUBMIT_FEEDBACK]')) {
+                    completedSentence = completedSentence.replace('[SUBMIT_FEEDBACK]', '').trim();
+                  }
 
                   if (completedSentence) {
                     const idx = totalDispatchedRef.current++;
@@ -488,22 +629,54 @@ export function useVoiceOrchestrator() {
 
         // Flush remaining buffer text if any
         if (sentenceBuffer.trim()) {
-          const remaining = sentenceBuffer.trim();
-          const idx = totalDispatchedRef.current++;
-          prefetchSentence(remaining, abortCtrl.signal, idx, runningWordIndex);
+          let remaining = sentenceBuffer.trim();
+          if (remaining.includes('[SUBMIT_FEEDBACK]')) {
+              remaining = remaining.replace('[SUBMIT_FEEDBACK]', '').trim();
+          }
+          if (remaining) {
+            const idx = totalDispatchedRef.current++;
+            prefetchSentence(remaining, abortCtrl.signal, idx, runningWordIndex);
+          }
         }
 
         streamDoneRef.current = true;
+
+        let finalReply = accumulatedReply.trim();
+
+        if (finalReply.includes('[SUBMIT_FEEDBACK]')) {
+           finalReply = finalReply.replace('[SUBMIT_FEEDBACK]', '').trim();
+           // Find the last drafted message from assistant history
+           const recentAssistantDrafts = messages.filter(m => m.role === 'assistant' && m.text.includes('عايز أبعتها كفيدباك دلوقتي؟'));
+           let draft = "User feedback";
+           if (recentAssistantDrafts.length > 0) {
+               const lastDraftMsg = recentAssistantDrafts[recentAssistantDrafts.length - 1].text;
+               // Extract the drafted feedback content loosely
+               const parts = lastDraftMsg.split('عايز أبعتها كفيدباك دلوقتي؟');
+               if (parts.length > 0) {
+                   draft = parts[0].trim();
+               }
+           }
+
+           saveFeedback({
+               originalText: userText,
+               draftedMessage: draft,
+               timestamp: Date.now(),
+               status: 'confirmed'
+           });
+        }
+
         checkAndPlayQueue();
 
-        if (accumulatedReply.trim()) {
+        if (finalReply) {
           setMessages((prev) => [
             ...prev,
             {
               id: `assistant-${Date.now()}`,
               role: 'assistant',
-              text: accumulatedReply.trim(),
+              text: finalReply,
               timestamp: Date.now(),
+              feedbackDraft: newFeedbackDraft || undefined,
+              feedbackStatus: newFeedbackDraft ? 'pending' : undefined
             },
           ]);
         }
@@ -518,7 +691,8 @@ export function useVoiceOrchestrator() {
         const fallbackReply = generateSmartConversationReply(
           userText,
           messages.slice(-6).map((m) => ({ role: m.role === 'user' ? 'user' : 'model', text: m.text })),
-          {} as any
+          getStoredProfile() as any,
+          effectiveTargetLang
         );
 
         setCurrentAssistantText(fallbackReply);
@@ -529,6 +703,8 @@ export function useVoiceOrchestrator() {
             role: 'assistant',
             text: fallbackReply,
             timestamp: Date.now(),
+            feedbackDraft: newFeedbackDraft || undefined,
+            feedbackStatus: newFeedbackDraft ? 'pending' : undefined
           },
         ]);
         const idx = totalDispatchedRef.current++;
@@ -536,7 +712,16 @@ export function useVoiceOrchestrator() {
         prefetchSentence(fallbackReply, abortCtrl.signal, idx);
       }
     },
-    [checkAndPlayQueue, messages, prefetchSentence, stopAudio]
+    [
+      cancelPendingFeedback,
+      checkAndPlayQueue,
+      effectiveTargetLang,
+      messages,
+      pendingFeedbackDraft,
+      prefetchSentence,
+      stopAudio,
+      submitPendingFeedback,
+    ]
   );
 
   const {
@@ -588,10 +773,16 @@ export function useVoiceOrchestrator() {
     unlockAudio();
     stopAudio();
     setState('listening');
-    startListening('en-US').catch(() => {
+    const sttLang =
+      effectiveTargetLang === 'de'
+        ? 'de-DE'
+        : effectiveTargetLang === 'ja'
+        ? 'ja-JP'
+        : 'en-US';
+    startListening(sttLang).catch(() => {
       setState('idle');
     });
-  }, [startListening, stopAudio]);
+  }, [effectiveTargetLang, startListening, stopAudio]);
 
   // Stop turn manually
   const stopTurn = useCallback(() => {
@@ -629,5 +820,8 @@ export function useVoiceOrchestrator() {
     audioProgress,
     currentSpokenWordIndex,
     voiceMarker: VOICE_V2_MARKER,
+    pendingFeedbackDraft,
+    submitPendingFeedback,
+    cancelPendingFeedback,
   };
 }

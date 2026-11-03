@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { useVoiceOrchestrator, VoiceState } from './useVoiceOrchestrator';
-import { UserProfile, UserProgress } from '../../types';
+import { UserProfile, UserProgress, SourceLanguage, TargetLanguage } from '../../types';
 import { unlockAudio } from '../../utils/audio';
 import { TabTutorialModal } from '../../components/TabTutorialModal';
 import { applyHabitWin } from '../../utils/habitPsychology';
@@ -33,6 +33,8 @@ interface VoicePracticeViewProps {
   profile?: UserProfile | null;
   updateAndSaveProgress?: (updater: (prev: UserProgress) => UserProgress) => void;
   onToast?: (msg: string) => void;
+  sourceLang?: SourceLanguage;
+  targetLang?: TargetLanguage;
 }
 
 export function VoicePracticeView({
@@ -40,7 +42,9 @@ export function VoicePracticeView({
   progress,
   profile,
   updateAndSaveProgress,
-  onToast
+  onToast,
+  sourceLang = 'ar',
+  targetLang = 'en'
 }: VoicePracticeViewProps) {
   const [showGuide, setShowGuide] = useState(false);
   const {
@@ -56,13 +60,23 @@ export function VoicePracticeView({
     startTurn,
     stopTurn,
     handleManualText,
-  } = useVoiceOrchestrator();
+    pendingFeedbackDraft,
+    submitPendingFeedback,
+    cancelPendingFeedback,
+  } = useVoiceOrchestrator(targetLang, sourceLang);
 
   const [textInput, setTextInput] = useState('');
   const [showInput, setShowInput] = useState(false);
+  const [editedFeedbackText, setEditedFeedbackText] = useState('');
   const [isOnline, setIsOnline] = useState<boolean>(() =>
     typeof navigator !== 'undefined' ? navigator.onLine : true
   );
+
+  useEffect(() => {
+    if (pendingFeedbackDraft) {
+      setEditedFeedbackText(pendingFeedbackDraft.polishedMessage);
+    }
+  }, [pendingFeedbackDraft]);
 
   useEffect(() => {
     if (error) setShowInput(true);
@@ -204,6 +218,9 @@ export function VoicePracticeView({
         </button>
         <div className="voice__title-group">
           <span className="voice__title">Voice Practice</span>
+          <span className="text-[11px] font-black px-2 py-0.5 rounded-full bg-teal-500/15 text-teal-400 border border-teal-500/30">
+            {sourceLang === 'ar' ? '🇪🇬' : '🇬🇧'} ➔ {targetLang === 'de' ? '🇩🇪 Deutsch' : targetLang === 'ja' ? '🇯🇵 日本語' : '🇬🇧 English'}
+          </span>
           {latencyMetrics.ttfa != null && (
             <span className="voice__latency-badge">
               TTFA: {latencyMetrics.ttfa}ms
@@ -298,7 +315,7 @@ export function VoicePracticeView({
         {/* Last few messages transcript preview */}
         {messages.length > 0 && !interimTranscript && !activeAiText && (
           <div className="voice__history-preview">
-            {messages.slice(-2).map((m) => {
+            {messages.slice(-3).map((m) => {
               const msgWords = m.text.trim().split(/\s+/);
               return (
                 <div
@@ -307,9 +324,68 @@ export function VoicePracticeView({
                 >
                   <strong>{m.role === 'user' ? 'You' : 'Amr'}:</strong>{' '}
                   {m.role === 'assistant' ? renderKaraokeWords(msgWords, false) : m.text}
+                  {m.feedbackStatus === 'sent' && (
+                    <div className="voice__feedback-card-sent mt-1 text-[11px]">
+                      ✅ تم إرسال رسالة الفيدباك للمطورين بنجاح 🚀
+                    </div>
+                  )}
                 </div>
               );
             })}
+          </div>
+        )}
+
+        {/* Interactive Feedback Draft Confirmation Card */}
+        {pendingFeedbackDraft && (
+          <div className="voice__feedback-card w-full" role="region" aria-label="Feedback Draft">
+            <div className="voice__feedback-card-header">
+              <span className="voice__feedback-card-badge">
+                {pendingFeedbackDraft.category === 'bug'
+                  ? '🐛 مشكلة تقنية'
+                  : pendingFeedbackDraft.category === 'content'
+                  ? '📖 محتوى ومفردات'
+                  : '💡 فكرة وميزة جديدة'}
+              </span>
+              <span className="voice__feedback-card-prompt">
+                {sourceLang === 'ar' ? 'عايز أبعتها كفيدباك دلوقتي؟' : 'Send this as feedback now?'}
+              </span>
+            </div>
+
+            <textarea
+              className="voice__feedback-card-textarea"
+              value={editedFeedbackText}
+              onChange={(e) => setEditedFeedbackText(e.target.value)}
+              placeholder={sourceLang === 'ar' ? 'عدّل نص الفيدباك هنا إذا أردت...' : 'Edit feedback note if you like...'}
+            />
+
+            <div className="voice__feedback-card-actions">
+              <button
+                type="button"
+                className="voice__feedback-btn-cancel"
+                onClick={() => cancelPendingFeedback(pendingFeedbackDraft)}
+              >
+                {sourceLang === 'ar' ? '❌ إلغاء' : '❌ Cancel'}
+              </button>
+              <button
+                type="button"
+                className="voice__feedback-btn-send"
+                onClick={async () => {
+                  const ok = await submitPendingFeedback(
+                    pendingFeedbackDraft,
+                    editedFeedbackText || pendingFeedbackDraft.polishedMessage
+                  );
+                  if (ok && onToast) {
+                    onToast(
+                      sourceLang === 'ar'
+                        ? '🎉 شكراً ليك يا بطل! تم إرسال رسالتك لفريق التطوير بنجاح 🚀 +100 XP'
+                        : '🎉 Thank you! Your feedback was sent directly to our team 🚀 +100 XP'
+                    );
+                  }
+                }}
+              >
+                {sourceLang === 'ar' ? '🚀 أيوة، ابعتها دلوقتي!' : '🚀 Yes, Send Feedback!'}
+              </button>
+            </div>
           </div>
         )}
       </div>

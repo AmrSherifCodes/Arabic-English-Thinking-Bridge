@@ -35,17 +35,63 @@ export default function App() {
   const { sourceLang, targetLang, setPair } = useLanguagePair();
   const [onboardingOpen, setOnboardingOpen] = useState<boolean>(() => {
     try {
+      if (typeof window !== 'undefined') {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('from') || urlParams.get('to') || urlParams.get('level')) {
+            return false; // Skip onboarding if URL params are present
+        }
+      }
       const stored = localStorage.getItem('tb.userProfile');
       return stored === null;
     } catch {
       return false;
     }
   });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const fromParam = urlParams.get('from');
+      const toParam = urlParams.get('to');
+      const levelParam = urlParams.get('level');
+
+      if (fromParam || toParam || levelParam) {
+        const newProfile = {
+          name: profile?.name || 'Learner',
+          goal: profile?.goal || 'general',
+          learningStyle: profile?.learningStyle || 'visual',
+          focusArea: profile?.focusArea || 'daily-speech',
+          language: fromParam === 'en' ? 'english' : 'arabic',
+          dialect: profile?.dialect || 'egyptian',
+          level: (levelParam as any) || 'beginner',
+          sourceLanguage: (fromParam as any) || 'ar',
+          targetLanguage: (toParam as any) || 'en'
+        } as UserProfile;
+
+        saveProfile(newProfile);
+        setPair(newProfile.sourceLanguage as any, newProfile.targetLanguage as any);
+        i18n.changeLanguage(newProfile.language === 'arabic' ? 'ar' : 'en');
+        if (typeof document !== 'undefined') {
+          document.documentElement.dir = newProfile.language === 'arabic' ? 'rtl' : 'ltr';
+        }
+
+        // Clean up URL without reloading
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    }
+  }, []);
   const [progress, setProgress] = useState<UserProgress>(loadUserProgress());
   const { recordAnswer } = useAdaptiveLearning();
 
-  const handleCompleteOnboarding = (newProfile: UserProfile) => {
+  const handleCompleteOnboarding = (
+    newProfile: UserProfile,
+    newSource?: SourceLanguage,
+    newTarget?: TargetLanguage
+  ) => {
     saveProfile(newProfile);
+    const src = newSource || newProfile.sourceLanguage || 'ar';
+    const tgt = newTarget || newProfile.targetLanguage || 'en';
+    setPair(src, tgt);
     setOnboardingOpen(false);
     if (newProfile.language) {
       i18n.changeLanguage(newProfile.language === 'arabic' ? 'ar' : 'en');
@@ -235,6 +281,8 @@ export default function App() {
           profile={profile}
           updateAndSaveProgress={updateAndSaveProgress}
           onToast={showToast}
+          sourceLang={sourceLang}
+          targetLang={targetLang}
         />
       )}
 
@@ -290,6 +338,8 @@ export default function App() {
       <OnboardingModal
         isOpen={onboardingOpen}
         initialProfile={profile}
+        initialSourceLang={sourceLang}
+        initialTargetLang={targetLang}
         onComplete={handleCompleteOnboarding}
         onSkip={handleSkipOnboarding}
       />

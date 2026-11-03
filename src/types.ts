@@ -88,7 +88,7 @@ export interface CustomCard {
   deckId?: string;
 }
 
-export type LearningGoal = 'academic' | 'travel' | 'business' | 'work' | 'general';
+export type LearningGoal = 'academic' | 'travel' | 'business' | 'work' | 'general' | 'daily';
 export type LearningStyle = 'visual' | 'audio' | 'text';
 export type FocusArea = 'chemistry' | 'daily-speech' | 'business' | 'general' | string;
 

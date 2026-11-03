@@ -29,3 +29,4 @@ export const JAPANESE_PREBUILT_DECKS: PrebuiltDeck[] = [
     }))
   }
 ];
+

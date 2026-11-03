@@ -1,6 +1,80 @@
-import type { UserProfile } from '../types';
+import type { UserProfile, TargetLanguage } from '../types';
 import type { ConversationHistoryItem } from './geminiLexicon';
 import { lookupPedagogicalWordBridge, searchOfflineDictionary } from '../utils/dictionarySearch';
+
+export interface FeedbackDraft {
+  category: 'bug' | 'feature' | 'content' | 'general';
+  title: string;
+  polishedMessage: string;
+  originalThought: string;
+}
+
+/**
+ * Extracts a structured feedback draft if user prompt expresses a suggestion, feature request, or bug report.
+ */
+export function extractFeedbackDraft(input: string): FeedbackDraft | null {
+  const norm = input.trim();
+  if (!norm || norm.length < 5) return null;
+
+  const isSuggestion =
+    /(?:^|[\s،,.;?!])(اقتراح|اقترح|اقتراحي|ياريت|يا\s*ريت|نفسي\s*يكون|عايزكم\s*تضيفوا|ممكن\s*تضيفوا|عاوزين\s*ميزة|عندي\s*فكرة|suggest|suggestion|feedback|i\s*wish|would\s*be\s*great|can\s*you\s*add|please\s*add|feature\s*request)(?:[\s،,.;?!]|$)/i.test(norm);
+
+  const isBug =
+    /(?:^|[\s،,.;?!])(عطل|مشكلة|عطلان|مش\s*شغال|مش\s*بيشتغل|الزرار\s*معلق|bug|broken|not\s*working|issue)(?:[\s،,.;?!]|$)/i.test(norm);
+
+  const isContentRequest =
+    /(?:^|[\s،,.;?!])(عايز|عاوز|ياريت|زودوا|مزيد\s+من)\s+(?:كلمات|جمل|مفردات|امثلة|أمثلة|سيناريوهات)/i.test(norm);
+
+  if (!isSuggestion && !isBug && !isContentRequest) {
+    return null;
+  }
+
+  let category: 'bug' | 'feature' | 'content' | 'general' = 'general';
+  let title = 'اقتراح لتطوير التطبيق';
+  let polished = norm;
+
+  if (isBug) {
+    category = 'bug';
+    title = 'الإبلاغ عن مشكلة أو عطل';
+    polished = `ملاحظة تقنية حول عمل التطبيق: ${norm.replace(/^(في|فيه)\s+مشكلة\s+(في|بـ)?/i, '').trim()}`;
+  } else if (isContentRequest) {
+    category = 'content';
+    title = 'اقتراح توسيع المحتوى والكلمات';
+    polished = `طلب إضافة مفردات وسيناريوهات تدريبية جديدة: ${norm.replace(/^(ياريت|يا\s*ريت|عايز|عاوز|ممكن)\s+/i, '').trim()}`;
+  } else if (isSuggestion) {
+    category = 'feature';
+    title = 'اقتراح ميزة جديدة';
+    polished = `اقتراح ميزة إضافية لخدمة المتعلمين: ${norm.replace(/^(ياريت|يا\s*ريت|اقترح|اقتراحي|نفسي\s*يكون)\s+/i, '').trim()}`;
+  }
+
+  if (!/[\u0600-\u06FF]/.test(norm)) {
+    title = isBug ? 'Report Issue' : isContentRequest ? 'Content Expansion' : 'Feature Suggestion';
+    polished = norm;
+  }
+
+  return {
+    category,
+    title,
+    polishedMessage: polished,
+    originalThought: norm
+  };
+}
+
+/**
+ * Checks if prompt is an explicit confirmation to submit feedback.
+ */
+export function isFeedbackConfirmation(input: string): boolean {
+  const norm = input.trim().toLowerCase().replace(/[!.؟?]/g, '');
+  return /^(أيوة|ايوه|ابعتها|تمام|أكيد|اه|أه|يلا ابعتها|موافق|ارسلها|أرسلها|نفذ|تمام ابعتها|yes|send it|confirm|sure|go ahead|yes please|yep)$/i.test(norm);
+}
+
+/**
+ * Checks if prompt cancels feedback submission.
+ */
+export function isFeedbackCancellation(input: string): boolean {
+  const norm = input.trim().toLowerCase().replace(/[!.؟?]/g, '');
+  return /^(لا|بلاش|إلغاء|مش دلوقتي|سيبك|الغاء|no|cancel|never mind|not now|don't send)$/i.test(norm);
+}
 
 interface DialogueTopic {
   keywords: string[];
@@ -38,13 +112,13 @@ const TOPICS: DialogueTopic[] = [
   {
     keywords: ['who are you', 'what is your name', 'whats your name', 'what are you', 'انت مين', 'اسمك ايه', 'مين انت', 'عمرو'],
     responses: [
-      "I'm Amr Sherif, your Egyptian AI English speaking tutor and thinking bridge!",
-      "My name is Amr! I'm here to help you stop translating in your head and start thinking naturally in English.",
-      "I'm Amr! Think of me as your personal English conversational gym partner."
+      "I'm Amr Sherif, your Egyptian AI language tutor and thinking bridge!",
+      "My name is Amr! I'm here to help you stop translating in your head and start thinking naturally.",
+      "I'm Amr! Think of me as your personal conversational gym partner."
     ],
     followUps: [
-      "What is your main English goal right now: travel, career, or daily fluency?",
-      "Have you practiced your English speaking today?",
+      "What is your main language goal right now: travel, career, or daily fluency?",
+      "Have you practiced speaking aloud today?",
       "What topic do you feel most comfortable talking about?"
     ]
   },
@@ -62,23 +136,10 @@ const TOPICS: DialogueTopic[] = [
     ]
   },
   {
-    keywords: ['chemistry', 'chem', 'catalyst', 'reaction', 'lab', 'atom', 'molecule', 'كيمياء', 'تفاعل', 'معمل', 'عنصر'],
-    responses: [
-      "Chemistry is fascinating! In English, thinking about grammar is just like balancing a chemical equation.",
-      "Just like an enzyme or catalyst speeds up a reaction, practicing aloud speeds up your fluency!",
-      "I love science! Precision in English scientific vocabulary gives your thoughts immense clarity."
-    ],
-    followUps: [
-      "What kind of chemical reaction or experiment interests you most?",
-      "Are you currently studying or working in a lab or research field?",
-      "How would you describe your favorite scientific concept in simple English?"
-    ]
-  },
-  {
     keywords: ['travel', 'airport', 'hotel', 'flight', 'ticket', 'vacation', 'trip', 'سفر', 'مطار', 'فندق', 'رحلة', 'حجز'],
     responses: [
       "Traveling is one of the best adventures in life!",
-      "Speaking English when you travel gives you instant confidence in any country.",
+      "Speaking your target language when you travel gives you instant confidence in any country.",
       "Great topic! Let's practice some essential travel phrases."
     ],
     followUps: [
@@ -90,103 +151,63 @@ const TOPICS: DialogueTopic[] = [
   {
     keywords: ['job', 'interview', 'work', 'boss', 'colleague', 'meeting', 'career', 'office', 'شغل', 'عمل', 'وظيفة', 'مقابلة', 'انترفيو'],
     responses: [
-      "Professional English is all about sounding polite, clear, and confident.",
+      "Professional language is all about sounding polite, clear, and confident.",
       "Workplace conversations get much easier once you master simple sentence structures.",
-      "Great focus! Clear English opens up amazing global career opportunities."
+      "Great focus! Clear communication opens up amazing global career opportunities."
     ],
     followUps: [
       "What do you do for work or what career are you preparing for?",
-      "How often do you need to write or speak English in your job?",
+      "How often do you need to write or speak in your job?",
       "Imagine an interviewer asks: 'Tell me about yourself' — how would you start?"
-    ]
-  },
-  {
-    keywords: ['hobby', 'free time', 'football', 'soccer', 'music', 'game', 'reading', 'movie', 'هواية', 'كورة', 'موسيقى', 'قراءة', 'فيلم'],
-    responses: [
-      "Hobbies are the absolute best way to practice speaking naturally!",
-      "Talking about things you love makes vocabulary stick ten times faster.",
-      "That's wonderful! Having personal passions makes conversations exciting."
-    ],
-    followUps: [
-      "What is your absolute favorite hobby when you have free time?",
-      "Do you prefer watching sports, playing games, or watching movies?",
-      "Have you watched any good movies or TV shows in English recently?"
-    ]
-  },
-  {
-    keywords: ['food', 'eat', 'dinner', 'lunch', 'breakfast', 'restaurant', 'coffee', 'tea', 'اكل', 'مطعم', 'قهوة', 'شاي', 'غدا', 'عشا'],
-    responses: [
-      "Food is universal! And talking about delicious meals is always fun.",
-      "Egyptian and international food are both amazing topics to discuss in English.",
-      "Yum! Food vocabulary is essential for daily conversation."
-    ],
-    followUps: [
-      "What did you have to eat or drink recently?",
-      "Do you prefer traditional Egyptian food like Koshary, or fast food?",
-      "How do you like to take your coffee or tea in the morning?"
     ]
   }
 ];
 
-/**
- * Checks for common L1 Arabic transfer mistakes and provides immediate pedagogical feedback.
- */
 export function detectAndCorrectTransferErrors(input: string): string | null {
   const norm = input.trim();
   const lower = norm.toLowerCase();
 
-  // 1. "I am agree"
   if (lower.includes('i am agree') || lower.includes("i'm agree")) {
     return "I completely agree with you! 💡 Quick tip: in English, 'agree' is already a full verb, so we say **'I agree'** instead of 'I am agree' (أنا أوافق). Tell me more about your thoughts!";
   }
 
-  // 2. "married from"
   if (lower.includes('married from')) {
     return "Nice! 💡 Collocation tip: in English we say **'married to'** rather than 'married from' (متزوج من).";
   }
 
-  // 3. "afraid from" / "scared from"
   if (lower.includes('afraid from') || lower.includes('scared from')) {
     return "I hear you! 💡 In English, we say **'afraid of'** or **'scared of'** rather than 'from' (خائف من). What else makes you feel that way?";
   }
 
-  // 4. "angry from"
   if (lower.includes('angry from')) {
     return "💡 English preposition bridge: we say **'angry with'** or **'angry at'** someone, not 'angry from' (غضبان من).";
   }
 
-  // 5. "listen music"
   if (/\blisten\s+(music|radio|podcast|me|teacher)\b/i.test(norm)) {
     const m = norm.match(/\blisten\s+(music|radio|podcast|me|teacher)\b/i);
     return `💡 Remember: 'listen' always needs the preposition 'to' before the object: **'listen to ${m ? m[1] : 'music'}'** (استمع إلى).`;
   }
 
-  // 6. "look to" instead of "look at"
   if (/\blook\s+to\s+(the\s+)?(screen|picture|photo|board|me|sky)\b/i.test(norm)) {
     return "💡 Preposition tip: we say **'look at'** when directing our eyes toward something, rather than 'look to' (انظر إلى).";
   }
 
-  // 7. "do a mistake"
   if (lower.includes('do a mistake') || lower.includes('did a mistake') || lower.includes('make mistake')) {
     return "💡 Natural collocation: in English we **'make a mistake'**, not 'do a mistake' (يخطئ). Don't worry at all, making mistakes is how we learn!";
   }
 
-  // 8. "take a photo" vs "make a photo"
   if (lower.includes('make a photo') || lower.includes('do a photo')) {
     return "💡 Collocation bridge: we say **'take a photo'** (التقط صورة), not 'make a photo'.";
   }
 
-  // 9. "open the light" / "close the light"
   if (lower.includes('open the light') || lower.includes('close the light')) {
     return "💡 Idiomatic tip: for electrical appliances and lights, we say **'turn on the light'** (شغّل النور) and **'turn off the light'** (اطفئ النور) instead of open/close.";
   }
 
-  // 10. "explain me"
   if (lower.includes('explain me')) {
     return "💡 Grammar bridge: in English, 'explain' requires 'to' before the person: **'explain to me'** (اشرح لي).";
   }
 
-  // 11. Copula omission ("I student", "He doctor", "She teacher", "I ready")
   const copulaMatch = norm.match(/\b(i|he|she|they|we)\s+([a-zA-Z]+)\b/i);
   if (copulaMatch) {
     const subj = copulaMatch[1].toLowerCase();
@@ -199,7 +220,6 @@ export function detectAndCorrectTransferErrors(input: string): string | null {
     }
   }
 
-  // 12. "I have car" (missing indefinite article)
   if (/\b(i|he|she|we)\s+have\s+([a-z]+)\b/i.test(norm)) {
     const m = norm.match(/\b(i|he|she|we)\s+have\s+([a-z]+)\b/i);
     if (m && ['car', 'book', 'problem', 'question', 'job', 'dog', 'cat', 'pen', 'phone', 'computer'].includes(m[2].toLowerCase())) {
@@ -210,13 +230,9 @@ export function detectAndCorrectTransferErrors(input: string): string | null {
   return null;
 }
 
-/**
- * Handles Egyptian colloquial learning questions and dictionary inquiries.
- */
 function handleEgyptianQuestions(cleanPrompt: string): string | null {
   const norm = cleanPrompt.trim();
 
-  // 1. "ازاي اقول [x]" / "كيف اقول [x]"
   const sayMatch = norm.match(/(?:ازاي|ازّاي|كيف|عايز)\s+اقول\s+(.+)/i);
   if (sayMatch) {
     const targetWord = sayMatch[1].replace(/[؟?!.]/g, '').trim();
@@ -230,7 +246,6 @@ function handleEgyptianQuestions(cleanPrompt: string): string | null {
     }
   }
 
-  // 2. "يعني ايه [x]" / "معنى [x]"
   const meanMatch = norm.match(/(?:يعني\s+ايه|معنى|معنى\s+كلمة)\s+([a-zA-Z\u0600-\u06FF\s]+)/i);
   if (meanMatch) {
     const term = meanMatch[1].replace(/[؟?!.]/g, '').trim();
@@ -245,49 +260,108 @@ function handleEgyptianQuestions(cleanPrompt: string): string | null {
     }
   }
 
-  // 3. "ليه بنقول [am/is/are]"
   if (/ليه\s+(?:بنقول|بنحط|لازم)\s+(?:am|is|are|الكينونة)/i.test(norm)) {
     return "سؤال عبقري! 🧠\nفي العربي بنقول: «أنا طالب» بدون أي فعل، وده اسمه جملة اسمية.\nلكن في الإنجليزي: **مفيش أي جملة بتعيش بدون فعل!** عشان كده لازم نضيف فعل الكينونة:\n👉 **I am a student** (أنا أكون طالب).\n👉 **He is ready** (هو يكون جاهز).\nده أول جسر بنبنيه عشان نبطل نترجم حرفي!";
-  }
-
-  // 4. "ليه مش بنقول I am agree"
-  if (/ليه\s+(?:مش\s+بنقول|غلط)\s+i\s+am\s+agree/i.test(norm)) {
-    return "ممتاز إنك سألت عن دي! 👏\nكلمة **agree** في الإنجليزي هي أصلاً **فعل** معناه «أوافق»، مش صفة!\nيعني لما تقول:\n✅ **I agree with you** = أنا أوافقك.\nلو حطيت 'am'، هتبقى كأنك بتقول «أنا أكون أوافق» وده تكرار غلط.\nعشان كده بنقول دايماً: **I agree** فقط!";
   }
 
   return null;
 }
 
-/**
- * Generates an intelligent, context-aware, bilingual English conversational response.
- * Handles domain hints (chemistry, travel, business), user goals, and maintains natural dialogue flow.
- */
 export function generateSmartConversationReply(
   prompt: string,
   history: ConversationHistoryItem[] = [],
-  profile?: UserProfile
+  profile?: UserProfile,
+  targetLang: TargetLanguage = 'en'
 ): string {
   const cleanPrompt = prompt.trim();
   if (!cleanPrompt) {
-    return "I'm listening! Feel free to say anything in English or Arabic, even just a simple sentence.";
+    return targetLang === 'de'
+      ? "Ich höre zu! Sprich einfach auf Deutsch oder Arabisch."
+      : targetLang === 'ja'
+      ? "聞いていますよ！日本語でもアラビア語でも気軽に話してください。"
+      : "I'm listening! Feel free to say anything in English or Arabic, even just a simple sentence.";
   }
 
   const lowerPrompt = cleanPrompt.toLowerCase();
   const isArabicInput = /[\u0600-\u06FF]/.test(cleanPrompt);
 
-  // 1. Check for specific grammatical / L1 transfer corrections first
+  // 1. First priority: Check specific grammatical/L1 transfer and colloquial questions (so questions like "ليه بنقول am في الجملة؟" are answered directly)
   const correction = detectAndCorrectTransferErrors(cleanPrompt);
   if (correction) {
     return correction;
   }
 
-  // 2. Check for colloquial Egyptian questions (ازاي اقول، يعني ايه، ليه)
   const egyptianReply = handleEgyptianQuestions(cleanPrompt);
   if (egyptianReply) {
     return egyptianReply;
   }
 
-  // 3. Handle pure Arabic input with bilingual bridge
+  // 2. Check if the user is submitting feedback or suggestion
+  const feedbackDraft = extractFeedbackDraft(cleanPrompt);
+  if (feedbackDraft) {
+    const isAr = profile?.language === 'arabic' || isArabicInput;
+    const catLabel =
+      feedbackDraft.category === 'bug'
+        ? 'مشكلة تقنية'
+        : feedbackDraft.category === 'content'
+        ? 'محتوى ومفردات'
+        : 'فكرة وميزة جديدة';
+    const catLabelEn =
+      feedbackDraft.category === 'bug'
+        ? 'Bug Report'
+        : feedbackDraft.category === 'content'
+        ? 'Content Expansion'
+        : 'Feature Idea';
+
+    return isAr
+      ? `عاش عليك يا بطل! اقتراح ممتاز 💡 رتبتهولك كرسالة فيدباك واضحة:\n\n💡 **[${catLabel}]**: ${feedbackDraft.polishedMessage}\n\nعايز أبعتها كفيدباك دلوقتي للمطورين؟`
+      : `Awesome suggestion! 💡 I drafted it as structured feedback:\n\n💡 **[${catLabelEn}]**: ${feedbackDraft.polishedMessage}\n\nDo you want me to send this as feedback now?`;
+  }
+
+  // 3. Check if user is confirming or cancelling feedback
+  if (isFeedbackConfirmation(cleanPrompt)) {
+    const isAr = profile?.language === 'arabic' || isArabicInput;
+    return isAr
+      ? "تسلم يا بطل! تم إرسال رسالتك لفريق التطوير مباشرة 🚀 ملاحظاتك بتفرق جداً في تطوير التطبيق. يلا نرجع لتمريننا!"
+      : "Thank you so much! Your feedback has been sent directly to the development team 🚀 Let's resume our practice!";
+  }
+
+  if (isFeedbackCancellation(cleanPrompt)) {
+    const isAr = profile?.language === 'arabic' || isArabicInput;
+    return isAr
+      ? "تمام ولا يهمك خالص يا بطل! لغيت الإرسال. تحب نكمل تمريننا في إيه؟"
+      : "No problem at all! Cancelled. What would you like to practice next?";
+  }
+
+  // 4. German Target Experience
+  if (targetLang === 'de') {
+    if (lowerPrompt.includes('hallo') || lowerPrompt.includes('guten tag') || lowerPrompt.includes('hi')) {
+      return "Hallo! Ich freue mich sehr, mit dir Deutsch zu üben. Wie geht es dir heute?";
+    }
+    if (lowerPrompt.includes('wie geht') || lowerPrompt.includes('wie gehts')) {
+      return "Mir geht es fantastisch, danke! 💡 Denk an die Verb-Zweit-Regel: **'Heute lerne ich Deutsch'**. Was machst du heute noch?";
+    }
+    if (isArabicInput) {
+      return "فهمتك تمام! بالألماني بنقول الفكرة دي بتركيز على مكان الفعل (رقم 2 دايماً في الجملة الأساسية). جرب تقول جملة قصيرة بالألماني!";
+    }
+    return "Das ist ein super Gedanke! Dein Deutsch klingt schon sehr flüssig. Kannst du mir mehr darüber auf Deutsch erzählen?";
+  }
+
+  // 5. Japanese Target Experience
+  if (targetLang === 'ja') {
+    if (lowerPrompt.includes('konnichiwa') || lowerPrompt.includes('こんにちは') || lowerPrompt.includes('ohayo')) {
+      return "こんにちは！一緒に日本語で考える練習をしましょう。今日はどんな一日でしたか？";
+    }
+    if (lowerPrompt.includes('genki') || lowerPrompt.includes('元気')) {
+      return "はい、とても元気です！ありがとう！💡 تذكر دايماً في اليابانية: الفعل بييجي في آخر الجملة تماماً (SOV). 何を飲みたいですか？";
+    }
+    if (isArabicInput) {
+      return "فهمتك تمام! باليابانية بنبدأ بالفاعل أو المبتدأ وبعده المفعول ونرمي الفعل في الآخر خالص (SOV). جرب تقول كلمة أو جملة بسيطة بالياباني!";
+    }
+    return "素晴らしいですね！日本語で直接考える習慣がついてきました。もっと詳しく教えてくれますか？";
+  }
+
+  // 6. English Target Experience (Canonical)
   if (isArabicInput) {
     if (lowerPrompt.includes('ازيك') || lowerPrompt.includes('عامل ايه') || lowerPrompt.includes('اخبارك')) {
       return "الحمد لله تمام جداً يا بطل! In English, you can ask me: **'How are you doing today?'** How has your day been so far?";
@@ -299,16 +373,14 @@ export function generateSmartConversationReply(
       return "ولا يهمك خالص، الموضوع محتاج ممارسة وتكرار بس! You can say: **'I am doing my best!'** What is one simple word you want to practice right now?";
     }
 
-    // Try finding direct dictionary match for whatever Arabic thought the user typed
     const dictHit = searchOfflineDictionary(cleanPrompt, 'ar');
     if (dictHit) {
-      return `فهمتك تمام! عشا تعبر عن الفكرة دي بالإنجليزي:\n🎯 **"${dictHit}"**\nجرب تقولها معايا بالإنجليزي، واغلط براحتك إحنا بنتعلم!`;
+      return `فهمتك تمام! عشان تعبر عن الفكرة دي بالإنجليزي:\n🎯 **"${dictHit}"**\nجرب تقولها معايا بالإنجليزي، واغلط براحتك إحنا بنتعلم!`;
     }
 
     return "فهمتك تمام! Let's say that thought in natural English. Try speaking a short sentence in English, and don't worry at all about mistakes—I'm here to support you!";
   }
 
-  // 4. Match predefined conversational topics
   for (const topic of TOPICS) {
     if (topic.keywords.some((kw) => lowerPrompt.includes(kw))) {
       const seedIdx = (history.length + cleanPrompt.length) % topic.responses.length;
@@ -317,23 +389,21 @@ export function generateSmartConversationReply(
     }
   }
 
-  // 5. Adapt to user profile focus / goal
   const focus = String(profile?.focusArea || '').toLowerCase();
   const goal = String(profile?.goal || '').toLowerCase();
 
   if (focus.includes('chem') || focus.includes('science')) {
-    return `That's an interesting point! In science and chemistry, describing observations clearly in English is a superpower. How would you explain that in one simple English sentence?`;
+    return "That's an interesting point! In science and chemistry, describing observations clearly in English is a superpower. How would you explain that in one simple English sentence?";
   }
 
   if (goal === 'travel') {
-    return `I love that! When traveling abroad, speaking smoothly and politely makes every trip ten times more fun. Where are you planning to travel next?`;
+    return "I love that! When traveling abroad, speaking smoothly and politely makes every trip ten times more fun. Where are you planning to travel next?";
   }
 
   if (goal === 'work' || goal === 'business') {
-    return `Well said! In a professional workplace or meeting, expressing your ideas clearly builds immediate trust. What is your favorite part about your work?`;
+    return "Well said! In a professional workplace or meeting, expressing your ideas clearly builds immediate trust. What is your favorite part about your work?";
   }
 
-  // 6. General intelligent conversational replies
   const defaultResponses = [
     "That makes total sense! I really like how you expressed that.",
     "Interesting! You're speaking with great confidence today.",
@@ -351,5 +421,15 @@ export function generateSmartConversationReply(
   const rIdx = (history.length + cleanPrompt.length) % defaultResponses.length;
   const fIdx = (history.length + 2) % defaultFollowUps.length;
 
-  return `${defaultResponses[rIdx]} ${defaultFollowUps[fIdx]}`;
+  let finalReply = `${defaultResponses[rIdx]} ${defaultFollowUps[fIdx]}`;
+
+  // Occasional natural feedback invitation
+  if (history.length >= 6 && history.length % 6 === 0) {
+    finalReply +=
+      profile?.language === 'arabic'
+        ? "\n\n💬 (بالمناسبة، لو عندك أي اقتراح أو فكرة تحب تشوفها في التطبيق، قولي وأنا أرتبها لك كرسالة فيدباك!)"
+        : "\n\n💬 (By the way, if you have any feedback or feature you'd love to see in the app, tell me and I'll draft it for you!)";
+  }
+
+  return finalReply;
 }

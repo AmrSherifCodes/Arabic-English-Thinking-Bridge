@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Star, MessageSquareHeart, Lightbulb, X, Send, ShieldCheck, Clock, Gift, Bug, Sparkles } from 'lucide-react';
@@ -96,7 +97,7 @@ export function FeedbackModal({
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(feedbackData)
         });
-      } catch {}
+      } catch { }
 
       // 3. Dual-layer fallback to Supabase if configured
       if (supabase) {
@@ -115,7 +116,7 @@ export function FeedbackModal({
       if (Capacitor.isNativePlatform()) {
         try {
           await Haptics.impact({ style: ImpactStyle.Medium });
-        } catch {}
+        } catch { }
       }
     } catch {
       // Graceful fallback
@@ -220,11 +221,10 @@ export function FeedbackModal({
                   >
                     <Star
                       size={30}
-                      className={`transition-colors ${
-                        isFilled
+                      className={`transition-colors ${isFilled
                           ? 'fill-amber-400 text-amber-400 drop-shadow-[0_0_10px_rgba(251,191,36,0.6)]'
                           : 'text-stone-700'
-                      }`}
+                        }`}
                     />
                   </button>
                 );
@@ -246,11 +246,10 @@ export function FeedbackModal({
                   key={c.id}
                   type="button"
                   onClick={() => setCategory(c.id)}
-                  className={`px-3 py-2 rounded-xl text-xs font-bold text-center transition border ${
-                    category === c.id
+                  className={`px-3 py-2 rounded-xl text-xs font-bold text-center transition border ${category === c.id
                       ? 'bg-teal-500/20 border-teal-500 text-teal-300 shadow-sm'
                       : 'bg-stone-950/60 border-stone-800 text-stone-400 hover:text-stone-200 hover:border-stone-700'
-                  }`}
+                    }`}
                 >
                   {isArabic ? c.labelAr : c.labelEn}
                 </button>

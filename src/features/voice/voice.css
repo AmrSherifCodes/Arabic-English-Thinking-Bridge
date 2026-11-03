@@ -433,3 +433,110 @@
     max-height: 180px;
   }
 }
+
+/* Feedback Draft Interactive Card */
+.voice__feedback-card {
+  margin-top: 10px;
+  background: rgba(13, 148, 136, 0.14);
+  border: 1px solid rgba(20, 184, 166, 0.45);
+  border-radius: 16px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: right;
+  backdrop-filter: blur(8px);
+}
+
+.voice__feedback-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.voice__feedback-card-badge {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(20, 184, 166, 0.25);
+  color: #2dd4bf;
+  border: 1px solid rgba(20, 184, 166, 0.4);
+}
+
+.voice__feedback-card-prompt {
+  font-size: 11px;
+  font-weight: 700;
+  color: #d6d3d1;
+}
+
+.voice__feedback-card-textarea {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(0, 0, 0, 0.5);
+  padding: 8px 10px;
+  color: #ffffff;
+  font-size: 12px;
+  line-height: 1.4;
+  resize: vertical;
+  min-height: 52px;
+}
+
+.voice__feedback-card-textarea:focus {
+  outline: none;
+  border-color: #14b8a6;
+  box-shadow: 0 0 0 2px rgba(20, 184, 166, 0.2);
+}
+
+.voice__feedback-card-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.voice__feedback-btn-send {
+  background: #14b8a6;
+  color: #0c0a09;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 6px 14px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.voice__feedback-btn-send:hover {
+  background: #2dd4bf;
+  transform: translateY(-1px);
+}
+
+.voice__feedback-btn-cancel {
+  background: transparent;
+  color: #a8a29e;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.voice__feedback-btn-cancel:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.voice__feedback-card-sent {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #2dd4bf;
+  padding: 4px 0;
+}

@@ -304,3 +304,4 @@ export const GERMAN_DICTIONARY: MultiLangDictionaryEntry[] = [
     ]
   }
 ];
+

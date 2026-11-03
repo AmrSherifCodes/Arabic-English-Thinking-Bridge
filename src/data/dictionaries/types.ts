@@ -34,3 +34,4 @@ export interface MultiLangDictionaryEntry {
   frequencyRank?: number;
   category?: 'core' | 'daily' | 'work' | 'travel' | 'academic';
 }
+
