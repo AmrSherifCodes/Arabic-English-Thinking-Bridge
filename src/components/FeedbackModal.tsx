@@ -89,7 +89,16 @@ export function FeedbackModal({
       existingList.push(feedbackData);
       localStorage.setItem(FEEDBACK_STORAGE_KEY, JSON.stringify(existingList.slice(-50)));
 
-      // 2. Submit to Supabase if configured
+      // 2. Submit directly to PostgreSQL via Vercel Serverless API
+      try {
+        void fetch('/api/feedback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(feedbackData)
+        });
+      } catch {}
+
+      // 3. Dual-layer fallback to Supabase if configured
       if (supabase) {
         void supabase.from('feedback_submissions').insert({
           rating,
