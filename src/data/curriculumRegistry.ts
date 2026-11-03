@@ -28,3 +28,4 @@ export function getCurriculum(source: SourceLanguage = 'ar', target: TargetLangu
   // Default: Arabic -> English (canonical PHASES_DATA)
   return PHASES_DATA;
 }
+

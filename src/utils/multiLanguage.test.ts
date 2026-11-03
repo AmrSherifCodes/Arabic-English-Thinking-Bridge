@@ -88,3 +88,41 @@ test('6. getPairConfig returns complete metadata and graceful fallbacks', () => 
   const fallback = getPairConfig('ar' as any, 'xyz' as any);
   assert.equal(fallback.id, 'ar-en');
 });
+
+test('7. GERMAN_DICTIONARY (FreeDict/Wiktionary) provides structured gender & Tatoeba examples', async () => {
+  const { searchTargetDictionary, lookupTargetTerm } = await import('../data/dictionaries');
+  const results = searchTargetDictionary('kaffee', 'de', 'ar');
+  assert.ok(results.length > 0, 'Must find Kaffee');
+  assert.equal(results[0].gender, 'der', 'Kaffee must be masculine');
+  assert.ok(results[0].examples.length > 0, 'Must include contextual examples');
+  assert.match(results[0].examples[0].targetSentence, /Kaffee/i);
+
+  const exact = lookupTargetTerm('arbeiten', 'de');
+  assert.ok(exact, 'Must lookup arbeiten');
+  assert.equal(exact?.partOfSpeech, 'verb');
+});
+
+test('8. JAPANESE_DICTIONARY (JMdict) provides Kanji, Kana readings, Romaji & Tatoeba examples', async () => {
+  const { searchTargetDictionary, lookupTargetTerm } = await import('../data/dictionaries');
+  const results = searchTargetDictionary('mizu', 'ja', 'ar');
+  assert.ok(results.length > 0, 'Must find 水 via romaji');
+  assert.equal(results[0].reading, 'みず');
+  assert.equal(results[0].romaji, 'mizu');
+  assert.ok(results[0].examples.length > 0, 'Must include Tatoeba example sentences');
+
+  const exact = lookupTargetTerm('学生', 'ja');
+  assert.ok(exact, 'Must lookup 学生');
+  assert.equal(exact?.reading, 'がくせい');
+});
+
+test('9. GERMAN_PREBUILT_DECKS and JAPANESE_PREBUILT_DECKS provide valid flashcards', async () => {
+  const { GERMAN_PREBUILT_DECKS } = await import('../data/curriculum/germanDecks');
+  const { JAPANESE_PREBUILT_DECKS } = await import('../data/curriculum/japaneseDecks');
+
+  assert.ok(GERMAN_PREBUILT_DECKS.length >= 2, 'Must have at least 2 German prebuilt decks');
+  assert.ok(GERMAN_PREBUILT_DECKS[0].cards.length > 0, 'German deck must have cards');
+
+  assert.ok(JAPANESE_PREBUILT_DECKS.length >= 2, 'Must have at least 2 Japanese prebuilt decks');
+  assert.ok(JAPANESE_PREBUILT_DECKS[0].cards.length > 0, 'Japanese deck must have cards');
+});
+

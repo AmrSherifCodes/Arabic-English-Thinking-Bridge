@@ -153,3 +153,4 @@ export function getPairConfig(source: SourceLanguage, target: TargetLanguage): L
   // Fallback to default
   return SUPPORTED_PAIRS[0];
 }
+

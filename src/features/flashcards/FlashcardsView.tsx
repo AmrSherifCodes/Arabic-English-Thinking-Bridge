@@ -6,6 +6,9 @@ import { useDeckEngine } from './useDeckEngine';
 import { PrebuiltDeck } from '../../data/prebuiltDecks';
 import { EXPANDED_DECKS } from '../../data/expandedDecks';
 import { PREBUILT_DECKS } from '../../data/prebuiltDecks';
+import { GERMAN_PREBUILT_DECKS } from '../../data/curriculum/germanDecks';
+import { JAPANESE_PREBUILT_DECKS } from '../../data/curriculum/japaneseDecks';
+import { SourceLanguage, TargetLanguage } from '../../types';
 import { DeckDefinition, FlashcardItemData } from '../../components/uiConstants';
 import { BTN_GHOST, BTN_PRIMARY } from '../../components/uiConstants';
 
@@ -38,6 +41,8 @@ const CORE_DECKS: DeckDefinition[] = [
 ];
 
 export interface FlashcardsViewProps {
+  sourceLang?: SourceLanguage;
+  targetLang?: TargetLanguage;
   onBack: () => void;
   profile: UserProfile | null;
   progress: UserProgress;
@@ -54,8 +59,32 @@ export function FlashcardsView({
   updateAndSaveProgress,
   onToast,
   onAskAIAboutCard,
-  onAnswer
+  onAnswer,
+  sourceLang = 'ar',
+  targetLang = 'en'
 }: FlashcardsViewProps) {
+  const isGerman = targetLang === 'de';
+  const isJapanese = targetLang === 'ja';
+
+  const activeCoreDecks = isGerman
+    ? [
+        { id: 'phase-1', name: 'Phase 1: Das Fundament', subtitle: 'Verb-Zweit-Regel (V2), Genders & Accusative Case' },
+        { id: 'custom', name: 'My Custom German Cards', subtitle: 'Saved words and practice sentences' }
+      ]
+    : isJapanese
+    ? [
+        { id: 'phase-1', name: 'Phase 1: 基礎 The Skeleton', subtitle: 'SOV word order, Particles (は, を, に) & Furigana' },
+        { id: 'custom', name: 'My Custom Japanese Cards', subtitle: 'Saved words, kanji, and practice sentences' }
+      ]
+    : CORE_DECKS;
+
+  const activePrebuiltDecks = isGerman
+    ? GERMAN_PREBUILT_DECKS
+    : isJapanese
+    ? JAPANESE_PREBUILT_DECKS
+    : PREBUILT_DECKS;
+
+  const activeExpandedDecks = (isGerman || isJapanese) ? [] : EXPANDED_DECKS;
   const { entries: dictionaryEntries } = useMasterDictionary();
   const [attributionDeck, setAttributionDeck] = useState<PrebuiltDeck | null>(null);
 
@@ -125,8 +154,8 @@ export function FlashcardsView({
         <DeckListView
           profile={profile}
           coreDecks={coreDecks}
-          expandedDecks={EXPANDED_DECKS}
-          prebuiltDecks={PREBUILT_DECKS}
+          expandedDecks={activeExpandedDecks}
+          prebuiltDecks={activePrebuiltDecks}
           importedDecks={progress.importedDecks || []}
           getDeckStats={engine.getDeckStats}
           onSelectDeck={engine.handleSelectDeck}

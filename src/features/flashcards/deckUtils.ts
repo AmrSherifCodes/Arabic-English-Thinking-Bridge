@@ -2,12 +2,14 @@ import { UserProfile, UserProgress } from '../../types';
 import { PHASES_DATA } from '../../data/lessons';
 import { EXPANDED_DECKS } from '../../data/expandedDecks';
 import { PREBUILT_DECKS } from '../../data/prebuiltDecks';
+import { GERMAN_PREBUILT_DECKS } from '../../data/curriculum/germanDecks';
+import { JAPANESE_PREBUILT_DECKS } from '../../data/curriculum/japaneseDecks';
 import { LexiconEntry } from '../../services/geminiLexicon';
 import { DeckStats, FlashcardItemData } from '../../components/uiConstants';
 
 const ALL_LESSONS = PHASES_DATA.flatMap(p => p.lessons);
 const ALL_EXERCISES = ALL_LESSONS.flatMap(l => l.exercises);
-const ALL_PREBUILT_DECKS = [...EXPANDED_DECKS, ...PREBUILT_DECKS];
+const ALL_PREBUILT_DECKS = [...EXPANDED_DECKS, ...PREBUILT_DECKS, ...GERMAN_PREBUILT_DECKS, ...JAPANESE_PREBUILT_DECKS];
 const PHASE_EXERCISE_IDS: Record<'phase-1' | 'phase-2' | 'phase-3', string[]> = {
   'phase-1': (PHASES_DATA[0]?.lessons ?? []).flatMap(l => l.exercises.map(e => e.id)),
   'phase-2': (PHASES_DATA[1]?.lessons ?? []).flatMap(l => l.exercises.map(e => e.id)),

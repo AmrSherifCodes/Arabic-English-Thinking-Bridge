@@ -267,6 +267,8 @@ export default function App() {
           onToast={showToast}
           onAnswer={recordAnswer}
           onAskAIAboutCard={handleAskAIAboutCard}
+          sourceLang={sourceLang}
+          targetLang={targetLang}
         />
       )}
 

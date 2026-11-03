@@ -85,3 +85,4 @@ export function JapaneseModeToggle({ mode, onChange, className = '' }: JapaneseM
     </div>
   );
 }
+
