@@ -70,20 +70,20 @@ export function getJapanesePhases(source: SourceLanguage): Phase[] {
                 {
                   arabicText: 'です (desu)',
                   englishText: 'am / is',
-                  sourceText: isAr ? 'الكينونة المهذبة (desu)' : 'polite copula (am/is)',
+                  sourceText: isAr ? 'فعل الربط المهذب (desu)' : 'polite copula (am/is)',
                   targetText: 'です',
                   role: 'verb',
                   explanation: 'Polite copula anchoring the sentence'
                 }
               ],
               habitHint: isAr
-                ? 'في اليابانية، الكينونة です (desu) تقف دائماً في ختام الجملة! المبتدأ + は + الخبر + です.'
+                ? 'في اليابانية، فعل الربط です (desu) يقف دائماً في ختام الجملة! المبتدأ + は + الخبر + です.'
                 : 'In Japanese, the polite copula です (desu) sits at the very end! Topic + は + noun + です.',
               specificMisconceptions: [
                 {
                   pattern: '^です',
                   diagnosis: isAr
-                    ? 'انتبه: لا تبدأ بفعل الكينونة です، بل ضعه دائماً في نهاية الجملة.'
+                    ? 'انتبه: لا تبدأ بفعل الربط です، بل ضعه دائماً في نهاية الجملة.'
                     : 'Remember: In Japanese, the copula "desu" belongs at the very end of the sentence.'
                 }
               ]
@@ -131,7 +131,7 @@ export function getJapanesePhases(source: SourceLanguage): Phase[] {
                 {
                   arabicText: 'です (desu)',
                   englishText: 'is',
-                  sourceText: isAr ? 'فعل الكينونة' : 'is',
+                  sourceText: isAr ? 'فعل الربط' : 'is',
                   targetText: 'です',
                   role: 'verb',
                   explanation: 'Polite sentence ender'

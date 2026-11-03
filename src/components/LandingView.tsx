@@ -295,7 +295,7 @@ export function LandingView({ onStartWebApp }: LandingViewProps) {
               </h3>
               <p className="text-xs text-[var(--landing-muted)] leading-relaxed">
                 {isAr
-                  ? 'التعرف على الفروق الجوهرية بين التفكير بالعربي والإنجليزي (مثل الكينونة المحذوفة وحروف الجر).'
+                  ? 'التعرف على الفروق الجوهرية بين التفكير بالعربي والإنجليزي (مثل الأفعال المخفية وحروف الجر).'
                   : 'Identify structural shifts between native Arabic thinking and natural English reflexes.'}
               </p>
             </div>

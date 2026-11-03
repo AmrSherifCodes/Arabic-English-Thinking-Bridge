@@ -171,7 +171,7 @@ export const SUPPORTED_PAIRS: LanguagePairConfig[] = [
     titleEn: 'Think English · From Arabic',
     taglineAr: 'جسر التحول الذهني من العربية إلى الإنجليزية',
     taglineEn: 'The cognitive transfer bridge from Arabic to English',
-    bridgeConceptAr: 'التخلص من فخ الكينونة المحذوفة وحروف الجر المباشرة',
+    bridgeConceptAr: 'التخلص من فخ الأفعال المخفية وحروف الجر المباشرة',
     bridgeConceptEn: 'Overcoming hidden copula omission and preposition interference'
   },
   {
