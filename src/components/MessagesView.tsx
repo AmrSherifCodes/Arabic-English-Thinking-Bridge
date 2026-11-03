@@ -67,8 +67,9 @@ export function MessagesView() {
         }
         const session = data.session;
         const role = session?.user?.app_metadata?.role;
-        setIsAdmin(role === 'admin');
-        setUserEmail(getSessionEmail(session));
+        const email = getSessionEmail(session);
+        setIsAdmin(role === 'admin' || email === 'amrsherifwork@gmail.com');
+        setUserEmail(email);
         setAuthReady(true);
       },
       sessionError => {
@@ -82,7 +83,7 @@ export function MessagesView() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       const nextEmail = getSessionEmail(session);
       const role = session?.user?.app_metadata?.role;
-      setIsAdmin(role === 'admin');
+      setIsAdmin(role === 'admin' || nextEmail === 'amrsherifwork@gmail.com');
       setUserEmail(prevEmail => {
         if (prevEmail && !nextEmail && event === 'SIGNED_OUT') {
           setToast('Admin session ended. Please sign in again.');
