@@ -62,6 +62,62 @@ const TARGET_OPTIONS = [
     desc: 'نظام الفاعل-المفعول-الفعل (SOV)، جزيئات は و を، وقراءة الكانجي بالفوريجانا',
     descEn: 'Train SOV brain order, core particles (は, を, に) & Kanji with Furigana',
     pedagogyTag: 'نظام SOV · كانجي وفوريجانا'
+  },
+  {
+    id: 'es' as TargetLanguage,
+    flag: '🇪🇸',
+    title: 'الإسبانية · Español',
+    desc: 'التكيف مع تصريفات الأفعال وتوافق الجنس والرقم',
+    descEn: 'Adapt to verb conjugations and gender/number agreement',
+    pedagogyTag: 'تصريف · توافق'
+  },
+  {
+    id: 'fr' as TargetLanguage,
+    flag: '🇫🇷',
+    title: 'الفرنسية · Français',
+    desc: 'إتقان نطق اللغة الفرنسية وبناء الجمل المركبة',
+    descEn: 'Master French pronunciation and complex sentence structure',
+    pedagogyTag: 'نطق · تراكيب'
+  },
+  {
+    id: 'zh' as TargetLanguage,
+    flag: '🇨🇳',
+    title: 'الصينية · 中文',
+    desc: 'فهم النغمات وبناء الجمل بدون تصريف أفعال',
+    descEn: 'Understand tones and build sentences without verb conjugation',
+    pedagogyTag: 'نغمات · رموز'
+  },
+  {
+    id: 'hi' as TargetLanguage,
+    flag: '🇮🇳',
+    title: 'الهندية · हिन्दी',
+    desc: 'بناء الجمل (SOV) واستخدام الحروف المساعدة بعد الاسم',
+    descEn: 'SOV structure and using postpositions',
+    pedagogyTag: 'SOV · بناء الجمل'
+  },
+  {
+    id: 'ru' as TargetLanguage,
+    flag: '🇷🇺',
+    title: 'الروسية · Русский',
+    desc: 'التكيف مع الحالات الإعرابية الستة ونظام الأفعال',
+    descEn: 'Adapt to the six cases and the aspect system of verbs',
+    pedagogyTag: 'إعراب · سيريلية'
+  },
+  {
+    id: 'pt' as TargetLanguage,
+    flag: '🇧🇷',
+    title: 'البرتغالية · Português',
+    desc: 'إتقان الأزمنة المعقدة والأصوات الأنفية',
+    descEn: 'Master complex tenses and nasal sounds',
+    pedagogyTag: 'أزمنة · أصوات'
+  },
+  {
+    id: 'it' as TargetLanguage,
+    flag: '🇮🇹',
+    title: 'الإيطالية · Italiano',
+    desc: 'التكيف مع التوافق وإسقاط الفاعل كما في العربية',
+    descEn: 'Adapt to agreement and pro-drop similar to Arabic',
+    pedagogyTag: 'توافق · إيقاع'
   }
 ];
 

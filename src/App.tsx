@@ -13,6 +13,7 @@ import { CVModal } from './components/CVModal';
 import { TutorialModal } from './components/TutorialModal';
 import { OnboardingModal } from './components/OnboardingModal';
 import { FeedbackModal, UserFeedbackData } from './components/FeedbackModal';
+import { LandingView } from './components/LandingView';
 import { useUserProfile } from './hooks/useUserProfile';
 import { loadUserProgress, saveUserProgress } from './utils/storage';
 import { UserProfile, UserProgress } from './types';
@@ -24,10 +25,18 @@ import { useDueCount } from './features/flashcards/useDueCount';
 import { useLanguagePair } from './hooks/useLanguagePair';
 import i18n from './i18n';
 
-type View = { name: 'menu' } | { name: 'route'; route: MenuRoute };
+type View = { name: 'landing' } | { name: 'menu' } | { name: 'route'; route: MenuRoute };
 
 export default function App() {
-  const [view, setView] = useState<View>({ name: 'menu' });
+  const [view, setView] = useState<View>(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('landing') === 'true') return { name: 'landing' };
+      }
+    } catch {}
+    return { name: 'menu' };
+  });
   const [cvOpen, setCvOpen] = useState(false);
   const [tutorialOpen, setTutorialOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
@@ -256,6 +265,10 @@ export default function App() {
 
   return (
     <>
+      {view.name === 'landing' && (
+        <LandingView onStartWebApp={() => setView({ name: 'menu' })} />
+      )}
+
       {view.name === 'menu' && (
         <ChoiceMenu
           dueCards={dueCards}
@@ -270,6 +283,7 @@ export default function App() {
           onOpenConstitution={openConstitution}
           onOpenTutorial={() => setTutorialOpen(true)}
           onOpenReview={() => setFeedbackOpen(true)}
+          onOpenLanding={() => setView({ name: 'landing' })}
           onToast={showToast}
         />
       )}

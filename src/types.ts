@@ -1,7 +1,7 @@
 export type ChunkRole = 'subject' | 'verb' | 'object' | 'connector' | 'modifier' | 'auxiliary';
 
 export type SourceLanguage = 'ar' | 'en';
-export type TargetLanguage = 'en' | 'de' | 'ja';
+export type TargetLanguage = 'en' | 'de' | 'ja' | 'es' | 'fr' | 'zh' | 'hi' | 'ru' | 'pt' | 'it';
 
 export interface LanguagePair {
   source: SourceLanguage;

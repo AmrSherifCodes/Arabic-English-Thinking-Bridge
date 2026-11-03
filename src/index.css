@@ -2,8 +2,33 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+:root {
+  --landing-bg: #0A0E13;
+  --landing-surface: #0F151C;
+  --landing-border: #1E2933;
+  --landing-text: #EEF2F5;
+  --landing-muted: #9AA7B2;
+  --landing-accent-teal: #2DD4BF;
+  --landing-secondary-amber: #F5B942;
+  --landing-font: 'Readex Pro', 'Inter', system-ui, -apple-system, sans-serif;
+  --landing-radius-sm: 12px;
+  --landing-radius-md: 18px;
+  --landing-radius-lg: 28px;
+  --landing-max-w: 1200px;
+}
+
+html.light {
+  --landing-bg: #F8FAFC;
+  --landing-surface: #FFFFFF;
+  --landing-border: #E2E8F0;
+  --landing-text: #0F172A;
+  --landing-muted: #64748B;
+  --landing-accent-teal: #0D9488;
+  --landing-secondary-amber: #D97706;
+}
+
 html {
-  color-scheme: light;
+  color-scheme: dark;
 }
 
 body {
@@ -14,8 +39,8 @@ body {
   position: relative;
   isolation: isolate;
   min-height: 100vh;
-  background-color: #f1f0eb;
-  color: #1c1917;
+  background-color: #0A0E13;
+  color: #EEF2F5;
   font-weight: 500;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -28,107 +53,16 @@ body::before {
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  opacity: 0.6;
+  opacity: 0.25;
   background-image:
     repeating-linear-gradient(
       45deg,
       transparent 0 17px,
-      rgba(28, 25, 23, 0.025) 17px 18px,
-      transparent 18px 34px
-    ),
-    repeating-linear-gradient(
-      -45deg,
-      transparent 0 17px,
-      rgba(28, 25, 23, 0.025) 17px 18px,
+      rgba(45, 212, 191, 0.03) 17px 18px,
       transparent 18px 34px
     );
 }
 
 html.dark {
   color-scheme: dark;
-}
-
-html.dark body {
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  user-select: none;
-  -webkit-user-select: none;
-  -webkit-touch-callout: none;
-  background-color: #0c0a09;
-  color: #f5f5f4;
-}
-
-html.dark body::before {
-  opacity: 0.1;
-  background-image:
-    repeating-linear-gradient(
-      45deg,
-      transparent 0 17px,
-      rgba(255, 255, 255, 0.025) 17px 18px,
-      transparent 18px 34px
-    ),
-    repeating-linear-gradient(
-      -45deg,
-      transparent 0 17px,
-      rgba(255, 255, 255, 0.025) 17px 18px,
-      transparent 18px 34px
-    );
-}
-
-/* Arabic text: Cairo/Tajawal so letters connect properly, always RTL-friendly */
-.ar,
-[dir="rtl"],
-[lang="ar"] {
-  font-family: 'Cairo', 'Tajawal', 'Segoe UI', Tahoma, sans-serif;
-  letter-spacing: 0;
-}
-
-/* RTL icon mirroring for directional arrows and next-buttons */
-[dir="rtl"] .rtl-flip,
-[dir="rtl"] .rtl\:scale-x-\[-1\] {
-  transform: scaleX(-1);
-}
-
-/* RTL Form Alignment */
-[dir="rtl"] input:not([dir="ltr"]),
-[dir="rtl"] textarea:not([dir="ltr"]) {
-  text-align: right;
-}
-
-/* 320px mobile viewport safety */
-html, body {
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  user-select: none;
-  -webkit-user-select: none;
-  -webkit-touch-callout: none;
-  overflow-x: hidden;
-  max-width: 100vw;
-}
-
-/* Larger, easier-to-tap word blocks on touch devices */
-.chip-btn {
-  min-height: 52px;
-  touch-action: manipulation;
-}
-
-
-/* Allow selection inside form inputs and textareas */
-input,
-textarea,
-[contenteditable="true"] {
-  user-select: text;
-  -webkit-user-select: text;
-}
-
-/* Safe area insets for Android status bar and display cutouts */
-:root {
-  --sat: env(safe-area-inset-top, 0px);
-  --sab: env(safe-area-inset-bottom, 0px);
-}
-
-.safe-top {
-  padding-top: max(0.75rem, env(safe-area-inset-top, 0px));
-}
-
-.safe-bottom {
-  padding-bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
 }

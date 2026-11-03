@@ -70,6 +70,83 @@ export const TARGET_LANGUAGES: Record<TargetLanguage, LanguageMeta> = {
     descriptionEn: 'Think in SOV structure, particles (は, を, に), and natural context',
     descriptionAr: 'فكر بمنطق (الفاعل - المفعول - الفعل)، أدوات الجملة، وسياق الحديث الطبيعي',
     badge: '人気'
+  },
+  es: {
+    code: 'es',
+    nameEn: 'Spanish',
+    nameNative: 'Español',
+    nameAr: 'الإسبانية',
+    flag: '🇪🇸',
+    direction: 'ltr',
+    descriptionEn: 'Master Spanish grammar and vocabulary',
+    descriptionAr: 'أتقن قواعد ومفردات اللغة الإسبانية',
+    badge: 'Global'
+  },
+  fr: {
+    code: 'fr',
+    nameEn: 'French',
+    nameNative: 'Français',
+    nameAr: 'الفرنسية',
+    flag: '🇫🇷',
+    direction: 'ltr',
+    descriptionEn: 'Learn French pronunciation and phrasing',
+    descriptionAr: 'تعلم النطق والتراكيب الفرنسية',
+    badge: 'Global'
+  },
+  zh: {
+    code: 'zh',
+    nameEn: 'Chinese (Mandarin)',
+    nameNative: '中文',
+    nameAr: 'الصينية (الماندرين)',
+    flag: '🇨🇳',
+    direction: 'ltr',
+    descriptionEn: 'Master Chinese characters and tones',
+    descriptionAr: 'أتقن الرموز الصينية والنغمات',
+    badge: 'Global'
+  },
+  hi: {
+    code: 'hi',
+    nameEn: 'Hindi',
+    nameNative: 'हिन्दी',
+    nameAr: 'الهندية',
+    flag: '🇮🇳',
+    direction: 'ltr',
+    descriptionEn: 'Think in Hindi syntax and phrasing',
+    descriptionAr: 'فكر بمنطق البناء والجمل الهندية',
+    badge: 'Global'
+  },
+  ru: {
+    code: 'ru',
+    nameEn: 'Russian',
+    nameNative: 'Русский',
+    nameAr: 'الروسية',
+    flag: '🇷🇺',
+    direction: 'ltr',
+    descriptionEn: 'Master Russian cases and cyrillic',
+    descriptionAr: 'أتقن الحالات الإعرابية والأبجدية السيريلية',
+    badge: 'Global'
+  },
+  pt: {
+    code: 'pt',
+    nameEn: 'Portuguese',
+    nameNative: 'Português',
+    nameAr: 'البرتغالية',
+    flag: '🇧🇷',
+    direction: 'ltr',
+    descriptionEn: 'Learn Portuguese vocabulary and grammar',
+    descriptionAr: 'تعلم المفردات والقواعد البرتغالية',
+    badge: 'Global'
+  },
+  it: {
+    code: 'it',
+    nameEn: 'Italian',
+    nameNative: 'Italiano',
+    nameAr: 'الإيطالية',
+    flag: '🇮🇹',
+    direction: 'ltr',
+    descriptionEn: 'Think natively in Italian',
+    descriptionAr: 'فكر مباشرة باللغة الإيطالية',
+    badge: 'Global'
   }
 };
 
@@ -120,6 +197,83 @@ export const SUPPORTED_PAIRS: LanguagePairConfig[] = [
     bridgeConceptEn: 'Placing the verb strictly at the end (SOV) and mastering particle mechanics'
   },
   {
+    id: 'ar-es',
+    source: 'ar',
+    target: 'es',
+    titleAr: 'فكّر إسباني · Piensa en Español',
+    titleEn: 'Think Spanish · From Arabic',
+    taglineAr: 'جسر التحول الذهني من العربية إلى الإسبانية',
+    taglineEn: 'The cognitive transfer bridge from Arabic to Spanish',
+    bridgeConceptAr: 'التكيف مع تصريفات الأفعال وتوافق الجنس والرقم في الإسبانية',
+    bridgeConceptEn: 'Adapting to verb conjugations and gender/number agreement in Spanish'
+  },
+  {
+    id: 'ar-fr',
+    source: 'ar',
+    target: 'fr',
+    titleAr: 'فكّر فرنسي · Pense en Français',
+    titleEn: 'Think French · From Arabic',
+    taglineAr: 'جسر التحول الذهني من العربية إلى الفرنسية',
+    taglineEn: 'The cognitive transfer bridge from Arabic to French',
+    bridgeConceptAr: 'إتقان نطق اللغة الفرنسية وبناء الجمل المركبة',
+    bridgeConceptEn: 'Mastering French pronunciation and complex sentence structure'
+  },
+  {
+    id: 'ar-zh',
+    source: 'ar',
+    target: 'zh',
+    titleAr: 'فكّر صيني · 用中文思考',
+    titleEn: 'Think Chinese · From Arabic',
+    taglineAr: 'جسر التحول الذهني من العربية إلى الصينية',
+    taglineEn: 'The cognitive transfer bridge from Arabic to Chinese',
+    bridgeConceptAr: 'فهم النغمات وبناء الجمل بدون تصريف أفعال',
+    bridgeConceptEn: 'Understanding tones and building sentences without verb conjugation'
+  },
+  {
+    id: 'ar-hi',
+    source: 'ar',
+    target: 'hi',
+    titleAr: 'فكّر هندي · हिंदी में सोचें',
+    titleEn: 'Think Hindi · From Arabic',
+    taglineAr: 'جسر التحول الذهني من العربية إلى الهندية',
+    taglineEn: 'The cognitive transfer bridge from Arabic to Hindi',
+    bridgeConceptAr: 'بناء الجمل (SOV) واستخدام الحروف المساعدة بعد الاسم',
+    bridgeConceptEn: 'SOV structure and using postpositions'
+  },
+  {
+    id: 'ar-ru',
+    source: 'ar',
+    target: 'ru',
+    titleAr: 'فكّر روسي · Думай по-русски',
+    titleEn: 'Think Russian · From Arabic',
+    taglineAr: 'جسر التحول الذهني من العربية إلى الروسية',
+    taglineEn: 'The cognitive transfer bridge from Arabic to Russian',
+    bridgeConceptAr: 'التكيف مع الحالات الإعرابية الستة ونظام الأفعال المكتملة/غير المكتملة',
+    bridgeConceptEn: 'Adapting to the six cases and the aspect system of verbs'
+  },
+  {
+    id: 'ar-pt',
+    source: 'ar',
+    target: 'pt',
+    titleAr: 'فكّر برتغالي · Pense em Português',
+    titleEn: 'Think Portuguese · From Arabic',
+    taglineAr: 'جسر التحول الذهني من العربية إلى البرتغالية',
+    taglineEn: 'The cognitive transfer bridge from Arabic to Portuguese',
+    bridgeConceptAr: 'إتقان الأزمنة المعقدة والأصوات الأنفية',
+    bridgeConceptEn: 'Mastering complex tenses and nasal sounds'
+  },
+  {
+    id: 'ar-it',
+    source: 'ar',
+    target: 'it',
+    titleAr: 'فكّر إيطالي · Pensa in Italiano',
+    titleEn: 'Think Italian · From Arabic',
+    taglineAr: 'جسر التحول الذهني من العربية إلى الإيطالية',
+    taglineEn: 'The cognitive transfer bridge from Arabic to Italian',
+    bridgeConceptAr: 'التكيف مع التوافق وإسقاط الفاعل كما في العربية',
+    bridgeConceptEn: 'Adapting to agreement and pro-drop similar to Arabic'
+  },
+  {
     id: 'en-de',
     source: 'en',
     target: 'de',
@@ -140,6 +294,83 @@ export const SUPPORTED_PAIRS: LanguagePairConfig[] = [
     taglineEn: 'The cognitive transfer bridge from English to Japanese',
     bridgeConceptAr: 'التحول من ترتيب SVO إلى SOV وحذف الضمائر الزائدة في السياق الطبيعي',
     bridgeConceptEn: 'Switching from SVO to SOV order, topic markers (wa vs ga), and natural pronoun dropping'
+  },
+  {
+    id: 'en-es',
+    source: 'en',
+    target: 'es',
+    titleAr: 'من الإنجليزية للإسبانية · Piensa en Español',
+    titleEn: 'Think Spanish · From English',
+    taglineAr: 'دماغك يفكر إسباني من الإنجليزية',
+    taglineEn: 'The cognitive transfer bridge from English to Spanish',
+    bridgeConceptAr: 'التكيف مع التصريفات والتوافق',
+    bridgeConceptEn: 'Adapting to verb conjugations and agreement'
+  },
+  {
+    id: 'en-fr',
+    source: 'en',
+    target: 'fr',
+    titleAr: 'من الإنجليزية للفرنسية · Pense en Français',
+    titleEn: 'Think French · From English',
+    taglineAr: 'دماغك يفكر فرنسي من الإنجليزية',
+    taglineEn: 'The cognitive transfer bridge from English to French',
+    bridgeConceptAr: 'إتقان نطق اللغة الفرنسية وبناء الجمل',
+    bridgeConceptEn: 'Mastering French pronunciation and sentence structure'
+  },
+  {
+    id: 'en-zh',
+    source: 'en',
+    target: 'zh',
+    titleAr: 'من الإنجليزية للصينية · 用中文思考',
+    titleEn: 'Think Chinese · From English',
+    taglineAr: 'دماغك يفكر صيني من الإنجليزية',
+    taglineEn: 'The cognitive transfer bridge from English to Chinese',
+    bridgeConceptAr: 'فهم النغمات وبناء الجمل',
+    bridgeConceptEn: 'Understanding tones and building sentences'
+  },
+  {
+    id: 'en-hi',
+    source: 'en',
+    target: 'hi',
+    titleAr: 'من الإنجليزية للهندية · हिंदी में सोचें',
+    titleEn: 'Think Hindi · From English',
+    taglineAr: 'دماغك يفكر هندي من الإنجليزية',
+    taglineEn: 'The cognitive transfer bridge from English to Hindi',
+    bridgeConceptAr: 'بناء الجمل (SOV)',
+    bridgeConceptEn: 'SOV structure and using postpositions'
+  },
+  {
+    id: 'en-ru',
+    source: 'en',
+    target: 'ru',
+    titleAr: 'من الإنجليزية للروسية · Думай по-русски',
+    titleEn: 'Think Russian · From English',
+    taglineAr: 'دماغك يفكر روسي من الإنجليزية',
+    taglineEn: 'The cognitive transfer bridge from English to Russian',
+    bridgeConceptAr: 'التكيف مع الحالات الإعرابية',
+    bridgeConceptEn: 'Adapting to the six cases and aspect system'
+  },
+  {
+    id: 'en-pt',
+    source: 'en',
+    target: 'pt',
+    titleAr: 'من الإنجليزية للبرتغالية · Pense em Português',
+    titleEn: 'Think Portuguese · From English',
+    taglineAr: 'دماغك يفكر برتغالي من الإنجليزية',
+    taglineEn: 'The cognitive transfer bridge from English to Portuguese',
+    bridgeConceptAr: 'إتقان الأزمنة المعقدة',
+    bridgeConceptEn: 'Mastering complex tenses and nasal sounds'
+  },
+  {
+    id: 'en-it',
+    source: 'en',
+    target: 'it',
+    titleAr: 'من الإنجليزية للإيطالية · Pensa in Italiano',
+    titleEn: 'Think Italian · From English',
+    taglineAr: 'دماغك يفكر إيطالي من الإنجليزية',
+    taglineEn: 'The cognitive transfer bridge from English to Italian',
+    bridgeConceptAr: 'التكيف مع التوافق وإسقاط الفاعل',
+    bridgeConceptEn: 'Adapting to agreement and pro-drop'
   }
 ];
 

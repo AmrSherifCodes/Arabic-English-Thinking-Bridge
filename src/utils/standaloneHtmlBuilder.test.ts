@@ -11,7 +11,7 @@ test('standalone HTML starts with the exact Amr Sherif copyright header on line 
   const html = buildStandaloneHtmlString();
   const firstLine = html.split('\n')[0].trim();
   assert.equal(firstLine, COPYRIGHT_HEADER);
-  assert.equal(firstLine, '<!-- Copyright (c) 2026 Amr Sherif. All rights reserved. -->');
+  assert.equal(firstLine, '<!-- Copyright (c) 2024-Present Amr Sherif Abdelaal. All Rights Reserved. Strict proprietary license. -->');
 });
 
 test('standalone HTML and fx config contain no hardcoded personal phone number', () => {

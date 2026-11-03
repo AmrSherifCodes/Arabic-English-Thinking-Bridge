@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { ActionTile } from './ActionTile';
-import { UserRound, ScrollText, Zap, Shield, BookMarked, Download, ExternalLink, HelpCircle, Star, Globe } from 'lucide-react';
+import { UserRound, ScrollText, Zap, Shield, BookMarked, Download, ExternalLink, HelpCircle, Star, Globe, Users } from 'lucide-react';
 import { UserProfile, UserProgress, SourceLanguage, TargetLanguage } from '../../types';
 import { getCurriculum } from '../../data/curriculumRegistry';
 import { getPairConfig, SOURCE_LANGUAGES, TARGET_LANGUAGES } from '../../data/languages';
 import { LanguagePairBanner } from '../../components/LanguagePairBanner';
 import { LanguageSelectorModal } from '../../components/LanguageSelectorModal';
+import { usePresence } from '../../hooks/usePresence';
 import './menu.css';
 
 export type MenuRoute = 'voice' | 'lesson' | 'flashcards' | 'preferences' | 'corporate';
@@ -20,6 +21,7 @@ export interface ChoiceMenuProps {
   onOpenConstitution?: () => void;
   onOpenTutorial?: () => void;
   onOpenReview?: () => void;
+  onOpenLanding?: () => void;
   sourceLang?: SourceLanguage;
   targetLang?: TargetLanguage;
   onSelectPair?: (source: SourceLanguage, target: TargetLanguage) => void;
@@ -36,6 +38,7 @@ export function ChoiceMenu({
   onOpenConstitution,
   onOpenTutorial,
   onOpenReview,
+  onOpenLanding,
   sourceLang = 'ar',
   targetLang = 'en',
   onSelectPair,
@@ -50,6 +53,8 @@ export function ChoiceMenu({
   const pairConfig = getPairConfig(source, target);
   const curriculum = getCurriculum(source, target);
   const totalLessons = curriculum.reduce((acc, p) => acc + p.lessons.length, 0);
+
+  const { liveCount } = usePresence();
 
   return (
     <div className="menu" dir={isArabic ? 'rtl' : 'ltr'}>
@@ -113,8 +118,17 @@ export function ChoiceMenu({
 
         {/* 2. Top Badge & Hero */}
         <header className="menu__hero">
-          <div className="menu__badge">
-            <span>{isArabic ? '✦ جاهز بدون إنترنت' : '✦ Offline Ready'}</span>
+          <div className="flex items-center justify-center gap-2 mb-3">
+            <div className="menu__badge">
+              <span>{isArabic ? '✦ جاهز بدون إنترنت' : '✦ Offline Ready'}</span>
+            </div>
+            <div className="menu__badge flex items-center gap-1 bg-teal-500/20 text-teal-300 border border-teal-500/30">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-teal-500"></span>
+              </span>
+              <span className="text-[10px] font-bold">{liveCount} {isArabic ? 'يتعلمون الآن' : 'learning now'}</span>
+            </div>
           </div>
           <h1 className="menu__title">
             {isArabic ? pairConfig.titleAr : pairConfig.titleEn}
@@ -301,7 +315,15 @@ export function ChoiceMenu({
           <p className="menu__footer-line2">
             {isArabic ? 'مستوحى من ميهاليس إلفثيريو · CC0 1.0' : 'Inspired by Mihalis Eleftheriou · CC0 1.0'}
           </p>
+          <a href="https://ipn.eg/S/amrsherifabdelaal/instapay/1c8JpA" target="_blank" rel="noopener noreferrer" className="menu__footer-line1 hover:text-teal-400 transition" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+            ☕ {isArabic ? 'دعم المشروع اختياري (InstaPay)' : 'Optional Tip / Support (InstaPay)'}
+          </a>
           <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '12px', fontSize: '12px', marginTop: '4px' }}>
+            {onOpenLanding && (
+              <button onClick={onOpenLanding} style={{ color: 'var(--accent, #14b8a6)', background: 'none', border: 'none', cursor: 'pointer', font: 'inherit' }}>
+                {isArabic ? '🌐 صفحة التعريف (Landing)' : '🌐 Landing Page'}
+              </button>
+            )}
             <a href="https://www.linkedin.com/in/sciamrsherif-abdelaal/" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent, #14b8a6)', textDecoration: 'none' }}>LinkedIn</a>
             <a href="https://github.com/AmrSherifCodes" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent, #14b8a6)', textDecoration: 'none' }}>GitHub</a>
             <a href="https://www.patreon.com/c/SciAmrSherif" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent, #14b8a6)', textDecoration: 'none' }}>Patreon</a>

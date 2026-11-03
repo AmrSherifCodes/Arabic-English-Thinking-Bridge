@@ -4,7 +4,7 @@ import { EXPANDED_DECKS } from '../data/expandedDecks';
 import { ARABIC_WORD_LEXICON } from './arabicWordLexicon';
 import { DEFAULT_SHARED_APP_URL, FEEDBACK_FORM_URL, TEACHER_WHATSAPP } from './fx';
 
-export const COPYRIGHT_HEADER = '<!-- Copyright (c) 2026 Amr Sherif. All rights reserved. -->';
+export const COPYRIGHT_HEADER = '<!-- Copyright (c) 2024-Present Amr Sherif Abdelaal. All Rights Reserved. Strict proprietary license. -->';
 
 export const PROVENANCE_MD_CONTENT = `# Provenance & Authorship Record
 

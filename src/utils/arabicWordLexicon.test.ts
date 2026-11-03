@@ -170,7 +170,7 @@ test('habitPsychology: computeNextHintWord, Variable-Ratio Mystery Chest, and St
 test('buildStandaloneHtmlString produces a complete self-contained HTML app without cookie gate', () => {
   const html = buildStandaloneHtmlString();
   assert.ok(
-    html.startsWith('<!-- Copyright (c) 2026 Amr Sherif. All rights reserved. -->\n<!DOCTYPE html>')
+    html.startsWith('<!-- Copyright (c) 2024-Present Amr Sherif Abdelaal. All Rights Reserved. Strict proprietary license. -->\n<!DOCTYPE html>')
   );
   assert.ok(html.includes('Thinking English™'));
   assert.ok(html.includes('Daily Life & Routines'));
