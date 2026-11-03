@@ -1,10 +1,21 @@
 export type ChunkRole = 'subject' | 'verb' | 'object' | 'connector' | 'modifier' | 'auxiliary';
 
+export type SourceLanguage = 'ar' | 'en';
+export type TargetLanguage = 'en' | 'de' | 'ja';
+
+export interface LanguagePair {
+  source: SourceLanguage;
+  target: TargetLanguage;
+}
+
 export interface ChunkMapping {
   arabicText: string;
   englishText: string;
+  sourceText?: string;
+  targetText?: string;
   role: ChunkRole;
   explanation: string;
+  explanationAr?: string;
 }
 
 export interface SpecificMisconception {
@@ -17,10 +28,15 @@ export interface Exercise {
   arabicThought: string;
   arabicContext?: string;
   englishTarget: string;
+  sourceThought?: string;
+  targetSentence?: string;
+  romajiTarget?: string;
+  furiganaTarget?: string;
   acceptableAlternatives: string[];
   wordChips: string[];
   breakdownChunks: ChunkMapping[];
   habitHint: string;
+  habitHintAr?: string;
   specificMisconceptions?: SpecificMisconception[];
 }
 
@@ -84,6 +100,8 @@ export interface UserProfile {
   language: 'english' | 'arabic';
   dialect: 'egyptian' | 'msa';
   level: 'beginner' | 'intermediate' | 'advanced';
+  sourceLanguage?: SourceLanguage;
+  targetLanguage?: TargetLanguage;
 }
 
 export interface UserProgress {

@@ -21,6 +21,7 @@ import { AIHelper, AIHelperRequest } from './components/AIHelper';
 import { LexiconEntry } from './services/geminiLexicon';
 import { FlashcardItemData } from './components/uiConstants';
 import { useDueCount } from './features/flashcards/useDueCount';
+import { useLanguagePair } from './hooks/useLanguagePair';
 import i18n from './i18n';
 
 type View = { name: 'menu' } | { name: 'route'; route: MenuRoute };
@@ -31,6 +32,7 @@ export default function App() {
   const [tutorialOpen, setTutorialOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const { profile, saveProfile } = useUserProfile();
+  const { sourceLang, targetLang, setPair } = useLanguagePair();
   const [onboardingOpen, setOnboardingOpen] = useState<boolean>(() => {
     try {
       const stored = localStorage.getItem('tb.userProfile');
@@ -213,12 +215,16 @@ export default function App() {
           dueCards={dueCards}
           profile={profile}
           progress={progress}
+          sourceLang={sourceLang}
+          targetLang={targetLang}
+          onSelectPair={setPair}
           onLanguageChange={handleLanguageChange}
           onSelect={(route) => setView({ name: 'route', route })}
           onOpenCV={() => setCvOpen(true)}
           onOpenConstitution={openConstitution}
           onOpenTutorial={() => setTutorialOpen(true)}
           onOpenReview={() => setFeedbackOpen(true)}
+          onToast={showToast}
         />
       )}
 
@@ -273,6 +279,8 @@ export default function App() {
           onToast={showToast}
           preferredVoice={progress.preferredVoice}
           onAskAIAboutCard={handleAskAIAboutCard}
+          sourceLang={sourceLang}
+          targetLang={targetLang}
         />
       )}
 

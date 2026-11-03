@@ -110,6 +110,17 @@
     "internships": "التدريبات الميدانية",
     "education": "المؤهل الدراسي",
     "close": "إغلاق"
+  },
+  "languages": {
+    "selectPair": "اختر مسار التحول اللغوي",
+    "iThinkIn": "أنا أفكر حالياً بـ",
+    "iWantToThinkIn": "أريد تعلّم التفكير بـ",
+    "activeTrack": "المسار النشط",
+    "changeLanguages": "تغيير اللغات",
+    "quickSwitch": "تبديل سريع",
+    "arabic": "العربية",
+    "english": "الإنجليزية",
+    "german": "الألمانية",
+    "japanese": "اليابانية"
   }
 }
-

@@ -48,6 +48,25 @@ This project is governed by a strict [Channel Constitution](./CONSTITUTION.md). 
 2. **Neutrality:** A refuge from internet noise.
 3. **Attribution:** Credit every source loudly (Language Transfer, Wiktionary, Hugging Face).
 
+## 🌐 Multi-Language Cognitive Architecture (v3.1.0)
+
+Thinking Bridge supports multi-source and multi-target language immersion:
+
+| Source / UI Language | Target Thinking Language | Pedagogical Bridge Focus | Shareable Link |
+| :--- | :--- | :--- | :--- |
+| 🇪🇬 **العربية (Arabic)** | 🇬🇧 **English** | Copula omission & preposition interference | `/?from=ar&to=en` |
+| 🇪🇬 **العربية (Arabic)** | 🇩🇪 **Deutsch (German)** | Strict V2 verb placement & Accusative cases | `/?from=ar&to=de` |
+| 🇪🇬 **العربية (Arabic)** | 🇯🇵 **日本語 (Japanese)** | SOV order, Particles (は, を, に), & Furigana | `/?from=ar&to=ja` |
+| 🇬🇧 **English** | 🇩🇪 **Deutsch (German)** | V2 main clause syntax & Gender shifts | `/?from=en&to=de` |
+| 🇬🇧 **English** | 🇯🇵 **日本語 (Japanese)** | SOV order & Natural pro-drop context | `/?from=en&to=ja` |
+
+### How to Add More Languages or Exercises
+1. **Curriculum Definition:** Add a new file under `src/data/curriculum/` (e.g. `frenchCurriculum.ts`). Follow the `Phase` and `Lesson` schemas with `sourceThought`, `targetSentence`, `wordChips`, and `breakdownChunks`.
+2. **Registry:** Register the language pair in `src/data/curriculumRegistry.ts` inside `getCurriculum(source, target)`.
+3. **Metadata:** Declare the language and pair in `src/data/languages.ts`.
+
+---
+
 ## 🛠️ The Tech Stack
 
 This isn't just a static site; it's a full-stack application built with modern, production-grade tools.

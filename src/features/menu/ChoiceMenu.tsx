@@ -1,8 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ActionTile } from './ActionTile';
-import { UserRound, ScrollText, Zap, Shield, BookMarked, Download, ExternalLink, HelpCircle, Star } from 'lucide-react';
-import { UserProfile, UserProgress } from '../../types';
-import { PHASES_DATA } from '../../data/lessons';
+import { UserRound, ScrollText, Zap, Shield, BookMarked, Download, ExternalLink, HelpCircle, Star, Globe } from 'lucide-react';
+import { UserProfile, UserProgress, SourceLanguage, TargetLanguage } from '../../types';
+import { getCurriculum } from '../../data/curriculumRegistry';
+import { getPairConfig, SOURCE_LANGUAGES, TARGET_LANGUAGES } from '../../data/languages';
+import { LanguagePairBanner } from '../../components/LanguagePairBanner';
+import { LanguageSelectorModal } from '../../components/LanguageSelectorModal';
 import './menu.css';
 
 export type MenuRoute = 'voice' | 'lesson' | 'flashcards' | 'preferences' | 'corporate';
@@ -17,6 +20,10 @@ export interface ChoiceMenuProps {
   onOpenConstitution?: () => void;
   onOpenTutorial?: () => void;
   onOpenReview?: () => void;
+  sourceLang?: SourceLanguage;
+  targetLang?: TargetLanguage;
+  onSelectPair?: (source: SourceLanguage, target: TargetLanguage) => void;
+  onToast?: (msg: string) => void;
 }
 
 export function ChoiceMenu({
@@ -29,9 +36,20 @@ export function ChoiceMenu({
   onOpenConstitution,
   onOpenTutorial,
   onOpenReview,
+  sourceLang = 'ar',
+  targetLang = 'en',
+  onSelectPair,
+  onToast,
 }: ChoiceMenuProps) {
-  const isArabic = profile?.language === 'arabic';
-  const totalLessons = PHASES_DATA.reduce((acc, p) => acc + p.lessons.length, 0);
+  const [selectorOpen, setSelectorOpen] = useState(false);
+
+  const source: SourceLanguage = sourceLang || (profile?.language === 'arabic' ? 'ar' : 'en');
+  const target: TargetLanguage = targetLang || 'en';
+  const isArabic = source === 'ar';
+
+  const pairConfig = getPairConfig(source, target);
+  const curriculum = getCurriculum(source, target);
+  const totalLessons = curriculum.reduce((acc, p) => acc + p.lessons.length, 0);
 
   return (
     <div className="menu" dir={isArabic ? 'rtl' : 'ltr'}>
@@ -41,19 +59,34 @@ export function ChoiceMenu({
           <div className="menu__lang-switch" role="group" aria-label="Language selection">
             <button
               type="button"
-              className={`menu__lang-btn ${isArabic ? 'menu__lang-btn--active' : ''}`}
-              onClick={() => onLanguageChange?.('arabic')}
+              className={`menu__lang-btn ${source === 'ar' ? 'menu__lang-btn--active' : ''}`}
+              onClick={() => {
+                onLanguageChange?.('arabic');
+                onSelectPair?.('ar', target);
+              }}
               aria-label="Switch to Arabic"
             >
               العربية
             </button>
             <button
               type="button"
-              className={`menu__lang-btn ${!isArabic ? 'menu__lang-btn--active' : ''}`}
-              onClick={() => onLanguageChange?.('english')}
+              className={`menu__lang-btn ${source === 'en' ? 'menu__lang-btn--active' : ''}`}
+              onClick={() => {
+                onLanguageChange?.('english');
+                onSelectPair?.('en', target);
+              }}
               aria-label="Switch to English"
             >
               English
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectorOpen(true)}
+              className="menu__lang-btn !bg-amber-500/20 !text-amber-400 !border-amber-500/30 flex items-center gap-1 font-bold"
+              title={isArabic ? 'تغيير اللغات' : 'Change languages'}
+            >
+              <span>{TARGET_LANGUAGES[target]?.flag}</span>
+              <span>{TARGET_LANGUAGES[target]?.nameNative}</span>
             </button>
           </div>
 
@@ -68,18 +101,26 @@ export function ChoiceMenu({
           </button>
         </div>
 
-        {/* 1. Top Badge & Hero */}
+        {/* 1. Language Pair Selector Banner */}
+        <LanguagePairBanner
+          sourceLang={source}
+          targetLang={target}
+          onOpenSelector={() => setSelectorOpen(true)}
+          onQuickSwitchTarget={(t) => onSelectPair?.(source, t)}
+          onToast={onToast}
+          className="mb-5"
+        />
+
+        {/* 2. Top Badge & Hero */}
         <header className="menu__hero">
           <div className="menu__badge">
             <span>{isArabic ? '✦ جاهز بدون إنترنت' : '✦ Offline Ready'}</span>
           </div>
           <h1 className="menu__title">
-            {isArabic ? 'جسر التفكير' : 'Thinking Bridge'}
+            {isArabic ? pairConfig.titleAr : pairConfig.titleEn}
           </h1>
           <p className="menu__tagline">
-            {isArabic
-              ? 'أتقن الإنجليزية بالطريقة الذكية. تعلّم العامية المصرية الحقيقية.'
-              : 'Master English the Smart Way. Learn Egyptian Arabic the Real Way.'}
+            {isArabic ? pairConfig.taglineAr : pairConfig.taglineEn}
           </p>
         </header>
 
@@ -269,6 +310,17 @@ export function ChoiceMenu({
             <a href="mailto:amrsherifbusiness@gmail.com" style={{ color: 'var(--accent, #14b8a6)', textDecoration: 'none' }}>Email</a>
           </div>
         </footer>
+
+        <LanguageSelectorModal
+          isOpen={selectorOpen}
+          onClose={() => setSelectorOpen(false)}
+          currentSource={source}
+          currentTarget={target}
+          onSelectPair={(s, t) => {
+            onSelectPair?.(s, t);
+          }}
+          onToast={onToast}
+        />
       </div>
     </div>
   );

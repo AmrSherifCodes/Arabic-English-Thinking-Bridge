@@ -1,16 +1,17 @@
 import { Capacitor } from '@capacitor/core';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { ArrowLeft, Volume2, Sparkles, AlertCircle, CheckCircle2, ChevronRight, BookOpen, Star, Youtube, HelpCircle } from 'lucide-react';
 import { TabTutorialModal } from '../../components/TabTutorialModal';
-import { Exercise, Lesson, Phase, UserProfile, UserProgress } from '../../types';
-import { PHASES_DATA } from '../../data/lessons';
+import { Exercise, Lesson, Phase, UserProfile, UserProgress, SourceLanguage, TargetLanguage } from '../../types';
+import { getCurriculum } from '../../data/curriculumRegistry';
 import { checkAnswerMatch, diagnoseArabicInterference } from '../../utils/transferLogic';
 import { applyHabitWin, applyHabitMistakeWithShield } from '../../utils/habitPsychology';
 import { speakWithRate } from '../../utils/audio';
 import { BTN_GHOST, BTN_PRIMARY, CARD_CLASS, CHUNK_COLORS, CHUNK_LABELS, FlashcardItemData } from '../../components/uiConstants';
 import { getLessonRelevanceScore } from '../../utils/adaptiveCurriculum';
 import { getArabicPhoneticSpelling } from '../../utils/arabicPhonetics';
+import { JapaneseFuriganaText, JapaneseModeToggle, JapaneseDisplayMode } from '../../components/JapaneseFuriganaText';
 
 export interface LessonViewProps {
   profile: UserProfile | null;
@@ -20,6 +21,8 @@ export interface LessonViewProps {
   onToast: (msg: string) => void;
   preferredVoice?: string;
   onAskAIAboutCard?: (card: FlashcardItemData) => void;
+  sourceLang?: SourceLanguage;
+  targetLang?: TargetLanguage;
 }
 
 export function LessonView({
@@ -29,10 +32,21 @@ export function LessonView({
   onBack,
   onToast,
   preferredVoice,
-  onAskAIAboutCard
+  onAskAIAboutCard,
+  sourceLang = 'ar',
+  targetLang = 'en'
 }: LessonViewProps) {
+  const source: SourceLanguage = sourceLang || profile?.sourceLanguage || (profile?.language === 'arabic' ? 'ar' : 'en');
+  const target: TargetLanguage = targetLang || profile?.targetLanguage || 'en';
+  const isJapanese = target === 'ja';
+  const isGerman = target === 'de';
+
+  const [japaneseMode, setJapaneseMode] = useState<JapaneseDisplayMode>('furigana');
+
+  const phases = useMemo(() => getCurriculum(source, target), [source, target]);
+  const allLessons = useMemo(() => phases.flatMap(p => p.lessons), [phases]);
+
   // Find first incomplete lesson or default to phase 1, lesson 1
-  const allLessons = PHASES_DATA.flatMap(p => p.lessons);
   const firstIncomplete = allLessons.find(l => !progress.completedLessonIds.includes(l.id)) || allLessons[0];
 
   const [activeLesson, setActiveLesson] = useState<Lesson | null>(firstIncomplete);
@@ -45,6 +59,13 @@ export function LessonView({
   const [revealed, setRevealed] = useState<boolean>(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Sync active lesson when language pair changes
+  useEffect(() => {
+    const nextFirst = allLessons.find(l => !progress.completedLessonIds.includes(l.id)) || allLessons[0];
+    setActiveLesson(nextFirst);
+    setExerciseIndex(0);
+  }, [source, target, allLessons]);
 
   const exercise: Exercise | undefined = activeLesson?.exercises[exerciseIndex];
 
@@ -82,7 +103,7 @@ export function LessonView({
     if (match.isCorrect) {
       setStatus('correct');
       setFeedback('Excellent! Thought translated accurately.');
-      speakWithRate(match.matchedTarget || exercise.englishTarget, 1, preferredVoice);
+      speakWithRate(match.matchedTarget || exercise.targetSentence || exercise.englishTarget, 1, preferredVoice);
 
       updateAndSaveProgress(prev => {
         const habitTransition = applyHabitWin(prev, 10, todayKey);
@@ -161,16 +182,17 @@ export function LessonView({
 
   const handleAudioPlay = () => {
     if (!exercise) return;
-    speakWithRate(exercise.englishTarget, 1, preferredVoice);
+    const targetSpoken = exercise.targetSentence || exercise.englishTarget;
+    speakWithRate(targetSpoken, 1, preferredVoice);
   };
 
   // Syllabus / Overview mode
   if (!activeLesson || !exercise) {
-    const isArabic = profile?.language === 'arabic';
+    const isArabic = source === 'ar';
     const goalLabel = profile?.goal || 'General';
 
     // Filter phases based on user preference
-    const filteredPhases = PHASES_DATA.filter(phase => {
+    const filteredPhases = phases.filter(phase => {
       if (typeof syllabusFilter === 'number') {
         return phase.id === syllabusFilter;
       }
@@ -423,23 +445,28 @@ export function LessonView({
       </header>
 
       <main className="max-w-2xl mx-auto w-full flex-1 flex flex-col justify-center space-y-5">
-        {/* Arabic Thought Card */}
+        {/* Thought Card */}
         <section className={`${CARD_CLASS} p-5 border-stone-800 text-center relative overflow-hidden`}>
-          <div className="text-xs font-semibold text-stone-400 uppercase tracking-wider mb-2">
-            Arabic Thought (فكّر بالمعنى)
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-semibold text-stone-400 uppercase tracking-wider">
+              {source === 'ar' ? 'فكرة التحول الذهني (فكّر بالمعنى):' : 'Mental Thought Concept:'}
+            </span>
+            {isJapanese && (
+              <JapaneseModeToggle mode={japaneseMode} onChange={setJapaneseMode} />
+            )}
           </div>
-          <div dir="rtl" className="ar text-2xl sm:text-3xl font-black text-amber-300 leading-relaxed mb-1">
-            {exercise.arabicThought}
+          <div dir={source === 'ar' ? 'rtl' : 'ltr'} className={`text-2xl sm:text-3xl font-black text-amber-300 leading-relaxed mb-1 ${source === 'ar' ? 'ar' : ''}`}>
+            {source === 'ar' ? exercise.arabicThought : (exercise.sourceThought || exercise.arabicThought)}
           </div>
           {exercise.arabicContext && (
-            <div dir="rtl" className="ar text-xs text-stone-400 mt-1">
+            <div dir={source === 'ar' ? 'rtl' : 'ltr'} className="text-xs text-stone-400 mt-1">
               Context: {exercise.arabicContext}
             </div>
           )}
           <button
             type="button"
             onClick={handleAudioPlay}
-            aria-label="Listen to model English pronunciation"
+            aria-label="Listen to model pronunciation"
             className="absolute top-3 right-3 p-2 rounded-full text-stone-400 hover:text-white hover:bg-stone-800 transition"
           >
             <Volume2 className="w-5 h-5" />
@@ -544,15 +571,31 @@ export function LessonView({
                     {status === 'correct' ? 'Target Matched (+10 pts)' : 'Model Translation'}
                   </div>
                   <div className="text-sm font-semibold text-stone-100 mt-0.5">
-                    {exercise.englishTarget}
+                    {isJapanese ? (
+                      <JapaneseFuriganaText
+                        kanjiText={exercise.targetSentence || exercise.englishTarget}
+                        furiganaHtml={exercise.furiganaTarget}
+                        romajiText={exercise.romajiTarget}
+                        displayMode={japaneseMode}
+                      />
+                    ) : (
+                      exercise.targetSentence || exercise.englishTarget
+                    )}
                   </div>
-                  {/* Arabic Literal Phonetic Pronunciation */}
-                  <div className="mt-1.5 text-xs text-teal-400/90 font-medium flex items-center gap-1.5" dir="rtl">
-                    <span className="text-stone-400 text-[11px]">النطق الصوتي بالعربي:</span>
-                    <span className="font-bold text-teal-200 bg-stone-900/90 px-2 py-0.5 rounded-md border border-stone-800">
-                      {getArabicPhoneticSpelling(exercise.englishTarget)}
-                    </span>
-                  </div>
+                  {/* Arabic Literal Phonetic Pronunciation (for English target) */}
+                  {target === 'en' && (
+                    <div className="mt-1.5 text-xs text-teal-400/90 font-medium flex items-center gap-1.5" dir="rtl">
+                      <span className="text-stone-400 text-[11px]">النطق الصوتي بالعربي:</span>
+                      <span className="font-bold text-teal-200 bg-stone-900/90 px-2 py-0.5 rounded-md border border-stone-800">
+                        {getArabicPhoneticSpelling(exercise.englishTarget)}
+                      </span>
+                    </div>
+                  )}
+                  {isJapanese && exercise.romajiTarget && (
+                    <div className="mt-1.5 text-xs text-teal-300 font-mono">
+                      Romaji: {exercise.romajiTarget}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -568,11 +611,11 @@ export function LessonView({
                         key={i}
                         className={`rounded-xl p-2.5 ${CHUNK_COLORS[chunk.role] || 'bg-stone-900 border border-stone-800'}`}
                       >
-                        <div dir="rtl" className="ar text-xs font-bold text-stone-200">
-                          {chunk.arabicText}
+                        <div dir={source === 'ar' ? 'rtl' : 'ltr'} className={`text-xs font-bold text-stone-200 ${source === 'ar' ? 'ar' : ''}`}>
+                          {chunk.sourceText || (source === 'ar' ? chunk.arabicText : chunk.englishText)}
                         </div>
                         <div dir="ltr" className="text-xs font-semibold text-stone-100 mt-0.5">
-                          {chunk.englishText}
+                          {chunk.targetText || chunk.englishText}
                         </div>
                         <div className="text-[10px] text-stone-400 uppercase tracking-wider mt-1">
                           {CHUNK_LABELS[chunk.role] || chunk.role}

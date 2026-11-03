@@ -110,6 +110,17 @@
     "internships": "Technical Internships",
     "education": "Education",
     "close": "Close"
+  },
+  "languages": {
+    "selectPair": "Select Language Pair",
+    "iThinkIn": "I currently think in",
+    "iWantToThinkIn": "I want to learn to think in",
+    "activeTrack": "Active Track",
+    "changeLanguages": "Change Languages",
+    "quickSwitch": "Quick Switch",
+    "arabic": "Arabic",
+    "english": "English",
+    "german": "German",
+    "japanese": "Japanese"
   }
 }
-

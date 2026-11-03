@@ -35,16 +35,44 @@ export function stripApostrophes(str: string): string {
 }
 
 /**
+ * Normalizes CJK (Japanese Kana/Kanji) by removing spaces and CJK punctuation
+ */
+export function normalizeCjk(str: string): string {
+  if (!str) return '';
+  return str
+    .replace(/\s+/g, '')
+    .replace(/[、。・「」『』（）！？]/g, '')
+    .trim();
+}
+
+/**
  * Checks if a user's answer matches the primary target or any acceptable alternative
  */
 export function checkAnswerMatch(userInput: string, exercise: Exercise): { isCorrect: boolean; matchedTarget?: string } {
   const normInput = normalizeSentence(userInput);
   const strippedInput = stripApostrophes(userInput);
-  if (!normInput) return { isCorrect: false };
+  const cjkInput = normalizeCjk(userInput);
+  if (!normInput && !cjkInput) return { isCorrect: false };
 
-  const allValid = [exercise.englishTarget, ...(exercise.acceptableAlternatives || [])];
+  const allValid = [
+    exercise.targetSentence,
+    exercise.englishTarget,
+    exercise.romajiTarget,
+    ...(exercise.acceptableAlternatives || [])
+  ].filter(Boolean) as string[];
+
   for (const candidate of allValid) {
     if (normInput === normalizeSentence(candidate) || strippedInput === stripApostrophes(candidate)) {
+      return { isCorrect: true, matchedTarget: candidate };
+    }
+    if (cjkInput && cjkInput === normalizeCjk(candidate)) {
+      return { isCorrect: true, matchedTarget: candidate };
+    }
+    // German umlaut equivalence (ae <-> ä, oe <-> ö, ue <-> ü, ss <-> ß)
+    const normCandidate = normalizeSentence(candidate);
+    const deCleanInput = normInput.replace(/ae/g, 'ä').replace(/oe/g, 'ö').replace(/ue/g, 'ü').replace(/ss/g, 'ß');
+    const deCleanCandidate = normCandidate.replace(/ae/g, 'ä').replace(/oe/g, 'ö').replace(/ue/g, 'ü').replace(/ss/g, 'ß');
+    if (deCleanInput === deCleanCandidate) {
       return { isCorrect: true, matchedTarget: candidate };
     }
   }

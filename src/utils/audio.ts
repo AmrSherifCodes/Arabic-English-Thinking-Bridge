@@ -106,6 +106,8 @@ export function speakWithNativeSpeechSynthesis(
     const utterance = new SpeechSynthesisUtterance(text);
     const allVoices = window.speechSynthesis.getVoices();
     const isArabic = /[\u0600-\u06FF]/.test(text);
+    const isJapanese = /[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff]/.test(text);
+    const isGerman = /[äöüßÄÖÜ]/.test(text) || /\b(ich|sie|wir|das|der|die|heute|jetzt|morgen)\b/i.test(text);
 
     // 1. Find the exact voice object the user selected
     const exactVoice =
@@ -116,6 +118,22 @@ export function speakWithNativeSpeechSynthesis(
     if (exactVoice) {
       utterance.voice = exactVoice;
       utterance.lang = exactVoice.lang;
+    } else if (isJapanese) {
+      const jaVoice = allVoices.find(v => /^ja/i.test(v.lang));
+      if (jaVoice) {
+        utterance.voice = jaVoice;
+        utterance.lang = jaVoice.lang;
+      } else {
+        utterance.lang = 'ja-JP';
+      }
+    } else if (isGerman) {
+      const deVoice = allVoices.find(v => /^de/i.test(v.lang));
+      if (deVoice) {
+        utterance.voice = deVoice;
+        utterance.lang = deVoice.lang;
+      } else {
+        utterance.lang = 'de-DE';
+      }
     } else if (isArabic) {
       const arVoices = getArabicVoices();
       const chosenAr = selectBestArabicVoice(arVoices);
