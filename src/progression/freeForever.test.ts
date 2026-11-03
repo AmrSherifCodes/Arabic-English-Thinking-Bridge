@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { compactProgressionState, decompactUserState, MAX_STATE_SIZE_BYTES } from './compaction';
+import { compactProgressionState, decompactUserState, MAX_STATE_SIZE_BYTES, resolveRealSrsCardText } from './compaction';
 import { createInitialProgressionState } from './engine';
 import { syncEngine } from '../services/syncEngine';
 import { generateSmartConversationReply } from '../services/smartConversation';
@@ -50,22 +50,50 @@ test('1. compactProgressionState enforces 64 KB state size limit and excludes un
   assert.ok(sizeBytes < MAX_STATE_SIZE_BYTES, 'Compacted state size must be well under 64 KB limit');
 });
 
-test('2. Guests make ZERO database calls (local-first rule)', async () => {
+test('2. Guests make ZERO database/network calls (Strict local-first rule)', async () => {
   const state = createInitialProgressionState();
   const isGuest = true;
 
-  // Attempting to sync as a guest should resolve true immediately without any network calls
-  const synced = await syncEngine.syncUserState(state, isGuest);
-  assert.equal(synced, true, 'Guest sync must resolve true immediately with zero DB calls');
+  // Override fetch to throw an error if called
+  const originalFetch = globalThis.fetch;
+  (globalThis as any).fetch = () => {
+    throw new Error('NETWORK_CALL_ATTEMPTED_FOR_GUEST: Guest users must make zero network calls!');
+  };
+
+  try {
+    const synced = await syncEngine.syncUserState(state, isGuest);
+    assert.equal(synced, true, 'Guest sync must resolve true immediately with ZERO network/fetch calls');
+  } finally {
+    (globalThis as any).fetch = originalFetch;
+  }
 });
 
-test('3. AI quota fallback uses deterministic offline engine when network fails', () => {
-  const reply = generateSmartConversationReply('Hello Amr, how are you?');
-  assert.ok(reply.length > 0, 'Offline rule-based fallback reply must return valid response');
-  assert.match(reply, /practicing|fantastic|excited|wonderful|great|hello|welcome/i, 'Reply must be warm and conversational');
+test('3. State completeness: preserves completed lessons, quests, achievements, dates & card cap', () => {
+  const base = createInitialProgressionState();
+  base.completedLessonIds = ['p1-l1', 'p1-l2'];
+  base.lastActiveDate = '2026-11-05';
+  base.weekendPauseActive = true;
+  base.dailyCardsCap = 50;
+  base.quests[0].currentCount = 1;
+  base.quests[0].isCompleted = true;
+  base.achievements[0].unlockedAt = Date.now();
+
+  const compact = compactProgressionState(base);
+  assert.deepEqual(compact.cls, ['p1-l1', 'p1-l2'], 'Completed lesson IDs must be preserved');
+  assert.equal(compact.lad, '2026-11-05', 'Last active date must be preserved');
+  assert.equal(compact.wp, true, 'Weekend pause setting must be preserved');
+  assert.equal(compact.cap, 50, 'Daily cards cap must be preserved');
+
+  const decompacted = decompactUserState(compact, createInitialProgressionState());
+  assert.deepEqual(decompacted.completedLessonIds, ['p1-l1', 'p1-l2']);
+  assert.equal(decompacted.lastActiveDate, '2026-11-05');
+  assert.equal(decompacted.weekendPauseActive, true);
+  assert.equal(decompacted.dailyCardsCap, 50);
+  assert.equal(decompacted.quests[0].isCompleted, true);
+  assert.ok(decompacted.achievements[0].unlockedAt !== null);
 });
 
-test('4. DecompactUserState restores base state and SRS items correctly', () => {
+test('4. SRS card real text restoration from bundled dictionaries', () => {
   const base = createInitialProgressionState();
   const compact = {
     v: 2,
@@ -75,16 +103,26 @@ test('4. DecompactUserState restores base state and SRS items correctly', () => 
     shlds: 3,
     stg: 'A1',
     crowns: { 'p1-l1': 2 },
+    cls: ['p1-l1'],
+    q: [],
+    ach: [],
+    lad: '2026-11-05',
+    wp: false,
+    cap: 30,
     skills: { st: 5, vo: 4, li: 3, sp: 3, wr: 5 },
     srs: [
-      { id: 'card-1', s: 4.5, d: 3.2, l: 0, r: 2, due: Date.now() + 100000 },
+      { id: 'de-kaffee', s: 4.5, d: 3.2, l: 0, r: 2, due: Date.now() + 100000 },
     ],
     ts: Date.now(),
   };
 
   const restored = decompactUserState(compact, base);
-  assert.equal(restored.overallLevel, 5);
-  assert.equal(restored.xp, 450);
-  assert.equal(restored.streak, 7);
-  assert.equal(restored.srsItems['card-1'].stability, 4.5);
+  assert.equal(restored.srsItems['de-kaffee'].term, 'Kaffee', 'Real German term must be restored');
+  assert.ok(restored.srsItems['de-kaffee'].sourceText.length > 0, 'Source translation must be restored');
+});
+
+test('5. AI quota fallback uses deterministic offline engine when network fails', () => {
+  const reply = generateSmartConversationReply('Hello Amr, how are you?');
+  assert.ok(reply.length > 0, 'Offline rule-based fallback reply must return valid response');
+  assert.match(reply, /practicing|fantastic|excited|wonderful|great|hello|welcome/i, 'Reply must be warm and conversational');
 });

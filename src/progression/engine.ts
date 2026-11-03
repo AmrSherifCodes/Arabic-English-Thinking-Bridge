@@ -194,15 +194,8 @@ export function updateStreakAndShields(
 }
 
 /**
- * Generates default anonymous league members for safe competition.
+ * Returns real league members list (No fake bots).
  */
 export function generateDefaultLeagueMembers(): LeagueMember[] {
-  const names = ['Explorer', 'Learner', 'Thinker', 'Polyglot', 'BridgeBuilder', 'NileVoyager', 'PharaohCode'];
-  return names.map((n, idx) => ({
-    id: `m-${idx}`,
-    alias: `${n}_${Math.floor(100 + Math.random() * 900)}`,
-    avatarIcon: ['🦁', '🦅', '🐬', '🦉', '🐺', '🦊', '🐯'][idx % 7],
-    weeklyXp: Math.floor(150 + Math.random() * 400),
-    tier: 'Bronze',
-  }));
+  return []; // Honest empty state when < 5 real users
 }

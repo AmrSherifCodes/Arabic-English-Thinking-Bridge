@@ -1081,7 +1081,8 @@ export default async function handler(req, res) {
   const allowedOrigin = getCorsOrigin(origin);
   res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  // Allow header CORS
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, X-User-Gemini-Key');
   res.setHeader('Vary', 'Origin');
 
   if (req.method === 'OPTIONS') {
@@ -1112,6 +1113,8 @@ export default async function handler(req, res) {
     return sendJson(res, 400, { error: { code: 'bad-output', message: 'Invalid request body.' } });
   }
 
+  const customUserKey = (req.headers['x-user-gemini-key'] || body.userKey || '').trim();
+
   // 1. Check response cache first so cached answers do not burn rate limit or Gemini quota
   const cacheKey = buildCacheKey(body.operation, body);
   const cachedData = await getCachedResponse(cacheKey);
@@ -1119,13 +1122,15 @@ export default async function handler(req, res) {
     return sendJson(res, 200, { data: cachedData, cached: true }, { 'X-Cache': 'HIT' });
   }
 
-  // 2. Enforce IP Rate Limit (10/min, 50/day)
-  if (!(await checkRateLimit(req))) {
-    return sendJson(res, 429, {
-      error: "Rate limit exceeded. Please wait a minute or use your VIP Pass.",
-      message: "Rate limit exceeded. Please wait a minute or use your VIP Pass.",
-      code: 'rate-limited',
-    });
+  // 2. Enforce IP Rate Limit (Skipped if user provides custom Gemini key)
+  if (!customUserKey) {
+    if (!(await checkRateLimit(req))) {
+      return sendJson(res, 429, {
+        error: "Daily free AI quota reached. Try again tomorrow or enter your own free Gemini key in Settings!",
+        message: "Daily free AI quota reached. Try again tomorrow or enter your own free Gemini key in Settings!",
+        code: 'rate-limited',
+      });
+    }
   }
 
   

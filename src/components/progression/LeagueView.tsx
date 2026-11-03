@@ -70,36 +70,50 @@ export function LeagueView({ state, onToggleOptOut, isArabic = true }: LeagueVie
         </button>
       </div>
 
-      {/* League Members Table */}
-      <div className="space-y-2">
-        {allMembers.map((member, rank) => {
-          const isTop3 = rank < 3;
-          return (
-            <div
-              key={member.id}
-              className={`p-3 rounded-2xl border flex items-center justify-between transition ${
-                member.isUser
-                  ? 'bg-teal-950/50 border-teal-500 ring-2 ring-teal-500/30 font-bold'
-                  : 'bg-stone-900 border-stone-800 text-stone-300'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <span className={`w-6 text-center font-black text-xs ${isTop3 ? 'text-amber-400' : 'text-stone-500'}`}>
-                  #{rank + 1}
-                </span>
-                <span className="text-xl">{member.avatarIcon}</span>
-                <span className="text-xs font-bold text-white truncate max-w-[150px]">
-                  {member.alias}
+      {/* League Members Table / Honest Empty State */}
+      {allMembers.length < 5 ? (
+        <div className="p-6 rounded-3xl bg-stone-900 border border-stone-800 text-center space-y-2 shadow-lg">
+          <Trophy className="mx-auto text-amber-400" size={32} />
+          <h3 className="text-sm font-black text-white">
+            {isArabic ? 'الدوري سينطلق فور انضمام 5 متعلمين!' : 'League Activates at 5 Real Learners!'}
+          </h3>
+          <p className="text-xs text-stone-400 leading-relaxed">
+            {isArabic
+              ? `يتواجد حالياً ${allMembers.length} متعلم حقيقي. التطبيق لا يستخدم أي حسابات وهمية (Bots) احتراماً للمنافسة العادلة.`
+              : `Currently ${allMembers.length} real learner(s). We never populate fake bots to guarantee honest, real competition.`}
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {allMembers.map((member, rank) => {
+            const isTop3 = rank < 3;
+            return (
+              <div
+                key={member.id}
+                className={`p-3 rounded-2xl border flex items-center justify-between transition ${
+                  member.isUser
+                    ? 'bg-teal-950/50 border-teal-500 ring-2 ring-teal-500/30 font-bold'
+                    : 'bg-stone-900 border-stone-800 text-stone-300'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <span className={`w-6 text-center font-black text-xs ${isTop3 ? 'text-amber-400' : 'text-stone-500'}`}>
+                    #{rank + 1}
+                  </span>
+                  <span className="text-xl">{member.avatarIcon}</span>
+                  <span className="text-xs font-bold text-white truncate max-w-[150px]">
+                    {member.alias}
+                  </span>
+                </div>
+
+                <span className="text-xs font-black text-amber-400">
+                  {member.weeklyXp} XP
                 </span>
               </div>
-
-              <span className="text-xs font-black text-amber-400">
-                {member.weeklyXp} XP
-              </span>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

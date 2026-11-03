@@ -1,4 +1,4 @@
-name: Weekly Supabase Database Backup
+name: Weekly Encrypted Supabase Database Backup
 
 on:
   schedule:
@@ -8,27 +8,31 @@ on:
 
 jobs:
   backup:
-    name: Dump Database & Upload Private Artifact
+    name: Encrypted Database Dump & Private Artifact Upload
     runs-on: ubuntu-latest
     steps:
-      - name: Install PostgreSQL Client
+      - name: Install PostgreSQL Client & GPG
         run: |
           sudo apt-get update
-          sudo apt-get install -y postgresql-client
+          sudo apt-get install -y postgresql-client gnupg
 
-      - name: Run pg_dump
+      - name: Run pg_dump & Encrypt Dump (GPG Symmetric)
+        # Note: Use Supabase IPv4-compatible Session Pooler connection string:
+        # postgresql://postgres.[project-ref]:[PASSWORD]@aws-0-[region].pooler.supabase.com:6543/postgres
         run: |
-          if [ -n "${{ secrets.SUPABASE_DB_URL }}" ]; then
-            pg_dump "${{ secrets.SUPABASE_DB_URL }}" -F c -f supabase_backup.dump
-            echo "pg_dump completed successfully."
+          if [ -n "${{ secrets.SUPABASE_DB_URL }}" ] && [ -n "${{ secrets.BACKUP_PASSPHRASE }}" ]; then
+            pg_dump "${{ secrets.SUPABASE_DB_URL }}" -F c -f raw_backup.dump
+            gpg -c --batch --passphrase "${{ secrets.BACKUP_PASSPHRASE }}" -o supabase_backup.dump.gpg raw_backup.dump
+            rm raw_backup.dump
+            echo "Encrypted pg_dump completed successfully."
           else
-            echo "SUPABASE_DB_URL secret not set. Skipping dump."
-            touch supabase_backup.dump
+            echo "SUPABASE_DB_URL or BACKUP_PASSPHRASE secret not set. Skipping dump."
+            touch supabase_backup.dump.gpg
           fi
 
-      - name: Upload Private Artifact
+      - name: Upload Private Encrypted Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: supabase-database-backup
-          path: supabase_backup.dump
+          name: encrypted-supabase-database-backup
+          path: supabase_backup.dump.gpg
           retention-days: 30

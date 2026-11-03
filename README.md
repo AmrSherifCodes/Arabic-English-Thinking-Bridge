@@ -8,7 +8,7 @@
   <img src="https://img.shields.io/badge/Vite-8-purple?style=flat-square&logo=vite" alt="Vite" />
   <img src="https://img.shields.io/badge/Supabase-Backend-green?style=flat-square&logo=supabase" alt="Supabase" />
   <img src="https://img.shields.io/badge/Gemini-AI-orange?style=flat-square&logo=google" alt="Gemini" />
-  <img src="https://img.shields.io/badge/License-CC%20BY--SA%204.0-lightgrey?style=flat-square" alt="License" />
+  <img src="https://img.shields.io/badge/License-All%20Rights%20Reserved-red?style=flat-square" alt="License" />
 </div>
 
 ---
@@ -179,10 +179,11 @@ Want to spin up your own version? It takes less than a minute.
    git clone https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge.git
    cd Arabic-English-Thinking-Bridge
 
-## ⚖️ License & Attribution
+## 🔒 Copyright & Proprietary License
 
-- **Application Software & Codebase:** Licensed under [Creative Commons Zero v1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/) (CC0 1.0 — Public Domain Dedication). You may copy, modify, distribute, and perform the work, even for commercial purposes, without asking permission.
-- **Linguistic & Dictionary Dataset:** The curated 5,299-entry Arabic-English dictionary dataset incorporates lexical data derived from Kaikki.org / Wiktionary, licensed under [Creative Commons Attribution-ShareAlike 4.0 International](https://creativecommons.org/licenses/by-sa/4.0/) (CC BY-SA 4.0).
+All rights reserved, **Amr Sherif Abdelaal** (2024-Present).
+
+This software, application codebase, and pedagogical datasets are the exclusive proprietary property of Amr Sherif Abdelaal. See `LICENSE` for full terms.
 
 ---
 

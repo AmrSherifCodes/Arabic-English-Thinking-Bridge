@@ -431,11 +431,17 @@ async function requestGemini<T>(
   signal?.addEventListener('abort', abortRequest, { once: true });
   if (signal?.aborted) controller.abort();
 
+  const userCustomKey = typeof localStorage !== 'undefined' ? localStorage.getItem('tb.userGeminiKey') : null;
+  const reqHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (userCustomKey) {
+    reqHeaders['X-User-Gemini-Key'] = userCustomKey.trim();
+  }
+
   try {
     const response = await fetch(`${API_BASE_URL}/api/gemini`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...payload, operation }),
+      headers: reqHeaders,
+      body: JSON.stringify({ ...payload, operation, userKey: userCustomKey || undefined }),
       signal: controller.signal
     });
     const result: unknown = await response.json();
