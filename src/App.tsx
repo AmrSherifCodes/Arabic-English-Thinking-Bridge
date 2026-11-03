@@ -178,6 +178,10 @@ export default function App() {
                 state={progression}
                 onSelectLesson={(lesson) => setActiveLessonNode(lesson)}
                 onSelectUnitCheckpoint={() => {}}
+                onSetStage={(stage) => {
+                  updateProgression((p) => ({ ...p, currentStage: stage }));
+                  showToast(isArabic ? `تم تحديد مستواك: ${stage}` : `Your level is now ${stage}`);
+                }}
                 isArabic={isArabic}
               />
             </div>

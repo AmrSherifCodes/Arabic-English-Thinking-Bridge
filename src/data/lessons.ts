@@ -15,9 +15,9 @@ export const PHASES_DATA: Phase[] = [
         phaseLevel: 'A1+ – A2',
         number: 1,
         title: 'The Hidden Copula (Nominal Sentences)',
-        titleAr: 'رابطة الكينونة الخفية (الجملة الاسمية)',
+        titleAr: 'فعل الربط المخفي (am / is / are)',
         transferConcept: 'Arabic creates complete present statements with zero verbs (مبتدأ وخبر: هو طبيب). English grammar strictly forbids verbless sentences; an overt linking verb ("am / is / are") must serve as the structural backbone.',
-        transferConceptAr: 'في العربية، الجملة الاسمية تكتفي بالمبتدأ والخبر دون فعل في المضارع (هو طبيب). أما في الإنجليزية، فالجملة لا تكتمل أبداً بدون فعل رابط (am / is / are).',
+        transferConceptAr: 'في العربية نقول (هو طبيب) بدون أي فعل. أما في الإنجليزية، فالجملة لا تكتمل أبداً بدون فعل ربط أساسي (am / is / are).',
         weakSpotTag: 'copula-omission',
         exercises: [
           {
@@ -44,7 +44,7 @@ export const PHASES_DATA: Phase[] = [
             wordChips: ['The', 'weather', 'is', 'very', 'cold', 'today', 'are', 'has'],
             breakdownChunks: [
               { arabicText: 'الطقس', englishText: 'The weather', role: 'subject', explanation: 'Definite subject' },
-              { arabicText: '— (فعل الكينونة المحذوف)', englishText: 'is', role: 'verb', explanation: 'Required linking verb' },
+              { arabicText: '— (فعل الربط الأساسي المخفي)', englishText: 'is', role: 'verb', explanation: 'Required linking verb' },
               { arabicText: 'بارد جداً', englishText: 'very cold', role: 'modifier', explanation: 'Adjective phrase complement' },
               { arabicText: 'اليوم', englishText: 'today', role: 'connector', explanation: 'Time adverbial' }
             ],

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { ProgressionState, StageNode, LessonNode } from '../../progression/types';
 import { buildCourseStructure } from '../../progression/courseData';
 import { Play, Crown, CheckCircle2, Target } from 'lucide-react';
@@ -7,12 +7,15 @@ interface PathViewProps {
   state: ProgressionState;
   onSelectLesson: (lesson: LessonNode) => void;
   onSelectUnitCheckpoint: (unitId: string) => void;
+  onSetStage?: (stage: StageNode['stage']) => void;
   isArabic?: boolean;
 }
 
-export function PathView({ state, onSelectLesson, onSelectUnitCheckpoint, isArabic = true }: PathViewProps) {
+export function PathView({ state, onSelectLesson, onSelectUnitCheckpoint, onSetStage, isArabic = true }: PathViewProps) {
   const courseStructure: StageNode[] = buildCourseStructure();
-  const activeStageNode = courseStructure.find((s) => s.stage === state.currentStage) || courseStructure[0];
+  const [viewedStage, setViewedStage] = useState<string>(state.currentStage);
+  const activeStageNode = courseStructure.find((s) => s.stage === viewedStage) || courseStructure[0];
+  const isMyLevel = activeStageNode.stage === state.currentStage;
 
   // Read saved user goal from localStorage if available
   const userGoal = useMemo(() => {
@@ -62,7 +65,9 @@ export function PathView({ state, onSelectLesson, onSelectUnitCheckpoint, isArab
 
         <button
           onClick={() => {
-            const firstUnfinished = activeStageNode.units[0]?.lessons[0];
+            const allLessons = activeStageNode.units.flatMap((u) => u.lessons);
+            const firstUnfinished =
+              allLessons.find((l) => !state.completedLessonIds.includes(l.id)) || allLessons[0];
             if (firstUnfinished) onSelectLesson(firstUnfinished);
           }}
           className="px-5 py-3 min-h-[48px] rounded-2xl bg-primary text-on-primary font-black text-xs shadow-lg transition active:scale-95 flex items-center gap-2 shrink-0"
@@ -75,11 +80,12 @@ export function PathView({ state, onSelectLesson, onSelectUnitCheckpoint, isArab
       {/* 2. Stages Tabs / Selector */}
       <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
         {courseStructure.slice(0, 3).map((stg) => {
-          const isActive = stg.stage === state.currentStage;
+          const isActive = stg.stage === viewedStage;
           return (
             <button
               key={stg.stage}
-              onClick={() => {}}
+              onClick={() => setViewedStage(stg.stage)}
+              aria-pressed={stg.stage === viewedStage}
               className={`px-4 py-2 min-h-[48px] min-w-[48px] rounded-2xl border text-xs font-black transition shrink-0 ${
                 isActive
                   ? 'bg-success/20 border-success text-success shadow-md'
@@ -91,6 +97,15 @@ export function PathView({ state, onSelectLesson, onSelectUnitCheckpoint, isArab
           );
         })}
       </div>
+
+      {!isMyLevel && onSetStage && (
+        <button
+          onClick={() => onSetStage(activeStageNode.stage)}
+          className="w-full px-4 py-3 min-h-[48px] rounded-2xl bg-primary text-on-primary font-black text-xs shadow-lg active:scale-95"
+        >
+          {isArabic ? `اجعل ${activeStageNode.stage} مستواي الحالي` : `Set ${activeStageNode.stage} as my level`}
+        </button>
+      )}
 
       {/* 3. Duolingo-Style Path Node List */}
       <div className="space-y-8">

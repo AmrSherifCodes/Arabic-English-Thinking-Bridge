@@ -261,7 +261,7 @@ export function OnboardingPlacementModal({
                   {isArabic ? 'من أين تريد البدء؟' : 'Where do you want to start?'}
                 </h3>
                 <p className="text-xs text-muted">
-                  {isArabic ? 'اختر البدء من الصفر أو خوض اختبار تحديد المستوى السريع' : 'Start from scratch or take a quick placement check'}
+                  {isArabic ? 'أنت من يحدد مستواك — اختر المرحلة المناسبة، ويمكنك تغييرها في أي وقت' : 'You decide your level — pick a stage, change it anytime'}
                 </p>
               </div>
 
@@ -278,7 +278,15 @@ export function OnboardingPlacementModal({
                   onClick={() => handleFinish('A1')}
                   className="w-full p-4 min-h-[48px] rounded-2xl bg-surface border border-border text-text font-bold text-xs hover:border-success/40 transition flex items-center justify-between active:scale-95"
                 >
-                  <span>{isArabic ? 'عندي خلفية سابقة (التخطي للمرحلة A1)' : 'I have background (Jump to A1)'}</span>
+                  <span>{isArabic ? 'أعرف الأساسيات (ابدأ من المرحلة A1)' : 'I know the basics (Start at A1)'}</span>
+                  <Check size={18} className="text-success" />
+                </button>
+
+                <button
+                  onClick={() => handleFinish('A2')}
+                  className="w-full p-4 min-h-[48px] rounded-2xl bg-surface border border-border text-text font-bold text-xs hover:border-success/40 transition flex items-center justify-between active:scale-95"
+                >
+                  <span>{isArabic ? 'أتحدث بشكل جيد (ابدأ من المرحلة A2)' : 'I can hold conversations (Start at A2)'}</span>
                   <Check size={18} className="text-success" />
                 </button>
               </div>
