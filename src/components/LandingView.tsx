@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../services/supabase';
 import { AgentLandingSection } from './AgentLandingSection';
+import { FounderSection } from './FounderSection';
 import {
   Sparkles,
   Download,
@@ -462,7 +463,10 @@ export function LandingView({ onStartWebApp }: LandingViewProps) {
         </section>
       )}
 
-      {/* 7. DOWNLOAD SECTION */}
+      {/* 7. FOUNDER & MISSION SECTION */}
+      <FounderSection isArabic={isAr} />
+
+      {/* 8. DOWNLOAD SECTION */}
       <section id="download-section" className="px-4 py-16 max-w-[var(--landing-max-w)] mx-auto">
         <div className="text-center space-y-8">
           <div>
