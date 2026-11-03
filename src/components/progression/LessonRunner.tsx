@@ -3,6 +3,7 @@ import { LessonNode, ExerciseItem } from '../../progression/types';
 import { CheckCircle2, XCircle, ArrowRight, Zap, Timer, Sparkles } from 'lucide-react';
 import { computeNextHintWord } from '../../utils/habitPsychology';
 import confetti from 'canvas-confetti';
+import { soundFX } from '../../utils/soundFX';
 
 interface LessonRunnerProps {
   lesson: LessonNode;
@@ -148,6 +149,7 @@ export function LessonRunner({
       );
 
     setIsCorrect(isMatch);
+    if (isMatch) soundFX.playCorrect(); else soundFX.playError();
     setIsAnswered(true);
 
     if (isMatch) {
@@ -366,7 +368,10 @@ export function LessonRunner({
                     <button
                       key={idx}
                       disabled={isSelected || isAnswered}
-                      onClick={() => setSelectedChips((prev) => [...prev, chip])}
+                      onClick={() => {
+                        soundFX.playChipSelect();
+                        setSelectedChips((prev) => [...prev, chip]);
+                      }}
                       dir="ltr"
                       className={`px-4 py-2.5 min-h-[48px] rounded-xl font-bold text-sm transition ${
                         isSelected
