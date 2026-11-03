@@ -1,0 +1,21 @@
+name: Supabase Free Tier Keep-Alive
+
+on:
+  schedule:
+    # Runs every 3 days at midnight UTC
+    - cron: '0 0 */3 * *'
+  workflow_dispatch:
+
+jobs:
+  keepalive:
+    name: Ping Supabase REST API
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase Project REST Endpoint
+        run: |
+          if [ -n "${{ secrets.VITE_SUPABASE_URL }}" ] && [ -n "${{ secrets.VITE_SUPABASE_ANON_KEY }}" ]; then
+            curl -s -f -o /dev/null -H "apikey: ${{ secrets.VITE_SUPABASE_ANON_KEY }}" "${{ secrets.VITE_SUPABASE_URL }}/rest/v1/"
+            echo "Supabase keep-alive ping successful."
+          else
+            echo "Supabase secrets not configured, skipping ping."
+          fi

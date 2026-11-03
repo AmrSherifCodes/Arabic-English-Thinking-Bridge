@@ -1,0 +1,34 @@
+name: Weekly Supabase Database Backup
+
+on:
+  schedule:
+    # Runs every Sunday at 02:00 UTC
+    - cron: '0 2 * * 0'
+  workflow_dispatch:
+
+jobs:
+  backup:
+    name: Dump Database & Upload Private Artifact
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install PostgreSQL Client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Run pg_dump
+        run: |
+          if [ -n "${{ secrets.SUPABASE_DB_URL }}" ]; then
+            pg_dump "${{ secrets.SUPABASE_DB_URL }}" -F c -f supabase_backup.dump
+            echo "pg_dump completed successfully."
+          else
+            echo "SUPABASE_DB_URL secret not set. Skipping dump."
+            touch supabase_backup.dump
+          fi
+
+      - name: Upload Private Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: supabase-database-backup
+          path: supabase_backup.dump
+          retention-days: 30

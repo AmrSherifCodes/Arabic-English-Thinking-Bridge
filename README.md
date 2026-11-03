@@ -87,6 +87,48 @@ npx cap open ios
 
 ---
 
+## 📊 Capacity & Free Tier Limits
+
+Thinking Bridge is architected to remain **100% Free Forever** without requiring paid cloud infrastructure or surprise bills.
+
+### Live Health & Capacity Endpoint
+* Endpoint: `/api/health`
+* Inspect health, server uptime, and active capacity limits.
+
+### Free Limits to Monitor & Where to Check
+1. **Supabase Database & Auth (Free Tier)**
+   * **Limits**: 500 MB DB Storage, 50,000 Monthly Active Users (MAU), 5 GB Egress/month.
+   * **Architecture Safeguard**: Single compact row (`public.user_state`) capped at 64 KB per user. Guests make 0 DB calls.
+   * **Dashboard**: [app.supabase.com](https://app.supabase.com) ➔ Settings ➔ Usage.
+2. **Google Gemini AI (Free Tier)**
+   * **Limits**: 15 Requests/Minute (RPM), 1,500 Requests/Day (RPD).
+   * **Architecture Safeguard**: Per-IP/User daily quotas with response caching. Users can also enter their own free Gemini key in Settings (`localStorage`). Fallbacks automatically to local offline engine.
+   * **Dashboard**: [console.cloud.google.com](https://console.cloud.google.com) ➔ API & Services.
+3. **Vercel Web Hosting (Free Hobby Tier)**
+   * **Limits**: 100 GB Bandwidth/month, 100k Serverless Function Executions/day.
+   * **Dashboard**: [vercel.com](https://vercel.com) ➔ Usage.
+
+---
+
+## 🔑 Required GitHub Actions Secrets
+
+To enable automated database keep-alive pings and weekly `pg_dump` backups in GitHub Actions, add these secrets to your repository Settings ➔ Secrets ➔ Actions:
+* `VITE_SUPABASE_URL`: Your Supabase project URL (e.g. `https://xxxx.supabase.co`).
+* `VITE_SUPABASE_ANON_KEY`: Your Supabase public anonymous key.
+* `SUPABASE_DB_URL`: Postgres connection string (e.g. `postgresql://postgres:[PASSWORD]@db.xxxx.supabase.co:5432/postgres`) for `pg_dump`.
+
+---
+
+## ☁️ Cloudflare Pages Hosting Portability
+
+Thinking Bridge builds purely to static client assets in `dist/`. If you ever wish to move hosting away from Vercel to Cloudflare Pages:
+1. Connect your GitHub repository in the [Cloudflare Pages Dashboard](https://dash.cloudflare.com).
+2. Set Build Command to: `npm run build`
+3. Set Build Output Directory to: `dist`
+4. Deploy with 0 configuration needed!
+
+---
+
 ## 🔒 Copyright & Proprietary License
 All rights reserved, **Amr Sherif Abdelaal** (2024-Present). See `LICENSE` for full proprietary license terms.
 
