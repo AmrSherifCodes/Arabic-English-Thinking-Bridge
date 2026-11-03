@@ -5,23 +5,15 @@ import App from './App.tsx';
 import './index.css';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
-// In Capacitor native WebView or during local development, unregister lingering Service Workers
-// so they never trap the WebView in stale cache during development or live-reload.
-if (Capacitor.isNativePlatform() || import.meta.env.DEV) {
-  if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-    navigator.serviceWorker.getRegistrations().then((registrations) => {
-      for (const registration of registrations) {
-        registration.unregister();
-      }
-    }).catch(() => {});
-    if ('caches' in window) {
-      caches.keys().then((names) => {
-        for (const name of names) {
-          caches.delete(name);
-        }
-      }).catch(() => {});
-    }
-  }
+window.addEventListener('error', e => console.error('[TB_ERR]', e.message, e.filename, e.lineno));
+window.addEventListener('unhandledrejection', e => console.error('[TB_PROMISE]', e.reason));
+
+// PWA Service Worker logic for web vs native
+if (!Capacitor.isNativePlatform()) {
+  import('virtual:pwa-register').then(({ registerSW }) => registerSW({ immediate: true }));
+} else if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => r.unregister()));
+  if ('caches' in window) caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
 }
 
 createRoot(document.getElementById('root')!).render(

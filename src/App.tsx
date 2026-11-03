@@ -98,11 +98,18 @@ export default function App() {
     });
   };
 
-  const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [toastMsg, setToastMsg] = useState<React.ReactNode | null>(null);
   const toastTimerRef = useRef<number | null>(null);
   const [aiHelperRequest] = useState<AIHelperRequest | null>(null);
 
-  const showToast = (msg: string) => {
+  const T = (ar: string, en: string) => (
+    <>
+      <span dir="rtl" lang="ar" className="ar" style={{ display: 'block' }}>{ar}</span>
+      <span style={{ display: 'block', opacity: 0.6, fontSize: '11px', marginTop: '2px' }}>{en}</span>
+    </>
+  );
+
+  const showToast = (msg: React.ReactNode) => {
     if (toastTimerRef.current) window.clearTimeout(toastTimerRef.current);
     setToastMsg(msg);
     toastTimerRef.current = window.setTimeout(() => setToastMsg(null), 3000);

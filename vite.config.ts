@@ -4,7 +4,7 @@ import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
-const BASE = process.env.VITE_BASE ?? '/';
+const BASE = process.env.CAPACITOR_BUILD === 'true' ? './' : (process.env.VITE_BASE ?? '/');
 
 export default defineConfig(async ({ command, mode }) => {
   const env = loadEnv(mode, '.', '');
@@ -44,7 +44,7 @@ export default defineConfig(async ({ command, mode }) => {
       tailwindcss(),
       VitePWA({
         registerType: 'autoUpdate',
-        injectRegister: 'auto',
+        injectRegister: false,
         includeAssets: ['favicon.ico', 'apple-touch-icon-180x180.png'],
         manifest: {
           id: BASE,
