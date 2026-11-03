@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef } from 'react';
-import { Youtube, Download, Upload, ShieldCheck, Database, CheckCircle2 } from 'lucide-react';
+import { Youtube, Download, Upload, ShieldCheck, Database } from 'lucide-react';
 import { TabTutorialModal } from '../../components/TabTutorialModal';
 import { CATEGORY_LABELS, CATEGORY_LABELS_AR, PreferenceCategory } from './settingsSchema';
 import { usePreferences } from './usePreferences';
@@ -29,12 +29,51 @@ export function PreferencesView({
 }: PreferencesViewProps) {
   const [showGuide, setShowGuide] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { values, set, reset, schema } = usePreferences();
+  const { values, set, schema } = usePreferences();
   const isArabic = profile?.language === 'arabic';
 
-  const vaultAudit = useMemo(() => {
-    return progress ? getVaultAuditSnapshot(progress) : null;
-  }, [progress]);
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    if (typeof localStorage !== 'undefined') {
+      return (localStorage.getItem('tb.theme') as 'dark' | 'light') || 'dark';
+    }
+    return 'dark';
+  });
+
+  const [customGeminiKey, setCustomGeminiKey] = useState<string>(() => {
+    if (typeof localStorage !== 'undefined') {
+      return localStorage.getItem('tb.userGeminiKey') || '';
+    }
+    return '';
+  });
+
+  const handleThemeChange = (newTheme: 'dark' | 'light') => {
+    setTheme(newTheme);
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('tb.theme', newTheme);
+    }
+    if (newTheme === 'light') {
+      document.documentElement.classList.add('light');
+      document.documentElement.classList.remove('dark');
+      document.documentElement.style.colorScheme = 'light';
+    } else {
+      document.documentElement.classList.add('dark');
+      document.documentElement.classList.remove('light');
+      document.documentElement.style.colorScheme = 'dark';
+    }
+    onToast?.(isArabic ? `☀️ تم التبديل إلى الوضع ${newTheme === 'light' ? 'الفاتح' : 'الداكن'}` : `Switched to ${newTheme} mode`);
+  };
+
+  const handleSaveGeminiKey = (val: string) => {
+    setCustomGeminiKey(val);
+    if (typeof localStorage === 'undefined') return;
+    if (val.trim()) {
+      localStorage.setItem('tb.userGeminiKey', val.trim());
+      onToast?.(isArabic ? '✅ تم حفظ مفتاح Gemini الخاص بك!' : '✅ Custom Gemini key saved!');
+    } else {
+      localStorage.removeItem('tb.userGeminiKey');
+      onToast?.(isArabic ? '🗑️ تم إزالة المفتاح المخصص' : '🗑️ Custom key removed');
+    }
+  };
 
   const grouped = useMemo(() => {
     const m = new Map<PreferenceCategory, typeof schema>();
@@ -98,7 +137,7 @@ export function PreferencesView({
           >
             {isArabic ? '→' : '←'}
           </button>
-          <h1>{isArabic ? 'الإعدادات' : 'Preferences'}</h1>
+          <h1>{isArabic ? 'الإعدادات والتخصيص' : 'Preferences & Tailoring'}</h1>
           <button
             type="button"
             className="pref-guide-btn"
@@ -110,7 +149,80 @@ export function PreferencesView({
           </button>
         </div>
       </header>
-      <div className="pref-body">
+      <div className="pref-body space-y-6">
+        {/* Experience Customization Section */}
+        <section className="pref-section" aria-label="Customization">
+          <h2 className="pref-section__title">
+            🎨 {isArabic ? 'تخصيص التجربة والذكاء الاصطناعي' : 'Customization & AI Key'}
+          </h2>
+          <div className="pref-section__fields space-y-3 p-4 rounded-2xl bg-surface border border-border">
+            {/* Theme Selector */}
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <div>
+                <span className="font-bold text-sm text-text block">
+                  {isArabic ? 'مظهر التطبيق (Theme)' : 'App Theme'}
+                </span>
+                <span className="text-xs text-muted block">
+                  {isArabic ? 'التبديل بين الوضع الداكن والوضع الفاتح' : 'Switch between Dark Mode and Light Mode'}
+                </span>
+              </div>
+              <div className="flex items-center gap-1 bg-surface-2 p-1 rounded-xl border border-border">
+                <button
+                  type="button"
+                  onClick={() => handleThemeChange('dark')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                    theme === 'dark' ? 'bg-primary text-on-primary shadow-sm' : 'text-muted'
+                  }`}
+                >
+                  🌙 {isArabic ? 'داكن' : 'Dark'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleThemeChange('light')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                    theme === 'light' ? 'bg-primary text-on-primary shadow-sm' : 'text-muted'
+                  }`}
+                >
+                  ☀️ {isArabic ? 'فاتح' : 'Light'}
+                </button>
+              </div>
+            </div>
+
+            {/* Custom Free Gemini Key Input */}
+            <div className="space-y-2 pt-1">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-sm text-text block">
+                  🔑 {isArabic ? 'مفتاح Gemini الخاص (اختياري)' : 'Custom Gemini API Key (Optional)'}
+                </span>
+                <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-success/20 text-success">
+                  {isArabic ? 'مجاني ١٠٠٪' : '100% Free'}
+                </span>
+              </div>
+              <p className="text-xs text-muted">
+                {isArabic
+                  ? 'أدخل مفتاحك المجاني من Google AI Studio للحصول على أولوية استجابة فورية وبدون حدود يومية.'
+                  : 'Optionally supply your free Gemini key from Google AI Studio for priority unlimited access.'}
+              </p>
+              <div className="flex items-center gap-2 pt-1">
+                <input
+                  type="password"
+                  value={customGeminiKey}
+                  onChange={(e) => setCustomGeminiKey(e.target.value)}
+                  placeholder="AIzaSy..."
+                  className="flex-1 p-2.5 rounded-xl bg-surface-2 border border-border text-text text-sm font-mono focus:outline-none focus:border-success"
+                />
+                <button
+                  type="button"
+                  onClick={() => handleSaveGeminiKey(customGeminiKey)}
+                  className="px-4 py-2.5 rounded-xl bg-primary text-on-primary font-black text-xs transition active:scale-95 shadow-md"
+                >
+                  {isArabic ? 'حفظ' : 'Save'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {Array.from(grouped.entries()).map(([cat, fields]) => (
           <section key={cat} className="pref-section">
             <h2 className="pref-section__title">
@@ -169,6 +281,7 @@ export function PreferencesView({
             )}
           </section>
         ))}
+
         {/* Progress & Data Vault Section */}
         {progress && (
           <section className="pref-vault-card" aria-label="Progress and Data Vault">
@@ -316,40 +429,14 @@ export function PreferencesView({
             >
               GitHub
             </a>
-            <a
-              href="https://www.patreon.com/c/SciAmrSherif"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="pref-creator-card__link"
-            >
-              Patreon
-            </a>
-            <a
-              href="https://x.com/SciAmrSherif"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="pref-creator-card__link"
-            >
-              X
-            </a>
-            <a
-              href="mailto:amrsherifbusiness@gmail.com"
-              className="pref-creator-card__link"
-            >
-              Email
-            </a>
           </div>
         </div>
-
-        <button type="button" className="pref-reset" onClick={reset}>
-          {isArabic ? '↺ استعادة الإعدادات الافتراضية' : '↺ Reset to defaults'}
-        </button>
       </div>
 
       <TabTutorialModal
         isOpen={showGuide}
         onClose={() => setShowGuide(false)}
-        language={isArabic ? 'arabic' : 'english'}
+        language={profile?.language === 'arabic' ? 'arabic' : 'english'}
         initialTab="preferences"
       />
     </div>
