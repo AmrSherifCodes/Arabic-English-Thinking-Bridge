@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { LessonNode, ExerciseItem } from '../../progression/types';
-import { CheckCircle2, XCircle, ArrowRight } from 'lucide-react';
+import { CheckCircle2, XCircle, ArrowRight, Zap, Timer } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 interface LessonRunnerProps {
@@ -25,10 +25,21 @@ export function LessonRunner({
   const [correctAnswersCount, setCorrectAnswersCount] = useState(0);
   const [showSummary, setShowSummary] = useState(false);
 
+  // Automaticity Timer Tracking (Reflex Speed in Seconds)
+  const exerciseStartTimeRef = useRef<number>(Date.now());
+  const [responseTimesMs, setResponseTimesMs] = useState<number[]>([]);
+
   const currentExercise: ExerciseItem = exercises[currentIndex] || exercises[0];
+
+  useEffect(() => {
+    exerciseStartTimeRef.current = Date.now();
+  }, [currentIndex]);
 
   const handleCheckAnswer = () => {
     if (isAnswered) return;
+
+    const timeSpentMs = Math.max(1000, Date.now() - exerciseStartTimeRef.current);
+    setResponseTimesMs((prev) => [...prev, timeSpentMs]);
 
     let userSentence = '';
     if (currentExercise.type === 'structure_builder') {
@@ -72,6 +83,18 @@ export function LessonRunner({
 
   if (showSummary) {
     const accuracy = Math.round((correctAnswersCount / exercises.length) * 100);
+    const totalTimeMs = responseTimesMs.reduce((a, b) => a + b, 0);
+    const avgSecPerExercise = responseTimesMs.length > 0
+      ? Number((totalTimeMs / responseTimesMs.length / 1000).toFixed(1))
+      : 0;
+
+    let automaticityTierAr = '⚡ طلاقة فورية بدون ترجمة!';
+    let automaticityTierEn = '⚡ Instant Reflexes!';
+    if (avgSecPerExercise > 8 || accuracy < 70) {
+      automaticityTierAr = '💡 سرعة جيدة مع حاجة للمزيد من الممارسة';
+      automaticityTierEn = '💡 Good speed, keep practicing!';
+    }
+
     const earnedXp = Math.round((correctAnswersCount * 10) + (accuracy > 80 ? 20 : 0));
 
     return (
@@ -101,6 +124,26 @@ export function LessonRunner({
                 <span className="text-xl font-black text-primary block">{accuracy}%</span>
                 <span className="text-[10px] text-muted font-bold">{isArabic ? 'نسبة الدقة' : 'Accuracy'}</span>
               </div>
+            </div>
+
+            {/* Automaticity Reflex Meter Card */}
+            <div className="p-3.5 rounded-2xl bg-surface-2 border border-border flex items-center justify-between text-start">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-success/20 text-success">
+                  <Zap size={18} />
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold text-muted uppercase block">
+                    {isArabic ? 'معدل سرعة التفكير والبديهة' : 'Cognitive Reflex Speed'}
+                  </span>
+                  <span className="text-xs font-black text-text">
+                    {isArabic ? automaticityTierAr : automaticityTierEn}
+                  </span>
+                </div>
+              </div>
+              <span className="text-xs font-black text-success dir-ltr">
+                {avgSecPerExercise}s/ex
+              </span>
             </div>
 
             <button
@@ -138,9 +181,10 @@ export function LessonRunner({
               style={{ width: `${progressPercent}%` }}
             />
           </div>
-          <span className="text-xs font-black text-muted">
-            {currentIndex + 1}/{exercises.length}
-          </span>
+          <div className="flex items-center gap-1 text-xs font-black text-muted">
+            <Timer size={14} className="text-primary" />
+            <span>{currentIndex + 1}/{exercises.length}</span>
+          </div>
         </div>
 
         {/* Exercise Body */}
