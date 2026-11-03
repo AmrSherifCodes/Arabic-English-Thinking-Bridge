@@ -39,3 +39,4 @@ test('2. feedback handler responds to OPTIONS with 204', async () => {
   await handler(req, res);
   assert.equal(statusCode, 204);
 });
+
