@@ -76,7 +76,7 @@ export function HomeView({
   const nextLessonIdx = adaptiveRec.lessonIndex;
   const nextLesson = adaptiveRec.lesson;
 
-  const displayName = profile.name ? `يا ${profile.name} ` : '';
+  const displayName = profile?.name ? `يا ${profile.name} ` : '';
 
   // Dynamic Mascot Tip based on user state
   const getAvatarTip = () => {

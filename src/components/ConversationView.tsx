@@ -23,9 +23,9 @@ export interface ConversationViewProps {
 
 const STORAGE_KEY = 'tb.live_conversation_history';
 
-function getTailoredTopicSuggestions(profile: UserProfile): Array<{ en: string; ar: string }> {
-  const focus = String(profile.focusArea || '').toLowerCase();
-  const goal = String(profile.goal || '').toLowerCase();
+function getTailoredTopicSuggestions(profile?: UserProfile | null): Array<{ en: string; ar: string }> {
+  const focus = String(profile?.focusArea || '').toLowerCase();
+  const goal = String(profile?.goal || '').toLowerCase();
 
   if (focus.includes('chem') || focus.includes('science')) {
     return [
@@ -58,9 +58,9 @@ function getTailoredTopicSuggestions(profile: UserProfile): Array<{ en: string; 
   ];
 }
 
-function getInitialGreeting(profile: UserProfile): string {
-  const name = profile.name ? ` ${profile.name}` : '';
-  const goal = String(profile.goal || '').toLowerCase();
+function getInitialGreeting(profile?: UserProfile | null): string {
+  const name = profile?.name ? ` ${profile.name}` : '';
+  const goal = String(profile?.goal || '').toLowerCase();
 
   if (goal === 'travel') {
     return `Hello${name}! ✈️ I'm your English speaking partner. Where would you like to travel, or what situation should we practice today?`;

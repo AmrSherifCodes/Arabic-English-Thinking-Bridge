@@ -28,13 +28,17 @@ export function getSituationForGoal(goal: UserProfile['goal']): Situation {
  */
 export function filterDictionaryForProfile(
   entries: LexiconEntry[],
-  profile: UserProfile
+  profile?: UserProfile | null
 ): LexiconEntry[] {
-  const levelLimit = LEVEL_RANK[profile.level];
-  const situation = getSituationForGoal(profile.goal);
+  const level = profile?.level || 'beginner';
+  const goal = profile?.goal || 'general';
+  const dialect = profile?.dialect || 'egyptian';
+
+  const levelLimit = LEVEL_RANK[level] || 1;
+  const situation = getSituationForGoal(goal);
 
   const sameDialectEntries = entries.filter(
-    entry => entry.dialect === profile.dialect
+    entry => entry.dialect === dialect
   );
 
   const strictMatches = sameDialectEntries.filter(

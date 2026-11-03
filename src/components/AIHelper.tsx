@@ -43,8 +43,8 @@ export function AIHelper({ profile, request }: AIHelperProps) {
   const [error, setError] = useState<string | null>(null);
   const { messages, history, addMessage } = useRealConversation();
   const cloudAvailable = isOnline && (hasPersonalKey || hasGeminiBackend);
-  const rtl = isArabicUI(profile.language);
-  const t = (en: string, ar: string) => uiText(profile.language, en, ar);
+  const rtl = isArabicUI(profile?.language);
+  const t = (en: string, ar: string) => uiText(profile?.language, en, ar);
 
   useEffect(() => {
     let active = true;

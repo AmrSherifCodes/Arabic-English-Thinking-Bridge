@@ -13,9 +13,9 @@ export interface AdaptiveRecommendation {
 /**
  * Returns relevance weight (1 to 10) for a given lesson based on user's goal and focus area.
  */
-export function getLessonRelevanceScore(lesson: Lesson, profile: UserProfile): number {
-  const goal = profile.goal || 'general';
-  const focus = (profile.focusArea || '').toLowerCase();
+export function getLessonRelevanceScore(lesson: Lesson, profile?: UserProfile | null): number {
+  const goal = profile?.goal || 'general';
+  const focus = (profile?.focusArea || '').toLowerCase();
   let score = 5; // Base score
 
   // 1. Chemistry & Academic Focus
@@ -105,9 +105,9 @@ export function isPriorityLessonForProfile(lesson: Lesson, profile: UserProfile)
 /**
  * Returns human-readable track title and badge icon for the profile.
  */
-export function getProfileTrackInfo(profile: UserProfile): { titleEn: string; titleAr: string; icon: string } {
-  const focus = (profile.focusArea || '').toLowerCase();
-  const goal = profile.goal || 'general';
+export function getProfileTrackInfo(profile?: UserProfile | null): { titleEn: string; titleAr: string; icon: string } {
+  const focus = (profile?.focusArea || '').toLowerCase();
+  const goal = profile?.goal || 'general';
 
   if (focus === 'chemistry' || focus.includes('chem') || focus.includes('science')) {
     return {
