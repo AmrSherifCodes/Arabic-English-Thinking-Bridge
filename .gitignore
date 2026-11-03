@@ -28,3 +28,5 @@ android/key.properties
 *.jks
 
 *.mp4
+.vercel
+.env*

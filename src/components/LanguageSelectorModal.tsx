@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, Check, ArrowRight, Share2, Globe, Sparkles } from 'lucide-react';
 import { SourceLanguage, TargetLanguage } from '../types';
 import { SOURCE_LANGUAGES, TARGET_LANGUAGES, SUPPORTED_PAIRS, getPairConfig } from '../data/languages';
+import { LanguageFlag } from './LanguageFlag';
 
 interface LanguageSelectorModalProps {
   isOpen: boolean;
@@ -104,7 +105,7 @@ export function LanguageSelectorModal({
                     }`}
                   >
                     <div className="flex items-center justify-between w-full mb-1">
-                      <span className="text-2xl">{meta.flag}</span>
+                      <LanguageFlag code={langKey} size={22} />
                       {isSelected && <Check className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />}
                     </div>
                     <span className="font-bold text-stone-900 dark:text-stone-100 text-sm">
@@ -140,13 +141,13 @@ export function LanguageSelectorModal({
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <span className="text-3xl">{meta.flag}</span>
+                      <LanguageFlag code={langKey} size={28} />
                       <div>
                         <div className="flex items-center gap-2">
                           <span className="font-bold text-stone-900 dark:text-stone-100 text-sm">
                             {meta.nameNative}
                           </span>
-                          <span className="text-xs text-stone-500">
+                          <span className="text-xs text-stone-500 font-medium">
                             ({isAr ? meta.nameAr : meta.nameEn})
                           </span>
                           <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300">
@@ -186,10 +187,12 @@ export function LanguageSelectorModal({
                 {isAr ? 'رابط مباشر' : 'Share link'}
               </button>
             </div>
-            <div className="text-sm font-bold text-stone-900 dark:text-stone-100">
-              {SOURCE_LANGUAGES[selectedSource].flag} {SOURCE_LANGUAGES[selectedSource].nameNative}
-              {'  ➔  '}
-              {TARGET_LANGUAGES[selectedTarget].flag} {TARGET_LANGUAGES[selectedTarget].nameNative}
+            <div className="text-sm font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
+              <LanguageFlag code={selectedSource} size={18} />
+              <span>{SOURCE_LANGUAGES[selectedSource].nameNative}</span>
+              <span className="text-amber-500">➔</span>
+              <LanguageFlag code={selectedTarget} size={18} />
+              <span>{TARGET_LANGUAGES[selectedTarget].nameNative} ({isAr ? TARGET_LANGUAGES[selectedTarget].nameAr : TARGET_LANGUAGES[selectedTarget].nameEn})</span>
             </div>
             <p className="text-xs text-stone-600 dark:text-stone-300 mt-1">
               {isAr ? activePairConfig.bridgeConceptAr : activePairConfig.bridgeConceptEn}

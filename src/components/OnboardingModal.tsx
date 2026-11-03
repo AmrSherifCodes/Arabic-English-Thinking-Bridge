@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Check, ArrowRight, ArrowLeft, Globe, Compass, Briefcase, Plane, GraduationCap, MessageCircle, Rocket } from 'lucide-react';
 import type { LearningGoal, UserProfile, SourceLanguage, TargetLanguage } from '../types';
 import { SOURCE_LANGUAGES, TARGET_LANGUAGES } from '../data/languages';
+import { LanguageFlag } from './LanguageFlag';
 
 export interface OnboardingModalProps {
   isOpen: boolean;
@@ -429,7 +430,7 @@ export function OnboardingModal({
                       : 'bg-stone-950/60 border-stone-800 hover:border-stone-700'
                   }`}
                 >
-                  <span className="text-2xl mb-1">🇪🇬</span>
+                  <LanguageFlag code="ar" size={22} className="mb-1" />
                   <span className="font-black text-sm text-stone-100">العربية (Arabic)</span>
                   <span className="text-[10px] text-stone-400 mt-0.5">لغة الأم والتفكير التلقائي</span>
                   {sourceLang === 'ar' && (
@@ -448,7 +449,7 @@ export function OnboardingModal({
                       : 'bg-stone-950/60 border-stone-800 hover:border-stone-700'
                   }`}
                 >
-                  <span className="text-2xl mb-1">🇬🇧</span>
+                  <LanguageFlag code="en" size={22} className="mb-1" />
                   <span className="font-black text-sm text-stone-100">English (الإنجليزية)</span>
                   <span className="text-[10px] text-stone-400 mt-0.5">I think mainly in English</span>
                   {sourceLang === 'en' && (
@@ -538,7 +539,7 @@ export function OnboardingModal({
                           : 'bg-stone-950/60 border-stone-800 hover:border-stone-700'
                       }`}
                     >
-                      <span className="text-2xl shrink-0 mt-0.5">{opt.flag}</span>
+                      <LanguageFlag code={opt.id} size={22} className="mt-1" />
                       <div className="flex-1">
                         <div className="flex items-center justify-between">
                           <span className="font-black text-sm text-stone-100">
@@ -564,9 +565,11 @@ export function OnboardingModal({
 
               {/* Active Pair Visual Bridge */}
               <div className="mt-2 p-2 rounded-xl bg-stone-950/60 border border-stone-800 text-center flex items-center justify-center gap-2 text-xs font-bold text-stone-300">
-                <span>{SOURCE_LANGUAGES[sourceLang]?.flag} {isSourceArabic ? SOURCE_LANGUAGES[sourceLang]?.nameNative : SOURCE_LANGUAGES[sourceLang]?.nameEn}</span>
+                <LanguageFlag code={sourceLang} size={16} />
+                <span>{isSourceArabic ? SOURCE_LANGUAGES[sourceLang]?.nameNative : SOURCE_LANGUAGES[sourceLang]?.nameEn}</span>
                 <span className="text-teal-400">➔</span>
-                <span>{TARGET_LANGUAGES[targetLang]?.flag} {TARGET_LANGUAGES[targetLang]?.nameNative}</span>
+                <LanguageFlag code={targetLang} size={16} />
+                <span>{TARGET_LANGUAGES[targetLang]?.nameNative} ({isSourceArabic ? TARGET_LANGUAGES[targetLang]?.nameAr : TARGET_LANGUAGES[targetLang]?.nameEn})</span>
               </div>
             </motion.div>
           )}
@@ -691,8 +694,9 @@ export function OnboardingModal({
                     <span className="text-[10px] text-stone-400 block mb-0.5">
                       {isSourceArabic ? '🧠 لغة التفكير الحالية:' : '🧠 Current Thought Language:'}
                     </span>
-                    <span className="font-bold text-stone-100">
-                      {SOURCE_LANGUAGES[sourceLang]?.flag} {isSourceArabic ? SOURCE_LANGUAGES[sourceLang]?.nameNative : SOURCE_LANGUAGES[sourceLang]?.nameEn}
+                    <span className="font-bold text-stone-100 flex items-center gap-1.5">
+                      <LanguageFlag code={sourceLang} size={14} />
+                      <span>{isSourceArabic ? SOURCE_LANGUAGES[sourceLang]?.nameNative : SOURCE_LANGUAGES[sourceLang]?.nameEn}</span>
                       {sourceLang === 'ar' && ` (${dialect === 'egyptian' ? 'عامية مصرية' : 'فصحى'})`}
                     </span>
                   </div>
@@ -701,8 +705,9 @@ export function OnboardingModal({
                     <span className="text-[10px] text-stone-400 block mb-0.5">
                       {isSourceArabic ? '🎯 لغة الهدف:' : '🎯 Target Language:'}
                     </span>
-                    <span className="font-bold text-teal-400">
-                      {TARGET_LANGUAGES[targetLang]?.flag} {TARGET_LANGUAGES[targetLang]?.nameNative}
+                    <span className="font-bold text-teal-400 flex items-center gap-1.5">
+                      <LanguageFlag code={targetLang} size={14} />
+                      <span>{TARGET_LANGUAGES[targetLang]?.nameNative}</span>
                     </span>
                   </div>
 

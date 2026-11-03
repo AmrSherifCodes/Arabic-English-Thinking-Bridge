@@ -2,6 +2,7 @@ import React from 'react';
 import { ArrowLeftRight, ChevronDown, Sparkles, Globe, Share2 } from 'lucide-react';
 import { SourceLanguage, TargetLanguage } from '../types';
 import { SOURCE_LANGUAGES, TARGET_LANGUAGES, getPairConfig } from '../data/languages';
+import { LanguageFlag } from './LanguageFlag';
 
 interface LanguagePairBannerProps {
   sourceLang: SourceLanguage;
@@ -81,7 +82,7 @@ export function LanguagePairBanner({
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-1">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 p-2 rounded-xl bg-stone-800/90 border border-stone-700">
-              <span className="text-2xl">{sourceMeta.flag}</span>
+              <LanguageFlag code={sourceLang} size={20} />
               <div className="text-start">
                 <span className="block text-[10px] text-stone-400 uppercase font-medium">
                   {isAr ? 'أفكر بـ' : 'I think in'}
@@ -97,13 +98,13 @@ export function LanguagePairBanner({
             </div>
 
             <div className="flex items-center gap-2 p-2 rounded-xl bg-amber-950/40 border border-amber-500/40">
-              <span className="text-2xl">{targetMeta.flag}</span>
+              <LanguageFlag code={targetLang} size={20} />
               <div className="text-start">
                 <span className="block text-[10px] text-amber-300 uppercase font-medium">
                   {isAr ? 'أتعلّم التفكير بـ' : 'Learn to think in'}
                 </span>
                 <span className="text-sm font-bold text-amber-200">
-                  {targetMeta.nameNative}
+                  {targetMeta.nameNative} ({isAr ? targetMeta.nameAr : targetMeta.nameEn})
                 </span>
               </div>
             </div>
@@ -114,7 +115,7 @@ export function LanguagePairBanner({
             <span className="text-xs text-stone-400 hidden md:inline">
               {isAr ? 'تبديل سريع:' : 'Quick target:'}
             </span>
-            {(['en', 'de', 'ja'] as TargetLanguage[]).map((tCode) => {
+            {(['en', 'de', 'ja', 'es', 'fr', 'zh'] as TargetLanguage[]).map((tCode) => {
               const meta = TARGET_LANGUAGES[tCode];
               const isActive = targetLang === tCode;
               return (
@@ -122,14 +123,14 @@ export function LanguagePairBanner({
                   key={tCode}
                   type="button"
                   onClick={() => onQuickSwitchTarget?.(tCode)}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
+                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
                     isActive
                       ? 'bg-amber-500 text-stone-950 shadow-xs'
                       : 'bg-stone-800 text-stone-300 hover:bg-stone-700 hover:text-white'
                   }`}
                   title={`${isAr ? meta.nameAr : meta.nameEn}`}
                 >
-                  <span>{meta.flag}</span>
+                  <LanguageFlag code={tCode} size={14} />
                   <span>{meta.code.toUpperCase()}</span>
                 </button>
               );
