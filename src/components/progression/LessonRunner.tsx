@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { LessonNode, ExerciseItem } from '../../progression/types';
-import { CheckCircle2, XCircle, ArrowRight, Volume2, Mic, Sparkles, Award } from 'lucide-react';
+import { CheckCircle2, XCircle, ArrowRight, Volume2, Mic, Sparkles } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 interface LessonRunnerProps {
@@ -66,7 +66,6 @@ export function LessonRunner({
     if (currentIndex + 1 < exercises.length) {
       setCurrentIndex((prev) => prev + 1);
     } else {
-      // Finished all exercises! Show summary
       setShowSummary(true);
     }
   };
@@ -76,30 +75,30 @@ export function LessonRunner({
     const earnedXp = Math.round((correctAnswersCount * 10) + (accuracy > 80 ? 20 : 0));
 
     return (
-      <div className="fixed inset-0 z-50 bg-[#0A0E13] flex flex-col items-center justify-center p-6 text-center max-w-md mx-auto" dir={isArabic ? 'rtl' : 'ltr'}>
+      <div className="fixed inset-0 z-50 bg-bg flex flex-col items-center justify-center p-6 text-center max-w-[480px] mx-auto" dir={isArabic ? 'rtl' : 'ltr'}>
         <div className="space-y-6 w-full">
-          <div className="w-20 h-20 rounded-3xl bg-amber-500/20 border border-amber-500/40 text-amber-400 flex items-center justify-center text-4xl mx-auto shadow-2xl">
+          <div className="w-20 h-20 rounded-3xl bg-primary/20 border border-primary/40 text-primary flex items-center justify-center text-4xl mx-auto shadow-2xl">
             🏆
           </div>
 
           <div className="space-y-1">
-            <h2 className="text-2xl font-black text-white">
+            <h2 className="text-2xl font-black text-text">
               {isArabic ? 'درس مكتمل بنجاح! 🎉' : 'Lesson Completed! 🎉'}
             </h2>
-            <p className="text-xs text-stone-400">
+            <p className="text-xs text-muted">
               {isArabic ? lesson.titleAr : lesson.titleEn}
             </p>
           </div>
 
           {/* Reward Summary Card */}
-          <div className="p-4 rounded-3xl bg-stone-900 border border-stone-800 grid grid-cols-2 gap-3">
-            <div className="p-3 rounded-2xl bg-stone-950">
-              <span className="text-xl font-black text-teal-400 block">+{earnedXp} XP</span>
-              <span className="text-[10px] text-stone-400 font-bold">{isArabic ? 'نقاط مكتسبة' : 'Earned XP'}</span>
+          <div className="p-4 rounded-3xl bg-surface border border-border grid grid-cols-2 gap-3">
+            <div className="p-3 rounded-2xl bg-surface-2">
+              <span className="text-xl font-black text-success block">+{earnedXp} XP</span>
+              <span className="text-[10px] text-muted font-bold">{isArabic ? 'نقاط مكتسبة' : 'Earned XP'}</span>
             </div>
-            <div className="p-3 rounded-2xl bg-stone-950">
-              <span className="text-xl font-black text-amber-400 block">{accuracy}%</span>
-              <span className="text-[10px] text-stone-400 font-bold">{isArabic ? 'نسبة الدقة' : 'Accuracy'}</span>
+            <div className="p-3 rounded-2xl bg-surface-2">
+              <span className="text-xl font-black text-primary block">{accuracy}%</span>
+              <span className="text-[10px] text-muted font-bold">{isArabic ? 'نسبة الدقة' : 'Accuracy'}</span>
             </div>
           </div>
 
@@ -108,7 +107,7 @@ export function LessonRunner({
               onCompleteSession(earnedXp, accuracy);
               onClose();
             }}
-            className="w-full py-3.5 rounded-2xl bg-teal-400 text-stone-950 font-black text-sm transition hover:bg-teal-300 active:scale-95 shadow-lg"
+            className="w-full py-4 min-h-[48px] rounded-2xl bg-primary text-on-primary font-black text-base transition active:scale-95 shadow-lg"
           >
             {isArabic ? 'استمرار والعودة للمسار 🚀' : 'Continue to Path 🚀'}
           </button>
@@ -117,70 +116,83 @@ export function LessonRunner({
     );
   }
 
+  const progressPercent = Math.round(((currentIndex + 1) / exercises.length) * 100);
+
   return (
-    <div className="fixed inset-0 z-50 bg-[#0A0E13] flex flex-col justify-between p-4 max-w-md mx-auto" dir={isArabic ? 'rtl' : 'ltr'}>
+    <div className="fixed inset-0 z-50 bg-bg text-text flex flex-col justify-between max-w-[480px] mx-auto" dir={isArabic ? 'rtl' : 'ltr'}>
       {/* Top Header Progress Bar */}
-      <div className="flex items-center justify-between gap-3 pt-2">
-        <button onClick={onClose} className="text-stone-400 hover:text-white font-bold text-xs">
+      <div className="p-4 border-b border-border flex items-center gap-3">
+        <button
+          onClick={onClose}
+          className="p-2 min-h-[48px] min-w-[48px] flex items-center justify-center rounded-xl bg-surface text-muted hover:text-text font-bold"
+          aria-label={isArabic ? 'إغلاق' : 'Close'}
+        >
           ✕
         </button>
-
-        <div className="flex-1 h-2.5 bg-stone-900 rounded-full overflow-hidden border border-stone-800">
+        <div className="flex-1 bg-surface-2 h-3 rounded-full overflow-hidden border border-border">
           <div
-            className="h-full bg-teal-400 transition-all duration-300"
-            style={{ width: `${((currentIndex + 1) / exercises.length) * 100}%` }}
+            className="bg-success h-full transition-all duration-300"
+            style={{ width: `${progressPercent}%` }}
           />
         </div>
-
-        <span className="text-xs font-black text-teal-400">
+        <span className="text-xs font-black text-muted">
           {currentIndex + 1}/{exercises.length}
         </span>
       </div>
 
-      {/* Main Exercise Content Body */}
-      <div className="flex-1 flex flex-col justify-center space-y-6 my-auto">
-        {/* Prompt Header */}
-        <div className="space-y-2 text-start bg-stone-900/80 p-4 rounded-3xl border border-stone-800">
-          <span className="text-[10px] font-black uppercase text-teal-400 block">
-            {isArabic ? 'عبر عن الفكرة بتركيب إنجليزي صحيح:' : 'Translate the cognitive thought:'}
+      {/* Exercise Body */}
+      <div className="flex-1 p-6 overflow-y-auto space-y-6">
+        {/* Source Thought Prompt */}
+        <div className="p-4 rounded-3xl bg-surface border border-border space-y-2">
+          <span className="text-[10px] font-black uppercase text-success block">
+            {isArabic ? 'فكّر في المعنى بالعربية أولاً:' : 'Think in meaning first:'}
           </span>
-          <h3 className="text-lg font-black text-white">
-            "{currentExercise.promptAr}"
-          </h3>
+          <h2 className="text-lg font-black text-text" dir="auto">
+            "{currentExercise.sourcePrompt}"
+          </h2>
         </div>
 
-        {/* Structure Builder (Word Chips) */}
-        {currentExercise.type === 'structure_builder' ? (
+        {/* Structure Builder / Word Chips Mode */}
+        {currentExercise.type === 'structure_builder' && (
           <div className="space-y-4">
-            {/* Selected Chips Output Zone */}
-            <div className="min-h-[56px] p-3 rounded-2xl bg-stone-950 border border-stone-800 flex flex-wrap gap-2 items-center">
-              {selectedChips.map((chip, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setSelectedChips(selectedChips.filter((_, i) => i !== idx))}
-                  className="px-3 py-1.5 rounded-xl bg-teal-500/20 border border-teal-500/40 text-teal-300 font-bold text-xs animate-in zoom-in-95"
-                >
-                  {chip}
-                </button>
-              ))}
+            {/* Selected Chips Slot */}
+            <div className="p-4 rounded-2xl bg-surface-2 border border-border min-h-[64px] flex flex-wrap gap-2 items-center">
+              {selectedChips.length === 0 ? (
+                <span className="text-xs text-muted font-bold">
+                  {isArabic ? 'اضغط الكلمات أدناه للترتيب الصحيح' : 'Tap words below to arrange'}
+                </span>
+              ) : (
+                selectedChips.map((chip, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => {
+                      if (!isAnswered) {
+                        setSelectedChips((prev) => prev.filter((_, i) => i !== idx));
+                      }
+                    }}
+                    dir="ltr"
+                    className="px-3 py-2 rounded-xl bg-surface border border-border font-black text-sm text-text active:scale-95"
+                  >
+                    {chip}
+                  </button>
+                ))
+              )}
             </div>
 
-            {/* Available Word Chips */}
-            <div className="flex flex-wrap gap-2 justify-center">
-              {(currentExercise.wordChips || []).map((chip, idx) => {
-                const countUsed = selectedChips.filter((c) => c === chip).length;
-                const countAvailable = (currentExercise.wordChips || []).filter((c) => c === chip).length;
-                const isDisabled = countUsed >= countAvailable;
-
+            {/* Available Word Chips Bank */}
+            <div className="flex flex-wrap gap-2 justify-center pt-2">
+              {(currentExercise.options || []).map((chip, idx) => {
+                const isSelected = selectedChips.includes(chip);
                 return (
                   <button
                     key={idx}
-                    disabled={isDisabled}
-                    onClick={() => setSelectedChips([...selectedChips, chip])}
-                    className={`px-3.5 py-2 rounded-xl border text-xs font-black transition ${
-                      isDisabled
-                        ? 'opacity-30 border-stone-800 bg-stone-950 text-stone-600'
-                        : 'bg-stone-900 border-stone-700 text-stone-100 hover:border-teal-400 active:scale-95'
+                    disabled={isSelected || isAnswered}
+                    onClick={() => setSelectedChips((prev) => [...prev, chip])}
+                    dir="ltr"
+                    className={`px-3.5 py-2.5 min-h-[48px] rounded-xl font-bold text-sm transition ${
+                      isSelected
+                        ? 'opacity-30 bg-surface border border-border'
+                        : 'bg-surface border border-border text-text hover:bg-surface-2 active:scale-95'
                     }`}
                   >
                     {chip}
@@ -189,68 +201,81 @@ export function LessonRunner({
               })}
             </div>
           </div>
-        ) : (
-          /* Text Input Mode */
-          <input
-            type="text"
-            value={userInput}
-            onChange={(e) => setUserInput(e.target.value)}
-            placeholder={isArabic ? 'اكتب الجملة بالإنجليزية هنا...' : 'Type English sentence here...'}
-            className="w-full p-4 rounded-2xl bg-stone-950 border border-stone-800 text-white font-bold text-sm focus:border-teal-400 focus:outline-none"
-          />
         )}
 
-        {/* Answer Feedback Card */}
+        {/* Text Input Mode */}
+        {currentExercise.type !== 'structure_builder' && (
+          <div className="space-y-2">
+            <textarea
+              value={userInput}
+              onChange={(e) => setUserInput(e.target.value)}
+              disabled={isAnswered}
+              dir="ltr"
+              placeholder={isArabic ? 'اكتب الجملة بالإنجليزية هنا...' : 'Type sentence in English...'}
+              className="w-full p-4 rounded-2xl bg-surface-2 border border-border text-text text-base font-bold placeholder:text-muted focus:outline-none focus:border-success min-h-[100px] resize-none"
+            />
+          </div>
+        )}
+
+        {/* Rule Explanation "WHY" Feedback Card */}
         {isAnswered && (
           <div
-            className={`p-4 rounded-3xl border space-y-2 text-start animate-in slide-in-from-bottom-2 ${
+            className={`p-4 rounded-2xl border ${
               isCorrect
-                ? 'bg-teal-950/60 border-teal-500 text-teal-200'
-                : 'bg-red-950/60 border-red-500 text-red-200'
+                ? 'bg-success/15 border-success text-text'
+                : 'bg-danger/15 border-danger text-text'
             }`}
           >
-            <div className="flex items-center gap-2 font-black text-sm">
+            <div className="flex items-center gap-2 font-black text-sm mb-1">
               {isCorrect ? (
                 <>
-                  <CheckCircle2 size={18} className="text-teal-400" />
-                  <span>{isArabic ? 'إجابة ممتازة وبناء صحيح! 🎉' : 'Correct Structure! 🎉'}</span>
+                  <CheckCircle2 className="text-success" size={20} />
+                  <span>{isArabic ? 'إجابة ممتازة وبناء صحيح! 🎉' : 'Great Job! Perfect Structure! 🎉'}</span>
                 </>
               ) : (
                 <>
-                  <XCircle size={18} className="text-red-400" />
-                  <span>{isArabic ? 'لاحظ البناء الصحيح:' : 'Correct Structure:'}</span>
+                  <XCircle className="text-danger" size={20} />
+                  <span>{isArabic ? 'إجابة تحتاج تعديل بسيط' : 'Needs adjustment'}</span>
                 </>
               )}
             </div>
 
-            <p className="text-xs font-bold text-white">
-              "{currentExercise.targetSentence}"
+            <p className="text-xs font-semibold text-text-soft leading-relaxed mt-1" dir="auto">
+              <strong>{isArabic ? 'الجملة الصحيحة:' : 'Target:'}</strong>{' '}
+              <span dir="ltr" className="font-bold">{currentExercise.targetSentence}</span>
             </p>
 
-            <p className="text-[11px] text-stone-300 leading-relaxed border-t border-stone-800/80 pt-1.5">
-              💡 <strong>{isArabic ? 'سبب القاعدة:' : 'Rule WHY:'}</strong> {currentExercise.explanationAr}
-            </p>
+            {currentExercise.ruleExplanationAr && (
+              <p className="text-xs text-muted mt-2 border-t border-border/50 pt-2" dir="auto">
+                💡 <strong>{isArabic ? 'سبب القاعدة:' : 'Rule Explanation:'}</strong>{' '}
+                {isArabic ? currentExercise.ruleExplanationAr : currentExercise.ruleExplanationEn}
+              </p>
+            )}
           </div>
         )}
       </div>
 
-      {/* Bottom Action Button */}
-      <div className="pb-4">
+      {/* Sticky Bottom Action Bar */}
+      <div className="sticky bottom-0 bg-surface border-t border-border p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] z-30">
         {!isAnswered ? (
           <button
             onClick={handleCheckAnswer}
-            disabled={currentExercise.type === 'structure_builder' ? selectedChips.length === 0 : !userInput.trim()}
-            className="w-full py-4 rounded-2xl bg-teal-400 text-stone-950 font-black text-sm transition hover:bg-teal-300 active:scale-95 disabled:opacity-40 disabled:pointer-events-none shadow-lg"
+            disabled={
+              currentExercise.type === 'structure_builder'
+                ? selectedChips.length === 0
+                : !userInput.trim()
+            }
+            className="w-full py-4 min-h-[48px] rounded-2xl bg-primary text-on-primary font-black text-base transition disabled:opacity-40 disabled:cursor-not-allowed shadow-lg active:scale-95"
           >
-            {isArabic ? 'تحقق من البناء 🎯' : 'Check Structure 🎯'}
+            {isArabic ? 'تأكيد الإجابة 🚀' : 'Check Answer 🚀'}
           </button>
         ) : (
           <button
             onClick={handleNextExercise}
-            className="w-full py-4 rounded-2xl bg-teal-400 text-stone-950 font-black text-sm transition hover:bg-teal-300 active:scale-95 shadow-lg flex items-center justify-center gap-2"
+            className="w-full py-4 min-h-[48px] rounded-2xl bg-success text-on-primary font-black text-base transition shadow-lg active:scale-95 flex items-center justify-center gap-2"
           >
             <span>{isArabic ? 'السؤال التالي' : 'Next Question'}</span>
-            <ArrowRight size={16} />
+            <ArrowRight size={20} className={isArabic ? 'rotate-180' : ''} />
           </button>
         )}
       </div>

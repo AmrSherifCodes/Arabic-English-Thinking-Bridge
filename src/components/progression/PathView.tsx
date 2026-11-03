@@ -1,7 +1,7 @@
 import React from 'react';
-import { ProgressionState, StageNode, LessonNode, CefrStage } from '../../progression/types';
+import { ProgressionState, StageNode, LessonNode } from '../../progression/types';
 import { buildCourseStructure } from '../../progression/courseData';
-import { Play, Crown, CheckCircle2, Lock, Sparkles, Award } from 'lucide-react';
+import { Play, Crown, CheckCircle2, Lock } from 'lucide-react';
 
 interface PathViewProps {
   state: ProgressionState;
@@ -12,22 +12,20 @@ interface PathViewProps {
 
 export function PathView({ state, onSelectLesson, onSelectUnitCheckpoint, isArabic = true }: PathViewProps) {
   const courseStructure: StageNode[] = buildCourseStructure();
-
-  // Find current active stage or default to A0
   const activeStageNode = courseStructure.find((s) => s.stage === state.currentStage) || courseStructure[0];
 
   return (
-    <div className="space-y-6 max-w-md mx-auto pb-24" dir={isArabic ? 'rtl' : 'ltr'}>
+    <div className="space-y-6 max-w-[480px] mx-auto pb-24" dir={isArabic ? 'rtl' : 'ltr'}>
       {/* 1. Top Big Continue CTA */}
-      <div className="p-4 rounded-3xl bg-gradient-to-r from-teal-950 to-stone-900 border border-teal-500/40 shadow-xl flex items-center justify-between">
+      <div className="p-4.5 rounded-3xl bg-surface border border-border shadow-xl flex items-center justify-between">
         <div className="space-y-1 text-start">
-          <span className="text-[10px] font-black uppercase tracking-wider text-teal-400 block">
+          <span className="text-[10px] font-black uppercase tracking-wider text-success block">
             {isArabic ? `المرحلة الحالية: ${activeStageNode.stage}` : `Current Stage: ${activeStageNode.stage}`}
           </span>
-          <h3 className="text-sm font-black text-white">
+          <h3 className="text-sm font-black text-text">
             {isArabic ? activeStageNode.titleAr : activeStageNode.titleEn}
           </h3>
-          <p className="text-xs text-stone-400">
+          <p className="text-xs text-muted">
             {isArabic ? 'تابع مسار التفكير دون تردد' : 'Resume your cognitive path'}
           </p>
         </div>
@@ -37,7 +35,7 @@ export function PathView({ state, onSelectLesson, onSelectUnitCheckpoint, isArab
             const firstUnfinished = activeStageNode.units[0]?.lessons[0];
             if (firstUnfinished) onSelectLesson(firstUnfinished);
           }}
-          className="px-5 py-3 rounded-2xl bg-teal-400 hover:bg-teal-300 active:scale-95 text-stone-950 font-black text-xs shadow-lg transition flex items-center gap-2 shrink-0"
+          className="px-5 py-3 min-h-[48px] rounded-2xl bg-primary text-on-primary font-black text-xs shadow-lg transition active:scale-95 flex items-center gap-2 shrink-0"
         >
           <Play size={16} fill="currentColor" />
           <span>{isArabic ? 'متابعة' : 'Continue'}</span>
@@ -52,10 +50,10 @@ export function PathView({ state, onSelectLesson, onSelectUnitCheckpoint, isArab
             <button
               key={stg.stage}
               onClick={() => {}}
-              className={`px-3.5 py-2 rounded-2xl border text-xs font-black transition shrink-0 ${
+              className={`px-4 py-2 min-h-[48px] min-w-[48px] rounded-2xl border text-xs font-black transition shrink-0 ${
                 isActive
-                  ? 'bg-teal-500/20 border-teal-500 text-teal-300 ring-1 ring-teal-500/30'
-                  : 'bg-stone-900 border-stone-800 text-stone-400 hover:text-stone-200'
+                  ? 'bg-success/20 border-success text-success shadow-md'
+                  : 'bg-surface border-border text-muted hover:text-text'
               }`}
             >
               <span>{stg.stage}</span>
@@ -69,18 +67,15 @@ export function PathView({ state, onSelectLesson, onSelectUnitCheckpoint, isArab
         {activeStageNode.units.map((unit, uIdx) => (
           <div key={unit.id} className="space-y-4">
             {/* Unit Header Banner */}
-            <div
-              className="p-4 rounded-2xl border flex items-center justify-between shadow-md"
-              style={{ backgroundColor: `${unit.color}15`, borderColor: `${unit.color}40` }}
-            >
+            <div className="p-4 rounded-2xl border border-border bg-surface-2 flex items-center justify-between shadow-md">
               <div className="space-y-0.5 text-start">
-                <span className="text-[10px] font-black uppercase tracking-wider text-stone-400 block">
+                <span className="text-[10px] font-black uppercase tracking-wider text-muted block">
                   {isArabic ? `الوحدة ${uIdx + 1}` : `Unit ${uIdx + 1}`}
                 </span>
-                <h4 className="text-sm font-black text-white">
+                <h4 className="text-sm font-black text-text">
                   {isArabic ? unit.titleAr : unit.titleEn}
                 </h4>
-                <p className="text-xs text-stone-400">
+                <p className="text-xs text-muted">
                   {isArabic ? unit.descriptionAr : unit.descriptionEn}
                 </p>
               </div>
@@ -94,7 +89,6 @@ export function PathView({ state, onSelectLesson, onSelectUnitCheckpoint, isArab
                 const crowns = state.lessonCrowns[lesson.id] || 0;
                 const isCompleted = state.completedLessonIds.includes(lesson.id);
 
-                // Offset node x-position for playful snake path
                 const xOffset = lIdx % 2 === 0 ? 'translate-x-0' : lIdx % 3 === 1 ? 'translate-x-6' : '-translate-x-6';
 
                 return (
@@ -105,7 +99,7 @@ export function PathView({ state, onSelectLesson, onSelectUnitCheckpoint, isArab
                   >
                     {/* Crown Level Badge */}
                     {crowns > 0 && (
-                      <span className="absolute -top-2 -right-2 px-1.5 py-0.5 rounded-full bg-amber-500 text-stone-950 text-[10px] font-black shadow-md flex items-center gap-0.5 z-10">
+                      <span className="absolute -top-2 -right-2 px-1.5 py-0.5 rounded-full bg-primary text-on-primary text-[10px] font-black shadow-md flex items-center gap-0.5 z-10">
                         <Crown size={10} fill="currentColor" />
                         <span>{crowns}</span>
                       </span>
@@ -115,29 +109,20 @@ export function PathView({ state, onSelectLesson, onSelectUnitCheckpoint, isArab
                     <div
                       className={`w-16 h-16 rounded-full border-4 flex items-center justify-center shadow-lg transition-all ${
                         isCompleted
-                          ? 'bg-teal-500 border-teal-300 text-stone-950 ring-4 ring-teal-500/20'
-                          : 'bg-stone-900 border-stone-700 text-stone-300 group-hover:border-teal-400'
+                          ? 'bg-success border-success text-on-primary ring-4 ring-success/20'
+                          : 'bg-surface border-border text-muted group-hover:border-success'
                       }`}
                     >
-                      {isCompleted ? <CheckCircle2 size={28} strokeWidth={2.5} /> : <span className="text-2xl">{lesson.icon}</span>}
+                      {isCompleted ? <CheckCircle2 size={24} /> : <Play size={22} fill="currentColor" className="ms-1" />}
                     </div>
 
-                    {/* Lesson Title */}
-                    <span className="text-xs font-bold text-stone-200 mt-2 text-center max-w-[140px] line-clamp-1">
+                    {/* Lesson Label */}
+                    <span className="mt-1 text-[11px] font-black text-text text-center max-w-[120px] truncate" dir="auto">
                       {isArabic ? lesson.titleAr : lesson.titleEn}
                     </span>
                   </button>
                 );
               })}
-
-              {/* Unit Checkpoint Node */}
-              <button
-                onClick={() => onSelectUnitCheckpoint(unit.id)}
-                className="mt-2 p-3.5 rounded-2xl bg-amber-500/20 border border-amber-500/50 hover:bg-amber-500/30 text-amber-300 text-xs font-black transition flex items-center gap-2 shadow-lg"
-              >
-                <Award size={18} />
-                <span>{isArabic ? 'اختبار اجتياز الوحدة (Checkpoint)' : 'Unit Checkpoint Test'}</span>
-              </button>
             </div>
           </div>
         ))}

@@ -221,6 +221,8 @@ export function VoicePracticeView({
   const isAr = sourceLang === 'ar' || (profile?.language || 'arabic') === 'arabic';
   const currentLabels = isAr ? LABELS_AR : LABELS_EN;
 
+  const isDebugMode = typeof window !== 'undefined' && window.location.search.includes('debug=1');
+
   return (
     <div className="voice" dir={isAr ? 'rtl' : 'ltr'}>
       <header className="voice__header">
@@ -232,13 +234,13 @@ export function VoicePracticeView({
           <span className="text-[11px] font-black px-2 py-0.5 rounded-full bg-teal-500/15 text-teal-400 border border-teal-500/30">
             {sourceLang === 'ar' ? '🇪🇬' : '🇬🇧'} ➔ {targetLang === 'de' ? '🇩🇪 Deutsch' : targetLang === 'ja' ? '🇯🇵 日本語' : '🇬🇧 English'}
           </span>
-          {latencyMetrics.ttfa != null && (
+          {isDebugMode && latencyMetrics.ttfa != null && (
             <span className="voice__latency-badge">
               TTFA: {latencyMetrics.ttfa}ms
             </span>
           )}
         </div>
-        <div style={{ display: 'flex', items: 'center', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <button
             type="button"
             className="voice__type-toggle"

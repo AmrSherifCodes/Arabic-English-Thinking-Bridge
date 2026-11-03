@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  /* Dark Theme Default Tokens */
+  --color-bg: #0B1324;
+  --color-surface: #14213D;
+  --color-surface-2: #1D2F55;
+  --color-border: #2B3F66;
+  --color-text: #FFFFFF;
+  --color-text-soft: #E5E5E5;
+  --color-muted: #A9B4C8;
+  --color-primary: #FCA311;
+  --color-on-primary: #14213D;
+  --color-success: #2DD4BF;
+  --color-danger: #FF6B6B;
+}
+
+html.light {
+  /* Light Theme Tokens */
+  --color-bg: #FFFFFF;
+  --color-surface: #F4F6FA;
+  --color-surface-2: #E5E5E5;
+  --color-border: #D5D9E2;
+  --color-text: #14213D;
+  --color-text-soft: #2B3B5E;
+  --color-muted: #5B6784;
+  --color-primary: #FCA311;
+  --color-on-primary: #14213D;
+  --color-success: #0F766E;
+  --color-danger: #C62828;
+}
+
+@theme {
+  --color-bg: var(--color-bg);
+  --color-surface: var(--color-surface);
+  --color-surface-2: var(--color-surface-2);
+  --color-border: var(--color-border);
+  --color-text: var(--color-text);
+  --color-text-soft: var(--color-text-soft);
+  --color-muted: var(--color-muted);
+  --color-primary: var(--color-primary);
+  --color-on-primary: var(--color-on-primary);
+  --color-success: var(--color-success);
+  --color-danger: var(--color-danger);
+}

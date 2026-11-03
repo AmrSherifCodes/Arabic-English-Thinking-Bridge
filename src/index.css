@@ -1,46 +1,23 @@
-@import "tailwindcss";
-
-@custom-variant dark (&:where(.dark, .dark *));
-
-:root {
-  --landing-bg: #0A0E13;
-  --landing-surface: #0F151C;
-  --landing-border: #1E2933;
-  --landing-text: #EEF2F5;
-  --landing-muted: #9AA7B2;
-  --landing-accent-teal: #2DD4BF;
-  --landing-secondary-amber: #F5B942;
-  --landing-font: 'Readex Pro', 'Inter', system-ui, -apple-system, sans-serif;
-  --landing-radius-sm: 12px;
-  --landing-radius-md: 18px;
-  --landing-radius-lg: 28px;
-  --landing-max-w: 1200px;
-}
-
-html.light {
-  --landing-bg: #F8FAFC;
-  --landing-surface: #FFFFFF;
-  --landing-border: #E2E8F0;
-  --landing-text: #0F172A;
-  --landing-muted: #64748B;
-  --landing-accent-teal: #0D9488;
-  --landing-secondary-amber: #D97706;
-}
+@import "./styles/tokens.css";
 
 html {
   color-scheme: dark;
 }
 
+html.light {
+  color-scheme: light;
+}
+
 body {
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: 'Readex Pro', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
   position: relative;
   isolation: isolate;
   min-height: 100vh;
-  background-color: #0A0E13;
-  color: #EEF2F5;
+  background-color: var(--color-bg);
+  color: var(--color-text);
   font-weight: 500;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -53,16 +30,12 @@ body::before {
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  opacity: 0.25;
+  opacity: 0.15;
   background-image:
     repeating-linear-gradient(
       45deg,
       transparent 0 17px,
-      rgba(45, 212, 191, 0.03) 17px 18px,
+      rgba(43, 63, 102, 0.1) 17px 18px,
       transparent 18px 34px
     );
-}
-
-html.dark {
-  color-scheme: dark;
 }
