@@ -14,6 +14,7 @@ import { TutorialModal } from './components/TutorialModal';
 import { OnboardingModal } from './components/OnboardingModal';
 import { FeedbackModal, UserFeedbackData } from './components/FeedbackModal';
 import { LandingView } from './components/LandingView';
+import { PwaInstallBanner } from './components/PwaInstallBanner';
 import { useUserProfile } from './hooks/useUserProfile';
 import { loadUserProgress, saveUserProgress } from './utils/storage';
 import { UserProfile, UserProgress } from './types';
@@ -408,6 +409,9 @@ export default function App() {
           {toastMsg}
         </div>
       )}
+
+      {/* PWA Install Banner */}
+      <PwaInstallBanner />
     </>
   );
 }
