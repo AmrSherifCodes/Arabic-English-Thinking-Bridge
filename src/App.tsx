@@ -3,30 +3,47 @@ import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { Keyboard, KeyboardResize } from '@capacitor/keyboard';
-import { ChoiceMenu, MenuRoute } from './features/menu/ChoiceMenu';
-import { PreferencesView } from './features/preferences/PreferencesView';
+
+import { AppShell, AppTab } from './components/navigation/AppShell';
+import { PathView } from './components/progression/PathView';
+import { PracticeHubView } from './components/progression/PracticeHubView';
+import { QuestsView } from './components/progression/QuestsView';
+import { LeagueView } from './components/progression/LeagueView';
+import { ProfileView } from './components/progression/ProfileView';
+import { LessonRunner } from './components/progression/LessonRunner';
+import { OnboardingPlacementModal } from './components/progression/OnboardingPlacementModal';
+import { PrivacyPolicyModal } from './components/progression/PrivacyPolicyModal';
+
 import { VoicePracticeView } from './features/voice/VoicePracticeView';
 import { FlashcardsView } from './features/flashcards/FlashcardsView';
 import { LessonView } from './features/lesson/LessonView';
 import { CorporateBridgeView } from './features/corporate/CorporateBridgeView';
-import { CVModal } from './components/CVModal';
-import { TutorialModal } from './components/TutorialModal';
-import { OnboardingModal } from './components/OnboardingModal';
+import { PreferencesView } from './features/preferences/PreferencesView';
+
 import { FeedbackModal, UserFeedbackData } from './components/FeedbackModal';
 import { LandingView } from './components/LandingView';
 import { PwaInstallBanner } from './components/PwaInstallBanner';
 import { useUserProfile } from './hooks/useUserProfile';
 import { loadUserProgress, saveUserProgress } from './utils/storage';
 import { UserProfile, UserProgress } from './types';
-import { useAdaptiveLearning } from './hooks/useAdaptiveLearning';
 import { AIHelper, AIHelperRequest } from './components/AIHelper';
 import { LexiconEntry } from './services/geminiLexicon';
 import { FlashcardItemData } from './components/uiConstants';
-import { useDueCount } from './features/flashcards/useDueCount';
 import { useLanguagePair } from './hooks/useLanguagePair';
 import i18n from './i18n';
 
-type View = { name: 'landing' } | { name: 'menu' } | { name: 'route'; route: MenuRoute };
+import { ProgressionState, LessonNode, CefrStage } from './progression/types';
+import { migrateLegacyStorageToProgression } from './progression/migration';
+import { updateStreakAndShields } from './progression/engine';
+
+type View =
+  | { name: 'shell' }
+  | { name: 'landing' }
+  | { name: 'voice' }
+  | { name: 'flashcards' }
+  | { name: 'lesson' }
+  | { name: 'corporate' }
+  | { name: 'preferences' };
 
 export default function App() {
   const [view, setView] = useState<View>(() => {
@@ -36,143 +53,42 @@ export default function App() {
         if (urlParams.get('landing') === 'true') return { name: 'landing' };
       }
     } catch {}
-    return { name: 'menu' };
+    return { name: 'shell' };
   });
-  const [cvOpen, setCvOpen] = useState(false);
-  const [tutorialOpen, setTutorialOpen] = useState(false);
-  const [feedbackOpen, setFeedbackOpen] = useState(false);
-  const { profile, saveProfile } = useUserProfile();
-  const { sourceLang, targetLang, setPair } = useLanguagePair();
+
+  const [activeTab, setActiveTab] = useState<AppTab>('path');
+  const [progression, setProgression] = useState<ProgressionState>(() => {
+    const migrated = migrateLegacyStorageToProgression();
+    return updateStreakAndShields(migrated);
+  });
+
+  const [activeLessonNode, setActiveLessonNode] = useState<LessonNode | null>(null);
   const [onboardingOpen, setOnboardingOpen] = useState<boolean>(() => {
     try {
-      if (typeof window !== 'undefined') {
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('from') || urlParams.get('to') || urlParams.get('level')) {
-            return false; // Skip onboarding if URL params are present
-        }
-      }
-      const stored = localStorage.getItem('tb.userProfile');
+      const stored = localStorage.getItem('tb.progressionState');
       return stored === null;
     } catch {
       return false;
     }
   });
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search);
-      const fromParam = urlParams.get('from');
-      const toParam = urlParams.get('to');
-      const levelParam = urlParams.get('level');
-
-      if (fromParam || toParam || levelParam) {
-        const newProfile = {
-          name: profile?.name || 'Learner',
-          goal: profile?.goal || 'general',
-          learningStyle: profile?.learningStyle || 'visual',
-          focusArea: profile?.focusArea || 'daily-speech',
-          language: fromParam === 'en' ? 'english' : 'arabic',
-          dialect: profile?.dialect || 'egyptian',
-          level: (levelParam as any) || 'beginner',
-          sourceLanguage: (fromParam as any) || 'ar',
-          targetLanguage: (toParam as any) || 'en'
-        } as UserProfile;
-
-        saveProfile(newProfile);
-        setPair(newProfile.sourceLanguage as any, newProfile.targetLanguage as any);
-        i18n.changeLanguage(newProfile.language === 'arabic' ? 'ar' : 'en');
-        if (typeof document !== 'undefined') {
-          document.documentElement.dir = newProfile.language === 'arabic' ? 'rtl' : 'ltr';
-        }
-
-        // Clean up URL without reloading
-        window.history.replaceState({}, document.title, window.location.pathname);
-      }
-    }
-  }, []);
+  const [privacyOpen, setPrivacyOpen] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const { profile, saveProfile } = useUserProfile();
+  const { sourceLang, targetLang, setPair } = useLanguagePair();
   const [progress, setProgress] = useState<UserProgress>(loadUserProgress());
-  const { recordAnswer } = useAdaptiveLearning();
 
-  const handleCompleteOnboarding = (
-    newProfile: UserProfile,
-    newSource?: SourceLanguage,
-    newTarget?: TargetLanguage
-  ) => {
-    saveProfile(newProfile);
-    const src = newSource || newProfile.sourceLanguage || 'ar';
-    const tgt = newTarget || newProfile.targetLanguage || 'en';
-    setPair(src, tgt);
-    setOnboardingOpen(false);
-    if (newProfile.language) {
-      i18n.changeLanguage(newProfile.language === 'arabic' ? 'ar' : 'en');
-      if (typeof document !== 'undefined') {
-        document.documentElement.dir = newProfile.language === 'arabic' ? 'rtl' : 'ltr';
-      }
-    }
-  };
+  const isArabic = (profile?.language || 'arabic') === 'arabic';
 
-  const handleSkipOnboarding = () => {
-    const defaultProfile: UserProfile = {
-      name: 'Learner',
-      goal: 'general',
-      learningStyle: 'visual',
-      focusArea: 'daily-speech',
-      language: 'arabic',
-      dialect: 'egyptian',
-      level: 'beginner'
-    };
-    saveProfile(defaultProfile);
-    setOnboardingOpen(false);
-  };
-
-  const handleCloseTutorial = () => {
-    setTutorialOpen(false);
-    try {
-      localStorage.setItem('tb.tutorial_seen', 'true');
-    } catch {
-      // ignore
-    }
-  };
-
-  useEffect(() => {
-    const totalDone =
-      (progress.completedExerciseCount || 0) || progress.completedExerciseIds.length;
-    if (totalDone >= 5 && !progress.feedbackDismissed && !progress.feedbackSubmitted) {
-      setFeedbackOpen(true);
-    }
-  }, [
-    progress.completedExerciseCount,
-    progress.completedExerciseIds.length,
-    progress.feedbackDismissed,
-    progress.feedbackSubmitted
-  ]);
-
-  const handleFeedbackSubmit = (_data: UserFeedbackData) => {
-    updateAndSaveProgress(prev => ({
-      ...prev,
-      score: (prev.score || 0) + 100,
-      streakShields: Math.min(5, (prev.streakShields ?? 2) + 1),
-      feedbackSubmitted: true,
-      feedbackDismissed: true
-    }));
-  };
-
-  const handleLanguageChange = (lang: 'arabic' | 'english') => {
-    const next = profile
-      ? { ...profile, language: lang }
-      : {
-          name: '',
-          goal: 'general' as const,
-          language: lang,
-          dialect: 'egyptian' as const,
-          level: 'beginner' as const,
-        };
-    saveProfile(next);
-    i18n.changeLanguage(lang === 'arabic' ? 'ar' : 'en');
-    if (typeof document !== 'undefined') {
-      document.documentElement.dir = lang === 'arabic' ? 'rtl' : 'ltr';
-      document.documentElement.lang = lang === 'arabic' ? 'ar' : 'en';
-    }
+  // Save progression state updates
+  const updateProgression = (updater: (prev: ProgressionState) => ProgressionState) => {
+    setProgression((prev) => {
+      const next = updater(prev);
+      try {
+        localStorage.setItem('tb.progressionState', JSON.stringify(next));
+      } catch {}
+      return next;
+    });
   };
 
   const [toastMsg, setToastMsg] = useState<string | null>(null);
@@ -186,9 +102,9 @@ export default function App() {
     toastTimerRef.current = window.setTimeout(() => setToastMsg(null), 2600);
   };
 
-  const goHome = () => setView({ name: 'menu' });
+  const goHome = () => setView({ name: 'shell' });
 
-  // Native Android Shell & Back Button Configuration
+  // Native Android Shell Configuration
   useEffect(() => {
     if (Capacitor.isNativePlatform()) {
       StatusBar.setStyle({ style: Style.Dark }).catch(() => {});
@@ -197,111 +113,144 @@ export default function App() {
     }
   }, []);
 
-  // Android Hardware Back Button Handler
+  // Hardware Back Button
   useEffect(() => {
     let sub: Promise<any> | null = null;
     try {
       sub = CapApp.addListener('backButton', () => {
-        setView(curr => {
-          if (curr.name === 'route') {
-            return { name: 'menu' };
+        setView((curr) => {
+          if (curr.name !== 'shell') {
+            return { name: 'shell' };
           }
           CapApp.exitApp();
           return curr;
         });
       });
-    } catch {
-      // Non-native fallback
-    }
+    } catch {}
     return () => {
-      sub?.then(h => h.remove?.()).catch(() => {});
+      sub?.then((h) => h.remove?.()).catch(() => {});
     };
   }, []);
 
-  const openConstitution = () => {
-    window.open(
-      'https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/blob/main/CONSTITUTION.md',
-      '_blank',
-      'noopener,noreferrer'
-    );
-  };
+  const handleLessonSessionComplete = (earnedXp: number) => {
+    updateProgression((prev) => {
+      const newXp = prev.xp + earnedXp;
+      const lessonId = activeLessonNode?.id;
+      const crowns = lessonId ? (prev.lessonCrowns[lessonId] || 0) + 1 : 1;
+      const completed = lessonId && !prev.completedLessonIds.includes(lessonId)
+        ? [...prev.completedLessonIds, lessonId]
+        : prev.completedLessonIds;
 
-  const updateAndSaveProgress = (updater: (prev: UserProgress) => UserProgress) => {
-    setProgress(prev => {
-      const next = updater(prev);
-      const ok = saveUserProgress(next);
-      if (!ok) showToast('Couldn’t save (using in-memory vault)');
-      return next;
+      return {
+        ...prev,
+        xp: newXp,
+        weeklyXp: prev.weeklyXp + earnedXp,
+        lessonCrowns: lessonId ? { ...prev.lessonCrowns, [lessonId]: crowns } : prev.lessonCrowns,
+        completedLessonIds: completed,
+      };
     });
+    showToast(isArabic ? `🎉 +${earnedXp} XP مكتسبة!` : `🎉 +${earnedXp} XP Earned!`);
   };
 
-  const handleAskAIAboutCard = (card: FlashcardItemData) => {
-    const currentWord: LexiconEntry = {
-      arabicWord: card.ar,
-      englishTranslation: card.en,
-      partOfSpeech: 'phrase',
-      situations: [],
-      exampleSentenceArabic: card.ar,
-      exampleSentenceEnglish: card.en,
-      dialect: profile?.dialect ?? 'egyptian'
-    };
-    setAiHelperRequest({
-      id: ++aiRequestIdRef.current,
-      currentWord,
-      prompt: `Explain this flashcard and its use: Arabic “${card.ar}” means “${card.en}”. Give one brief usage tip.`,
-      autoSend: true
-    });
+  const handleExportData = () => {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(progression, null, 2));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute("href", dataStr);
+    downloadAnchor.setAttribute("download", `Thinking_Bridge_Backup_${Date.now()}.json`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+    showToast(isArabic ? '📥 تم تصوير النسخة الاحتياطية!' : '📥 Backup JSON downloaded!');
   };
 
-  const dueCards = useDueCount(profile, progress);
-
-  const activeProfile: UserProfile = profile || {
-    name: 'Learner',
-    goal: 'general',
-    focusArea: 'daily-speech',
-    level: 'beginner',
-    dialect: 'egyptian',
-    language: 'english'
+  const handleDeleteData = () => {
+    try {
+      localStorage.clear();
+      window.location.reload();
+    } catch {}
   };
 
   return (
     <>
+      {/* 1. Landing View Mode */}
       {view.name === 'landing' && (
-        <LandingView onStartWebApp={() => setView({ name: 'menu' })} />
+        <LandingView onStartWebApp={() => setView({ name: 'shell' })} />
       )}
 
-      {view.name === 'menu' && (
-        <ChoiceMenu
-          dueCards={dueCards}
-          profile={profile}
-          progress={progress}
-          sourceLang={sourceLang}
+      {/* 2. Primary App Shell (Path, Practice, Quests, League, Profile) */}
+      {view.name === 'shell' && (
+        <AppShell
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          state={progression}
           targetLang={targetLang}
-          onSelectPair={setPair}
-          onLanguageChange={handleLanguageChange}
-          onSelect={(route) => setView({ name: 'route', route })}
-          onOpenCV={() => setCvOpen(true)}
-          onOpenConstitution={openConstitution}
-          onOpenTutorial={() => setTutorialOpen(true)}
-          onOpenReview={() => setFeedbackOpen(true)}
-          onOpenLanding={() => setView({ name: 'landing' })}
-          onToast={showToast}
-        />
+          isArabic={isArabic}
+        >
+          {activeTab === 'path' && (
+            <PathView
+              state={progression}
+              onSelectLesson={(lesson) => setActiveLessonNode(lesson)}
+              onSelectUnitCheckpoint={() => showToast(isArabic ? 'اختبار اجتياز الوحدة جاهز!' : 'Unit Checkpoint ready!')}
+              isArabic={isArabic}
+            />
+          )}
+
+          {activeTab === 'practice' && (
+            <PracticeHubView
+              state={progression}
+              onOpenVoice={() => setView({ name: 'voice' })}
+              onOpenFlashcards={() => setView({ name: 'flashcards' })}
+              onOpenCorporate={() => setView({ name: 'corporate' })}
+              isArabic={isArabic}
+            />
+          )}
+
+          {activeTab === 'quests' && (
+            <QuestsView state={progression} isArabic={isArabic} />
+          )}
+
+          {activeTab === 'league' && (
+            <LeagueView
+              state={progression}
+              onToggleOptOut={() => updateProgression((p) => ({ ...p, leagueOptOut: !p.leagueOptOut }))}
+              isArabic={isArabic}
+            />
+          )}
+
+          {activeTab === 'profile' && (
+            <ProfileView
+              state={progression}
+              profile={profile}
+              onUpdateState={updateProgression}
+              onExportData={handleExportData}
+              onDeleteData={handleDeleteData}
+              onOpenPrivacyPolicy={() => setPrivacyOpen(true)}
+              isArabic={isArabic}
+            />
+          )}
+        </AppShell>
       )}
 
-      {view.name === 'route' && view.route === 'voice' && (
+      {/* 3. Specialized Route Overlays */}
+      {view.name === 'voice' && (
         <VoicePracticeView
           onBack={goHome}
           progress={progress}
           profile={profile}
-          updateAndSaveProgress={updateAndSaveProgress}
           onToast={showToast}
-          sourceLang={sourceLang}
-          targetLang={targetLang}
         />
       )}
 
-      {view.name === 'route' && view.route === 'corporate' && (
+      {view.name === 'flashcards' && (
+        <FlashcardsView
+          profile={profile}
+          progress={progress}
+          onBack={goHome}
+          onToast={showToast}
+        />
+      )}
+
+      {view.name === 'corporate' && (
         <CorporateBridgeView
           onBack={goHome}
           onToast={showToast}
@@ -309,102 +258,64 @@ export default function App() {
         />
       )}
 
-      {view.name === 'route' && view.route === 'preferences' && (
+      {view.name === 'preferences' && (
         <PreferencesView
           onBack={goHome}
           profile={profile}
           onSaveProfile={saveProfile}
           progress={progress}
-          updateAndSaveProgress={updateAndSaveProgress}
           onToast={showToast}
-          onOpenReview={() => setFeedbackOpen(true)}
         />
       )}
 
-      {view.name === 'route' && view.route === 'flashcards' && (
-        <FlashcardsView
-          profile={profile}
-          progress={progress}
-          updateAndSaveProgress={updateAndSaveProgress}
-          onBack={goHome}
-          onToast={showToast}
-          onAnswer={recordAnswer}
-          onAskAIAboutCard={handleAskAIAboutCard}
-          sourceLang={sourceLang}
-          targetLang={targetLang}
+      {/* Interactive Lesson Session Modal */}
+      {activeLessonNode && (
+        <LessonRunner
+          lesson={activeLessonNode}
+          onCompleteSession={handleLessonSessionComplete}
+          onClose={() => setActiveLessonNode(null)}
+          isArabic={isArabic}
         />
       )}
 
-      {view.name === 'route' && view.route === 'lesson' && (
-        <LessonView
-          profile={profile}
-          progress={progress}
-          updateAndSaveProgress={updateAndSaveProgress}
-          onBack={goHome}
-          onToast={showToast}
-          preferredVoice={progress.preferredVoice}
-          onAskAIAboutCard={handleAskAIAboutCard}
-          sourceLang={sourceLang}
-          targetLang={targetLang}
-        />
-      )}
-
-      {/* First-Launch Preferences Setup Onboarding */}
-      <OnboardingModal
+      {/* Onboarding & Placement Modal */}
+      <OnboardingPlacementModal
         isOpen={onboardingOpen}
-        initialProfile={profile}
-        initialSourceLang={sourceLang}
-        initialTargetLang={targetLang}
-        onComplete={handleCompleteOnboarding}
-        onSkip={handleSkipOnboarding}
+        onComplete={(goal, dailyMin, stage) => {
+          updateProgression((p) => ({
+            ...p,
+            dailyDailyTargetMin: dailyMin,
+            currentStage: stage,
+          }));
+          setOnboardingOpen(false);
+        }}
+        isArabic={isArabic}
       />
 
-      {/* Floating CV Modal */}
-      <CVModal isOpen={cvOpen} onClose={() => setCvOpen(false)} />
-
-      {/* Floating AoT Survey Corps Interactive Tutorial */}
-      <TutorialModal
-        isOpen={tutorialOpen}
-        onClose={handleCloseTutorial}
-        language={profile?.language || 'english'}
+      {/* Privacy Policy Modal */}
+      <PrivacyPolicyModal
+        isOpen={privacyOpen}
+        onClose={() => setPrivacyOpen(false)}
+        isArabic={isArabic}
       />
 
-      {/* Floating Anonymous Review & Feedback Modal */}
+      {/* Feedback Review Modal */}
       <FeedbackModal
         isOpen={feedbackOpen}
-        onClose={() => {
-          setFeedbackOpen(false);
-          updateAndSaveProgress(p => ({ ...p, feedbackDismissed: true }));
-        }}
-        onSubmit={handleFeedbackSubmit}
+        onClose={() => setFeedbackOpen(false)}
         onToast={showToast}
         profile={profile}
       />
 
       {/* Floating AI Helper */}
-      <AIHelper profile={activeProfile} request={aiHelperRequest} />
+      <AIHelper profile={profile} request={aiHelperRequest} />
 
       {/* Floating Toast Notification */}
       {toastMsg && (
         <div
           role="status"
           aria-live="polite"
-          style={{
-            position: 'fixed',
-            bottom: 24,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            zIndex: 9999,
-            background: '#1c1917',
-            color: '#f5f5f4',
-            padding: '10px 20px',
-            borderRadius: 9999,
-            fontSize: 13,
-            fontWeight: 600,
-            border: '1px solid #44403c',
-            boxShadow: '0 10px 25px rgba(0,0,0,0.5)',
-            pointerEvents: 'none'
-          }}
+          className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 px-4 py-2 bg-stone-900 border border-teal-500/40 text-stone-100 text-xs font-bold rounded-xl shadow-xl backdrop-blur-md"
         >
           {toastMsg}
         </div>
