@@ -37,6 +37,24 @@ if (upstashUrl && upstashToken) {
   }
 }
 
+const ALLOWED_CORS_ORIGINS = new Set([
+  'https://thinkingbridge.vercel.app',
+  'https://arabicenglishthinkingbridge.vercel.app',
+  'https://tb-eg.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'capacitor://localhost',
+  'https://localhost'
+]);
+
+function isAllowedOrigin(origin: string | null): boolean {
+  if (!origin) return false;
+  if (ALLOWED_CORS_ORIGINS.has(origin)) return true;
+  if (/^https?:\/\/localhost(:\d+)?$/.test(origin)) return true;
+  if (/^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin)) return true;
+  return false;
+}
+
 function checkMemoryRateLimit(ip: string): boolean {
   const now = Date.now();
   const record = memoryLimiter.get(ip);
@@ -127,7 +145,9 @@ export default async function middleware(request: Request): Promise<Response> {
         headers: {
           'Content-Type': 'application/json; charset=utf-8',
           'Retry-After': '60',
-          'Access-Control-Allow-Origin': request.headers.get('origin') || '*'
+          'Access-Control-Allow-Origin': isAllowedOrigin(request.headers.get('origin')) ? (request.headers.get('origin') as string) : 'https://arabicenglishthinkingbridge.vercel.app',
+          'Vary': 'Origin',
+          'X-Content-Type-Options': 'nosniff'
         }
       }
     );

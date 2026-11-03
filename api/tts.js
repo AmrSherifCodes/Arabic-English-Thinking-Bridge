@@ -37,6 +37,7 @@ function resolveGoogleLang(lang = 'en-US') {
 export const ALLOWED_CORS_ORIGINS = new Set([
   'https://thinkingbridge.vercel.app',
   'https://arabicenglishthinkingbridge.vercel.app',
+  'https://tb-eg.vercel.app',
   'http://localhost:5173',
   'http://localhost:3000',
   'capacitor://localhost',

@@ -2,6 +2,95 @@
 import { neon } from '@neondatabase/serverless';
 import { createClient } from '@supabase/supabase-js';
 
+const ALLOWED_CORS_ORIGINS = new Set([
+  'https://thinkingbridge.vercel.app',
+  'https://arabicenglishthinkingbridge.vercel.app',
+  'https://tb-eg.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'capacitor://localhost',
+  'https://localhost'
+]);
+
+export function isAllowedOrigin(origin) {
+  if (!origin) return false;
+  if (ALLOWED_CORS_ORIGINS.has(origin)) return true;
+  if (/^https?:\/\/localhost(:\d+)?$/.test(origin)) return true;
+  if (/^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin)) return true;
+  return false;
+}
+
+export function getCorsOrigin(origin) {
+  if (isAllowedOrigin(origin)) {
+    return origin;
+  }
+  return 'https://arabicenglishthinkingbridge.vercel.app';
+}
+
+function isAllowedUrlOrigin(urlStr) {
+  if (!urlStr) return false;
+  try {
+    const u = new URL(urlStr);
+    const originOnly = `${u.protocol}//${u.host}`;
+    return isAllowedOrigin(originOnly);
+  } catch {
+    return false;
+  }
+}
+
+// In-memory rate limiter: max 5 submissions per 5 minutes per IP
+const feedbackRateLimits = new Map();
+const RATE_LIMIT_COUNT = 5;
+const RATE_WINDOW_MS = 5 * 60 * 1000;
+
+export function checkFeedbackRateLimit(ip) {
+  const now = Date.now();
+  if (feedbackRateLimits.size > 2000) {
+    for (const [key, val] of feedbackRateLimits.entries()) {
+      if (val.resetAt <= now) feedbackRateLimits.delete(key);
+    }
+  }
+  const record = feedbackRateLimits.get(ip);
+  if (!record || record.resetAt <= now) {
+    feedbackRateLimits.set(ip, { count: 1, resetAt: now + RATE_WINDOW_MS });
+    return true;
+  }
+  if (record.count >= RATE_LIMIT_COUNT) {
+    return false;
+  }
+  record.count += 1;
+  return true;
+}
+
+export function getClientIp(req) {
+  const headers = req.headers || {};
+  const xRealIp = headers['x-real-ip'];
+  if (typeof xRealIp === 'string' && xRealIp.trim()) return xRealIp.trim();
+  const xVercel = headers['x-vercel-forwarded-for'];
+  if (typeof xVercel === 'string' && xVercel.trim()) return xVercel.split(',')[0].trim();
+  const xFwd = headers['x-forwarded-for'];
+  if (typeof xFwd === 'string' && xFwd.trim()) return xFwd.split(',')[0].trim();
+  return req.socket?.remoteAddress || '127.0.0.1';
+}
+
+export function isAdminAuthorized(req) {
+  const headers = req.headers || {};
+  const authHeader = headers.authorization || '';
+  const adminKey = headers['x-admin-key'] || '';
+  const secretKey =
+    process.env.FEEDBACK_ADMIN_KEY ||
+    process.env.ADMIN_SECRET ||
+    process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!secretKey) {
+    return false;
+  }
+
+  if (adminKey && adminKey === secretKey) return true;
+  if (authHeader.startsWith('Bearer ') && authHeader.slice(7).trim() === secretKey) return true;
+  return false;
+}
+
 function getSupabase() {
   const url =
     process.env.SUPABASE_URL ||
@@ -26,7 +115,6 @@ function getNeon() {
     process.env.POSTGRES_PRISMA_URL ||
     process.env.POSTGRES_URL_NON_POOLING;
   if (!connectionString) return null;
-  // Neon driver requires a Neon HTTP endpoint (*.neon.tech)
   if (connectionString.includes('neon.tech') || connectionString.includes('neon.')) {
     return neon(connectionString);
   }
@@ -36,9 +124,7 @@ function getNeon() {
 function sendJson(res, status, data, headers = {}) {
   res.statusCode = status;
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
   for (const [key, val] of Object.entries(headers)) {
     res.setHeader(key, val);
   }
@@ -67,8 +153,35 @@ async function ensureNeonTable(sql) {
 }
 
 export default async function handler(req, res) {
+  const headers = req.headers || {};
+  const origin = headers.origin;
+  const referer = headers.referer;
+
+  res.setHeader('Access-Control-Allow-Origin', getCorsOrigin(origin));
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, X-Admin-Key');
+  res.setHeader('Vary', 'Origin');
+
   if (req.method === 'OPTIONS') {
-    return sendJson(res, 204, {});
+    res.statusCode = 204;
+    res.end();
+    return;
+  }
+
+  // Cross-site request forgery prevention
+  const secFetchSite = headers['sec-fetch-site'];
+  if (secFetchSite === 'cross-site' && !origin && !referer) {
+    return sendJson(res, 403, { error: 'Cross-site request rejected.' });
+  }
+
+  if (origin) {
+    if (!isAllowedOrigin(origin)) {
+      return sendJson(res, 403, { error: 'Origin not allowed.' });
+    }
+  } else if (referer) {
+    if (!isAllowedUrlOrigin(referer)) {
+      return sendJson(res, 403, { error: 'Referer origin not allowed.' });
+    }
   }
 
   const supabase = getSupabase();
@@ -80,8 +193,14 @@ export default async function handler(req, res) {
     });
   }
 
-  // 1. GET: Fetch feedback submissions (for Admin dashboard)
+  // 1. GET: Fetch feedback submissions (Secured Admin endpoint)
   if (req.method === 'GET') {
+    if (!isAdminAuthorized(req)) {
+      return sendJson(res, 401, {
+        error: 'Unauthorized: Admin authorization required to access feedback submissions.'
+      });
+    }
+
     try {
       if (supabase) {
         const { data, error } = await supabase
@@ -106,23 +225,31 @@ export default async function handler(req, res) {
       }
     } catch (err) {
       console.error('PostgreSQL GET error:', err);
-      return sendJson(res, 500, { error: 'Failed to retrieve feedback from PostgreSQL.', details: err.message });
+      return sendJson(res, 500, { error: 'Failed to retrieve feedback.' });
     }
   }
 
   // 2. POST: Submit new feedback
   if (req.method === 'POST') {
+    const clientIp = getClientIp(req);
+    if (!checkFeedbackRateLimit(clientIp)) {
+      return sendJson(res, 429, {
+        error: 'Too many feedback submissions. Please wait a few minutes before submitting again.'
+      });
+    }
+
     try {
       const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
 
       const rating = Math.min(5, Math.max(1, parseInt(body.rating, 10) || 5));
-      const category = String(body.category || 'general').slice(0, 50);
+      const allowedCategories = new Set(['general', 'bug', 'feature', 'content']);
+      const category = allowedCategories.has(body.category) ? body.category : 'general';
       const message = String(body.message || '').trim().slice(0, 2000);
       const isAnonymous = body.isAnonymous !== false;
-      const userName = isAnonymous ? null : String(body.userName || '').trim().slice(0, 255) || null;
-      const profileGoal = String(body.profileGoal || '').trim().slice(0, 255) || null;
-      const focusArea = String(body.focusArea || '').trim().slice(0, 255) || null;
-      const dialect = String(body.dialect || '').trim().slice(0, 255) || null;
+      const userName = isAnonymous ? null : String(body.userName || '').trim().slice(0, 100) || null;
+      const profileGoal = String(body.profileGoal || '').trim().slice(0, 100) || null;
+      const focusArea = String(body.focusArea || '').trim().slice(0, 100) || null;
+      const dialect = String(body.dialect || '').trim().slice(0, 50) || null;
 
       if (!message && rating === 0) {
         return sendJson(res, 400, { error: 'Feedback message or rating is required.' });
@@ -175,7 +302,7 @@ export default async function handler(req, res) {
       }
     } catch (err) {
       console.error('PostgreSQL POST error:', err);
-      return sendJson(res, 500, { error: 'Failed to record feedback.', details: err.message });
+      return sendJson(res, 500, { error: 'Failed to record feedback. Please try again later.' });
     }
   }
 

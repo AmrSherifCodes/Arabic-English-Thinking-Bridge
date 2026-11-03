@@ -1055,11 +1055,23 @@ function getDeterministicCorporateBridge(thought) {
 const ALLOWED_CORS_ORIGINS = new Set([
   'https://thinkingbridge.vercel.app',
   'https://arabicenglishthinkingbridge.vercel.app',
+  'https://tb-eg.vercel.app',
   'http://localhost:5173',
   'http://localhost:3000',
   'capacitor://localhost',
   'https://localhost'
 ]);
+
+function isAllowedUrlOrigin(urlStr) {
+  if (!urlStr) return false;
+  try {
+    const u = new URL(urlStr);
+    const originOnly = `${u.protocol}//${u.host}`;
+    return isAllowedOrigin(originOnly);
+  } catch {
+    return false;
+  }
+}
 
 function isAllowedOrigin(origin) {
   if (!origin) return false;
@@ -1099,10 +1111,19 @@ export default async function handler(req, res) {
     return sendJson(res, 405, { error: { code: 'bad-output', message: 'Method not allowed.' } });
   }
 
+  const secFetchSite = req.headers['sec-fetch-site'];
+  if (secFetchSite === 'cross-site' && !origin && !req.headers.referer) {
+    return sendJson(res, 403, { error: { code: 'bad-output', message: 'Cross-site request rejected.' } });
+  }
+
   if (origin) {
     const isAllowed = isAllowedOrigin(origin);
     if (!isAllowed) {
       return sendJson(res, 403, { error: { code: 'bad-output', message: 'Origin not allowed.' } });
+    }
+  } else if (req.headers.referer) {
+    if (!isAllowedUrlOrigin(req.headers.referer)) {
+      return sendJson(res, 403, { error: { code: 'bad-output', message: 'Referer origin not allowed.' } });
     }
   }
 

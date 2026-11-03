@@ -2,6 +2,17 @@ import React, { useState } from 'react';
 
 export type JapaneseDisplayMode = 'furigana' | 'kanji' | 'romaji';
 
+/**
+ * Strips any non-ruby tags and strips all attributes from allowed tags to prevent XSS.
+ */
+export function sanitizeFuriganaHtml(html: string): string {
+  if (!html || typeof html !== 'string') return '';
+  return html
+    .replace(/<(?!\/?(?:ruby|rt|rp|rb)\b)[^>]*>/gi, '')
+    .replace(/<([a-z]+)\s+[^>]*>/gi, '<$1>')
+    .trim();
+}
+
 interface JapaneseFuriganaTextProps {
   kanjiText: string;
   furiganaHtml?: string;
@@ -22,10 +33,11 @@ export function JapaneseFuriganaText({
   }
 
   if (displayMode === 'furigana' && furiganaHtml) {
+    const cleanHtml = sanitizeFuriganaHtml(furiganaHtml);
     return (
       <span
         className={`japanese-text japanese-text--furigana leading-loose ${className}`}
-        dangerouslySetInnerHTML={{ __html: furiganaHtml }}
+        dangerouslySetInnerHTML={{ __html: cleanHtml }}
       />
     );
   }
@@ -66,7 +78,7 @@ export function JapaneseModeToggle({ mode, onChange, className = '' }: JapaneseM
             ? 'bg-white dark:bg-stone-700 text-stone-900 dark:text-stone-100 shadow-xs font-semibold'
             : 'text-stone-500 hover:text-stone-800 dark:hover:text-stone-200'
         }`}
-        title="Show pure Kanji"
+        title="Show Kanji only"
       >
         漢字
       </button>
@@ -78,11 +90,10 @@ export function JapaneseModeToggle({ mode, onChange, className = '' }: JapaneseM
             ? 'bg-white dark:bg-stone-700 text-stone-900 dark:text-stone-100 shadow-xs font-semibold'
             : 'text-stone-500 hover:text-stone-800 dark:hover:text-stone-200'
         }`}
-        title="Show Latin Romaji alphabet"
+        title="Show Romanized alphabet (Romaji)"
       >
         Romaji
       </button>
     </div>
   );
 }
-

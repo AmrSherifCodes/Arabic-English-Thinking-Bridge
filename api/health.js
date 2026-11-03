@@ -10,6 +10,13 @@ function getSupabase() {
 export default async function handler(req, res) {
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
   res.setHeader('Cache-Control', 'no-cache, no-store');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+
+  if (req.method !== 'GET' && req.method !== 'OPTIONS') {
+    res.statusCode = 405;
+    res.end(JSON.stringify({ error: 'Method Not Allowed' }));
+    return;
+  }
 
   let dbReachable = false;
   let todayQuotaCount = 0;
@@ -41,7 +48,7 @@ export default async function handler(req, res) {
     JSON.stringify({
       status: dbReachable ? 'healthy' : 'degraded',
       service: 'Thinking Bridge AI & Core API',
-      version: 'v3.0.5',
+      version: 'v3.1.0',
       uptime: Math.round(process.uptime()),
       timestamp: Date.now(),
       database: {
