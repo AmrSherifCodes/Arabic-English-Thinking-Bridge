@@ -228,7 +228,7 @@ export function OnboardingPlacementModal({
                         : 'bg-surface border-border text-text'
                     }`}
                   >
-                    <span className="text-base block">{t} {isArabic ? 'دقائق' : 'min'}</span>
+                    <span className="text-base block">{t} {isArabic ? (t <= 10 ? 'دقائق' : 'دقيقة') : 'min'}</span>
                     <span className="text-[10px] text-muted">{isArabic ? 'يومياً' : 'daily'}</span>
                   </button>
                 ))}

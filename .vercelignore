@@ -12,3 +12,5 @@ build/
 *.log
 Thinking-English-v4.html
 scripts/
+api/*.test.js
+api/**/*.test.js

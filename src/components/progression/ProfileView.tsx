@@ -29,7 +29,7 @@ export function ProfileView({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   return (
-    <div className="space-y-6 max-w-md mx-auto pb-24" dir={isArabic ? 'rtl' : 'ltr'}>
+    <div className="space-y-6 max-w-md mx-auto pb-36 sm:pb-32" dir={isArabic ? 'rtl' : 'ltr'}>
       {/* 1. Header Profile & Overall Level Card */}
       <div className="p-5 rounded-3xl bg-stone-900 border border-stone-800 space-y-4 shadow-xl text-start">
         <div className="flex items-center justify-between">
@@ -48,7 +48,7 @@ export function ProfileView({
           </div>
 
           <span className="px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-black">
-            {state.currentStage} {isArabic ? 'مرحلة' : 'Stage'}
+            {isArabic ? `المرحلة ${state.currentStage}` : `Stage ${state.currentStage}`}
           </span>
         </div>
 
@@ -56,7 +56,7 @@ export function ProfileView({
         <div className="grid grid-cols-3 gap-2 text-center pt-2 border-t border-stone-800">
           <div className="p-2 rounded-xl bg-stone-950">
             <span className="text-sm font-black text-amber-400 block">{state.xp}</span>
-            <span className="text-[10px] text-stone-400">{isArabic ? 'XP مجموع' : 'Total XP'}</span>
+            <span className="text-[10px] text-stone-400">{isArabic ? 'مجموع الـ XP' : 'Total XP'}</span>
           </div>
           <div className="p-2 rounded-xl bg-stone-950">
             <span className="text-sm font-black text-teal-400 block">🔥 {state.streak}</span>

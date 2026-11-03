@@ -45,7 +45,7 @@ export function PathView({ state, onSelectLesson, onSelectUnitCheckpoint, isArab
   };
 
   return (
-    <div className="space-y-6 max-w-[480px] mx-auto pb-24" dir={isArabic ? 'rtl' : 'ltr'}>
+    <div className="space-y-6 max-w-[480px] mx-auto pb-32 sm:pb-36" dir={isArabic ? 'rtl' : 'ltr'}>
       {/* 1. Top Big Continue CTA */}
       <div className="p-4.5 rounded-3xl bg-surface border border-border shadow-xl flex items-center justify-between">
         <div className="space-y-1 text-start">
@@ -158,7 +158,11 @@ export function PathView({ state, onSelectLesson, onSelectUnitCheckpoint, isArab
                       </div>
 
                       {/* Lesson Label */}
-                      <span className="mt-1 text-[11px] font-black text-text text-center max-w-[120px] truncate" dir="auto">
+                      <span
+                        className="mt-1 text-[11px] font-black text-text text-center max-w-[150px] sm:max-w-[170px] line-clamp-2 leading-snug break-words px-1"
+                        dir="auto"
+                        title={isArabic ? lesson.titleAr : lesson.titleEn}
+                      >
                         {isArabic ? lesson.titleAr : lesson.titleEn}
                       </span>
                     </button>

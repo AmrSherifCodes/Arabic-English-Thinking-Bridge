@@ -349,7 +349,9 @@ export default function App() {
       />
 
       {/* Floating AI Helper */}
-      <AIHelper profile={profile} request={aiHelperRequest} />
+      {!onboardingOpen && !activeLessonNode && (
+        <AIHelper profile={profile} request={aiHelperRequest} />
+      )}
 
       {/* Floating Toast Notification */}
       {toastMsg && (
