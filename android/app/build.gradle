@@ -1,6 +1,6 @@
 apply plugin: 'com.android.application'
 
-def keystorePropertiesFile = rootProject.file("key.properties")
+def keystorePropertiesFile = rootProject.file("keystore.properties")
 def keystoreProperties = new Properties()
 if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
@@ -32,12 +32,11 @@ android {
     }
     signingConfigs {
         release {
-            def storePath = keystoreProperties['storeFile'] ?: System.getenv('ANDROID_KEYSTORE_PATH')
-            if (storePath) {
-                storeFile file(storePath)
-                storePassword keystoreProperties['storePassword'] ?: System.getenv('ANDROID_KEYSTORE_PASSWORD') ?: ''
-                keyAlias keystoreProperties['keyAlias'] ?: System.getenv('ANDROID_KEY_ALIAS') ?: ''
-                keyPassword keystoreProperties['keyPassword'] ?: System.getenv('ANDROID_KEY_PASSWORD') ?: ''
+            if (keystorePropertiesFile.exists()) {
+                storeFile file(keystoreProperties['storeFile'])
+                storePassword keystoreProperties['storePassword']
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
             }
         }
     }

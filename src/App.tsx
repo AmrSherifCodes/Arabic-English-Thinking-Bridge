@@ -98,11 +98,18 @@ export default function App() {
     });
   };
 
-  const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [toastMsg, setToastMsg] = useState<React.ReactNode | null>(null);
   const toastTimerRef = useRef<number | null>(null);
   const [aiHelperRequest] = useState<AIHelperRequest | null>(null);
 
-  const showToast = (msg: string) => {
+  const T = (ar: string, en: string) => (
+    <>
+      <span dir="rtl" lang="ar" className="ar" style={{ display: 'block' }}>{ar}</span>
+      <span style={{ display: 'block', opacity: 0.6, fontSize: '11px', marginTop: '2px' }}>{en}</span>
+    </>
+  );
+
+  const showToast = (msg: React.ReactNode) => {
     if (toastTimerRef.current) window.clearTimeout(toastTimerRef.current);
     setToastMsg(msg);
     toastTimerRef.current = window.setTimeout(() => setToastMsg(null), 3000);
@@ -148,7 +155,7 @@ export default function App() {
           }
         : prev.lessonCrowns,
     }));
-    showToast(`🎉 +${earnedXp} XP! ${isArabic ? 'درس مكتمل بنجاح' : 'Lesson Mastered!'}`);
+    showToast(T(`🎉 +${earnedXp} XP! درس مكتمل بنجاح`, `🎉 +${earnedXp} XP! Lesson Mastered!`));
   };
 
   if (view.name === 'landing') {
@@ -225,7 +232,7 @@ export default function App() {
                 a.download = `thinking-bridge-backup-${new Date().toISOString().slice(0, 10)}.json`;
                 a.click();
                 URL.revokeObjectURL(url);
-                showToast(isArabic ? 'تم تصدير البيانات بنجاح' : 'Data exported successfully');
+                showToast(T('تم تصدير البيانات بنجاح', 'Data exported successfully'));
               }}
               onDeleteData={() => {
                 localStorage.clear();
@@ -244,7 +251,7 @@ export default function App() {
           onBack={goHome}
           progress={progress}
           profile={profile}
-          onToast={showToast}
+          onToast={(msg) => showToast(T(msg, msg))} // Minimal fix for string typed child
           sourceLang={sourceLang}
           targetLang={targetLang}
         />
@@ -256,14 +263,14 @@ export default function App() {
           progress={progress}
           updateAndSaveProgress={updateAndSaveProgress}
           onBack={goHome}
-          onToast={showToast}
+          onToast={(msg) => showToast(T(msg, msg))}
         />
       )}
 
       {view.name === 'corporate' && (
         <CorporateBridgeView
           onBack={goHome}
-          onToast={showToast}
+          onToast={(msg) => showToast(T(msg, msg))}
           preferredVoice={progress.preferredVoice}
         />
       )}
@@ -274,7 +281,7 @@ export default function App() {
           profile={profile}
           onSaveProfile={saveProfile}
           progress={progress}
-          onToast={showToast}
+          onToast={(msg) => showToast(T(msg, msg))}
           sourceLang={sourceLang}
           targetLang={targetLang}
           onOpenLanguageSelector={() => setLangSelectorOpen(true)}

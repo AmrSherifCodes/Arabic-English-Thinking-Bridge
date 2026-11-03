@@ -14,6 +14,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="فكّر إنجليزي" />
+    <meta name="application-name" content="فكّر إنجليزي">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
     <!-- SEO & Hreflang Tags -->
@@ -38,7 +39,29 @@
     <script src="/theme-init.js"></script>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <noscript style="display:block;padding:2rem;font-family:Cairo,sans-serif;text-align:center;direction:rtl">
+        لازم تفعّل الجافاسكريبت عشان التطبيق يفتح.
+      </noscript>
+    </div>
+    <script>
+      setTimeout(() => {
+        const root = document.getElementById('root');
+        if (root && root.childElementCount <= 1) { // includes noscript
+          const msg = document.createElement('div');
+          msg.dir = 'rtl';
+          msg.lang = 'ar';
+          msg.style.cssText = 'padding:2rem;text-align:center;font-family:Cairo,sans-serif;color:#f9fafb;';
+          msg.innerHTML = `
+            <p>التطبيق مش بيفتح على جهازك. جرّب تقفله وتفتحه تاني.</p>
+            <p>لو المشكلة كملت، كلّم عمرو على واتساب:
+              <a href="https://wa.me/201272718167" style="color:#0d9488;font-weight:bold">واتساب</a>
+            </p>
+          `;
+          root.appendChild(msg);
+        }
+      }, 3000);
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
