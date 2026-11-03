@@ -6,11 +6,19 @@ import { TabTutorialModal } from '../../components/TabTutorialModal';
 import { applyHabitWin } from '../../utils/habitPsychology';
 import './voice.css';
 
-const LABELS: Record<VoiceState, string> = {
+const LABELS_AR: Record<VoiceState, string> = {
+  idle: 'اضغط المايك للبدء في التحدث مع عمرو',
+  listening: 'جاري الاستماع... اتكلم براحتك',
+  transcribing: 'جاري تحويل كلامك لنص...',
+  thinking: 'عمرو شريف يفكر في الرد...',
+  speaking: 'عمرو شريف يتحدث... (اضغط للإيقاف)',
+};
+
+const LABELS_EN: Record<VoiceState, string> = {
   idle: 'Tap the mic to begin',
   listening: 'Listening… speak naturally',
   transcribing: 'Transcribing speech…',
-  thinking: 'Thinking…',
+  thinking: 'Amr is thinking…',
   speaking: 'Speaking… (Tap to interrupt)',
 };
 
@@ -210,14 +218,17 @@ export function VoicePracticeView({
     });
   };
 
+  const isAr = sourceLang === 'ar' || (profile?.language || 'arabic') === 'arabic';
+  const currentLabels = isAr ? LABELS_AR : LABELS_EN;
+
   return (
-    <div className="voice">
+    <div className="voice" dir={isAr ? 'rtl' : 'ltr'}>
       <header className="voice__header">
-        <button className="voice__back" onClick={onBack} aria-label="Back">
+        <button className="voice__back" onClick={onBack} aria-label={isAr ? 'رجوع' : 'Back'}>
           ←
         </button>
         <div className="voice__title-group">
-          <span className="voice__title">Voice Practice</span>
+          <span className="voice__title">{isAr ? 'تدريب المحادثة الصوتي' : 'Voice Practice'}</span>
           <span className="text-[11px] font-black px-2 py-0.5 rounded-full bg-teal-500/15 text-teal-400 border border-teal-500/30">
             {sourceLang === 'ar' ? '🇪🇬' : '🇬🇧'} ➔ {targetLang === 'de' ? '🇩🇪 Deutsch' : targetLang === 'ja' ? '🇯🇵 日本語' : '🇬🇧 English'}
           </span>
@@ -227,13 +238,13 @@ export function VoicePracticeView({
             </span>
           )}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ display: 'flex', items: 'center', gap: '8px' }}>
           <button
             type="button"
             className="voice__type-toggle"
             onClick={() => setShowGuide(true)}
             aria-label="How voice practice works"
-            title="Voice Guide"
+            title={isAr ? 'دليل التدريب الصوتي' : 'Voice Guide'}
           >
             ❓
           </button>
@@ -253,18 +264,24 @@ export function VoicePracticeView({
           aria-hidden
           onClick={handleMicClick}
         />
-        <p className="voice__status">{LABELS[state]}</p>
+        <p className="voice__status">{currentLabels[state]}</p>
 
         {!isOnline && (
           <div className="voice__offline-banner" role="status">
-            📡 You are offline. Voice streaming is paused, but you can practice using text.
+            {isAr
+              ? '📡 أنت غير متصل بالإنترنت. التحدث الصوتي متوقف مؤقتاً، لكن يمكنك التدرب بالكتابة.'
+              : '📡 You are offline. Voice streaming is paused, but you can practice using text.'}
           </div>
         )}
 
         {error && (
           <div className="voice__error-box">
             <div className="voice__error-row">
-              <p className="voice__error">{error}</p>
+              <p className="voice__error">
+                {isAr && error.includes('Could not transcribe audio')
+                  ? 'تعذر التعرف الصوتي. يمكنك كتابة رسالتك أدناه والبدء فوراً!'
+                  : error}
+              </p>
               <button
                 type="button"
                 className="voice__error-dismiss"
@@ -276,13 +293,16 @@ export function VoicePracticeView({
             </div>
             {error.toLowerCase().includes('permission') && (
               <p className="voice__hint">
-                Microphone access is blocked. Please enable permissions in your device settings or browser address bar to speak with Amr.
+                {isAr
+                  ? 'تم حظر الوصول إلى الميكروفون. يرجى تفعيل السماح بالميكروفون من إعدادات المتصفح للتحدث مع عمرو.'
+                  : 'Microphone access is blocked. Please enable permissions in your device settings to speak with Amr.'}
               </p>
             )}
             {error.toLowerCase().includes('network') && (
               <p className="voice__hint">
-                🦁 <strong>Using Brave or privacy shields?</strong> Browser speech recognition is blocked by default.
-                Direct audio recording is now active (tap mic to speak), or you can practice by typing below!
+                {isAr
+                  ? '🦁 تستخدم متصفح Brave أو مانع التتبع؟ يتم تحويل التسجيل إلى وضع الصوت المباشر أو الكتابة أدناه!'
+                  : '🦁 Using Brave or privacy shields? Direct recording is active, or you can practice by typing below!'}
               </p>
             )}
           </div>
@@ -293,15 +313,15 @@ export function VoicePracticeView({
           <div className="voice__bubble" aria-live="polite">
             {interimTranscript && (
               <div className="voice__bubble-user">
-                <span className="voice__bubble-label">You:</span> {interimTranscript}
+                <span className="voice__bubble-label">{isAr ? 'أنت:' : 'You:'}</span> {interimTranscript}
               </div>
             )}
             {activeAiText && (
               <div className="voice__bubble-ai">
                 <div className="voice__bubble-header">
-                  <span className="voice__bubble-label">Amr:</span>
+                  <span className="voice__bubble-label">{isAr ? 'عمرو:' : 'Amr:'}</span>
                   {hasNewWordsInActive && (
-                    <span className="voice__new-word-badge">★ NEW WORD</span>
+                    <span className="voice__new-word-badge">{isAr ? '★ كلمة جديدة' : '★ NEW WORD'}</span>
                   )}
                 </div>
                 <div className="voice__bubble-text">
@@ -322,7 +342,7 @@ export function VoicePracticeView({
                   key={m.id}
                   className={`voice__history-item voice__history-item--${m.role}`}
                 >
-                  <strong>{m.role === 'user' ? 'You' : 'Amr'}:</strong>{' '}
+                  <strong>{m.role === 'user' ? (isAr ? 'أنت' : 'You') : (isAr ? 'عمرو' : 'Amr')}:</strong>{' '}
                   {m.role === 'assistant' ? renderKaraokeWords(msgWords, false) : m.text}
                   {m.feedbackStatus === 'sent' && (
                     <div className="voice__feedback-card-sent mt-1 text-[11px]">
@@ -395,13 +415,13 @@ export function VoicePracticeView({
           <input
             type="text"
             className="voice__text-input"
-            placeholder="Type your message here..."
+            placeholder={isAr ? 'اكتب رسالتك لعمرو هنا...' : 'Type your message here...'}
             value={textInput}
             onChange={(e) => setTextInput(e.target.value)}
             autoFocus
           />
           <button type="submit" className="voice__send-btn">
-            Send
+            {isAr ? 'إرسال' : 'Send'}
           </button>
         </form>
       )}
