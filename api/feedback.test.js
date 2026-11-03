@@ -2,11 +2,15 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import handler from './feedback.js';
 
-test('1. feedback handler returns 503 if DATABASE_URL or POSTGRES_URL is unset', async () => {
-  const oldUrl = process.env.POSTGRES_URL;
-  const oldDb = process.env.DATABASE_URL;
+test('1. feedback handler returns 503 if database connection is unset', async () => {
+  const envBackup = { ...process.env };
   delete process.env.POSTGRES_URL;
   delete process.env.DATABASE_URL;
+  delete process.env.POSTGRES_PRISMA_URL;
+  delete process.env.POSTGRES_URL_NON_POOLING;
+  delete process.env.SUPABASE_URL;
+  delete process.env.VITE_SUPABASE_URL;
+  delete process.env.NEXT_PUBLIC_SUPABASE_URL;
 
   let statusCode = 0;
   let body = '';
@@ -22,8 +26,7 @@ test('1. feedback handler returns 503 if DATABASE_URL or POSTGRES_URL is unset',
     assert.equal(statusCode, 503);
     assert.match(body, /not configured/);
   } finally {
-    if (oldUrl) process.env.POSTGRES_URL = oldUrl;
-    if (oldDb) process.env.DATABASE_URL = oldDb;
+    process.env = envBackup;
   }
 });
 
@@ -39,4 +42,3 @@ test('2. feedback handler responds to OPTIONS with 204', async () => {
   await handler(req, res);
   assert.equal(statusCode, 204);
 });
-
