@@ -1,0 +1,15 @@
+{
+  "pageTitle": "فكّر إنجليزي · Thinking English — جسر التحول الذهني من العربية إلى الإنجليزية",
+  "metaDescription": "تعلم التفكير بالإنجليزية مجاناً بدون ترجمة حرفية أو حفظ قواعد. تطبيق تفاعلي مع محاكاة التفكير التلقائي والتكرار المتباعد.",
+  "ogTitle": "فكّر إنجليزي · Thinking English — جسر التحول الذهني من العربية إلى الإنجليزية",
+  "ogDesc": "تطبيق مجاني ومفتوح المصدر لمتحدثي العربية للتفكير والتحدث بالإنجليزية بطلاقة وبدون ترجمة في الدماغ. Free & open source Arabic-to-English cognitive transfer app.",
+  "navTiming": {
+    "ttfbMs": 58,
+    "domContentLoadedMs": 673,
+    "loadEventMs": 879
+  },
+  "hasHScroll375": false,
+  "hasHScroll390": false,
+  "consoleLogs": [],
+  "networkFailures": []
+}
