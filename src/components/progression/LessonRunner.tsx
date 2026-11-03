@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { LessonNode, ExerciseItem } from '../../progression/types';
 import { CheckCircle2, XCircle, ArrowRight, Zap, Timer, Sparkles } from 'lucide-react';
 import { computeNextHintWord } from '../../utils/habitPsychology';
@@ -32,6 +32,7 @@ export function LessonRunner({
 
   // 3.5s Keyboard/Selection Inactivity Auto-Complete (Beginner Feature)
   const [autoHintPill, setAutoHintPill] = useState<string | null>(null);
+  const [inactivityProgress, setInactivityProgress] = useState<number>(0);
 
   const currentExercise: ExerciseItem = exercises[currentIndex] || exercises[0];
 
@@ -39,43 +40,84 @@ export function LessonRunner({
     exerciseStartTimeRef.current = Date.now();
   }, [currentIndex]);
 
-  // Auto-complete missing word after 3.5 seconds of inactivity
-  useEffect(() => {
+  const triggerAutoHelper = useCallback(() => {
     if (isAnswered || showSummary) return;
 
-    const timer = window.setTimeout(() => {
-      const targetSentence = currentExercise.targetSentence || '';
+    const targetSentence = currentExercise.targetSentence || '';
 
-      if (currentExercise.type === 'structure_builder') {
-        const currentChoice = selectedChips.join(' ');
-        const { nextWord } = computeNextHintWord(targetSentence, currentChoice);
-        if (nextWord) {
-          const availableOption = (currentExercise.options || []).find(
-            (opt) => opt.toLowerCase() === nextWord.toLowerCase() && !selectedChips.includes(opt)
+    if (currentExercise.type === 'structure_builder') {
+      const currentChoice = selectedChips.join(' ');
+      const { nextWord } = computeNextHintWord(targetSentence, currentChoice);
+
+      // Try to find nextWord in available options that hasn't been selected yet
+      let candidateOption = (currentExercise.options || []).find(
+        (opt) => opt.toLowerCase() === (nextWord || '').toLowerCase() && !selectedChips.includes(opt)
+      );
+
+      // Smart Fallback: If currentChoice didn't match prefix, find first target token not yet in selectedChips
+      if (!candidateOption) {
+        const targetTokens = targetSentence.replace(/[.,?!]/g, '').split(/\s+/).filter(Boolean);
+        for (const token of targetTokens) {
+          const opt = (currentExercise.options || []).find(
+            (o) => o.toLowerCase() === token.toLowerCase() && !selectedChips.includes(o)
           );
-          if (availableOption) {
-            setSelectedChips((prev) => [...prev, availableOption]);
-            setAutoHintPill(
-              isArabic ? `💡 تم اختيار الكلمة التالية تلقائياً: "${availableOption}"` : `💡 Auto-selected: "${availableOption}"`
-            );
+          if (opt) {
+            candidateOption = opt;
+            break;
           }
         }
-      } else {
-        const { nextWord, prefixToKeep } = computeNextHintWord(targetSentence, userInput);
-        if (nextWord) {
-          const updatedInput = prefixToKeep ? `${prefixToKeep} ${nextWord}` : nextWord;
-          setUserInput(updatedInput);
-          setAutoHintPill(
-            isArabic ? `💡 تم إكمال الكلمة التالية تلقائياً: "${nextWord}"` : `💡 Auto-inserted: "${nextWord}"`
-          );
-        }
       }
-    }, 3500); // 3.5 seconds inactivity
 
-    return () => window.clearTimeout(timer);
-  }, [userInput, selectedChips, currentIndex, isAnswered, showSummary, currentExercise, isArabic]);
+      if (candidateOption) {
+        setSelectedChips((prev) => [...prev, candidateOption!]);
+        setAutoHintPill(
+          isArabic
+            ? `💡 المساعد الذكي (3.5s): تم اختيار "${candidateOption}"`
+            : `💡 Smart Helper (3.5s): Auto-selected "${candidateOption}"`
+        );
+      }
+    } else {
+      const { nextWord, prefixToKeep } = computeNextHintWord(targetSentence, userInput);
+      if (nextWord) {
+        const updatedInput = prefixToKeep ? `${prefixToKeep} ${nextWord}` : nextWord;
+        setUserInput(updatedInput);
+        setAutoHintPill(
+          isArabic
+            ? `💡 المساعد الذكي (3.5s): تم إكمال "${nextWord}"`
+            : `💡 Smart Helper (3.5s): Auto-inserted "${nextWord}"`
+        );
+      }
+    }
+  }, [isAnswered, showSummary, currentExercise, selectedChips, userInput, isArabic]);
 
-  // Dismiss auto-hint notification after 2.5s
+  // 3.5-second inactivity countdown timer
+  useEffect(() => {
+    if (isAnswered || showSummary) {
+      setInactivityProgress(0);
+      return;
+    }
+
+    setInactivityProgress(0);
+    const intervalMs = 100;
+    const totalMs = 3500;
+    const stepIncrement = (intervalMs / totalMs) * 100;
+
+    const interval = window.setInterval(() => {
+      setInactivityProgress((prev) => {
+        const next = prev + stepIncrement;
+        if (next >= 100) {
+          window.clearInterval(interval);
+          triggerAutoHelper();
+          return 0;
+        }
+        return next;
+      });
+    }, intervalMs);
+
+    return () => window.clearInterval(interval);
+  }, [userInput, selectedChips, currentIndex, isAnswered, showSummary, triggerAutoHelper]);
+
+  // Dismiss auto-hint notification banner after 2.5s
   useEffect(() => {
     if (autoHintPill) {
       const t = window.setTimeout(() => setAutoHintPill(null), 2500);
@@ -243,6 +285,35 @@ export function LessonRunner({
             <div className="p-3 rounded-2xl bg-primary/20 border border-primary/40 text-primary text-xs font-bold flex items-center gap-2 animate-bounce shadow-md">
               <Sparkles size={16} className="shrink-0" />
               <span>{autoHintPill}</span>
+            </div>
+          )}
+
+          {/* 3.5s Inactivity Countdown & Manual Helper Button */}
+          {!isAnswered && (
+            <div className="flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-2xl bg-surface border border-border">
+              <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                <Sparkles size={18} className="text-primary shrink-0" />
+                <div className="flex-1 space-y-1 min-w-0">
+                  <div className="flex justify-between text-[10px] font-bold text-muted">
+                    <span>{isArabic ? 'المساعد الذكي (3.5s)' : '3.5s Auto Helper'}</span>
+                    <span>{Math.round(inactivityProgress)}%</span>
+                  </div>
+                  <div className="w-full bg-surface-2 h-1.5 rounded-full overflow-hidden">
+                    <div
+                      className="bg-primary h-full transition-all duration-100 ease-linear"
+                      style={{ width: `${inactivityProgress}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={triggerAutoHelper}
+                className="px-3 py-2 rounded-xl bg-primary/20 border border-primary/40 text-primary hover:bg-primary hover:text-on-primary font-bold text-xs transition active:scale-95 shrink-0"
+              >
+                {isArabic ? '💡 تلميح الآن' : '💡 Hint Now'}
+              </button>
             </div>
           )}
 
