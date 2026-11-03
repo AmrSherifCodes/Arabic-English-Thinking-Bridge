@@ -70,11 +70,38 @@ test('4. updateStreakAndShields handles consecutive days and shield protection',
   assert.equal(missedDay.streak, 6, 'Streak must be preserved by shield');
 });
 
-test('5. buildCourseStructure maps all 27 lessons into CEFR stages A0-A2', () => {
+test('5. buildCourseStructure maps all 27 lessons into CEFR stages A0-A2 without dead ends', () => {
   const structure = buildCourseStructure();
   assert.equal(structure.length, 7, 'Must have 7 CEFR stages (A0 to C2)');
-  assert.ok(structure[0].units.length > 0, 'Stage A0 must have units');
-  assert.ok(structure[0].units[0].lessons.length > 0, 'Unit 1 must have lessons');
+
+  // Stages A0, A1, A2
+  const a0 = structure.find((s) => s.stage === 'A0');
+  const a1 = structure.find((s) => s.stage === 'A1');
+  const a2 = structure.find((s) => s.stage === 'A2');
+
+  assert.ok(a0 && a1 && a2, 'A0, A1, and A2 stages must be present');
+
+  const getStageLessons = (s: any) => s.units.flatMap((u: any) => u.lessons);
+  const a0Lessons = getStageLessons(a0);
+  const a1Lessons = getStageLessons(a1);
+  const a2Lessons = getStageLessons(a2);
+
+  assert.equal(a0Lessons.length, 9, 'Stage A0 must have 9 lessons');
+  assert.equal(a1Lessons.length, 9, 'Stage A1 must have 9 lessons');
+  assert.equal(a2Lessons.length, 9, 'Stage A2 must have 9 lessons');
+
+  const totalLessons = a0Lessons.length + a1Lessons.length + a2Lessons.length;
+  assert.equal(totalLessons, 27, 'Total progression lessons across A0-A2 must be 27');
+
+  const allExercises = [...a0Lessons, ...a1Lessons, ...a2Lessons].flatMap((l: any) => l.exercises);
+  assert.equal(allExercises.length, 81, 'Total progression exercises across A0-A2 must be 81');
+
+  // Verify every exercise has valid target, prompt, and wordChips
+  for (const ex of allExercises) {
+    assert.ok(ex.targetSentence.length > 0, `Exercise ${ex.id} targetSentence missing`);
+    assert.ok(ex.promptAr.length > 0, `Exercise ${ex.id} promptAr missing`);
+    assert.ok(ex.wordChips.length >= 3, `Exercise ${ex.id} wordChips insufficient`);
+  }
 });
 
 test('6. migrateLegacyStorageToProgression runs safely with fallback defaults', () => {

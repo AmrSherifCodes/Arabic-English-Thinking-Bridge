@@ -476,10 +476,10 @@ export function LandingView({ onStartWebApp }: LandingViewProps) {
               <Smartphone className="mx-auto text-[var(--landing-accent-teal)]" size={28} />
               <div>
                 <span className="font-bold text-sm text-white block">Android</span>
-                <span className="text-[10px] text-[var(--landing-muted)] block">v3.0.3 · APK</span>
+                <span className="text-[10px] text-[var(--landing-muted)] block">v3.1.0 · APK</span>
               </div>
               <a
-                href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v3.0.3/Thinking-Bridge-v3.0.3.apk"
+                href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v3.1.0/Thinking-Bridge-v3.1.0.apk"
                 download
                 className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-[var(--landing-accent-teal)] text-stone-950 font-bold text-xs w-full hover:opacity-90 transition"
               >
@@ -542,7 +542,7 @@ export function LandingView({ onStartWebApp }: LandingViewProps) {
       {/* 8. FOOTER */}
       <footer className="px-4 py-8 bg-[var(--landing-surface)] border-t border-[var(--landing-border)] text-center text-xs text-[var(--landing-muted)] space-y-3">
         <p className="font-bold text-white">
-          {isAr ? 'صُنع في الإسكندرية، مصر 🇪🇬' : 'Crafted in Alexandria, Egypt 🇪🇬'}
+          {isAr ? 'صُنع في الإسكندرية، مصر 🇪🇬 · v3.1.0' : 'Crafted in Alexandria, Egypt 🇪🇬 · v3.1.0'}
         </p>
 
         {/* Explicit Single License Line */}

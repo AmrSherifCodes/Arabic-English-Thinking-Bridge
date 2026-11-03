@@ -50,7 +50,7 @@ Semantic HTML, real button/a elements, `aria-label`s on icon-only controls, 4.5:
 
 - **Web**: Responsive, SEO meta + Open Graph + `hreflang` (ar/en), sitemap, fast (code-split, lazy images).
 - **PWA**: Manifest, maskable icons, service worker with offline cache for lessons/flashcards, install prompt (`beforeinstallprompt`) and iOS "Add to Home Screen" hint.
-- **Android**: Wrapped with Capacitor (`:app`), producing signed APK/AAB (current v3.0.3); safe-area handling and hardware back button.
+- **Android**: Wrapped with Capacitor (`:app`), producing signed APK/AAB (current v3.1.0); safe-area handling and hardware back button.
 - **iOS**: Capacitor iOS project, safe-area insets, App Store-ready assets. *(Requires Xcode & Apple Developer account for final signing/submission)*.
 - **Desktop (Windows/macOS/Linux)**: Optional Tauri/Electron integration or PWA desktop installation.
 - **Download Section**: Detect OS via `navigator.userAgent` and highlight matching button (Android APK, iOS/PWA, Windows, macOS), with all options listed below. Link to GitHub Releases.

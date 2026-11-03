@@ -311,12 +311,12 @@ export function ChoiceMenu({
 
         {/* 6. Download App Button */}
         <a
-          href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v3.0.3/Thinking-Bridge-v3.0.3.apk"
+          href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v3.1.0/Thinking-Bridge-v3.1.0.apk"
           target="_blank"
           rel="noopener noreferrer"
-          download="Thinking-Bridge-v3.0.3.apk"
+          download="Thinking-Bridge-v3.1.0.apk"
           className="menu__download-btn"
-          aria-label={isArabic ? 'تحميل تطبيق الأندرويد v3.0.3' : 'Download Android APK v3.0.3'}
+          aria-label={isArabic ? 'تحميل تطبيق الأندرويد v3.1.0' : 'Download Android APK v3.1.0'}
         >
           <div className="menu__download-info">
             <Download className="menu__download-icon" />
@@ -331,13 +331,13 @@ export function ChoiceMenu({
               </span>
             </div>
           </div>
-          <span className="menu__download-badge">v3.0.3 · APK</span>
+          <span className="menu__download-badge">v3.1.0 · APK</span>
         </a>
 
         {/* 7. Two-line Footer + Socials */}
         <footer className="menu__footer" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <p className="menu__footer-line1">
-            {isArabic ? 'صُنع في الإسكندرية، مصر 🇪🇬' : 'Crafted in Alexandria, Egypt 🇪🇬'}
+            {isArabic ? 'صُنع في الإسكندرية، مصر 🇪🇬 · v3.1.0' : 'Crafted in Alexandria, Egypt 🇪🇬 · v3.1.0'}
           </p>
           <p className="menu__footer-line2">
             {isArabic ? 'مستوحى من ميهاليس إلفثيريو · CC0 1.0' : 'Inspired by Mihalis Eleftheriou · CC0 1.0'}
