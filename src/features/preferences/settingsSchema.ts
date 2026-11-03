@@ -92,11 +92,14 @@ export const SETTINGS_SCHEMA: readonly PreferenceField[] = [
     type: 'select',
     category: 'pedagogy',
     labelKey: 'Target Dialect',
-    labelAr: 'اللهجة المستهدفة في القاموس',
+    labelAr: 'اللهجة العربية للقاموس والشرح',
     default: 'egyptian',
     options: [
-      { label: 'Egyptian Arabic (Ammiya)', labelAr: 'العامية المصرية (Ammiya)', value: 'egyptian' },
-      { label: 'Modern Standard Arabic (Fusha)', labelAr: 'العربية الفصحى (Fusha)', value: 'msa' },
+      { label: 'Egyptian Arabic (Ammiya)', labelAr: 'العامية المصرية (مصري)', value: 'egyptian' },
+      { label: 'Modern Standard Arabic (Fusha)', labelAr: 'العربية الفصحى (لكل الدول العربية)', value: 'msa' },
+      { label: 'Gulf Arabic (Khaleeji)', labelAr: 'اللهجة الخليجية (خليجي)', value: 'gulf' },
+      { label: 'Levantine Arabic (Shami)', labelAr: 'اللهجة الشامية (شامي)', value: 'levantine' },
+      { label: 'Maghrebi Arabic (Maghrebi)', labelAr: 'اللهجة المغاربية (مغربي)', value: 'maghrebi' },
     ],
   },
   {
