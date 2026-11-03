@@ -21,7 +21,7 @@ export function PracticeHubView({
   const dueItems = getDueSrsQueue(state.srsItems, state.dailyCardsCap);
 
   return (
-    <div className="space-y-4 max-w-md mx-auto pb-24" dir={isArabic ? 'rtl' : 'ltr'}>
+    <div className="space-y-4 max-w-md mx-auto pb-32 sm:pb-36" dir={isArabic ? 'rtl' : 'ltr'}>
       <div className="text-start space-y-1">
         <h2 className="text-xl font-black text-white">
           {isArabic ? 'مركز التدريب التفاعلي 🎯' : 'Interactive Practice Hub 🎯'}

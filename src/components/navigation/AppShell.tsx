@@ -41,7 +41,7 @@ export function AppShell({
             <span className="text-2xl">🧠</span>
             <div className="text-start">
               <h1 className="font-black text-sm text-text">فكّر إنجليزي</h1>
-              <span className="text-[10px] text-success font-bold block">Thinking Bridge v3.0.5</span>
+              <span className="text-[10px] text-success font-bold block">Thinking Bridge v3.1.0</span>
             </div>
           </div>
 
@@ -109,7 +109,7 @@ export function AppShell({
         </header>
 
         {/* Dynamic Tab Body - Centered Mobile-First Container (Max-Width 480px) */}
-        <main className="flex-1 p-4 sm:p-6 overflow-y-auto max-w-[480px] mx-auto w-full">
+        <main className="flex-1 p-4 sm:p-6 pb-28 md:pb-6 overflow-y-auto max-w-[480px] mx-auto w-full">
           {children}
         </main>
       </div>

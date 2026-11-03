@@ -45,7 +45,7 @@ export function LeagueView({ state, onToggleOptOut, isArabic = true }: LeagueVie
   ].sort((a, b) => b.weeklyXp - a.weeklyXp);
 
   return (
-    <div className="space-y-4 max-w-md mx-auto pb-24" dir={isArabic ? 'rtl' : 'ltr'}>
+    <div className="space-y-4 max-w-md mx-auto pb-32 sm:pb-36" dir={isArabic ? 'rtl' : 'ltr'}>
       {/* Tier Header */}
       <div className="p-4 rounded-3xl bg-gradient-to-r from-amber-950 to-stone-900 border border-amber-500/40 text-start shadow-xl flex items-center justify-between">
         <div className="space-y-0.5">
