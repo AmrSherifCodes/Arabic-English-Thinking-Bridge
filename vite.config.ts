@@ -22,6 +22,7 @@ export default defineConfig(async ({ command, mode }) => {
     const { default: basicSsl } = await import('@vitejs/plugin-basic-ssl');
     const { default: geminiHandler } = await import('./api/gemini.js');
     const { default: ttsHandler } = await import('./api/tts.js');
+    const { default: agentHandler } = await import('./api/agent.js');
     devPlugins.push(
       basicSsl(),
       {
@@ -29,6 +30,7 @@ export default defineConfig(async ({ command, mode }) => {
         configureServer(server: any) {
           server.middlewares.use('/api/gemini', geminiHandler);
           server.middlewares.use('/api/tts', ttsHandler);
+          server.middlewares.use('/api/agent', agentHandler);
         },
       }
     );

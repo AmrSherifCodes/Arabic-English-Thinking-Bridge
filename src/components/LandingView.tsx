@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../services/supabase';
+import { AgentLandingSection } from './AgentLandingSection';
 import {
   Sparkles,
   Download,
@@ -331,6 +332,9 @@ export function LandingView({ onStartWebApp }: LandingViewProps) {
           </div>
         </div>
       </section>
+
+      {/* AUTONOMOUS COGNITIVE BRIDGE AGENT (3.5s TIMER) */}
+      <AgentLandingSection isArabic={isAr} />
 
       {/* 4. STATS STRIP */}
       <section className="px-4 py-10 max-w-[var(--landing-max-w)] mx-auto">

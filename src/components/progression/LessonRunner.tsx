@@ -330,10 +330,14 @@ export function LessonRunner({
           {/* Structure Builder / Word Chips Mode */}
           {currentExercise.type === 'structure_builder' && (
             <div className="space-y-4">
-              {/* Selected Chips Slot */}
-              <div className="p-4 rounded-2xl bg-surface-2 border border-border min-h-[72px] flex flex-wrap gap-2 items-center">
+              {/* Selected Chips Slot (Strict LTR direction & left alignment for English/German target sentence building) */}
+              <div
+                dir="ltr"
+                style={{ direction: 'ltr', textAlign: 'left', justifyContent: 'flex-start' }}
+                className="p-4 rounded-2xl bg-surface-2 border border-border min-h-[72px] flex flex-wrap flex-row items-center gap-2"
+              >
                 {selectedChips.length === 0 ? (
-                  <span className="text-xs text-muted font-bold">
+                  <span className="text-xs text-muted font-bold" dir={isArabic ? 'rtl' : 'ltr'}>
                     {isArabic ? 'اضغط الكلمات أدناه للترتيب الصحيح' : 'Tap words below to arrange'}
                   </span>
                 ) : (
@@ -355,7 +359,7 @@ export function LessonRunner({
               </div>
 
               {/* Available Word Chips Bank */}
-              <div className="flex flex-wrap gap-2 justify-center pt-2">
+              <div className="flex flex-wrap gap-2 justify-center pt-2" dir="ltr">
                 {(currentExercise.options || []).map((chip, idx) => {
                   const isSelected = selectedChips.includes(chip);
                   return (
@@ -395,11 +399,12 @@ export function LessonRunner({
           {/* Rule Explanation "WHY" Feedback Card */}
           {isAnswered && (
             <div
-              className={`p-4 rounded-2xl border ${
+              className={`p-4 rounded-2xl border text-start ${
                 isCorrect
                   ? 'bg-success/15 border-success text-text'
                   : 'bg-danger/15 border-danger text-text'
               }`}
+              dir={isArabic ? 'rtl' : 'ltr'}
             >
               <div className="flex items-center gap-2 font-black text-sm mb-1">
                 {isCorrect ? (
@@ -415,13 +420,13 @@ export function LessonRunner({
                 )}
               </div>
 
-              <p className="text-xs font-semibold text-text-soft leading-relaxed mt-1" dir="auto">
+              <p className="text-xs font-semibold text-text-soft leading-relaxed mt-1" dir={isArabic ? 'rtl' : 'ltr'}>
                 <strong>{isArabic ? 'الجملة الصحيحة:' : 'Target:'}</strong>{' '}
-                <span dir="ltr" className="font-bold">{currentExercise.targetSentence}</span>
+                <span dir="ltr" className="font-bold text-text">{currentExercise.targetSentence}</span>
               </p>
 
               {currentExercise.explanationAr && (
-                <p className="text-xs text-muted mt-2 border-t border-border/50 pt-2" dir="auto">
+                <p className="text-xs text-muted mt-2 border-t border-border/50 pt-2 leading-relaxed" dir={isArabic ? 'rtl' : 'ltr'}>
                   💡 <strong>{isArabic ? 'سبب القاعدة:' : 'Rule Explanation:'}</strong>{' '}
                   {isArabic ? currentExercise.explanationAr : currentExercise.explanationEn}
                 </p>

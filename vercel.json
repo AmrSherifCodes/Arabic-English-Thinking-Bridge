@@ -19,6 +19,15 @@
   ],
   "headers": [
     {
+      "source": "/api/agent",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        }
+      ]
+    },
+    {
       "source": "/api/gemini",
       "headers": [
         {
