@@ -55,6 +55,19 @@ export function ChoiceMenu({
   const totalLessons = curriculum.reduce((acc, p) => acc + p.lessons.length, 0);
 
   const { liveCount } = usePresence();
+  const [secretTaps, setSecretTaps] = useState(0);
+
+  const handleSecretTap = () => {
+    const next = secretTaps + 1;
+    setSecretTaps(next);
+    if (next >= 5) {
+      setSecretTaps(0);
+      onToast?.(isArabic ? '🕵️ ميزة سرية: تم فتح نمط Corporate Bridge!' : '🕵️ Easter Egg Unlocked: Corporate Bridge Mode!');
+      onSelect('corporate');
+    } else if (next >= 3) {
+      onToast?.(isArabic ? `اضغط ${5 - next} مرات لفتح الميزة السرية...` : `Tap ${5 - next} more times for secret feature...`);
+    }
+  };
 
   return (
     <div className="menu" dir={isArabic ? 'rtl' : 'ltr'}>
@@ -119,7 +132,7 @@ export function ChoiceMenu({
         {/* 2. Top Badge & Hero */}
         <header className="menu__hero">
           <div className="flex items-center justify-center gap-2 mb-3">
-            <div className="menu__badge">
+            <div className="menu__badge cursor-pointer" onClick={handleSecretTap}>
               <span>{isArabic ? '✦ جاهز بدون إنترنت' : '✦ Offline Ready'}</span>
             </div>
             <div className="menu__badge flex items-center gap-1 bg-teal-500/20 text-teal-300 border border-teal-500/30">
@@ -130,7 +143,7 @@ export function ChoiceMenu({
               <span className="text-[10px] font-bold">{liveCount} {isArabic ? 'يتعلمون الآن' : 'learning now'}</span>
             </div>
           </div>
-          <h1 className="menu__title">
+          <h1 className="menu__title cursor-pointer select-none" onClick={handleSecretTap}>
             {isArabic ? pairConfig.titleAr : pairConfig.titleEn}
           </h1>
           <p className="menu__tagline">
@@ -175,6 +188,26 @@ export function ChoiceMenu({
               </div>
             </div>
           </section>
+        )}
+
+        {/* Psychological Streak Loss Aversion & Urgency Banner */}
+        {dueCards > 0 && (
+          <div className="my-3 p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between text-xs font-bold text-amber-300 shadow-md">
+            <div className="flex items-center gap-2 text-start">
+              <span className="text-base animate-bounce">⚡</span>
+              <span>
+                {isArabic
+                  ? `عندك ${dueCards} بطاقة مستحقة اليوم! كمل جلسة الآن لحماية حماستك 🔥`
+                  : `${dueCards} cards due today! Practice now to protect your streak 🔥`}
+              </span>
+            </div>
+            <button
+              onClick={() => onSelect('flashcards')}
+              className="px-3 py-1.5 rounded-xl bg-amber-500 text-stone-950 font-black text-[11px] hover:bg-amber-400 transition shrink-0"
+            >
+              {isArabic ? 'بدء الآن 🚀' : 'Start Now 🚀'}
+            </button>
+          </div>
         )}
 
         {/* 3. Stats Strip */}
@@ -267,12 +300,6 @@ export function ChoiceMenu({
             hint={isArabic ? `${dueCards} بطاقة مستحقة اليوم · +10k كلمة جديدة` : `${dueCards} cards due today · +10k new words`}
             badge={dueCards}
             onClick={() => onSelect('flashcards')}
-          />
-          <ActionTile
-            icon="💼"
-            label={isArabic ? 'من البلدي لـ Corporate' : 'Corporate Bridge'}
-            hint={isArabic ? 'حوّل أفكارك بالعامية لصياغة إنجليزية احترافية' : 'Turn raw Egyptian thoughts into executive English'}
-            onClick={() => onSelect('corporate')}
           />
           <ActionTile
             icon="⚙️"
