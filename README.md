@@ -41,6 +41,57 @@ There are no ads, no accounts required, and no tracking. It's just you, the lang
 - 📴 **True Offline Mode:** Powered by `vite-plugin-pwa` and Workbox. Install it to your home screen and use it on the subway with zero internet connection.
 - 🔒 **Bulletproof Privacy:** No Google Analytics. No tracking pixels. All progress is saved locally on your device (`localStorage`).
 
+## 📱 Building Across All Platforms
+
+This project is built from a single codebase (React + Vite + Capacitor) targeting Web, PWA, Android, and iOS.
+
+### 🌐 Web & PWA
+```bash
+# Install dependencies
+npm install
+
+# Run dev server
+npm run dev
+
+# Build production PWA
+npm run build
+```
+
+### 🤖 Android (Capacitor)
+```bash
+# Build web assets & sync with Capacitor Android project
+npm run build
+npx cap sync android
+
+# Open in Android Studio
+npx cap open android
+
+# Build APK via CLI
+cd android
+./gradlew assembleRelease
+```
+
+### 🍎 iOS (Capacitor)
+*Note: Requires macOS with Xcode installed.*
+```bash
+# Add iOS platform (if not already added)
+npx cap add ios
+
+# Sync web build to iOS project
+npm run build
+npx cap sync ios
+
+# Open in Xcode to build and sign for App Store / TestFlight
+npx cap open ios
+```
+
+---
+
+## 🔒 Copyright & Proprietary License
+All rights reserved, **Amr Sherif Abdelaal** (2024-Present). See `LICENSE` for full proprietary license terms.
+
+---
+
 ## 🏛️ The Constitution
 
 This project is governed by a strict [Channel Constitution](./CONSTITUTION.md). The core rules are simple:
