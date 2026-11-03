@@ -4,7 +4,7 @@ import { TabTutorialModal } from '../../components/TabTutorialModal';
 import { CATEGORY_LABELS, CATEGORY_LABELS_AR, PreferenceCategory } from './settingsSchema';
 import { usePreferences } from './usePreferences';
 import { FieldRenderer } from './FieldRenderer';
-import { UserProfile, UserProgress } from '../../types';
+import { UserProfile, UserProgress, SourceLanguage, TargetLanguage } from '../../types';
 import { downloadProgressBackup, importUserProgressJson, getVaultAuditSnapshot } from '../../utils/storage';
 import './preferences.css';
 
@@ -16,6 +16,9 @@ interface PreferencesViewProps {
   updateAndSaveProgress?: (updater: (prev: UserProgress) => UserProgress) => void;
   onToast?: (msg: string) => void;
   onOpenReview?: () => void;
+  sourceLang?: SourceLanguage;
+  targetLang?: TargetLanguage;
+  onOpenLanguageSelector?: () => void;
 }
 
 export function PreferencesView({
@@ -25,7 +28,10 @@ export function PreferencesView({
   progress,
   updateAndSaveProgress,
   onToast,
-  onOpenReview
+  onOpenReview,
+  sourceLang = 'ar',
+  targetLang = 'en',
+  onOpenLanguageSelector,
 }: PreferencesViewProps) {
   const [showGuide, setShowGuide] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -150,6 +156,35 @@ export function PreferencesView({
         </div>
       </header>
       <div className="pref-body space-y-6">
+        {/* Language Pair Card */}
+        <section className="pref-section" aria-label="Language Pair">
+          <h2 className="pref-section__title">
+            🌐 {isArabic ? 'مسار التحول اللغوي' : 'Thinking Language Pair'}
+          </h2>
+          <button
+            type="button"
+            onClick={onOpenLanguageSelector}
+            className="w-full p-4 rounded-2xl bg-surface border border-border flex items-center justify-between hover:border-primary/40 transition active:scale-95"
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">
+                {sourceLang === 'ar' ? '🇪🇬' : '🇬🇧'} → {targetLang === 'en' ? '🇬🇧' : targetLang === 'de' ? '🇩🇪' : targetLang === 'ja' ? '🇯🇵' : '🌐'}
+              </span>
+              <div className="text-start">
+                <div className="font-bold text-sm text-text uppercase">
+                  {sourceLang?.toUpperCase()} → {targetLang?.toUpperCase()}
+                </div>
+                <div className="text-xs text-muted">
+                  {isArabic ? 'اضغط لتغيير اللغة التي تتعلم التفكير بها' : 'Tap to change the language you learn to think in'}
+                </div>
+              </div>
+            </div>
+            <span className="text-primary font-black text-xs">
+              {isArabic ? 'تغيير' : 'Change'}
+            </span>
+          </button>
+        </section>
+
         {/* Experience Customization Section */}
         <section className="pref-section" aria-label="Customization">
           <h2 className="pref-section__title">

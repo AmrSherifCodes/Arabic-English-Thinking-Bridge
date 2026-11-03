@@ -30,6 +30,8 @@ import { AIHelper, AIHelperRequest } from './components/AIHelper';
 import { LexiconEntry } from './services/geminiLexicon';
 import { FlashcardItemData } from './components/uiConstants';
 import { useLanguagePair } from './hooks/useLanguagePair';
+import { LanguageSelectorModal } from './components/LanguageSelectorModal';
+import { LanguagePairBanner } from './components/LanguagePairBanner';
 import i18n from './i18n';
 
 import { ProgressionState, LessonNode, CefrStage } from './progression/types';
@@ -74,6 +76,8 @@ export default function App() {
 
   const [privacyOpen, setPrivacyOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [langSelectorOpen, setLangSelectorOpen] = useState(false);
+
   const { profile, saveProfile } = useUserProfile();
   const { sourceLang, targetLang, setPair } = useLanguagePair();
   const [progress, setProgress] = useState<UserProgress>(loadUserProgress());
@@ -99,85 +103,59 @@ export default function App() {
   const showToast = (msg: string) => {
     if (toastTimerRef.current) window.clearTimeout(toastTimerRef.current);
     setToastMsg(msg);
-    toastTimerRef.current = window.setTimeout(() => setToastMsg(null), 2600);
+    toastTimerRef.current = window.setTimeout(() => setToastMsg(null), 3000);
   };
 
-  const goHome = () => setView({ name: 'shell' });
-
-  // Native Android Shell Configuration
+  // Status Bar & Capacitor Mobile Setup
   useEffect(() => {
     if (Capacitor.isNativePlatform()) {
       StatusBar.setStyle({ style: Style.Dark }).catch(() => {});
-      StatusBar.setBackgroundColor({ color: '#0c0a09' }).catch(() => {});
+      StatusBar.setBackgroundColor({ color: '#0B1324' }).catch(() => {});
       Keyboard.setResizeMode({ mode: KeyboardResize.Body }).catch(() => {});
-    }
-  }, []);
 
-  // Hardware Back Button
-  useEffect(() => {
-    let sub: Promise<any> | null = null;
-    try {
-      sub = CapApp.addListener('backButton', () => {
-        setView((curr) => {
-          if (curr.name !== 'shell') {
-            return { name: 'shell' };
-          }
+      const backListener = CapApp.addListener('backButton', () => {
+        if (activeLessonNode) {
+          setActiveLessonNode(null);
+        } else if (view.name !== 'shell') {
+          setView({ name: 'shell' });
+        } else {
           CapApp.exitApp();
-          return curr;
-        });
+        }
       });
-    } catch {}
-    return () => {
-      sub?.then((h) => h.remove?.()).catch(() => {});
-    };
-  }, []);
 
-  const handleLessonSessionComplete = (earnedXp: number) => {
-    updateProgression((prev) => {
-      const newXp = prev.xp + earnedXp;
-      const lessonId = activeLessonNode?.id;
-      const crowns = lessonId ? (prev.lessonCrowns[lessonId] || 0) + 1 : 1;
-      const completed = lessonId && !prev.completedLessonIds.includes(lessonId)
-        ? [...prev.completedLessonIds, lessonId]
-        : prev.completedLessonIds;
-
-      return {
-        ...prev,
-        xp: newXp,
-        weeklyXp: prev.weeklyXp + earnedXp,
-        lessonCrowns: lessonId ? { ...prev.lessonCrowns, [lessonId]: crowns } : prev.lessonCrowns,
-        completedLessonIds: completed,
+      return () => {
+        backListener.then((l) => l.remove()).catch(() => {});
       };
-    });
-    showToast(isArabic ? `🎉 +${earnedXp} XP مكتسبة!` : `🎉 +${earnedXp} XP Earned!`);
+    }
+  }, [view, activeLessonNode]);
+
+  const goHome = () => setView({ name: 'shell' });
+
+  const handleLessonSessionComplete = (earnedXp: number, _accuracyPercent: number) => {
+    updateProgression((prev) => ({
+      ...prev,
+      xp: prev.xp + earnedXp,
+      streak: prev.streak === 0 ? 1 : prev.streak,
+      completedLessonIds: activeLessonNode
+        ? Array.from(new Set([...prev.completedLessonIds, activeLessonNode.id]))
+        : prev.completedLessonIds,
+      lessonCrowns: activeLessonNode
+        ? {
+            ...prev.lessonCrowns,
+            [activeLessonNode.id]: Math.min(5, (prev.lessonCrowns[activeLessonNode.id] || 0) + 1),
+          }
+        : prev.lessonCrowns,
+    }));
+    showToast(`🎉 +${earnedXp} XP! ${isArabic ? 'درس مكتمل بنجاح' : 'Lesson Mastered!'}`);
   };
 
-  const handleExportData = () => {
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(progression, null, 2));
-    const downloadAnchor = document.createElement('a');
-    downloadAnchor.setAttribute("href", dataStr);
-    downloadAnchor.setAttribute("download", `Thinking_Bridge_Backup_${Date.now()}.json`);
-    document.body.appendChild(downloadAnchor);
-    downloadAnchor.click();
-    downloadAnchor.remove();
-    showToast(isArabic ? '📥 تم تصوير النسخة الاحتياطية!' : '📥 Backup JSON downloaded!');
-  };
-
-  const handleDeleteData = () => {
-    try {
-      localStorage.clear();
-      window.location.reload();
-    } catch {}
-  };
+  if (view.name === 'landing') {
+    return <LandingView onStartApp={() => setView({ name: 'shell' })} isArabic={isArabic} />;
+  }
 
   return (
     <>
-      {/* 1. Landing View Mode */}
-      {view.name === 'landing' && (
-        <LandingView onStartWebApp={() => setView({ name: 'shell' })} />
-      )}
-
-      {/* 2. Primary App Shell (Path, Practice, Quests, League, Profile) */}
+      {/* 1. Primary App Shell (Home / Path / Practice / Quests / League / Profile) */}
       {view.name === 'shell' && (
         <AppShell
           activeTab={activeTab}
@@ -187,17 +165,24 @@ export default function App() {
           isArabic={isArabic}
         >
           {activeTab === 'path' && (
-            <PathView
-              state={progression}
-              onSelectLesson={(lesson) => setActiveLessonNode(lesson)}
-              onSelectUnitCheckpoint={() => showToast(isArabic ? 'اختبار اجتياز الوحدة جاهز!' : 'Unit Checkpoint ready!')}
-              isArabic={isArabic}
-            />
+            <div className="space-y-4">
+              <LanguagePairBanner
+                sourceLang={sourceLang}
+                targetLang={targetLang}
+                onOpenSelector={() => setLangSelectorOpen(true)}
+                onToast={showToast}
+              />
+              <PathView
+                state={progression}
+                onSelectLesson={(lesson) => setActiveLessonNode(lesson)}
+                onSelectUnitCheckpoint={() => {}}
+                isArabic={isArabic}
+              />
+            </div>
           )}
 
           {activeTab === 'practice' && (
             <PracticeHubView
-              state={progression}
               onOpenVoice={() => setView({ name: 'voice' })}
               onOpenFlashcards={() => setView({ name: 'flashcards' })}
               onOpenCorporate={() => setView({ name: 'corporate' })}
@@ -212,7 +197,9 @@ export default function App() {
           {activeTab === 'league' && (
             <LeagueView
               state={progression}
-              onToggleOptOut={() => updateProgression((p) => ({ ...p, leagueOptOut: !p.leagueOptOut }))}
+              onToggleOptOut={() => {
+                updateProgression((p) => ({ ...p, leagueOptOut: !p.leagueOptOut }));
+              }}
               isArabic={isArabic}
             />
           )}
@@ -221,23 +208,28 @@ export default function App() {
             <ProfileView
               state={progression}
               profile={profile}
-              onUpdateState={updateProgression}
-              onExportData={handleExportData}
-              onDeleteData={handleDeleteData}
-              onOpenPrivacyPolicy={() => setPrivacyOpen(true)}
+              onOpenPreferences={() => setView({ name: 'preferences' })}
+              onOpenPrivacy={() => setPrivacyOpen(true)}
+              onResetProgress={() => {
+                const fresh = migrateLegacyStorageToProgression();
+                setProgression(fresh);
+                showToast(isArabic ? 'تم إعادة تعيين التقدم' : 'Progress Reset');
+              }}
               isArabic={isArabic}
             />
           )}
         </AppShell>
       )}
 
-      {/* 3. Specialized Route Overlays */}
+      {/* 2. Specialized Route Overlays */}
       {view.name === 'voice' && (
         <VoicePracticeView
           onBack={goHome}
           progress={progress}
           profile={profile}
           onToast={showToast}
+          sourceLang={sourceLang}
+          targetLang={targetLang}
         />
       )}
 
@@ -265,6 +257,9 @@ export default function App() {
           onSaveProfile={saveProfile}
           progress={progress}
           onToast={showToast}
+          sourceLang={sourceLang}
+          targetLang={targetLang}
+          onOpenLanguageSelector={() => setLangSelectorOpen(true)}
         />
       )}
 
@@ -281,7 +276,8 @@ export default function App() {
       {/* Onboarding & Placement Modal */}
       <OnboardingPlacementModal
         isOpen={onboardingOpen}
-        onComplete={(goal, dailyMin, stage) => {
+        onComplete={(goal, dailyMin, stage, source, target) => {
+          setPair(source, target);
           updateProgression((p) => ({
             ...p,
             dailyDailyTargetMin: dailyMin,
@@ -290,6 +286,18 @@ export default function App() {
           setOnboardingOpen(false);
         }}
         isArabic={isArabic}
+        initialSource={sourceLang}
+        initialTarget={targetLang}
+      />
+
+      {/* Language Selector Modal */}
+      <LanguageSelectorModal
+        isOpen={langSelectorOpen}
+        onClose={() => setLangSelectorOpen(false)}
+        currentSource={sourceLang}
+        currentTarget={targetLang}
+        onSelectPair={setPair}
+        onToast={showToast}
       />
 
       {/* Privacy Policy Modal */}
@@ -315,7 +323,7 @@ export default function App() {
         <div
           role="status"
           aria-live="polite"
-          className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 px-4 py-2 bg-stone-900 border border-teal-500/40 text-stone-100 text-xs font-bold rounded-xl shadow-xl backdrop-blur-md"
+          className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 px-4 py-2 bg-surface border border-border text-text text-xs font-bold rounded-xl shadow-xl backdrop-blur-md"
         >
           {toastMsg}
         </div>
