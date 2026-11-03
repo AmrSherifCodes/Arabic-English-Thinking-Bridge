@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { ProgressionState, StageNode, LessonNode } from '../../progression/types';
 import { buildCourseStructure } from '../../progression/courseData';
 import { Play, Crown, CheckCircle2, Target } from 'lucide-react';
+import { EmptyLessonState } from '../EmptyLessonState';
 
 interface PathViewProps {
   state: ProgressionState;
@@ -105,6 +106,18 @@ export function PathView({ state, onSelectLesson, onSelectUnitCheckpoint, onSetS
         >
           {isArabic ? `اجعل ${activeStageNode.stage} مستواي الحالي` : `Set ${activeStageNode.stage} as my level`}
         </button>
+      )}
+
+      {/* Empty State when stage has zero completed lessons */}
+      {activeStageNode.units.every((u) => u.lessons.every((l) => !state.completedLessonIds.includes(l.id))) && (
+        <EmptyLessonState
+          stage={activeStageNode.stage}
+          isArabic={isArabic}
+          onStartFirstLesson={() => {
+            const firstLesson = activeStageNode.units[0]?.lessons[0];
+            if (firstLesson) onSelectLesson(firstLesson);
+          }}
+        />
       )}
 
       {/* 3. Duolingo-Style Path Node List */}
