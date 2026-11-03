@@ -1,0 +1,6 @@
+# STRICT OUTPUT PROTOCOL
+1. Return ONLY modified functions or unified git diffs—never reprint unchanged boilerplate or entire files.
+2. Zero conversational preamble ("Here is the code...") and zero post-code summary unless explicitly requested. 
+3. Combine all file edits into a single response.
+4. Ask zero clarifying questions unless a breaking ambiguity exists.
+5. NEVER use Extended Thinking/Reasoning mode for UI components, styling, or standard TypeScript refactoring. ONLY use it for complex race conditions or multi-file architecture.
