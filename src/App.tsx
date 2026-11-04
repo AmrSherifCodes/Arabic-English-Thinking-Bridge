@@ -3,6 +3,7 @@ import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { Keyboard, KeyboardResize } from '@capacitor/keyboard';
+import { Download } from 'lucide-react';
 
 import { AppShell, AppTab } from './components/navigation/AppShell';
 import { PathView } from './components/progression/PathView';
@@ -101,6 +102,20 @@ export default function App() {
   const [toastMsg, setToastMsg] = useState<React.ReactNode | null>(null);
   const toastTimerRef = useRef<number | null>(null);
   const [aiHelperRequest] = useState<AIHelperRequest | null>(null);
+  const [showApkBanner, setShowApkBanner] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const isAndroid = /android/i.test(navigator.userAgent || navigator.vendor || (window as any).opera);
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone;
+    const isNative = Capacitor.isNativePlatform();
+    const isDismissed = localStorage.getItem('hide_download_banner') === 'true';
+
+    if (isAndroid && !isStandalone && !isNative && !isDismissed) {
+      const t = window.setTimeout(() => setShowApkBanner(true), 3000);
+      return () => window.clearTimeout(t);
+    }
+  }, []);
 
   const T = (ar: string, en: string) => (
     <>
@@ -372,6 +387,43 @@ export default function App() {
           className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 px-4 py-2 bg-surface border border-border text-text text-xs font-bold rounded-xl shadow-xl backdrop-blur-md"
         >
           {toastMsg}
+        </div>
+      )}
+
+      {/* Smart Android APK Download Banner */}
+      {showApkBanner && (
+        <div
+          className="fixed bottom-0 left-0 right-0 z-[60] p-4 bg-surface border-t border-border shadow-[0_-4px_20px_rgba(0,0,0,0.3)] flex items-center justify-between gap-3 animate-in slide-in-from-bottom"
+          dir="rtl"
+          lang="ar"
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-xl bg-primary/20 text-primary flex items-center justify-center font-black shrink-0">
+              <Download size={20} />
+            </div>
+            <div className="flex flex-col min-w-0">
+              <span className="text-sm font-black text-text truncate">حمّل تطبيق فكّر إنجليزي</span>
+              <span className="text-[10px] text-muted font-bold truncate">يعمل بدون إنترنت (أندرويد)</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <a
+              href="/download"
+              className="px-4 py-2 rounded-xl bg-primary text-on-primary text-xs font-black shadow-md hover:opacity-90 transition active:scale-95"
+            >
+              تحميل
+            </a>
+            <button
+              onClick={() => {
+                setShowApkBanner(false);
+                localStorage.setItem('hide_download_banner', 'true');
+              }}
+              className="p-2 rounded-xl bg-surface-2 text-muted hover:text-text transition"
+              aria-label="إغلاق"
+            >
+              ✕
+            </button>
+          </div>
         </div>
       )}
 
