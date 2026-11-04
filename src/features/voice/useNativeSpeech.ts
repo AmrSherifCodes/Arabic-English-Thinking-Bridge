@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Capacitor, type PluginListenerHandle } from '@capacitor/core';
 import { SpeechRecognition } from '@capacitor-community/speech-recognition';
+import { GoogleGenAI } from '@google/genai';
+import { getUserGeminiKey } from '../../services/geminiLexicon';
 import { API_BASE_URL } from '../../utils/api';
 
 export function isBraveBrowser(): boolean {
@@ -270,27 +272,62 @@ export function useNativeSpeech({
           setInterimTranscript('Transcribing speech…');
           updateListening(false);
 
-          // Convert blob to base64 for /api/gemini transcription
+          // Convert blob to base64 for client-side or server transcription
           const reader = new FileReader();
           reader.onloadend = async () => {
             try {
               const base64Data = (reader.result as string) || '';
-              const response = await fetch(`${API_BASE_URL}/api/gemini`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  operation: 'transcribe',
-                  audioData: base64Data,
-                  mimeType: blob.type || 'audio/webm',
-                }),
-              });
+              let transcriptText = '';
 
-              if (!response.ok) {
-                throw new Error(`Transcribe returned HTTP ${response.status}`);
+              // 1. Try direct client-side Gemini SDK STT if user key exists
+              const userKey = getUserGeminiKey();
+              if (userKey) {
+                try {
+                  const ai = new GoogleGenAI({ apiKey: userKey });
+                  const base64Clean = base64Data.replace(/^data:[^;]+;base64,/, '');
+                  const response = await ai.models.generateContent({
+                    model: 'gemini-2.5-flash',
+                    contents: [
+                      {
+                        role: 'user',
+                        parts: [
+                          {
+                            inlineData: {
+                              data: base64Clean,
+                              mimeType: blob.type || 'audio/webm',
+                            },
+                          },
+                          {
+                            text: 'Transcribe the spoken audio accurately into English or Arabic text. Output ONLY the raw transcript text with zero preamble or commentary.',
+                          },
+                        ],
+                      },
+                    ],
+                  });
+                  transcriptText = (response.text || '').trim();
+                } catch (clientSttErr) {
+                  console.warn('[useNativeSpeech] Client-side Gemini STT failed, falling back to server route:', clientSttErr);
+                }
               }
 
-              const resJson = await response.json();
-              const transcriptText = resJson.data || '';
+              // 2. Fall back to server route if client-side STT did not return text
+              if (!transcriptText) {
+                const response = await fetch(`${API_BASE_URL}/api/gemini`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    operation: 'transcribe',
+                    audioData: base64Data,
+                    mimeType: blob.type || 'audio/webm',
+                  }),
+                });
+
+                if (response.ok) {
+                  const resJson = await response.json();
+                  transcriptText = (resJson.data || '').trim();
+                }
+              }
+
               if (transcriptText.trim()) {
                 triggerSpeechEnd(transcriptText.trim());
               } else {

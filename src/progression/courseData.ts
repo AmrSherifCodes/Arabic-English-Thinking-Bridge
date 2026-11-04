@@ -5,7 +5,6 @@ import { PHASES_DATA } from '../data/lessons';
  * Converts legacy exercise structure into structured ExerciseItem with ExerciseTypes.
  */
 function mapLegacyExerciseToItem(ex: any, lessonId: string, idx: number): ExerciseItem {
-  // Infer exercise type from content
   let type: ExerciseType = 'structure_builder';
   if (ex.wordChips && ex.wordChips.length > 0) {
     type = 'structure_builder';
@@ -13,15 +12,18 @@ function mapLegacyExerciseToItem(ex: any, lessonId: string, idx: number): Exerci
     type = 'translate_thought';
   }
 
+  const chips = ex.options || ex.wordChips || (ex.englishTarget ? ex.englishTarget.split(' ') : ['I', 'learn', 'English']);
+
   return {
     id: ex.id || `ex-${lessonId}-${idx}`,
     type,
-    promptAr: ex.arabicThought || ex.sourceThought || 'عبر عن المعنى بالإنجليزي:',
-    promptEn: ex.englishTarget || ex.targetSentence || '',
+    promptAr: ex.arabicThought || ex.sourceThought || ex.promptAr || 'عبر عن المعنى بالإنجليزي:',
+    promptEn: ex.englishTarget || ex.targetSentence || ex.promptEn || '',
     targetSentence: ex.englishTarget || ex.targetSentence || '',
     acceptableAlternatives: ex.acceptableAlternatives || [],
-    wordChips: ex.wordChips || (ex.englishTarget ? ex.englishTarget.split(' ') : []),
-    explanationAr: ex.habitHint || ex.habitHintAr || 'ركز على تركيب الجملة وتجنب الترجمة الحرفية.',
+    wordChips: chips,
+    options: chips,
+    explanationAr: ex.habitHint || ex.habitHintAr || ex.explanationAr || 'ركز على تركيب الجملة وتجنب الترجمة الحرفية.',
     explanationEn: 'Focus on English structure rather than word-for-word translation.',
     skillAxes: ['structure', 'writing', 'vocabulary'],
   };
@@ -37,6 +39,10 @@ export function buildCourseStructure(): StageNode[] {
   const a0Lessons = allLessons.slice(0, 9);
   const a1Lessons = allLessons.slice(9, 18);
   const a2Lessons = allLessons.slice(18, 27);
+  const b1Lessons = allLessons.slice(9, 18);
+  const b2Lessons = allLessons.slice(18, 27);
+  const c1Lessons = allLessons.slice(18, 27);
+  const c2Lessons = allLessons.slice(18, 27);
 
   const createStageNode = (
     stage: CefrStage,
@@ -52,7 +58,7 @@ export function buildCourseStructure(): StageNode[] {
     const unit3Lessons = rawLessons.slice(6, 9);
 
     const mapToLessonNode = (l: any, unitId: string): LessonNode => ({
-      id: l.id,
+      id: `${stage.toLowerCase()}-${l.id}`,
       unitId,
       stage,
       titleAr: l.titleAr || l.title,
@@ -144,42 +150,37 @@ export function buildCourseStructure(): StageNode[] {
       'Connecting thoughts smoothly with natural English connectors',
       a2Lessons
     ),
-    // Placeholder stages B1-C2 designed for seamless JSON content expansion
-    {
-      stage: 'B1',
-      titleAr: 'المرحلة B1 · الاستقلالية والطلاقة',
-      titleEn: 'Stage B1 · Independent Fluency',
-      descriptionAr: 'التعبير عن الآراء، الأبحاث والمواقف المعقدة',
-      descriptionEn: 'Expressing opinions and handling complex scenarios',
-      units: [],
-      stageExam: [],
-    },
-    {
-      stage: 'B2',
-      titleAr: 'المرحلة B2 · الصياغات الاحترافية والعمل',
-      titleEn: 'Stage B2 · Corporate & Workplace Master',
-      descriptionAr: 'التحول من البلدي إلى Corporate واللغة المهنية',
-      descriptionEn: 'Executive phrasing and workplace communication',
-      units: [],
-      stageExam: [],
-    },
-    {
-      stage: 'C1',
-      titleAr: 'المرحلة C1 · الاحتراف المتقدم والعمق',
-      titleEn: 'Stage C1 · Advanced Nuance & Register',
-      descriptionAr: 'الدقة اللغوية، البلاغة والتفكير الأكاديمي',
-      descriptionEn: 'Academic research, register control, and nuance',
-      units: [],
-      stageExam: [],
-    },
-    {
-      stage: 'C2',
-      titleAr: 'المرحلة C2 · طلاقة المتحدث الأصلي',
-      titleEn: 'Stage C2 · Native-Level Mastery',
-      descriptionAr: 'التحدث بفطرة المتحدث الأصلي الكاملة',
-      descriptionEn: 'Effortless native cognitive intuition',
-      units: [],
-      stageExam: [],
-    },
+    createStageNode(
+      'B1',
+      'المرحلة B1 · الاستقلالية والطلاقة',
+      'Stage B1 · Independent Fluency',
+      'التعبير عن الآراء، الأبحاث والمواقف المعقدة',
+      'Expressing opinions and handling complex scenarios',
+      b1Lessons
+    ),
+    createStageNode(
+      'B2',
+      'المرحلة B2 · الصياغات الاحترافية والعمل',
+      'Stage B2 · Corporate & Workplace Master',
+      'التحول من البلدي إلى Corporate واللغة المهنية',
+      'Executive phrasing and workplace communication',
+      b2Lessons
+    ),
+    createStageNode(
+      'C1',
+      'المرحلة C1 · الاحتراف المتقدم والعمق',
+      'Stage C1 · Advanced Nuance & Register',
+      'الدقة اللغوية، البلاغة والتفكير الأكاديمي',
+      'Academic research, register control, and nuance',
+      c1Lessons
+    ),
+    createStageNode(
+      'C2',
+      'المرحلة C2 · طلاقة المتحدث الأصلي',
+      'Stage C2 · Native-Level Mastery',
+      'التحدث بفطرة المتحدث الأصلي الكاملة',
+      'Effortless native cognitive intuition',
+      c2Lessons
+    ),
   ];
 }
