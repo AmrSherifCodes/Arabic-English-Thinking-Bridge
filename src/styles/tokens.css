@@ -3,14 +3,34 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
+  --bg: #0A0E13;
+  --surface: #0F151C;
+  --border: #1E2933;
+  --text: #EEF2F5;
+  --muted: #9AA7B2;
+  --accent-teal: #2DD4BF;
+  --secondary-amber: #F5B942;
+  --landing-bg: var(--bg);
+  --landing-surface: var(--surface);
+  --landing-border: var(--border);
+  --landing-text: var(--text);
+  --landing-muted: var(--muted);
+  --landing-accent-teal: var(--accent-teal);
+  --landing-secondary-amber: var(--secondary-amber);
+  --landing-font: 'Readex Pro', sans-serif;
+  --landing-max-w: 1200px;
+  --landing-radius-sm: 12px;
+  --landing-radius-md: 20px;
+  --landing-radius-lg: 28px;
+
   /* Dark Theme Default Tokens (Deep Midnight Obsidian & Vibrant Emerald/Gold) */
-  --color-bg: #090D16;
-  --color-surface: #111827;
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
   --color-surface-2: #1F2937;
-  --color-border: #2E3D52;
-  --color-text: #F9FAFB;
+  --color-border: var(--border);
+  --color-text: var(--text);
   --color-text-soft: #E5E7EB;
-  --color-muted: #9CA3AF;
+  --color-muted: var(--muted);
   --color-primary: #FCA311;
   --color-on-primary: #090D16;
   --color-success: #10B981;
@@ -19,14 +39,21 @@
 
 html.light {
   /* Light Theme Tokens */
-  --color-bg: #FFFFFF;
-  --color-surface: #F3F4F6;
+  --bg: #F7FAF9;
+  --surface: #FFFFFF;
+  --border: #C9D4D5;
+  --text: #17252B;
+  --muted: #4B5B61;
+  --accent-teal: #0F766E;
+  --secondary-amber: #805800;
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
   --color-surface-2: #E5E7EB;
-  --color-border: #D1D5DB;
-  --color-text: #111827;
+  --color-border: var(--border);
+  --color-text: var(--text);
   --color-text-soft: #1F2937;
-  --color-muted: #4B5563;
-  --color-primary: #FCA311;
+  --color-muted: var(--muted);
+  --color-primary: #805800;
   --color-on-primary: #111827;
   --color-success: #047857;
   --color-danger: #DC2626;

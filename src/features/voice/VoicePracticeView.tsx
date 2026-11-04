@@ -4,6 +4,7 @@ import { UserProfile, UserProgress, SourceLanguage, TargetLanguage } from '../..
 import { unlockAudio } from '../../utils/audio';
 import { TabTutorialModal } from '../../components/TabTutorialModal';
 import { applyHabitWin } from '../../utils/habitPsychology';
+import { speechAdapter } from '../../platform/adapter';
 import './voice.css';
 
 const LABELS_AR: Record<VoiceState, string> = {
@@ -54,6 +55,7 @@ export function VoicePracticeView({
   sourceLang = 'ar',
   targetLang = 'en'
 }: VoicePracticeViewProps) {
+  const speechCapabilities = speechAdapter.getSpeechCapabilities();
   const [showGuide, setShowGuide] = useState(false);
   const {
     state,
@@ -75,7 +77,7 @@ export function VoicePracticeView({
   } = useVoiceOrchestrator(targetLang, sourceLang);
 
   const [textInput, setTextInput] = useState('');
-  const [showInput, setShowInput] = useState(false);
+  const [showInput, setShowInput] = useState(!speechCapabilities.sttSupported);
   const [editedFeedbackText, setEditedFeedbackText] = useState('');
   const [isOnline, setIsOnline] = useState<boolean>(() =>
     typeof navigator !== 'undefined' ? navigator.onLine : true
@@ -221,6 +223,7 @@ export function VoicePracticeView({
 
   const isAr = sourceLang === 'ar' || (profile?.language || 'arabic') === 'arabic';
   const currentLabels = isAr ? LABELS_AR : LABELS_EN;
+  const speechUnsupported = !speechCapabilities.sttSupported || Boolean(error && /speech recognition not available|audio recording not supported/i.test(error));
 
   const isDebugMode = typeof window !== 'undefined' && window.location.search.includes('debug=1');
 
@@ -292,11 +295,31 @@ export function VoicePracticeView({
           </div>
         )}
 
+        {!speechCapabilities.sttSupported && !error && (
+          <div className="voice__error-box" role="status" aria-live="polite">
+            <p className="voice__error">
+              {isAr
+                ? 'التعرّف على الكلام غير متاح على هذا الجهاز. يمكنك المتابعة بالكتابة.'
+                : 'Speech recognition is unavailable on this device. You can continue by typing.'}
+            </p>
+            <p lang={isAr ? 'en' : 'ar'} dir={isAr ? 'ltr' : 'rtl'} className="voice__hint">
+              {isAr ? 'Speech recognition is unavailable. Continue with text practice.' : 'التعرّف على الكلام غير متاح. تابع التدريب بالكتابة.'}
+            </p>
+          </div>
+        )}
+
         {error && (
-          <div className="voice__error-box">
+          <div className="voice__error-box" role={speechUnsupported ? 'status' : 'alert'} aria-live="polite">
             <div className="voice__error-row">
               <p className="voice__error">
-                {isAr && error.includes('Could not transcribe audio')
+                {speechUnsupported ? (
+                  <>
+                    <span>{isAr ? 'التعرّف على الكلام غير متاح على هذا الجهاز. يمكنك المتابعة بالكتابة.' : 'Speech recognition is unavailable on this device. You can continue by typing.'}</span>
+                    <span lang={isAr ? 'en' : 'ar'} dir={isAr ? 'ltr' : 'rtl'} className="mt-1 block text-[11px] opacity-80">
+                      {isAr ? 'Speech recognition is unavailable on this device. Continue with text practice.' : 'التعرّف على الكلام غير متاح على هذا الجهاز. يمكنك متابعة التدريب بالكتابة.'}
+                    </span>
+                  </>
+                ) : isAr && error.includes('Could not transcribe audio')
                   ? 'تعذر التعرف الصوتي. يمكنك كتابة رسالتك أدناه والبدء فوراً!'
                   : error}
               </p>

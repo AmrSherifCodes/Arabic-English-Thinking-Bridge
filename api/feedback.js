@@ -80,6 +80,11 @@ export function getClientIp(req) {
   return req.socket?.remoteAddress || '127.0.0.1';
 }
 
+export function normalizeSubscriptionEmail(value) {
+  const email = String(value || '').trim().toLowerCase();
+  return email.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email : null;
+}
+
 function safeCompare(a, b) {
   if (typeof a !== 'string' || typeof b !== 'string') return false;
   const bufA = Buffer.from(a);
@@ -257,6 +262,20 @@ export default async function handler(req, res) {
 
     try {
       const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
+
+      if (body.type === 'subscribe') {
+        const email = normalizeSubscriptionEmail(body.email);
+        if (!email) {
+          return sendJson(res, 400, { error: 'A valid email address is required.' });
+        }
+        if (!supabase) {
+          return sendJson(res, 503, { error: 'Subscription service is not configured.' });
+        }
+
+        const { error } = await supabase.from('subscribers').insert({ email });
+        if (error && error.code !== '23505') throw error;
+        return sendJson(res, error ? 200 : 201, { success: true, alreadySubscribed: Boolean(error) });
+      }
 
       const rating = Math.min(5, Math.max(1, parseInt(body.rating, 10) || 5));
       const allowedCategories = new Set(['general', 'bug', 'feature', 'content']);

@@ -1,6 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import handler, { checkFeedbackRateLimit, isAdminAuthorized } from './feedback.js';
+import handler, { checkFeedbackRateLimit, isAdminAuthorized, normalizeSubscriptionEmail } from './feedback.js';
+
+test('subscription email normalization validates and canonicalizes addresses', () => {
+  assert.equal(normalizeSubscriptionEmail(' Amr.Sherif@Example.com '), 'amr.sherif@example.com');
+  assert.equal(normalizeSubscriptionEmail('not-an-email'), null);
+  assert.equal(normalizeSubscriptionEmail(`${'a'.repeat(250)}@example.com`), null);
+});
 
 test('1. feedback handler returns 503 if database connection is unset', async () => {
   const envBackup = { ...process.env };

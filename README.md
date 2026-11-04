@@ -41,49 +41,38 @@ There are no ads, no accounts required, and no tracking. It's just you, the lang
 - 📴 **True Offline Mode:** Powered by `vite-plugin-pwa` and Workbox. Install it to your home screen and use it on the subway with zero internet connection.
 - 🔒 **Bulletproof Privacy:** No Google Analytics. No tracking pixels. All progress is saved locally on your device (`localStorage`).
 
-## 📱 Building Across All Platforms
+## Build & Multi-Platform Release Guide | دليل البناء والإصدار
 
-This project is built from a single codebase (React + Vite + Capacitor) targeting Web, PWA, Android, and iOS.
+One React + Vite codebase serves the web/PWA, Capacitor Android, and Tauri desktop builds. Local progress stays in the device storage vault; no secrets are needed for a web build.
 
-### 🌐 Web & PWA
+### Web & PWA | الويب والتثبيت
 ```bash
-# Install dependencies
-npm install
-
-# Run dev server
+npm ci --legacy-peer-deps
 npm run dev
-
-# Build production PWA
 npm run build
 ```
+The production build is `dist/`. It includes the dictionary, PWA manifest, sitemap, and robots file.
 
-### 🤖 Android (Capacitor)
+### Android | أندرويد
 ```bash
-# Build web assets & sync with Capacitor Android project
-npm run build
+npm ci --legacy-peer-deps
+npm run build:android
 npx cap sync android
-
-# Open in Android Studio
-npx cap open android
-
-# Build APK via CLI
 cd android
-./gradlew assembleRelease
+./gradlew assembleDebug
 ```
+Open the native project with `npx cap open android`. CI builds a debug APK on a version tag; it also builds a signed release APK when signing secrets are configured.
 
-### 🍎 iOS (Capacitor)
-*Note: Requires macOS with Xcode installed.*
-```bash
-# Add iOS platform (if not already added)
-npx cap add ios
+### iOS | iOS
+Requires macOS, Xcode, and Apple signing credentials. Run `npm run build`, `npx cap sync ios`, then `npx cap open ios` and sign/archive from Xcode.
 
-# Sync web build to iOS project
-npm run build
-npx cap sync ios
+### Desktop | سطح المكتب
+Install the platform-specific Rust toolchain, then run `npm run build:windows` on Windows or `npx tauri build` on a configured macOS/Linux host.
 
-# Open in Xcode to build and sign for App Store / TestFlight
-npx cap open ios
-```
+### GitHub Actions | الإصدارات الآلية
+Pull requests and pushes to `main` run TypeScript checks, unit tests, the web/PWA build, and artifact verification. Push a tag such as `v3.1.0` to build Android APKs and attach them to the GitHub Release. Run the workflow manually to download APK artifacts without publishing a release.
+
+For signed APKs, add these repository Actions secrets: `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, and `ANDROID_KEY_PASSWORD`. Without them, the workflow publishes the debug APK only. Never commit keystore files or passwords.
 
 ---
 
@@ -107,15 +96,6 @@ Thinking Bridge is architected to remain **100% Free Forever** without requiring
 3. **Vercel Web Hosting (Free Hobby Tier)**
    * **Limits**: 100 GB Bandwidth/month, 100k Serverless Function Executions/day.
    * **Dashboard**: [vercel.com](https://vercel.com) ➔ Usage.
-
----
-
-## 🔑 Required GitHub Actions Secrets
-
-To enable automated database keep-alive pings and weekly `pg_dump` backups in GitHub Actions, add these secrets to your repository Settings ➔ Secrets ➔ Actions:
-* `VITE_SUPABASE_URL`: Your Supabase project URL (e.g. `https://xxxx.supabase.co`).
-* `VITE_SUPABASE_ANON_KEY`: Your Supabase public anonymous key.
-* `SUPABASE_DB_URL`: Postgres connection string (e.g. `postgresql://postgres:[PASSWORD]@db.xxxx.supabase.co:5432/postgres`) for `pg_dump`.
 
 ---
 

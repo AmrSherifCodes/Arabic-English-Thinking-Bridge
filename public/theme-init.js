@@ -15,7 +15,7 @@
 
   setTimeout(function() {
     var root = document.getElementById('root');
-    if (root && root.childElementCount <= 1) { // includes noscript
+    if (root && document.documentElement.dataset.appReady !== 'true') {
       var msg = document.createElement('div');
       msg.dir = 'rtl';
       msg.lang = 'ar';

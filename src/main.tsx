@@ -22,3 +22,5 @@ createRoot(document.getElementById('root')!).render(
     <App />
   </ErrorBoundary>
 );
+
+document.documentElement.dataset.appReady = 'true';
