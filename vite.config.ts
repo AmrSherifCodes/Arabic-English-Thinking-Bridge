@@ -76,10 +76,20 @@ export default defineConfig(async ({ command, mode }) => {
           clientsClaim: true,
           maximumFileSizeToCacheInBytes: 35 * 1024 * 1024,
           globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,json}'],
+          globIgnores: ['assets/dict-*.js', 'assets/curriculum-core-*.js', 'assets/app-data-*.js'],
           navigateFallback: `${BASE}index.html`,
           navigateFallbackDenylist: [/^\/apk/, /^\/download/, /^\/api/],
           cleanupOutdatedCaches: true,
           runtimeCaching: [
+            {
+              urlPattern: ({ url }) => url.pathname.includes('assets/dict-') || url.pathname.includes('assets/curriculum-data-') || url.pathname.includes('assets/app-data-'),
+              handler: 'CacheFirst',
+              options: {
+                cacheName: 'dictionary-runtime-cache',
+                expiration: { maxEntries: 30, maxAgeSeconds: 60 * 60 * 24 * 30 },
+                cacheableResponse: { statuses: [0, 200] },
+              },
+            },
             { urlPattern: ({ url }) => url.hostname === 'generativelanguage.googleapis.com', handler: 'NetworkOnly' },
             {
               urlPattern: ({ url }) =>
