@@ -113,7 +113,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
       ? `متابعة تعلم ${targetMeta.nameAr} ${targetMeta.flag} 🚀`
       : `Resume Learning ${targetMeta.nameEn} ${targetMeta.flag} 🚀`
     : isAr
-    ? 'ابدأ التعلم مجاناً 🚀'
+    ? 'ابدأ التفكير الآن 🚀'
     : 'Start Learning Free 🚀';
 
   return (
