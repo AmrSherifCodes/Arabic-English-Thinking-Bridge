@@ -1,73 +1,43 @@
-const ipStore = new Map<string, { count: number; resetTime: number }>();
+﻿import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-function applyRateLimit(ip: string): boolean {
-  const now = Date.now();
-  const record = ipStore.get(ip);
-  if (!record || now > record.resetTime) {
-    ipStore.set(ip, { count: 1, resetTime: now + 60_000 });
-    return true;
-  }
-  if (record.count >= 5) return false;
-  record.count += 1;
-  return true;
-}
-
-function sanitizeText(str: string): string {
-  if (!str) return '';
-  return str
-    .replace(/@everyone/gi, 'everyone')
-    .replace(/@here/gi, 'here')
-    .replace(/<@&?\d+>/g, '')
-    .trim();
-}
-
-export default async function handler(req: any, res: any) {
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
-  );
-
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-
+export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ ok: false, error: 'Method not allowed' });
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const clientIp = (req.headers['x-forwarded-for'] as string || req.socket?.remoteAddress || '127.0.0.1').split(',')[0].trim();
-  if (!applyRateLimit(clientIp)) {
-    return res.status(429).json({ ok: false, error: 'Too many requests. Please wait a minute.' });
+  const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
+
+  if (!webhookUrl) {
+    console.error("Missing DISCORD_WEBHOOK_URL in Vercel env");
+    return res.status(500).json({ error: 'Server configuration error' });
   }
 
   try {
-    const { rating, category, message, isAnonymous, userName } = req.body || {};
+    const { rating, category, message, isAnonymous, userName, profileGoal, dialect, createdAt } = req.body;
 
-    const cleanMessage = sanitizeText(String(message || ''));
-    if (!cleanMessage || cleanMessage.length < 2 || cleanMessage.length > 1000) {
-      return res.status(400).json({ ok: false, error: 'Message must be between 2 and 1000 characters' });
+    const discordPayload = {
+      content: `📩 **New Thinking Bridge Feedback!**
+**Rating:** ${rating}/5 ⭐
+**Category:** ${category}
+**Message:** ${message}
+**User:** ${isAnonymous ? 'Anonymous' : (userName || 'Learner')}
+**Goal:** ${profileGoal || 'N/A'} | **Dialect:** ${dialect || 'N/A'}
+**Date:** ${createdAt}`
+    };
+
+    const discordResponse = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(discordPayload),
+    });
+
+    if (!discordResponse.ok) {
+      throw new Error(`Discord API Error: ${discordResponse.status}`);
     }
 
-    const cleanRating = Number(rating) || 5;
-    const cleanCategory = String(category || 'general').slice(0, 30);
-    const cleanUser = isAnonymous ? 'Anonymous' : sanitizeText(String(userName || 'Learner')).slice(0, 40);
-
-    const webhookUrl = process.env.DISCORD_FEEDBACK_WEBHOOK;
-    if (webhookUrl) {
-      const content = `📩 **New Thinking Bridge Feedback!**\n**Rating:** ${cleanRating}/5 ⭐\n**Category:** ${cleanCategory}\n**User:** ${cleanUser}\n**Message:** ${cleanMessage}`;
-      await fetch(webhookUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content }),
-      });
-    }
-
-    return res.status(200).json({ ok: true });
-  } catch (err: unknown) {
-    const errMsg = err instanceof Error ? err.message : 'Internal error';
-    return res.status(500).json({ ok: false, error: errMsg });
+    return res.status(200).json({ success: true });
+  } catch (error) {
+    console.error('Feedback Error:', error);
+    return res.status(500).json({ error: 'Failed to process feedback' });
   }
 }
