@@ -292,7 +292,7 @@ export function useVoiceOrchestrator(
             chunkWords.join(' '),
             chunkWords,
             chunkStart,
-            speechRate,
+            nextAudio.__rate ?? speechRate,
             isArabic ? 'ar' : effectiveTargetLang,
             abortControllerRef.current?.signal
           );
@@ -473,8 +473,11 @@ export function useVoiceOrchestrator(
       let slotCreated = false;
 
       try {
-        const timeoutCtrl = new AbortController();
-        const timeoutId = setTimeout(() => timeoutCtrl.abort(), 3500);
+        const requestController = new AbortController();
+        const timeoutId = setTimeout(() => requestController.abort(), 3500);
+        const abortRequest = () => requestController.abort();
+        signal?.addEventListener('abort', abortRequest, { once: true });
+        if (signal?.aborted) requestController.abort();
 
         const res = await fetch(`${API_BASE_URL}/api/tts`, {
           method: 'POST',
@@ -486,8 +489,11 @@ export function useVoiceOrchestrator(
             rate,
             pitch: '+1Hz',
           }),
-          signal: signal || timeoutCtrl.signal,
-        }).finally(() => clearTimeout(timeoutId));
+          signal: requestController.signal,
+        }).finally(() => {
+          clearTimeout(timeoutId);
+          signal?.removeEventListener('abort', abortRequest);
+        });
 
         if (!res.ok) throw new Error(`TTS failed with status ${res.status}`);
 
@@ -533,10 +539,12 @@ export function useVoiceOrchestrator(
           checkAndPlayQueue();
         }
       } catch (err: any) {
-        if (err.name === 'AbortError') return;
+        if (signal?.aborted) return;
+        console.warn('[TTS] Edge-TTS failed, switching to local Piper fallback');
         console.warn('[useVoiceOrchestrator] Remote TTS prefetch failed, engaging on-device speech:', err);
       }
 
+      if (signal?.aborted) return;
       if (!slotCreated) {
         try {
           const piperSlot = await createPiperAudioSlot(

@@ -47,6 +47,7 @@ function hasSavedProgression(): boolean {
 
 // Lazy loading heavy view components for instant Landing Page loading & code-splitting
 const AppShell = lazy(() => import('./components/navigation/AppShell').then((m) => ({ default: m.AppShell })));
+const AndroidLandingPage = lazy(() => import('./components/AndroidLandingPage').then((m) => ({ default: m.AndroidLandingPage })));
 const PathView = lazy(() => import('./components/progression/PathView').then((m) => ({ default: m.PathView })));
 const PracticeHubView = lazy(() => import('./components/progression/PracticeHubView').then((m) => ({ default: m.PracticeHubView })));
 const QuestsView = lazy(() => import('./components/progression/QuestsView').then((m) => ({ default: m.QuestsView })));
@@ -65,6 +66,7 @@ const LanguageSelectorModal = lazy(() => import('./components/LanguageSelectorMo
 type View =
   | { name: 'shell' }
   | { name: 'landing' }
+  | { name: 'android' }
   | { name: 'voice' }
   | { name: 'flashcards' }
   | { name: 'corporate' }
@@ -79,6 +81,7 @@ export default function App() {
         const isNative = Capacitor.isNativePlatform();
         const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
 
+        if (!isNative && path === '/android') return { name: 'android' };
         if (!isNative && !isStandalone && (path === '/' || path === '' || urlParams.get('landing') === 'true')) {
           return { name: 'landing' };
         }
@@ -227,6 +230,19 @@ export default function App() {
         <>
         <Analytics />
         <LandingPage onLaunchApp={launchApp} isArabic={isArabic} />
+        </>
+      </ErrorBoundary>
+    );
+  }
+
+  if (view.name === 'android') {
+    return (
+      <ErrorBoundary>
+        <>
+          <Analytics />
+          <Suspense fallback={<main className="android-landing min-h-screen" aria-busy="true">Loading Thinking Bridge…</main>}>
+            <AndroidLandingPage />
+          </Suspense>
         </>
       </ErrorBoundary>
     );
