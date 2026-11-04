@@ -296,6 +296,7 @@ export default function App() {
           state={progression}
           targetLang={targetLang}
           isArabic={isArabic}
+          onOpenLanding={() => setView({ name: 'landing' })}
         >
           {activeTab === 'path' && (
             <div className="space-y-3">

@@ -2,7 +2,7 @@ import React from 'react';
 import { ProgressionState } from '../../progression/types';
 import { TargetLanguage } from '../../types';
 import { LanguageFlag } from '../LanguageFlag';
-import { Map, Zap, Award, Trophy, User } from 'lucide-react';
+import { Map, Zap, Award, Trophy, User, Home } from 'lucide-react';
 
 export type AppTab = 'path' | 'practice' | 'quests' | 'league' | 'profile';
 
@@ -13,6 +13,7 @@ interface AppShellProps {
   targetLang: TargetLanguage;
   children: React.ReactNode;
   isArabic?: boolean;
+  onOpenLanding?: () => void;
 }
 
 export function AppShell({
@@ -22,6 +23,7 @@ export function AppShell({
   targetLang,
   children,
   isArabic = true,
+  onOpenLanding,
 }: AppShellProps) {
   const tabs = [
     { id: 'path' as AppTab, labelAr: 'المسار', labelEn: 'Path', icon: Map },
@@ -37,16 +39,28 @@ export function AppShell({
       <aside className="hidden md:flex flex-col w-64 border-r rtl:border-l rtl:border-r-0 border-border bg-surface p-4 sticky top-0 h-screen justify-between z-40 shrink-0">
         <div className="space-y-6">
           {/* Logo Branding */}
-          <div className="flex items-center gap-2.5 px-2">
-            <span className="text-2xl">🧠</span>
-            <div className="text-start">
-              <h1 className="font-black text-sm text-text">فكّر إنجليزي</h1>
-              <span className="text-[10px] text-success font-bold block">Thinking Bridge v3.1.0</span>
+          <div className="flex items-center justify-between px-2">
+            <div className="flex items-center gap-2.5">
+              <span className="text-2xl">🧠</span>
+              <div className="text-start">
+                <h1 className="font-black text-sm text-text">فكّر إنجليزي</h1>
+                <span className="text-[10px] text-success font-bold block">Thinking Bridge</span>
+              </div>
             </div>
           </div>
 
           {/* Desktop Nav Items */}
           <nav className="space-y-1">
+            {onOpenLanding && (
+              <button
+                type="button"
+                onClick={onOpenLanding}
+                className="w-full flex items-center gap-3 px-3.5 py-3 min-h-[48px] rounded-2xl font-black text-xs text-amber-400 bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500/20 transition text-start mb-2"
+              >
+                <Home size={18} />
+                <span>{isArabic ? 'الصفحة الرئيسية 🏠' : 'Landing Page 🏠'}</span>
+              </button>
+            )}
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -84,10 +98,21 @@ export function AppShell({
         {/* Top Header HUD Bar */}
         <header className="sticky top-0 z-30 backdrop-blur-md bg-surface/90 border-b border-border px-4 py-2.5">
           <div className="max-w-[480px] mx-auto flex items-center justify-between">
-            {/* Left HUD: Target Language Flag */}
+            {/* Left HUD: Landing Page Button 🏠 + Target Language Flag */}
             <div className="flex items-center gap-2">
+              {onOpenLanding && (
+                <button
+                  type="button"
+                  onClick={onOpenLanding}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-amber-500/15 text-amber-300 border border-amber-500/30 hover:bg-amber-500/25 text-xs font-black transition active:scale-95 shrink-0"
+                  title={isArabic ? 'العودة للصفحة الرئيسية' : 'Go back to Landing Page'}
+                >
+                  <Home size={14} className="text-amber-400 shrink-0" />
+                  <span>{isArabic ? 'الرئيسية 🏠' : 'Home 🏠'}</span>
+                </button>
+              )}
               <LanguageFlag code={targetLang} size={20} />
-              <span className="text-xs font-black text-text uppercase">{targetLang}</span>
+              <span className="text-xs font-black text-text uppercase hidden sm:inline">{targetLang}</span>
             </div>
 
             {/* Right HUD: Streak 🔥, XP 🏆, Shields 🛡️ */}

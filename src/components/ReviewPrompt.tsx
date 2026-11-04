@@ -33,9 +33,10 @@ export function ReviewPrompt({
       /* ignore */
     }
 
+    // Appears promptly after 2 seconds
     const timer = setTimeout(() => {
       setIsVisible(true);
-    }, 15000);
+    }, 2000);
 
     return () => clearTimeout(timer);
   }, []);
@@ -61,27 +62,27 @@ export function ReviewPrompt({
     <AnimatePresence>
       {isVisible && (
         <motion.div
-          initial={{ x: -120, opacity: 0 }}
+          initial={{ x: -140, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
-          exit={{ x: -120, opacity: 0 }}
-          transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+          exit={{ x: -140, opacity: 0 }}
+          transition={{ type: 'spring', stiffness: 350, damping: 25 }}
           onClick={handleCardClick}
           dir={effectiveIsArabic ? 'rtl' : 'ltr'}
-          className="fixed left-4 bottom-28 z-40 cursor-pointer max-w-xs rounded-2xl border border-amber-500/30 bg-stone-900/95 p-3.5 shadow-2xl backdrop-blur-md hover:border-amber-400 transition-all hover:scale-105 active:scale-95"
+          className="fixed left-3 bottom-24 z-[9999] cursor-pointer max-w-[280px] sm:max-w-xs rounded-2xl border border-amber-500/50 bg-stone-900/98 p-3 shadow-2xl backdrop-blur-md hover:border-amber-400 transition-all hover:scale-105 active:scale-95 ring-2 ring-amber-500/20"
         >
-          <div className="flex items-start justify-between gap-2.5">
-            <div className="flex items-center gap-2">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30">
-                <Star size={18} className="fill-amber-400" />
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/40">
+                <Star size={16} className="fill-amber-400 text-amber-400 animate-pulse" />
               </span>
-              <div>
-                <h4 className="text-xs font-black text-amber-300 flex items-center gap-1">
-                  <span>{effectiveIsArabic ? 'شاركونا رأيكم 🌟' : 'Enjoying Thinking Bridge? 🌟'}</span>
+              <div className="min-w-0 text-start">
+                <h4 className="text-xs font-black text-amber-300 truncate">
+                  {effectiveIsArabic ? 'شاركونا رأيكم 🌟' : 'Enjoying Thinking Bridge? 🌟'}
                 </h4>
-                <p className="text-[11px] font-medium text-stone-300 leading-snug mt-0.5">
+                <p className="text-[10px] font-bold text-stone-200 leading-tight mt-0.5 line-clamp-2">
                   {effectiveIsArabic
-                    ? 'صوتك يطور التطبيق ويدعم الفكرة! انقر لترك تقييم سريع 🚀'
-                    : 'Your review helps shape the platform! Tap to leave feedback 🚀'}
+                    ? 'صوتك يطور التطبيق ويدعم الفكرة! انقر لترك تقييم 🚀'
+                    : 'Your review shapes the app! Tap to leave feedback 🚀'}
                 </p>
               </div>
             </div>
