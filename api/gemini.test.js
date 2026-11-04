@@ -91,6 +91,14 @@ test('1. Disallowed origin returns 403 Forbidden with sanitized error', async ()
   });
 });
 
+test('Custom-domain origins are explicitly allowed and used as the CORS fallback', () => {
+  for (const origin of ['https://amrsherif.localhost.cc', 'https://www.amrsherif.localhost.cc']) {
+    assert.equal(ALLOWED_CORS_ORIGINS.has(origin), true);
+    assert.equal(getCorsOrigin(origin), origin);
+  }
+  assert.equal(getCorsOrigin('https://untrusted.example'), 'https://amrsherif.localhost.cc');
+});
+
 test('1b. Evil Vercel preview origin (https://evil-attacker.vercel.app) is rejected with 403 Forbidden while https://tb-eg.vercel.app is allowed', async () => {
   const evilReq = createMockReq({
     method: 'POST',

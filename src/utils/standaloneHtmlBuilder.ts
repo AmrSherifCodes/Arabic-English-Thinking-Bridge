@@ -780,7 +780,7 @@ function progV(){
   return h;
 }
 function shareFriends(){
-  const msg=\`🧠 *فكّر إنجليزي* — تطبيق مجاني ١٠٠٪ لتعلم التفكير بالإنجليزية\\nحمّل من هنا: tb-eg.vercel.app/download\\nالحجم 51.5 ميجا — الأفضل تحمّله على واي فاي.\\nلو ظهرتلك رسالة "السماح بالتركيب": الإعدادات › السماح › رجوع › تثبيت.\\n\\n(Thinking English™: Arabic-to-English Transfer Journey)\`;
+  const msg=\`🧠 *فكّر إنجليزي* — تطبيق مجاني ١٠٠٪ لتعلم التفكير بالإنجليزية\\nحمّل من هنا: \${window.location.origin}/download\\nالحجم 51.5 ميجا — الأفضل تحمّله على واي فاي.\\nلو ظهرتلك رسالة "السماح بالتركيب": الإعدادات › السماح › رجوع › تثبيت.\\n\\n(Thinking English™: Arabic-to-English Transfer Journey)\`;
   window.open("https://wa.me/?text="+encodeURIComponent(msg),"_blank");
 }
 function fbMsg(){const d=L.filter((_,i)=>comp(i)).length,w=Object.entries(S.wrong).sort((a,b)=>b[1]-a[1]).slice(0,3).map(x=>x[0]).join(", ")||"none";return \`Thinking English™ feedback\\nRating: \${FR?FR+"/5":"-"}\\nLessons done: \${d}/\${L.length} · Score: \${S.score}\\nHardest: \${w}\\n\\n\${FT}\\n\\nReview Form: \${FORM}\`}

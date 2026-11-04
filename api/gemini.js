@@ -736,7 +736,7 @@ function getCorsOrigin(origin) {
   if (isAllowedOrigin(origin)) {
     return origin;
   }
-  return 'https://tb-eg.vercel.app';
+  return 'https://amrsherif.localhost.cc';
 }
 
 export default async function handler(req, res) {

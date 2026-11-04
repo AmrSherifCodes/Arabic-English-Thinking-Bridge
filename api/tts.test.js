@@ -6,7 +6,9 @@ import ttsHandler, {
   resolveEdgeVoice,
   validateLang,
   validatePitch,
+  getCorsOrigin,
   ALLOWED_EDGE_VOICES,
+  ALLOWED_CORS_ORIGINS,
 } from './tts.js';
 import { buildSsml, escapeXml } from 'voipi/edge-tts';
 
@@ -79,6 +81,14 @@ test('1. Disallowed origin returns 403 Forbidden', async () => {
   assert.equal(res.statusCode, 403);
   const parsed = JSON.parse(res.body);
   assert.equal(parsed.error, 'Origin not allowed.');
+});
+
+test('TTS allows both custom-domain origins and uses the primary domain as fallback', () => {
+  for (const origin of ['https://amrsherif.localhost.cc', 'https://www.amrsherif.localhost.cc']) {
+    assert.equal(ALLOWED_CORS_ORIGINS.has(origin), true);
+    assert.equal(getCorsOrigin(origin), origin);
+  }
+  assert.equal(getCorsOrigin('https://untrusted.example'), 'https://amrsherif.localhost.cc');
 });
 
 test('2. Disallowed referer returns 403 Forbidden', async () => {

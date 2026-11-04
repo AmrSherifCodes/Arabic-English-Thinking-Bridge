@@ -109,13 +109,13 @@ export function AppShell({
         </header>
 
         {/* Dynamic Tab Body - Centered Mobile-First Container (Max-Width 480px) */}
-        <main className="flex-1 p-4 sm:p-6 pb-28 md:pb-6 overflow-y-auto max-w-[480px] mx-auto w-full">
+        <main className="flex-1 min-w-0 p-4 sm:p-6 pb-[calc(80px+env(safe-area-inset-bottom))] md:pb-6 overflow-y-auto max-w-[480px] mx-auto w-full">
           {children}
         </main>
       </div>
 
       {/* Mobile Bottom Navigation Bar with Safe Area Insets */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface/95 backdrop-blur-lg border-t border-border px-2 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] flex items-center justify-around shadow-2xl">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface/95 backdrop-blur-lg border-t border-border px-2 pt-2 pb-[env(safe-area-inset-bottom)] flex items-center justify-around shadow-2xl">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -123,7 +123,7 @@ export function AppShell({
             <button
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
-              className={`flex flex-col items-center justify-center py-1 px-3 min-h-[48px] min-w-[48px] rounded-xl transition ${
+              className={`flex flex-1 min-w-0 flex-col items-center justify-center py-1 px-1 min-h-[48px] rounded-xl transition ${
                 isActive ? 'text-success font-black' : 'text-muted font-semibold hover:text-text'
               }`}
             >

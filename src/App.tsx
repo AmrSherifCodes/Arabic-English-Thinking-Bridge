@@ -174,6 +174,7 @@ export default function App() {
   // Status Bar & Capacitor Mobile Setup
   useEffect(() => {
     if (Capacitor.isNativePlatform()) {
+      StatusBar.setOverlaysWebView({ overlay: false }).catch(() => {});
       StatusBar.setStyle({ style: Style.Dark }).catch(() => {});
       StatusBar.setBackgroundColor({ color: '#090D16' }).catch(() => {});
       Keyboard.setResizeMode({ mode: KeyboardResize.Body }).catch(() => {});

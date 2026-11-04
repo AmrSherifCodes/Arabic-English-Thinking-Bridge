@@ -39,7 +39,7 @@ export function LanguagePairBanner({
 
   return (
     <section
-      className={`relative overflow-hidden rounded-2xl bg-gradient-to-br from-stone-900 to-stone-950 text-white border border-stone-800 shadow-xl p-5 ${className}`}
+      className={`relative overflow-hidden rounded-2xl bg-gradient-to-br from-stone-900 to-stone-950 text-white border border-stone-800 shadow-xl p-3 sm:p-4 ${className}`}
       dir={isAr ? 'rtl' : 'ltr'}
       aria-label="Active Language Learning Bridge"
     >
@@ -51,13 +51,13 @@ export function LanguagePairBanner({
 
       <div className="relative z-10 flex flex-col gap-4">
         {/* Top bar: Badge & Quick modal trigger */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30">
             <Sparkles className="w-3 h-3 text-amber-400" />
             {isAr ? 'مسار التحول الذهني النشط' : 'Active Thinking Bridge'}
           </span>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
               onClick={handleShare}
@@ -79,31 +79,31 @@ export function LanguagePairBanner({
         </div>
 
         {/* Center: Language transfer visualization */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-1">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 p-2 rounded-xl bg-stone-800/90 border border-stone-700">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-1 min-w-0">
+          <div className="flex min-w-0 flex-col sm:flex-row items-stretch sm:items-center gap-2">
+            <div className="flex w-full sm:w-auto min-w-0 items-center gap-2 p-2 rounded-xl bg-stone-800/90 border border-stone-700">
               <LanguageFlag code={sourceLang} size={20} />
               <div className="text-start">
                 <span className="block text-[10px] text-stone-400 uppercase font-medium">
                   {isAr ? 'أفكر بـ' : 'I think in'}
                 </span>
-                <span className="text-sm font-bold text-stone-100">
+                <span className="text-sm font-bold text-stone-100 break-words">
                   {sourceMeta.nameNative}
                 </span>
               </div>
             </div>
 
-            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30">
+            <div className="flex items-center justify-center w-8 h-8 self-center rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30">
               <span className="text-xs font-bold">➔</span>
             </div>
 
-            <div className="flex items-center gap-2 p-2 rounded-xl bg-amber-950/40 border border-amber-500/40">
+            <div className="flex w-full sm:w-auto min-w-0 items-center gap-2 p-2 rounded-xl bg-amber-950/40 border border-amber-500/40">
               <LanguageFlag code={targetLang} size={20} />
               <div className="text-start">
                 <span className="block text-[10px] text-amber-300 uppercase font-medium">
                   {isAr ? 'أتعلّم التفكير بـ' : 'Learn to think in'}
                 </span>
-                <span className="text-sm font-bold text-amber-200">
+                <span className="text-sm font-bold text-amber-200 break-words">
                   {targetMeta.nameNative} ({isAr ? targetMeta.nameAr : targetMeta.nameEn})
                 </span>
               </div>
@@ -111,7 +111,7 @@ export function LanguagePairBanner({
           </div>
 
           {/* Quick Target Switch Pills */}
-          <div className="flex items-center gap-1.5 pt-1 sm:pt-0">
+          <div className="flex flex-wrap items-center gap-1.5 pt-1 sm:pt-0">
             <span className="text-xs text-stone-400 hidden md:inline">
               {isAr ? 'تبديل سريع:' : 'Quick target:'}
             </span>

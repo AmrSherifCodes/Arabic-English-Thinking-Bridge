@@ -47,7 +47,8 @@ export function ProfileView({
     }
 
     const languageName = TARGET_LANGUAGE_META[targetLang as keyof typeof TARGET_LANGUAGE_META].nameEn;
-    const shareText = `I'm learning ${languageName} on Thinking Bridge! 🔥 Current Streak: ${state.streak} days. Total XP: ${state.xp}. Join me in rewiring your brain for free at https://tb-eg.vercel.app`;
+    const appUrl = typeof window !== 'undefined' ? window.location.origin : 'https://amrsherif.localhost.cc';
+    const shareText = `I'm learning ${languageName} on Thinking Bridge! 🔥 Current Streak: ${state.streak} days. Total XP: ${state.xp}. Join me in rewiring your brain for free at ${appUrl}`;
     try {
       if (typeof navigator.share === 'function') {
         await navigator.share({ title: 'My Thinking Bridge progress', text: shareText });

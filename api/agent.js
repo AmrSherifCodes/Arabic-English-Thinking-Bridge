@@ -32,7 +32,7 @@ export function getCorsOrigin(origin) {
   if (isAllowedOrigin(origin)) {
     return origin;
   }
-  return 'https://tb-eg.vercel.app';
+  return 'https://amrsherif.localhost.cc';
 }
 
 // 1. Tool Definitions for the Autonomous Agent

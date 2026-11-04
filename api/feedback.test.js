@@ -1,6 +1,19 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import handler, { checkFeedbackRateLimit, isAdminAuthorized } from './feedback.js';
+import handler, {
+  ALLOWED_CORS_ORIGINS,
+  checkFeedbackRateLimit,
+  getCorsOrigin,
+  isAdminAuthorized,
+} from './feedback.js';
+
+test('feedback API allows both custom-domain origins and uses the primary domain as fallback', () => {
+  for (const origin of ['https://amrsherif.localhost.cc', 'https://www.amrsherif.localhost.cc']) {
+    assert.equal(ALLOWED_CORS_ORIGINS.has(origin), true);
+    assert.equal(getCorsOrigin(origin), origin);
+  }
+  assert.equal(getCorsOrigin('https://untrusted.example'), 'https://amrsherif.localhost.cc');
+});
 
 test('1. feedback handler returns 503 if database connection is unset', async () => {
   const envBackup = { ...process.env };

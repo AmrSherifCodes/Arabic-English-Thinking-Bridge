@@ -130,10 +130,10 @@ export function OnboardingPlacementModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-bg/95 backdrop-blur-2xl flex items-center justify-center p-3 sm:p-4"
+      className="fixed inset-0 z-50 bg-bg/95 backdrop-blur-2xl flex items-center justify-center p-0 sm:p-4"
       dir={isArabic ? 'rtl' : 'ltr'}
     >
-      <div className="w-full h-full sm:h-auto sm:max-w-[520px] sm:rounded-3xl bg-surface/90 border border-border p-6 space-y-6 text-start shadow-2xl flex flex-col justify-between sm:justify-start overflow-y-auto">
+      <div className="w-full h-[100dvh] max-h-[100dvh] sm:h-auto sm:max-h-[90vh] sm:max-w-[520px] sm:rounded-3xl bg-surface/90 border border-border p-4 sm:p-6 space-y-4 sm:space-y-6 text-start shadow-2xl flex flex-col overflow-hidden">
         {profileCreated ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-5 py-10 text-center" role="status" aria-live="polite">
             <div className="w-16 h-16 rounded-full bg-success/15 border border-success/40 text-success flex items-center justify-center text-3xl">
@@ -159,7 +159,7 @@ export function OnboardingPlacementModal({
         ) : (
           <>
         {/* Step Indicator */}
-        <div className="flex items-center justify-between text-xs font-bold text-muted">
+        <div className="flex shrink-0 items-center justify-between text-xs font-bold text-muted">
           <span className="text-primary font-black">
             {isArabic ? `الخطوة ${step + 1} من 3` : `Step ${step + 1} of 3`}
           </span>
@@ -168,8 +168,8 @@ export function OnboardingPlacementModal({
 
         {/* STEP 0: Language Pair */}
         {step === 0 && (
-          <div className="space-y-5 flex-1 flex flex-col justify-between sm:justify-start">
-            <div className="space-y-4">
+          <div className="space-y-4 flex-1 min-h-0 flex flex-col">
+            <div className="space-y-4 flex-1 min-h-0 overflow-y-auto scrollbar-hide pb-2">
               <div className="space-y-1">
                 <h3 className="text-lg font-black text-text flex items-center gap-2">
                   <Globe size={20} className="text-primary" />
@@ -219,7 +219,7 @@ export function OnboardingPlacementModal({
                 <p className="text-xs font-semibold text-muted mb-2 uppercase tracking-wider">
                   {isArabic ? '٢. أريد أن أتعلّم التفكير بـ' : '2. I want to build reflexes in'}
                 </p>
-                <div className="grid gap-2 max-h-56 overflow-y-auto pr-1">
+                <div className="grid gap-2 max-h-[32dvh] sm:max-h-56 overflow-y-auto scrollbar-hide pr-1">
                   {availableTargets.map((code) => {
                     const meta = TARGET_LANGUAGE_META[code];
                     const selected = selectedTarget === code;
@@ -253,7 +253,7 @@ export function OnboardingPlacementModal({
 
             <button
               onClick={() => setStep(1)}
-              className="w-full py-4 min-h-[48px] rounded-2xl bg-primary text-on-primary font-black text-sm shadow-lg flex items-center justify-center gap-2 active:scale-95"
+              className="sticky bottom-0 z-10 w-full shrink-0 py-4 min-h-[48px] rounded-2xl bg-primary text-on-primary font-black text-sm shadow-lg flex items-center justify-center gap-2 active:scale-95"
             >
               <span>{isArabic ? 'التالي' : 'Next'}</span>
               {isArabic ? <ArrowLeft size={16} /> : <ArrowRight size={16} />}
@@ -263,8 +263,8 @@ export function OnboardingPlacementModal({
 
         {/* STEP 1: Primary Goal */}
         {step === 1 && (
-          <div className="space-y-4 flex-1 flex flex-col justify-between sm:justify-start">
-            <div className="space-y-4">
+          <div className="space-y-4 flex-1 min-h-0 flex flex-col">
+            <div className="space-y-4 flex-1 min-h-0 overflow-y-auto scrollbar-hide pb-2">
               <div className="space-y-1">
                 <h3 className="text-lg font-black text-text">
                   {isArabic ? 'ما هو مجالك وهدفك الأساسي؟' : 'What is your primary focus & goal?'}
@@ -306,7 +306,7 @@ export function OnboardingPlacementModal({
               </div>
             </div>
 
-            <div className="flex gap-2">
+            <div className="sticky bottom-0 z-10 flex shrink-0 gap-2 bg-surface/95 py-1">
               <button
                 onClick={() => setStep(0)}
                 className="flex-1 py-4 min-h-[48px] rounded-2xl bg-surface border border-border text-text font-bold text-sm"
@@ -326,8 +326,8 @@ export function OnboardingPlacementModal({
 
         {/* STEP 2: CEFR Level Selection Grid (A0-A2) */}
         {step === 2 && (
-          <div className="space-y-4 flex-1 flex flex-col justify-between sm:justify-start">
-            <div className="space-y-4">
+          <div className="space-y-4 flex-1 min-h-0 flex flex-col">
+            <div className="space-y-4 flex-1 min-h-0 overflow-y-auto scrollbar-hide pb-2">
               <div className="space-y-1">
                 <h3 className="text-lg font-black text-text flex items-center gap-2">
                   <Sparkles size={20} className="text-primary" />
@@ -340,7 +340,7 @@ export function OnboardingPlacementModal({
                 </p>
               </div>
 
-              <div className="grid gap-2 max-h-[340px] overflow-y-auto pr-1">
+              <div className="grid gap-2 max-h-[38dvh] sm:max-h-[340px] overflow-y-auto scrollbar-hide pr-1">
                 {cefrLevels.map((lvl) => {
                   const isSelected = selectedStage === lvl.id;
                   return (
@@ -373,7 +373,7 @@ export function OnboardingPlacementModal({
               </div>
             </div>
 
-            <div className="flex gap-2">
+            <div className="sticky bottom-0 z-10 flex shrink-0 gap-2 bg-surface/95 py-1">
               <button
                 onClick={() => setStep(1)}
                 className="flex-1 py-4 min-h-[48px] rounded-2xl bg-surface border border-border text-text font-bold text-sm"

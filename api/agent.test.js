@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import handler, { agentTools, isAllowedOrigin, getCorsOrigin } from './agent.js';
+import handler, { agentTools, isAllowedOrigin, getCorsOrigin, ALLOWED_CORS_ORIGINS } from './agent.js';
 
 test('1. agent tools (knowledge_retriever, linguistic_metric_calculator, action_auditor) execute correctly', async () => {
   const krResult = await agentTools.knowledge_retriever.execute({
@@ -43,6 +43,15 @@ test('2. agent handler responds to OPTIONS with 204 and CORS headers', async () 
   await handler(req, res);
   assert.equal(statusCode, 204);
   assert.equal(headers['Access-Control-Allow-Origin'], 'https://tb-eg.vercel.app');
+});
+
+test('agent API allows custom-domain origins and uses the primary domain as fallback', () => {
+  for (const origin of ['https://amrsherif.localhost.cc', 'https://www.amrsherif.localhost.cc']) {
+    assert.equal(ALLOWED_CORS_ORIGINS.has(origin), true);
+    assert.equal(isAllowedOrigin(origin), true);
+    assert.equal(getCorsOrigin(origin), origin);
+  }
+  assert.equal(getCorsOrigin('https://untrusted.example'), 'https://amrsherif.localhost.cc');
 });
 
 test('3. agent handler rejects disallowed HTTP methods with 405', async () => {
@@ -90,4 +99,3 @@ test('4. agent handler executes autonomous tool-loop returning 200 with tool cal
   assert.ok(firstTool.result);
   assert.ok(typeof firstTool.step === 'number');
 });
-
