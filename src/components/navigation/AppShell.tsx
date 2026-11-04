@@ -104,10 +104,10 @@ export function AppShell({
                 <button
                   type="button"
                   onClick={onOpenLanding}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-amber-500/15 text-amber-300 border border-amber-500/30 hover:bg-amber-500/25 text-xs font-black transition active:scale-95 shrink-0"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 text-xs font-black transition active:scale-95 shrink-0 shadow-md"
                   title={isArabic ? 'العودة للصفحة الرئيسية' : 'Go back to Landing Page'}
                 >
-                  <Home size={14} className="text-amber-400 shrink-0" />
+                  <Home size={14} className="text-stone-950 shrink-0" />
                   <span>{isArabic ? 'الرئيسية 🏠' : 'Home 🏠'}</span>
                 </button>
               )}
