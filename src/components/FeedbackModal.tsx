@@ -5,7 +5,7 @@ import { Star, MessageSquareHeart, Lightbulb, X, Send, ShieldCheck, Clock, Gift,
 import { Capacitor } from '@capacitor/core';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import type { UserProfile } from '../types';
-import { API_BASE } from '../utils/apiConfig';
+import { API_BASE_URL } from '../utils/api';
 
 export interface UserFeedbackData {
   rating: number;
@@ -84,37 +84,46 @@ export function FeedbackModal({
     };
 
     try {
-      // 1. Save to local anonymous review log (keep last 50)
+      // 1. Save locally
       const existingRaw = localStorage.getItem(FEEDBACK_STORAGE_KEY);
       const existingList: UserFeedbackData[] = existingRaw ? JSON.parse(existingRaw) : [];
       existingList.push(feedbackData);
       localStorage.setItem(FEEDBACK_STORAGE_KEY, JSON.stringify(existingList.slice(-50)));
 
-      // 2. Dispatch POST to serverless feedback proxy
-      void fetch(`${API_BASE}/api/feedback`, {
+      // 2. Send to Vercel API
+      const response = await fetch(`${API_BASE_URL}/api/feedback`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(feedbackData),
-      }).catch(() => {});
+      });
+
+      if (!response.ok) {
+        throw new Error('API request failed');
+      }
 
       if (Capacitor.isNativePlatform()) {
         try {
           await Haptics.impact({ style: ImpactStyle.Medium });
         } catch { }
       }
-    } catch {
-      // Graceful fallback
+
+      onToast(
+        isArabic
+          ? '🎉 شكراً لرأيك الصريح! تم إضافة +100 XP ودرع استمرارية 🛡️'
+          : '🎉 Thank you for your review! +100 XP & 1 Streak Shield awarded! 🛡️'
+      );
+
+      onSubmit(feedbackData);
+      onClose();
+    } catch (error) {
+      onToast(
+        isArabic
+          ? '⚠️ فشل الإرسال. يرجى التحقق من الاتصال والمحاولة مرة أخرى.'
+          : '⚠️ Failed to send. Please check your connection and try again.'
+      );
+    } finally {
+      setIsSubmitting(false);
     }
-
-    onToast(
-      isArabic
-        ? '🎉 شكراً لرأيك الصريح! تم إضافة +100 XP ودرع استمرارية 🛡️'
-        : '🎉 Thank you for your review! +100 XP & 1 Streak Shield awarded! 🛡️'
-    );
-
-    onSubmit(feedbackData);
-    setIsSubmitting(false);
-    onClose();
   };
 
   const currentDisplayRating = hoverRating !== null ? hoverRating : rating;
