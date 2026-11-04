@@ -227,6 +227,16 @@
 
 .voice__bubble-ai {
   color: #bbf7d0; /* green-200 */
+  direction: ltr !important;
+  text-align: left !important;
+}
+
+.voice__bubble-text {
+  direction: ltr !important;
+  text-align: left !important;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
 }
 
 .voice__history-preview {
@@ -246,6 +256,12 @@
 
 .voice__history-item--user {
   color: #dbeafe; /* blue-100 */
+}
+
+.voice__history-item--assistant {
+  color: #fef08a; /* yellow-200 */
+  direction: ltr !important;
+  text-align: left !important;
 }
 
 .voice__history-item--assistant {

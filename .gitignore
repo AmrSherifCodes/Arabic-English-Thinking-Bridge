@@ -33,4 +33,8 @@ release.jks
 .vercel
 .env*
 
+# Tauri
+src-tauri/target/
+src-tauri/gen/
+
 

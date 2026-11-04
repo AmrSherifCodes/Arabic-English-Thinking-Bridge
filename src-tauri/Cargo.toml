@@ -1,0 +1,18 @@
+[package]
+name = "thinking-english"
+version = "3.1.0"
+description = "Arabic-to-English Cognitive Transfer App"
+authors = ["Amr Sherif"]
+edition = "2021"
+
+[lib]
+name = "thinking_english_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"

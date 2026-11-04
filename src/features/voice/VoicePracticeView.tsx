@@ -319,14 +319,14 @@ export function VoicePracticeView({
               </div>
             )}
             {activeAiText && (
-              <div className="voice__bubble-ai">
-                <div className="voice__bubble-header">
+              <div className="voice__bubble-ai" dir="ltr" style={{ direction: 'ltr', textAlign: 'left' }}>
+                <div className="voice__bubble-header" dir={isAr ? 'rtl' : 'ltr'}>
                   <span className="voice__bubble-label">{isAr ? 'عمرو:' : 'Amr:'}</span>
                   {hasNewWordsInActive && (
                     <span className="voice__new-word-badge">{isAr ? '★ كلمة جديدة' : '★ NEW WORD'}</span>
                   )}
                 </div>
-                <div className="voice__bubble-text">
+                <div className="voice__bubble-text" dir="ltr" style={{ direction: 'ltr', textAlign: 'left' }}>
                   {renderKaraokeWords(words, true)}
                 </div>
               </div>
@@ -342,6 +342,8 @@ export function VoicePracticeView({
               return (
                 <div
                   key={m.id}
+                  dir={m.role === 'assistant' ? 'ltr' : (isAr ? 'rtl' : 'ltr')}
+                  style={m.role === 'assistant' ? { direction: 'ltr', textAlign: 'left' } : {}}
                   className={`voice__history-item voice__history-item--${m.role}`}
                 >
                   <strong>{m.role === 'user' ? (isAr ? 'أنت' : 'You') : (isAr ? 'عمرو' : 'Amr')}:</strong>{' '}
