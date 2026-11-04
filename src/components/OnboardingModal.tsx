@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Check, ArrowRight, ArrowLeft, Globe, Compass, Briefcase, Plane, GraduationCap, MessageCircle, Rocket } from 'lucide-react';
 import type { LearningGoal, UserProfile, SourceLanguage, TargetLanguage } from '../types';
-import { SOURCE_LANGUAGES, TARGET_LANGUAGES } from '../data/languages';
+import { SOURCE_LANGUAGES, TARGET_LANGUAGE_META } from '../data/languages';
 import { LanguageFlag } from './LanguageFlag';
 
 export interface OnboardingModalProps {
@@ -263,8 +263,8 @@ export function OnboardingModal({
       coachTag: isSourceArabic ? 'عمرو شريف · خطتك الشخصية جاهزة 🌟' : 'Amr Sherif · Ready for Launch 🌟',
       title: isSourceArabic ? `عاش عليك يا ${name.trim() || 'بطل'}! 👏` : `Outstanding, ${name.trim() || 'Champion'}! 👏`,
       dialogue: isSourceArabic
-        ? `جهزتلك جسر تحول ذهني مخصص من ${SOURCE_LANGUAGES[sourceLang]?.nameAr} إلى ${TARGET_LANGUAGES[targetLang]?.nameAr}. التمارين والمفردات وأسلوب المدرب متبرمجين بالكامل لخدمة هدفك!`
-        : `Your personalized cognitive bridge from ${SOURCE_LANGUAGES[sourceLang]?.nameEn} to ${TARGET_LANGUAGES[targetLang]?.nameEn} is fully prepared!`
+        ? `جهزتلك جسر تحول ذهني مخصص من ${SOURCE_LANGUAGES[sourceLang]?.nameAr} إلى ${TARGET_LANGUAGE_META[targetLang]?.nameAr}. التمارين والمفردات وأسلوب المدرب متبرمجين بالكامل لخدمة هدفك!`
+        : `Your personalized cognitive bridge from ${SOURCE_LANGUAGES[sourceLang]?.nameEn} to ${TARGET_LANGUAGE_META[targetLang]?.nameEn} is fully prepared!`
     };
   }, [step, isSourceArabic, sourceLang, targetLang, name]);
 
@@ -569,7 +569,7 @@ export function OnboardingModal({
                 <span>{isSourceArabic ? SOURCE_LANGUAGES[sourceLang]?.nameNative : SOURCE_LANGUAGES[sourceLang]?.nameEn}</span>
                 <span className="text-teal-400">➔</span>
                 <LanguageFlag code={targetLang} size={16} />
-                <span>{TARGET_LANGUAGES[targetLang]?.nameNative} ({isSourceArabic ? TARGET_LANGUAGES[targetLang]?.nameAr : TARGET_LANGUAGES[targetLang]?.nameEn})</span>
+                <span>{TARGET_LANGUAGE_META[targetLang]?.nameNative} ({isSourceArabic ? TARGET_LANGUAGE_META[targetLang]?.nameAr : TARGET_LANGUAGE_META[targetLang]?.nameEn})</span>
               </div>
             </motion.div>
           )}
@@ -707,7 +707,7 @@ export function OnboardingModal({
                     </span>
                     <span className="font-bold text-teal-400 flex items-center gap-1.5">
                       <LanguageFlag code={targetLang} size={14} />
-                      <span>{TARGET_LANGUAGES[targetLang]?.nameNative}</span>
+                      <span>{TARGET_LANGUAGE_META[targetLang]?.nameNative}</span>
                     </span>
                   </div>
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { ArrowLeftRight, ChevronDown, Sparkles, Globe, Share2 } from 'lucide-react';
 import { SourceLanguage, TargetLanguage } from '../types';
-import { SOURCE_LANGUAGES, TARGET_LANGUAGES, getPairConfig } from '../data/languages';
+import { SOURCE_LANGUAGES, TARGET_LANGUAGE_META, getPairConfig } from '../data/languages';
 import { LanguageFlag } from './LanguageFlag';
 
 interface LanguagePairBannerProps {
@@ -23,7 +23,7 @@ export function LanguagePairBanner({
 }: LanguagePairBannerProps) {
   const isAr = sourceLang === 'ar';
   const sourceMeta = SOURCE_LANGUAGES[sourceLang];
-  const targetMeta = TARGET_LANGUAGES[targetLang];
+  const targetMeta = TARGET_LANGUAGE_META[targetLang];
   const pairConfig = getPairConfig(sourceLang, targetLang);
 
   const handleShare = (e: React.MouseEvent) => {
@@ -116,7 +116,7 @@ export function LanguagePairBanner({
               {isAr ? 'تبديل سريع:' : 'Quick target:'}
             </span>
             {(['en', 'de', 'ja', 'es', 'fr', 'zh'] as TargetLanguage[]).map((tCode) => {
-              const meta = TARGET_LANGUAGES[tCode];
+              const meta = TARGET_LANGUAGE_META[tCode];
               const isActive = targetLang === tCode;
               return (
                 <button
@@ -147,4 +147,3 @@ export function LanguagePairBanner({
     </section>
   );
 }
-

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, Check, ArrowRight, Share2, Globe, Sparkles } from 'lucide-react';
 import { SourceLanguage, TargetLanguage } from '../types';
-import { SOURCE_LANGUAGES, TARGET_LANGUAGES, SUPPORTED_PAIRS, getPairConfig } from '../data/languages';
+import { SOURCE_LANGUAGES, TARGET_LANGUAGES, TARGET_LANGUAGE_META, SUPPORTED_PAIRS, getPairConfig } from '../data/languages';
 import { LanguageFlag } from './LanguageFlag';
 
 interface LanguageSelectorModalProps {
@@ -34,8 +34,8 @@ export function LanguageSelectorModal({
     onClose();
     onToast?.(
       isAr
-        ? `🚀 تم تفعيل مسار: ${TARGET_LANGUAGES[selectedTarget].nameAr} بنجاح!`
-        : `🚀 Switched to: ${TARGET_LANGUAGES[selectedTarget].nameEn} track!`
+        ? `🚀 تم تفعيل مسار: ${TARGET_LANGUAGE_META[selectedTarget].nameAr} بنجاح!`
+        : `🚀 Switched to: ${TARGET_LANGUAGE_META[selectedTarget].nameEn} track!`
     );
   };
 
@@ -126,8 +126,9 @@ export function LanguageSelectorModal({
               {isAr ? '٢. اللغة التي أريد أن أفكّر بها (اللغة الهدف):' : '2. I want to learn to think in (Target Language):'}
             </label>
             <div className="space-y-2.5">
-              {(Object.keys(TARGET_LANGUAGES) as TargetLanguage[]).map((langKey) => {
-                const meta = TARGET_LANGUAGES[langKey];
+              {TARGET_LANGUAGES.map(({ code }) => {
+                const langKey = code as TargetLanguage;
+                const meta = TARGET_LANGUAGE_META[langKey];
                 const isSelected = selectedTarget === langKey;
                 return (
                   <button
@@ -192,7 +193,7 @@ export function LanguageSelectorModal({
               <span>{SOURCE_LANGUAGES[selectedSource].nameNative}</span>
               <span className="text-amber-500">➔</span>
               <LanguageFlag code={selectedTarget} size={18} />
-              <span>{TARGET_LANGUAGES[selectedTarget].nameNative} ({isAr ? TARGET_LANGUAGES[selectedTarget].nameAr : TARGET_LANGUAGES[selectedTarget].nameEn})</span>
+              <span>{TARGET_LANGUAGE_META[selectedTarget].nameNative} ({isAr ? TARGET_LANGUAGE_META[selectedTarget].nameAr : TARGET_LANGUAGE_META[selectedTarget].nameEn})</span>
             </div>
             <p className="text-xs text-stone-600 dark:text-stone-300 mt-1">
               {isAr ? activePairConfig.bridgeConceptAr : activePairConfig.bridgeConceptEn}
@@ -221,4 +222,3 @@ export function LanguageSelectorModal({
     </div>
   );
 }
-

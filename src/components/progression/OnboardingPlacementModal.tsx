@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { CefrStage } from '../../progression/types';
 import { Check, Sparkles, Globe, Briefcase, GraduationCap, Plane, Cpu, ArrowLeft, ArrowRight } from 'lucide-react';
 import { SourceLanguage, TargetLanguage } from '../../types';
-import { SOURCE_LANGUAGES, TARGET_LANGUAGES, SUPPORTED_PAIRS } from '../../data/languages';
+import { SOURCE_LANGUAGES, TARGET_LANGUAGE_META, SUPPORTED_PAIRS } from '../../data/languages';
 import { LanguageFlag } from '../LanguageFlag';
+import { generateSmartProfile, ProfileCefrLevel } from '../../services/profileEngine';
 
 interface OnboardingPlacementModalProps {
   isOpen: boolean;
@@ -31,11 +32,17 @@ export function OnboardingPlacementModal({
   const [selectedSource, setSelectedSource] = useState<SourceLanguage>(initialSource);
   const [selectedTarget, setSelectedTarget] = useState<TargetLanguage>(initialTarget);
   const [selectedGoal, setSelectedGoal] = useState('tech');
-  const [selectedStage, setSelectedStage] = useState<CefrStage>('A0');
+  const [selectedStage, setSelectedStage] = useState<ProfileCefrLevel>('A0');
 
   if (!isOpen) return null;
 
-  const handleFinish = (stage: CefrStage) => {
+  const handleFinish = (stage: ProfileCefrLevel) => {
+    generateSmartProfile(
+      selectedSource,
+      selectedTarget,
+      selectedGoal,
+      stage
+    );
     onComplete(selectedGoal, 15, stage, selectedSource, selectedTarget);
   };
 
@@ -44,7 +51,7 @@ export function OnboardingPlacementModal({
     .map((p) => p.target);
 
   const cefrLevels: {
-    id: CefrStage;
+    id: ProfileCefrLevel;
     code: string;
     labelAr: string;
     labelEn: string;
@@ -99,7 +106,7 @@ export function OnboardingPlacementModal({
       descEn: 'Research papers, thesis, university defense'
     },
     {
-      id: 'business',
+      id: 'corporate',
       icon: Briefcase,
       titleAr: '💼 بيزنس وشركات (Business & Corporate)',
       titleEn: 'Business & Corporate',
@@ -185,7 +192,7 @@ export function OnboardingPlacementModal({
                 </p>
                 <div className="grid gap-2 max-h-56 overflow-y-auto pr-1">
                   {availableTargets.map((code) => {
-                    const meta = TARGET_LANGUAGES[code];
+                    const meta = TARGET_LANGUAGE_META[code];
                     const selected = selectedTarget === code;
                     return (
                       <button

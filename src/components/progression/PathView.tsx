@@ -93,6 +93,7 @@ export function PathView({ state, onSelectLesson, onSelectUnitCheckpoint, isArab
               key={stg.stage}
               type="button"
               onClick={() => setViewedStage(stg.stage)}
+              disabled={!unlocked}
               aria-pressed={stg.stage === viewedStage}
               aria-label={`${stg.stage}${unlocked ? '' : isArabic ? ' — مقفولة، أكمل المرحلة السابقة لفتحها' : ' — locked, complete the previous stage to unlock'}`}
               className={`px-4 py-2 min-h-[48px] min-w-[48px] rounded-2xl border text-xs font-black transition shrink-0 ${
@@ -100,7 +101,7 @@ export function PathView({ state, onSelectLesson, onSelectUnitCheckpoint, isArab
                   ? 'bg-success/20 border-success text-success shadow-md'
                   : unlocked
                     ? 'bg-surface border-border text-muted hover:text-text'
-                    : 'bg-surface/50 border-border/60 text-muted/60'
+                    : 'bg-surface/50 border-border/60 text-muted/60 cursor-not-allowed'
               }`}
             >
               <span className="inline-flex items-center gap-1.5">

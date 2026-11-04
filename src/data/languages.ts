@@ -12,6 +12,14 @@ export interface LanguageMeta {
   badge: string;
 }
 
+export interface LanguageConfig {
+  code: string;
+  nameEn: string;
+  nameAr: string;
+  flag: string;
+  defaultVoice: string;
+}
+
 export const SOURCE_LANGUAGES: Record<SourceLanguage, LanguageMeta> = {
   ar: {
     code: 'ar',
@@ -37,7 +45,7 @@ export const SOURCE_LANGUAGES: Record<SourceLanguage, LanguageMeta> = {
   }
 };
 
-export const TARGET_LANGUAGES: Record<TargetLanguage, LanguageMeta> = {
+export const TARGET_LANGUAGE_META: Record<TargetLanguage, LanguageMeta> = {
   en: {
     code: 'en',
     nameEn: 'English',
@@ -149,6 +157,19 @@ export const TARGET_LANGUAGES: Record<TargetLanguage, LanguageMeta> = {
     badge: 'Global'
   }
 };
+
+export const TARGET_LANGUAGES: LanguageConfig[] = [
+  { code: 'en', nameEn: 'English', nameAr: 'الإنجليزية', flag: '🇬🇧', defaultVoice: 'en-US-AvaNeural' },
+  { code: 'de', nameEn: 'German', nameAr: 'الألمانية', flag: '🇩🇪', defaultVoice: 'de-DE-KatjaNeural' },
+  { code: 'ja', nameEn: 'Japanese', nameAr: 'اليابانية', flag: '🇯🇵', defaultVoice: 'ja-JP-NanamiNeural' },
+  { code: 'es', nameEn: 'Spanish', nameAr: 'الإسبانية', flag: '🇪🇸', defaultVoice: 'es-ES-ElviraNeural' },
+  { code: 'fr', nameEn: 'French', nameAr: 'الفرنسية', flag: '🇫🇷', defaultVoice: 'fr-FR-DeniseNeural' },
+  { code: 'zh', nameEn: 'Chinese', nameAr: 'الصينية', flag: '🇨🇳', defaultVoice: 'zh-CN-XiaoxiaoNeural' },
+  { code: 'hi', nameEn: 'Hindi', nameAr: 'الهندية', flag: '🇮🇳', defaultVoice: 'hi-IN-SwaraNeural' },
+  { code: 'ru', nameEn: 'Russian', nameAr: 'الروسية', flag: '🇷🇺', defaultVoice: 'ru-RU-SvetlanaNeural' },
+  { code: 'pt', nameEn: 'Portuguese', nameAr: 'البرتغالية', flag: '🇧🇷', defaultVoice: 'pt-BR-FranciscaNeural' },
+  { code: 'it', nameEn: 'Italian', nameAr: 'الإيطالية', flag: '🇮🇹', defaultVoice: 'it-IT-IsabellaNeural' },
+];
 
 export interface LanguagePairConfig {
   id: string;
@@ -384,4 +405,3 @@ export function getPairConfig(source: SourceLanguage, target: TargetLanguage): L
   // Fallback to default
   return SUPPORTED_PAIRS[0];
 }
-
