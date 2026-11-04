@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion, useMotionValue, useSpring, AnimatePresence } from 'framer-motion';
+import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from 'framer-motion';
 import {
   Sparkles,
   ArrowRight,
@@ -28,6 +28,77 @@ import { TARGET_LANGUAGE_META } from '../data/languages';
 interface LandingPageProps {
   onLaunchApp: () => void;
   isArabic?: boolean;
+}
+
+// Task 3: True 3D Tilt Card Component
+function TiltCard({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+
+  const mouseXSpring = useSpring(x, { stiffness: 200, damping: 20 });
+  const mouseYSpring = useSpring(y, { stiffness: 200, damping: 20 });
+
+  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ['10deg', '-10deg']);
+  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ['-10deg', '10deg']);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (typeof window !== 'undefined' && ('ontouchstart' in window || window.innerWidth < 768)) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    const xPct = mouseX / width - 0.5;
+    const yPct = mouseY / height - 0.5;
+    x.set(xPct);
+    y.set(yPct);
+  };
+
+  const handleMouseLeave = () => {
+    x.set(0);
+    y.set(0);
+  };
+
+  return (
+    <motion.div
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{
+        rotateY,
+        rotateX,
+        transformStyle: 'preserve-3d',
+      }}
+      className={`relative perspective-1000 ${className}`}
+    >
+      <div style={{ transform: 'translateZ(20px)' }}>{children}</div>
+    </motion.div>
+  );
+}
+
+// Task 2: Letter-by-letter Typewriter Effect
+function TypewriterSubheadline({ text, isAr }: { text: string; isAr: boolean }) {
+  const [displayed, setDisplayed] = useState('');
+
+  useEffect(() => {
+    setDisplayed('');
+    let i = 0;
+    const timer = setInterval(() => {
+      if (i < text.length) {
+        setDisplayed(text.slice(0, i + 1));
+        i++;
+      } else {
+        clearInterval(timer);
+      }
+    }, 25);
+    return () => clearInterval(timer);
+  }, [text]);
+
+  return (
+    <span className={`min-h-[3.5rem] inline-block font-normal text-base sm:text-xl text-stone-300 max-w-2xl mx-auto leading-relaxed ${isAr ? 'font-arabic' : 'font-sans-en'}`}>
+      {displayed}
+      <span className="animate-pulse text-teal-400 font-bold ms-1">|</span>
+    </span>
+  );
 }
 
 export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps) {
@@ -113,12 +184,16 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
       ? `متابعة تعلم ${targetMeta.nameAr} ${targetMeta.flag} 🚀`
       : `Resume Learning ${targetMeta.nameEn} ${targetMeta.flag} 🚀`
     : isAr
-    ? 'ابدأ التفكير الآن 🚀'
+    ? 'ابدأ التعلم مجاناً 🚀'
     : 'Start Learning Free 🚀';
+
+  const heroSubheadlineText = isAr
+    ? 'توقف عن الترجمة. ابدأ التفكير بـ 10+ لغات عالمية بدون ترجمة حرفية.'
+    : 'Stop translating. Start thinking in 10+ languages.';
 
   return (
     <div
-      className="min-h-screen bg-[#090D16] text-[#F9FAFB] font-sans antialiased overflow-x-hidden selection:bg-teal-500/30 selection:text-teal-200 relative"
+      className={`min-h-screen bg-[#090D16] text-[#F9FAFB] antialiased overflow-x-hidden selection:bg-teal-500/30 selection:text-teal-200 relative ${isAr ? 'font-arabic' : 'font-sans-en'}`}
       dir={isAr ? 'rtl' : 'ltr'}
       style={{ scrollBehavior: 'smooth' }}
     >
@@ -188,12 +263,10 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
             )}
           </motion.h1>
 
-          {/* Task 2: Subheadline Animated Reveal */}
-          <motion.p variants={fadeIn} className="text-base sm:text-xl text-stone-300 max-w-2xl mx-auto leading-relaxed font-normal">
-            {isAr
-              ? 'الجسر الذهني المفتوح المصدر المدعوم بالذكاء الاصطناعي لإتقان التفكير المباشر بـ 10 لغات عالمية بدون ترجمة حرفية في الدماغ.'
-              : 'The open-source, AI-powered cognitive bridge for mastering 10+ global languages natively without word-for-word translation.'}
-          </motion.p>
+          {/* Task 2: Subheadline Typewriter Dynamic Effect */}
+          <motion.div variants={fadeIn} className="block">
+            <TypewriterSubheadline text={heroSubheadlineText} isAr={isAr} />
+          </motion.div>
 
           <motion.div variants={fadeIn} className="flex flex-wrap justify-center items-center gap-4 pt-2">
             <button
@@ -276,7 +349,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
           </div>
 
           <div className="absolute bottom-4 left-4 right-4 text-start flex items-center justify-between text-xs font-bold text-stone-200">
-            <span>🎬 {isAr ? 'مشاهدة الفيديو المستندائي' : 'Watch Full Documentary'}</span>
+            <span>🎬 {isAr ? 'مشاهدة الفيديو الوثائقي' : 'Watch Full Documentary'}</span>
             <span className="px-2.5 py-1 rounded-lg bg-stone-950/80 border border-stone-800">15:00</span>
           </div>
         </div>
@@ -438,7 +511,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
         </div>
       </section>
 
-      {/* 6. FEATURE GRID (3 Columns with Hover Glow & BYOK Tutorial Modal Trigger) */}
+      {/* 6. FEATURE GRID (3 Columns with True 3D Tilt Cards & BYOK Tutorial Modal Trigger) */}
       <section className="relative z-10 px-4 py-20 max-w-6xl mx-auto space-y-12">
         <div className="text-center space-y-3">
           <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
@@ -450,77 +523,67 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
         </div>
 
         <div className="grid md:grid-cols-3 gap-6">
-          {/* Feature 1 */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="p-6 rounded-3xl bg-stone-900/80 border border-stone-800 space-y-4 hover:border-teal-400/80 hover:scale-[1.03] transition-all duration-300 shadow-xl hover:shadow-teal-500/10 text-start group cursor-pointer"
-          >
-            <div className="w-12 h-12 rounded-2xl bg-teal-500/10 border border-teal-500/30 text-teal-400 flex items-center justify-center font-black text-2xl group-hover:scale-110 transition-transform">
-              🧠
+          {/* Feature 1: True 3D Tilt Card */}
+          <TiltCard>
+            <div className="p-6 rounded-3xl bg-stone-900/90 border border-stone-800 space-y-4 hover:border-teal-400/80 transition-all duration-300 shadow-xl hover:shadow-teal-500/10 text-start group cursor-pointer h-full">
+              <div className="w-12 h-12 rounded-2xl bg-teal-500/10 border border-teal-500/30 text-teal-400 flex items-center justify-center font-black text-2xl group-hover:scale-110 transition-transform">
+                🧠
+              </div>
+              <h3 className="text-lg font-black text-white">
+                {isAr ? 'إعادة البرمجة الذهنية' : 'Cognitive Rewiring'}
+              </h3>
+              <p className="text-xs sm:text-sm text-stone-400 leading-relaxed">
+                {isAr
+                  ? '27 درساً متكاملاً عبر مستويات A0-C2 يتكيف مع قواعد النقل اللغوي لأي لغة مستهدفة (إنجليزية، ألمانية، يابانية) لمعالجة الأخطاء التلقائية.'
+                  : '27 lessons across A0-C2 levels that adapt L1 transfer rules for any target language (English, German, Japanese) to fix structural habits.'}
+              </p>
             </div>
-            <h3 className="text-lg font-black text-white">
-              {isAr ? 'إعادة البرمجة الذهنية' : 'Cognitive Rewiring'}
-            </h3>
-            <p className="text-xs sm:text-sm text-stone-400 leading-relaxed">
-              {isAr
-                ? '27 درساً متكاملاً عبر مستويات A0-C2 يتكيف مع قواعد النقل اللغوي لأي لغة مستهدفة (إنجليزية، ألمانية، يابانية) لمعالجة الأخطاء التلقائية.'
-                : '27 lessons across A0-C2 levels that adapt L1 transfer rules for any target language (English, German, Japanese) to fix structural habits.'}
-            </p>
-          </motion.div>
+          </TiltCard>
 
-          {/* Feature 2 */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="p-6 rounded-3xl bg-stone-900/80 border border-stone-800 space-y-4 hover:border-amber-400/80 hover:scale-[1.03] transition-all duration-300 shadow-xl hover:shadow-amber-500/10 text-start group cursor-pointer"
-          >
-            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center font-black text-2xl group-hover:scale-110 transition-transform">
-              🎙️
+          {/* Feature 2: True 3D Tilt Card */}
+          <TiltCard>
+            <div className="p-6 rounded-3xl bg-stone-900/90 border border-stone-800 space-y-4 hover:border-amber-400/80 transition-all duration-300 shadow-xl hover:shadow-amber-500/10 text-start group cursor-pointer h-full">
+              <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center font-black text-2xl group-hover:scale-110 transition-transform">
+                🎙️
+              </div>
+              <h3 className="text-lg font-black text-white">
+                {isAr ? 'المعلم الصوتي الذكي' : 'AI Voice Tutor'}
+              </h3>
+              <p className="text-xs sm:text-sm text-stone-400 leading-relaxed">
+                {isAr
+                  ? 'تدريب محادثة صوتي مباشر مع دعم المقاطعة الفورية (Barge-in) ومحاكاة النطق الطبيعي مدعوماً بذكاء Gemini 2.5 Flash.'
+                  : 'Real-time voice-to-voice practice with barge-in support, powered by Gemini.'}
+              </p>
             </div>
-            <h3 className="text-lg font-black text-white">
-              {isAr ? 'المعلم الصوتي الذكي' : 'AI Voice Tutor'}
-            </h3>
-            <p className="text-xs sm:text-sm text-stone-400 leading-relaxed">
-              {isAr
-                ? 'تدريب محادثة صوتي مباشر مع دعم المقاطعة الفورية (Barge-in) ومحاكاة النطق الطبيعي مدعوماً بذكاء Gemini 2.5 Flash.'
-                : 'Real-time voice-to-voice practice with barge-in support, powered by Gemini.'}
-            </p>
-          </motion.div>
+          </TiltCard>
 
-          {/* Feature 3: BYOK Card + Task 3 Micro-Tutorial Modal Trigger */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className="p-6 rounded-3xl bg-stone-900/80 border border-stone-800 space-y-4 hover:border-emerald-400/80 hover:scale-[1.03] transition-all duration-300 shadow-xl hover:shadow-emerald-500/10 text-start group"
-          >
-            <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center font-black text-2xl group-hover:scale-110 transition-transform">
-              🔑
+          {/* Feature 3: True 3D Tilt Card + Task 3 BYOK Micro-Tutorial Trigger */}
+          <TiltCard>
+            <div className="p-6 rounded-3xl bg-stone-900/90 border border-stone-800 space-y-4 hover:border-emerald-400/80 transition-all duration-300 shadow-xl hover:shadow-emerald-500/10 text-start group h-full flex flex-col justify-between">
+              <div className="space-y-4">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center font-black text-2xl group-hover:scale-110 transition-transform">
+                  🔑
+                </div>
+                <h3 className="text-lg font-black text-white">
+                  {isAr ? 'مفتاحك المجاني (BYOK)' : 'Bring Your Own Key'}
+                </h3>
+                <p className="text-xs sm:text-sm text-stone-400 leading-relaxed">
+                  {isAr
+                    ? 'أدخل مفتاحك المجاني الخاص من Google AI Studio لاستخدام بلا حدود أو اشتراكات. لا توجد جدران دفع أو إعلانات للأبد.'
+                    : 'Add your own free Gemini API key for unlimited access. No paywalls, no subscriptions.'}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setByokModalOpen(true)}
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-400 hover:text-emerald-300 hover:underline pt-2"
+              >
+                <HelpCircle size={14} />
+                <span>{isAr ? 'كيف تحصل على مفتاح مجاني؟ (دليل دقيقة)' : 'How to get a free key (1-min guide)'}</span>
+              </button>
             </div>
-            <h3 className="text-lg font-black text-white">
-              {isAr ? 'مفتاحك المجاني (BYOK)' : 'Bring Your Own Key'}
-            </h3>
-            <p className="text-xs sm:text-sm text-stone-400 leading-relaxed">
-              {isAr
-                ? 'أدخل مفتاحك المجاني الخاص من Google AI Studio لاستخدام بلا حدود أو اشتراكات. لا توجد جدران دفع أو إعلانات للأبد.'
-                : 'Add your own free Gemini API key for unlimited access. No paywalls, no subscriptions.'}
-            </p>
-
-            <button
-              type="button"
-              onClick={() => setByokModalOpen(true)}
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-400 hover:text-emerald-300 hover:underline pt-1"
-            >
-              <HelpCircle size={14} />
-              <span>{isAr ? 'كيف تحصل على مفتاح مجاني؟ (دليل دقيقة)' : 'How to get a free key (1-min guide)'}</span>
-            </button>
-          </motion.div>
+          </TiltCard>
         </div>
       </section>
 

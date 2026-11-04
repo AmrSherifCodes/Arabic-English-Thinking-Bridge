@@ -96,9 +96,29 @@ export default defineConfig(async ({ command, mode }) => {
       rollupOptions: {
         output: {
           manualChunks(id: string) {
-            if (id.includes('node_modules/framer-motion') || id.includes('node_modules/lucide-react')) return 'ui-vendor';
-            if (id.includes('node_modules/@supabase') || id.includes('node_modules/@google/genai')) return 'sdk-vendor';
-            if (id.includes('src/data/') || id.includes('src/utils/arabicWordLexicon')) return 'curriculum-data';
+            if (
+              id.includes('node_modules/react/') ||
+              id.includes('node_modules/react-dom/') ||
+              id.includes('node_modules/scheduler/') ||
+              id.includes('node_modules/framer-motion')
+            ) {
+              return 'react-vendor';
+            }
+            if (id.includes('node_modules/@google/genai')) {
+              return 'gemini-sdk';
+            }
+            if (id.includes('node_modules/@capacitor')) {
+              return 'capacitor-vendor';
+            }
+            if (id.includes('node_modules/lucide-react')) {
+              return 'icons-vendor';
+            }
+            if (id.includes('node_modules/@supabase')) {
+              return 'supabase-vendor';
+            }
+            if (id.includes('src/data/') || id.includes('src/utils/arabicWordLexicon')) {
+              return 'curriculum-data';
+            }
           },
         },
       },

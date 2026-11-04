@@ -55,10 +55,7 @@ test('new learner completes onboarding, unlocks a lesson, changes theme, and sta
   });
 
   await page.goto('/');
-  const launchButton = page.getByRole('button', { name: 'ابدأ التفكير الآن 🚀' }).first();
-  if (await launchButton.isVisible().catch(() => false)) {
-    await launchButton.click();
-  }
+  await page.getByRole('button', { name: /ابدأ التعلم مجاناً|Start Learning Free/ }).first().click();
   await expect(page.getByText('ما اللغة التي تريد أن تفكّر بها؟')).toBeVisible();
   await page.getByRole('button', { name: /العربية/ }).click();
   await page.getByRole('button', { name: 'English', exact: false }).last().click();

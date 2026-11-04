@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { ProgressionState } from '../../progression/types';
 import { SkillRadar } from './SkillRadar';
 import { UserProfile } from '../../types';
-import { Shield, Download, Trash2, Settings, HelpCircle, Moon, Sun, Lock } from 'lucide-react';
+import { TARGET_LANGUAGE_META } from '../../data/languages';
+import { Shield, Download, Trash2, Settings, HelpCircle, Moon, Sun, Lock, Share2 } from 'lucide-react';
 
 interface ProfileViewProps {
   state: ProgressionState;
@@ -14,6 +15,7 @@ interface ProfileViewProps {
   onOpenPreferences?: () => void;
   onResetProgress?: () => void;
   onOpenPrivacy?: () => void;
+  onToast?: (message: string) => void;
   isArabic?: boolean;
 }
 
@@ -25,9 +27,41 @@ export function ProfileView({
   onDeleteData,
   onOpenPrivacyPolicy,
   onOpenPreferences,
+  onToast,
   isArabic = true,
 }: ProfileViewProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  const shareProgress = async () => {
+    let targetLang = 'en';
+    try {
+      const savedProfile: unknown = JSON.parse(localStorage.getItem('tb.activeProfileConfig') || '{}');
+      if (typeof savedProfile === 'object' && savedProfile !== null && 'targetLang' in savedProfile) {
+        const code = savedProfile.targetLang;
+        if (typeof code === 'string' && Object.prototype.hasOwnProperty.call(TARGET_LANGUAGE_META, code)) {
+          targetLang = code;
+        }
+      }
+    } catch (error) {
+      console.warn('Unable to read the active language profile for sharing.', error);
+    }
+
+    const languageName = TARGET_LANGUAGE_META[targetLang as keyof typeof TARGET_LANGUAGE_META].nameEn;
+    const shareText = `I'm learning ${languageName} on Thinking Bridge! 🔥 Current Streak: ${state.streak} days. Total XP: ${state.xp}. Join me in rewiring your brain for free at https://tb-eg.vercel.app`;
+    try {
+      if (typeof navigator.share === 'function') {
+        await navigator.share({ title: 'My Thinking Bridge progress', text: shareText });
+        onToast?.(isArabic ? 'تمت مشاركة تقدمك بنجاح' : 'Progress shared successfully');
+      } else {
+        await navigator.clipboard.writeText(shareText);
+        onToast?.(isArabic ? 'تم نسخ تقدمك إلى الحافظة' : 'Progress copied to clipboard');
+      }
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') return;
+      console.error('Unable to share or copy progress.', error);
+      onToast?.(isArabic ? 'تعذرت مشاركة التقدم' : 'Could not share progress');
+    }
+  };
 
   return (
     <div className="space-y-6 max-w-md mx-auto pb-36 sm:pb-32" dir={isArabic ? 'rtl' : 'ltr'}>
@@ -68,6 +102,15 @@ export function ProfileView({
             <span className="text-[10px] text-stone-400">{isArabic ? 'دروع' : 'Shields'}</span>
           </div>
         </div>
+        <button
+          type="button"
+          onClick={shareProgress}
+          aria-label={isArabic ? 'مشاركة تقدمي' : 'Share my progress'}
+          className="w-full flex items-center justify-center gap-2 rounded-xl bg-teal-500/10 border border-teal-500/30 px-3 py-2 text-xs font-bold text-teal-300 transition hover:bg-teal-500/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-400"
+        >
+          <Share2 size={15} />
+          {isArabic ? 'مشاركة تقدمي' : 'Share My Progress'}
+        </button>
       </div>
 
       {/* 2. 5-Skill Radar Chart */}
