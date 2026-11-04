@@ -5,6 +5,7 @@ import handler, {
   checkFeedbackRateLimit,
   getCorsOrigin,
   isAdminAuthorized,
+  normalizeSubscriptionEmail,
 } from './feedback.js';
 
 test('feedback API allows both custom-domain origins and uses the primary domain as fallback', () => {
@@ -13,6 +14,12 @@ test('feedback API allows both custom-domain origins and uses the primary domain
     assert.equal(getCorsOrigin(origin), origin);
   }
   assert.equal(getCorsOrigin('https://untrusted.example'), 'https://amrsherif.localhost.cc');
+});
+
+test('subscription email normalization validates and canonicalizes addresses', () => {
+  assert.equal(normalizeSubscriptionEmail(' Amr.Sherif@Example.com '), 'amr.sherif@example.com');
+  assert.equal(normalizeSubscriptionEmail('not-an-email'), null);
+  assert.equal(normalizeSubscriptionEmail(`${'a'.repeat(250)}@example.com`), null);
 });
 
 test('1. feedback handler returns 503 if database connection is unset', async () => {

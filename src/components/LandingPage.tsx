@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from 'framer-motion';
-import { track } from '@vercel/analytics';
 import {
   Sparkles,
   ArrowRight,
@@ -113,7 +112,6 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
   const [byokModalOpen, setByokModalOpen] = useState(false);
 
   const handleLaunchApp = () => {
-    track('App_Launched', { source: 'Landing_Page' });
     onLaunchApp();
   };
 

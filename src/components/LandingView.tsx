@@ -1,7 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { supabase } from '../services/supabase';
-import { AgentLandingSection } from './AgentLandingSection';
-import { FounderSection } from './FounderSection';
 import {
   Sparkles,
   Download,
@@ -11,8 +8,8 @@ import {
   BookOpen,
   Layers,
   Globe,
-  Moon,
-  Sun,
+  Mic,
+  RefreshCw,
   ArrowDown,
   Zap,
   ShieldCheck,
@@ -21,59 +18,52 @@ import {
   Laptop,
   Apple
 } from 'lucide-react';
+import { usePwaInstall } from '../hooks/usePWAInstall';
+import { getPlatformInfo, storageAdapter } from '../platform/adapter';
 
 interface LandingViewProps {
   onStartWebApp: () => void;
   isArabic?: boolean;
 }
 
-export function LandingView({ onStartWebApp }: LandingViewProps) {
-  const [lang, setLang] = useState<'ar' | 'en'>('ar');
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+export function LandingView({ onStartWebApp, isArabic = true }: LandingViewProps) {
+  const [lang, setLang] = useState<'ar' | 'en'>(() => {
+    if (typeof window !== 'undefined') {
+      const requestedLang = new URLSearchParams(window.location.search).get('lang');
+      if (requestedLang === 'ar' || requestedLang === 'en') return requestedLang;
+    }
+    return isArabic ? 'ar' : 'en';
+  });
   const [email, setEmail] = useState('');
   const [subscribing, setSubscribing] = useState(false);
+  const [showIosGuide, setShowIosGuide] = useState(false);
   const [subscribed, setSubscribed] = useState<boolean>(() => {
-    try {
-      return localStorage.getItem('tb.subscribed') === 'true';
-    } catch {
-      return false;
-    }
+    return storageAdapter.getItem('tb.subscribed') === 'true';
   });
   const [subMessage, setSubMessage] = useState<string | null>(null);
   const [detectedOs, setDetectedOs] = useState<'android' | 'ios' | 'windows' | 'mac' | 'other'>('other');
+  const { isInstallable, triggerInstall, showIosHint } = usePwaInstall();
 
   const easterEggRef = useRef<HTMLDivElement>(null);
   const isAr = lang === 'ar';
 
   // Smart OS Detection
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const ua = navigator.userAgent.toLowerCase();
-    if (/android/i.test(ua)) {
-      setDetectedOs('android');
-    } else if (/iphone|ipad|ipod/i.test(ua)) {
-      setDetectedOs('ios');
-    } else if (/win/i.test(ua)) {
-      setDetectedOs('windows');
-    } else if (/mac/i.test(ua)) {
-      setDetectedOs('mac');
-    }
+    const { os } = getPlatformInfo();
+    if (os === 'macos') setDetectedOs('mac');
+    else if (os === 'android' || os === 'ios' || os === 'windows') setDetectedOs(os);
+    else setDetectedOs('other');
   }, []);
 
-  // Sync theme with document
   useEffect(() => {
-    if (theme === 'light') {
-      document.documentElement.classList.add('light');
-      document.documentElement.classList.remove('dark');
-    } else {
-      document.documentElement.classList.add('dark');
-      document.documentElement.classList.remove('light');
-    }
-  }, [theme]);
+    document.documentElement.lang = lang;
+    document.documentElement.dir = isAr ? 'rtl' : 'ltr';
+  }, [lang, isAr]);
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !email.includes('@')) {
+    const normalizedEmail = email.trim().toLowerCase();
+    if (normalizedEmail.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
       setSubMessage(isAr ? 'يرجى إدخال بريد إلكتروني صحيح' : 'Please enter a valid email');
       return;
     }
@@ -82,47 +72,45 @@ export function LandingView({ onStartWebApp }: LandingViewProps) {
     setSubMessage(null);
 
     try {
-      if (supabase) {
-        const { error } = await supabase.from('subscribers').insert({ email: email.trim().toLowerCase() });
-        if (error && error.code !== '23505') {
-          console.warn('Subscription error:', error.message);
-        }
+      const response = await fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'subscribe', email: normalizedEmail }),
+      });
+      const result = await response.json() as { success?: boolean };
+      if (!response.ok || result.success !== true) {
+        throw new Error('Subscription request failed');
       }
-    } catch (err) {
-      console.warn('Subscription error:', err);
-    } finally {
-      setSubscribing(false);
+      storageAdapter.setItem('tb.subscribed', 'true');
       setSubscribed(true);
-      try {
-        localStorage.setItem('tb.subscribed', 'true');
-      } catch {}
+      setEmail('');
       setSubMessage(isAr ? 'تم الاشتراك بنجاح! تم فتح الميزات الخاصة 🎉' : 'Subscribed successfully! Secret features unlocked 🎉');
 
-      // Smooth scroll to hidden Easter Egg features after render
-      setTimeout(() => {
+      window.setTimeout(() => {
         easterEggRef.current?.scrollIntoView({ behavior: 'smooth' });
       }, 100);
+    } catch {
+      setSubMessage(isAr ? 'تعذر إكمال الاشتراك. حاول مرة أخرى لاحقاً.' : 'Subscription failed. Please try again later.');
+    } finally {
+      setSubscribing(false);
     }
-  };
-
-  const toggleTheme = () => {
-    setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
   };
 
   return (
     <div
-      className="min-h-screen text-[var(--landing-text)] bg-[var(--landing-bg)] transition-colors duration-300"
+      className="landing-shell min-h-screen text-[var(--landing-text)] bg-[var(--landing-bg)] transition-colors duration-300"
+      lang={lang}
       dir={isAr ? 'rtl' : 'ltr'}
       style={{ fontFamily: 'var(--landing-font)' }}
     >
       {/* 1. NAV HEADER */}
       <header className="sticky top-0 z-50 backdrop-blur-md bg-[var(--landing-surface)]/80 border-b border-[var(--landing-border)] px-4 py-3">
-        <div className="max-w-[var(--landing-max-w)] mx-auto flex items-center justify-between">
+        <div className="max-w-[var(--landing-max-w)] mx-auto flex flex-wrap items-center justify-between gap-y-3">
           {/* Logo */}
           <div className="flex items-center gap-2.5">
             <span className="text-2xl">🧠</span>
             <div className="flex flex-col">
-              <span className="font-black text-sm tracking-tight text-white">
+              <span className="font-black text-sm tracking-tight text-[var(--landing-text)]">
                 {isAr ? 'فكّر إنجليزي' : 'Thinking English'}
               </span>
               <span className="text-[10px] text-[var(--landing-muted)] font-medium">
@@ -132,7 +120,7 @@ export function LandingView({ onStartWebApp }: LandingViewProps) {
           </div>
 
           {/* Nav Links */}
-          <nav className="hidden md:flex items-center gap-6 text-xs font-bold text-[var(--landing-muted)]">
+          <nav aria-label={isAr ? 'التنقل الرئيسي' : 'Main navigation'} className="order-3 flex w-full items-center justify-center gap-4 text-[10px] font-bold text-[var(--landing-muted)] sm:order-none sm:w-auto sm:gap-6 sm:text-xs">
             <a href="#subscribe-section" className="hover:text-[var(--landing-accent-teal)] transition">
               {isAr ? 'اشترك' : 'Subscribe'}
             </a>
@@ -149,28 +137,21 @@ export function LandingView({ onStartWebApp }: LandingViewProps) {
             <button
               onClick={() => setLang(prev => (prev === 'ar' ? 'en' : 'ar'))}
               className="px-2.5 py-1 rounded-[var(--landing-radius-sm)] border border-[var(--landing-border)] bg-[var(--landing-surface)] text-xs font-bold hover:border-[var(--landing-accent-teal)] transition flex items-center gap-1.5"
-              aria-label="Toggle Language"
+              aria-label={isAr ? 'Switch to English' : 'التبديل إلى العربية'}
             >
               <Globe size={13} className="text-[var(--landing-accent-teal)]" />
               <span>{isAr ? 'English' : 'العربية'}</span>
             </button>
 
-            <button
-              onClick={toggleTheme}
-              className="p-1.5 rounded-[var(--landing-radius-sm)] border border-[var(--landing-border)] bg-[var(--landing-surface)] text-xs hover:border-[var(--landing-accent-teal)] transition"
-              aria-label="Toggle Theme"
-            >
-              {theme === 'dark' ? <Sun size={14} className="text-[var(--landing-secondary-amber)]" /> : <Moon size={14} className="text-[var(--landing-accent-teal)]" />}
-            </button>
           </div>
         </div>
       </header>
 
       {/* 2. HERO SECTION */}
       <section className="px-4 py-12 md:py-20 max-w-[var(--landing-max-w)] mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+        <div className="grid grid-cols-1 min-[820px]:grid-cols-12 gap-10 items-center">
           {/* Left Text Column */}
-          <div className="lg:col-span-7 space-y-6 text-start">
+          <div className="min-[820px]:col-span-7 space-y-6 text-start">
             {/* Pill */}
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--landing-accent-teal)]/10 border border-[var(--landing-accent-teal)]/30 text-[var(--landing-accent-teal)] text-xs font-bold">
               <Zap size={13} />
@@ -223,7 +204,7 @@ export function LandingView({ onStartWebApp }: LandingViewProps) {
             </div>
 
             {/* Meta Stats */}
-            <div className="flex items-center gap-6 pt-4 text-xs font-bold text-[var(--landing-muted)] border-t border-[var(--landing-border)]/50">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-4 text-xs font-bold text-[var(--landing-muted)] border-t border-[var(--landing-border)]/50">
               <div className="flex items-center gap-1.5">
                 <CheckCircle2 size={14} className="text-[var(--landing-accent-teal)]" />
                 <span>27 {isAr ? 'درس تفاعلي' : 'Interactive Lessons'}</span>
@@ -234,13 +215,13 @@ export function LandingView({ onStartWebApp }: LandingViewProps) {
               </div>
               <div className="flex items-center gap-1.5">
                 <CheckCircle2 size={14} className="text-[var(--landing-accent-teal)]" />
-                <span>{isAr ? 'بدون إعلانات' : 'Zero Ads'}</span>
+                <span>{isAr ? 'مجاني 100%' : '100% Free'}</span>
               </div>
             </div>
           </div>
 
           {/* Right Phone Mockup */}
-          <div className="lg:col-span-5 flex justify-center">
+          <div className="min-[820px]:col-span-5 flex justify-center">
             <div className="w-full max-w-[320px] rounded-[38px] p-4 bg-stone-950 border-4 border-[var(--landing-border)] shadow-2xl relative overflow-hidden">
               <div className="w-28 h-4 bg-stone-900 rounded-full mx-auto mb-4 border border-stone-800"></div>
 
@@ -285,13 +266,11 @@ export function LandingView({ onStartWebApp }: LandingViewProps) {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-start">
+          <div className="grid grid-cols-1 min-[820px]:grid-cols-3 gap-6 text-start">
             {/* Card 1 */}
-            <div className="p-6 rounded-[var(--landing-radius-md)] bg-[var(--landing-bg)] border border-[var(--landing-border)] space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-[var(--landing-accent-teal)]/10 text-[var(--landing-accent-teal)] flex items-center justify-center font-black text-lg">
-                1
-              </div>
-              <h3 className="font-bold text-base text-white">
+            <article className="p-6 rounded-[var(--landing-radius-md)] bg-[var(--landing-bg)] border border-[var(--landing-border)] space-y-3">
+              <BookOpen className="text-[var(--landing-accent-teal)]" size={24} aria-hidden="true" />
+              <h3 className="font-bold text-base text-[var(--landing-text)]">
                 {isAr ? 'فهم البناء وتفكيك العقد' : 'Understand Structure'}
               </h3>
               <p className="text-xs text-[var(--landing-muted)] leading-relaxed">
@@ -299,14 +278,12 @@ export function LandingView({ onStartWebApp }: LandingViewProps) {
                   ? 'التعرف على الفروق الجوهرية بين التفكير بالعربي والإنجليزي (مثل الأفعال المخفية وحروف الجر).'
                   : 'Identify structural shifts between native Arabic thinking and natural English reflexes.'}
               </p>
-            </div>
+            </article>
 
             {/* Card 2 */}
-            <div className="p-6 rounded-[var(--landing-radius-md)] bg-[var(--landing-bg)] border border-[var(--landing-border)] space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-[var(--landing-secondary-amber)]/10 text-[var(--landing-secondary-amber)] flex items-center justify-center font-black text-lg">
-                2
-              </div>
-              <h3 className="font-bold text-base text-white">
+            <article className="p-6 rounded-[var(--landing-radius-md)] bg-[var(--landing-bg)] border border-[var(--landing-border)] space-y-3">
+              <Mic className="text-[var(--landing-secondary-amber)]" size={24} aria-hidden="true" />
+              <h3 className="font-bold text-base text-[var(--landing-text)]">
                 {isAr ? 'ممارسة محادثة تفاعلية' : 'Practice Speaking'}
               </h3>
               <p className="text-xs text-[var(--landing-muted)] leading-relaxed">
@@ -314,14 +291,12 @@ export function LandingView({ onStartWebApp }: LandingViewProps) {
                   ? 'التحدث مع المدرب الذكي عمرو شريف وتلقي تصحيحات فورية بلباقة دون خوف من الخطأ.'
                   : 'Practice real-time speaking with AI coach Amr Sherif with instant, polite feedback.'}
               </p>
-            </div>
+            </article>
 
             {/* Card 3 */}
-            <div className="p-6 rounded-[var(--landing-radius-md)] bg-[var(--landing-bg)] border border-[var(--landing-border)] space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-[var(--landing-accent-teal)]/10 text-[var(--landing-accent-teal)] flex items-center justify-center font-black text-lg">
-                3
-              </div>
-              <h3 className="font-bold text-base text-white">
+            <article className="p-6 rounded-[var(--landing-radius-md)] bg-[var(--landing-bg)] border border-[var(--landing-border)] space-y-3">
+              <RefreshCw className="text-[var(--landing-accent-teal)]" size={24} aria-hidden="true" />
+              <h3 className="font-bold text-base text-[var(--landing-text)]">
                 {isAr ? 'مراجعة ذكية يومية (SM-2)' : 'Review Daily (SM-2)'}
               </h3>
               <p className="text-xs text-[var(--landing-muted)] leading-relaxed">
@@ -329,23 +304,20 @@ export function LandingView({ onStartWebApp }: LandingViewProps) {
                   ? 'نظام تكرار متباعد يحسب التوقيت الأمثل لمراجعة الكلمات والبطاقات قبل أن تنساها.'
                   : 'Spaced repetition system calculating the exact interval before you forget a phrase.'}
               </p>
-            </div>
+            </article>
           </div>
         </div>
       </section>
 
-      {/* AUTONOMOUS COGNITIVE BRIDGE AGENT (3.5s TIMER) */}
-      <AgentLandingSection isArabic={isAr} />
-
       {/* 4. STATS STRIP */}
       <section className="px-4 py-10 max-w-[var(--landing-max-w)] mx-auto">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+        <div className="grid grid-cols-1 min-[820px]:grid-cols-4 gap-4 text-center">
           <div className="p-4 rounded-[var(--landing-radius-sm)] bg-[var(--landing-surface)] border border-[var(--landing-border)]">
             <span className="text-2xl sm:text-3xl font-black text-[var(--landing-accent-teal)] block mb-1">27</span>
             <span className="text-xs text-[var(--landing-muted)] font-bold">{isAr ? 'درس تفاعلي' : 'Interactive Lessons'}</span>
           </div>
           <div className="p-4 rounded-[var(--landing-radius-sm)] bg-[var(--landing-surface)] border border-[var(--landing-border)]">
-            <span className="text-2xl sm:text-3xl font-black text-[var(--landing-secondary-amber)] block mb-1">4,090</span>
+            <span className="text-2xl sm:text-3xl font-black text-[var(--landing-secondary-amber)] block mb-1">4090</span>
             <span className="text-xs text-[var(--landing-muted)] font-bold">{isAr ? 'بطاقة استذكار' : 'Spaced Flashcards'}</span>
           </div>
           <div className="p-4 rounded-[var(--landing-radius-sm)] bg-[var(--landing-surface)] border border-[var(--landing-border)]">
@@ -353,8 +325,8 @@ export function LandingView({ onStartWebApp }: LandingViewProps) {
             <span className="text-xs text-[var(--landing-muted)] font-bold">{isAr ? 'مفردة وجملة' : 'Words & Sentences'}</span>
           </div>
           <div className="p-4 rounded-[var(--landing-radius-sm)] bg-[var(--landing-surface)] border border-[var(--landing-border)]">
-            <span className="text-2xl sm:text-3xl font-black text-white block mb-1">0 EGP</span>
-            <span className="text-xs text-[var(--landing-muted)] font-bold">{isAr ? 'مجاني للأبد' : '100% Free Forever'}</span>
+            <span className="text-2xl sm:text-3xl font-black text-[var(--landing-text)] block mb-1">0</span>
+            <span className="text-xs text-[var(--landing-muted)] font-bold">{isAr ? 'التكلفة' : 'Cost'}</span>
           </div>
         </div>
       </section>
@@ -371,13 +343,19 @@ export function LandingView({ onStartWebApp }: LandingViewProps) {
             {isAr ? 'اشترك لمتابعة التحديثات وفتح المميزات الخاصة' : 'Subscribe for updates & secret features'}
           </h2>
 
-          <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto">
+          <form onSubmit={handleSubscribe} className="flex flex-col min-[820px]:flex-row gap-2 max-w-md mx-auto">
+            <label className="sr-only" htmlFor="subscription-email">{isAr ? 'البريد الإلكتروني' : 'Email address'}</label>
             <input
+              id="subscription-email"
               type="email"
+              name="email"
+              autoComplete="email"
+              dir="ltr"
+              maxLength={254}
               value={email}
               onChange={e => setEmail(e.target.value)}
               placeholder={isAr ? 'أدخل بريدك الإلكتروني...' : 'Enter your email...'}
-              className="flex-1 px-4 py-3 rounded-[var(--landing-radius-sm)] bg-[var(--landing-bg)] border border-[var(--landing-border)] text-sm text-[var(--landing-text)] focus:border-[var(--landing-accent-teal)] focus:outline-none"
+              className="flex-1 px-4 py-3 rounded-[var(--landing-radius-sm)] bg-[var(--landing-bg)] border border-[var(--landing-border)] text-sm text-[var(--landing-text)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--landing-accent-teal)]"
               required
             />
             <button
@@ -389,8 +367,14 @@ export function LandingView({ onStartWebApp }: LandingViewProps) {
             </button>
           </form>
 
+          <p className="text-[11px] leading-relaxed text-[var(--landing-muted)]">
+            {isAr
+              ? 'يُستخدم بريدك لإرسال تحديثات المنتج فقط. لا نستخدم أدوات تتبع أو تحليلات.'
+              : 'Your email is used only for product updates. We do not use tracking or analytics.'}
+          </p>
+
           {subMessage && (
-            <p className="text-xs font-bold text-[var(--landing-accent-teal)] mt-2">
+            <p role="status" aria-live="polite" className="text-xs font-bold text-[var(--landing-accent-teal)] mt-2">
               {subMessage}
             </p>
           )}
@@ -401,20 +385,20 @@ export function LandingView({ onStartWebApp }: LandingViewProps) {
       {subscribed && (
         <section ref={easterEggRef} className="px-4 py-16 bg-gradient-to-b from-[var(--landing-bg)] to-[var(--landing-surface)] border-t border-[var(--landing-border)]">
           <div className="max-w-[var(--landing-max-w)] mx-auto space-y-8 text-center">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30 text-xs font-black">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--landing-accent-teal)]/10 text-[var(--landing-accent-teal)] border border-[var(--landing-accent-teal)]/30 text-xs font-black">
               <Sparkles size={14} />
               <span>{isAr ? '🎉 تم فتح الميزات الخاصة للمشتركين!' : '🎉 Subscriber Exclusive Features Unlocked!'}</span>
             </div>
 
-            <h2 className="text-2xl sm:text-4xl font-black text-white">
+            <h2 className="text-2xl sm:text-4xl font-black text-[var(--landing-text)]">
               {isAr ? 'أدوات التحول الذهني المتقدمة' : 'Advanced Cognitive Tools'}
             </h2>
 
             {/* 2x2 Features Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-start">
+            <div className="grid grid-cols-1 min-[820px]:grid-cols-2 gap-6 text-start">
               <div className="p-6 rounded-[var(--landing-radius-md)] bg-[var(--landing-surface)] border border-[var(--landing-accent-teal)]/40 space-y-2">
                 <MessageSquare className="text-[var(--landing-accent-teal)]" size={24} />
-                <h3 className="font-bold text-base text-white">
+                <h3 className="font-bold text-base text-[var(--landing-text)]">
                   {isAr ? '1. تدريب المحادثة مع عمرو شريف' : '1. AI Conversation Practice'}
                 </h3>
                 <p className="text-xs text-[var(--landing-muted)]">
@@ -424,7 +408,7 @@ export function LandingView({ onStartWebApp }: LandingViewProps) {
 
               <div className="p-6 rounded-[var(--landing-radius-md)] bg-[var(--landing-surface)] border border-[var(--landing-accent-teal)]/40 space-y-2">
                 <BookOpen className="text-[var(--landing-secondary-amber)]" size={24} />
-                <h3 className="font-bold text-base text-white">
+                <h3 className="font-bold text-base text-[var(--landing-text)]">
                   {isAr ? '2. 27 درساً تفاعلياً متكاملاً' : '2. 27 Interactive Lessons'}
                 </h3>
                 <p className="text-xs text-[var(--landing-muted)]">
@@ -434,8 +418,8 @@ export function LandingView({ onStartWebApp }: LandingViewProps) {
 
               <div className="p-6 rounded-[var(--landing-radius-md)] bg-[var(--landing-surface)] border border-[var(--landing-accent-teal)]/40 space-y-2">
                 <Zap className="text-[var(--landing-accent-teal)]" size={24} />
-                <h3 className="font-bold text-base text-white">
-                  {isAr ? '3. مترجم "من البلدي لـ Corporate"' : '3. "Baladi to Corporate" Bridge'}
+                <h3 className="font-bold text-base text-[var(--landing-text)]">
+                  {isAr ? '3. مترجم «من البلدي إلى Corporate»' : '3. “Baladi to Corporate” Bridge'}
                 </h3>
                 <p className="text-xs text-[var(--landing-muted)]">
                   {isAr ? 'تحويل أفكارك بالعامية المصرية إلى صياغات شركات احترافية بثوانٍ.' : 'Convert raw colloquial thoughts into polished corporate English.'}
@@ -444,7 +428,7 @@ export function LandingView({ onStartWebApp }: LandingViewProps) {
 
               <div className="p-6 rounded-[var(--landing-radius-md)] bg-[var(--landing-surface)] border border-[var(--landing-accent-teal)]/40 space-y-2">
                 <Layers className="text-[var(--landing-secondary-amber)]" size={24} />
-                <h3 className="font-bold text-base text-white">
+                <h3 className="font-bold text-base text-[var(--landing-text)]">
                   {isAr ? '4. 4090 بطاقات استذكار متباعد' : '4. 4,090 Spaced Flashcards'}
                 </h3>
                 <p className="text-xs text-[var(--landing-muted)]">
@@ -463,9 +447,6 @@ export function LandingView({ onStartWebApp }: LandingViewProps) {
         </section>
       )}
 
-      {/* 7. FOUNDER & MISSION SECTION */}
-      <FounderSection isArabic={isAr} />
-
       {/* 8. DOWNLOAD SECTION */}
       <section id="download-section" className="px-4 py-16 max-w-[var(--landing-max-w)] mx-auto">
         <div className="text-center space-y-8">
@@ -479,70 +460,96 @@ export function LandingView({ onStartWebApp }: LandingViewProps) {
           </div>
 
           {/* Highlighted OS Card */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 min-[820px]:grid-cols-2 min-[1100px]:grid-cols-4 gap-4">
             {/* Android */}
             <div className={`p-5 rounded-[var(--landing-radius-md)] border text-center space-y-3 ${detectedOs === 'android' ? 'bg-[var(--landing-surface)] border-[var(--landing-accent-teal)] ring-2 ring-[var(--landing-accent-teal)]/30' : 'bg-[var(--landing-bg)] border-[var(--landing-border)]'}`}>
               <Smartphone className="mx-auto text-[var(--landing-accent-teal)]" size={28} />
               <div>
-                <span className="font-bold text-sm text-white block">Android</span>
+                <span className="font-bold text-sm text-[var(--landing-text)] block">Android</span>
                 <span className="text-[10px] text-[var(--landing-muted)] block">v3.1.0 · APK</span>
               </div>
               <a
                 href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v3.1.0/Thinking-Bridge-v3.1.0.apk"
-                download
                 className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-[var(--landing-accent-teal)] text-stone-950 font-bold text-xs w-full hover:opacity-90 transition"
               >
-                <Download size={13} />
-                <span>{isAr ? 'تثبيت APK' : 'Download APK'}</span>
+                <Download size={13} aria-hidden="true" />
+                <span>{isAr ? 'تحميل APK' : 'Download APK'}</span>
               </a>
+              {isInstallable && (
+                <button type="button" onClick={() => void triggerInstall()} className="text-[10px] font-bold text-[var(--landing-muted)] underline underline-offset-2">
+                  {isAr ? 'تثبيت نسخة الويب' : 'Install web app'}
+                </button>
+              )}
             </div>
 
             {/* iOS / PWA */}
             <div className={`p-5 rounded-[var(--landing-radius-md)] border text-center space-y-3 ${detectedOs === 'ios' ? 'bg-[var(--landing-surface)] border-[var(--landing-accent-teal)] ring-2 ring-[var(--landing-accent-teal)]/30' : 'bg-[var(--landing-bg)] border-[var(--landing-border)]'}`}>
-              <Apple className="mx-auto text-white" size={28} />
+              <Apple className="mx-auto text-[var(--landing-text)]" size={28} />
               <div>
-                <span className="font-bold text-sm text-white block">iOS / iPhone</span>
+                <span className="font-bold text-sm text-[var(--landing-text)] block">iOS / iPhone</span>
                 <span className="text-[10px] text-[var(--landing-muted)] block">PWA / Web App</span>
               </div>
               <button
-                onClick={onStartWebApp}
-                className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-[var(--landing-surface)] border border-[var(--landing-border)] text-white font-bold text-xs w-full hover:border-[var(--landing-accent-teal)] transition"
+                onClick={() => {
+                  if (showIosHint) setShowIosGuide(value => !value);
+                  else if (isInstallable) void triggerInstall();
+                  else onStartWebApp();
+                }}
+                className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-[var(--landing-surface)] border border-[var(--landing-border)] text-[var(--landing-text)] font-bold text-xs w-full hover:border-[var(--landing-accent-teal)] transition"
               >
                 <ExternalLink size={13} />
-                <span>{isAr ? 'إضافة للشاشة الرئيسية' : 'Add to Home'}</span>
+                <span>{showIosHint ? (isAr ? 'طريقة التثبيت' : 'Install guide') : isInstallable ? (isAr ? 'تثبيت التطبيق' : 'Install app') : (isAr ? 'تشغيل على الويب' : 'Open Web App')}</span>
               </button>
+              {showIosGuide && showIosHint && (
+                <p role="status" className="text-[11px] leading-relaxed text-[var(--landing-muted)]">
+                  {isAr
+                    ? 'في Safari اضغط مشاركة، ثم اختر «إضافة إلى الشاشة الرئيسية».'
+                    : 'In Safari, tap Share, then choose “Add to Home Screen”.'}
+                </p>
+              )}
+              {showIosHint && (
+                <button onClick={onStartWebApp} className="text-xs font-bold text-[var(--landing-accent-teal)] underline underline-offset-2">
+                  {isAr ? 'فتح تطبيق الويب' : 'Open web app'}
+                </button>
+              )}
             </div>
 
             {/* Windows */}
             <div className={`p-5 rounded-[var(--landing-radius-md)] border text-center space-y-3 ${detectedOs === 'windows' ? 'bg-[var(--landing-surface)] border-[var(--landing-accent-teal)] ring-2 ring-[var(--landing-accent-teal)]/30' : 'bg-[var(--landing-bg)] border-[var(--landing-border)]'}`}>
               <Laptop className="mx-auto text-[var(--landing-secondary-amber)]" size={28} />
               <div>
-                <span className="font-bold text-sm text-white block">Windows / Desktop</span>
-                <span className="text-[10px] text-[var(--landing-muted)] block">Web / PWA</span>
+                <span className="font-bold text-sm text-[var(--landing-text)] block">Windows / Desktop</span>
+                <span className="text-[10px] text-[var(--landing-muted)] block">PWA / Desktop release</span>
               </div>
               <button
-                onClick={onStartWebApp}
-                className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-[var(--landing-surface)] border border-[var(--landing-border)] text-white font-bold text-xs w-full hover:border-[var(--landing-accent-teal)] transition"
+                onClick={() => isInstallable ? void triggerInstall() : onStartWebApp()}
+                className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-[var(--landing-surface)] border border-[var(--landing-border)] text-[var(--landing-text)] font-bold text-xs w-full hover:border-[var(--landing-accent-teal)] transition"
               >
                 <Globe size={13} />
-                <span>{isAr ? 'تشغيل على الويب' : 'Open Web App'}</span>
+                <span>{isInstallable ? (isAr ? 'تثبيت التطبيق' : 'Install PWA') : (isAr ? 'تشغيل على الويب' : 'Open Web App')}</span>
               </button>
+              <a href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/latest" className="block text-[10px] font-bold text-[var(--landing-muted)] underline underline-offset-2">
+                {isAr ? 'إصدارات سطح المكتب' : 'Desktop releases'}
+              </a>
             </div>
 
             {/* macOS */}
             <div className={`p-5 rounded-[var(--landing-radius-md)] border text-center space-y-3 ${detectedOs === 'mac' ? 'bg-[var(--landing-surface)] border-[var(--landing-accent-teal)] ring-2 ring-[var(--landing-accent-teal)]/30' : 'bg-[var(--landing-bg)] border-[var(--landing-border)]'}`}>
-              <Apple className="mx-auto text-stone-300" size={28} />
+              <Apple className="mx-auto text-[var(--landing-muted)]" size={28} />
               <div>
-                <span className="font-bold text-sm text-white block">macOS</span>
-                <span className="text-[10px] text-[var(--landing-muted)] block">Web / PWA</span>
+                <span className="font-bold text-sm text-[var(--landing-text)] block">macOS</span>
+                <span className="text-[10px] text-[var(--landing-muted)] block">PWA / Desktop release</span>
               </div>
               <button
-                onClick={onStartWebApp}
-                className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-[var(--landing-surface)] border border-[var(--landing-border)] text-white font-bold text-xs w-full hover:border-[var(--landing-accent-teal)] transition"
+                onClick={() => isInstallable ? void triggerInstall() : onStartWebApp()}
+                className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-[var(--landing-surface)] border border-[var(--landing-border)] text-[var(--landing-text)] font-bold text-xs w-full hover:border-[var(--landing-accent-teal)] transition"
               >
                 <Globe size={13} />
-                <span>{isAr ? 'تشغيل على الويب' : 'Open Web App'}</span>
+                <span>{isInstallable ? (isAr ? 'تثبيت التطبيق' : 'Install PWA') : (isAr ? 'تشغيل على الويب' : 'Open Web App')}</span>
               </button>
+              <a href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/latest" className="block text-[10px] font-bold text-[var(--landing-muted)] underline underline-offset-2">
+                {isAr ? 'إصدارات سطح المكتب' : 'Desktop releases'}
+              </a>
             </div>
           </div>
         </div>
@@ -550,26 +557,30 @@ export function LandingView({ onStartWebApp }: LandingViewProps) {
 
       {/* 8. FOOTER */}
       <footer className="px-4 py-8 bg-[var(--landing-surface)] border-t border-[var(--landing-border)] text-center text-xs text-[var(--landing-muted)] space-y-3">
-        <p className="font-bold text-white">
-          {isAr ? 'صُنع في الإسكندرية، مصر 🇪🇬 · v3.1.0' : 'Crafted in Alexandria, Egypt 🇪🇬 · v3.1.0'}
+        <p className="font-bold text-[var(--landing-text)]">
+          {isAr ? 'صُنع في الإسكندرية، مصر' : 'Made in Alexandria, Egypt'}
         </p>
 
-        {/* Explicit Single License Line */}
         <p>
-          All rights reserved, Amr Sherif Abdelaal
+          {isAr ? 'إهداء وتقدير إلى ' : 'With gratitude to '}
+          <a href="https://www.languagetransfer.org/" target="_blank" rel="noopener noreferrer" aria-label="Mihalis Eleftheriou and Language Transfer" className="underline underline-offset-2">
+            Mihalis Eleftheriou &amp; Language Transfer
+          </a>
+          {' · CC0 1.0'}
         </p>
+        <p>Copyright (c) 2024-Present Amr Sherif Abdelaal</p>
 
         <div className="flex flex-wrap justify-center gap-4 pt-1 font-bold">
-          <a href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge" target="_blank" rel="noopener noreferrer" className="hover:text-[var(--landing-accent-teal)] transition">
+          <a href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge" target="_blank" rel="noopener noreferrer" aria-label="GitHub repository" className="hover:text-[var(--landing-accent-teal)] transition">
             GitHub
           </a>
-          <a href="https://youtube.com/@SciAmrSherif" target="_blank" rel="noopener noreferrer" className="hover:text-[var(--landing-accent-teal)] transition">
+          <a href="https://youtube.com/@SciAmrSherif" target="_blank" rel="noopener noreferrer" aria-label="YouTube channel" className="hover:text-[var(--landing-accent-teal)] transition">
             YouTube
           </a>
-          <a href="https://linkedin.com/in/sciamrsherif-abdelaal" target="_blank" rel="noopener noreferrer" className="hover:text-[var(--landing-accent-teal)] transition">
+          <a href="https://linkedin.com/in/sciamrsherif-abdelaal" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn profile" className="hover:text-[var(--landing-accent-teal)] transition">
             LinkedIn
           </a>
-          <a href="mailto:amrsherifbusiness@gmail.com" className="hover:text-[var(--landing-accent-teal)] transition">
+          <a href="mailto:amrsherifbusiness@gmail.com" aria-label="Email Amr Sherif" className="hover:text-[var(--landing-accent-teal)] transition">
             Email
           </a>
         </div>

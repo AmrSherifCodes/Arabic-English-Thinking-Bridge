@@ -45,6 +45,15 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+.landing-shell > header {
+  padding-top: max(0.75rem, env(safe-area-inset-top, 0px));
+}
+
+.landing-shell :focus-visible {
+  outline: 3px solid var(--landing-accent-teal);
+  outline-offset: 3px;
+}
+
 .font-arabic {
   font-family: 'Cairo', 'Tajawal', 'Readex Pro', sans-serif !important;
 }

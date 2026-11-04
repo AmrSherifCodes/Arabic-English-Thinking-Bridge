@@ -23,6 +23,7 @@ export default defineConfig(async ({ command, mode }) => {
     const { default: geminiHandler } = await import('./api/gemini.js');
     const { default: ttsHandler } = await import('./api/tts.js');
     const { default: agentHandler } = await import('./api/agent.js');
+    const { default: feedbackHandler } = await import('./api/feedback.js');
     devPlugins.push(
       basicSsl(),
       {
@@ -31,6 +32,7 @@ export default defineConfig(async ({ command, mode }) => {
           server.middlewares.use('/api/gemini', geminiHandler);
           server.middlewares.use('/api/tts', ttsHandler);
           server.middlewares.use('/api/agent', agentHandler);
+          server.middlewares.use('/api/feedback', feedbackHandler);
         },
       }
     );
@@ -51,20 +53,20 @@ export default defineConfig(async ({ command, mode }) => {
           name: 'Thinking Bridge',
           short_name: 'Thinking Bridge',
           description: 'Learn English through the structure of Arabic.',
-          lang: 'en',
-          dir: 'ltr',
+          lang: 'ar',
+          dir: 'rtl',
           start_url: '/',
           scope: '/',
           display: 'standalone',
           orientation: 'portrait',
-          theme_color: '#4f46e5',
-          background_color: '#ffffff',
+          theme_color: '#0A0E13',
+          background_color: '#0A0E13',
           categories: ['education'],
           icons: [
             { src: 'pwa-64x64.png', sizes: '64x64', type: 'image/png' },
             { src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' },
             { src: 'pwa-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
-            { src: 'maskable-icon-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+            { src: 'maskable-icon.svg', sizes: '512x512', type: 'image/svg+xml', purpose: 'maskable' },
           ],
         },
         workbox: {

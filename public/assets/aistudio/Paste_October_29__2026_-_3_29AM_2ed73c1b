@@ -267,7 +267,7 @@ async function trPaste(){try{TR.src=await navigator.clipboard.readText();const i
 async function trRun(){
   const q=TR.src.trim();if(!q){TR.out="";trShow();return}
   TR.from=isAr(q)?"ar":"en";TR.to=TR.from=="ar"?"en":"ar";TR.busy=true;trShow();
-  try{if(SMP){const x=await SMP("Translate the text between Arabic and English. If it is Arabic, translate to English; otherwise translate to Arabic. Reply with ONLY the translation, no quotes or notes.\n\n"+q,{modelTier:"quick"});TR.out=(x.text||"").trim();if(!TR.out)throw 0}else{const r=await fetch("https://api.mymemory.translated.net/get?q="+encodeURIComponent(q)+"&langpair="+TR.from+"|"+TR.to);const j=await r.json(),t=j&&j.responseData&&j.responseData.translatedText;if(!t||/MYMEMORY WARNING/i.test(t))throw 0;TR.out=t}}
+  try{const r=await fetch("https://api.mymemory.translated.net/get?q="+encodeURIComponent(q)+"&langpair="+TR.from+"|"+TR.to);const j=await r.json(),t=j&&j.responseData&&j.responseData.translatedText;if(!t||/MYMEMORY WARNING/i.test(t))throw 0;TR.out=t}
   catch(e){TR.out="";toast("Couldn’t translate. Try again in a moment.")}
   TR.busy=false;trShow();
 }

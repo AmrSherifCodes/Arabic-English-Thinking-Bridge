@@ -7,7 +7,7 @@ import { Keyboard, KeyboardResize } from '@capacitor/keyboard';
 import { Download } from 'lucide-react';
 
 import { AppTab } from './components/navigation/AppShell';
-import { LandingPage } from './components/LandingPage';
+import { LandingView } from './components/LandingView';
 import { PwaInstallBanner } from './components/PwaInstallBanner';
 import { useUserProfile } from './hooks/useUserProfile';
 import { loadUserProgress } from './utils/storage';
@@ -129,6 +129,12 @@ export default function App() {
 
   const isArabic = (profile?.language || 'arabic') === 'arabic';
 
+  useEffect(() => {
+    if (view.name === 'landing') return;
+    document.documentElement.lang = isArabic ? 'ar' : 'en';
+    document.documentElement.dir = isArabic ? 'rtl' : 'ltr';
+  }, [view.name, isArabic]);
+
   // Save progression state updates
   const updateProgression = (updater: (prev: ProgressionState) => ProgressionState) => {
     setProgression((prev) => {
@@ -228,10 +234,7 @@ export default function App() {
   if (view.name === 'landing') {
     return (
       <ErrorBoundary>
-        <>
-        <Analytics />
-        <LandingPage onLaunchApp={launchApp} isArabic={isArabic} />
-        </>
+        <LandingView onStartWebApp={launchApp} isArabic={isArabic} />
       </ErrorBoundary>
     );
   }
@@ -250,9 +253,7 @@ export default function App() {
   }
 
   return (
-    <>
-      <Analytics />
-      <ErrorBoundary>
+    <ErrorBoundary>
         <Suspense
           fallback={
             <main
@@ -516,7 +517,6 @@ export default function App() {
         </div>
       )}
         </Suspense>
-      </ErrorBoundary>
-    </>
+    </ErrorBoundary>
   );
 }
