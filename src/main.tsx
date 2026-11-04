@@ -1,16 +1,11 @@
 /// <reference types="vite-plugin-pwa/client" />
-import {createRoot} from 'react-dom/client';
+import { createRoot } from 'react-dom/client';
 import { Capacitor } from '@capacitor/core';
 import './i18n';
 import App from './App.tsx';
 import './index.css';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { preloadDictionaries } from './data/dictionaries';
-
-// Boot-time dictionary preloading
-preloadDictionaries(['en', 'de', 'ja', 'es', 'fr', 'ar', 'arz']).catch((err) =>
-  console.warn('[DictBoot] Preload error:', err)
-);
 
 window.addEventListener('error', e => console.error('[TB_ERR]', e.message, e.filename, e.lineno));
 window.addEventListener('unhandledrejection', e => console.error('[TB_PROMISE]', e.reason));
@@ -23,10 +18,17 @@ if (!Capacitor.isNativePlatform()) {
   if ('caches' in window) caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
 }
 
-createRoot(document.getElementById('root')!).render(
-  <ErrorBoundary>
-    <App />
-  </ErrorBoundary>
-);
+// Read active user target language from storage (defaulting to 'de')
+const activeTargetLang = (typeof localStorage !== 'undefined' && localStorage.getItem('tb.targetLang')) || 'de';
 
-document.documentElement.dataset.appReady = 'true';
+// Gate initial React DOM render until active language & core dictionaries are preloaded
+preloadDictionaries([activeTargetLang, 'de', 'ja', 'es', 'fr', 'ar', 'arz'])
+  .catch((err) => console.warn('[DictBoot] Preload warning:', err))
+  .finally(() => {
+    createRoot(document.getElementById('root')!).render(
+      <ErrorBoundary>
+        <App />
+      </ErrorBoundary>
+    );
+    document.documentElement.dataset.appReady = 'true';
+  });
