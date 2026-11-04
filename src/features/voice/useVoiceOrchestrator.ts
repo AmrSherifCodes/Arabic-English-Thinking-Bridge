@@ -239,10 +239,15 @@ export function useVoiceOrchestrator(
         fallBackToNativeSpeech();
       };
 
-      nextAudio.play().catch((err) => {
+      const handlePlaybackFailure = (err: unknown) => {
         console.warn('[useVoiceOrchestrator] Audio play rejected:', err);
         fallBackToNativeSpeech();
-      });
+      };
+      try {
+        nextAudio.play().catch(handlePlaybackFailure);
+      } catch (error) {
+        handlePlaybackFailure(error);
+      }
       return;
     }
 

@@ -38,7 +38,9 @@ export function ProfileView({
       const savedProfile: unknown = JSON.parse(localStorage.getItem('tb.activeProfileConfig') || '{}');
       if (typeof savedProfile === 'object' && savedProfile !== null && 'targetLang' in savedProfile) {
         const code = savedProfile.targetLang;
-        if (typeof code === 'string' && code in TARGET_LANGUAGE_META) targetLang = code;
+        if (typeof code === 'string' && Object.prototype.hasOwnProperty.call(TARGET_LANGUAGE_META, code)) {
+          targetLang = code;
+        }
       }
     } catch (error) {
       console.warn('Unable to read the active language profile for sharing.', error);
