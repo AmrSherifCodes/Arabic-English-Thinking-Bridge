@@ -475,7 +475,9 @@ async function generate(operation, body) {
     const audioData = typeof body.audioData === 'string' ? body.audioData : '';
     const mimeType = typeof body.mimeType === 'string' ? body.mimeType : 'audio/webm';
     const requestedLanguage = typeof body.language === 'string' ? body.language.split(/[-_]/)[0].toLowerCase() : 'en';
-    const transcriptionLanguage = SPEECH_LANGUAGE_NAMES[requestedLanguage] || 'English';
+    const transcriptionLanguage = Object.hasOwn(SPEECH_LANGUAGE_NAMES, requestedLanguage)
+      ? SPEECH_LANGUAGE_NAMES[requestedLanguage]
+      : 'English';
     if (!audioData) {
       return { status: 400, error: { code: 'empty-input', message: 'Audio data is missing.' } };
     }

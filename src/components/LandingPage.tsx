@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion, useMotionValue, useSpring } from 'framer-motion';
+import { motion, useMotionValue, useSpring, AnimatePresence } from 'framer-motion';
 import {
   Sparkles,
   ArrowRight,
@@ -16,9 +16,11 @@ import {
   ExternalLink,
   ShieldCheck,
   Zap,
+  Play,
+  X,
   CheckCircle2,
-  Target,
-  Flame,
+  HelpCircle,
+  Lock,
 } from 'lucide-react';
 import { TargetLanguage } from '../types';
 import { TARGET_LANGUAGE_META } from '../data/languages';
@@ -32,8 +34,11 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
   const [lang, setLang] = useState<'en' | 'ar'>(isArabic ? 'ar' : 'en');
   const isAr = lang === 'ar';
 
-  // Task 2: Read profile & target language from localStorage for CRO dynamic CTA
-  const [userTarget, setUserTarget] = useState<TargetLanguage | null>(() => {
+  const [videoModalOpen, setVideoModalOpen] = useState(false);
+  const [byokModalOpen, setByokModalOpen] = useState(false);
+
+  // Read profile & target language from localStorage for CRO dynamic CTA
+  const [userTarget] = useState<TargetLanguage | null>(() => {
     try {
       if (typeof localStorage !== 'undefined') {
         const storedLang = localStorage.getItem('tb.targetLang') as TargetLanguage;
@@ -53,15 +58,18 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
     return null;
   });
 
-  // Task 4: Interactive Parallax Mouse Background Orb
+  // Task 5: Mobile Parallax Guard (Disable mouse-parallax orb on mobile/touch screens)
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
   const orbX = useSpring(mouseX, { stiffness: 40, damping: 25 });
   const orbY = useSpring(mouseY, { stiffness: 40, damping: 25 });
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const isTouchOrMobile = 'ontouchstart' in window || window.innerWidth < 768;
+    if (isTouchOrMobile) return;
+
     const handleMouseMove = (e: MouseEvent) => {
-      if (typeof window === 'undefined') return;
       const { innerWidth, innerHeight } = window;
       mouseX.set((e.clientX - innerWidth / 2) * 0.08);
       mouseY.set((e.clientY - innerHeight / 2) * 0.08);
@@ -105,7 +113,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
       ? `متابعة تعلم ${targetMeta.nameAr} ${targetMeta.flag} 🚀`
       : `Resume Learning ${targetMeta.nameEn} ${targetMeta.flag} 🚀`
     : isAr
-    ? 'ابدأ التفكير الآن 🚀'
+    ? 'ابدأ التعلم مجاناً 🚀'
     : 'Start Learning Free 🚀';
 
   return (
@@ -114,7 +122,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
       dir={isAr ? 'rtl' : 'ltr'}
       style={{ scrollBehavior: 'smooth' }}
     >
-      {/* Background Interactive Glassmorphic Orb with Parallax Mouse Movement */}
+      {/* Background Interactive Glassmorphic Orb with Mobile Guard */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
         <motion.div
           style={{ x: orbX, y: orbY }}
@@ -160,7 +168,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
       </header>
 
       {/* 2. HERO SECTION */}
-      <section className="relative z-10 px-4 pt-16 pb-12 max-w-5xl mx-auto text-center space-y-8">
+      <section className="relative z-10 px-4 pt-16 pb-10 max-w-5xl mx-auto text-center space-y-8">
         <motion.div initial="hidden" animate="visible" variants={staggerContainer} className="space-y-6">
           {/* Active Dev & Open Source Flex Badge */}
           <motion.div variants={fadeIn} className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-teal-500/10 border border-teal-500/30 text-teal-300 text-xs font-bold shadow-inner">
@@ -180,7 +188,8 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
             )}
           </motion.h1>
 
-          <motion.p variants={fadeIn} className="text-base sm:text-xl text-stone-300 max-w-2xl mx-auto leading-relaxed">
+          {/* Task 2: Subheadline Animated Reveal */}
+          <motion.p variants={fadeIn} className="text-base sm:text-xl text-stone-300 max-w-2xl mx-auto leading-relaxed font-normal">
             {isAr
               ? 'الجسر الذهني المفتوح المصدر المدعوم بالذكاء الاصطناعي لإتقان التفكير المباشر بـ 10 لغات عالمية بدون ترجمة حرفية في الدماغ.'
               : 'The open-source, AI-powered cognitive bridge for mastering 10+ global languages natively without word-for-word translation.'}
@@ -212,14 +221,14 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
           </motion.div>
         </motion.div>
 
-        {/* Task 1: Animated Language Marquee (Flags & Names) */}
-        <div className="pt-8 overflow-hidden w-full relative">
+        {/* Task 5: Animated Language Marquee (Mobile Optimized Container) */}
+        <div className="pt-6 overflow-hidden w-full relative">
           <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-[#090D16] to-transparent z-10 pointer-events-none" />
           <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-[#090D16] to-transparent z-10 pointer-events-none" />
 
           <motion.div
             animate={{ x: isAr ? [0, 600] : [0, -600] }}
-            transition={{ repeat: Infinity, duration: 25, ease: 'linear' }}
+            transition={{ repeat: Infinity, duration: 28, ease: 'linear' }}
             className="flex items-center gap-4 whitespace-nowrap"
           >
             {[...marqueeLanguages, ...marqueeLanguages].map((item, idx) => (
@@ -235,7 +244,58 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
         </div>
       </section>
 
-      {/* 3. TASK 3: HOW IT WORKS (3-Step Visual Timeline) */}
+      {/* 3. TASK 1: THE YOUTUBE BRIDGE (Video Container & Modal) */}
+      <section className="relative z-10 px-4 py-12 max-w-4xl mx-auto text-center space-y-6">
+        <div className="space-y-2">
+          <span className="text-xs font-black uppercase tracking-wider text-red-400 flex items-center justify-center gap-1.5">
+            <Youtube size={16} />
+            <span>{isAr ? 'شاهد القصة الكاملة على يوتيوب' : 'Featured on YouTube'}</span>
+          </span>
+          <h2 className="text-2xl sm:text-3xl font-black text-white">
+            {isAr ? 'رحلة بناء جسر التفكير في 15 دقيقة' : 'The 15-Minute Engineering Story'}
+          </h2>
+        </div>
+
+        {/* 16:9 Glassmorphic Video Container */}
+        <div
+          onClick={() => setVideoModalOpen(true)}
+          className="relative aspect-video w-full rounded-3xl border border-stone-800 bg-stone-900/90 overflow-hidden shadow-2xl cursor-pointer group hover:border-teal-500/60 transition-all duration-300"
+        >
+          <img
+            src="/amr.jpg"
+            alt="YouTube Video Thumbnail"
+            className="w-full h-full object-cover opacity-60 group-hover:opacity-75 transition-opacity duration-300 group-hover:scale-105"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-950/40 to-transparent" />
+
+          {/* Glowing Play Button Overlay */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-20 h-20 rounded-full bg-red-600/90 text-white flex items-center justify-center shadow-2xl shadow-red-600/50 group-hover:scale-110 transition-transform duration-300 border-2 border-white/20">
+              <Play size={32} className="ms-1 fill-current" />
+            </div>
+          </div>
+
+          <div className="absolute bottom-4 left-4 right-4 text-start flex items-center justify-between text-xs font-bold text-stone-200">
+            <span>🎬 {isAr ? 'مشاهدة الفيديو المستندائي' : 'Watch Full Documentary'}</span>
+            <span className="px-2.5 py-1 rounded-lg bg-stone-950/80 border border-stone-800">15:00</span>
+          </div>
+        </div>
+
+        {/* Sub-Video Subscribe Button */}
+        <div className="pt-2">
+          <a
+            href="https://www.youtube.com/@SciAmrSherif?sub_confirmation=1"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-red-600/20 border border-red-500/40 text-red-400 hover:bg-red-600 hover:text-white text-xs font-black transition active:scale-95 shadow-md"
+          >
+            <Youtube size={16} className="fill-current" />
+            <span>{isAr ? 'اشترك في قناة @SciAmrSherif على يوتيوب' : 'Subscribe to @SciAmrSherif'}</span>
+          </a>
+        </div>
+      </section>
+
+      {/* 4. HOW IT WORKS (3-Step Visual Timeline) */}
       <section id="how-it-works" className="relative z-10 px-4 py-16 bg-stone-950/60 border-y border-stone-800/80">
         <div className="max-w-5xl mx-auto space-y-12 text-center">
           <div className="space-y-2">
@@ -249,7 +309,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
 
           <div className="grid md:grid-cols-3 gap-6 text-start">
             {/* Step 1 */}
-            <div className="p-6 rounded-3xl bg-stone-900/80 border border-stone-800 space-y-3 relative shadow-xl">
+            <div className="p-6 rounded-3xl bg-stone-900/80 border border-stone-800 space-y-3 relative shadow-xl hover:border-teal-500/40 transition">
               <div className="w-10 h-10 rounded-2xl bg-teal-500/20 text-teal-300 border border-teal-500/40 flex items-center justify-center font-black text-base">
                 1
               </div>
@@ -264,7 +324,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
             </div>
 
             {/* Step 2 */}
-            <div className="p-6 rounded-3xl bg-stone-900/80 border border-stone-800 space-y-3 relative shadow-xl">
+            <div className="p-6 rounded-3xl bg-stone-900/80 border border-stone-800 space-y-3 relative shadow-xl hover:border-amber-500/40 transition">
               <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center justify-center font-black text-base">
                 2
               </div>
@@ -279,7 +339,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
             </div>
 
             {/* Step 3 */}
-            <div className="p-6 rounded-3xl bg-stone-900/80 border border-stone-800 space-y-3 relative shadow-xl">
+            <div className="p-6 rounded-3xl bg-stone-900/80 border border-stone-800 space-y-3 relative shadow-xl hover:border-emerald-500/40 transition">
               <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center justify-center font-black text-base">
                 3
               </div>
@@ -296,7 +356,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
         </div>
       </section>
 
-      {/* 4. WHY I BUILT THIS STORY */}
+      {/* 5. WHY I BUILT THIS STORY */}
       <section className="relative z-10 px-4 py-16 bg-stone-900/40">
         <div className="max-w-5xl mx-auto grid md:grid-cols-12 gap-10 items-center">
           {/* Amr's Photo Avatar Column */}
@@ -378,7 +438,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
         </div>
       </section>
 
-      {/* 5. FEATURE GRID (3 Columns) */}
+      {/* 6. FEATURE GRID (3 Columns with Hover Glow & BYOK Tutorial Modal Trigger) */}
       <section className="relative z-10 px-4 py-20 max-w-6xl mx-auto space-y-12">
         <div className="text-center space-y-3">
           <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
@@ -396,9 +456,9 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="p-6 rounded-3xl bg-stone-900/80 border border-stone-800 space-y-4 hover:border-teal-500/50 transition shadow-xl text-start"
+            className="p-6 rounded-3xl bg-stone-900/80 border border-stone-800 space-y-4 hover:border-teal-400/80 hover:scale-[1.03] transition-all duration-300 shadow-xl hover:shadow-teal-500/10 text-start group cursor-pointer"
           >
-            <div className="w-12 h-12 rounded-2xl bg-teal-500/10 border border-teal-500/30 text-teal-400 flex items-center justify-center font-black text-2xl">
+            <div className="w-12 h-12 rounded-2xl bg-teal-500/10 border border-teal-500/30 text-teal-400 flex items-center justify-center font-black text-2xl group-hover:scale-110 transition-transform">
               🧠
             </div>
             <h3 className="text-lg font-black text-white">
@@ -417,9 +477,9 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="p-6 rounded-3xl bg-stone-900/80 border border-stone-800 space-y-4 hover:border-amber-500/50 transition shadow-xl text-start"
+            className="p-6 rounded-3xl bg-stone-900/80 border border-stone-800 space-y-4 hover:border-amber-400/80 hover:scale-[1.03] transition-all duration-300 shadow-xl hover:shadow-amber-500/10 text-start group cursor-pointer"
           >
-            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center font-black text-2xl">
+            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center font-black text-2xl group-hover:scale-110 transition-transform">
               🎙️
             </div>
             <h3 className="text-lg font-black text-white">
@@ -432,15 +492,15 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
             </p>
           </motion.div>
 
-          {/* Feature 3 */}
+          {/* Feature 3: BYOK Card + Task 3 Micro-Tutorial Modal Trigger */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.3 }}
-            className="p-6 rounded-3xl bg-stone-900/80 border border-stone-800 space-y-4 hover:border-emerald-500/50 transition shadow-xl text-start"
+            className="p-6 rounded-3xl bg-stone-900/80 border border-stone-800 space-y-4 hover:border-emerald-400/80 hover:scale-[1.03] transition-all duration-300 shadow-xl hover:shadow-emerald-500/10 text-start group"
           >
-            <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center font-black text-2xl">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center font-black text-2xl group-hover:scale-110 transition-transform">
               🔑
             </div>
             <h3 className="text-lg font-black text-white">
@@ -451,11 +511,20 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
                 ? 'أدخل مفتاحك المجاني الخاص من Google AI Studio لاستخدام بلا حدود أو اشتراكات. لا توجد جدران دفع أو إعلانات للأبد.'
                 : 'Add your own free Gemini API key for unlimited access. No paywalls, no subscriptions.'}
             </p>
+
+            <button
+              type="button"
+              onClick={() => setByokModalOpen(true)}
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-400 hover:text-emerald-300 hover:underline pt-1"
+            >
+              <HelpCircle size={14} />
+              <span>{isAr ? 'كيف تحصل على مفتاح مجاني؟ (دليل دقيقة)' : 'How to get a free key (1-min guide)'}</span>
+            </button>
           </motion.div>
         </div>
       </section>
 
-      {/* 6. FOOTER & SOCIALS */}
+      {/* 7. FOOTER & SOCIALS */}
       <footer className="relative z-10 px-4 py-12 bg-stone-950 border-t border-stone-800 text-center space-y-6">
         <div className="max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-6">
           <div className="text-start">
@@ -508,6 +577,138 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
           </div>
         </div>
       </footer>
+
+      {/* YOUTUBE VIDEO MODAL */}
+      <AnimatePresence>
+        {videoModalOpen && (
+          <div className="fixed inset-0 z-50 bg-stone-950/90 backdrop-blur-xl flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-3xl rounded-3xl bg-stone-900 border border-stone-800 p-4 relative space-y-4 shadow-2xl"
+            >
+              <div className="flex items-center justify-between pb-2 border-b border-stone-800">
+                <span className="font-bold text-sm text-white flex items-center gap-2">
+                  <Youtube size={18} className="text-red-500" />
+                  <span>{isAr ? 'وثائقي بناء جسر التفكير' : 'Thinking Bridge Documentary'}</span>
+                </span>
+                <button
+                  onClick={() => setVideoModalOpen(false)}
+                  className="p-1.5 rounded-xl bg-stone-800 text-stone-400 hover:text-white"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-black">
+                <iframe
+                  src="https://www.youtube-nocookie.com/embed/videoseries?list=PL_SciAmrSherif"
+                  title="Thinking Bridge YouTube Video"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="w-full h-full border-0"
+                />
+              </div>
+
+              <div className="flex justify-center pt-2">
+                <a
+                  href="https://www.youtube.com/@SciAmrSherif?sub_confirmation=1"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-6 py-2.5 rounded-xl bg-red-600 text-white font-bold text-xs hover:bg-red-500 transition shadow-md"
+                >
+                  {isAr ? 'اشترك في القناة لمتابعة الشروحات 🚀' : 'Subscribe to @SciAmrSherif 🚀'}
+                </a>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* TASK 3: BYOK TUTORIAL MODAL */}
+      <AnimatePresence>
+        {byokModalOpen && (
+          <div className="fixed inset-0 z-50 bg-stone-950/90 backdrop-blur-xl flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-md rounded-3xl bg-stone-900 border border-stone-800 p-6 relative space-y-6 shadow-2xl text-start"
+            >
+              <div className="flex items-center justify-between pb-2 border-b border-stone-800">
+                <div className="flex items-center gap-2">
+                  <Key size={20} className="text-emerald-400" />
+                  <h3 className="font-black text-base text-white">
+                    {isAr ? 'كيف تحصل على مفتاح Gemini مجاناً؟' : 'How to get a free Gemini Key'}
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setByokModalOpen(false)}
+                  className="p-1.5 rounded-xl bg-stone-800 text-stone-400 hover:text-white"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div className="space-y-4 text-xs font-medium text-stone-300">
+                {/* Step 1 */}
+                <div className="p-3.5 rounded-2xl bg-stone-950/80 border border-stone-800 space-y-2">
+                  <span className="font-black text-emerald-400 block">
+                    {isAr ? 'الخطوة ١: افتح Google AI Studio' : 'Step 1: Open Google AI Studio'}
+                  </span>
+                  <p className="text-stone-400">
+                    {isAr
+                      ? 'افتح موقع Google AI Studio الرسمي واضغط على "Get API Key". المفتاح مجاني 100% بدون أي بطاقة أئتمان.'
+                      : 'Visit Google AI Studio and click "Get API Key". It is 100% free with no credit card required.'}
+                  </p>
+                  <a
+                    href="https://aistudio.google.com/app/apikey"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-300 font-bold hover:bg-emerald-500 hover:text-stone-950 transition"
+                  >
+                    <span>Google AI Studio</span>
+                    <ExternalLink size={12} />
+                  </a>
+                </div>
+
+                {/* Step 2 */}
+                <div className="p-3.5 rounded-2xl bg-stone-950/80 border border-stone-800 space-y-1.5">
+                  <span className="font-black text-emerald-400 block">
+                    {isAr ? 'الخطوة ٢: انسخ المفتاح في إعدادات التطبيق' : 'Step 2: Paste key into Settings'}
+                  </span>
+                  <p className="text-stone-400">
+                    {isAr
+                      ? 'انسخ المفتاح الذي يبدأ بـ (AIzaSy...) والصقه في خانة المفتاح في إعدادات التطبيق واضغط "اختبار المفتاح".'
+                      : 'Copy the key (starting with AIzaSy...) and paste it into Thinking Bridge Settings, then click "Test Key".'}
+                  </p>
+                </div>
+
+                {/* Privacy Reassurance Note */}
+                <div className="p-3.5 rounded-2xl bg-teal-500/10 border border-teal-500/30 text-teal-300 text-[11px] font-bold flex items-start gap-2">
+                  <Lock size={16} className="shrink-0 text-teal-400 mt-0.5" />
+                  <p className="leading-relaxed">
+                    {isAr
+                      ? 'ملاحظة خصوصية: يتم حفظ المفتاح بنسبة 100% محلياً على هاتفك في الخزنة المحلية. لا نقوم بتسجيله أو إرساله لسيرفراتنا أبداً.'
+                      : 'Privacy Note: Your key is stored 100% locally in your device vault. We never see, transmit, or log it on our servers.'}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => {
+                  setByokModalOpen(false);
+                  onLaunchApp();
+                }}
+                className="w-full py-3.5 rounded-2xl bg-emerald-400 hover:bg-emerald-300 text-stone-950 font-black text-xs transition active:scale-95 shadow-lg"
+              >
+                {isAr ? 'الانتقال للتطبيق وإدخال المفتاح 🚀' : 'Launch App & Enter Key 🚀'}
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
