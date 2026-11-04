@@ -156,6 +156,14 @@ test('5a. language profiles build structural A0 lessons for German, Spanish, and
         assert.equal(exercise.wordChips!.join(' '), exercise.targetSentence);
         assert.ok(exercise.breakdownChunks?.length, `${lesson.id} must include structure breakdowns`);
       }
+      const state = createInitialProgressionState();
+      state.completedLessonIds = lessons.map((lesson) => lesson.id);
+      assert.equal(isStageUnlocked(state, 'A1'), false, `${language} A1 remains locked until its curriculum exists`);
+      assert.equal(
+        getNextStageAfterLessonCompletion(state, lessons[lessons.length - 1].id),
+        undefined,
+        `${language} must not advance into an empty placeholder stage`
+      );
     }
   } finally {
     if (originalStorage) {

@@ -438,6 +438,10 @@ function readActiveProfile(): { targetLang: keyof typeof TARGET_LANGUAGE_META } 
 }
 
 export function isStageUnlocked(state: ProgressionState, stage: StageNode['stage']): boolean {
+  const profile = readActiveProfile();
+  if (profile && (profile.targetLang === 'de' || profile.targetLang === 'es' || profile.targetLang === 'ja')) {
+    return stage === 'A0';
+  }
   const stages = buildCourseStructure();
   const activeStageIndex = stages.findIndex((item) => item.stage === state.currentStage);
   const requestedStageIndex = stages.findIndex((item) => item.stage === stage);
@@ -448,6 +452,10 @@ export function getNextStageAfterLessonCompletion(
   state: ProgressionState,
   completedLessonId: string
 ): StageNode['stage'] | undefined {
+  const profile = readActiveProfile();
+  if (profile && (profile.targetLang === 'de' || profile.targetLang === 'es' || profile.targetLang === 'ja')) {
+    return undefined;
+  }
   const stages = buildCourseStructure();
   const currentStageIndex = stages.findIndex((item) => item.stage === state.currentStage);
   if (currentStageIndex < 0) return undefined;
