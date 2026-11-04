@@ -100,11 +100,16 @@ test('new learner completes onboarding, unlocks a lesson, changes theme, and sta
   await expect(page.locator('html')).toHaveClass(/light/);
   await page.locator('input[type="password"]').fill('test-gemini-key');
   await page.getByRole('button', { name: 'حفظ', exact: true }).click();
-  const savedKeys = await page.evaluate(() => ({
-    camel: localStorage.getItem('tb.userGeminiKey'),
-    snake: localStorage.getItem('user_gemini_key'),
-  }));
-  expect(savedKeys).toEqual({ camel: 'test-gemini-key', snake: 'test-gemini-key' });
+  const savedKeys = await page.evaluate(() => {
+    const camel = localStorage.getItem('tb.userGeminiKey');
+    const snake = localStorage.getItem('user_gemini_key');
+    return {
+      camel: camel ? atob(camel.replace(/^base64:/, '')) : null,
+      snake: snake ? atob(snake.replace(/^base64:/, '')) : null,
+      encoded: Boolean(camel?.startsWith('base64:') && snake?.startsWith('base64:')),
+    };
+  });
+  expect(savedKeys).toEqual({ camel: 'test-gemini-key', snake: 'test-gemini-key', encoded: true });
 
   await page.getByRole('button', { name: 'رجوع' }).click();
   await page.getByRole('button', { name: 'التدريب' }).click();

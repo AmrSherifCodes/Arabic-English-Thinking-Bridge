@@ -1,7 +1,12 @@
 import { EdgeTTS } from 'voipi/edge-tts';
-import { GoogleTTS } from 'voipi/google-tts';
+import { Ratelimit } from '@upstash/ratelimit';
+import { Redis } from '@upstash/redis';
 
 const MAX_TEXT_LENGTH = 600;
+const TTS_RATE_LIMIT_PER_MINUTE = 30;
+const TTS_RATE_WINDOW_MS = 60_000;
+const memoryRateLimits = new Map();
+let upstashTtsLimiter;
 
 export const ALLOWED_EDGE_VOICES = new Set([
   'ar-EG-SalmaNeural',
@@ -55,10 +60,71 @@ export function validateLang(lang) {
   return 'en-US';
 }
 
-function resolveGoogleLang(lang = 'en-US') {
-  const norm = String(lang || 'en-US').trim().toLowerCase().replace('_', '-');
-  const languageCode = norm.split('-')[0];
-  return EDGE_VOICES_BY_LANGUAGE[languageCode] ? languageCode : 'en';
+export function validatePitch(pitch) {
+  return typeof pitch === 'string' && /^([+-][12]?Hz|default)$/.test(pitch.trim())
+    ? pitch.trim()
+    : '+1Hz';
+}
+
+export function consumeMemoryTtsRateLimit(address, now = Date.now()) {
+  let record = memoryRateLimits.get(address);
+  if (!record || record.resetAt <= now) {
+    if (memoryRateLimits.size > 5000) {
+      for (const [key, value] of memoryRateLimits) {
+        if (value.resetAt <= now) memoryRateLimits.delete(key);
+      }
+    }
+    record = { count: 0, resetAt: now + TTS_RATE_WINDOW_MS };
+    memoryRateLimits.set(address, record);
+  }
+  if (record.count >= TTS_RATE_LIMIT_PER_MINUTE) return false;
+  record.count += 1;
+  return true;
+}
+
+function getClientIp(req) {
+  const realIp = req.headers?.['x-real-ip'];
+  if (typeof realIp === 'string' && realIp.trim()) return realIp.trim();
+  const forwardedFor = req.headers?.['x-forwarded-for'];
+  if (typeof forwardedFor === 'string' && forwardedFor.trim()) return forwardedFor.split(',')[0].trim();
+  return req.socket?.remoteAddress || 'unknown';
+}
+
+function getUpstashTtsLimiter() {
+  const url = (process.env.UPSTASH_REDIS_REST_URL || '').trim();
+  const token = (process.env.UPSTASH_REDIS_REST_TOKEN || '').trim();
+  if (!url || !token) return null;
+  if (!upstashTtsLimiter) {
+    try {
+      const redis = new Redis({ url, token });
+      upstashTtsLimiter = new Ratelimit({
+        redis,
+        limiter: Ratelimit.slidingWindow(TTS_RATE_LIMIT_PER_MINUTE, '1 m'),
+        analytics: false,
+        prefix: 'tb:tts:rl',
+      });
+    } catch (error) {
+      console.error('Unable to initialize the Upstash TTS rate limiter.', error);
+      return null;
+    }
+  }
+  return upstashTtsLimiter;
+}
+
+async function checkTtsRateLimit(address) {
+  const limiter = getUpstashTtsLimiter();
+  if (limiter) {
+    try {
+      const { success, reset } = await limiter.limit(address);
+      return { success, retryAfter: Math.max(1, Math.ceil((reset - Date.now()) / 1000)) };
+    } catch (error) {
+      console.error('Upstash TTS rate limiter failed; using per-instance rate limit.', error);
+    }
+  }
+  return {
+    success: consumeMemoryTtsRateLimit(address),
+    retryAfter: Math.ceil(TTS_RATE_WINDOW_MS / 1000),
+  };
 }
 
 export const ALLOWED_CORS_ORIGINS = new Set([
@@ -150,12 +216,22 @@ export default async function ttsHandler(req, res) {
     return;
   }
 
+  const rateLimit = await checkTtsRateLimit(getClientIp(req));
+  if (!rateLimit.success) {
+    res.statusCode = 429;
+    res.setHeader('Retry-After', String(rateLimit.retryAfter));
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.end(JSON.stringify({ error: 'Too many TTS requests. Please retry later.' }));
+    return;
+  }
+
   try {
     const url = new URL(req.url || '/', 'http://localhost');
     let text = url.searchParams.get('text') || '';
     let lang = url.searchParams.get('lang') || 'en-US';
     let voice = url.searchParams.get('voice') || '';
     let rate = Number(url.searchParams.get('rate') || '1');
+    let pitch = url.searchParams.get('pitch') || '+1Hz';
 
     if (req.method === 'POST') {
       const chunks = [];
@@ -187,6 +263,7 @@ export default async function ttsHandler(req, res) {
           if (typeof body.lang === 'string') lang = body.lang;
           if (typeof body.voice === 'string') voice = body.voice;
           if (typeof body.rate === 'number') rate = body.rate;
+          if (typeof body.pitch === 'string') pitch = body.pitch;
         }
       }
     }
@@ -201,33 +278,20 @@ export default async function ttsHandler(req, res) {
 
     const safeLang = validateLang(lang);
     const safeRate = Number.isFinite(rate) ? Math.min(2, Math.max(0.5, rate)) : 1;
+    const conversationalRate = safeRate === 1 ? 1.03 : safeRate;
+    const safePitch = validatePitch(pitch);
     const selectedVoice = resolveEdgeVoice(safeLang, voice);
 
-    let audio;
-    let provider = 'edge-tts';
-    try {
-      const edgeTts = new EdgeTTS({ voice: selectedVoice });
-      audio = await edgeTts.synthesize(cleanText, {
-        voice: selectedVoice,
-        lang: safeLang,
-        rate: safeRate,
-      });
-    } catch {
-      provider = 'google-tts';
-      const googleLang = resolveGoogleLang(safeLang);
-      const googleTts = new GoogleTTS({
-        voice: googleLang,
-        slow: safeRate < 0.78,
-      });
-      audio = await googleTts.synthesize(cleanText, {
-        lang: googleLang,
-        rate: safeRate,
-      });
-    }
+    const edgeTts = new EdgeTTS({ voice: selectedVoice, pitch: safePitch });
+    const audio = await edgeTts.synthesize(cleanText, {
+      voice: selectedVoice,
+      lang: safeLang,
+      rate: conversationalRate,
+    });
 
     res.statusCode = 200;
     res.setHeader('Content-Type', 'audio/mpeg');
-    res.setHeader('X-TTS-Provider', provider);
+    res.setHeader('X-TTS-Provider', 'edge-tts');
     res.setHeader('Cache-Control', 'public, s-maxage=31536000, immutable');
     res.end(audio.data);
   } catch (error) {

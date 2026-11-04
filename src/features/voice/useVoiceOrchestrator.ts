@@ -86,6 +86,7 @@ export interface PlayableAudioSlot {
   __startWordIndex?: number;
   __locale?: string;
   __isPiper?: boolean;
+  __rate?: number;
 }
 
 const PIPER_VOICES: Partial<Record<TargetLanguage | 'ar', string>> = {
@@ -124,6 +125,8 @@ async function createPiperAudioSlot(
   const audio = new Audio(url);
   audio.playbackRate = rate;
   const revokeUrl = () => URL.revokeObjectURL(url);
+  let onendedHandler: (() => void) | undefined;
+  let onerrorHandler: ((err?: any) => void) | undefined;
 
   return {
     play: () => audio.play(),
@@ -134,23 +137,26 @@ async function createPiperAudioSlot(
     get duration() { return audio.duration || 0; },
     get currentTime() { return audio.currentTime || 0; },
     set onended(handler) {
+      onendedHandler = handler;
       audio.onended = () => {
         revokeUrl();
-        handler?.();
+        onendedHandler?.();
       };
     },
-    get onended() { return audio.onended as (() => void) | null; },
+    get onended() { return onendedHandler; },
     set onerror(handler) {
-      audio.onerror = () => {
+      onerrorHandler = handler;
+      audio.onerror = (event) => {
         revokeUrl();
-        handler?.();
+        onerrorHandler?.(event);
       };
     },
-    get onerror() { return audio.onerror as ((event: Event) => void) | null; },
+    get onerror() { return onerrorHandler; },
     __words: words,
     __startWordIndex: startWordIndex,
     __locale: targetLang === 'ar' ? 'ar-EG' : TARGET_LANGUAGE_LOCALES[targetLang],
     __isPiper: true,
+    __rate: rate,
   };
 }
 
@@ -262,7 +268,7 @@ export function useVoiceOrchestrator(
         const locale = nextAudio.__locale || (isArabic ? 'ar-EG' : targetLocale);
         const spoken = speakWithNativeSpeechSynthesis(
           words.join(' '),
-          speechRate,
+          nextAudio.__rate ?? speechRate,
           isArabic ? voiceModel : targetVoice,
           (charIndex) => {
             const spokenText = words.join(' ');
@@ -507,6 +513,7 @@ export function useVoiceOrchestrator(
             __words: words,
             __startWordIndex: startWordIndex,
             __locale: speechLocale,
+            __rate: rate,
           };
 
           if (chunkIndex === 0) {
@@ -662,6 +669,16 @@ export function useVoiceOrchestrator(
         return;
       }
 
+      const voiceCommand = recognizeVoiceCommand(userText);
+      const previousAssistantText =
+        [...messages].reverse().find((message) => message.role === 'assistant')?.text ||
+        currentAssistantText;
+      const previousAssistantSentence = extractLastSentence(previousAssistantText);
+      const requestText =
+        voiceCommand === 'translate-arabic' && previousAssistantSentence
+          ? `Translate this sentence into natural Arabic. Return only the Arabic translation: ${JSON.stringify(previousAssistantSentence)}`
+          : userText;
+
       performance.mark('speech-end');
       stopAudio();
 
@@ -689,6 +706,27 @@ export function useVoiceOrchestrator(
         }
       }
 
+      if (voiceCommand === 'repeat' || voiceCommand === 'slower') {
+        if (!previousAssistantSentence) {
+          setState('idle');
+          return;
+        }
+        totalDispatchedRef.current = 1;
+        nextPlayIndexRef.current = 0;
+        streamDoneRef.current = false;
+        setCurrentAssistantText(previousAssistantSentence);
+        prefetchSentence(
+          previousAssistantSentence,
+          new AbortController().signal,
+          0,
+          0,
+          voiceCommand === 'slower' ? 0.8 : undefined
+        );
+        streamDoneRef.current = true;
+        checkAndPlayQueue();
+        return;
+      }
+
       // 2. Check if userText expresses feedback/suggestion
       const newFeedbackDraft = extractFeedbackDraft(userText);
       if (newFeedbackDraft) {
@@ -708,6 +746,15 @@ export function useVoiceOrchestrator(
         try {
           const ai = new GoogleGenAI({ apiKey: userKey });
           const profile = getStoredProfile();
+          const targetLanguage = TARGET_LANGUAGES.find((language) => language.code === profile.targetLang)?.nameEn || 'English';
+          const domainFocus = profile.domainFocus === 'tech' || profile.goal === 'tech' || profile.goal === 'corporate'
+            ? 'software engineering and technology'
+            : profile.domainFocus === 'travel' || profile.goal === 'travel'
+              ? 'travel and everyday life'
+              : 'daily life';
+          const translationInstruction = voiceCommand === 'translate-arabic'
+            ? 'The learner explicitly requested an Arabic translation. Return only the natural Arabic translation, overriding the usual target-language response preference.'
+            : '';
           const resultStream = await ai.models.generateContentStream({
             model: 'gemini-2.5-flash',
             contents: [
@@ -715,15 +762,13 @@ export function useVoiceOrchestrator(
                 role: m.role === 'user' ? 'user' : 'model',
                 parts: [{ text: m.text }],
               })),
-              { role: 'user', parts: [{ text: userText }] },
+              { role: 'user', parts: [{ text: requestText }] },
             ],
             config: {
-              systemInstruction: `You are Amr, an empathetic, encouraging Arabic-English structural language coach.
-The learner speaks ${profile.dialect} and is learning English (Level: ${profile.level}, Goal: ${profile.goal}).
-Your role:
-1. Respond warmly and conversationally in simple, natural English (with brief Arabic explanations when addressing grammar misconceptions).
-2. Gently point out L1 transfer errors (like omitting "is/are", using "I am agree", or literal prepositions).
-3. Keep responses concise (2-4 sentences max).`,
+              systemInstruction: `You are Amr, an empathetic language coach teaching ${targetLanguage}.
+The learner speaks ${profile.dialect} and is learning ${targetLanguage} (Level: ${profile.level}, Goal: ${profile.goal}).
+Provide examples strictly related to ${domainFocus}. Use ${targetLanguage} as the primary language for instruction, and explain its grammar using its own structure rather than English sentence patterns. Gently point out relevant Arabic L1 transfer errors. Keep responses under 3 sentences.
+${translationInstruction}`,
               maxOutputTokens: 250,
               temperature: 0.7,
             },
@@ -806,7 +851,7 @@ Your role:
           },
           body: JSON.stringify({
             operation: 'conversation',
-            prompt: userText,
+            prompt: requestText,
             history: historyPayload,
             profile: getStoredProfile(),
             stream: true,
@@ -946,7 +991,9 @@ Your role:
         console.warn('[useVoiceOrchestrator] Stream fallback engaged:', err);
         // Fallback to deterministic offline conversational engine
         const fallbackReply = generateSmartConversationReply(
-          userText,
+          voiceCommand === 'translate-arabic'
+            ? 'ترجم آخر جملة إلى العربية. الترجمة غير متاحة دون اتصال بالإنترنت.'
+            : userText,
           messages.slice(-6).map((m) => ({ role: m.role === 'user' ? 'user' : 'model', text: m.text })),
           getStoredProfile() as any,
           effectiveTargetLang
@@ -972,6 +1019,7 @@ Your role:
     [
       cancelPendingFeedback,
       checkAndPlayQueue,
+      currentAssistantText,
       effectiveTargetLang,
       messages,
       pendingFeedbackDraft,

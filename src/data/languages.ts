@@ -164,7 +164,7 @@ export const TARGET_LANGUAGES: LanguageConfig[] = [
   { code: 'ja', nameEn: 'Japanese', nameAr: 'اليابانية', flag: '🇯🇵', defaultVoice: 'ja-JP-NanamiNeural' },
   { code: 'es', nameEn: 'Spanish', nameAr: 'الإسبانية', flag: '🇪🇸', defaultVoice: 'es-ES-ElviraNeural' },
   { code: 'fr', nameEn: 'French', nameAr: 'الفرنسية', flag: '🇫🇷', defaultVoice: 'fr-FR-DeniseNeural' },
-  { code: 'zh', nameEn: 'Chinese', nameAr: 'الصينية', flag: '🇨🇳', defaultVoice: 'zh-CN-XiaoxiaoNeural' },
+  { code: 'zh', nameEn: 'Chinese', nameAr: 'الصينية (الماندرين)', flag: '🇨🇳', defaultVoice: 'zh-CN-XiaoxiaoNeural' },
   { code: 'hi', nameEn: 'Hindi', nameAr: 'الهندية', flag: '🇮🇳', defaultVoice: 'hi-IN-SwaraNeural' },
   { code: 'ru', nameEn: 'Russian', nameAr: 'الروسية', flag: '🇷🇺', defaultVoice: 'ru-RU-SvetlanaNeural' },
   { code: 'pt', nameEn: 'Portuguese', nameAr: 'البرتغالية', flag: '🇧🇷', defaultVoice: 'pt-BR-FranciscaNeural' },
