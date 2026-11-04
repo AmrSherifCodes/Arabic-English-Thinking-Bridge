@@ -66,6 +66,8 @@ test('new learner completes onboarding, unlocks a lesson, changes theme, and sta
   await page.getByRole('button', { name: 'التالي' }).click();
   await page.getByRole('button', { name: /^A0 / }).click();
   await page.getByRole('button', { name: 'بدء التفكير الآن 🚀' }).click();
+  await expect(page.getByRole('heading', { name: 'تم إنشاء ملفك التعليمي!' })).toBeVisible();
+  await expect(page.getByText(/🇪🇬 ➔ 🇬🇧/)).toBeVisible();
   await expect(page.getByRole('heading', { name: 'حدد مستواك الحالي (CEFR)' })).toBeHidden();
 
   const firstLesson = page.getByRole('button', { name: 'فعل الربط المخفي (am / is / are)' });

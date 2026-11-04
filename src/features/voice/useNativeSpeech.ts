@@ -34,6 +34,7 @@ export function useNativeSpeech({
   const silenceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const latestTranscriptRef = useRef('');
   const finalizedRef = useRef(false);
+  const recognitionLanguageRef = useRef('en-US');
   const webRecognizerRef = useRef<any>(null);
   const partialListenerRef = useRef<PluginListenerHandle | null>(null);
   const stateListenerRef = useRef<PluginListenerHandle | null>(null);
@@ -298,7 +299,7 @@ export function useNativeSpeech({
                             },
                           },
                           {
-                            text: 'Transcribe the spoken audio accurately into English or Arabic text. Output ONLY the raw transcript text with zero preamble or commentary.',
+                            text: `Transcribe the spoken audio accurately in ${recognitionLanguageRef.current}. If the speaker is speaking Arabic, preserve the Arabic speech. Output ONLY the raw transcript text with zero preamble or commentary.`,
                           },
                         ],
                       },
@@ -319,6 +320,7 @@ export function useNativeSpeech({
                     operation: 'transcribe',
                     audioData: base64Data,
                     mimeType: blob.type || 'audio/webm',
+                    language: recognitionLanguageRef.current,
                   }),
                 });
 
@@ -360,6 +362,7 @@ export function useNativeSpeech({
 
   const startListening = useCallback(
     async (lang = 'en-US') => {
+      recognitionLanguageRef.current = lang;
       setError(null);
       finalizedRef.current = false;
       setTranscript('');

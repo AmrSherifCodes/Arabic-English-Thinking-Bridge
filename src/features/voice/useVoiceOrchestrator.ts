@@ -16,6 +16,7 @@ import { usePreferences } from '../preferences/usePreferences';
 import { unlockAudio, speakWithNativeSpeechSynthesis } from '../../utils/audio';
 import { saveFeedback } from '../../services/feedback';
 import { SourceLanguage, TargetLanguage } from '../../types';
+import { TARGET_LANGUAGES, TARGET_LANGUAGE_LOCALES } from '../../data/languages';
 
 export type VoiceState = 'idle' | 'listening' | 'transcribing' | 'thinking' | 'speaking';
 
@@ -87,20 +88,23 @@ export function useVoiceOrchestrator(
   propTargetLang?: TargetLanguage,
   propSourceLang?: SourceLanguage
 ) {
+  const savedProfile = getStoredProfile();
   const effectiveTargetLang: TargetLanguage =
     propTargetLang ||
-    (typeof window !== 'undefined'
-      ? (window.localStorage.getItem('tb.targetLang') as TargetLanguage) || 'en'
+    (TARGET_LANGUAGES.some((language) => language.code === savedProfile.targetLang)
+      ? savedProfile.targetLang as TargetLanguage
       : 'en');
   const effectiveSourceLang: SourceLanguage =
     propSourceLang ||
-    (typeof window !== 'undefined'
-      ? (window.localStorage.getItem('tb.sourceLang') as SourceLanguage) || 'ar'
-      : 'ar');
+    (savedProfile.sourceLang === 'en' ? 'en' : 'ar');
 
   const { values } = usePreferences();
   const voiceModel = String(values.voiceModel || 'ar-EG-SalmaNeural');
-  const englishVoice = String(values.englishVoice || 'en-US-AvaNeural');
+  const targetLanguageConfig = TARGET_LANGUAGES.find((language) => language.code === effectiveTargetLang);
+  const targetVoice = effectiveTargetLang === 'en'
+    ? String(values.englishVoice || targetLanguageConfig?.defaultVoice || 'en-US-AvaNeural')
+    : targetLanguageConfig?.defaultVoice || 'en-US-AvaNeural';
+  const targetLocale = TARGET_LANGUAGE_LOCALES[effectiveTargetLang];
   const speechRate = Number(values.speechRate || 1.0);
   const autoListen = Boolean(values.autoListen ?? true);
 
@@ -328,8 +332,8 @@ export function useVoiceOrchestrator(
       if (!clean) return;
 
       const isArabic = /[\u0600-\u06FF]/.test(clean);
-      const targetLang = isArabic ? 'ar-EG' : 'en-US';
-      const targetVoice = isArabic ? voiceModel : englishVoice;
+      const speechLocale = isArabic ? 'ar-EG' : targetLocale;
+      const speechVoice = isArabic ? voiceModel : targetVoice;
       const words = clean.split(/\s+/).filter(Boolean);
       let slotCreated = false;
 
@@ -342,8 +346,8 @@ export function useVoiceOrchestrator(
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             text: clean,
-            lang: targetLang,
-            voice: targetVoice,
+            lang: speechLocale,
+            voice: speechVoice,
             rate: speechRate,
           }),
           signal: signal || timeoutCtrl.signal,
@@ -408,7 +412,7 @@ export function useVoiceOrchestrator(
         checkAndPlayQueue();
       }
     },
-    [checkAndPlayQueue, createFallbackAudioSlot, englishVoice, speechRate, voiceModel]
+    [checkAndPlayQueue, createFallbackAudioSlot, speechRate, targetLocale, targetVoice, voiceModel]
   );
 
   // Submit confirmed feedback directly to PostgreSQL/Supabase backend
@@ -885,12 +889,7 @@ Your role:
     unlockAudio();
     stopAudio();
     setState('listening');
-    const sttLang =
-      effectiveTargetLang === 'de'
-        ? 'de-DE'
-        : effectiveTargetLang === 'ja'
-        ? 'ja-JP'
-        : 'en-US';
+    const sttLang = TARGET_LANGUAGE_LOCALES[effectiveTargetLang];
     startListening(sttLang).catch(() => {
       setState('idle');
     });

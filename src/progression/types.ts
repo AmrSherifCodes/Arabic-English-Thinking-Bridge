@@ -1,4 +1,4 @@
-import { SourceLanguage, TargetLanguage } from '../types';
+import { ChunkMapping, SourceLanguage, TargetLanguage } from '../types';
 
 export type CefrStage = 'A0' | 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
 
@@ -23,6 +23,7 @@ export interface ExerciseItem {
   acceptableAlternatives?: string[];
   audioUrl?: string;
   wordChips?: string[];
+  breakdownChunks?: ChunkMapping[];
   options?: string[];
   correctOptionIndex?: number;
   explanationAr: string;
