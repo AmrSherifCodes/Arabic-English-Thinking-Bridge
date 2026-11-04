@@ -1,5 +1,6 @@
 import { StageNode, UnitNode, LessonNode, ExerciseItem, ExerciseType, ProgressionState } from './types';
 import { PHASES_DATA } from '../data/lessons';
+import { TARGET_LANGUAGES, TARGET_LANGUAGE_META } from '../data/languages';
 import type { Exercise, Lesson } from '../types';
 
 const LESSONS_PER_STAGE = 9;
@@ -102,6 +103,41 @@ function createStageNode(
 }
 
 export function buildCourseStructure(): StageNode[] {
+  const profile = readActiveProfile();
+  if (profile && profile.targetLang !== 'en') {
+    const language = TARGET_LANGUAGE_META[profile.targetLang];
+    const placeholderLessons: Lesson[] = STAGE_DEFINITIONS.map((definition, index) => {
+      const sentence = `Welcome to ${language.nameEn} Module ${index + 1}`;
+      const phaseId = (index + 1) as 1 | 2 | 3;
+      return {
+        id: `placeholder-${profile.targetLang}-${index + 1}`,
+        phaseId,
+        phaseTitle: definition.titleEn,
+        phaseLevel: definition.stage,
+        number: index + 1,
+        title: sentence,
+        titleAr: `أهلاً بك في وحدة ${language.nameAr} ${index + 1}`,
+        transferConcept: `Your ${language.nameEn} learning path is being prepared.`,
+        transferConceptAr: `يتم تجهيز مسار تعلم ${language.nameAr}.`,
+        weakSpotTag: 'placeholder',
+        exercises: [{
+          id: `placeholder-exercise-${index + 1}`,
+          arabicThought: 'ستتوفر دروس هذا المسار قريباً.',
+          englishTarget: sentence,
+          targetSentence: sentence,
+          acceptableAlternatives: [],
+          wordChips: sentence.split(' '),
+          breakdownChunks: [],
+          habitHint: 'This language curriculum is coming soon.',
+          habitHintAr: 'سيكون هذا المنهج متاحاً قريباً.',
+        }],
+      };
+    });
+    return STAGE_DEFINITIONS.map((definition, index) =>
+      createStageNode(definition, [placeholderLessons[index]])
+    );
+  }
+
   const lessons = PHASES_DATA.flatMap((phase) => phase.lessons);
   return STAGE_DEFINITIONS.map((definition, index) =>
     createStageNode(
@@ -109,6 +145,22 @@ export function buildCourseStructure(): StageNode[] {
       lessons.slice(index * LESSONS_PER_STAGE, (index + 1) * LESSONS_PER_STAGE)
     )
   );
+}
+
+function readActiveProfile(): { targetLang: keyof typeof TARGET_LANGUAGE_META } | null {
+  if (typeof localStorage === 'undefined') return null;
+  const raw = localStorage.getItem('tb.activeProfileConfig');
+  if (!raw) return null;
+  try {
+    const profile: unknown = JSON.parse(raw);
+    if (typeof profile !== 'object' || profile === null || !('targetLang' in profile)) return null;
+    const targetLang = profile.targetLang;
+    return typeof targetLang === 'string' && TARGET_LANGUAGES.some((language) => language.code === targetLang)
+      ? { targetLang: targetLang as keyof typeof TARGET_LANGUAGE_META }
+      : null;
+  } catch {
+    return null;
+  }
 }
 
 export function isStageUnlocked(state: ProgressionState, stage: StageNode['stage']): boolean {

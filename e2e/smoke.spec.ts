@@ -8,7 +8,7 @@ test('landing page launches the app with only the first lesson unlocked', async 
 
   await page.goto('/?landing=true');
   await expect(page.getByRole('heading', { name: /توقف عن الترجمة/ })).toBeVisible();
-  await page.getByRole('button', { name: 'ابدأ التفكير الآن 🚀' }).click();
+  await page.getByRole('button', { name: 'ابدأ التفكير الآن 🚀' }).first().click();
   await expect(page.getByText('ما اللغة التي تريد أن تفكّر بها؟')).toBeVisible();
   await page.getByRole('button', { name: 'التالي' }).click();
   await page.getByRole('button', { name: 'التالي' }).click();

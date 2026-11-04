@@ -3,7 +3,7 @@ import { ActionTile } from './ActionTile';
 import { UserRound, ScrollText, Zap, Shield, BookMarked, Download, ExternalLink, HelpCircle, Star, Globe, Users } from 'lucide-react';
 import { UserProfile, UserProgress, SourceLanguage, TargetLanguage } from '../../types';
 import { getCurriculum } from '../../data/curriculumRegistry';
-import { getPairConfig, SOURCE_LANGUAGES, TARGET_LANGUAGES } from '../../data/languages';
+import { getPairConfig, SOURCE_LANGUAGES, TARGET_LANGUAGE_META } from '../../data/languages';
 import { LanguagePairBanner } from '../../components/LanguagePairBanner';
 import { LanguageSelectorModal } from '../../components/LanguageSelectorModal';
 import { usePresence } from '../../hooks/usePresence';
@@ -103,8 +103,8 @@ export function ChoiceMenu({
               className="menu__lang-btn !bg-amber-500/20 !text-amber-400 !border-amber-500/30 flex items-center gap-1 font-bold"
               title={isArabic ? 'تغيير اللغات' : 'Change languages'}
             >
-              <span>{TARGET_LANGUAGES[target]?.flag}</span>
-              <span>{TARGET_LANGUAGES[target]?.nameNative}</span>
+              <span>{TARGET_LANGUAGE_META[target]?.flag}</span>
+              <span>{TARGET_LANGUAGE_META[target]?.nameNative}</span>
             </button>
           </div>
 

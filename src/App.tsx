@@ -1,41 +1,65 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, lazy, Suspense } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { Keyboard, KeyboardResize } from '@capacitor/keyboard';
 import { Download } from 'lucide-react';
 
-import { AppShell, AppTab } from './components/navigation/AppShell';
-import { PathView } from './components/progression/PathView';
-import { PracticeHubView } from './components/progression/PracticeHubView';
-import { QuestsView } from './components/progression/QuestsView';
-import { LeagueView } from './components/progression/LeagueView';
-import { ProfileView } from './components/progression/ProfileView';
-import { LessonRunner } from './components/progression/LessonRunner';
-import { OnboardingPlacementModal } from './components/progression/OnboardingPlacementModal';
-import { PrivacyPolicyModal } from './components/progression/PrivacyPolicyModal';
-
-import { VoicePracticeView } from './features/voice/VoicePracticeView';
-import { FlashcardsView } from './features/flashcards/FlashcardsView';
-import { CorporateBridgeView } from './features/corporate/CorporateBridgeView';
-import { PreferencesView } from './features/preferences/PreferencesView';
-
-import { FeedbackModal } from './components/FeedbackModal';
-import { LandingView } from './components/LandingView';
+import { AppTab } from './components/navigation/AppShell';
 import { LandingPage } from './components/LandingPage';
 import { PwaInstallBanner } from './components/PwaInstallBanner';
 import { useUserProfile } from './hooks/useUserProfile';
-import { loadUserProgress, saveUserProgress } from './utils/storage';
+import { loadUserProgress } from './utils/storage';
 import { UserProgress, LearningGoal } from './types';
 import { AIHelper, AIHelperRequest } from './components/AIHelper';
 import { useLanguagePair } from './hooks/useLanguagePair';
-import { LanguageSelectorModal } from './components/LanguageSelectorModal';
 import { LanguagePairBanner } from './components/LanguagePairBanner';
+import { Skeleton } from './components/SkeletonLoader';
 
-import { ProgressionState, LessonNode } from './progression/types';
+import { CefrStage, ProgressionState, LessonNode } from './progression/types';
 import { migrateLegacyStorageToProgression } from './progression/migration';
 import { updateStreakAndShields } from './progression/engine';
 import { getNextStageAfterLessonCompletion, isLessonUnlocked } from './progression/courseData';
+
+function getProfileStartingStage(): CefrStage | null {
+  try {
+    const raw = localStorage.getItem('tb.activeProfileConfig');
+    if (!raw) return null;
+    const profile: unknown = JSON.parse(raw);
+    if (typeof profile !== 'object' || profile === null || !('cefrLevel' in profile)) return null;
+    return profile.cefrLevel === 'A0' || profile.cefrLevel === 'A1' || profile.cefrLevel === 'A2'
+      ? profile.cefrLevel
+      : null;
+  } catch (error) {
+    console.warn('Unable to read the saved learning level.', error);
+    return null;
+  }
+}
+
+function hasSavedProgression(): boolean {
+  try {
+    return localStorage.getItem('tb.progressionState') !== null;
+  } catch {
+    return false;
+  }
+}
+
+// Lazy loading heavy view components for instant Landing Page loading & code-splitting
+const AppShell = lazy(() => import('./components/navigation/AppShell').then((m) => ({ default: m.AppShell })));
+const PathView = lazy(() => import('./components/progression/PathView').then((m) => ({ default: m.PathView })));
+const PracticeHubView = lazy(() => import('./components/progression/PracticeHubView').then((m) => ({ default: m.PracticeHubView })));
+const QuestsView = lazy(() => import('./components/progression/QuestsView').then((m) => ({ default: m.QuestsView })));
+const LeagueView = lazy(() => import('./components/progression/LeagueView').then((m) => ({ default: m.LeagueView })));
+const ProfileView = lazy(() => import('./components/progression/ProfileView').then((m) => ({ default: m.ProfileView })));
+const LessonRunner = lazy(() => import('./components/progression/LessonRunner').then((m) => ({ default: m.LessonRunner })));
+const OnboardingPlacementModal = lazy(() => import('./components/progression/OnboardingPlacementModal').then((m) => ({ default: m.OnboardingPlacementModal })));
+const PrivacyPolicyModal = lazy(() => import('./components/progression/PrivacyPolicyModal').then((m) => ({ default: m.PrivacyPolicyModal })));
+const VoicePracticeView = lazy(() => import('./features/voice/VoicePracticeView').then((m) => ({ default: m.VoicePracticeView })));
+const FlashcardsView = lazy(() => import('./features/flashcards/FlashcardsView').then((m) => ({ default: m.FlashcardsView })));
+const CorporateBridgeView = lazy(() => import('./features/corporate/CorporateBridgeView').then((m) => ({ default: m.CorporateBridgeView })));
+const PreferencesView = lazy(() => import('./features/preferences/PreferencesView').then((m) => ({ default: m.PreferencesView })));
+const FeedbackModal = lazy(() => import('./components/FeedbackModal').then((m) => ({ default: m.FeedbackModal })));
+const LanguageSelectorModal = lazy(() => import('./components/LanguageSelectorModal').then((m) => ({ default: m.LanguageSelectorModal })));
 
 type View =
   | { name: 'shell' }
@@ -73,8 +97,12 @@ export default function App() {
 
   const [activeTab, setActiveTab] = useState<AppTab>('path');
   const [progression, setProgression] = useState<ProgressionState>(() => {
+    const hasExistingProgression = hasSavedProgression();
     const migrated = migrateLegacyStorageToProgression();
-    return updateStreakAndShields(migrated);
+    const startingStage = getProfileStartingStage();
+    return updateStreakAndShields(startingStage && !hasExistingProgression
+      ? { ...migrated, currentStage: startingStage, currentUnitId: `${startingStage.toLowerCase()}-unit-1` }
+      : migrated);
   });
 
   const [activeLessonNode, setActiveLessonNode] = useState<LessonNode | null>(null);
@@ -93,15 +121,7 @@ export default function App() {
 
   const { profile, saveProfile } = useUserProfile();
   const { sourceLang, targetLang, setPair } = useLanguagePair();
-  const [progress, setProgress] = useState<UserProgress>(loadUserProgress());
-
-  const updateAndSaveProgress = (updater: (prev: UserProgress) => UserProgress) => {
-    setProgress((prev) => {
-      const next = updater(prev);
-      saveUserProgress(next);
-      return next;
-    });
-  };
+  const [progress] = useState<UserProgress>(loadUserProgress());
 
   const isArabic = (profile?.language || 'arabic') === 'arabic';
 
@@ -177,11 +197,14 @@ export default function App() {
       ? getNextStageAfterLessonCompletion(progression, activeLessonNode.id)
       : undefined;
 
+    const stageCompleted = Boolean(nextStage);
+
     updateProgression((prev) => ({
       ...prev,
       xp: prev.xp + earnedXp,
       streak: prev.streak === 0 ? 1 : prev.streak,
       currentStage: nextStage || prev.currentStage,
+      currentUnitId: nextStage ? `${nextStage.toLowerCase()}-unit-1` : prev.currentUnitId,
       completedLessonIds: activeLessonNode
         ? Array.from(new Set([...prev.completedLessonIds, activeLessonNode.id]))
         : prev.completedLessonIds,
@@ -192,7 +215,7 @@ export default function App() {
           }
         : prev.lessonCrowns,
     }));
-    showToast(nextStage
+    showToast(stageCompleted && nextStage
       ? T(`🔓 فتحت المرحلة ${nextStage}! +${earnedXp} XP`, `🔓 ${nextStage} unlocked! +${earnedXp} XP`)
       : T(`🎉 +${earnedXp} XP! درس مكتمل بنجاح`, `🎉 +${earnedXp} XP! Lesson Mastered!`));
   };
@@ -202,7 +225,7 @@ export default function App() {
   }
 
   return (
-    <>
+    <Suspense fallback={<div className="p-6 max-w-md mx-auto space-y-4"><Skeleton className="h-[70px]" /><Skeleton className="h-[70px]" /><Skeleton className="h-[70px]" /><Skeleton className="h-[70px]" /></div>}>
       {/* 1. Primary App Shell (Home / Path / Practice / Quests / League / Profile) */}
       {view.name === 'shell' && (
         <AppShell
@@ -218,7 +241,6 @@ export default function App() {
                 sourceLang={sourceLang}
                 targetLang={targetLang}
                 onOpenSelector={() => setLangSelectorOpen(true)}
-                onToast={showToast}
               />
               <PathView
                 state={progression}
@@ -261,22 +283,14 @@ export default function App() {
               profile={profile}
               onUpdateState={updateProgression}
               onExportData={() => {
-                const data = JSON.stringify({ progression, profile, progress }, null, 2);
-                const blob = new Blob([data], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `thinking-bridge-backup-${new Date().toISOString().slice(0, 10)}.json`;
-                a.click();
-                URL.revokeObjectURL(url);
                 showToast(T('تم تصدير البيانات بنجاح', 'Data exported successfully'));
               }}
+              onOpenPreferences={() => setView({ name: 'preferences' })}
               onDeleteData={() => {
                 localStorage.clear();
                 window.location.reload();
               }}
               onOpenPrivacyPolicy={() => setPrivacyOpen(true)}
-              onOpenPreferences={() => setView({ name: 'preferences' })}
               isArabic={isArabic}
             />
           )}
@@ -289,7 +303,7 @@ export default function App() {
           onBack={goHome}
           progress={progress}
           profile={profile}
-          onToast={(msg) => showToast(T(msg, msg))} // Minimal fix for string typed child
+          onToast={(msg) => showToast(T(msg, msg))}
           sourceLang={sourceLang}
           targetLang={targetLang}
         />
@@ -299,7 +313,7 @@ export default function App() {
         <FlashcardsView
           profile={profile}
           progress={progress}
-          updateAndSaveProgress={updateAndSaveProgress}
+          updateAndSaveProgress={() => {}}
           onBack={goHome}
           onToast={(msg) => showToast(T(msg, msg))}
         />
@@ -346,7 +360,11 @@ export default function App() {
             dialect: profile?.dialect || 'egyptian',
             level: profile?.level || 'beginner',
             ...profile,
-            goal: (['academic', 'travel', 'business', 'work', 'general', 'daily'].includes(goal) ? goal : 'general') as LearningGoal,
+            goal: (goal === 'corporate'
+              ? 'business'
+              : ['academic', 'travel', 'business', 'work', 'general', 'daily'].includes(goal)
+                ? goal
+                : 'general') as LearningGoal,
             sourceLanguage: source,
             targetLanguage: target,
           });
@@ -354,6 +372,7 @@ export default function App() {
             ...p,
             dailyDailyTargetMin: dailyMin,
             currentStage: stage,
+            currentUnitId: `${stage.toLowerCase()}-unit-1`,
           }));
           setOnboardingOpen(false);
           const goalLabel =
@@ -363,6 +382,8 @@ export default function App() {
               ? 'السفر والتواصل ✈️'
               : goal === 'study'
               ? 'الدراسة والأبحاث 🎓'
+              : goal === 'corporate'
+              ? 'الشغل والشركات 💼'
               : 'الطلاقة التلقائية 🚀';
           showToast(T(`🚀 تم تخصيص المسار والمحتوى خصيصاً لهدفك: ${goalLabel}`, `Path tailored for: ${goalLabel}`));
         }}
@@ -449,9 +470,6 @@ export default function App() {
           </div>
         </div>
       )}
-
-      {/* PWA Install Banner */}
-      <PwaInstallBanner />
-    </>
+    </Suspense>
   );
 }

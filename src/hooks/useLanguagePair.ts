@@ -1,10 +1,14 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { SourceLanguage, TargetLanguage, LanguagePair } from '../types';
-import { getPairConfig, isValidPair, SUPPORTED_PAIRS } from '../data/languages';
+import { getPairConfig, isValidPair, SUPPORTED_PAIRS, TARGET_LANGUAGES } from '../data/languages';
 import i18n from '../i18n';
 
 const SOURCE_STORAGE_KEY = 'tb.sourceLang';
 const TARGET_STORAGE_KEY = 'tb.targetLang';
+
+function isTargetLanguage(code: string): code is TargetLanguage {
+  return TARGET_LANGUAGES.some((language) => language.code === code);
+}
 
 function getInitialPair(): LanguagePair {
   let source: SourceLanguage = 'ar';
@@ -20,7 +24,7 @@ function getInitialPair(): LanguagePair {
       if (urlFrom === 'ar' || urlFrom === 'en') {
         source = urlFrom;
       }
-      if (urlTo === 'en' || urlTo === 'de' || urlTo === 'ja') {
+      if (isTargetLanguage(urlTo)) {
         target = urlTo;
       }
 
@@ -36,7 +40,7 @@ function getInitialPair(): LanguagePair {
       if (storedSource === 'ar' || storedSource === 'en') {
         source = storedSource;
       }
-      if (storedTarget === 'en' || storedTarget === 'de' || storedTarget === 'ja') {
+      if (storedTarget && isTargetLanguage(storedTarget)) {
         target = storedTarget;
       } else {
         // Check old tb.language or tb.userProfile
@@ -65,6 +69,21 @@ export function useLanguagePair() {
         window.localStorage.setItem(SOURCE_STORAGE_KEY, newSource);
         window.localStorage.setItem(TARGET_STORAGE_KEY, newTarget);
         window.localStorage.setItem('tb.language', newSource);
+
+        const activeProfileRaw = window.localStorage.getItem('tb.activeProfileConfig');
+        if (activeProfileRaw) {
+          try {
+            const activeProfile: unknown = JSON.parse(activeProfileRaw);
+            if (typeof activeProfile === 'object' && activeProfile !== null && !Array.isArray(activeProfile)) {
+              window.localStorage.setItem(
+                'tb.activeProfileConfig',
+                JSON.stringify({ ...activeProfile, sourceLang: newSource, targetLang: newTarget })
+              );
+            }
+          } catch (error) {
+            console.warn('Unable to sync the active profile language pair.', error);
+          }
+        }
 
         // Sync URL query params without page reload for sharing
         const url = new URL(window.location.href);
@@ -132,4 +151,3 @@ export function useLanguagePair() {
     supportedPairs: SUPPORTED_PAIRS
   };
 }
-

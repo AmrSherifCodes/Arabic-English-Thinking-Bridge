@@ -31,32 +31,43 @@ export interface ChatMessage {
 export const VOICE_V2_MARKER = 'voice-v2-profile';
 
 function getStoredProfile() {
+  let profile: Record<string, unknown> = {};
+  let activeConfig: Record<string, unknown> = {};
   try {
-    const raw = localStorage.getItem('tb.userProfile');
-    if (raw) {
-      const p = JSON.parse(raw);
-      return {
-        name: typeof p.name === 'string' ? p.name.trim() : '',
-        goal: typeof p.goal === 'string' ? p.goal : 'general',
-        focusArea: typeof p.focusArea === 'string' ? p.focusArea : 'daily-speech',
-        level: typeof p.level === 'string' ? p.level : 'beginner',
-        dialect: p.dialect === 'msa' ? 'Modern Standard Arabic' : 'Egyptian Arabic',
-        sourceLanguage: (localStorage.getItem('tb.sourceLang') as SourceLanguage) || p.sourceLanguage || 'ar',
-        targetLanguage: (localStorage.getItem('tb.targetLang') as TargetLanguage) || p.targetLanguage || 'en',
-        pipeline: VOICE_V2_MARKER,
+    if (typeof localStorage !== 'undefined') {
+      const readRecord = (key: string): Record<string, unknown> => {
+        const raw = localStorage.getItem(key);
+        if (!raw) return {};
+        const value: unknown = JSON.parse(raw);
+        return typeof value === 'object' && value !== null && !Array.isArray(value)
+          ? value as Record<string, unknown>
+          : {};
       };
+      profile = readRecord('tb.userProfile');
+      activeConfig = readRecord('tb.activeProfileConfig');
     }
-  } catch {
-    /* noop */
+  } catch (error) {
+    console.warn('Unable to read stored voice profile.', error);
   }
+
+  const sourceLang = activeConfig.sourceLang || profile.sourceLanguage || 'ar';
+  const targetLang = activeConfig.targetLang || profile.targetLanguage || 'en';
+  const cefrLevel = typeof activeConfig.cefrLevel === 'string' ? activeConfig.cefrLevel : 'A0';
+
   return {
-    name: '',
-    goal: 'general',
-    focusArea: 'daily-speech',
-    level: 'beginner',
-    dialect: 'Egyptian Arabic',
-    sourceLanguage: 'ar' as SourceLanguage,
-    targetLanguage: 'en' as TargetLanguage,
+    name: typeof profile.name === 'string' ? profile.name.trim() : '',
+    goal: typeof activeConfig.goal === 'string'
+      ? activeConfig.goal
+      : typeof profile.goal === 'string' ? profile.goal : 'general',
+    focusArea: typeof profile.focusArea === 'string' ? profile.focusArea : 'daily-speech',
+    level: cefrLevel,
+    cefrLevel,
+    domainFocus: typeof activeConfig.domainFocus === 'string' ? activeConfig.domainFocus : null,
+    dialect: profile.dialect === 'msa' ? 'Modern Standard Arabic' : 'Egyptian Arabic',
+    sourceLang,
+    targetLang,
+    sourceLanguage: sourceLang as SourceLanguage,
+    targetLanguage: targetLang as TargetLanguage,
     pipeline: VOICE_V2_MARKER,
   };
 }

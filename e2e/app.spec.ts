@@ -55,7 +55,7 @@ test('new learner completes onboarding, unlocks a lesson, changes theme, and sta
   });
 
   await page.goto('/');
-  const launchButton = page.getByRole('button', { name: 'ابدأ التفكير الآن 🚀' });
+  const launchButton = page.getByRole('button', { name: 'ابدأ التفكير الآن 🚀' }).first();
   if (await launchButton.isVisible().catch(() => false)) {
     await launchButton.click();
   }

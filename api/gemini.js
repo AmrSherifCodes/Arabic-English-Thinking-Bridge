@@ -37,6 +37,18 @@ const levels = ['beginner', 'intermediate', 'advanced'];
 const languages = ['english', 'arabic'];
 const goals = ['travel', 'work', 'academic', 'business', 'general'];
 const dialects = ['egyptian', 'msa'];
+const TARGET_LANGUAGE_NAMES = {
+  en: 'English',
+  de: 'German',
+  ja: 'Japanese',
+  es: 'Spanish',
+  fr: 'French',
+  zh: 'Chinese',
+  hi: 'Hindi',
+  ru: 'Russian',
+  pt: 'Portuguese',
+  it: 'Italian',
+};
 
 const entryProperties = {
   arabicWord: { type: Type.STRING },
@@ -386,17 +398,31 @@ async function generateStream(operation, body) {
     const history = Array.isArray(body.history) ? body.history : [];
     const profile = isRecord(body.profile) ? body.profile : {};
     const dialectName = profile.dialect === 'egyptian' ? 'Egyptian Arabic (Ammiya)' : 'Modern Standard Arabic (MSA/Fusha)';
-    const level = profile.level || 'intermediate';
-    const goal = profile.goal || 'general';
+    const targetCode = typeof profile.targetLang === 'string'
+      ? profile.targetLang
+      : typeof profile.targetLanguage === 'string' ? profile.targetLanguage : '';
+    const targetLang = TARGET_LANGUAGE_NAMES[targetCode] || 'English';
+    const rawLevel = typeof profile.cefrLevel === 'string' ? profile.cefrLevel : profile.level;
+    const level = ['A0', 'A1', 'A2'].includes(rawLevel)
+      ? rawLevel
+      : 'A0';
+    const goal = typeof profile.goal === 'string' &&
+      ['tech', 'corporate', 'travel', 'academic', 'study', 'business', 'general'].includes(profile.goal)
+      ? profile.goal
+      : 'general';
+    const domain = profile.domainFocus === 'tech' || goal === 'tech' || goal === 'corporate'
+      ? 'software engineering and tech vocabulary'
+      : profile.domainFocus === 'travel' || goal === 'travel'
+        ? 'travel and everyday-life vocabulary'
+        : 'daily life';
 
     const systemInstruction =
-      `You are Amr, an empathetic, encouraging Arabic-English structural language coach.\n` +
-      `The learner speaks ${dialectName} and is learning English (Level: ${level}, Goal: ${goal}).\n` +
-      `Your role:\n` +
-      `1. Respond warmly and conversationally in simple, natural English (with brief Arabic explanations when addressing grammar misconceptions).\n` +
-      `2. Gently point out L1 transfer errors (like omitting "is/are", using "I am agree", or literal prepositions).\n` +
-      `3. Keep responses concise (2-4 sentences max).\n` +
-      `4. If the user asks how to say something in Egyptian Arabic or English, guide them using the thinking method.`;
+      `You are Amr, an empathetic language coach.\n` +
+      `The user is an Arabic speaker learning ${targetLang} (Level: ${level}, Goal: ${goal}).\n` +
+      `1. Focus examples on ${domain}.\n` +
+      `2. Respond in simple ${targetLang}, with brief Arabic explanations if the learner is confused.\n` +
+      `3. Gently point out L1 transfer errors specific to Arabic speakers learning ${targetLang}.\n` +
+      `4. Keep responses under 3 sentences.`;
 
     const contents = [
       ...history.map((h) => ({

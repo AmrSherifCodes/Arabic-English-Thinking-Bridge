@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import { calculatePlayerLevel, calculateSkillAxisLevel, createInitialProgressionState, updateStreakAndShields } from './engine';
 import { calculateNextSrsState, getDueSrsQueue } from './srs';
 import { migrateLegacyStorageToProgression } from './migration';
+import { TARGET_LANGUAGES } from '../data/languages';
+import { generateSmartProfile } from '../services/profileEngine';
 import {
   buildCourseStructure,
   getNextStageAfterLessonCompletion,
@@ -111,6 +113,41 @@ test('5. buildCourseStructure maps all 27 lessons into CEFR stages A0-A2 without
     assert.ok(ex.targetSentence.length > 0, `Exercise ${ex.id} targetSentence missing`);
     assert.ok(ex.promptAr.length > 0, `Exercise ${ex.id} promptAr missing`);
     assert.ok(ex.wordChips.length >= 3, `Exercise ${ex.id} wordChips insufficient`);
+  }
+});
+
+test('5a. language profiles persist and route non-English targets to three placeholders', () => {
+  const originalStorage = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
+  const entries = new Map<string, string>();
+  Object.defineProperty(globalThis, 'localStorage', {
+    configurable: true,
+    value: {
+      getItem: (key: string) => entries.get(key) ?? null,
+      setItem: (key: string, value: string) => entries.set(key, value),
+    },
+  });
+
+  try {
+    assert.deepEqual(TARGET_LANGUAGES.map((language) => language.code), [
+      'en', 'de', 'ja', 'es', 'fr', 'zh', 'hi', 'ru', 'pt', 'it',
+    ]);
+    assert.ok(TARGET_LANGUAGES.every((language) => language.defaultVoice.length > 0));
+
+    const profile = generateSmartProfile('ar', 'de', 'corporate', 'A1');
+    assert.equal(profile.domainFocus, 'tech');
+    assert.deepEqual(JSON.parse(entries.get('tb.activeProfileConfig') || '{}'), profile);
+
+    const lessons = buildCourseStructure().flatMap((stage) =>
+      stage.units.flatMap((unit) => unit.lessons)
+    );
+    assert.equal(lessons.length, 3);
+    assert.ok(lessons.every((lesson, index) => lesson.titleEn === `Welcome to German Module ${index + 1}`));
+  } finally {
+    if (originalStorage) {
+      Object.defineProperty(globalThis, 'localStorage', originalStorage);
+    } else {
+      Reflect.deleteProperty(globalThis, 'localStorage');
+    }
   }
 });
 
