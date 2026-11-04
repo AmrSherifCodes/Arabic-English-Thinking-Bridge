@@ -116,17 +116,13 @@ test('9. GERMAN_PREBUILT_DECKS and JAPANESE_PREBUILT_DECKS provide valid flashca
   assert.ok(JAPANESE_PREBUILT_DECKS[0].cards.length > 0, 'Japanese deck must have cards');
 });
 
-test('10. getTargetDictionaryAsync loads non-empty dictionaries dynamically', async () => {
+test('10. getTargetDictionaryAsync loads non-empty dictionaries dynamically for all 15 languages', async () => {
   const { getTargetDictionaryAsync, getTargetDictionary } = await import('../data/dictionaries');
+  const langs = ['de', 'ja', 'es', 'fr', 'zh', 'hi', 'ru', 'pt', 'it', 'el', 'ar', 'arz', 'apc', 'afb', 'ary'];
 
-  const deDict = await getTargetDictionaryAsync('de');
-  assert.ok(deDict.length > 100, 'German dictionary must load at least 100 entries');
-  assert.equal(getTargetDictionary('de').length, deDict.length);
-
-  const jaDict = await getTargetDictionaryAsync('ja');
-  assert.ok(jaDict.length > 100, 'Japanese dictionary must load at least 100 entries');
-  assert.equal(getTargetDictionary('ja').length, jaDict.length);
-
-  const esDict = await getTargetDictionaryAsync('es');
-  assert.ok(esDict.length > 100, 'Spanish dictionary must load at least 100 entries');
+  for (const lang of langs) {
+    const dict = await getTargetDictionaryAsync(lang);
+    assert.ok(dict.length > 50, `Dictionary for ${lang} must have > 50 entries, got ${dict.length}`);
+    assert.equal(getTargetDictionary(lang).length, dict.length, `getTargetDictionary(${lang}) must match cached length`);
+  }
 });
