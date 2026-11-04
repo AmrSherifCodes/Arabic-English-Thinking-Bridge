@@ -55,9 +55,12 @@ function getStoredProfile() {
     console.warn('Unable to read stored voice profile.', error);
   }
 
-  const sourceLang = activeConfig.sourceLang || profile.sourceLanguage || 'ar';
-  const targetLang = activeConfig.targetLang || profile.targetLanguage || 'en';
+  const sourceLang = (activeConfig.sourceLang || profile.sourceLanguage || 'ar') as SourceLanguage;
+  const targetLang = (activeConfig.targetLang || profile.targetLanguage || 'en') as TargetLanguage;
   const cefrLevel = typeof activeConfig.cefrLevel === 'string' ? activeConfig.cefrLevel : 'A0';
+
+  const sourceMeta = SOURCE_LANGUAGES[sourceLang] || SOURCE_LANGUAGES['ar'];
+  const dialectName = sourceMeta ? sourceMeta.nameEn : 'Arabic';
 
   return {
     name: typeof profile.name === 'string' ? profile.name.trim() : '',
@@ -68,11 +71,11 @@ function getStoredProfile() {
     level: cefrLevel,
     cefrLevel,
     domainFocus: typeof activeConfig.domainFocus === 'string' ? activeConfig.domainFocus : null,
-    dialect: profile.dialect === 'msa' ? 'Modern Standard Arabic' : 'Egyptian Arabic',
+    dialect: dialectName,
     sourceLang,
     targetLang,
-    sourceLanguage: sourceLang as SourceLanguage,
-    targetLanguage: targetLang as TargetLanguage,
+    sourceLanguage: sourceLang,
+    targetLanguage: targetLang,
     pipeline: VOICE_V2_MARKER,
   };
 }

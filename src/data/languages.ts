@@ -23,14 +23,91 @@ export interface LanguageConfig {
 export const SOURCE_LANGUAGES: Record<SourceLanguage, LanguageMeta> = {
   ar: {
     code: 'ar',
-    nameEn: 'Arabic',
-    nameNative: 'العربية',
-    nameAr: 'العربية',
+    nameEn: 'Arabic (MSA)',
+    nameNative: 'العربية الفصحى',
+    nameAr: 'العربية (الفصحى)',
+    flag: '🇸🇦',
+    direction: 'rtl',
+    descriptionEn: 'Modern Standard Arabic',
+    descriptionAr: 'العربية الفصحى لغة التفكير والتواصل الرسمية',
+    badge: 'الأم'
+  },
+  'ar-EG': {
+    code: 'ar-EG',
+    nameEn: 'Egyptian Arabic',
+    nameNative: 'العامية المصرية',
+    nameAr: 'العربية (المصرية)',
     flag: '🇪🇬',
     direction: 'rtl',
-    descriptionEn: 'I currently think in Arabic',
-    descriptionAr: 'لغتي الأم والتفكير التلقائي بالعربية',
-    badge: 'الأم'
+    descriptionEn: 'Egyptian Dialect (Masri)',
+    descriptionAr: 'اللهجة المصرية للتفكير والتحدث الفوري',
+    badge: 'مصر'
+  },
+  'ar-MA': {
+    code: 'ar-MA',
+    nameEn: 'Moroccan Darija',
+    nameNative: 'الدارجة المغربية',
+    nameAr: 'العربية (المغربية)',
+    flag: '🇲🇦',
+    direction: 'rtl',
+    descriptionEn: 'Moroccan Darija',
+    descriptionAr: 'الدارجة المغربية للتفكير اليومي',
+    badge: 'المغرب'
+  },
+  'ar-SD': {
+    code: 'ar-SD',
+    nameEn: 'Sudanese Arabic',
+    nameNative: 'اللهجة السودانية',
+    nameAr: 'العربية (السودانية)',
+    flag: '🇸🇩',
+    direction: 'rtl',
+    descriptionEn: 'Sudanese Dialect',
+    descriptionAr: 'اللهجة السودانية والتفكير التلقائي',
+    badge: 'السودان'
+  },
+  'ar-SA': {
+    code: 'ar-SA',
+    nameEn: 'Gulf Arabic',
+    nameNative: 'اللهجة الخليجية',
+    nameAr: 'العربية (الخليجية)',
+    flag: '🇸🇦',
+    direction: 'rtl',
+    descriptionEn: 'Gulf Dialect (Khaleeji)',
+    descriptionAr: 'اللهجة الخليجية للتواصل والتفكير',
+    badge: 'الخليج'
+  },
+  'ar-SY': {
+    code: 'ar-SY',
+    nameEn: 'Levantine Arabic',
+    nameNative: 'اللهجة الشامية',
+    nameAr: 'العربية (الشامية)',
+    flag: '🇸🇾',
+    direction: 'rtl',
+    descriptionEn: 'Levantine Dialect (Shami)',
+    descriptionAr: 'اللهجة الشامية (سوريا، لبنان، الأردن، فلسطين)',
+    badge: 'الشام'
+  },
+  'ar-IQ': {
+    code: 'ar-IQ',
+    nameEn: 'Iraqi Arabic',
+    nameNative: 'اللهجة العراقية',
+    nameAr: 'العربية (العراقية)',
+    flag: '🇮🇶',
+    direction: 'rtl',
+    descriptionEn: 'Iraqi Dialect',
+    descriptionAr: 'اللهجة العراقية والتفكير اليومي',
+    badge: 'العراق'
+  },
+  'ar-YE': {
+    code: 'ar-YE',
+    nameEn: 'Yemeni Arabic',
+    nameNative: 'اللهجة اليمنية',
+    nameAr: 'العربية (اليمنية)',
+    flag: '🇾🇪',
+    direction: 'rtl',
+    descriptionEn: 'Yemeni Dialect',
+    descriptionAr: 'اللهجة اليمنية للتفكير والتواصل',
+    badge: 'اليمن'
   },
   en: {
     code: 'en',
@@ -140,6 +217,17 @@ export const SOURCE_LANGUAGES: Record<SourceLanguage, LanguageMeta> = {
     direction: 'ltr',
     descriptionEn: 'I currently think in Italian',
     descriptionAr: 'أفكر حالياً بالإيطالية',
+    badge: 'Native'
+  },
+  el: {
+    code: 'el',
+    nameEn: 'Greek',
+    nameNative: 'Ελληνικά',
+    nameAr: 'اليونانية',
+    flag: '🇬🇷',
+    direction: 'ltr',
+    descriptionEn: 'I currently think in Greek',
+    descriptionAr: 'أفكر حالياً باليونانية',
     badge: 'Native'
   }
 };
@@ -254,6 +342,17 @@ export const TARGET_LANGUAGE_META: Record<TargetLanguage, LanguageMeta> = {
     descriptionEn: 'Think natively in Italian',
     descriptionAr: 'فكر مباشرة باللغة الإيطالية',
     badge: 'Global'
+  },
+  el: {
+    code: 'el',
+    nameEn: 'Greek',
+    nameNative: 'Ελληνικά',
+    nameAr: 'اليونانية',
+    flag: '🇬🇷',
+    direction: 'ltr',
+    descriptionEn: 'Learn Greek grammar and phrasing',
+    descriptionAr: 'تعلم قواعد وتراكيب اللغة اليونانية',
+    badge: 'Global'
   }
 };
 
@@ -268,6 +367,7 @@ export const TARGET_LANGUAGES: LanguageConfig[] = [
   { code: 'ru', nameEn: 'Russian', nameAr: 'الروسية', flag: '🇷🇺', defaultVoice: 'ru-RU-SvetlanaNeural' },
   { code: 'pt', nameEn: 'Portuguese', nameAr: 'البرتغالية', flag: '🇧🇷', defaultVoice: 'pt-BR-FranciscaNeural' },
   { code: 'it', nameEn: 'Italian', nameAr: 'الإيطالية', flag: '🇮🇹', defaultVoice: 'it-IT-IsabellaNeural' },
+  { code: 'el', nameEn: 'Greek', nameAr: 'اليونانية', flag: '🇬🇷', defaultVoice: 'el-GR-NestorasNeural' },
 ];
 
 export const TARGET_LANGUAGE_LOCALES: Record<TargetLanguage, string> = {
@@ -281,6 +381,18 @@ export const TARGET_LANGUAGE_LOCALES: Record<TargetLanguage, string> = {
   ru: 'ru-RU',
   pt: 'pt-BR',
   it: 'it-IT',
+  el: 'el-GR',
+};
+
+export const ARABIC_DIALECT_VOICES: Record<string, string> = {
+  ar: 'ar-SA-HamedNeural',
+  'ar-EG': 'ar-EG-SalmaNeural',
+  'ar-SA': 'ar-SA-HamedNeural',
+  'ar-SD': 'ar-SA-HamedNeural',
+  'ar-MA': 'ar-MA-MonaNeural',
+  'ar-SY': 'ar-SY-AmanyNeural',
+  'ar-IQ': 'ar-IQ-BasselNeural',
+  'ar-YE': 'ar-YE-MaryamNeural',
 };
 
 export interface LanguagePairConfig {

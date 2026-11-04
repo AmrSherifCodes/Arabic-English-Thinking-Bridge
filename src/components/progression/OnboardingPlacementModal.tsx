@@ -193,10 +193,10 @@ export function OnboardingPlacementModal({
 
               {/* Source Language */}
               <div>
-                <p className="text-xs font-semibold text-muted mb-2 uppercase tracking-wider">
-                  {isArabic ? '١. لغتي الحالية (مصدر التفكير)' : '1. I currently think in'}
+                <p className="text-xs font-bold text-primary mb-2 uppercase tracking-wider">
+                  {isArabic ? '١. لغتي الأم / لهجتي الحالية (L1)' : '1. My native language / dialect (L1)'}
                 </p>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {(Object.keys(SOURCE_LANGUAGES) as SourceLanguage[]).map((code) => {
                     const meta = SOURCE_LANGUAGES[code];
                     const selected = selectedSource === code;
@@ -211,14 +211,14 @@ export function OnboardingPlacementModal({
                             if (next) setSelectedTarget(next);
                           }
                         }}
-                        className={`p-3.5 min-h-[52px] rounded-2xl border text-xs font-bold transition flex flex-col items-center gap-1 ${
+                        className={`p-2.5 min-h-[48px] rounded-xl border text-xs font-bold transition flex items-center gap-2 ${
                           selected
-                            ? 'bg-primary/20 border-primary text-primary shadow-md'
+                            ? 'bg-primary/20 border-primary text-primary shadow-md ring-1 ring-primary/40'
                             : 'bg-surface border-border text-text hover:border-surface-2'
                         }`}
                       >
-                        <LanguageFlag code={code} size={24} />
-                        <span>{isArabic ? meta.nameAr : meta.nameEn}</span>
+                        <LanguageFlag code={code} size={18} />
+                        <span className="truncate">{isArabic ? meta.nameAr : meta.nameEn}</span>
                       </button>
                     );
                   })}
@@ -227,10 +227,10 @@ export function OnboardingPlacementModal({
 
               {/* Target Language */}
               <div>
-                <p className="text-xs font-semibold text-muted mb-2 uppercase tracking-wider">
-                  {isArabic ? '٢. أريد أن أتعلّم التفكير بـ' : '2. I want to build reflexes in'}
+                <p className="text-xs font-bold text-amber-400 mb-2 uppercase tracking-wider">
+                  {isArabic ? '٢. اللغة التي أريد التفكير بها (L2)' : '2. Language I want to think in (L2)'}
                 </p>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {availableTargets.map((code) => {
                     const meta = TARGET_LANGUAGE_META[code];
                     const selected = selectedTarget === code;
@@ -240,22 +240,17 @@ export function OnboardingPlacementModal({
                         type="button"
                         onClick={() => setSelectedTarget(code)}
                         aria-pressed={selected}
-                        className={`min-w-0 p-3 rounded-2xl border text-xs font-bold transition flex items-start justify-between gap-1 ${
+                        className={`p-2.5 min-h-[48px] rounded-xl border text-xs font-bold transition flex items-center justify-between gap-1 ${
                           selected
-                            ? 'bg-primary/20 border-primary text-primary shadow-md'
+                            ? 'bg-amber-500/20 border-amber-500 text-amber-300 shadow-md ring-1 ring-amber-500/40'
                             : 'bg-surface border-border text-text hover:border-surface-2'
                         }`}
                       >
-                        <div className="flex min-w-0 items-center gap-2">
-                          <LanguageFlag code={code} size={20} />
-                          <div className="min-w-0 text-start">
-                            <span className="block truncate font-bold text-text">{isArabic ? meta.nameAr : meta.nameEn}</span>
-                            <span className="block truncate text-[10px] text-muted">
-                              {isArabic ? meta.descriptionAr : meta.descriptionEn}
-                            </span>
-                          </div>
+                        <div className="flex items-center gap-2 min-w-0">
+                          <LanguageFlag code={code} size={18} />
+                          <span className="truncate font-bold text-text">{meta.nameNative}</span>
                         </div>
-                        {selected && <Check size={16} className="text-primary shrink-0" />}
+                        {selected && <Check size={14} className="text-amber-400 shrink-0" />}
                       </button>
                     );
                   })}

@@ -1,6 +1,8 @@
 import { StageNode, UnitNode, LessonNode, ExerciseItem, ExerciseType, ProgressionState } from './types';
 import { PHASES_DATA } from '../data/lessons';
 import { TARGET_LANGUAGES, TARGET_LANGUAGE_META } from '../data/languages';
+import { getTargetDictionary } from '../data/dictionaries';
+import { assignCEFRLevels } from './cefrSorter';
 import type { ChunkRole, Exercise, Lesson, TargetLanguage } from '../types';
 
 const LESSONS_PER_STAGE = 9;
@@ -1344,10 +1346,104 @@ function createStageNode(
   };
 }
 
+export function generateProceduralStageLessons(
+  targetLang: LocalizedTarget,
+  stage: CefrStage,
+  seedDefinitions: LocalizedLessonDefinition[] = [],
+  focusArea: string = 'general',
+  count = 100
+): LocalizedLessonDefinition[] {
+  const result: LocalizedLessonDefinition[] = [...seedDefinitions];
+
+  const rawDict = getTargetDictionary(targetLang as TargetLanguage);
+  const rankedDict = assignCEFRLevels(rawDict);
+
+  let pool = rankedDict.filter((entry) => entry.cefrLevel === stage);
+  if (!pool || pool.length < 10) {
+    pool = rankedDict;
+  }
+
+  if (focusArea === 'tech' || focusArea === 'business' || focusArea === 'travel') {
+    const keywords = focusArea === 'tech'
+      ? ['system', 'data', 'code', 'net', 'tech', 'work', 'computer', 'app', 'file', 'user', 'prime', 'alpha']
+      : focusArea === 'business'
+      ? ['office', 'work', 'trade', 'money', 'company', 'meeting', 'deal', 'client', 'center']
+      : ['travel', 'hotel', 'road', 'city', 'car', 'fly', 'ticket', 'station', 'park'];
+
+    const filtered = pool.filter((item) => {
+      const term = item.term.toLowerCase();
+      const en = (item.sourceMeanings.en || '').toLowerCase();
+      return keywords.some((k) => term.includes(k) || en.includes(k));
+    });
+
+    if (filtered.length >= 10) {
+      pool = filtered;
+    }
+  }
+
+  let i = result.length;
+  while (result.length < count) {
+    const entry1 = pool[i % pool.length] || pool[0];
+    const entry2 = pool[(i + 3) % pool.length] || pool[1];
+    const entry3 = pool[(i + 7) % pool.length] || pool[2];
+
+    const term1 = entry1.term;
+    const term2 = entry2.term;
+    const term3 = entry3.term;
+
+    const en1 = entry1.sourceMeanings.en || term1;
+    const en2 = entry2.sourceMeanings.en || term2;
+    const en3 = entry3.sourceMeanings.en || term3;
+
+    const ar1 = entry1.sourceMeanings.ar || en1;
+    const ar2 = entry2.sourceMeanings.ar || en2;
+    const ar3 = entry3.sourceMeanings.ar || en3;
+
+    const lessonNum = result.length + 1;
+    const lessonId = `${targetLang}-${stage.toLowerCase()}-gen-${lessonNum}`;
+
+    const targetSentence = targetLang === 'ja' || targetLang === 'zh'
+      ? `${term1}${term2}${term3}`
+      : `${term1} ${term2} ${term3}.`;
+
+    const wordChips = targetLang === 'ja' || targetLang === 'zh'
+      ? [term1, term2, term3]
+      : [term1, term2, `${term3}.`];
+
+    const promptAr = `${ar1} ${ar2} ${ar3}`;
+
+    result.push({
+      id: lessonId,
+      titleEn: `Lesson ${lessonNum}: ${term1}`,
+      titleAr: `الدرس ${lessonNum}: ${ar1}`,
+      descriptionEn: `Procedural ${focusArea} structure drill #${lessonNum} (${stage})`,
+      descriptionAr: `تمرين بناء الهيكل بالمفردات (${focusArea}) رقم ${lessonNum}`,
+      promptAr: `عبر عن المعنى: ${promptAr}`,
+      promptEn: `Express: ${en1} ${en2} ${en3}`,
+      targetSentence,
+      wordChips,
+      breakdownChunks: [
+        { arabicText: ar1, englishText: term1, role: 'subject', explanation: `Term 1: ${en1}` },
+        { arabicText: ar2, englishText: term2, role: 'verb', explanation: `Term 2: ${en2}` },
+        { arabicText: ar3, englishText: term3, role: 'object', explanation: `Term 3: ${en3}` },
+      ],
+      explanationAr: `بناء جملة بالمفردات: ${ar1} - ${ar2} - ${ar3}`,
+      explanationEn: `${focusArea} vocabulary structure drill #${lessonNum}`,
+    });
+
+    i++;
+  }
+
+  return result;
+}
+
 export function buildCourseStructure(requestedTarget?: TargetLanguage): StageNode[] {
-  const targetLang = requestedTarget ?? readActiveProfile()?.targetLang ?? 'en';
+  const activeProfile = readActiveProfile();
+  const targetLang = requestedTarget ?? activeProfile?.targetLang ?? 'en';
+  const focusArea = activeProfile?.focusArea || 'general';
+
   if (lastRoutedTargetLang !== targetLang) {
-    console.log('[Curriculum Router] Loading language:', targetLang);
+    console.log('[Curriculum Router] Loading language:', targetLang, 'Focus Area:', focusArea);
     lastRoutedTargetLang = targetLang;
   }
 
@@ -1360,11 +1456,20 @@ export function buildCourseStructure(requestedTarget?: TargetLanguage): StageNod
     case 'hi':
     case 'ru':
     case 'pt':
-    case 'it': {
+    case 'it':
+    case 'el': {
+      const seedA0 = LOCALIZED_A0_LESSONS[targetLang] || [];
+      const seedA1 = LOCALIZED_A1_A2_LESSONS[targetLang]?.A1 || [];
+      const seedA2 = LOCALIZED_A1_A2_LESSONS[targetLang]?.A2 || [];
+
+      const a0 = generateProceduralStageLessons(targetLang, 'A0', seedA0, focusArea);
+      const a1 = generateProceduralStageLessons(targetLang, 'A1', seedA1, focusArea);
+      const a2 = generateProceduralStageLessons(targetLang, 'A2', seedA2, focusArea);
+
       return [
-        createLocalizedStage(STAGE_DEFINITIONS[0], LOCALIZED_A0_LESSONS[targetLang]),
-        createLocalizedStage(STAGE_DEFINITIONS[1], LOCALIZED_A1_A2_LESSONS[targetLang].A1),
-        createLocalizedStage(STAGE_DEFINITIONS[2], LOCALIZED_A1_A2_LESSONS[targetLang].A2),
+        createLocalizedStage(STAGE_DEFINITIONS[0], a0),
+        createLocalizedStage(STAGE_DEFINITIONS[1], a1),
+        createLocalizedStage(STAGE_DEFINITIONS[2], a2),
       ];
     }
     case 'en': {
@@ -1385,21 +1490,31 @@ export function buildCourseStructure(requestedTarget?: TargetLanguage): StageNod
 
 let lastRoutedTargetLang: TargetLanguage | undefined;
 
-function readActiveProfile(): { targetLang: TargetLanguage } | null {
+function readActiveProfile(): { targetLang: TargetLanguage; focusArea?: string } | null {
   if (typeof localStorage === 'undefined') return null;
   try {
     const directTarget = localStorage.getItem('tb.targetLang');
-    if (directTarget && TARGET_LANGUAGES.some((l) => l.code === directTarget)) {
-      return { targetLang: directTarget as TargetLanguage };
-    }
+    let focusArea = 'general';
 
     const rawConfig = localStorage.getItem('tb.activeProfileConfig');
+    if (rawConfig) {
+      const parsedConfig = JSON.parse(rawConfig);
+      if (parsedConfig && typeof parsedConfig === 'object') {
+        if (typeof parsedConfig.goal === 'string') focusArea = parsedConfig.goal;
+        if (typeof parsedConfig.focusArea === 'string') focusArea = parsedConfig.focusArea;
+      }
+    }
+
+    if (directTarget && TARGET_LANGUAGES.some((l) => l.code === directTarget)) {
+      return { targetLang: directTarget as TargetLanguage, focusArea };
+    }
+
     if (rawConfig) {
       const parsedConfig = JSON.parse(rawConfig);
       if (parsedConfig && typeof parsedConfig === 'object' && 'targetLang' in parsedConfig) {
         const lang = parsedConfig.targetLang;
         if (typeof lang === 'string' && TARGET_LANGUAGES.some((l) => l.code === lang)) {
-          return { targetLang: lang as TargetLanguage };
+          return { targetLang: lang as TargetLanguage, focusArea };
         }
       }
     }
@@ -1407,10 +1522,15 @@ function readActiveProfile(): { targetLang: TargetLanguage } | null {
     const rawProfile = localStorage.getItem('tb.userProfile');
     if (rawProfile) {
       const parsedProfile = JSON.parse(rawProfile);
-      if (parsedProfile && typeof parsedProfile === 'object' && 'targetLanguage' in parsedProfile) {
-        const lang = parsedProfile.targetLanguage;
-        if (typeof lang === 'string' && TARGET_LANGUAGES.some((l) => l.code === lang)) {
-          return { targetLang: lang as TargetLanguage };
+      if (parsedProfile && typeof parsedProfile === 'object') {
+        if (typeof parsedProfile.focusArea === 'string') focusArea = parsedProfile.focusArea;
+        else if (typeof parsedProfile.goal === 'string') focusArea = parsedProfile.goal;
+
+        if ('targetLanguage' in parsedProfile) {
+          const lang = parsedProfile.targetLanguage;
+          if (typeof lang === 'string' && TARGET_LANGUAGES.some((l) => l.code === lang)) {
+            return { targetLang: lang as TargetLanguage, focusArea };
+          }
         }
       }
     }
