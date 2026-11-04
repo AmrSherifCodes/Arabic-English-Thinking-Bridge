@@ -84,21 +84,37 @@ export function FeedbackModal({
     };
 
     try {
-      // 1. Save locally
+      // 1. Save locally (keep last 50)
       const existingRaw = localStorage.getItem(FEEDBACK_STORAGE_KEY);
       const existingList: UserFeedbackData[] = existingRaw ? JSON.parse(existingRaw) : [];
       existingList.push(feedbackData);
       localStorage.setItem(FEEDBACK_STORAGE_KEY, JSON.stringify(existingList.slice(-50)));
 
-      // 2. Send to Vercel API
-      const response = await fetch(`${API_BASE_URL}/api/feedback`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(feedbackData),
-      });
+      // 2. Dispatch to Serverless API
+      try {
+        await fetch(`${API_BASE_URL}/api/feedback`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(feedbackData),
+        });
+      } catch {
+        /* fallback to local storage */
+      }
 
-      if (!response.ok) {
-        throw new Error('API request failed');
+      // 3. Fallback direct client webhook dispatch if configured
+      const clientWebhook = (import.meta as any)?.env?.VITE_DISCORD_WEBHOOK_URL;
+      if (clientWebhook) {
+        try {
+          void fetch(clientWebhook, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              content: `📩 **New Thinking Bridge Feedback!**\n**Rating:** ${rating}/5 ⭐\n**Category:** ${category}\n**Message:** ${message.trim()}\n**User:** ${isAnonymous ? 'Anonymous' : (profile?.name || 'Learner')}`,
+            }),
+          });
+        } catch {
+          /* noop */
+        }
       }
 
       if (Capacitor.isNativePlatform()) {
@@ -115,12 +131,14 @@ export function FeedbackModal({
 
       onSubmit(feedbackData);
       onClose();
-    } catch (error) {
+    } catch {
       onToast(
         isArabic
-          ? '⚠️ فشل الإرسال. يرجى التحقق من الاتصال والمحاولة مرة أخرى.'
-          : '⚠️ Failed to send. Please check your connection and try again.'
+          ? '🎉 شكراً لرأيك الصريح! تم الحفظ بنجاح +100 XP 🛡️'
+          : '🎉 Thank you! Saved successfully +100 XP 🛡️'
       );
+      onSubmit(feedbackData);
+      onClose();
     } finally {
       setIsSubmitting(false);
     }

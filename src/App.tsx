@@ -308,23 +308,23 @@ export default function App() {
 
               {/* AI Upsell Soft-Lock Banner */}
               {!hasKey && (
-                <div className="p-3 rounded-2xl bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-amber-500/15 border border-amber-500/30 text-start space-y-1.5 shadow-lg animate-in fade-in">
+                <div className="p-3.5 rounded-2xl bg-stone-900 border border-amber-500/40 text-start space-y-2 shadow-xl animate-in fade-in">
                   <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      <span className="text-base shrink-0">🤖</span>
-                      <h3 className="text-xs font-black text-amber-300 truncate">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-lg shrink-0">🤖</span>
+                      <h3 className="text-xs sm:text-sm font-extrabold text-amber-400 truncate">
                         {isArabic ? 'تفعيل معلم الذكاء الاصطناعي الصوتي' : 'Unlock the AI Voice Tutor'}
                       </h3>
                     </div>
                     <button
                       type="button"
                       onClick={() => setView({ name: 'preferences' })}
-                      className="px-2.5 py-1 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 text-xs font-black transition active:scale-95 shrink-0 shadow-sm"
+                      className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 text-xs font-black transition active:scale-95 shrink-0 shadow-md"
                     >
                       {isArabic ? 'ربط المفتاح' : 'Connect API Key'}
                     </button>
                   </div>
-                  <p className="text-[11px] text-stone-300 font-medium leading-relaxed">
+                  <p className="text-xs text-stone-200 font-medium leading-relaxed">
                     {isArabic
                       ? 'أضف مفتاح Google Gemini API المجاني الخاص بك لتفعيل التدريب الصوتي، وتصدير Anki، والمحادثات المفتوحة.'
                       : 'Add your free Google Gemini API key to enable Voice Practice, Anki Export, and unlimited AI conversations.'}
