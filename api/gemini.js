@@ -1056,13 +1056,17 @@ export const ALLOWED_CORS_ORIGINS = new Set([
   'https://tb-eg.vercel.app',
   'https://thinkingbridge.vercel.app',
   'https://arabicenglishthinkingbridge.vercel.app',
+  'https://amrsherif.localhost.cc',
+  'https://www.amrsherif.localhost.cc',
+  'http://amrsherif.localhost.cc',
+  'http://www.amrsherif.localhost.cc',
   'http://localhost:5173',
   'http://localhost:3000',
   'capacitor://localhost',
   'https://localhost'
 ]);
 
-const PROJECT_PREVIEW_ORIGIN_RE = /^https:\/\/(?:tb-eg|thinkingbridge|arabic-?english-?thinking-?bridge)(?:-[a-z0-9-]+)?\.vercel\.app$/i;
+const PROJECT_PREVIEW_ORIGIN_RE = /^https?:\/\/(?:tb-eg|thinkingbridge|arabic-?english-?thinking-?bridge|amrsherif\.localhost\.cc|www\.amrsherif\.localhost\.cc)(?:-[a-z0-9-]+)?\.(?:vercel\.app|localhost\.cc)$/i;
 
 function isAllowedUrlOrigin(urlStr) {
   if (!urlStr) return false;
