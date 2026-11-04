@@ -1,171 +1,103 @@
 <div align="center">
-  <h1>🌉 Thinking Bridge</h1>
-  <p><strong>Master English the Smart Way. Learn Egyptian Arabic the Real Way.</strong></p>
-  <p>100% Free. 100% Private. 0% App Store Fees.</p>
+  <h1>🌉 Thinking Bridge (v3.2.0 Masterpiece Release)</h1>
+  <p><strong>Construct sentences directly in the target language. Think in it. Don't translate it.</strong></p>
+  <p>100% Free. 100% Private. Offline-Capable Universal Language App.</p>
 
   <!-- Badges -->
   <img src="https://img.shields.io/badge/React-19-blue?style=flat-square&logo=react" alt="React" />
   <img src="https://img.shields.io/badge/Vite-8-purple?style=flat-square&logo=vite" alt="Vite" />
   <img src="https://img.shields.io/badge/Storage-Local--first-teal?style=flat-square" alt="Local-first storage" />
-  <img src="https://img.shields.io/badge/Gemini-AI-orange?style=flat-square&logo=google" alt="Gemini" />
-  <img src="https://img.shields.io/badge/License-All%20Rights%20Reserved-red?style=flat-square" alt="License" />
+  <img src="https://img.shields.io/badge/Languages-16%20Codes-orange?style=flat-square" alt="16 Languages" />
+  <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="License" />
 </div>
 
 ---
 
-## 🚀 What's New in v3.0.0
+## 🚀 What's New in v3.2.0 (Masterpiece Release)
 
-- Interactive Onboarding & Adaptive Leveling Algorithm (A1 to C1)
-- Sub-Second Voice Streaming with Parallel TTS Prefetch
-- Native Android Haptics, Status Bar, and Keyboard integration
-- Premium UI Landing Page with Creator CV and Project Constitution
-- 98/98 Unit Tests Passing
+- **Universal N-by-N Pivot Dictionary Bridge**: Bridges any of the 16 supported languages/dialects (`en`, `ar`, `arz`, `apc`, `afb`, `ary`, `de`, `ja`, `es`, `fr`, `it`, `pt`, `ru`, `zh`, `hi`, `el`) via normalized English pivot glosses ($16 \times 15 = 240$ directional language pairs $\times 6$ focus areas = **1,440 Learning Profiles**).
+- **The Profile Matcher Equation**: Multi-factor profile ranking engine ($S(p,u) = 0.35\Phi + 0.25\Psi + 0.15\Omega + 0.15\Gamma + 0.10\Delta$) matching linguistic typology distance, script transferability, and daily study pace.
+- **Bulk Dictionary Pipeline**: Clean Node.js ingestion pipeline (`scripts/ingest-dictionaries.mjs`) streaming Kaikki Wiktionary exports into versioned, typed dictionary modules.
+- **CEFR Progression Sorter**: Automated CEFR level assigner (`cefrSorter.ts`) mapping frequency ranks (`A0`–`C2`) with survival word overrides and cognate promotion (Levenshtein similarity $\ge 0.72$).
+- **Vercel Serverless Proxies**: Rate-limited, sanitized `/api/feedback` and `/api/review` serverless proxy endpoints.
 
-## 🚀 The Mission
+---
 
-Most language apps charge you a monthly subscription, track your every move, and force you to learn stiff, formal textbook Arabic that nobody actually speaks in the streets. 
+## 🏗️ System Architecture
 
-**Thinking Bridge is the antidote.** 
-
-Built in a 24-hour coding marathon, this is a fully open-source, offline-first Progressive Web App (PWA) designed to bridge the gap between Arabic and English. Whether you are an Arabic speaker trying to master English for your career, or an English speaker trying to learn authentic **Egyptian Ammiya**, this app is built for you.
-
-There are no ads, no accounts required, and no tracking. It's just you, the language, and a bridge built on code.
-
-## ✨ Features That Slap
-
-- 🧠 **AI Language Tutor:** Powered by Google Gemini. Ask questions about grammar, get instant translations, and practice conversations. (Runs securely through Vercel Serverless Functions).
-- 🗣️ **Premium Neural Voices:** We ditched the robotic browser voices. Integrated Microsoft Edge TTS for stunning, natural-sounding audio (Salma for Egyptian Arabic, Ava for English).
-- 🃏 **Anki-Style Flashcards:** Features a full Spaced Repetition System (SRS). Rate your memory (Again, Hard, Good, Easy) and let the algorithm show you words right before you forget them.
-- 🎮 **Duolingo-Style Gamification:** 3D flashcard flips, bouncy buttons, confetti explosions, streak counters, and XP chests. 
-- 📚 **5,299 Real Words & Phrases:** A massive, curated dictionary covering Student, Call Center, and Public Matter situations, strictly filtered by dialect (Egyptian vs. MSA).
-- 📴 **True Offline Mode:** Powered by `vite-plugin-pwa` and Workbox. Install it to your home screen and use it on the subway with zero internet connection.
-- 🔒 **Bulletproof Privacy:** No Google Analytics. No tracking pixels. All progress is saved locally on your device (`localStorage`).
-
-## Build & Multi-Platform Release Guide | دليل البناء والإصدار
-
-One React + Vite codebase serves the web/PWA, Capacitor Android, and Tauri desktop builds. Local progress stays in the device storage vault; no secrets are needed for a web build.
-
-### Web & PWA | الويب والتثبيت
-```bash
-npm ci --legacy-peer-deps
-npm run dev
-npm run build
+```mermaid
+graph TD
+    A[Kaikki.org / Wiktionary Bulk Dumps] -->|node scripts/ingest-dictionaries.mjs| B[src/data/dictionaries/]
+    B --> C[cefrSorter.ts]
+    C --> D[profileMatcherEngine.ts]
+    D -->|buildLanguagePairLexicon| E[Universal N-by-N Pivot Bridge]
+    D -->|scoreAndSortProfiles| F[Profile Recommendation Engine]
+    E --> G[lessonGenerator.ts]
+    G --> H[Procedural 100-Lesson Engine]
+    H --> I[React 19 / Capacitor Android App]
 ```
-The production build is `dist/`. It includes the dictionary, PWA manifest, sitemap, and robots file.
 
-### Android | أندرويد
+---
+
+## 📖 Wiktionary & Kaikki.org Attribution
+
+Lexical dataset data derives from **Wiktionary** via **Kaikki.org** machine-readable extracts generated using Wiktextract, licensed under Creative Commons Attribution-ShareAlike 4.0 International ([CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)) and GNU Free Documentation License ([GFDL](https://www.gnu.org/licenses/fdl-1.3.html)).
+
+---
+
+## 🚀 Quick Start & Local Setup
+
 ```bash
-npm ci --legacy-peer-deps
-npm run build:android
+# 1. Install dependencies
+npm install
+
+# 2. Run bulk dictionary ingestion pipeline
+node scripts/ingest-dictionaries.mjs
+
+# 3. Run development server
+npm run dev
+
+# 4. Run test suite
+npm test
+
+# 5. Build production PWA & web bundle
+npm run build
+
+# 6. Synchronize with Capacitor Android
 npx cap sync android
+```
+
+---
+
+## 📱 Android Native Build Steps
+
+```bash
+# 1. Build Android production web assets
+npm run build:android
+
+# 2. Sync to Capacitor Android native project
+npx cap sync android
+
+# 3. Assemble Debug APK
 cd android
 ./gradlew assembleDebug
 ```
-Open the native project with `npx cap open android`. CI builds a debug APK on a version tag; it also builds a signed release APK when signing secrets are configured.
-
-### iOS | iOS
-Requires macOS, Xcode, and Apple signing credentials. Run `npm run build`, `npx cap sync ios`, then `npx cap open ios` and sign/archive from Xcode.
-
-### Desktop | سطح المكتب
-Install the platform-specific Rust toolchain, then run `npm run build:windows` on Windows or `npx tauri build` on a configured macOS/Linux host.
-
-### GitHub Actions | الإصدارات الآلية
-Pull requests and pushes to `main` run TypeScript checks, unit tests, the web/PWA build, and artifact verification. Push a tag such as `v3.1.0` to build Android APKs and attach them to the GitHub Release. Run the workflow manually to download APK artifacts without publishing a release.
-
-For signed APKs, add these repository Actions secrets: `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, and `ANDROID_KEY_PASSWORD`. Without them, the workflow publishes the debug APK only. Never commit keystore files or passwords.
 
 ---
 
-## 📊 Local-First Storage & Service Limits
+## ⚙️ Environment Variables
 
-Learning progress, lessons, flashcards, and feedback remain on the device. The app does not require a cloud database or account to learn.
+Create `.env` (refer to `.env.example`):
 
-### Optional Services
-1. **Google Gemini AI**
-   * **Limits**: 15 Requests/Minute (RPM), 1,500 Requests/Day (RPD).
-   * Users can add their own Gemini key in Settings; daily usage limits are enforced locally. Core lessons and progress work offline.
-   * **Dashboard**: [console.cloud.google.com](https://console.cloud.google.com) ➔ API & Services.
-2. **Vercel Web Hosting (Free Hobby Tier)**
-   * **Limits**: 100 GB Bandwidth/month, 100k Serverless Function Executions/day.
-   * **Dashboard**: [vercel.com](https://vercel.com) ➔ Usage.
+```env
+DISCORD_FEEDBACK_WEBHOOK=https://discord.com/api/webhooks/YOUR_FEEDBACK_WEBHOOK_ID
+DISCORD_REVIEWS_WEBHOOK=https://discord.com/api/webhooks/YOUR_REVIEWS_WEBHOOK_ID
+VITE_API_BASE=https://tb-eg.vercel.app
+```
 
 ---
 
-## ☁️ Cloudflare Pages Hosting Portability
+## 📜 License
 
-Thinking Bridge builds purely to static client assets in `dist/`. If you ever wish to move hosting away from Vercel to Cloudflare Pages:
-1. Connect your GitHub repository in the [Cloudflare Pages Dashboard](https://dash.cloudflare.com).
-2. Set Build Command to: `npm run build`
-3. Set Build Output Directory to: `dist`
-4. Deploy with 0 configuration needed!
-
----
-
-## 🔒 Copyright & Proprietary License
-All rights reserved, **Amr Sherif Abdelaal** (2024-Present). See `LICENSE` for full proprietary license terms.
-
----
-
-## 🏛️ The Constitution
-
-This project is governed by a strict [Channel Constitution](./CONSTITUTION.md). The core rules are simple:
-1. **Radical openness:** Everything is open-source and free forever.
-2. **Neutrality:** A refuge from internet noise.
-3. **Attribution:** Credit every source loudly (Language Transfer, Wiktionary, Hugging Face).
-
-## 🌐 Multi-Language Cognitive Architecture (v3.1.0)
-
-Thinking Bridge supports multi-source and multi-target language immersion:
-
-| Source / UI Language | Target Thinking Language | Pedagogical Bridge Focus | Shareable Link |
-| :--- | :--- | :--- | :--- |
-| 🇪🇬 **العربية (Arabic)** | 🇬🇧 **English** | Copula omission & preposition interference | `/?from=ar&to=en` |
-| 🇪🇬 **العربية (Arabic)** | 🇩🇪 **Deutsch (German)** | Strict V2 verb placement & Accusative cases | `/?from=ar&to=de` |
-| 🇪🇬 **العربية (Arabic)** | 🇯🇵 **日本語 (Japanese)** | SOV order, Particles (は, を, に), & Furigana | `/?from=ar&to=ja` |
-| 🇬🇧 **English** | 🇩🇪 **Deutsch (German)** | V2 main clause syntax & Gender shifts | `/?from=en&to=de` |
-| 🇬🇧 **English** | 🇯🇵 **日本語 (Japanese)** | SOV order & Natural pro-drop context | `/?from=en&to=ja` |
-
-### How to Add More Languages or Exercises
-1. **Curriculum Definition:** Add a new file under `src/data/curriculum/` (e.g. `frenchCurriculum.ts`). Follow the `Phase` and `Lesson` schemas with `sourceThought`, `targetSentence`, `wordChips`, and `breakdownChunks`.
-2. **Registry:** Register the language pair in `src/data/curriculumRegistry.ts` inside `getCurriculum(source, target)`.
-3. **Metadata:** Declare the language and pair in `src/data/languages.ts`.
-
----
-
-## 🛠️ The Tech Stack
-
-This isn't just a static site; it's a full-stack application built with modern, production-grade tools.
-
-- **Frontend:** React 19, TypeScript, Vite, Tailwind CSS, Framer Motion.
-- **Backend & Auth:** Supabase (PostgreSQL) with Row Level Security (RLS) and JWT authentication.
-- **AI:** `@google/genai` (Gemini 2.5 Flash).
-- **Voice:** `voipi` (Microsoft Edge Neural TTS) with native Web Speech API fallback.
-- **Hosting:** Vercel (Frontend + Serverless Functions).
-
-## 💻 Run It Locally
-
-Want to spin up your own version? It takes less than a minute.
-
-1. **Clone the repo:**
-   ```bash
-   git clone https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge.git
-   cd Arabic-English-Thinking-Bridge
-
-## 🔒 Copyright & Proprietary License
-
-All rights reserved, **Amr Sherif Abdelaal** (2024-Present).
-
-This software, application codebase, and pedagogical datasets are the exclusive proprietary property of Amr Sherif Abdelaal. See `LICENSE` for full terms.
-
----
-
-### Inspired By & Connect
-Gratefully inspired by **Mihalis Eleftheriou** & *The Thinking Method* (Language Transfer).
-
-**Connect with me:**
-- [LinkedIn](https://www.linkedin.com/in/sciamrsherif-abdelaal/)
-- [GitHub](https://github.com/AmrSherifCodes)
-- [Patreon](https://www.patreon.com/c/SciAmrSherif)
-- [YouTube](https://www.youtube.com/@SciAmrSherif)
-- [X (Twitter)](https://x.com/SciAmrSherif)
-- Email: amrsherifbusiness@gmail.com
+- **Codebase**: MIT License (Amr Sherif Abdelaal, 2024-Present).
+- **Lexical Data**: CC BY-SA 4.0 / GFDL (Wiktionary / Kaikki.org).
