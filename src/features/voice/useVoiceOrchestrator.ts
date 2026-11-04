@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
+import { GoogleGenAI } from '@google/genai';
+import { getUserGeminiKey } from '../../services/geminiLexicon';
 import { API_BASE_URL } from '../../utils/api';
 import {
   generateSmartConversationReply,
@@ -528,12 +530,99 @@ export function useVoiceOrchestrator(
       const abortCtrl = new AbortController();
       abortControllerRef.current = abortCtrl;
 
-      let accumulatedReply = '';
-      let sentenceBuffer = '';
-      let runningWordIndex = 0;
       totalDispatchedRef.current = 0;
       nextPlayIndexRef.current = 0;
       streamDoneRef.current = false;
+
+      // 1. Try direct client-side Gemini SDK streaming if user key exists
+      const userKey = getUserGeminiKey();
+      if (userKey) {
+        try {
+          const ai = new GoogleGenAI({ apiKey: userKey });
+          const profile = getStoredProfile();
+          const resultStream = await ai.models.generateContentStream({
+            model: 'gemini-2.5-flash',
+            contents: [
+              ...messages.slice(-6).map((m) => ({
+                role: m.role === 'user' ? 'user' : 'model',
+                parts: [{ text: m.text }],
+              })),
+              { role: 'user', parts: [{ text: userText }] },
+            ],
+            config: {
+              systemInstruction: `You are Amr, an empathetic, encouraging Arabic-English structural language coach.
+The learner speaks ${profile.dialect} and is learning English (Level: ${profile.level}, Goal: ${profile.goal}).
+Your role:
+1. Respond warmly and conversationally in simple, natural English (with brief Arabic explanations when addressing grammar misconceptions).
+2. Gently point out L1 transfer errors (like omitting "is/are", using "I am agree", or literal prepositions).
+3. Keep responses concise (2-4 sentences max).`,
+              maxOutputTokens: 250,
+              temperature: 0.7,
+            },
+          });
+
+          let clientAccumulated = '';
+          let clientBuffer = '';
+          let clientWordIdx = 0;
+
+          for await (const chunk of resultStream) {
+            const textChunk = chunk.text || '';
+            if (!textChunk) continue;
+
+            clientAccumulated += textChunk;
+            clientBuffer += textChunk;
+
+            setCurrentAssistantText(clientAccumulated);
+
+            const sentences = clientBuffer.match(/[^.!?]+[.!?]+/g);
+            if (sentences) {
+              for (const s of sentences) {
+                clientBuffer = clientBuffer.slice(s.length);
+                const cleanSent = s.trim();
+                if (cleanSent) {
+                  const wList = cleanSent.split(/\s+/);
+                  prefetchSentence(cleanSent, abortCtrl.signal, totalDispatchedRef.current++, clientWordIdx);
+                  clientWordIdx += wList.length;
+                }
+              }
+            }
+          }
+
+          if (clientBuffer.trim()) {
+            const cleanSent = clientBuffer.trim();
+            prefetchSentence(cleanSent, abortCtrl.signal, totalDispatchedRef.current++, clientWordIdx);
+          }
+
+          streamDoneRef.current = true;
+          checkAndPlayQueue();
+
+          if (clientAccumulated.trim()) {
+            setMessages((prev) => [
+              ...prev,
+              {
+                id: `assistant-${Date.now()}`,
+                role: 'assistant',
+                text: clientAccumulated.trim(),
+                timestamp: Date.now(),
+                feedbackDraft: newFeedbackDraft || undefined,
+                feedbackStatus: newFeedbackDraft ? 'pending' : undefined,
+              },
+            ]);
+          }
+          return;
+        } catch (clientChatErr: any) {
+          if (clientChatErr.name === 'AbortError') {
+            console.log('[useVoiceOrchestrator] Interrupted by user (barge-in).');
+            return;
+          }
+          console.warn('[useVoiceOrchestrator] Direct client-side Gemini Chat stream failed, falling back to server route:', clientChatErr);
+        }
+      }
+
+      // 2. Server route fallback
+      let accumulatedReply = '';
+      let sentenceBuffer = '';
+      let runningWordIndex = 0;
 
       try {
         const historyPayload = messages.slice(-6).map((m) => ({
