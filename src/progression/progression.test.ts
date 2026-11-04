@@ -72,7 +72,7 @@ test('4. updateStreakAndShields handles consecutive days and shield protection',
 
 test('5. buildCourseStructure maps all 27 lessons into CEFR stages A0-A2 without dead ends', () => {
   const structure = buildCourseStructure();
-  assert.equal(structure.length, 7, 'Must have 7 CEFR stages (A0 to C2)');
+  assert.equal(structure.length, 3, 'Must have exactly the A0, A1, and A2 stages');
 
   // Stages A0, A1, A2
   const a0 = structure.find((s) => s.stage === 'A0');
@@ -92,6 +92,11 @@ test('5. buildCourseStructure maps all 27 lessons into CEFR stages A0-A2 without
 
   const totalLessons = a0Lessons.length + a1Lessons.length + a2Lessons.length;
   assert.equal(totalLessons, 27, 'Total progression lessons across A0-A2 must be 27');
+  assert.equal(
+    new Set([...a0Lessons, ...a1Lessons, ...a2Lessons].map((lesson: any) => lesson.id)).size,
+    27,
+    'Every lesson must appear exactly once'
+  );
 
   const allExercises = [...a0Lessons, ...a1Lessons, ...a2Lessons].flatMap((l: any) => l.exercises);
   assert.equal(allExercises.length, 81, 'Total progression exercises across A0-A2 must be 81');

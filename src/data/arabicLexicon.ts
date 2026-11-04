@@ -10,7 +10,7 @@ export const LEXICON_AR: Record<string, LexiconArEntry> = {
   },
   "طبيب": {
     grammarAr: "اسم مفرد معدود",
-    tipAr: "حط حرف التنكير a قبل الوظائف المفرده في الإنجليزي."
+    tipAr: "حط حرف التنكير a قبل الوظائف المفردة في الإنجليزي."
   },
   "في": {
     grammarAr: "حرف جر",
@@ -18,7 +18,7 @@ export const LEXICON_AR: Record<string, LexiconArEntry> = {
   },
   "الإسكندرية": {
     grammarAr: "اسم علم",
-    tipAr: "أسماء المدن ما بياخدوش the في الإنجليزي."
+    tipAr: "أسماء المدن لا تسبقها أداة التعريف the في الإنجليزية."
   },
   "هو": {
     grammarAr: "ضمير غائب مفرد مذكّر",
@@ -198,7 +198,7 @@ export const LEXICON_AR: Record<string, LexiconArEntry> = {
   },
   "نهاية": {
     grammarAr: "اسم مضاف",
-    tipAr: "بتتجمع مع الأسبوع لتكويين weekend."
+    tipAr: "بتتجمع مع كلمة الأسبوع لتكوين كلمة weekend."
   },
   "الأسبوع": {
     grammarAr: "اسم معرفة",
