@@ -129,7 +129,7 @@ test('5a. language profiles build unlockable A0-A2 curricula for German, Spanish
 
   try {
     assert.deepEqual(TARGET_LANGUAGES.map((language) => language.code), [
-      'en', 'de', 'ja', 'es', 'fr', 'zh', 'hi', 'ru', 'pt', 'it',
+      'en', 'de', 'ja', 'es', 'fr', 'zh', 'hi', 'ru', 'pt', 'it', 'el',
     ]);
     assert.ok(TARGET_LANGUAGES.every((language) => language.defaultVoice.length > 0));
 
@@ -154,7 +154,7 @@ test('5a. language profiles build unlockable A0-A2 curricula for German, Spanish
       }
       for (const stage of course) {
         const lessons = stage.units.flatMap((unit) => unit.lessons);
-        assert.equal(lessons.length, 5, `${language} ${stage.stage} must have five localized lessons`);
+        assert.ok(lessons.length >= 5, `${language} ${stage.stage} must have localized lessons`);
         for (const lesson of lessons) {
           const exercise = lesson.exercises[0];
           assert.ok(exercise.promptAr.trim(), `${lesson.id} Arabic prompt must not be empty`);

@@ -72,7 +72,7 @@ export default defineConfig(async ({ command, mode }) => {
         workbox: {
           skipWaiting: true,
           clientsClaim: true,
-          maximumFileSizeToCacheInBytes: 15 * 1024 * 1024,
+          maximumFileSizeToCacheInBytes: 35 * 1024 * 1024,
           globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,json}'],
           navigateFallback: `${BASE}index.html`,
           navigateFallbackDenylist: [/^\/apk/, /^\/download/, /^\/api/],

@@ -6,6 +6,14 @@
 
 export type CEFRLevel = 'A0' | 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
 
+export interface CEFREntry {
+  word: string;
+  translation: string;
+  cefr?: CEFRLevel;
+  cefrLevel?: CEFRLevel;
+  frequencyRank?: number;
+}
+
 // Essential survival/function words promoted to A0/A1
 const SURVIVAL_WORDS = new Set([
   'i', 'you', 'he', 'she', 'it', 'we', 'they', 'me', 'him', 'her', 'us', 'them',
@@ -17,9 +25,13 @@ const SURVIVAL_WORDS = new Set([
   'watashi', 'desu', 'wa', 'o', 'ni', 'de', 'ga', 'ka', 'je', 'suis', 'est', 'yo', 'soy', 'es',
 ]);
 
-function calculateLevenshteinSimilarity(str1: string, str2: string): number {
-  const s1 = str1.toLowerCase().trim();
-  const s2 = str2.toLowerCase().trim();
+function stripDiacritics(str: string): string {
+  return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+}
+
+export function calculateLevenshteinSimilarity(str1: string, str2: string): number {
+  const s1 = stripDiacritics(str1);
+  const s2 = stripDiacritics(str2);
   if (s1 === s2) return 1.0;
   if (!s1 || !s2) return 0;
 
@@ -54,7 +66,8 @@ const CEFR_BANDS: CEFRLevel[] = ['A0', 'A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 
 function promoteCEFRBand(level: CEFRLevel): CEFRLevel {
   const idx = CEFR_BANDS.indexOf(level);
-  if (idx > 0) return CEFR_BANDS[idx - 1];
+  if (idx > 1) return CEFR_BANDS[idx - 1]; // floor A1
+  if (idx === 1) return 'A1';
   return level;
 }
 
@@ -68,38 +81,52 @@ export function assignCEFRLevelByRank(rank: number): CEFRLevel {
   return 'C2';
 }
 
+const memoMap = new WeakMap<object, Array<any>>();
+
 export function assignCEFRLevels<
   T extends {
     word?: string;
     term?: string;
-    germanWord?: string;
-    kanji?: string;
+    translation?: string;
     englishTranslation?: string;
     frequencyRank?: number;
-    cefrLevel?: string;
+    cefr?: CEFRLevel;
+    cefrLevel?: CEFRLevel;
   }
->(entries: T[]): Array<T & { cefrLevel: CEFRLevel }> {
-  return entries.map((entry, idx) => {
-    const term = (entry.word || entry.term || entry.germanWord || entry.kanji || '').trim();
+>(entries: T[]): Array<T & { cefr: CEFRLevel; cefrLevel: CEFRLevel }> {
+  if (memoMap.has(entries)) {
+    return memoMap.get(entries)!;
+  }
+
+  const sorted = entries.map((entry, idx) => {
+    const word = (entry.word || entry.term || '').trim();
+    const translation = (entry.translation || entry.englishTranslation || '').trim();
     const rank = entry.frequencyRank && entry.frequencyRank > 0 ? entry.frequencyRank : idx + 1;
+
     let level = assignCEFRLevelByRank(rank);
 
     // 1. Survival Word Override
-    if (SURVIVAL_WORDS.has(term.toLowerCase())) {
-      level = 'A0';
+    if (SURVIVAL_WORDS.has(word.toLowerCase())) {
+      level = rank <= 2500 ? 'A0' : 'A1';
     }
 
-    // 2. Cognate Promotion
-    if (entry.englishTranslation) {
-      const similarity = calculateLevenshteinSimilarity(term, entry.englishTranslation);
-      if (similarity >= 0.72 && level !== 'A0') {
+    // 2. Cognate Override
+    if (word.length >= 4 && translation.length >= 4) {
+      const sim = calculateLevenshteinSimilarity(word, translation);
+      if (sim >= 0.72) {
         level = promoteCEFRBand(level);
       }
     }
 
     return {
       ...entry,
+      word,
+      translation,
+      cefr: level,
       cefrLevel: level,
     };
   });
+
+  memoMap.set(entries, sorted);
+  return sorted;
 }
