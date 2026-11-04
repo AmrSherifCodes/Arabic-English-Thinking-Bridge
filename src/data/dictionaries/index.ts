@@ -1,4 +1,19 @@
 import { SourceLanguage, TargetLanguage } from '../../types';
+import { GERMAN_DICTIONARY } from './germanDictionary';
+import { JAPANESE_DICTIONARY } from './japaneseDictionary';
+import { SPANISH_DICTIONARY } from './spanishDictionary';
+import { FRENCH_DICTIONARY } from './frenchDictionary';
+import { CHINESE_DICTIONARY } from './chineseDictionary';
+import { HINDI_DICTIONARY } from './hindiDictionary';
+import { RUSSIAN_DICTIONARY } from './russianDictionary';
+import { PORTUGUESE_DICTIONARY } from './portugueseDictionary';
+import { ITALIAN_DICTIONARY } from './italianDictionary';
+import { GREEK_DICTIONARY } from './greekDictionary';
+import { ARABIC_DICTIONARY } from './arabicDictionary';
+import { EGYPTIANARABIC_DICTIONARY } from './egyptianArabicDictionary';
+import { LEVANTINEARABIC_DICTIONARY } from './levantineArabicDictionary';
+import { GULFARABIC_DICTIONARY } from './gulfArabicDictionary';
+import { MOROCCANARABIC_DICTIONARY } from './moroccanArabicDictionary';
 
 export * from './types';
 
@@ -12,30 +27,45 @@ export interface DictWordEntry {
   romaji?: string;
 }
 
-const loadedDictionaryCache: Record<string, DictWordEntry[]> = {};
+const loadedDictionaryCache: Record<string, DictWordEntry[]> = {
+  de: GERMAN_DICTIONARY,
+  ja: JAPANESE_DICTIONARY,
+  es: SPANISH_DICTIONARY,
+  fr: FRENCH_DICTIONARY,
+  zh: CHINESE_DICTIONARY,
+  hi: HINDI_DICTIONARY,
+  ru: RUSSIAN_DICTIONARY,
+  pt: PORTUGUESE_DICTIONARY,
+  it: ITALIAN_DICTIONARY,
+  el: GREEK_DICTIONARY,
+  ar: ARABIC_DICTIONARY,
+  arz: EGYPTIANARABIC_DICTIONARY,
+  apc: LEVANTINEARABIC_DICTIONARY,
+  afb: GULFARABIC_DICTIONARY,
+  ary: MOROCCANARABIC_DICTIONARY,
+};
 
 export const DICTIONARY_LOADERS: Record<string, () => Promise<DictWordEntry[]>> = {
-  de: async () => (await import('./germanDictionary')).GERMAN_DICTIONARY,
-  ja: async () => (await import('./japaneseDictionary')).JAPANESE_DICTIONARY,
-  es: async () => (await import('./spanishDictionary')).SPANISH_DICTIONARY,
-  fr: async () => (await import('./frenchDictionary')).FRENCH_DICTIONARY,
-  zh: async () => (await import('./chineseDictionary')).CHINESE_DICTIONARY,
-  hi: async () => (await import('./hindiDictionary')).HINDI_DICTIONARY,
-  ru: async () => (await import('./russianDictionary')).RUSSIAN_DICTIONARY,
-  pt: async () => (await import('./portugueseDictionary')).PORTUGUESE_DICTIONARY,
-  it: async () => (await import('./italianDictionary')).ITALIAN_DICTIONARY,
-  el: async () => (await import('./greekDictionary')).GREEK_DICTIONARY,
-  ar: async () => (await import('./arabicDictionary')).ARABIC_DICTIONARY,
-  arz: async () => (await import('./egyptianArabicDictionary')).EGYPTIANARABIC_DICTIONARY,
-  apc: async () => (await import('./levantineArabicDictionary')).LEVANTINEARABIC_DICTIONARY,
-  afb: async () => (await import('./gulfArabicDictionary')).GULFARABIC_DICTIONARY,
-  ary: async () => (await import('./moroccanArabicDictionary')).MOROCCANARABIC_DICTIONARY,
+  de: async () => GERMAN_DICTIONARY,
+  ja: async () => JAPANESE_DICTIONARY,
+  es: async () => SPANISH_DICTIONARY,
+  fr: async () => FRENCH_DICTIONARY,
+  zh: async () => CHINESE_DICTIONARY,
+  hi: async () => HINDI_DICTIONARY,
+  ru: async () => RUSSIAN_DICTIONARY,
+  pt: async () => PORTUGUESE_DICTIONARY,
+  it: async () => ITALIAN_DICTIONARY,
+  el: async () => GREEK_DICTIONARY,
+  ar: async () => ARABIC_DICTIONARY,
+  arz: async () => EGYPTIANARABIC_DICTIONARY,
+  apc: async () => LEVANTINEARABIC_DICTIONARY,
+  afb: async () => GULFARABIC_DICTIONARY,
+  ary: async () => MOROCCANARABIC_DICTIONARY,
 };
 
 export async function getTargetDictionaryAsync(targetLang: string): Promise<DictWordEntry[]> {
-  if (loadedDictionaryCache[targetLang]) {
-    return loadedDictionaryCache[targetLang];
-  }
+  const match = loadedDictionaryCache[targetLang];
+  if (match) return match;
   const loader = DICTIONARY_LOADERS[targetLang];
   if (loader) {
     try {
@@ -50,7 +80,10 @@ export async function getTargetDictionaryAsync(targetLang: string): Promise<Dict
 }
 
 export function getTargetDictionary(targetLang: string): DictWordEntry[] {
-  return loadedDictionaryCache[targetLang] || [];
+  const match = loadedDictionaryCache[targetLang];
+  if (match) return match;
+  if (targetLang.startsWith('ar')) return ARABIC_DICTIONARY;
+  return GERMAN_DICTIONARY;
 }
 
 export async function preloadDictionaries(langs: string[]): Promise<void> {

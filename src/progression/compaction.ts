@@ -53,6 +53,9 @@ export function resolveRealSrsCardText(cardId: string): { term: string; sourceTe
   // 2. Search Loaded Dictionaries
   for (const lang of ['de', 'ja', 'es', 'fr', 'ar', 'arz']) {
     const dict = getTargetDictionary(lang);
+    if (!dict || dict.length === 0) {
+      void getTargetDictionaryAsync(lang);
+    }
     const match = dict.find((e) => e.word === cardId || e.word?.toLowerCase() === cardId.toLowerCase() || (e as any).id === cardId || e.term === cardId);
     if (match) {
       const word = match.word || match.term || cardId;

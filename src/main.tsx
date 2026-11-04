@@ -5,6 +5,12 @@ import './i18n';
 import App from './App.tsx';
 import './index.css';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { preloadDictionaries } from './data/dictionaries';
+
+// Boot-time dictionary preloading
+preloadDictionaries(['en', 'de', 'ja', 'es', 'fr', 'ar', 'arz']).catch((err) =>
+  console.warn('[DictBoot] Preload error:', err)
+);
 
 window.addEventListener('error', e => console.error('[TB_ERR]', e.message, e.filename, e.lineno));
 window.addEventListener('unhandledrejection', e => console.error('[TB_PROMISE]', e.reason));
