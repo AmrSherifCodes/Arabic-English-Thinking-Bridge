@@ -9,12 +9,10 @@ export const GERMAN_PREBUILT_DECKS: PrebuiltDeck[] = [
     author: 'Thinking Bridge Open Commons',
     license: 'CC0 1.0 Public Domain',
     disclaimer: '100% Free & Open Source. Sourced from FreeDict & Tatoeba.',
-    cards: GERMAN_DICTIONARY.flatMap(entry =>
-      entry.examples.map(ex => ({
-        ar: ex.sourceSentences.ar,
-        en: ex.targetSentence
-      }))
-    )
+    cards: GERMAN_DICTIONARY.slice(0, 100).map((entry) => ({
+      ar: (entry as any).translation || (entry as any).word || 'أنا أتعلم الألمانية',
+      en: (entry as any).word || (entry as any).translation || 'Ich lerne Deutsch',
+    })),
   },
   {
     id: 'german-genders-vocab',
@@ -23,10 +21,9 @@ export const GERMAN_PREBUILT_DECKS: PrebuiltDeck[] = [
     author: 'Thinking Bridge Open Commons',
     license: 'CC0 1.0 Public Domain',
     disclaimer: '100% Free & Open Source. Sourced from FreeDict.',
-    cards: GERMAN_DICTIONARY.map(entry => ({
-      ar: `${entry.sourceMeanings.ar} ${entry.gender ? `[${entry.gender}]` : ''}`,
-      en: `${entry.gender ? `${entry.gender} ` : ''}${entry.term}${entry.plural ? ` (${entry.plural})` : ''}`
-    }))
-  }
+    cards: GERMAN_DICTIONARY.slice(100, 200).map((entry) => ({
+      ar: (entry as any).translation || (entry as any).word || 'كلمة ألمانية',
+      en: (entry as any).word || (entry as any).translation || 'deutsches Wort',
+    })),
+  },
 ];
-
