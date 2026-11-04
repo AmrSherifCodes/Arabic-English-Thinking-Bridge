@@ -82,8 +82,10 @@ export async function getTargetDictionaryAsync(targetLang: string): Promise<Dict
 export function getTargetDictionary(targetLang: string): DictWordEntry[] {
   const match = loadedDictionaryCache[targetLang];
   if (match) return match;
-  if (targetLang.startsWith('ar')) return ARABIC_DICTIONARY;
-  return GERMAN_DICTIONARY;
+  if (targetLang?.startsWith('ar')) return ARABIC_DICTIONARY;
+  if (targetLang === 'en') return [];
+  void getTargetDictionaryAsync(targetLang);
+  return [];
 }
 
 export async function preloadDictionaries(langs: string[]): Promise<void> {
