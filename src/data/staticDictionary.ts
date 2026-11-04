@@ -25,11 +25,11 @@ const EGYPTIAN_STARTER_ENTRIES: LexiconEntry[] = [
     dialect: 'egyptian',
     level: 'beginner',
     exampleSentenceArabic: 'إزيك يا صاحبي، عامل إيه النهارده؟',
-    exampleSentenceEnglish: 'How are you my friend, how are you doing today?'
+    exampleSentenceEnglish: 'How are you, my friend? How are you doing today?'
   },
   {
     arabicWord: 'عايز',
-    englishTranslation: 'I want / need',
+    englishTranslation: 'I want',
     partOfSpeech: 'verb',
     situations: ['student', 'call-center', 'public-matter'],
     dialect: 'egyptian',
@@ -45,7 +45,7 @@ const EGYPTIAN_STARTER_ENTRIES: LexiconEntry[] = [
     dialect: 'egyptian',
     level: 'beginner',
     exampleSentenceArabic: 'أنا بذاكر دلوقتي ومش فاضي.',
-    exampleSentenceEnglish: 'I am studying right now and I am not free.'
+    exampleSentenceEnglish: "I'm studying right now, so I'm not available."
   },
   {
     arabicWord: 'النهارده',
@@ -75,7 +75,7 @@ const EGYPTIAN_STARTER_ENTRIES: LexiconEntry[] = [
     dialect: 'egyptian',
     level: 'beginner',
     exampleSentenceArabic: 'تحت أمرك يا فندم، هراجع الحساب فوراً.',
-    exampleSentenceEnglish: 'At your service sir/madam, I will check the account right away.'
+    exampleSentenceEnglish: "Certainly. I'll check the account right away."
   },
   {
     arabicWord: 'ثانية واحدة',
@@ -85,7 +85,7 @@ const EGYPTIAN_STARTER_ENTRIES: LexiconEntry[] = [
     dialect: 'egyptian',
     level: 'beginner',
     exampleSentenceArabic: 'ثانية واحدة معايا على الخط يا فندم.',
-    exampleSentenceEnglish: 'One moment with me on the line, please.'
+    exampleSentenceEnglish: 'Please stay on the line for a moment.'
   },
   {
     arabicWord: 'بكام ده؟',

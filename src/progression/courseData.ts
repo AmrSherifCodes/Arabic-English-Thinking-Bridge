@@ -1,10 +1,11 @@
-import { StageNode, CefrStage, UnitNode, LessonNode, ExerciseItem, ExerciseType } from './types';
+import { StageNode, UnitNode, LessonNode, ExerciseItem, ExerciseType } from './types';
 import { PHASES_DATA } from '../data/lessons';
+import type { Exercise, Lesson } from '../types';
 
 /**
  * Converts legacy exercise structure into structured ExerciseItem with ExerciseTypes.
  */
-function mapLegacyExerciseToItem(ex: any, lessonId: string, idx: number): ExerciseItem {
+function mapLegacyExerciseToItem(ex: Exercise, lessonId: string, idx: number): ExerciseItem {
   let type: ExerciseType = 'structure_builder';
   if (ex.wordChips && ex.wordChips.length > 0) {
     type = 'structure_builder';
@@ -12,52 +13,64 @@ function mapLegacyExerciseToItem(ex: any, lessonId: string, idx: number): Exerci
     type = 'translate_thought';
   }
 
-  const chips = ex.options || ex.wordChips || (ex.englishTarget ? ex.englishTarget.split(' ') : ['I', 'learn', 'English']);
+  const chips = ex.wordChips.length > 0 ? ex.wordChips : ex.englishTarget.split(' ');
 
   return {
     id: ex.id || `ex-${lessonId}-${idx}`,
     type,
-    promptAr: ex.arabicThought || ex.sourceThought || ex.promptAr || 'عبر عن المعنى بالإنجليزي:',
-    promptEn: ex.englishTarget || ex.targetSentence || ex.promptEn || '',
-    targetSentence: ex.englishTarget || ex.targetSentence || '',
+    promptAr: ex.arabicThought || ex.sourceThought || 'عبر عن المعنى بالإنجليزي:',
+    promptEn: ex.englishTarget || ex.targetSentence || '',
+    targetSentence: ex.targetSentence || ex.englishTarget,
     acceptableAlternatives: ex.acceptableAlternatives || [],
     wordChips: chips,
     options: chips,
-    explanationAr: ex.habitHint || ex.habitHintAr || ex.explanationAr || 'ركز على تركيب الجملة وتجنب الترجمة الحرفية.',
+    explanationAr: ex.habitHintAr || 'ركز على تركيب الجملة وتجنب الترجمة الحرفية.',
     explanationEn: 'Focus on English structure rather than word-for-word translation.',
     skillAxes: ['structure', 'writing', 'vocabulary'],
   };
 }
 
 /**
- * Maps the 27 canonical lessons from PHASES_DATA into 7 CEFR Stages (A0 to C2).
+ * Maps the three canonical curriculum phases into A0, A1, and A2.
  */
 export function buildCourseStructure(): StageNode[] {
-  const allLessons = PHASES_DATA.flatMap((phase) => phase.lessons);
-
-  // Divide 27 lessons across Stages A0, A1, A2
-  const a0Lessons = allLessons.slice(0, 9);
-  const a1Lessons = allLessons.slice(9, 18);
-  const a2Lessons = allLessons.slice(18, 27);
-  const b1Lessons = allLessons.slice(9, 18);
-  const b2Lessons = allLessons.slice(18, 27);
-  const c1Lessons = allLessons.slice(18, 27);
-  const c2Lessons = allLessons.slice(18, 27);
+  const stageDefinitions: Omit<StageNode, 'units' | 'stageExam'>[] = [
+    {
+      stage: 'A0',
+      titleAr: 'المرحلة A0 · الانطلاقة والأساسات',
+      titleEn: 'Stage A0 · Absolute Starter Foundations',
+      descriptionAr: 'بناء الجمل الأساسية وفهم الهيكل الإنجليزي الأولي',
+      descriptionEn: 'Build essential sentence patterns and core English structure',
+    },
+    {
+      stage: 'A1',
+      titleAr: 'المرحلة A1 · التفكير اليومي والتعبير',
+      titleEn: 'Stage A1 · Everyday Thinking & Expression',
+      descriptionAr: 'التعبير عن الأحداث والروابط والمواقف اليومية',
+      descriptionEn: 'Express everyday events, relationships, and situations',
+    },
+    {
+      stage: 'A2',
+      titleAr: 'المرحلة A2 · الجمل المركبة والربط',
+      titleEn: 'Stage A2 · Complex Sentences & Connectors',
+      descriptionAr: 'ربط الأفكار والتعبير بدقة في سياقات متنوعة',
+      descriptionEn: 'Connect ideas and communicate precisely in varied contexts',
+    },
+  ];
 
   const createStageNode = (
-    stage: CefrStage,
-    titleAr: string,
-    titleEn: string,
-    descAr: string,
-    descEn: string,
-    rawLessons: any[]
+    definition: Omit<StageNode, 'units' | 'stageExam'>,
+    rawLessons: Lesson[]
   ): StageNode => {
-    // Group raw lessons into 3 Units per Stage
-    const unit1Lessons = rawLessons.slice(0, 3);
-    const unit2Lessons = rawLessons.slice(3, 6);
-    const unit3Lessons = rawLessons.slice(6, 9);
+    const stage = definition.stage;
+    const unitLessonGroups = Array.from({ length: 3 }, (_, index) =>
+      rawLessons.slice(
+        Math.floor((index * rawLessons.length) / 3),
+        Math.floor(((index + 1) * rawLessons.length) / 3)
+      )
+    );
 
-    const mapToLessonNode = (l: any, unitId: string): LessonNode => ({
+    const mapToLessonNode = (l: Lesson, unitId: string): LessonNode => ({
       id: `${stage.toLowerCase()}-${l.id}`,
       unitId,
       stage,
@@ -66,121 +79,42 @@ export function buildCourseStructure(): StageNode[] {
       descriptionAr: l.transferConceptAr || l.transferConcept || '',
       descriptionEn: l.transferConcept || '',
       icon: '🧠',
-      exercises: l.exercises.map((ex: any, idx: number) => mapLegacyExerciseToItem(ex, l.id, idx)),
+      exercises: l.exercises.map((ex, idx) => mapLegacyExerciseToItem(ex, l.id, idx)),
     });
 
-    const units: UnitNode[] = [
-      {
-        id: `${stage.toLowerCase()}-unit-1`,
+    const units: UnitNode[] = unitLessonGroups.map((unitLessons, index) => {
+      const unitId = `${stage.toLowerCase()}-unit-${index + 1}`;
+      const titlesEn = ['Sentence Foundations', 'Guided Practice', 'Independent Use'];
+      const titlesAr = ['أساسيات الجملة', 'التدريب الموجّه', 'الاستخدام المستقل'];
+      const colors = ['#2DD4BF', '#F5B942', '#3B82F6'];
+      const icons = ['🧱', '⚡', '🚀'];
+      const checkpointTest = unitLessons.flatMap((lesson) =>
+        lesson.exercises.map((ex, idx) => mapLegacyExerciseToItem(ex, lesson.id, idx))
+      );
+
+      return {
+        id: unitId,
         stage,
-        titleAr: `الوحدة الأولى — الهيكل والأساسيات (${stage})`,
-        titleEn: `Unit 1 — Core Sentence Structure (${stage})`,
-        descriptionAr: 'تفكيك عقدة الجملة والروابط المحذوفة',
-        descriptionEn: 'Deconstructing Arabic-English transfer gaps',
-        icon: '🧱',
-        color: '#2DD4BF',
-        lessons: unit1Lessons.map((l) => mapToLessonNode(l, `${stage.toLowerCase()}-unit-1`)),
-        checkpointTest: unit1Lessons.flatMap((l) =>
-          l.exercises.map((ex: any, idx: number) => mapLegacyExerciseToItem(ex, l.id, idx))
-        ),
-      },
-      {
-        id: `${stage.toLowerCase()}-unit-2`,
-        stage,
-        titleAr: `الوحدة الثانية — الزمن والتعبير اليومي (${stage})`,
-        titleEn: `Unit 2 — Tenses & Daily Expressions (${stage})`,
-        descriptionAr: 'الانتقال إلى التفكير المباشر بدون تردد',
-        descriptionEn: 'Building instant spoken reflexes',
-        icon: '⚡',
-        color: '#F5B942',
-        lessons: unit2Lessons.map((l) => mapToLessonNode(l, `${stage.toLowerCase()}-unit-2`)),
-        checkpointTest: unit2Lessons.flatMap((l) =>
-          l.exercises.map((ex: any, idx: number) => mapLegacyExerciseToItem(ex, l.id, idx))
-        ),
-      },
-      {
-        id: `${stage.toLowerCase()}-unit-3`,
-        stage,
-        titleAr: `الوحدة الثالثة — الطلاقة التلقائية (${stage})`,
-        titleEn: `Unit 3 — Spontaneous Fluency (${stage})`,
-        descriptionAr: 'إتقان التعبيرات المركبة ونطق الشارع',
-        descriptionEn: 'Mastering idioms and conversational pace',
-        icon: '🚀',
-        color: '#3B82F6',
-        lessons: unit3Lessons.map((l) => mapToLessonNode(l, `${stage.toLowerCase()}-unit-3`)),
-        checkpointTest: unit3Lessons.flatMap((l) =>
-          l.exercises.map((ex: any, idx: number) => mapLegacyExerciseToItem(ex, l.id, idx))
-        ),
-      },
-    ];
+        titleAr: `الوحدة ${index + 1} — ${titlesAr[index]} (${stage})`,
+        titleEn: `Unit ${index + 1} — ${titlesEn[index]} (${stage})`,
+        descriptionAr: 'تدريبات متدرجة لترسيخ بناء الجملة',
+        descriptionEn: 'Progressive practice to reinforce sentence construction',
+        icon: icons[index],
+        color: colors[index],
+        lessons: unitLessons.map((lesson) => mapToLessonNode(lesson, unitId)),
+        checkpointTest,
+      };
+    });
 
     return {
-      stage,
-      titleAr,
-      titleEn,
-      descriptionAr: descAr,
-      descriptionEn: descEn,
+      ...definition,
       units,
       stageExam: units.flatMap((u) => u.checkpointTest).slice(0, 10),
     };
   };
 
-  return [
-    createStageNode(
-      'A0',
-      'المرحلة A0 · الانطلاقة والأساسات',
-      'Stage A0 · Absolute Starter Foundations',
-      'بناء الهيكل البنائي الأولي والجمل الاسمية الأساسية',
-      'Mastering fundamental sentence patterns and zero-copula bridging',
-      a0Lessons
-    ),
-    createStageNode(
-      'A1',
-      'المرحلة A1 · التفكير اليومي والتعبير',
-      'Stage A1 · Everyday Thinking & Expression',
-      'حياة الشارع، الأفعال المباشرة والأنشطة اليومية',
-      'Everyday conversations, direct verbs, and routine thinking',
-      a1Lessons
-    ),
-    createStageNode(
-      'A2',
-      'المرحلة A2 · الجمل المركبة والربط',
-      'Stage A2 · Complex Sentences & Connectors',
-      'ربط الأفكار، أدوات الربط والحديث بدون انقطاع',
-      'Connecting thoughts smoothly with natural English connectors',
-      a2Lessons
-    ),
-    createStageNode(
-      'B1',
-      'المرحلة B1 · الاستقلالية والطلاقة',
-      'Stage B1 · Independent Fluency',
-      'التعبير عن الآراء، الأبحاث والمواقف المعقدة',
-      'Expressing opinions and handling complex scenarios',
-      b1Lessons
-    ),
-    createStageNode(
-      'B2',
-      'المرحلة B2 · الصياغات الاحترافية والعمل',
-      'Stage B2 · Corporate & Workplace Master',
-      'التحول من البلدي إلى Corporate واللغة المهنية',
-      'Executive phrasing and workplace communication',
-      b2Lessons
-    ),
-    createStageNode(
-      'C1',
-      'المرحلة C1 · الاحتراف المتقدم والعمق',
-      'Stage C1 · Advanced Nuance & Register',
-      'الدقة اللغوية، البلاغة والتفكير الأكاديمي',
-      'Academic research, register control, and nuance',
-      c1Lessons
-    ),
-    createStageNode(
-      'C2',
-      'المرحلة C2 · طلاقة المتحدث الأصلي',
-      'Stage C2 · Native-Level Mastery',
-      'التحدث بفطرة المتحدث الأصلي الكاملة',
-      'Effortless native cognitive intuition',
-      c2Lessons
-    ),
-  ];
+  const allLessons = PHASES_DATA.flatMap((phase) => phase.lessons);
+  return stageDefinitions.map((definition, index) =>
+    createStageNode(definition, allLessons.slice(index * 9, (index + 1) * 9))
+  );
 }
