@@ -1,120 +1,135 @@
-import { StageNode, UnitNode, LessonNode, ExerciseItem, ExerciseType } from './types';
+import { StageNode, UnitNode, LessonNode, ExerciseItem, ExerciseType, ProgressionState } from './types';
 import { PHASES_DATA } from '../data/lessons';
 import type { Exercise, Lesson } from '../types';
 
-/**
- * Converts legacy exercise structure into structured ExerciseItem with ExerciseTypes.
- */
-function mapLegacyExerciseToItem(ex: Exercise, lessonId: string, idx: number): ExerciseItem {
-  let type: ExerciseType = 'structure_builder';
-  if (ex.wordChips && ex.wordChips.length > 0) {
-    type = 'structure_builder';
-  } else if (idx % 2 === 1) {
-    type = 'translate_thought';
-  }
+const LESSONS_PER_STAGE = 9;
 
-  const chips = ex.wordChips.length > 0 ? ex.wordChips : ex.englishTarget.split(' ');
+const STAGE_DEFINITIONS: Omit<StageNode, 'units' | 'stageExam'>[] = [
+  {
+    stage: 'A0',
+    titleAr: 'المرحلة A0 · الانطلاقة والأساسات',
+    titleEn: 'Stage A0 · Absolute Starter Foundations',
+    descriptionAr: 'بناء الجمل الأساسية وفهم الهيكل الإنجليزي الأولي',
+    descriptionEn: 'Build essential sentence patterns and core English structure',
+  },
+  {
+    stage: 'A1',
+    titleAr: 'المرحلة A1 · التفكير اليومي والتعبير',
+    titleEn: 'Stage A1 · Everyday Thinking & Expression',
+    descriptionAr: 'التعبير عن الأحداث والروابط والمواقف اليومية',
+    descriptionEn: 'Express everyday events, relationships, and situations',
+  },
+  {
+    stage: 'A2',
+    titleAr: 'المرحلة A2 · الجمل المركبة والربط',
+    titleEn: 'Stage A2 · Complex Sentences & Connectors',
+    descriptionAr: 'ربط الأفكار والتعبير بدقة في سياقات متنوعة',
+    descriptionEn: 'Connect ideas and communicate precisely in varied contexts',
+  },
+];
+
+function mapLegacyExerciseToItem(exercise: Exercise, lessonId: string, index: number): ExerciseItem {
+  const chips = exercise.wordChips.length > 0
+    ? exercise.wordChips
+    : exercise.englishTarget.split(' ');
+  const type: ExerciseType = chips.length > 0 ? 'structure_builder' : 'translate_thought';
 
   return {
-    id: ex.id || `ex-${lessonId}-${idx}`,
+    id: exercise.id || `ex-${lessonId}-${index}`,
     type,
-    promptAr: ex.arabicThought || ex.sourceThought || 'عبر عن المعنى بالإنجليزي:',
-    promptEn: ex.englishTarget || ex.targetSentence || '',
-    targetSentence: ex.targetSentence || ex.englishTarget,
-    acceptableAlternatives: ex.acceptableAlternatives || [],
+    promptAr: exercise.arabicThought || exercise.sourceThought || 'عبر عن المعنى بالإنجليزي:',
+    promptEn: exercise.englishTarget || exercise.targetSentence || '',
+    targetSentence: exercise.targetSentence || exercise.englishTarget,
+    acceptableAlternatives: exercise.acceptableAlternatives,
     wordChips: chips,
     options: chips,
-    explanationAr: ex.habitHintAr || 'ركز على تركيب الجملة وتجنب الترجمة الحرفية.',
+    explanationAr: exercise.habitHintAr || 'ركز على تركيب الجملة وتجنب الترجمة الحرفية.',
     explanationEn: 'Focus on English structure rather than word-for-word translation.',
     skillAxes: ['structure', 'writing', 'vocabulary'],
   };
 }
 
-/**
- * Maps the three canonical curriculum phases into A0, A1, and A2.
- */
-export function buildCourseStructure(): StageNode[] {
-  const stageDefinitions: Omit<StageNode, 'units' | 'stageExam'>[] = [
-    {
-      stage: 'A0',
-      titleAr: 'المرحلة A0 · الانطلاقة والأساسات',
-      titleEn: 'Stage A0 · Absolute Starter Foundations',
-      descriptionAr: 'بناء الجمل الأساسية وفهم الهيكل الإنجليزي الأولي',
-      descriptionEn: 'Build essential sentence patterns and core English structure',
-    },
-    {
-      stage: 'A1',
-      titleAr: 'المرحلة A1 · التفكير اليومي والتعبير',
-      titleEn: 'Stage A1 · Everyday Thinking & Expression',
-      descriptionAr: 'التعبير عن الأحداث والروابط والمواقف اليومية',
-      descriptionEn: 'Express everyday events, relationships, and situations',
-    },
-    {
-      stage: 'A2',
-      titleAr: 'المرحلة A2 · الجمل المركبة والربط',
-      titleEn: 'Stage A2 · Complex Sentences & Connectors',
-      descriptionAr: 'ربط الأفكار والتعبير بدقة في سياقات متنوعة',
-      descriptionEn: 'Connect ideas and communicate precisely in varied contexts',
-    },
-  ];
+function createStageNode(
+  definition: Omit<StageNode, 'units' | 'stageExam'>,
+  lessons: Lesson[]
+): StageNode {
+  const unitGroups = Array.from({ length: 3 }, (_, index) =>
+    lessons.slice(
+      Math.floor((index * lessons.length) / 3),
+      Math.floor(((index + 1) * lessons.length) / 3)
+    )
+  );
 
-  const createStageNode = (
-    definition: Omit<StageNode, 'units' | 'stageExam'>,
-    rawLessons: Lesson[]
-  ): StageNode => {
-    const stage = definition.stage;
-    const unitLessonGroups = Array.from({ length: 3 }, (_, index) =>
-      rawLessons.slice(
-        Math.floor((index * rawLessons.length) / 3),
-        Math.floor(((index + 1) * rawLessons.length) / 3)
-      )
-    );
-
-    const mapToLessonNode = (l: Lesson, unitId: string): LessonNode => ({
-      id: `${stage.toLowerCase()}-${l.id}`,
+  const units: UnitNode[] = unitGroups.map((unitLessons, index) => {
+    const unitId = `${definition.stage.toLowerCase()}-unit-${index + 1}`;
+    const mappedLessons = unitLessons.map((lesson): LessonNode => ({
+      id: `${definition.stage.toLowerCase()}-${lesson.id}`,
       unitId,
-      stage,
-      titleAr: l.titleAr || l.title,
-      titleEn: l.title || l.titleAr,
-      descriptionAr: l.transferConceptAr || l.transferConcept || '',
-      descriptionEn: l.transferConcept || '',
+      stage: definition.stage,
+      titleAr: lesson.titleAr || lesson.title,
+      titleEn: lesson.title || lesson.titleAr,
+      descriptionAr: lesson.transferConceptAr || lesson.transferConcept,
+      descriptionEn: lesson.transferConcept,
       icon: '🧠',
-      exercises: l.exercises.map((ex, idx) => mapLegacyExerciseToItem(ex, l.id, idx)),
-    });
-
-    const units: UnitNode[] = unitLessonGroups.map((unitLessons, index) => {
-      const unitId = `${stage.toLowerCase()}-unit-${index + 1}`;
-      const titlesEn = ['Sentence Foundations', 'Guided Practice', 'Independent Use'];
-      const titlesAr = ['أساسيات الجملة', 'التدريب الموجّه', 'الاستخدام المستقل'];
-      const colors = ['#2DD4BF', '#F5B942', '#3B82F6'];
-      const icons = ['🧱', '⚡', '🚀'];
-      const checkpointTest = unitLessons.flatMap((lesson) =>
-        lesson.exercises.map((ex, idx) => mapLegacyExerciseToItem(ex, lesson.id, idx))
-      );
-
-      return {
-        id: unitId,
-        stage,
-        titleAr: `الوحدة ${index + 1} — ${titlesAr[index]} (${stage})`,
-        titleEn: `Unit ${index + 1} — ${titlesEn[index]} (${stage})`,
-        descriptionAr: 'تدريبات متدرجة لترسيخ بناء الجملة',
-        descriptionEn: 'Progressive practice to reinforce sentence construction',
-        icon: icons[index],
-        color: colors[index],
-        lessons: unitLessons.map((lesson) => mapToLessonNode(lesson, unitId)),
-        checkpointTest,
-      };
-    });
+      exercises: lesson.exercises.map((exercise, exerciseIndex) =>
+        mapLegacyExerciseToItem(exercise, lesson.id, exerciseIndex)
+      ),
+    }));
 
     return {
-      ...definition,
-      units,
-      stageExam: units.flatMap((u) => u.checkpointTest).slice(0, 10),
+      id: unitId,
+      stage: definition.stage,
+      titleAr: `الوحدة ${index + 1} — ${['أساسيات الجملة', 'التدريب الموجّه', 'الاستخدام المستقل'][index]} (${definition.stage})`,
+      titleEn: `Unit ${index + 1} — ${['Sentence Foundations', 'Guided Practice', 'Independent Use'][index]} (${definition.stage})`,
+      descriptionAr: 'تدريبات متدرجة لترسيخ بناء الجملة',
+      descriptionEn: 'Progressive practice to reinforce sentence construction',
+      icon: ['🧱', '⚡', '🚀'][index],
+      color: ['#2DD4BF', '#F5B942', '#3B82F6'][index],
+      lessons: mappedLessons,
+      checkpointTest: unitLessons.flatMap((lesson) =>
+        lesson.exercises.map((exercise, exerciseIndex) =>
+          mapLegacyExerciseToItem(exercise, lesson.id, exerciseIndex)
+        )
+      ),
     };
-  };
+  });
 
-  const allLessons = PHASES_DATA.flatMap((phase) => phase.lessons);
-  return stageDefinitions.map((definition, index) =>
-    createStageNode(definition, allLessons.slice(index * 9, (index + 1) * 9))
+  return {
+    ...definition,
+    units,
+    stageExam: units.flatMap((unit) => unit.checkpointTest).slice(0, 10),
+  };
+}
+
+export function buildCourseStructure(): StageNode[] {
+  const lessons = PHASES_DATA.flatMap((phase) => phase.lessons);
+  return STAGE_DEFINITIONS.map((definition, index) =>
+    createStageNode(
+      definition,
+      lessons.slice(index * LESSONS_PER_STAGE, (index + 1) * LESSONS_PER_STAGE)
+    )
   );
+}
+
+export function isStageUnlocked(state: ProgressionState, stage: StageNode['stage']): boolean {
+  const stages = buildCourseStructure();
+  const activeStageIndex = stages.findIndex((item) => item.stage === state.currentStage);
+  const requestedStageIndex = stages.findIndex((item) => item.stage === stage);
+  return requestedStageIndex >= 0 && activeStageIndex >= 0 && requestedStageIndex <= activeStageIndex;
+}
+
+export function isLessonUnlocked(state: ProgressionState, lesson: LessonNode): boolean {
+  if (!isStageUnlocked(state, lesson.stage)) return false;
+  if (state.completedLessonIds.includes(lesson.id)) return true;
+  if (lesson.stage !== state.currentStage) return true;
+
+  const stage = buildCourseStructure().find((item) => item.stage === lesson.stage);
+  if (!stage) return false;
+
+  const lessons = stage.units.flatMap((unit) => unit.lessons);
+  const nextLessonIndex = lessons.findIndex(
+    (item) => !state.completedLessonIds.includes(item.id)
+  );
+  const lessonIndex = lessons.findIndex((item) => item.id === lesson.id);
+  return nextLessonIndex < 0 || (lessonIndex >= 0 && lessonIndex <= nextLessonIndex);
 }

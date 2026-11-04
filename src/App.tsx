@@ -21,6 +21,7 @@ import { PreferencesView } from './features/preferences/PreferencesView';
 
 import { FeedbackModal } from './components/FeedbackModal';
 import { LandingView } from './components/LandingView';
+import { LandingPage } from './components/LandingPage';
 import { PwaInstallBanner } from './components/PwaInstallBanner';
 import { useUserProfile } from './hooks/useUserProfile';
 import { loadUserProgress, saveUserProgress } from './utils/storage';
@@ -33,6 +34,7 @@ import { LanguagePairBanner } from './components/LanguagePairBanner';
 import { ProgressionState, LessonNode } from './progression/types';
 import { migrateLegacyStorageToProgression } from './progression/migration';
 import { updateStreakAndShields } from './progression/engine';
+import { buildCourseStructure, isLessonUnlocked } from './progression/courseData';
 
 type View =
   | { name: 'shell' }
@@ -46,12 +48,27 @@ export default function App() {
   const [view, setView] = useState<View>(() => {
     try {
       if (typeof window !== 'undefined') {
+        const path = window.location.pathname.toLowerCase();
         const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('landing') === 'true') return { name: 'landing' };
+        const isNative = Capacitor.isNativePlatform();
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
+
+        if (!isNative && !isStandalone && (path === '/' || path === '' || urlParams.get('landing') === 'true')) {
+          return { name: 'landing' };
+        }
       }
     } catch {}
     return { name: 'shell' };
   });
+
+  const launchApp = () => {
+    try {
+      if (typeof window !== 'undefined' && window.history) {
+        window.history.pushState({}, '', '/app');
+      }
+    } catch {}
+    setView({ name: 'shell' });
+  };
 
   const [activeTab, setActiveTab] = useState<AppTab>('path');
   const [progression, setProgression] = useState<ProgressionState>(() => {
@@ -141,10 +158,22 @@ export default function App() {
   const goHome = () => setView({ name: 'shell' });
 
   const handleLessonSessionComplete = (earnedXp: number, _accuracyPercent: number) => {
+    const course = buildCourseStructure();
+    const completedIds = new Set(progression.completedLessonIds);
+    if (activeLessonNode) completedIds.add(activeLessonNode.id);
+    const currentStageLessons = course
+      .find((stage) => stage.stage === progression.currentStage)
+      ?.units.flatMap((unit) => unit.lessons) ?? [];
+    const stageCompleted = currentStageLessons.length > 0 &&
+      currentStageLessons.every((lesson) => completedIds.has(lesson.id));
+    const currentStageIndex = course.findIndex((stage) => stage.stage === progression.currentStage);
+    const nextStage = stageCompleted ? course[currentStageIndex + 1]?.stage : undefined;
+
     updateProgression((prev) => ({
       ...prev,
       xp: prev.xp + earnedXp,
       streak: prev.streak === 0 ? 1 : prev.streak,
+      currentStage: nextStage || prev.currentStage,
       completedLessonIds: activeLessonNode
         ? Array.from(new Set([...prev.completedLessonIds, activeLessonNode.id]))
         : prev.completedLessonIds,
@@ -155,11 +184,13 @@ export default function App() {
           }
         : prev.lessonCrowns,
     }));
-    showToast(T(`🎉 +${earnedXp} XP! درس مكتمل بنجاح`, `🎉 +${earnedXp} XP! Lesson Mastered!`));
+    showToast(nextStage
+      ? T(`🔓 فتحت المرحلة ${nextStage}! +${earnedXp} XP`, `🔓 ${nextStage} unlocked! +${earnedXp} XP`)
+      : T(`🎉 +${earnedXp} XP! درس مكتمل بنجاح`, `🎉 +${earnedXp} XP! Lesson Mastered!`));
   };
 
   if (view.name === 'landing') {
-    return <LandingView onStartWebApp={() => setView({ name: 'shell' })} isArabic={isArabic} />;
+    return <LandingPage onLaunchApp={launchApp} isArabic={isArabic} />;
   }
 
   return (
@@ -183,12 +214,10 @@ export default function App() {
               />
               <PathView
                 state={progression}
-                onSelectLesson={(lesson) => setActiveLessonNode(lesson)}
-                onSelectUnitCheckpoint={() => {}}
-                onSetStage={(stage) => {
-                  updateProgression((p) => ({ ...p, currentStage: stage }));
-                  showToast(isArabic ? `تم تحديد مستواك: ${stage}` : `Your level is now ${stage}`);
+                onSelectLesson={(lesson) => {
+                  if (isLessonUnlocked(progression, lesson)) setActiveLessonNode(lesson);
                 }}
+                onSelectUnitCheckpoint={() => {}}
                 isArabic={isArabic}
               />
             </div>
@@ -239,6 +268,7 @@ export default function App() {
                 window.location.reload();
               }}
               onOpenPrivacyPolicy={() => setPrivacyOpen(true)}
+              onOpenPreferences={() => setView({ name: 'preferences' })}
               isArabic={isArabic}
             />
           )}
