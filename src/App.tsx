@@ -291,6 +291,7 @@ export default function App() {
                 window.location.reload();
               }}
               onOpenPrivacyPolicy={() => setPrivacyOpen(true)}
+              onToast={(msg) => showToast(T(msg, msg))}
               isArabic={isArabic}
             />
           )}

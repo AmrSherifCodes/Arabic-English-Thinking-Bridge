@@ -1,7 +1,7 @@
 import { StageNode, UnitNode, LessonNode, ExerciseItem, ExerciseType, ProgressionState } from './types';
 import { PHASES_DATA } from '../data/lessons';
 import { TARGET_LANGUAGES, TARGET_LANGUAGE_META } from '../data/languages';
-import type { Exercise, Lesson } from '../types';
+import type { ChunkRole, Exercise, Lesson } from '../types';
 
 const LESSONS_PER_STAGE = 9;
 
@@ -229,13 +229,174 @@ const LOCALIZED_A0_LESSONS: Record<LocalizedTarget, LocalizedLessonDefinition[]>
   ],
 };
 
-function createLocalizedA0Stage(
+type LocalizedChunk = [arabicText: string, englishText: string, role: ChunkRole, explanation: string];
+
+function localizedLesson(
+  id: string,
+  titleEn: string,
+  titleAr: string,
+  promptAr: string,
+  promptEn: string,
+  targetSentence: string,
+  chunks: LocalizedChunk[],
+): LocalizedLessonDefinition {
+  return {
+    id,
+    titleEn,
+    titleAr,
+    descriptionEn: titleEn,
+    descriptionAr: titleAr,
+    promptAr,
+    promptEn,
+    targetSentence,
+    wordChips: targetSentence.split(' '),
+    breakdownChunks: chunks.map(([arabicText, englishText, role, explanation]) => ({
+      arabicText,
+      englishText,
+      role,
+      explanation,
+    })),
+    explanationAr: promptAr,
+    explanationEn: promptEn,
+  };
+}
+
+const LOCALIZED_A1_A2_LESSONS: Record<LocalizedTarget, Record<'A1' | 'A2', LocalizedLessonDefinition[]>> = {
+  de: {
+    A1: [
+      localizedLesson('de-a1-separable-aufstehen', 'Separable Verbs: aufstehen', 'الأفعال المنفصلة: الاستيقاظ', 'أنا أستيقظ في السابعة.', 'Place the separable prefix at the end.', 'Ich stehe um sieben Uhr auf.', [
+        ['أنا', 'Ich', 'subject', 'The subject starts the clause.'],
+        ['أستيقظ', 'stehe', 'verb', 'The conjugated verb takes the second position.'],
+        ['في السابعة', 'um sieben Uhr', 'modifier', 'The time phrase follows the conjugated verb.'],
+        ['بادئة الفعل المنفصلة', 'auf', 'connector', 'The prefix separates and moves to the end of the main clause.'],
+      ]),
+      localizedLesson('de-a1-separable-anrufen', 'Separable Verbs: anrufen', 'الأفعال المنفصلة: الاتصال', 'هو يتصل بأمه اليوم.', 'Conjugate anrufen and place its prefix last.', 'Er ruft seine Mutter heute an.', [
+        ['هو', 'Er', 'subject', 'The subject performs the action.'],
+        ['يتصل', 'ruft', 'verb', 'The conjugated part of anrufen is in second position.'],
+        ['أمه', 'seine Mutter', 'object', 'The direct object follows the verb.'],
+        ['اليوم', 'heute', 'modifier', 'The time word appears before the separated prefix.'],
+        ['بادئة الفعل', 'an', 'connector', 'The separable prefix moves to the end.'],
+      ]),
+      localizedLesson('de-a1-modal-muessen', 'Modal Verbs and the Infinitive', 'الأفعال الناقصة والمصدر', 'علينا أن نعمل اليوم.', 'Use müssen in second position and the infinitive at the end.', 'Wir müssen heute arbeiten.', [
+        ['نحن', 'Wir', 'subject', 'The subject comes first.'],
+        ['يجب علينا', 'müssen', 'auxiliary', 'The conjugated modal verb takes second position.'],
+        ['اليوم', 'heute', 'modifier', 'The time expression sits in the middle field.'],
+        ['أن نعمل', 'arbeiten', 'verb', 'The infinitive goes to the end after a modal verb.'],
+      ]),
+    ],
+    A2: [
+      localizedLesson('de-a2-perfekt', 'Talking About the Past with Perfekt', 'التحدث عن الماضي بصيغة Perfekt', 'شاهدت فيلماً أمس.', 'Build the past with haben and a participle at the end.', 'Ich habe gestern einen Film gesehen.', [
+        ['أنا', 'Ich', 'subject', 'The subject starts the sentence.'],
+        ['قد', 'habe', 'auxiliary', 'The auxiliary haben is conjugated in second position.'],
+        ['أمس', 'gestern', 'modifier', 'The time expression follows the auxiliary.'],
+        ['فيلماً', 'einen Film', 'object', 'The masculine direct object takes einen.'],
+        ['شاهدت', 'gesehen', 'verb', 'The past participle goes at the end.'],
+      ]),
+      localizedLesson('de-a2-dative', 'Dative Objects', 'المفعول غير المباشر في حالة Dativ', 'هي تساعد أخاها.', 'Use the dative form ihrem Bruder after helfen.', 'Sie hilft ihrem Bruder.', [
+        ['هي', 'Sie', 'subject', 'The subject comes first.'],
+        ['تساعد', 'hilft', 'verb', 'Helfen takes a dative object in German.'],
+        ['أخاها', 'ihrem Bruder', 'object', 'The masculine dative article changes to ihrem.'],
+      ]),
+      localizedLesson('de-a2-subordinate-weil', 'Word Order After weil', 'ترتيب الكلمات بعد weil', 'سأبقى في المنزل لأن المطر يهطل.', 'Move the conjugated verb to the end of the weil clause.', 'Ich bleibe zu Hause, weil es regnet.', [
+        ['أنا أبقى', 'Ich bleibe', 'subject', 'The main clause keeps normal V2 order.'],
+        ['في المنزل', 'zu Hause', 'modifier', 'The place phrase completes the main clause.'],
+        ['لأن', 'weil', 'connector', 'Weil introduces a subordinate clause.'],
+        ['المطر يهطل', 'es regnet', 'verb', 'The conjugated verb moves to the end of the subordinate clause.'],
+      ]),
+    ],
+  },
+  es: {
+    A1: [
+      localizedLesson('es-a1-ser-identity', 'Ser for Identity and Occupation', 'استخدام ser للهوية والمهنة', 'أنا طالب.', 'Use ser for identity and occupations.', 'Soy estudiante.', [
+        ['أنا أكون', 'Soy', 'verb', 'Soy is the first-person form of ser.'],
+        ['طالب', 'estudiante', 'object', 'The noun identifies the speaker.'],
+      ]),
+      localizedLesson('es-a1-estar-location', 'Estar for Location', 'استخدام estar للمكان', 'أنا في المنزل.', 'Use estar to express a location.', 'Estoy en casa.', [
+        ['أنا أكون', 'Estoy', 'verb', 'Estoy is the first-person form of estar.'],
+        ['في', 'en', 'connector', 'En introduces the location.'],
+        ['المنزل', 'casa', 'object', 'Casa names the location.'],
+      ]),
+      localizedLesson('es-a1-present-hablar', 'Regular Present-Tense Conjugation', 'تصريف الأفعال المنتظمة في المضارع', 'نحن نتحدث الإسبانية.', 'Conjugate regular -ar verb hablar for nosotros.', 'Nosotros hablamos español.', [
+        ['نحن', 'Nosotros', 'subject', 'The subject pronoun is explicit.'],
+        ['نتحدث', 'hablamos', 'verb', 'The -ar ending changes to -amos for nosotros.'],
+        ['الإسبانية', 'español', 'object', 'The language is the object of the verb.'],
+      ]),
+    ],
+    A2: [
+      localizedLesson('es-a2-preterite-comprar', 'Simple Past: Preterite', 'الماضي البسيط: Pretérito', 'اشتريت كتاباً أمس.', 'Use the first-person preterite form of comprar.', 'Ayer compré un libro.', [
+        ['أمس', 'Ayer', 'modifier', 'The time expression can start the sentence.'],
+        ['اشتريت', 'compré', 'verb', 'The first-person preterite of comprar ends in -é.'],
+        ['كتاباً', 'un libro', 'object', 'The indefinite article un introduces a masculine noun.'],
+      ]),
+      localizedLesson('es-a2-estar-reason', 'State and Reason with estar', 'الحالة والسبب باستخدام estar', 'هي متعبة لأنها تعمل كثيراً.', 'Describe a temporary state and connect its reason.', 'Ella está cansada porque trabaja mucho.', [
+        ['هي', 'Ella', 'subject', 'The subject is explicit.'],
+        ['تكون (حالة مؤقتة)', 'está', 'verb', 'Estar describes a temporary state.'],
+        ['متعبة', 'cansada', 'modifier', 'The adjective agrees with the feminine subject.'],
+        ['لأن', 'porque', 'connector', 'Porque introduces the reason.'],
+        ['تعمل كثيراً', 'trabaja mucho', 'verb', 'The present-tense clause explains the state.'],
+      ]),
+      localizedLesson('es-a2-ir-future', 'Near Future with ir a', 'المستقبل القريب باستخدام ir a', 'سنذهب للسفر غداً.', 'Use ir + a + infinitive for a planned future action.', 'Vamos a viajar mañana.', [
+        ['نحن نذهب', 'Vamos', 'verb', 'The present form vamos refers to nosotros.'],
+        ['إلى', 'a', 'connector', 'The preposition a links ir to the infinitive.'],
+        ['السفر', 'viajar', 'object', 'The infinitive names the planned action.'],
+        ['غداً', 'mañana', 'modifier', 'The time expression places the action in the future.'],
+      ]),
+    ],
+  },
+  ja: {
+    A1: [
+      localizedLesson('ja-a1-i-adjective', 'Japanese I-Adjectives', 'صفات i في اليابانية', 'هذه التفاحة حمراء.', 'Use an i-adjective before desu.', 'Kono ringo wa akai desu.', [
+        ['هذه التفاحة', 'Kono ringo', 'subject', 'Kono ringo is the noun phrase.'],
+        ['أداة الموضوع', 'wa', 'connector', 'Wa marks the topic.'],
+        ['حمراء', 'akai', 'modifier', 'Akai is an i-adjective describing the apple.'],
+        ['صيغة مهذبة', 'desu', 'verb', 'Desu gives the sentence a polite ending.'],
+      ]),
+      localizedLesson('ja-a1-i-past', 'Past Form of I-Adjectives', 'صيغة الماضي لصفات i', 'كان الجو بارداً أمس.', 'Change samui to its past form samukatta.', 'Kinou wa samukatta desu.', [
+        ['أمس', 'Kinou', 'modifier', 'The time expression sets a past context.'],
+        ['أداة الموضوع', 'wa', 'connector', 'Wa marks the topic.'],
+        ['كان بارداً', 'samukatta', 'modifier', 'The i-adjective ending changes to -katta in the past.'],
+        ['صيغة مهذبة', 'desu', 'verb', 'Desu keeps the statement polite.'],
+      ]),
+      localizedLesson('ja-a1-na-adjective', 'Japanese Na-Adjectives', 'صفات na في اليابانية', 'هذه المدينة هادئة.', 'Use na-adjective shizuka with desu.', 'Kono machi wa shizuka desu.', [
+        ['هذه المدينة', 'Kono machi', 'subject', 'Kono machi is the topic noun phrase.'],
+        ['أداة الموضوع', 'wa', 'connector', 'Wa marks the topic.'],
+        ['هادئة', 'shizuka', 'modifier', 'Shizuka is a na-adjective; before a noun it takes na.'],
+        ['صيغة مهذبة', 'desu', 'verb', 'Desu completes the polite predicate.'],
+      ]),
+    ],
+    A2: [
+      localizedLesson('ja-a2-i-negative-past', 'Past Negative I-Adjectives', 'النفي في الماضي لصفات i', 'لم أكن مشغولاً أمس.', 'Form the past negative of an i-adjective.', 'Kinou wa isogashiku nakatta desu.', [
+        ['أمس', 'Kinou', 'modifier', 'The time expression sets the past context.'],
+        ['أداة الموضوع', 'wa', 'connector', 'Wa marks the topic.'],
+        ['لم يكن مزدحماً', 'isogashiku nakatta', 'modifier', 'The adjective changes to -ku nakatta for past negation.'],
+        ['صيغة مهذبة', 'desu', 'verb', 'Desu makes the negative statement polite.'],
+      ]),
+      localizedLesson('ja-a2-giving-particle', 'Particles in a Giving Sentence', 'أدوات الجملة عند إعطاء شيء', 'أعطيت صديقي كتاباً.', 'Mark the recipient with ni and the object with o.', 'Watashi wa tomodachi ni hon o agemashita.', [
+        ['أنا', 'Watashi', 'subject', 'The speaker is the topic.'],
+        ['أداة الموضوع', 'wa', 'connector', 'Wa marks the topic.'],
+        ['إلى صديقي', 'tomodachi ni', 'object', 'Ni marks the recipient.'],
+        ['كتاباً', 'hon', 'object', 'Hon is the thing being given.'],
+        ['أداة المفعول', 'o', 'connector', 'O marks the direct object.'],
+        ['أعطيت', 'agemashita', 'verb', 'The polite past verb comes last.'],
+      ]),
+      localizedLesson('ja-a2-reason-kara', 'Giving a Reason with kara', 'ذكر السبب باستخدام kara', 'لأن المطر يهطل، أبقى في المنزل.', 'Put the reason before kara and the result after it.', 'Ame ga futte imasu kara, uchi ni imasu.', [
+        ['المطر', 'Ame', 'subject', 'Ame is the topic of the reason clause.'],
+        ['أداة الفاعل', 'ga', 'connector', 'Ga marks the subject of the event.'],
+        ['يهطل', 'futte imasu', 'verb', 'The te-iru form describes ongoing rain.'],
+        ['لأن', 'kara', 'connector', 'Kara marks the reason.'],
+        ['في المنزل', 'uchi ni', 'modifier', 'Ni marks the location of being.'],
+        ['أبقى', 'imasu', 'verb', 'The result clause follows the reason.'],
+      ]),
+    ],
+  },
+};
+
+function createLocalizedStage(
   definition: Omit<StageNode, 'units' | 'stageExam'>,
-  language: LocalizedTarget
+  lessonDefinitions: LocalizedLessonDefinition[]
 ): StageNode {
-  const lessonDefinitions = LOCALIZED_A0_LESSONS[language];
   const units: UnitNode[] = lessonDefinitions.map((lessonDefinition, index) => {
-    const unitId = `a0-${language}-unit-${index + 1}`;
+    const unitId = `${definition.stage.toLowerCase()}-unit-${index + 1}`;
     const exercise: ExerciseItem = {
       id: `${lessonDefinition.id}-exercise`,
       type: 'structure_builder',
@@ -252,7 +413,7 @@ function createLocalizedA0Stage(
     const node: LessonNode = {
       id: lessonDefinition.id,
       unitId,
-      stage: 'A0',
+      stage: definition.stage,
       titleAr: lessonDefinition.titleAr,
       titleEn: lessonDefinition.titleEn,
       descriptionAr: lessonDefinition.descriptionAr,
@@ -262,7 +423,7 @@ function createLocalizedA0Stage(
     };
     return {
       id: unitId,
-      stage: 'A0',
+      stage: definition.stage,
       titleAr: `الوحدة ${index + 1} — ${lessonDefinition.titleAr}`,
       titleEn: `Unit ${index + 1} — ${lessonDefinition.titleEn}`,
       descriptionAr: lessonDefinition.descriptionAr,
@@ -358,25 +519,10 @@ export function buildCourseStructure(): StageNode[] {
   if (profile && profile.targetLang !== 'en') {
     const language = TARGET_LANGUAGE_META[profile.targetLang];
     if (profile.targetLang === 'de' || profile.targetLang === 'es' || profile.targetLang === 'ja') {
-      const higherLevelPlaceholders = STAGE_DEFINITIONS.slice(1).map((definition, index) => {
-        const lesson: Lesson = {
-          id: `placeholder-${profile.targetLang}-${index + 2}`,
-          phaseId: (index + 2) as 1 | 2 | 3,
-          phaseTitle: definition.titleEn,
-          phaseLevel: definition.stage,
-          number: index + 2,
-          title: `Welcome to ${language.nameEn} Module ${index + 2}`,
-          titleAr: `أهلاً بك في وحدة ${language.nameAr} ${index + 2}`,
-          transferConcept: `Your ${language.nameEn} learning path is being prepared.`,
-          transferConceptAr: `يتم تجهيز مسار تعلم ${language.nameAr}.`,
-          weakSpotTag: 'placeholder',
-          exercises: [],
-        };
-        return createStageNode(definition, [lesson]);
-      });
       return [
-        createLocalizedA0Stage(STAGE_DEFINITIONS[0], profile.targetLang),
-        ...higherLevelPlaceholders,
+        createLocalizedStage(STAGE_DEFINITIONS[0], LOCALIZED_A0_LESSONS[profile.targetLang]),
+        createLocalizedStage(STAGE_DEFINITIONS[1], LOCALIZED_A1_A2_LESSONS[profile.targetLang].A1),
+        createLocalizedStage(STAGE_DEFINITIONS[2], LOCALIZED_A1_A2_LESSONS[profile.targetLang].A2),
       ];
     }
 
@@ -438,10 +584,6 @@ function readActiveProfile(): { targetLang: keyof typeof TARGET_LANGUAGE_META } 
 }
 
 export function isStageUnlocked(state: ProgressionState, stage: StageNode['stage']): boolean {
-  const profile = readActiveProfile();
-  if (profile && (profile.targetLang === 'de' || profile.targetLang === 'es' || profile.targetLang === 'ja')) {
-    return stage === 'A0';
-  }
   const stages = buildCourseStructure();
   const activeStageIndex = stages.findIndex((item) => item.stage === state.currentStage);
   const requestedStageIndex = stages.findIndex((item) => item.stage === stage);
@@ -452,10 +594,6 @@ export function getNextStageAfterLessonCompletion(
   state: ProgressionState,
   completedLessonId: string
 ): StageNode['stage'] | undefined {
-  const profile = readActiveProfile();
-  if (profile && (profile.targetLang === 'de' || profile.targetLang === 'es' || profile.targetLang === 'ja')) {
-    return undefined;
-  }
   const stages = buildCourseStructure();
   const currentStageIndex = stages.findIndex((item) => item.stage === state.currentStage);
   if (currentStageIndex < 0) return undefined;

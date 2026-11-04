@@ -96,7 +96,8 @@ export function speakWithNativeSpeechSynthesis(
   requestedRate: number = 1,
   preferredVoiceName?: string,
   onBoundary?: (charIndex: number) => void,
-  onEnd?: () => void
+  onEnd?: () => void,
+  preferredLocale?: string
 ): boolean {
   if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
     return false;
@@ -118,6 +119,15 @@ export function speakWithNativeSpeechSynthesis(
     if (exactVoice) {
       utterance.voice = exactVoice;
       utterance.lang = exactVoice.lang;
+    } else if (preferredLocale) {
+      const localePrefix = preferredLocale.split('-')[0].toLowerCase();
+      const localeVoice = allVoices.find(v => v.lang.toLowerCase().startsWith(`${localePrefix}-`));
+      if (localeVoice) {
+        utterance.voice = localeVoice;
+        utterance.lang = localeVoice.lang;
+      } else {
+        utterance.lang = preferredLocale;
+      }
     } else if (isJapanese) {
       const jaVoice = allVoices.find(v => /^ja/i.test(v.lang));
       if (jaVoice) {

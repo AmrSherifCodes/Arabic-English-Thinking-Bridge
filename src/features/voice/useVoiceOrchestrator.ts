@@ -82,6 +82,7 @@ export interface PlayableAudioSlot {
   onerror?: (err?: any) => void;
   __words?: string[];
   __startWordIndex?: number;
+  __locale?: string;
 }
 
 export function useVoiceOrchestrator(
@@ -177,6 +178,33 @@ export function useVoiceOrchestrator(
 
       const chunkWords: string[] = (nextAudio as any).__words || [];
       const chunkStart: number = (nextAudio as any).__startWordIndex ?? 0;
+      let nativeFallbackAttempted = false;
+
+      const fallBackToNativeSpeech = () => {
+        if (nativeFallbackAttempted) return;
+        nativeFallbackAttempted = true;
+        if (syncAnimFrameRef.current) {
+          cancelAnimationFrame(syncAnimFrameRef.current);
+          syncAnimFrameRef.current = null;
+        }
+        console.warn('[useVoiceOrchestrator] Audio playback failed; retrying with native speech synthesis.');
+        const words = chunkWords.length > 0 ? chunkWords : [];
+        const isArabic = /[\u0600-\u06FF]/.test(words.join(' '));
+        const locale = nextAudio.__locale || (isArabic ? 'ar-EG' : targetLocale);
+        const spoken = speakWithNativeSpeechSynthesis(
+          words.join(' '),
+          speechRate,
+          isArabic ? voiceModel : targetVoice,
+          (charIndex) => {
+            const spokenText = words.join(' ');
+            const completedWords = spokenText.slice(0, charIndex).split(/\s+/).filter(Boolean).length;
+            setCurrentSpokenWordIndex(chunkStart + Math.min(words.length - 1, Math.max(0, completedWords)));
+          },
+          () => nextAudio.onended?.(),
+          locale
+        );
+        if (!spoken) nextAudio.onended?.();
+      };
 
       // Sub-frame word synchronization loop matching exact audio timestamp
       const updateWordSync = () => {
@@ -208,26 +236,12 @@ export function useVoiceOrchestrator(
       };
 
       nextAudio.onerror = () => {
-        if (syncAnimFrameRef.current) {
-          cancelAnimationFrame(syncAnimFrameRef.current);
-          syncAnimFrameRef.current = null;
-        }
-        console.warn('[useVoiceOrchestrator] Audio playback chunk error, checking next.');
-        isPlayingRef.current = false;
-        currentAudioRef.current = null;
-        setAudioProgress(0);
-        checkAndPlayQueue();
+        fallBackToNativeSpeech();
       };
 
       nextAudio.play().catch((err) => {
-        if (syncAnimFrameRef.current) {
-          cancelAnimationFrame(syncAnimFrameRef.current);
-          syncAnimFrameRef.current = null;
-        }
         console.warn('[useVoiceOrchestrator] Audio play rejected:', err);
-        isPlayingRef.current = false;
-        currentAudioRef.current = null;
-        checkAndPlayQueue();
+        fallBackToNativeSpeech();
       });
       return;
     }
@@ -254,7 +268,7 @@ export function useVoiceOrchestrator(
         }
       }
     }
-  }, [autoListen]);
+  }, [autoListen, speechRate, targetLocale, targetVoice, voiceModel]);
 
   // Helper to create a fallback slot powered by on-device SpeechSynthesis
   const createFallbackAudioSlot = useCallback(
@@ -263,7 +277,8 @@ export function useVoiceOrchestrator(
       wordsList: string[],
       startWordIdx: number,
       rate: number,
-      preferredVoice?: string
+      preferredVoice?: string,
+      locale?: string
     ): PlayableAudioSlot => {
       let isEnded = false;
       let startTime = 0;
@@ -278,6 +293,7 @@ export function useVoiceOrchestrator(
         },
         __words: wordsList,
         __startWordIndex: startWordIdx,
+        __locale: locale,
         play: () => {
           return new Promise<void>((resolve) => {
             startTime = Date.now();
@@ -298,7 +314,8 @@ export function useVoiceOrchestrator(
                   if (slot.onended) slot.onended();
                 }
                 resolve();
-              }
+              },
+              locale
             );
 
             if (!spoken) {
@@ -376,6 +393,7 @@ export function useVoiceOrchestrator(
             get onerror() { return audio.onerror as any; },
             __words: words,
             __startWordIndex: startWordIndex,
+            __locale: speechLocale,
           };
 
           if (chunkIndex === 0) {
@@ -406,7 +424,8 @@ export function useVoiceOrchestrator(
           words,
           startWordIndex,
           speechRate,
-          targetVoice
+          speechVoice,
+          speechLocale
         );
         audioSlotsRef.current.set(chunkIndex, fallbackSlot);
         checkAndPlayQueue();

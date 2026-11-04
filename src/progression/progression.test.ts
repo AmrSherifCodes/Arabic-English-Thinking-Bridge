@@ -116,7 +116,7 @@ test('5. buildCourseStructure maps all 27 lessons into CEFR stages A0-A2 without
   }
 });
 
-test('5a. language profiles build structural A0 lessons for German, Spanish, and Japanese', () => {
+test('5a. language profiles build unlockable A0-A2 curricula for German, Spanish, and Japanese', () => {
   const originalStorage = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
   const entries = new Map<string, string>();
   Object.defineProperty(globalThis, 'localStorage', {
@@ -145,25 +145,32 @@ test('5a. language profiles build structural A0 lessons for German, Spanish, and
       assert.deepEqual(JSON.parse(entries.get('tb.activeProfileConfig') || '{}'), profile);
 
       const course = buildCourseStructure();
-      const lessons = course.find((stage) => stage.stage === 'A0')!
-        .units.flatMap((unit) => unit.lessons);
-      assert.equal(lessons.length, 3, `${language} must have three A0 lessons`);
-      assert.deepEqual(lessons.map((lesson) => lesson.exercises[0].targetSentence), examples[language]);
-      for (const lesson of lessons) {
-        const exercise = lesson.exercises[0];
-        assert.ok(exercise.promptAr.trim(), `${lesson.id} Arabic prompt must not be empty`);
-        assert.ok(exercise.targetSentence.trim(), `${lesson.id} target must not be empty`);
-        assert.equal(exercise.wordChips!.join(' '), exercise.targetSentence);
-        assert.ok(exercise.breakdownChunks?.length, `${lesson.id} must include structure breakdowns`);
+      assert.deepEqual(course.map((stage) => stage.stage), ['A0', 'A1', 'A2']);
+      for (const stage of course) {
+        const lessons = stage.units.flatMap((unit) => unit.lessons);
+        assert.equal(lessons.length, 3, `${language} ${stage.stage} must have three lessons`);
+        for (const lesson of lessons) {
+          const exercise = lesson.exercises[0];
+          assert.ok(exercise.promptAr.trim(), `${lesson.id} Arabic prompt must not be empty`);
+          assert.ok(exercise.targetSentence.trim(), `${lesson.id} target must not be empty`);
+          assert.equal(exercise.wordChips!.join(' '), exercise.targetSentence);
+          assert.ok(exercise.breakdownChunks?.length, `${lesson.id} must include structure breakdowns`);
+          assert.equal(
+            exercise.breakdownChunks!.flatMap((chunk) => chunk.englishText.replace(/[.,!?;:]/g, '').split(/\s+/)).length,
+            exercise.targetSentence.replace(/[.,!?;:]/g, '').split(/\s+/).length,
+            `${lesson.id} breakdown must account for every target word`
+          );
+        }
       }
+      const a0Lessons = course[0].units.flatMap((unit) => unit.lessons);
       const state = createInitialProgressionState();
-      state.completedLessonIds = lessons.map((lesson) => lesson.id);
-      assert.equal(isStageUnlocked(state, 'A1'), false, `${language} A1 remains locked until its curriculum exists`);
-      assert.equal(
-        getNextStageAfterLessonCompletion(state, lessons[lessons.length - 1].id),
-        undefined,
-        `${language} must not advance into an empty placeholder stage`
-      );
+      state.completedLessonIds = a0Lessons.map((lesson) => lesson.id);
+      assert.equal(getNextStageAfterLessonCompletion(state, a0Lessons[2].id), 'A1');
+      state.currentStage = 'A1';
+      assert.equal(isStageUnlocked(state, 'A1'), true);
+      const a1Lessons = course[1].units.flatMap((unit) => unit.lessons);
+      state.completedLessonIds.push(...a1Lessons.map((lesson) => lesson.id));
+      assert.equal(getNextStageAfterLessonCompletion(state, a1Lessons[2].id), 'A2');
     }
   } finally {
     if (originalStorage) {
