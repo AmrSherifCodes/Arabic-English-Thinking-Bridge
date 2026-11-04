@@ -53,6 +53,7 @@
     "framer-motion": "^14.8.0",
     "i18next": "^26.6.0",
     "lucide-react": "^0.546.0",
+    "onnxruntime-web": "^1.31.1",
     "react": "^19.0.1",
     "react-dom": "^19.0.1",
     "react-i18next": "^17.1.9",
