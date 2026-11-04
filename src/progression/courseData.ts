@@ -1,4 +1,4 @@
-import { StageNode, UnitNode, LessonNode, ExerciseItem, ExerciseType, ProgressionState } from './types';
+import { StageNode, UnitNode, LessonNode, ExerciseItem, ExerciseType, ProgressionState, CefrStage } from './types';
 import { PHASES_DATA } from '../data/lessons';
 import { TARGET_LANGUAGES, TARGET_LANGUAGE_META } from '../data/languages';
 import { getTargetDictionary } from '../data/dictionaries';
@@ -31,7 +31,7 @@ const STAGE_DEFINITIONS: Omit<StageNode, 'units' | 'stageExam'>[] = [
   },
 ];
 
-export type LocalizedTarget = 'de' | 'es' | 'ja' | 'fr' | 'zh' | 'hi' | 'ru' | 'pt' | 'it';
+export type LocalizedTarget = 'de' | 'es' | 'ja' | 'fr' | 'zh' | 'hi' | 'ru' | 'pt' | 'it' | 'el';
 
 export interface LocalizedLessonDefinition {
   id: string;
@@ -840,6 +840,7 @@ export const LOCALIZED_A0_LESSONS: Record<LocalizedTarget, LocalizedLessonDefini
       explanationEn: 'Italian is a pro-drop language; subject pronoun Io is naturally omitted before bevo.',
     },
   ],
+  el: [],
 };
 
 type LocalizedChunk = [arabicText: string, englishText: string, role: ChunkRole, explanation: string];
@@ -1097,7 +1098,7 @@ function createSimpleLocalizedLessons(
 
 const ADDITIONAL_LOCALIZED_A1_A2_LESSONS: Pick<
   Record<LocalizedTarget, Record<'A1' | 'A2', LocalizedLessonDefinition[]>>,
-  'fr' | 'zh' | 'hi' | 'ru' | 'pt' | 'it'
+  'fr' | 'zh' | 'hi' | 'ru' | 'pt' | 'it' | 'el'
 > = {
   fr: {
     A1: createSimpleLocalizedLessons('French', 'A1', [
@@ -1194,6 +1195,10 @@ const ADDITIONAL_LOCALIZED_A1_A2_LESSONS: Pick<
       { promptAr: 'سأتصل بك عندما أصل إلى المنزل.', targetSentence: 'Ti chiamerò quando arriverò a casa.', wordChips: ['Ti', 'chiamerò', 'quando', 'arriverò', 'a', 'casa.'] },
       { promptAr: 'نفضل القطار لأنه أسرع من الحافلة.', targetSentence: 'Preferiamo il treno perché è più veloce dell’autobus.', wordChips: ['Preferiamo', 'il', 'treno', 'perché', 'è', 'più', 'veloce', 'dell’autobus.'] },
     ]),
+  },
+  el: {
+    A1: [],
+    A2: [],
   },
 };
 
@@ -1351,7 +1356,8 @@ export function generateProceduralStageLessons(
   stage: CefrStage,
   seedDefinitions: LocalizedLessonDefinition[] = [],
   focusArea: string = 'general',
-  count = 100
+  count = 100,
+  sourceLang: string = 'en'
 ): LocalizedLessonDefinition[] {
   const result: LocalizedLessonDefinition[] = [...seedDefinitions];
 
@@ -1371,8 +1377,8 @@ export function generateProceduralStageLessons(
       : ['travel', 'hotel', 'road', 'city', 'car', 'fly', 'ticket', 'station', 'park'];
 
     const filtered = pool.filter((item) => {
-      const term = item.term.toLowerCase();
-      const en = (item.sourceMeanings.en || '').toLowerCase();
+      const term = (item.term || (item as any).word || '').toLowerCase();
+      const en = (item.sourceMeanings?.en || (item as any).translation || '').toLowerCase();
       return keywords.some((k) => term.includes(k) || en.includes(k));
     });
 
@@ -1387,17 +1393,17 @@ export function generateProceduralStageLessons(
     const entry2 = pool[(i + 3) % pool.length] || pool[1];
     const entry3 = pool[(i + 7) % pool.length] || pool[2];
 
-    const term1 = entry1.term;
-    const term2 = entry2.term;
-    const term3 = entry3.term;
+    const term1 = entry1.term || (entry1 as any).word || 'Das';
+    const term2 = entry2.term || (entry2 as any).word || 'ist';
+    const term3 = entry3.term || (entry3 as any).word || 'gut';
 
-    const en1 = entry1.sourceMeanings.en || term1;
-    const en2 = entry2.sourceMeanings.en || term2;
-    const en3 = entry3.sourceMeanings.en || term3;
+    const en1 = entry1.sourceMeanings?.en || (entry1 as any).translation || term1;
+    const en2 = entry2.sourceMeanings?.en || (entry2 as any).translation || term2;
+    const en3 = entry3.sourceMeanings?.en || (entry3 as any).translation || term3;
 
-    const ar1 = entry1.sourceMeanings.ar || en1;
-    const ar2 = entry2.sourceMeanings.ar || en2;
-    const ar3 = entry3.sourceMeanings.ar || en3;
+    const ar1 = entry1.sourceMeanings?.ar || en1;
+    const ar2 = entry2.sourceMeanings?.ar || en2;
+    const ar3 = entry3.sourceMeanings?.ar || en3;
 
     const lessonNum = result.length + 1;
     const lessonId = `${targetLang}-${stage.toLowerCase()}-gen-${lessonNum}`;

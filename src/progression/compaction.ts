@@ -52,22 +52,26 @@ export function resolveRealSrsCardText(cardId: string): { term: string; sourceTe
   }
 
   // 2. Search GERMAN_DICTIONARY
-  const deEntry = GERMAN_DICTIONARY.find((e) => e.id === cardId || e.term === cardId);
+  const deEntry = (GERMAN_DICTIONARY as any[]).find((e) => e.word === cardId || e.word?.toLowerCase() === cardId.toLowerCase() || e.id === cardId || e.term === cardId);
   if (deEntry) {
+    const word = deEntry.word || deEntry.term || cardId;
+    const translation = deEntry.translation || deEntry.sourceMeanings?.ar || deEntry.sourceMeanings?.en || word;
     return {
-      term: deEntry.term,
-      sourceText: deEntry.sourceMeanings.ar || deEntry.sourceMeanings.en || deEntry.term,
-      targetText: deEntry.term,
+      term: word,
+      sourceText: translation,
+      targetText: word,
     };
   }
 
   // 3. Search JAPANESE_DICTIONARY
-  const jaEntry = JAPANESE_DICTIONARY.find((e) => e.id === cardId || e.term === cardId);
+  const jaEntry = (JAPANESE_DICTIONARY as any[]).find((e) => e.word === cardId || e.word?.toLowerCase() === cardId.toLowerCase() || e.id === cardId || e.term === cardId);
   if (jaEntry) {
+    const word = jaEntry.word || jaEntry.term || cardId;
+    const translation = jaEntry.translation || jaEntry.sourceMeanings?.ar || jaEntry.sourceMeanings?.en || word;
     return {
-      term: jaEntry.term,
-      sourceText: jaEntry.sourceMeanings.ar || jaEntry.sourceMeanings.en || jaEntry.term,
-      targetText: jaEntry.term,
+      term: word,
+      sourceText: translation,
+      targetText: word,
     };
   }
 

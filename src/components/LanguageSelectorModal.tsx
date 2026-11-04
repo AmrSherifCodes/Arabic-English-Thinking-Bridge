@@ -197,6 +197,12 @@ export function LanguageSelectorModal({
                   <span className="text-amber-400 font-bold">➔</span>
                   <LanguageFlag code={selectedTarget} size={16} />
                   <span>{TARGET_LANGUAGE_META[selectedTarget].nameNative} ({isAr ? TARGET_LANGUAGE_META[selectedTarget].nameAr : TARGET_LANGUAGE_META[selectedTarget].nameEn})</span>
+
+                  {['arz', 'apc', 'afb', 'ary'].includes(selectedSource) && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                      Beta: Shared vocabulary with MSA
+                    </span>
+                  )}
                 </div>
                 <p className="text-[11px] text-muted leading-relaxed">
                   {isAr ? activePairConfig.bridgeConceptAr : activePairConfig.bridgeConceptEn}

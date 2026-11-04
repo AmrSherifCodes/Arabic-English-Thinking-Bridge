@@ -375,7 +375,7 @@ export function PreferencesView({
                   <FieldRenderer
                     key={f.id}
                     field={f}
-                    value={effectiveValue}
+                    value={effectiveValue as boolean | string | number}
                     isArabic={isArabic}
                     onChange={(v) => handleFieldChange(f.id, v)}
                   />

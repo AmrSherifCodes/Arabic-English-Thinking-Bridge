@@ -5,7 +5,7 @@ import { Star, MessageSquareHeart, Lightbulb, X, Send, ShieldCheck, Clock, Gift,
 import { Capacitor } from '@capacitor/core';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import type { UserProfile } from '../types';
-import { API_BASE_URL } from '../utils/api';
+import { API_BASE } from '../utils/apiConfig';
 
 export interface UserFeedbackData {
   rating: number;
@@ -69,13 +69,7 @@ export function FeedbackModal({
       return;
     }
 
-    setIsSubmitting(true);     try {
-      fetch("https://discord.com/api/webhooks/1567447670048563292/fchvw1SlWZ2Obu7jYT2SRra3Q1G07sLJ-7Oetk8hlLxPlzbFgTokhAIWzow1n7zN7se1", {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: 'New Feedback! Rating: ' + rating + ' Message: ' + message })
-      }).catch(err => console.error('Discord Webhook Error:', err));
-    } catch (err) { console.error(err); }
+    setIsSubmitting(true);
 
     const feedbackData: UserFeedbackData = {
       rating,
@@ -96,21 +90,12 @@ export function FeedbackModal({
       existingList.push(feedbackData);
       localStorage.setItem(FEEDBACK_STORAGE_KEY, JSON.stringify(existingList.slice(-50)));
 
-      // 2. Dispatch POST to Discord Webhook if configured
-      const webhookUrl = (import.meta as any)?.env?.VITE_DISCORD_WEBHOOK_URL;
-      if (webhookUrl) {
-        try {
-          void fetch(webhookUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              content: `📩 **New Thinking Bridge Feedback!**\n**Rating:** ${rating}/5 ⭐\n**Category:** ${category}\n**Message:** ${message.trim()}\n**User:** ${isAnonymous ? 'Anonymous' : (profile?.name || 'Learner')}`,
-            }),
-          });
-        } catch {
-          /* noop */
-        }
-      }
+      // 2. Dispatch POST to serverless feedback proxy
+      void fetch(`${API_BASE}/api/feedback`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(feedbackData),
+      }).catch(() => {});
 
       if (Capacitor.isNativePlatform()) {
         try {
