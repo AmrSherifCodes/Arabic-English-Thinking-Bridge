@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>حمّل تطبيق فكّر إنجليزي</title>
+  <title>تطبيق فكّر إنجليزي · v4.0.0 "الجسر"</title>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet" />
   <style>
     body {
@@ -15,7 +15,7 @@
       margin: 0;
     }
     .container {
-      max-w: 500px;
+      max-width: 550px;
       margin: 0 auto;
       display: flex;
       flex-direction: column;
@@ -31,6 +31,11 @@
       border-radius: 12px;
       font-size: 1.1rem;
       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+    .btn-secondary {
+      background-color: #1F2937;
+      color: #10B981;
+      border: 1px solid #10B981;
     }
     .guide-step {
       background: #111827;
@@ -48,21 +53,23 @@
 </head>
 <body>
   <div class="container">
-    <h2>حمّل تطبيق فكّر إنجليزي (v3.2.1)</h2>
-    <p>حمّل على واي فاي لو تقدر — التطبيق 51.5 ميجا.</p>
-    <a href="/Thinking-Bridge-v3.2.1.apk" download class="btn">حمّل التطبيق v3.2.1 (51.5 ميجا)</a>
+    <h2>فكّر إنجليزي · إصدار v4.0.0 "الجسر"</h2>
+    <p>التطبيق يعمل فوراً على الويب كـ PWA وعلى كافة الأجهزة.</p>
+
+    <a href="/" class="btn">افتح التطبيق على الويب مباشرة (PWA)</a>
+    <a href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/tag/v4.0.0" target="_blank" rel="noopener" class="btn btn-secondary">سجل التغييرات وتحديثات Android على GitHub</a>
 
     <div class="guide-step">
-      <strong>١.</strong> اضغط على الرابط فوق، التحميل هيبدأ.
+      <strong>١.</strong> يمكنك تثبيت التطبيق على جهازك بالضغط على 'إضافة إلى الشاشة الرئيسية' (Add to Home Screen) من المتصفح.
     </div>
     <div class="guide-step">
-      <strong>٢.</strong> لما يخلص، هتلاقي رسالة 'السماح بالتركيب من هذا المصدر' — اضغط 'الإعدادات' ثم 'السماح' ثم 'رجوع' ثم 'تثبيت'.
+      <strong>٢.</strong> التحميل الأول للبيانات يتطلب اتصال واي فاي (~28 ميجا) لضمان العمل بدون إنترنت لاحقاً.
     </div>
     <div class="guide-step">
-      <strong>٣.</strong> افتح التطبيق، ولو ظهرت أي مشكلة تواصل معنا عبر <a href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/issues" style="color:#10B981;font-weight:bold" target="_blank" rel="noopener">صفحة الدعم على GitHub</a>.
+      <strong>٣.</strong> لو ظهرت أي مشكلة تواصل معنا عبر <a href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/issues" style="color:#10B981;font-weight:bold" target="_blank" rel="noopener">صفحة الدعم على GitHub</a>.
     </div>
 
-    <div class="footer">صُنع في الإسكندرية — ١٠٠٪ مجاني</div>
+    <div class="footer">صُنع في الإسكندرية — ١٠٠٪ مجاني ومفتوح المصدر (CC0)</div>
   </div>
 </body>
 </html>

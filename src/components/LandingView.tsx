@@ -160,7 +160,7 @@ export function LandingView({ onStartWebApp, isArabic = true }: LandingViewProps
             {/* Pill */}
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--landing-accent-teal)]/10 border border-[var(--landing-accent-teal)]/30 text-[var(--landing-accent-teal)] text-xs font-bold">
               <Zap size={13} />
-              <span>{isAr ? 'مجاني 100% · يعمل بدون إنترنت' : '100% Free · Works Offline'}</span>
+              <span>{isAr ? 'مجاني 100% · يعمل بدون إنترنت (التحميل الأول يحتاج واي فاي ~28 ميجا)' : '100% Free · Works Offline (First load requires WiFi ~28 MB)'}</span>
             </div>
 
             {/* Main H1 */}

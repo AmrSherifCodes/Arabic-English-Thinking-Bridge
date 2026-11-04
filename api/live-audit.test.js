@@ -28,7 +28,7 @@ test('2. Privacy Standard: Public client files contain no hardcoded personal pho
   assert.ok(!phonePattern.test(themeInitJs), 'theme-init.js must not expose phone number 201272718167');
 });
 
-test('3. API Health: /api/health handler returns dynamic package version v3.2.1', async () => {
+test('3. API Health: /api/health handler returns dynamic package version v4.0.0', async () => {
   let statusCode = 0;
   let jsonBody = null;
 
@@ -44,7 +44,7 @@ test('3. API Health: /api/health handler returns dynamic package version v3.2.1'
   await healthHandler(req, res);
   assert.equal(statusCode, 200);
   assert.equal(jsonBody.status, 'healthy');
-  assert.equal(jsonBody.version, 'v3.2.1');
+  assert.equal(jsonBody.version, 'v4.0.0');
 });
 
 test('4. CORS Allowlist: feedback and review endpoints resolve specific origins, avoiding wildcard with credentials', () => {

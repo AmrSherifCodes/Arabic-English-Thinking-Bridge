@@ -1,53 +1,40 @@
-# 🚀 Thinking Bridge v3.1.0 — Public Release Notes
+# فكّر إنجليزي · Thinking Bridge
+# v4.0.0 — الجسر (Al-Jisr)
 
-> **"Stop Translating. Start Thinking in 10+ Languages."**
-> The open-source, AI-powered cognitive bridge for Arabic speakers learning global languages natively without word-for-word translation.
+**Release date:** 2026-11-05
+**Web App:** https://tb-eg.vercel.app
+**Repository:** https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge
+**Constitution:** https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/blob/main/CONSTITUTION.md
 
----
+## What "Al-Jisr" means
 
-### 🌟 Key Highlights & Feature Overhaul
+الجسر is Arabic for *the bridge* — the thing this app has always been. Not a translation tool. A cognitive bridge between the way you already think (Arabic) and the way you want to think (English, German, Japanese, and 12 more languages).
 
-#### 1. 🧠 Multi-Language Cognitive Rewiring (10+ Languages)
-- **27 Adaptive Levels Across A0–C2**: Built-in curriculum mapping L1 structural transfer rules for **English, German, Japanese, Spanish, French, Italian, Chinese, Turkish, Russian, and Korean**.
-- **Interactive Adaptive Placement**: 3-question diagnostic reflex test measuring copula omission, conditionals, and corporate hedging to automatically place learners in their exact CEFR stage.
-- **SM-2 Spaced Repetition Engine**: Integrated 4,090+ card retention vault with zero-login, local-first storage.
+Pre-modern Arab scholars were the world's bridge-builders: they carried Greek, Persian, and Indian thought into Arabic, refined it, and passed it to Europe through Cordoba and Toledo. This release is named for that tradition, because the goal was never "learn English." The goal was to think in English natively, the way Ibn Rushd thought in Arabic while reading Aristotle in Greek.
 
-#### 2. 🎙️ Real-Time Voice AI Coach & Audio Engine
-- **Cross-Platform MediaRecorder STT**: Universal audio recording pipeline with Voice Activity Detection (VAD) for automatic 1.5s silence finalization.
-- **Instant Automatic Barge-In**: Interrupt Amr (the AI coach) at any moment while speaking; the system cancels TTS playback instantly and listens.
-- **Client-Side Gemini 2.5 Flash**: Direct, low-latency streaming utilizing `@google/genai` in the browser.
-- **LTR English Sentence Word Alignment**: Corrected bidirectional rendering on English voice chips for natural left-to-right reading order in RTL mode.
+## What's in v4.0.0
 
-#### 3. 🔑 Bring Your Own Key (BYOK) Model
-- **Unlimited Free AI Access**: Option to save your personal Gemini API key from Google AI Studio (`tb.userApiKey`) directly in Settings.
-- **1-Minute Interactive BYOK Guide**: Built-in modal with direct links and 2-step setup.
-- **Strict Local Vault**: API keys are stored 100% locally on device and never logged or transmitted to central servers.
-- **Rate-Limit Fallback**: Generous 3 req/day free IP tier with smooth, automatic fallback to the offline deterministic conversational engine on limit hit (`FREE_LIMIT_REACHED`).
+### Fixed
+- All 15 language dictionaries now correctly ship in the production bundle (confirmed live at tb-eg.vercel.app — code-split dictionary chunks)
+- Boot sequence gates React DOM rendering on dictionary resolution, avoiding empty lesson states on cold start
+- Canonical URLs, Open Graph tags, and JSON-LD schema corrected to `https://tb-eg.vercel.app`
+- `og-image.jpg`, `sitemap.xml`, and `manifest.webmanifest` return 200 with optimized content
+- Theme initialization honors OS dark/light preference when no user choice is saved
+- API endpoints use allowlist CORS instead of wildcard-with-credentials
+- `/api/feedback` and `/api/review` report `webhookFailed` status honestly instead of masking Discord errors
 
-#### 4. 🎨 World-Class Landing Page & Route Separation
-- **Route Separation (`/` vs `/app`)**: Dedicated marketing landing page at `/` with direct single-click launch to `/app`.
-- **CRO Features**: Dynamic CTA buttons ("Resume Learning Deutsch 🇩🇪 🚀"), 10-language animated marquee, 3D tilt feature cards (`TiltCard`), and 3-step visual timeline.
-- **Interactive 3D Mouse Parallax**: Glassmorphic ambient background orb with mobile/touchscreen performance guards.
-- **YouTube Bridge Modal**: 16:9 embedded video player container for the 15-minute documentary launch with channel subscribe affordances.
+### Added
+- Live audit test suite (test #8 health, test #9 webhook)
+- Production build artifact assertion in CI
+- Boot-time dictionary preloading with graceful fallback
+- SRS card resolution now resolves to real terms from dictionaries
+- `preloadDictionaries` helper for pre-fetching target languages
 
-#### 5. ⚡ Performance & Cross-Platform Support
-- **Vite Rollup Code-Splitting**: Manual vendor chunking (`react-vendor`, `gemini-sdk`, `curriculum-data`, `supabase-vendor`, `icons-vendor`, `capacitor-vendor`) reducing main bundle to **196 KB**.
-- **Tauri v2 Windows Desktop**: Full scaffold with native Rust build hooks (`Cargo.toml`, `lib.rs`, `main.rs`) and WebView2 microphone capabilities (`capabilities/default.json`).
-- **Capacitor Mobile Native**: Android APK v3.1.0 build with release signing configuration (`keystore.properties`) and safe-area insets.
-- **iOS & Desktop PWA**: Standalone PWA support with service worker precaching.
-- **SEO & JSON-LD**: Embedded `SoftwareApplication` Google Structured Data and Open Graph image tags (`og-image.jpg`).
+### Attribution
+Built on the *Thinking Method* of **Mihalis Eleftheriou** and **[Language Transfer](https://www.languagetransfer.org/)** — the pedagogical foundation this project would not exist without.
 
----
+Open source, CC0 1.0. No accounts. No analytics. No tracking. All progress saved locally in your browser.
 
-### 📦 Installation & Links
-
-- 🌐 **Web Application**: [https://tb-eg.vercel.app/app](https://tb-eg.vercel.app/app)
-- 📲 **Android APK Download**: [https://tb-eg.vercel.app/download](https://tb-eg.vercel.app/download)
-- 🐙 **GitHub Repository**: [https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge](https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge)
-- 🎬 **YouTube Channel**: [@SciAmrSherif](https://www.youtube.com/@SciAmrSherif?sub_confirmation=1)
-
----
-
-### 👨‍💻 Author & License
-Crafted with ❤️ in **Alexandria, Egypt 🇪🇬** by **Amr Sherif**.  
-Released as 100% Free & Open Source under CC0 1.0 Public Domain & MIT License.
+صُنع في الإسكندرية، مصر
+Made in Alexandria, Egypt
+— Amr Sherif Abdelaal
