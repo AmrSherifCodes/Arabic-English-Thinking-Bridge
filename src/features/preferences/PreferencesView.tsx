@@ -1,11 +1,12 @@
 import React, { useState, useMemo, useRef } from 'react';
-import { Youtube, Download, Upload, ShieldCheck, Database } from 'lucide-react';
+import { Youtube, Download, Upload, ShieldCheck, Database, Key, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
 import { TabTutorialModal } from '../../components/TabTutorialModal';
 import { CATEGORY_LABELS, CATEGORY_LABELS_AR, PreferenceCategory } from './settingsSchema';
 import { usePreferences } from './usePreferences';
 import { FieldRenderer } from './FieldRenderer';
 import { UserProfile, UserProgress, SourceLanguage, TargetLanguage } from '../../types';
 import { downloadProgressBackup, importUserProgressJson, getVaultAuditSnapshot } from '../../utils/storage';
+import { API_BASE_URL } from '../../utils/api';
 import './preferences.css';
 
 interface PreferencesViewProps {
@@ -47,10 +48,18 @@ export function PreferencesView({
 
   const [customGeminiKey, setCustomGeminiKey] = useState<string>(() => {
     if (typeof localStorage !== 'undefined') {
-      return localStorage.getItem('tb.userGeminiKey') || '';
+      return (
+        localStorage.getItem('tb.userApiKey') ||
+        localStorage.getItem('tb.userGeminiKey') ||
+        localStorage.getItem('user_gemini_key') ||
+        ''
+      );
     }
     return '';
   });
+
+  const [isTestingKey, setIsTestingKey] = useState(false);
+  const [testResult, setTestResult] = useState<{ status: 'success' | 'error'; msg: string } | null>(null);
 
   const handleThemeChange = (newTheme: 'dark' | 'light') => {
     setTheme(newTheme);
@@ -70,14 +79,72 @@ export function PreferencesView({
   };
 
   const handleSaveGeminiKey = (val: string) => {
-    setCustomGeminiKey(val);
+    const trimmed = val.trim();
+    setCustomGeminiKey(trimmed);
+    setTestResult(null);
     if (typeof localStorage === 'undefined') return;
-    if (val.trim()) {
-      localStorage.setItem('tb.userGeminiKey', val.trim());
+    if (trimmed) {
+      localStorage.setItem('tb.userApiKey', trimmed);
+      localStorage.setItem('tb.userGeminiKey', trimmed);
+      localStorage.setItem('user_gemini_key', trimmed);
       onToast?.(isArabic ? '✅ تم حفظ مفتاح Gemini الخاص بك!' : '✅ Custom Gemini key saved!');
     } else {
+      localStorage.removeItem('tb.userApiKey');
       localStorage.removeItem('tb.userGeminiKey');
+      localStorage.removeItem('user_gemini_key');
       onToast?.(isArabic ? '🗑️ تم إزالة المفتاح المخصص' : '🗑️ Custom key removed');
+    }
+  };
+
+  const handleTestKey = async () => {
+    const trimmed = customGeminiKey.trim();
+    if (!trimmed) {
+      setTestResult({
+        status: 'error',
+        msg: isArabic ? 'يرجى إدخال مفتاح API أولاً' : 'Please enter an API key first',
+      });
+      return;
+    }
+
+    setIsTestingKey(true);
+    setTestResult(null);
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/gemini`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-api-key': trimmed,
+          'X-User-Gemini-Key': trimmed,
+        },
+        body: JSON.stringify({ operation: 'test-key', userApiKey: trimmed }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data?.data?.status === 'verified') {
+        localStorage.setItem('tb.userApiKey', trimmed);
+        localStorage.setItem('tb.userGeminiKey', trimmed);
+        localStorage.setItem('user_gemini_key', trimmed);
+
+        setTestResult({
+          status: 'success',
+          msg: isArabic
+            ? '✅ المفتاح يعمل بنجاح! طلاقة كاملة وبدون حدود مجانية.'
+            : '✅ Key verified successfully! Unlimited AI access active.',
+        });
+        onToast?.(isArabic ? '✅ تم التحقق من المفتاح بنجاح!' : '✅ Key verified successfully!');
+      } else {
+        throw new Error(data?.error?.message || data?.error || 'Invalid API key');
+      }
+    } catch {
+      setTestResult({
+        status: 'error',
+        msg: isArabic
+          ? '❌ فشل التحقق من المفتاح. تأكد من صحة المفتاح من Google AI Studio.'
+          : '❌ Verification failed. Please check your key from Google AI Studio.',
+      });
+    } finally {
+      setIsTestingKey(false);
     }
   };
 
@@ -101,111 +168,102 @@ export function PreferencesView({
         });
       }
     }
+    onToast?.(isArabic ? 'تم حفظ التفضيلات تلقائياً' : 'Preferences saved automatically');
   };
 
   const handleExportBackup = () => {
     if (!progress) return;
-    downloadProgressBackup(progress);
-    onToast?.(isArabic ? '📥 تم تنزيل النسخة الاحتياطية بنجاح!' : '📥 Backup file downloaded successfully!');
+    try {
+      downloadProgressBackup(progress);
+      onToast?.(isArabic ? '✅ تم تصدير النسخة الاحتياطية بنجاح' : '✅ Progress exported successfully');
+    } catch {
+      onToast?.(isArabic ? '❌ فشل تصدير البيانات' : '❌ Failed to export backup');
+    }
   };
 
-  const handleImportFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const content = event.target?.result as string;
-      const res = importUserProgressJson(content);
+    try {
+      const text = await file.text();
+      const res = importUserProgressJson(text);
       if (res.success && res.progress && updateAndSaveProgress) {
         updateAndSaveProgress(() => res.progress!);
-        onToast?.(
-          isArabic
-            ? '✅ تم استعادة تقدمك ونسختك الاحتياطية بنجاح!'
-            : '✅ Progress restored successfully from backup!'
-        );
+        onToast?.(isArabic ? '🎉 تم استعادة تقدمك بنجاح!' : '🎉 Progress restored successfully!');
       } else {
-        onToast?.(isArabic ? '❌ ملف غير صالح' : `❌ ${res.error || 'Failed to restore backup'}`);
+        onToast?.(isArabic ? '❌ الملف غير صالح أو تالف' : '❌ Invalid or corrupted backup file');
       }
-    };
-    reader.readAsText(file);
-    e.target.value = '';
+    } catch {
+      onToast?.(isArabic ? '❌ حدث خطأ أثناء القراءة' : '❌ Failed to read backup file');
+    } finally {
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
   };
 
   return (
-    <div className="pref-screen" dir={isArabic ? 'rtl' : 'ltr'}>
+    <div className="pref-page" dir={isArabic ? 'rtl' : 'ltr'}>
       <header className="pref-header">
-        <div className="pref-header__inner">
-          <button
-            type="button"
-            className="pref-back"
-            onClick={onBack}
-            aria-label={isArabic ? 'رجوع' : 'Back'}
-          >
-            {isArabic ? '→' : '←'}
-          </button>
-          <h1>{isArabic ? 'الإعدادات والتخصيص' : 'Preferences & Tailoring'}</h1>
-          <button
-            type="button"
-            className="pref-guide-btn"
-            onClick={() => setShowGuide(true)}
-            aria-label={isArabic ? 'دليل الإعدادات' : 'Preferences Guide'}
-            title="Guide"
-          >
-            ❓
-          </button>
-        </div>
-      </header>
-      <div className="pref-body space-y-6">
-        {/* Language Pair Card */}
-        <section className="pref-section" aria-label="Language Pair">
-          <h2 className="pref-section__title">
-            🌐 {isArabic ? 'مسار التحول اللغوي' : 'Thinking Language Pair'}
-          </h2>
-          <button
-            type="button"
-            onClick={onOpenLanguageSelector}
-            className="w-full p-4 rounded-2xl bg-surface border border-border flex items-center justify-between hover:border-primary/40 transition active:scale-95"
-          >
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">
-                {sourceLang === 'ar' ? '🇪🇬' : '🇬🇧'} → {targetLang === 'en' ? '🇬🇧' : targetLang === 'de' ? '🇩🇪' : targetLang === 'ja' ? '🇯🇵' : '🌐'}
-              </span>
-              <div className="text-start">
-                <div className="font-bold text-sm text-text uppercase">
-                  {sourceLang?.toUpperCase()} → {targetLang?.toUpperCase()}
-                </div>
-                <div className="text-xs text-muted">
-                  {isArabic ? 'اضغط لتغيير اللغة التي تتعلم التفكير بها' : 'Tap to change the language you learn to think in'}
-                </div>
-              </div>
-            </div>
-            <span className="text-primary font-black text-xs">
-              {isArabic ? 'تغيير' : 'Change'}
-            </span>
-          </button>
-        </section>
+        <button
+          onClick={onBack}
+          className="pref-header__back-btn"
+          aria-label={isArabic ? 'رجوع' : 'Back'}
+        >
+          ←
+        </button>
 
-        {/* Experience Customization Section */}
-        <section className="pref-section" aria-label="Customization">
+        <div className="pref-header__title-group">
+          <h1 className="pref-header__title">{isArabic ? 'إعدادات التجربة والتفكير' : 'Preferences'}</h1>
+          <span className="pref-header__badge">
+            {sourceLang === 'ar' ? '🇪🇬' : '🇬🇧'} ➔ {targetLang === 'de' ? '🇩🇪 Deutsch' : targetLang === 'ja' ? '🇯🇵 日本語' : '🇬🇧 English'}
+          </span>
+        </div>
+
+        <button
+          onClick={() => setShowGuide(true)}
+          className="pref-header__guide-btn"
+          aria-label={isArabic ? 'دليل الإعدادات' : 'Preferences Guide'}
+        >
+          ❓
+        </button>
+      </header>
+
+      <div className="pref-content space-y-6">
+        {/* Language Bridge Banner */}
+        {onOpenLanguageSelector && (
+          <section className="p-4 rounded-3xl bg-surface border border-border shadow-md flex items-center justify-between gap-3">
+            <div>
+              <span className="text-[10px] font-black uppercase tracking-wider text-success block">
+                {isArabic ? 'مسار التفكير النشط' : 'Active Thinking Bridge'}
+              </span>
+              <h3 className="text-sm font-black text-text mt-0.5">
+                {sourceLang.toUpperCase()} ➔ {targetLang.toUpperCase()}
+              </h3>
+            </div>
+            <button
+              type="button"
+              onClick={onOpenLanguageSelector}
+              className="px-4 py-2 rounded-xl bg-surface-2 border border-border text-text font-bold text-xs hover:border-success transition active:scale-95 shrink-0"
+            >
+              {isArabic ? 'تغيير اللغات 🌐' : 'Switch Languages 🌐'}
+            </button>
+          </section>
+        )}
+
+        {/* Theme & BYOK Key Card */}
+        <section className="pref-section">
           <h2 className="pref-section__title">
-            🎨 {isArabic ? 'تخصيص التجربة والذكاء الاصطناعي' : 'Customization & AI Key'}
+            {isArabic ? 'المظهر ومفتاح الذكاء الاصطناعي (BYOK)' : 'Appearance & AI Key'}
           </h2>
-          <div className="pref-section__fields space-y-3 p-4 rounded-2xl bg-surface border border-border">
-            {/* Theme Selector */}
-            <div className="flex items-center justify-between border-b border-border pb-3">
-              <div>
-                <span className="font-bold text-sm text-text block">
-                  {isArabic ? 'مظهر التطبيق (Theme)' : 'App Theme'}
-                </span>
-                <span className="text-xs text-muted block">
-                  {isArabic ? 'التبديل بين الوضع الداكن والوضع الفاتح' : 'Switch between Dark Mode and Light Mode'}
-                </span>
-              </div>
-              <div className="flex items-center gap-1 bg-surface-2 p-1 rounded-xl border border-border">
+          <div className="pref-section__fields space-y-4">
+            <div className="flex items-center justify-between p-3 rounded-2xl bg-surface-2 border border-border">
+              <span className="font-bold text-sm text-text">
+                {isArabic ? 'نمط المظهر (Theme)' : 'Theme Mode'}
+              </span>
+              <div className="flex items-center gap-1.5">
                 <button
                   type="button"
                   onClick={() => handleThemeChange('dark')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
                     theme === 'dark' ? 'bg-primary text-on-primary shadow-sm' : 'text-muted'
                   }`}
                 >
@@ -214,7 +272,7 @@ export function PreferencesView({
                 <button
                   type="button"
                   onClick={() => handleThemeChange('light')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
                     theme === 'light' ? 'bg-primary text-on-primary shadow-sm' : 'text-muted'
                   }`}
                 >
@@ -223,37 +281,69 @@ export function PreferencesView({
               </div>
             </div>
 
-            {/* Custom Free Gemini Key Input */}
-            <div className="space-y-2 pt-1">
+            {/* Custom Gemini API Key (BYOK) */}
+            <div className="p-4 rounded-2xl bg-surface-2 border border-border space-y-3">
               <div className="flex items-center justify-between">
-                <span className="font-bold text-sm text-text block">
-                  🔑 {isArabic ? 'مفتاح Gemini الخاص (اختياري)' : 'Custom Gemini API Key (Optional)'}
+                <span className="font-bold text-sm text-text flex items-center gap-1.5">
+                  <Key size={16} className="text-primary" />
+                  <span>{isArabic ? 'مفتاح Gemini الخاص بك (tb.userApiKey)' : 'Personal Gemini API Key'}</span>
                 </span>
                 <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-success/20 text-success">
-                  {isArabic ? 'مجاني ١٠٠٪' : '100% Free'}
+                  {isArabic ? 'بلا حدود مجانية' : 'Unlimited Free'}
                 </span>
               </div>
-              <p className="text-xs text-muted">
+              <p className="text-xs text-muted leading-relaxed">
                 {isArabic
-                  ? 'أدخل مفتاحك المجاني من Google AI Studio للحصول على أولوية استجابة فورية وبدون حدود يومية.'
-                  : 'Optionally supply your free Gemini key from Google AI Studio for priority unlimited access.'}
+                  ? 'أدخل مفتاحك المجاني من Google AI Studio للحصول على أولوية استجابة فورية وبدون حدود يومية (يتجاوز الحد المجاني اليومي للـ IP).'
+                  : 'Enter your free key from Google AI Studio for priority instant access bypassing daily IP limits.'}
               </p>
-              <div className="flex items-center gap-2 pt-1">
+              <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 pt-1">
                 <input
                   type="password"
                   value={customGeminiKey}
                   onChange={(e) => setCustomGeminiKey(e.target.value)}
                   placeholder="AIzaSy..."
-                  className="flex-1 p-2.5 rounded-xl bg-surface-2 border border-border text-text text-sm font-mono focus:outline-none focus:border-success"
+                  className="flex-1 p-2.5 rounded-xl bg-surface border border-border text-text text-sm font-mono focus:outline-none focus:border-success w-full"
                 />
-                <button
-                  type="button"
-                  onClick={() => handleSaveGeminiKey(customGeminiKey)}
-                  className="px-4 py-2.5 rounded-xl bg-primary text-on-primary font-black text-xs transition active:scale-95 shadow-md"
-                >
-                  {isArabic ? 'حفظ' : 'Save'}
-                </button>
+                <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
+                  <button
+                    type="button"
+                    onClick={() => handleSaveGeminiKey(customGeminiKey)}
+                    className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-primary text-on-primary font-black text-xs transition active:scale-95 shadow-md"
+                  >
+                    {isArabic ? 'حفظ' : 'Save'}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={isTestingKey || !customGeminiKey.trim()}
+                    onClick={handleTestKey}
+                    className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-surface border border-border hover:border-success text-text font-bold text-xs transition active:scale-95 disabled:opacity-40 flex items-center justify-center gap-1.5"
+                  >
+                    {isTestingKey ? (
+                      <Loader2 size={14} className="animate-spin text-primary" />
+                    ) : (
+                      <span>{isArabic ? 'اختبار المفتاح 🧪' : 'Test Key 🧪'}</span>
+                    )}
+                  </button>
+                </div>
               </div>
+
+              {testResult && (
+                <div
+                  className={`p-3 rounded-xl border text-xs font-bold flex items-center gap-2 ${
+                    testResult.status === 'success'
+                      ? 'bg-success/20 border-success text-success'
+                      : 'bg-danger/20 border-danger text-danger'
+                  }`}
+                >
+                  {testResult.status === 'success' ? (
+                    <CheckCircle2 size={16} className="shrink-0" />
+                  ) : (
+                    <XCircle size={16} className="shrink-0" />
+                  )}
+                  <span>{testResult.msg}</span>
+                </div>
+              )}
             </div>
           </div>
         </section>
@@ -448,22 +538,6 @@ export function PreferencesView({
               <Youtube className="w-4 h-4 fill-current" />
               <span>YouTube @SciAmrSherif</span>
             </a>
-            <a
-              href="https://www.linkedin.com/in/sciamrsherif-abdelaal/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="pref-creator-card__link"
-            >
-              LinkedIn
-            </a>
-            <a
-              href="https://github.com/AmrSherifCodes"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="pref-creator-card__link"
-            >
-              GitHub
-            </a>
           </div>
         </div>
       </div>
@@ -471,7 +545,7 @@ export function PreferencesView({
       <TabTutorialModal
         isOpen={showGuide}
         onClose={() => setShowGuide(false)}
-        language={profile?.language === 'arabic' ? 'arabic' : 'english'}
+        language={profile?.language ?? 'english'}
         initialTab="preferences"
       />
     </div>
