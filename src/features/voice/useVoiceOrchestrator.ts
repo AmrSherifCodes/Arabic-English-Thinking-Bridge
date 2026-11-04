@@ -727,12 +727,24 @@ export function useVoiceOrchestrator(
   const {
     isListening,
     interimTranscript,
+    micVolume,
     error: sttError,
     clearError,
     startListening,
     stopListening,
     abortListening,
   } = useNativeSpeech({
+    onSpeechStart: () => {
+      // Automatic Barge-in: if AI is speaking when user speaks, interrupt AI immediately!
+      if (stateRef.current === 'speaking' || stateRef.current === 'thinking') {
+        if (abortControllerRef.current) {
+          abortControllerRef.current.abort();
+          abortControllerRef.current = null;
+        }
+        stopAudio();
+        setState('listening');
+      }
+    },
     onSpeechEnd: (text) => {
       setState('transcribing');
       setTimeout(() => {
@@ -809,6 +821,7 @@ export function useVoiceOrchestrator(
     state,
     isListening,
     interimTranscript,
+    micVolume,
     currentAssistantText,
     messages,
     error: sttError,

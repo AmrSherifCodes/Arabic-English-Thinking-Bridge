@@ -58,6 +58,7 @@ export function VoicePracticeView({
   const {
     state,
     interimTranscript,
+    micVolume = 0,
     currentAssistantText,
     messages,
     error,
@@ -263,6 +264,21 @@ export function VoicePracticeView({
       <div className="voice__stage">
         <div
           className={`voice__orb voice__orb--${state}`}
+          style={{
+            transform:
+              state === 'listening'
+                ? `scale(${1 + Math.min(0.4, (micVolume || 0) / 100)})`
+                : state === 'speaking'
+                ? `scale(${1 + Math.sin(Date.now() / 180) * 0.12})`
+                : 'scale(1)',
+            boxShadow:
+              state === 'listening'
+                ? `0 0 ${20 + (micVolume || 0) / 2}px rgba(45, 212, 191, 0.7)`
+                : state === 'speaking'
+                ? `0 0 32px rgba(251, 191, 36, 0.8)`
+                : undefined,
+            transition: 'transform 0.08s ease-out, box-shadow 0.08s ease-out',
+          }}
           aria-hidden
           onClick={handleMicClick}
         />

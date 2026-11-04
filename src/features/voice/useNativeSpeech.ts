@@ -10,12 +10,14 @@ export function isBraveBrowser(): boolean {
 }
 
 interface UseNativeSpeechOptions {
+  onSpeechStart?: () => void;
   onSpeechEnd?: (finalTranscript: string) => void;
   onError?: (errorMessage: string) => void;
   silenceTimeoutMs?: number;
 }
 
 export function useNativeSpeech({
+  onSpeechStart,
   onSpeechEnd,
   onError,
   silenceTimeoutMs = 1200,
@@ -24,6 +26,7 @@ export function useNativeSpeech({
   const isListeningRef = useRef(false);
   const [transcript, setTranscript] = useState('');
   const [interimTranscript, setInterimTranscript] = useState('');
+  const [micVolume, setMicVolume] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
   const silenceTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -89,6 +92,7 @@ export function useNativeSpeech({
       mediaStreamRef.current.getTracks().forEach((t) => t.stop());
       mediaStreamRef.current = null;
     }
+    setMicVolume(0);
   }, []);
 
   const triggerSpeechEnd = useCallback(
@@ -171,9 +175,10 @@ export function useNativeSpeech({
         updateListening(true);
         setError(null);
         setInterimTranscript('🎙️ Listening... speak naturally');
+        onSpeechStart?.();
       };
 
-      // Set up real-time silence analysis so Brave users enjoy automatic hands-free conversation
+      // Set up real-time silence analysis and volume calculation
       try {
         const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
         if (AudioCtx) {
@@ -181,7 +186,7 @@ export function useNativeSpeech({
           audioContextRef.current = audioCtx;
           const source = audioCtx.createMediaStreamSource(stream);
           const analyser = audioCtx.createAnalyser();
-          analyser.fftSize = 512;
+          analyser.fftSize = 256;
           analyser.smoothingTimeConstant = 0.25;
           source.connect(analyser);
 
@@ -191,6 +196,7 @@ export function useNativeSpeech({
 
           const checkAudioLevel = () => {
             if (!isListeningRef.current || !mediaRecorderRef.current || mediaRecorderRef.current.state !== 'recording') {
+              setMicVolume(0);
               return;
             }
             analyser.getByteFrequencyData(dataArray);
@@ -199,8 +205,12 @@ export function useNativeSpeech({
               sum += dataArray[i];
             }
             const average = sum / dataArray.length;
+            setMicVolume(Math.min(100, Math.round(average * 2.5)));
 
             if (average > 10) {
+              if (!userHasSpoken) {
+                onSpeechStart?.();
+              }
               userHasSpoken = true;
               silenceStart = Date.now();
             } else if (userHasSpoken && Date.now() - silenceStart > 1650) {
@@ -231,7 +241,7 @@ export function useNativeSpeech({
       updateListening(false);
       stopAudioTracks();
     }
-  }, [onError, stopAudioTracks]);
+  }, [onError, onSpeechStart, stopAudioTracks]);
 
   const stopAudioRecording = useCallback(async () => {
     const recorder = mediaRecorderRef.current;
@@ -288,10 +298,9 @@ export function useNativeSpeech({
                 onError?.('No words recognized');
               }
             } catch (transcribeErr: any) {
-              console.warn('[useNativeSpeech] Audio transcribe failed:', transcribeErr);
-              const errMsg = 'Could not transcribe audio. You can continue by typing below!';
-              setError(errMsg);
-              onError?.(errMsg);
+              console.warn('[useNativeSpeech] Base64 transcription failed:', transcribeErr);
+              setError('Transcription unavailable. Please type your message below!');
+              onError?.('Transcription failed');
             } finally {
               resolve();
             }
@@ -342,7 +351,6 @@ export function useNativeSpeech({
             return;
           }
 
-          // Cleanup previous listeners
           if (partialListenerRef.current) await partialListenerRef.current.remove();
           if (stateListenerRef.current) await stateListenerRef.current.remove();
 
@@ -379,6 +387,7 @@ export function useNativeSpeech({
           });
 
           updateListening(true);
+          onSpeechStart?.();
         } catch (err: any) {
           console.error('[useNativeSpeech] Native start error:', err);
           const msg = 'Failed to start native microphone.';
@@ -387,14 +396,12 @@ export function useNativeSpeech({
           updateListening(false);
         }
       } else {
-        // If Brave or browser previously blocked Web Speech, use direct Audio Recording immediately
         if (isAudioModeRef.current || isBraveBrowser()) {
           isAudioModeRef.current = true;
           await startAudioRecording();
           return;
         }
 
-        // Web Speech API
         const SpeechRec =
           (window as any).SpeechRecognition ||
           (window as any).webkitSpeechRecognition;
@@ -437,6 +444,7 @@ export function useNativeSpeech({
 
           rec.onstart = () => {
             updateListening(true);
+            onSpeechStart?.();
           };
 
           rec.onresult = (event: any) => {
@@ -457,7 +465,6 @@ export function useNativeSpeech({
           rec.onerror = (e: any) => {
             console.warn('[useNativeSpeech] Web speech error:', e.error);
 
-            // In Brave browser or restricted networks, Google Speech proxy is blocked
             if (e.error === 'network' || e.error === 'service-not-allowed') {
               console.log('[useNativeSpeech] Speech recognition blocked by browser (Brave/privacy shield). Engaging Audio Recording fallback.');
               isAudioModeRef.current = true;
@@ -504,7 +511,7 @@ export function useNativeSpeech({
         }
       }
     },
-    [clearSilenceTimer, isNative, onError, resetSilenceTimer, startAudioRecording, triggerSpeechEnd]
+    [clearSilenceTimer, isNative, onError, onSpeechStart, resetSilenceTimer, startAudioRecording, triggerSpeechEnd]
   );
 
   const stopListening = useCallback(async () => {
@@ -530,19 +537,11 @@ export function useNativeSpeech({
         /* noop */
       }
     }
-
-    if (latestTranscriptRef.current.trim()) {
-      triggerSpeechEnd(latestTranscriptRef.current);
-    }
-  }, [clearSilenceTimer, isNative, stopAudioRecording, triggerSpeechEnd]);
+  }, [clearSilenceTimer, isNative, stopAudioRecording]);
 
   const abortListening = useCallback(async () => {
     clearSilenceTimer();
     stopAudioTracks();
-    updateListening(false);
-    latestTranscriptRef.current = '';
-    setTranscript('');
-    setInterimTranscript('');
 
     if (mediaRecorderRef.current) {
       try {
@@ -588,6 +587,7 @@ export function useNativeSpeech({
     isListening,
     transcript,
     interimTranscript,
+    micVolume,
     error,
     clearError: () => setError(null),
     startListening,
