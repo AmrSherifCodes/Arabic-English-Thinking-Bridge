@@ -3,7 +3,12 @@ import assert from 'node:assert/strict';
 import { calculatePlayerLevel, calculateSkillAxisLevel, createInitialProgressionState, updateStreakAndShields } from './engine';
 import { calculateNextSrsState, getDueSrsQueue } from './srs';
 import { migrateLegacyStorageToProgression } from './migration';
-import { buildCourseStructure } from './courseData';
+import {
+  buildCourseStructure,
+  getNextStageAfterLessonCompletion,
+  isLessonUnlocked,
+  isStageUnlocked,
+} from './courseData';
 
 test('1. calculatePlayerLevel computes smooth quadratic levels', () => {
   assert.equal(calculatePlayerLevel(0), 1);
@@ -109,7 +114,37 @@ test('5. buildCourseStructure maps all 27 lessons into CEFR stages A0-A2 without
   }
 });
 
-test('6. migrateLegacyStorageToProgression runs safely with fallback defaults', () => {
+test('6. progression unlocks lessons sequentially and stages after completing the active stage', () => {
+  const course = buildCourseStructure();
+  const state = createInitialProgressionState();
+  const a0 = course.find((stage) => stage.stage === 'A0')!;
+  const a1 = course.find((stage) => stage.stage === 'A1')!;
+  const a0Lessons = a0.units.flatMap((unit) => unit.lessons);
+  const a1Lessons = a1.units.flatMap((unit) => unit.lessons);
+
+  assert.equal(isLessonUnlocked(state, a0Lessons[0]), true);
+  assert.equal(isLessonUnlocked(state, a0Lessons[1]), false);
+  assert.equal(isStageUnlocked(state, 'A1'), false);
+
+  state.completedLessonIds = [a0Lessons[0].id];
+  assert.equal(isLessonUnlocked(state, a0Lessons[1]), true);
+  assert.equal(isLessonUnlocked(state, a0Lessons[2]), false);
+
+  state.completedLessonIds = a0Lessons.slice(0, -1).map((lesson) => lesson.id);
+  assert.equal(isStageUnlocked(state, 'A1'), false);
+  assert.equal(getNextStageAfterLessonCompletion(state, a0Lessons[7].id), undefined);
+  const nextStage = getNextStageAfterLessonCompletion(
+    state,
+    a0Lessons[a0Lessons.length - 1].id
+  );
+  assert.equal(nextStage, 'A1');
+  state.currentStage = nextStage!;
+  assert.equal(isStageUnlocked(state, 'A1'), true);
+  assert.equal(isLessonUnlocked(state, a1Lessons[0]), true);
+  assert.equal(isLessonUnlocked(state, a1Lessons[1]), false);
+});
+
+test('7. migrateLegacyStorageToProgression runs safely with fallback defaults', () => {
   const migrated = migrateLegacyStorageToProgression();
   assert.ok(migrated.version === 2, 'Version must be 2');
   assert.ok(migrated.overallLevel >= 1, 'Overall level must be at least 1');

@@ -368,6 +368,8 @@ export function LessonRunner({
                     <button
                       key={idx}
                       disabled={isSelected || isAnswered}
+                      data-testid="word-chip"
+                      data-word={chip}
                       onClick={() => {
                         soundFX.playChipSelect();
                         setSelectedChips((prev) => [...prev, chip]);

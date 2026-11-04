@@ -26,12 +26,12 @@ export function OnboardingPlacementModal({
   initialSource = 'ar',
   initialTarget = 'en',
 }: OnboardingPlacementModalProps) {
-  // Steps: 0: Language Pair -> 1: Goal -> 2: CEFR Level Grid (A1-C1)
+  // Steps: 0: Language Pair -> 1: Goal -> 2: CEFR Level Grid (A0-A2)
   const [step, setStep] = useState(0);
   const [selectedSource, setSelectedSource] = useState<SourceLanguage>(initialSource);
   const [selectedTarget, setSelectedTarget] = useState<TargetLanguage>(initialTarget);
   const [selectedGoal, setSelectedGoal] = useState('tech');
-  const [selectedStage, setSelectedStage] = useState<CefrStage>('A1');
+  const [selectedStage, setSelectedStage] = useState<CefrStage>('A0');
 
   if (!isOpen) return null;
 
@@ -53,8 +53,8 @@ export function OnboardingPlacementModal({
     accent: string;
   }[] = [
     {
-      id: 'A1',
-      code: 'A1',
+      id: 'A0',
+      code: 'A0',
       labelAr: 'مبتدئ (Beginner)',
       labelEn: 'Beginner',
       descAr: 'تكوين الجمل البسيطة وفك عقدة الأفعال المخفية',
@@ -62,8 +62,8 @@ export function OnboardingPlacementModal({
       accent: 'border-emerald-500/40 text-emerald-400 bg-emerald-500/10'
     },
     {
-      id: 'A2',
-      code: 'A2',
+      id: 'A1',
+      code: 'A1',
       labelAr: 'أساسي (Elementary)',
       labelEn: 'Elementary',
       descAr: 'الربط التلقائي، الأزمنة اليومية والأفعال المركبة',
@@ -71,31 +71,13 @@ export function OnboardingPlacementModal({
       accent: 'border-teal-500/40 text-teal-300 bg-teal-500/10'
     },
     {
-      id: 'B1',
-      code: 'B1',
+      id: 'A2',
+      code: 'A2',
       labelAr: 'متوسط (Intermediate)',
       labelEn: 'Intermediate',
       descAr: 'الحديث والشرح دون توقف وترجمة في الرأس',
       descEn: 'Narratives, workplace conversation without lag',
       accent: 'border-cyan-500/40 text-cyan-300 bg-cyan-500/10'
-    },
-    {
-      id: 'B2',
-      code: 'B2',
-      labelAr: 'فوق المتوسط (Upper-Intermediate)',
-      labelEn: 'Upper-Intermediate',
-      descAr: 'نقاشات تقنية ومعقدة والتعبير باحترافية كاملة',
-      descEn: 'Technical debates, nuance, complex synthesis',
-      accent: 'border-amber-500/40 text-amber-300 bg-amber-500/10'
-    },
-    {
-      id: 'C1',
-      code: 'C1',
-      labelAr: 'متقدم / طلاقة كاملة (Advanced)',
-      labelEn: 'Advanced',
-      descAr: 'التفكير اللحظي والارتجال كمتحدث أصلي',
-      descEn: 'Near-native cognitive reflex, idiom mastery',
-      accent: 'border-purple-500/40 text-purple-300 bg-purple-500/10'
     }
   ];
 
@@ -306,7 +288,7 @@ export function OnboardingPlacementModal({
           </div>
         )}
 
-        {/* STEP 2: CEFR Level Selection Grid (A1, A2, B1, B2, C1) */}
+        {/* STEP 2: CEFR Level Selection Grid (A0-A2) */}
         {step === 2 && (
           <div className="space-y-4 flex-1 flex flex-col justify-between sm:justify-start">
             <div className="space-y-4">

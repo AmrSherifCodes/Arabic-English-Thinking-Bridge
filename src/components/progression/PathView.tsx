@@ -1,22 +1,27 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ProgressionState, StageNode, LessonNode } from '../../progression/types';
-import { buildCourseStructure } from '../../progression/courseData';
-import { Play, Crown, CheckCircle2, Target } from 'lucide-react';
+import { buildCourseStructure, isLessonUnlocked, isStageUnlocked } from '../../progression/courseData';
+import { Play, Crown, CheckCircle2, Target, LockKeyhole } from 'lucide-react';
 import { EmptyLessonState } from '../EmptyLessonState';
 
 interface PathViewProps {
   state: ProgressionState;
   onSelectLesson: (lesson: LessonNode) => void;
   onSelectUnitCheckpoint: (unitId: string) => void;
-  onSetStage?: (stage: StageNode['stage']) => void;
   isArabic?: boolean;
 }
 
-export function PathView({ state, onSelectLesson, onSelectUnitCheckpoint, onSetStage, isArabic = true }: PathViewProps) {
+export function PathView({ state, onSelectLesson, onSelectUnitCheckpoint, isArabic = true }: PathViewProps) {
   const courseStructure: StageNode[] = buildCourseStructure();
   const [viewedStage, setViewedStage] = useState<string>(state.currentStage);
   const activeStageNode = courseStructure.find((s) => s.stage === viewedStage) || courseStructure[0];
-  const isMyLevel = activeStageNode.stage === state.currentStage;
+  const currentStageNode = courseStructure.find((s) => s.stage === state.currentStage) || courseStructure[0];
+  const continueStageNode = currentStageNode;
+  const stageLessons = activeStageNode.units.flatMap((unit) => unit.lessons);
+
+  useEffect(() => {
+    setViewedStage(state.currentStage);
+  }, [state.currentStage]);
 
   // Read saved user goal from localStorage if available
   const userGoal = useMemo(() => {
@@ -54,10 +59,10 @@ export function PathView({ state, onSelectLesson, onSelectUnitCheckpoint, onSetS
       <div className="p-4.5 rounded-3xl bg-surface border border-border shadow-xl flex items-center justify-between">
         <div className="space-y-1 text-start">
           <span className="text-[10px] font-black uppercase tracking-wider text-success block">
-            {isArabic ? `المرحلة الحالية: ${activeStageNode.stage}` : `Current Stage: ${activeStageNode.stage}`}
+            {isArabic ? `المرحلة الحالية: ${continueStageNode.stage}` : `Current Stage: ${continueStageNode.stage}`}
           </span>
           <h3 className="text-sm font-black text-text">
-            {isArabic ? activeStageNode.titleAr : activeStageNode.titleEn}
+            {isArabic ? continueStageNode.titleAr : continueStageNode.titleEn}
           </h3>
           <p className="text-xs text-muted">
             {isArabic ? 'تابع مسار التفكير دون تردد' : 'Resume your cognitive path'}
@@ -66,7 +71,7 @@ export function PathView({ state, onSelectLesson, onSelectUnitCheckpoint, onSetS
 
         <button
           onClick={() => {
-            const allLessons = activeStageNode.units.flatMap((u) => u.lessons);
+            const allLessons = continueStageNode.units.flatMap((u) => u.lessons);
             const firstUnfinished =
               allLessons.find((l) => !state.completedLessonIds.includes(l.id)) || allLessons[0];
             if (firstUnfinished) onSelectLesson(firstUnfinished);
@@ -80,42 +85,56 @@ export function PathView({ state, onSelectLesson, onSelectUnitCheckpoint, onSetS
 
       {/* 2. Stages Tabs / Selector */}
       <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
-        {courseStructure.slice(0, 3).map((stg) => {
+        {courseStructure.map((stg) => {
           const isActive = stg.stage === viewedStage;
+          const unlocked = isStageUnlocked(state, stg.stage);
           return (
             <button
               key={stg.stage}
+              type="button"
               onClick={() => setViewedStage(stg.stage)}
               aria-pressed={stg.stage === viewedStage}
+              aria-label={`${stg.stage}${unlocked ? '' : isArabic ? ' — مقفولة، أكمل المرحلة السابقة لفتحها' : ' — locked, complete the previous stage to unlock'}`}
               className={`px-4 py-2 min-h-[48px] min-w-[48px] rounded-2xl border text-xs font-black transition shrink-0 ${
                 isActive
                   ? 'bg-success/20 border-success text-success shadow-md'
-                  : 'bg-surface border-border text-muted hover:text-text'
+                  : unlocked
+                    ? 'bg-surface border-border text-muted hover:text-text'
+                    : 'bg-surface/50 border-border/60 text-muted/60'
               }`}
             >
-              <span>{stg.stage}</span>
+              <span className="inline-flex items-center gap-1.5">
+                {!unlocked && <LockKeyhole size={12} aria-hidden="true" />}
+                {stg.stage}
+              </span>
             </button>
           );
         })}
       </div>
 
-      {!isMyLevel && onSetStage && (
-        <button
-          onClick={() => onSetStage(activeStageNode.stage)}
-          className="w-full px-4 py-3 min-h-[48px] rounded-2xl bg-primary text-on-primary font-black text-xs shadow-lg active:scale-95"
-        >
-          {isArabic ? `اجعل ${activeStageNode.stage} مستواي الحالي` : `Set ${activeStageNode.stage} as my level`}
-        </button>
+      {!isStageUnlocked(state, activeStageNode.stage) && (
+        <div role="status" className="p-4 rounded-2xl bg-surface border border-border text-center space-y-1">
+          <LockKeyhole className="mx-auto text-muted" size={20} aria-hidden="true" />
+          <p className="text-sm font-black text-text">
+            {isArabic ? `${activeStageNode.stage} مقفولة حالياً` : `${activeStageNode.stage} is locked`}
+          </p>
+          <p className="text-xs text-muted">
+            {isArabic
+              ? `أكمل دروس ${currentStageNode.stage} لفتح المرحلة التالية.`
+              : `Complete the ${currentStageNode.stage} lessons to unlock the next stage.`}
+          </p>
+        </div>
       )}
 
       {/* Empty State when stage has zero completed lessons */}
-      {activeStageNode.units.every((u) => u.lessons.every((l) => !state.completedLessonIds.includes(l.id))) && (
+      {isStageUnlocked(state, activeStageNode.stage) &&
+        activeStageNode.units.every((u) => u.lessons.every((l) => !state.completedLessonIds.includes(l.id))) && (
         <EmptyLessonState
           stage={activeStageNode.stage}
           isArabic={isArabic}
           onStartFirstLesson={() => {
             const firstLesson = activeStageNode.units[0]?.lessons[0];
-            if (firstLesson) onSelectLesson(firstLesson);
+            if (firstLesson && isLessonUnlocked(state, firstLesson)) onSelectLesson(firstLesson);
           }}
         />
       )}
@@ -154,19 +173,26 @@ export function PathView({ state, onSelectLesson, onSelectUnitCheckpoint, onSetS
 
               {/* Lesson Nodes Path */}
               <div className="flex flex-col items-center gap-6 relative">
-                {unit.lessons.map((lesson, lIdx) => {
+                {unit.lessons.map((lesson) => {
                   const crowns = state.lessonCrowns[lesson.id] || 0;
                   const isCompleted = state.completedLessonIds.includes(lesson.id);
+                  const unlocked = isLessonUnlocked(state, lesson);
+                  const stageLessonIndex = stageLessons.findIndex((item) => item.id === lesson.id);
+                  const previousLesson = stageLessons[stageLessonIndex - 1];
 
-                  const xOffset = lIdx % 2 === 0 ? 'translate-x-0' : lIdx % 3 === 1 ? 'translate-x-6' : '-translate-x-6';
+                  const xOffset = stageLessonIndex % 3 === 0 ? 'translate-x-0' : stageLessonIndex % 3 === 1 ? 'translate-x-6' : '-translate-x-6';
 
                   return (
                     <button
                       key={lesson.id}
                       onClick={() => onSelectLesson(lesson)}
-                      className={`group relative flex flex-col items-center justify-center transition transform active:scale-90 ${xOffset}`}
+                      type="button"
+                      disabled={!unlocked}
+                      aria-label={`${isArabic ? lesson.titleAr : lesson.titleEn}${unlocked ? '' : isArabic ? ' — مقفول، أكمل الدرس السابق لفتحه' : ' — locked, complete the previous lesson to unlock'}`}
+                      className={`group relative flex flex-col items-center justify-center transition transform ${
+                        unlocked ? 'active:scale-90' : 'cursor-not-allowed opacity-55'
+                      } ${xOffset}`}
                     >
-                      {/* Crown Level Badge */}
                       {crowns > 0 && (
                         <span className="absolute -top-2 -right-2 px-1.5 py-0.5 rounded-full bg-primary text-on-primary text-[10px] font-black shadow-md flex items-center gap-0.5 z-10">
                           <Crown size={10} fill="currentColor" />
@@ -174,18 +200,22 @@ export function PathView({ state, onSelectLesson, onSelectUnitCheckpoint, onSetS
                         </span>
                       )}
 
-                      {/* Main Circular Node */}
                       <div
                         className={`w-16 h-16 rounded-full border-4 flex items-center justify-center shadow-lg transition-all ${
                           isCompleted
                             ? 'bg-success border-success text-on-primary ring-4 ring-success/20'
-                            : 'bg-surface border-border text-muted group-hover:border-success'
+                            : unlocked
+                              ? 'bg-surface border-border text-muted group-hover:border-success'
+                              : 'bg-surface-2 border-border text-muted'
                         }`}
                       >
-                        {isCompleted ? <CheckCircle2 size={24} /> : <Play size={22} fill="currentColor" className="ms-1" />}
+                        {isCompleted
+                          ? <CheckCircle2 size={24} />
+                          : unlocked
+                            ? <Play size={22} fill="currentColor" className="ms-1" />
+                            : <LockKeyhole size={22} />}
                       </div>
 
-                      {/* Lesson Label */}
                       <span
                         className="mt-1 text-[11px] font-black text-text text-center max-w-[150px] sm:max-w-[170px] line-clamp-2 leading-snug break-words px-1"
                         dir="auto"
@@ -193,6 +223,13 @@ export function PathView({ state, onSelectLesson, onSelectUnitCheckpoint, onSetS
                       >
                         {isArabic ? lesson.titleAr : lesson.titleEn}
                       </span>
+                      {!unlocked && (
+                        <span className="mt-1 text-[9px] font-bold text-muted">
+                          {isArabic
+                            ? `أكمل ${previousLesson ? previousLesson.titleAr : 'المرحلة السابقة'}`
+                            : `Complete ${previousLesson ? previousLesson.titleEn : 'the previous stage'}`}
+                        </span>
+                      )}
                     </button>
                   );
                 })}

@@ -24,6 +24,7 @@ export function ProfileView({
   onExportData,
   onDeleteData,
   onOpenPrivacyPolicy,
+  onOpenPreferences,
   isArabic = true,
 }: ProfileViewProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -78,6 +79,13 @@ export function ProfileView({
           <Settings size={14} className="text-teal-400" />
           <span>{isArabic ? 'تفضيلات التدريب والبطاقات' : 'Practice Preferences'}</span>
         </h4>
+        <button
+          type="button"
+          onClick={onOpenPreferences}
+          className="w-full p-2.5 rounded-xl bg-stone-950 border border-stone-800 text-stone-300 font-bold text-xs hover:border-teal-500/50 transition text-start"
+        >
+          {isArabic ? 'إعدادات التطبيق واللغة' : 'App and language settings'}
+        </button>
 
         <div className="space-y-2 text-xs">
           {/* Daily Cards Cap */}
