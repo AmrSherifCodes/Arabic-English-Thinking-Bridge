@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from 'framer-motion';
+import { track } from '@vercel/analytics';
 import {
   Sparkles,
   ArrowRight,
@@ -42,7 +43,10 @@ function TiltCard({ children, className = '' }: { children: React.ReactNode; cla
   const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ['-10deg', '10deg']);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (typeof window !== 'undefined' && ('ontouchstart' in window || window.innerWidth < 768)) return;
+    if (
+      typeof window !== 'undefined' &&
+      ('ontouchstart' in window || window.innerWidth < 768 || window.matchMedia('(pointer: coarse)').matches)
+    ) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const width = rect.width;
     const height = rect.height;
@@ -107,6 +111,11 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
 
   const [videoModalOpen, setVideoModalOpen] = useState(false);
   const [byokModalOpen, setByokModalOpen] = useState(false);
+
+  const handleLaunchApp = () => {
+    track('App_Launched', { source: 'Landing_Page' });
+    onLaunchApp();
+  };
 
   // Read profile & target language from localStorage for CRO dynamic CTA
   const [userTarget] = useState<TargetLanguage | null>(() => {
@@ -233,7 +242,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
             </button>
 
             <button
-              onClick={onLaunchApp}
+              onClick={handleLaunchApp}
               className="px-5 py-2 rounded-xl bg-gradient-to-r from-teal-400 to-emerald-500 hover:from-teal-300 hover:to-emerald-400 text-stone-950 font-black text-xs transition shadow-lg shadow-teal-500/20 active:scale-95 flex items-center gap-1.5"
             >
               <span>{dynamicCtaText}</span>
@@ -270,7 +279,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
 
           <motion.div variants={fadeIn} className="flex flex-wrap justify-center items-center gap-4 pt-2">
             <button
-              onClick={onLaunchApp}
+              onClick={handleLaunchApp}
               className="px-8 py-4 rounded-2xl bg-gradient-to-r from-teal-400 via-emerald-400 to-teal-500 hover:opacity-90 text-stone-950 font-black text-base transition shadow-2xl shadow-teal-500/30 active:scale-95 flex items-center gap-2"
             >
               <span>{dynamicCtaText}</span>
@@ -295,7 +304,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
         </motion.div>
 
         {/* Task 5: Animated Language Marquee (Mobile Optimized Container) */}
-        <div className="pt-6 overflow-hidden w-full relative">
+        <div className="pt-6 overflow-hidden touch-pan-y w-full relative">
           <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-[#090D16] to-transparent z-10 pointer-events-none" />
           <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-[#090D16] to-transparent z-10 pointer-events-none" />
 
@@ -500,7 +509,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
 
             <div className="pt-2">
               <button
-                onClick={onLaunchApp}
+                onClick={handleLaunchApp}
                 className="px-6 py-3 rounded-xl bg-teal-400 hover:bg-teal-300 text-stone-950 font-black text-xs transition shadow-md active:scale-95 flex items-center gap-2"
               >
                 <span>{dynamicCtaText}</span>
@@ -665,8 +674,9 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
               </div>
 
               <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-black">
+                {/* TODO: REPLACE_WITH_VIDEO_ID with the actual YouTube video ID upon launch. */}
                 <iframe
-                  src="https://www.youtube-nocookie.com/embed/videoseries?list=PL_SciAmrSherif"
+                  src="https://www.youtube-nocookie.com/embed/REPLACE_WITH_VIDEO_ID"
                   title="Thinking Bridge YouTube Video"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
@@ -762,7 +772,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
               <button
                 onClick={() => {
                   setByokModalOpen(false);
-                  onLaunchApp();
+                  handleLaunchApp();
                 }}
                 className="w-full py-3.5 rounded-2xl bg-emerald-400 hover:bg-emerald-300 text-stone-950 font-black text-xs transition active:scale-95 shadow-lg"
               >
