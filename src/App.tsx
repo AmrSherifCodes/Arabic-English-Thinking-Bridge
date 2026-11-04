@@ -34,7 +34,7 @@ import { LanguagePairBanner } from './components/LanguagePairBanner';
 import { ProgressionState, LessonNode } from './progression/types';
 import { migrateLegacyStorageToProgression } from './progression/migration';
 import { updateStreakAndShields } from './progression/engine';
-import { buildCourseStructure, isLessonUnlocked } from './progression/courseData';
+import { getNextStageAfterLessonCompletion, isLessonUnlocked } from './progression/courseData';
 
 type View =
   | { name: 'shell' }
@@ -158,16 +158,9 @@ export default function App() {
   const goHome = () => setView({ name: 'shell' });
 
   const handleLessonSessionComplete = (earnedXp: number, _accuracyPercent: number) => {
-    const course = buildCourseStructure();
-    const completedIds = new Set(progression.completedLessonIds);
-    if (activeLessonNode) completedIds.add(activeLessonNode.id);
-    const currentStageLessons = course
-      .find((stage) => stage.stage === progression.currentStage)
-      ?.units.flatMap((unit) => unit.lessons) ?? [];
-    const stageCompleted = currentStageLessons.length > 0 &&
-      currentStageLessons.every((lesson) => completedIds.has(lesson.id));
-    const currentStageIndex = course.findIndex((stage) => stage.stage === progression.currentStage);
-    const nextStage = stageCompleted ? course[currentStageIndex + 1]?.stage : undefined;
+    const nextStage = activeLessonNode
+      ? getNextStageAfterLessonCompletion(progression, activeLessonNode.id)
+      : undefined;
 
     updateProgression((prev) => ({
       ...prev,

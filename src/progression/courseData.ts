@@ -118,6 +118,21 @@ export function isStageUnlocked(state: ProgressionState, stage: StageNode['stage
   return requestedStageIndex >= 0 && activeStageIndex >= 0 && requestedStageIndex <= activeStageIndex;
 }
 
+export function getNextStageAfterLessonCompletion(
+  state: ProgressionState,
+  completedLessonId: string
+): StageNode['stage'] | undefined {
+  const stages = buildCourseStructure();
+  const currentStageIndex = stages.findIndex((item) => item.stage === state.currentStage);
+  if (currentStageIndex < 0) return undefined;
+
+  const currentStageLessons = stages[currentStageIndex].units.flatMap((unit) => unit.lessons);
+  const completedLessonIds = new Set([...state.completedLessonIds, completedLessonId]);
+  if (!currentStageLessons.every((lesson) => completedLessonIds.has(lesson.id))) return undefined;
+
+  return stages[currentStageIndex + 1]?.stage;
+}
+
 export function isLessonUnlocked(state: ProgressionState, lesson: LessonNode): boolean {
   if (!isStageUnlocked(state, lesson.stage)) return false;
   if (state.completedLessonIds.includes(lesson.id)) return true;

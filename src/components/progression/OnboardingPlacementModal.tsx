@@ -288,7 +288,7 @@ export function OnboardingPlacementModal({
           </div>
         )}
 
-        {/* STEP 2: CEFR Level Selection Grid (A1, A2, B1, B2, C1) */}
+        {/* STEP 2: CEFR Level Selection Grid (A0-A2) */}
         {step === 2 && (
           <div className="space-y-4 flex-1 flex flex-col justify-between sm:justify-start">
             <div className="space-y-4">

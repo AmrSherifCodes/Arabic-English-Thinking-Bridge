@@ -3,7 +3,12 @@ import assert from 'node:assert/strict';
 import { calculatePlayerLevel, calculateSkillAxisLevel, createInitialProgressionState, updateStreakAndShields } from './engine';
 import { calculateNextSrsState, getDueSrsQueue } from './srs';
 import { migrateLegacyStorageToProgression } from './migration';
-import { buildCourseStructure, isLessonUnlocked, isStageUnlocked } from './courseData';
+import {
+  buildCourseStructure,
+  getNextStageAfterLessonCompletion,
+  isLessonUnlocked,
+  isStageUnlocked,
+} from './courseData';
 
 test('1. calculatePlayerLevel computes smooth quadratic levels', () => {
   assert.equal(calculatePlayerLevel(0), 1);
@@ -125,9 +130,15 @@ test('6. progression unlocks lessons sequentially and stages after completing th
   assert.equal(isLessonUnlocked(state, a0Lessons[1]), true);
   assert.equal(isLessonUnlocked(state, a0Lessons[2]), false);
 
-  state.completedLessonIds = a0Lessons.map((lesson) => lesson.id);
+  state.completedLessonIds = a0Lessons.slice(0, -1).map((lesson) => lesson.id);
   assert.equal(isStageUnlocked(state, 'A1'), false);
-  state.currentStage = 'A1';
+  assert.equal(getNextStageAfterLessonCompletion(state, a0Lessons[7].id), undefined);
+  const nextStage = getNextStageAfterLessonCompletion(
+    state,
+    a0Lessons[a0Lessons.length - 1].id
+  );
+  assert.equal(nextStage, 'A1');
+  state.currentStage = nextStage!;
   assert.equal(isStageUnlocked(state, 'A1'), true);
   assert.equal(isLessonUnlocked(state, a1Lessons[0]), true);
   assert.equal(isLessonUnlocked(state, a1Lessons[1]), false);
