@@ -9,6 +9,8 @@ import {
   extractFeedbackDraft,
   isFeedbackConfirmation,
   isFeedbackCancellation,
+  recognizeVoiceCommand,
+  extractLastSentence,
   FeedbackDraft
 } from '../../services/smartConversation';
 import { useNativeSpeech } from './useNativeSpeech';
@@ -83,6 +85,73 @@ export interface PlayableAudioSlot {
   __words?: string[];
   __startWordIndex?: number;
   __locale?: string;
+  __isPiper?: boolean;
+}
+
+const PIPER_VOICES: Partial<Record<TargetLanguage | 'ar', string>> = {
+  ar: 'ar_JO-kareem-medium',
+  en: 'en_US-lessac-high',
+  de: 'de_DE-thorsten-high',
+  es: 'es_ES-sharvard-medium',
+  fr: 'fr_FR-siwis-medium',
+  zh: 'zh_CN-huayan-medium',
+  ru: 'ru_RU-irina-medium',
+  pt: 'pt_BR-faber-medium',
+  it: 'it_IT-riccardo-x_low',
+};
+
+async function createPiperAudioSlot(
+  sentence: string,
+  words: string[],
+  startWordIndex: number,
+  rate: number,
+  targetLang: TargetLanguage | 'ar',
+  signal?: AbortSignal
+): Promise<PlayableAudioSlot | null> {
+  const voiceId = PIPER_VOICES[targetLang];
+  if (!voiceId) return null;
+
+  const piper = await import('@mintplex-labs/piper-tts-web');
+  if (typeof navigator !== 'undefined' && !navigator.onLine) {
+    const storedVoices = await piper.stored();
+    if (!storedVoices.includes(voiceId)) return null;
+  }
+  if (signal?.aborted) return null;
+
+  const blob = await piper.predict({ text: sentence, voiceId });
+  if (signal?.aborted) return null;
+  const url = URL.createObjectURL(blob);
+  const audio = new Audio(url);
+  audio.playbackRate = rate;
+  const revokeUrl = () => URL.revokeObjectURL(url);
+
+  return {
+    play: () => audio.play(),
+    pause: () => {
+      audio.pause();
+      revokeUrl();
+    },
+    get duration() { return audio.duration || 0; },
+    get currentTime() { return audio.currentTime || 0; },
+    set onended(handler) {
+      audio.onended = () => {
+        revokeUrl();
+        handler?.();
+      };
+    },
+    get onended() { return audio.onended as (() => void) | null; },
+    set onerror(handler) {
+      audio.onerror = () => {
+        revokeUrl();
+        handler?.();
+      };
+    },
+    get onerror() { return audio.onerror as ((event: Event) => void) | null; },
+    __words: words,
+    __startWordIndex: startWordIndex,
+    __locale: targetLang === 'ar' ? 'ar-EG' : TARGET_LANGUAGE_LOCALES[targetLang],
+    __isPiper: true,
+  };
 }
 
 export function useVoiceOrchestrator(
@@ -206,6 +275,37 @@ export function useVoiceOrchestrator(
         if (!spoken) nextAudio.onended?.();
       };
 
+      const fallBackToPiper = async () => {
+        if (nextAudio.__isPiper) {
+          fallBackToNativeSpeech();
+          return;
+        }
+        try {
+          const isArabic = /[\u0600-\u06FF]/.test(chunkWords.join(' '));
+          const piperSlot = await createPiperAudioSlot(
+            chunkWords.join(' '),
+            chunkWords,
+            chunkStart,
+            speechRate,
+            isArabic ? 'ar' : effectiveTargetLang,
+            abortControllerRef.current?.signal
+          );
+          if (piperSlot) {
+            audioSlotsRef.current.set(nextIndex, piperSlot);
+            nextPlayIndexRef.current = nextIndex;
+            isPlayingRef.current = false;
+            currentAudioRef.current = null;
+            checkAndPlayQueue();
+            return;
+          }
+        } catch (error) {
+          if (!(error instanceof DOMException && error.name === 'AbortError')) {
+            console.warn('[useVoiceOrchestrator] Local Piper TTS failed; using browser speech synthesis.', error);
+          }
+        }
+        fallBackToNativeSpeech();
+      };
+
       // Sub-frame word synchronization loop matching exact audio timestamp
       const updateWordSync = () => {
         if (!isPlayingRef.current || currentAudioRef.current !== nextAudio) return;
@@ -236,12 +336,12 @@ export function useVoiceOrchestrator(
       };
 
       nextAudio.onerror = () => {
-        fallBackToNativeSpeech();
+        void fallBackToPiper();
       };
 
       const handlePlaybackFailure = (err: unknown) => {
         console.warn('[useVoiceOrchestrator] Audio play rejected:', err);
-        fallBackToNativeSpeech();
+        void fallBackToPiper();
       };
       try {
         nextAudio.play().catch(handlePlaybackFailure);
@@ -273,7 +373,7 @@ export function useVoiceOrchestrator(
         }
       }
     }
-  }, [autoListen, speechRate, targetLocale, targetVoice, voiceModel]);
+  },   [autoListen, effectiveTargetLang, speechRate, targetLocale, targetVoice, voiceModel]);
 
   // Helper to create a fallback slot powered by on-device SpeechSynthesis
   const createFallbackAudioSlot = useCallback(
@@ -349,10 +449,17 @@ export function useVoiceOrchestrator(
 
   // Parallel prefetch for a single sentence
   const prefetchSentence = useCallback(
-    async (sentence: string, signal: AbortSignal, chunkIndex: number, startWordIndex: number = 0) => {
+    async (
+      sentence: string,
+      signal: AbortSignal,
+      chunkIndex: number,
+      startWordIndex: number = 0,
+      rateOverride?: number
+    ) => {
       const clean = sentence.trim();
       if (!clean) return;
 
+      const rate = rateOverride ?? speechRate;
       const isArabic = /[\u0600-\u06FF]/.test(clean);
       const speechLocale = isArabic ? 'ar-EG' : targetLocale;
       const speechVoice = isArabic ? voiceModel : targetVoice;
@@ -370,7 +477,8 @@ export function useVoiceOrchestrator(
             text: clean,
             lang: speechLocale,
             voice: speechVoice,
-            rate: speechRate,
+            rate,
+            pitch: '+1Hz',
           }),
           signal: signal || timeoutCtrl.signal,
         }).finally(() => clearTimeout(timeoutId));
@@ -381,7 +489,7 @@ export function useVoiceOrchestrator(
         if (blob.size >= 50) {
           const blobUrl = URL.createObjectURL(blob);
           const audio = new Audio(blobUrl);
-          audio.playbackRate = speechRate;
+          audio.playbackRate = 1;
           (audio as any).__words = words;
           (audio as any).__startWordIndex = startWordIndex;
 
@@ -422,13 +530,34 @@ export function useVoiceOrchestrator(
         console.warn('[useVoiceOrchestrator] Remote TTS prefetch failed, engaging on-device speech:', err);
       }
 
-      // If remote Edge TTS did not create a slot, immediately engage native speech synthesis fallback!
+      if (!slotCreated) {
+        try {
+          const piperSlot = await createPiperAudioSlot(
+            clean,
+            words,
+            startWordIndex,
+            rate,
+            isArabic ? 'ar' : effectiveTargetLang,
+            signal
+          );
+          if (piperSlot) {
+            audioSlotsRef.current.set(chunkIndex, piperSlot);
+            slotCreated = true;
+            checkAndPlayQueue();
+          }
+        } catch (error) {
+          if (!(error instanceof DOMException && error.name === 'AbortError')) {
+            console.warn('[useVoiceOrchestrator] Local Piper TTS failed; engaging browser speech synthesis:', error);
+          }
+        }
+      }
+
       if (!slotCreated) {
         const fallbackSlot = createFallbackAudioSlot(
           clean,
           words,
           startWordIndex,
-          speechRate,
+          rate,
           speechVoice,
           speechLocale
         );
@@ -436,7 +565,7 @@ export function useVoiceOrchestrator(
         checkAndPlayQueue();
       }
     },
-    [checkAndPlayQueue, createFallbackAudioSlot, speechRate, targetLocale, targetVoice, voiceModel]
+    [checkAndPlayQueue, createFallbackAudioSlot, effectiveTargetLang, speechRate, targetLocale, targetVoice, voiceModel]
   );
 
   // Submit confirmed feedback directly to PostgreSQL/Supabase backend

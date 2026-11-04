@@ -1,6 +1,25 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { generateSmartConversationReply } from './smartConversation';
+import {
+  extractLastSentence,
+  generateSmartConversationReply,
+  recognizeVoiceCommand,
+} from './smartConversation';
+
+test('voice commands recognize repeat, slower, and Arabic translation intents', () => {
+  assert.equal(recognizeVoiceCommand('Repeat that.'), 'repeat');
+  assert.equal(recognizeVoiceCommand('قول تاني'), 'repeat');
+  assert.equal(recognizeVoiceCommand('Slower'), 'slower');
+  assert.equal(recognizeVoiceCommand('بالراحة'), 'slower');
+  assert.equal(recognizeVoiceCommand('Translate to Arabic'), 'translate-arabic');
+  assert.equal(recognizeVoiceCommand('ترجم عربي'), 'translate-arabic');
+  assert.equal(recognizeVoiceCommand('Tell me about your day'), null);
+});
+
+test('last-sentence extraction supports English and Japanese punctuation', () => {
+  assert.equal(extractLastSentence('First sentence. Last sentence!'), 'Last sentence!');
+  assert.equal(extractLastSentence('こんにちは。元気ですか？'), '元気ですか？');
+});
 
 test('smartConversation handles greetings warmly and naturally', () => {
   const reply = generateSmartConversationReply('Hello Amr, how are you?');

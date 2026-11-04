@@ -9,6 +9,27 @@ export interface FeedbackDraft {
   originalThought: string;
 }
 
+export type VoiceCommandIntent = 'repeat' | 'slower' | 'translate-arabic' | null;
+
+export function recognizeVoiceCommand(input: string): VoiceCommandIntent {
+  const command = input.trim().toLowerCase().replace(/[.!؟?،,]+$/g, '').trim();
+  if (/^(repeat(?: that| it)?|say that again|again|قول تاني|عيدها|كرر(?:ها)?|أعدها)$/.test(command)) {
+    return 'repeat';
+  }
+  if (/^(slower|slow down|more slowly|بالراحة|على مهلك|ببطء)$/.test(command)) {
+    return 'slower';
+  }
+  if (/^(translate to arabic|translate that to arabic|translate it to arabic|ترجم عربي|ترجمها عربي|ترجم إلى العربية)$/.test(command)) {
+    return 'translate-arabic';
+  }
+  return null;
+}
+
+export function extractLastSentence(text: string): string {
+  const sentences = text.match(/[^.!?؟。！？]+[.!?؟。！？]?/g);
+  return sentences?.map((sentence) => sentence.trim()).filter(Boolean).at(-1) || text.trim();
+}
+
 /**
  * Extracts a structured feedback draft if user prompt expresses a suggestion, feature request, or bug report.
  */

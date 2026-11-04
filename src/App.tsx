@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, lazy, Suspense } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
 import { StatusBar, Style } from '@capacitor/status-bar';
@@ -14,7 +15,7 @@ import { UserProgress, LearningGoal } from './types';
 import { AIHelper, AIHelperRequest } from './components/AIHelper';
 import { useLanguagePair } from './hooks/useLanguagePair';
 import { LanguagePairBanner } from './components/LanguagePairBanner';
-import { Skeleton } from './components/SkeletonLoader';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 import { CefrStage, ProgressionState, LessonNode } from './progression/types';
 import { migrateLegacyStorageToProgression } from './progression/migration';
@@ -221,11 +222,37 @@ export default function App() {
   };
 
   if (view.name === 'landing') {
-    return <LandingPage onLaunchApp={launchApp} isArabic={isArabic} />;
+    return (
+      <ErrorBoundary>
+        <>
+        <Analytics />
+        <LandingPage onLaunchApp={launchApp} isArabic={isArabic} />
+        </>
+      </ErrorBoundary>
+    );
   }
 
   return (
-    <Suspense fallback={<div className="p-6 max-w-md mx-auto space-y-4"><Skeleton className="h-[70px]" /><Skeleton className="h-[70px]" /><Skeleton className="h-[70px]" /><Skeleton className="h-[70px]" /></div>}>
+    <>
+      <Analytics />
+      <ErrorBoundary>
+        <Suspense
+          fallback={
+            <main
+              className="min-h-screen flex flex-col items-center justify-center gap-6 bg-gradient-to-br from-[#0A0E13] via-[#101b24] to-[#0d302e] px-6 text-center text-[#EEF2F5]"
+              dir={isArabic ? 'rtl' : 'ltr'}
+              aria-live="polite"
+              aria-busy="true"
+            >
+              <div className="animate-pulse rounded-3xl bg-gradient-to-br from-teal-400/20 to-emerald-500/10 p-5 text-5xl shadow-xl shadow-teal-500/10">
+                🧠
+              </div>
+              <p className="text-lg font-bold text-[#D8E2E8]">
+                {isArabic ? 'جاري تحميل جسر التفكير...' : 'Loading Thinking Bridge...'}
+              </p>
+            </main>
+          }
+        >
       {/* 1. Primary App Shell (Home / Path / Practice / Quests / League / Profile) */}
       {view.name === 'shell' && (
         <AppShell
@@ -471,6 +498,8 @@ export default function App() {
           </div>
         </div>
       )}
-    </Suspense>
+        </Suspense>
+      </ErrorBoundary>
+    </>
   );
 }
