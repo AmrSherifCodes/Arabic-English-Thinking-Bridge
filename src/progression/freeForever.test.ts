@@ -99,7 +99,9 @@ test('3. State completeness: preserves completed lessons, quests, achievements, 
   assert.ok(decompacted.achievements[0].unlockedAt !== null);
 });
 
-test('4. SRS card real text restoration from bundled dictionaries', () => {
+test('4. SRS card real text restoration from bundled dictionaries', async () => {
+  const { getTargetDictionaryAsync } = await import('../data/dictionaries');
+  await getTargetDictionaryAsync('de');
   const base = createInitialProgressionState();
   const compact = {
     v: 2,

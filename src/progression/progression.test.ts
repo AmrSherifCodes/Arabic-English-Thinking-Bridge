@@ -5,6 +5,7 @@ import { calculateNextSrsState, getDueSrsQueue } from './srs';
 import { migrateLegacyStorageToProgression } from './migration';
 import { TARGET_LANGUAGES, TARGET_LANGUAGE_LOCALES, TARGET_LANGUAGE_META } from '../data/languages';
 import { generateSmartProfile } from '../services/profileEngine';
+import { preloadDictionaries } from '../data/dictionaries';
 import {
   buildCourseStructure,
   getNextStageAfterLessonCompletion,
@@ -116,7 +117,7 @@ test('5. buildCourseStructure maps all 27 lessons into CEFR stages A0-A2 without
   }
 });
 
-test('5a. language profiles build unlockable A0-A2 curricula for German, Spanish, and Japanese', () => {
+test('5a. language profiles build unlockable A0-A2 curricula for German, Spanish, and Japanese', async () => {
   const originalStorage = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
   const entries = new Map<string, string>();
   Object.defineProperty(globalThis, 'localStorage', {
@@ -216,6 +217,8 @@ test('5a. language profiles build unlockable A0-A2 curricula for German, Spanish
       'An explicit target-language selection must override stored profile values'
     );
     entries.delete('tb.targetLang');
+
+    await preloadDictionaries(TARGET_LANGUAGES.map((l) => l.code));
 
     for (const language of TARGET_LANGUAGES) {
       const meta = TARGET_LANGUAGE_META[language.code as keyof typeof TARGET_LANGUAGE_META];

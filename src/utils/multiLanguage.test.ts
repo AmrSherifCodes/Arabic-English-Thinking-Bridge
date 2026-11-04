@@ -92,13 +92,15 @@ test('6. getPairConfig returns complete metadata and graceful fallbacks', () => 
 });
 
 test('7. GERMAN_DICTIONARY provides valid dictionary entries and search', async () => {
-  const { searchTargetDictionary } = await import('../data/dictionaries');
+  const { searchTargetDictionary, getTargetDictionaryAsync } = await import('../data/dictionaries');
+  await getTargetDictionaryAsync('de');
   const results = searchTargetDictionary('haus', 'de', 'ar');
   assert.ok(results.length > 0, 'Must find entries for German');
 });
 
 test('8. JAPANESE_DICTIONARY provides valid dictionary entries and search', async () => {
-  const { searchTargetDictionary } = await import('../data/dictionaries');
+  const { searchTargetDictionary, getTargetDictionaryAsync } = await import('../data/dictionaries');
+  await getTargetDictionaryAsync('ja');
   const results = searchTargetDictionary('hon', 'ja', 'ar');
   assert.ok(results.length > 0, 'Must find entries for Japanese');
 });
