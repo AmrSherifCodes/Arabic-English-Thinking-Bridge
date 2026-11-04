@@ -97,7 +97,13 @@ export function VipPassModal({ isOpen, onClose, onStatusChange }: VipPassModalPr
       return;
     }
 
-    setUserGeminiKey(cleaned);
+    if (!setUserGeminiKey(cleaned)) {
+      setFeedback({
+        type: 'err',
+        text: 'تعذر حفظ المفتاح في تخزين المتصفح. تحقق من إعدادات الخصوصية.'
+      });
+      return;
+    }
     setHasSavedKey(true);
     onStatusChange?.(true);
     setFeedback({
@@ -110,7 +116,13 @@ export function VipPassModal({ isOpen, onClose, onStatusChange }: VipPassModalPr
   };
 
   const handleClearKey = () => {
-    setUserGeminiKey('');
+    if (!setUserGeminiKey('')) {
+      setFeedback({
+        type: 'err',
+        text: 'تعذر مسح المفتاح من تخزين المتصفح.'
+      });
+      return;
+    }
     setCodeInput('');
     setHasSavedKey(false);
     onStatusChange?.(false);

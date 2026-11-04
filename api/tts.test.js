@@ -1,7 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Readable } from 'node:stream';
-import ttsHandler, { resolveEdgeVoice, validateLang, ALLOWED_EDGE_VOICES } from './tts.js';
+import ttsHandler, {
+  consumeMemoryTtsRateLimit,
+  resolveEdgeVoice,
+  validateLang,
+  validatePitch,
+  ALLOWED_EDGE_VOICES,
+} from './tts.js';
 import { buildSsml, escapeXml } from 'voipi/edge-tts';
 
 function createMockReq({
@@ -162,6 +168,20 @@ test('7. Language code validator strictly validates BCP-47 patterns', () => {
   assert.equal(validateLang('en-US-EXTRA-LONG-LANG'), 'en-US');
   assert.equal(validateLang('<script>'), 'en-US');
   assert.equal(validateLang('12345'), 'en-US');
+});
+
+test('TTS pitch accepts safe small adjustments and rejects malformed values', () => {
+  assert.equal(validatePitch('+1Hz'), '+1Hz');
+  assert.equal(validatePitch('-2Hz'), '-2Hz');
+  assert.equal(validatePitch('<break/>'), '+1Hz');
+});
+
+test('TTS in-memory rate limiter blocks excess synthesis requests', () => {
+  const address = `test-${Date.now()}-${Math.random()}`;
+  for (let i = 0; i < 30; i++) {
+    assert.equal(consumeMemoryTtsRateLimit(address), true);
+  }
+  assert.equal(consumeMemoryTtsRateLimit(address), false);
 });
 
 test('8. Multi-chunk Buffer collection preserves multi-byte Arabic UTF-8 text across chunk boundaries', async () => {

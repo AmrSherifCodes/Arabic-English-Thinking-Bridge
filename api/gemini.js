@@ -427,11 +427,13 @@ async function generateStream(operation, body) {
       : profile.domainFocus === 'travel' || goal === 'travel'
         ? 'travel and everyday-life vocabulary'
         : 'daily life';
+    const isArabicTranslationRequest = /translate this sentence into natural arabic/i.test(prompt);
 
     const systemInstruction =
       `You are Amr, an empathetic language coach.\n` +
       `You are teaching ${targetLang}. The user's goal is ${goal}. Provide examples strictly related to ${domainFocus}.\n` +
       `The user is an Arabic speaker learning ${targetLang} at level ${level}.\n` +
+      `${isArabicTranslationRequest ? 'For this explicit Arabic translation request, return only the natural Arabic translation. This instruction takes precedence over the usual target-language response preference.\n' : ''}` +
       `Use ${targetLang} as the primary language for all instruction and encouragement. Never respond in English unless the learner explicitly asks for an English translation or is clearly confused; in that case, use only a brief explanation in the language that resolves the confusion.\n` +
       `Gently identify transfer errors from Arabic, and keep explanations appropriate to level ${level}.\n` +
       `${targetCode === 'ja'

@@ -6,35 +6,53 @@ import { API_BASE_URL } from '../utils/api';
 export const USER_GEMINI_KEY_STORAGE = 'tb.userGeminiKey';
 export const LEGACY_GEMINI_KEY_STORAGE = 'user_gemini_key';
 export const GEMINI_KEY_CHANGED_EVENT = 'tb:gemini-key-changed';
+const API_KEY_OBFUSCATION_PREFIX = 'base64:';
+const API_KEY_STORAGE_KEYS = ['tb.userApiKey', USER_GEMINI_KEY_STORAGE, LEGACY_GEMINI_KEY_STORAGE];
 
-export function getUserGeminiKey(): string {
-  if (typeof window === 'undefined') return '';
+export function encodeStoredGeminiKey(key: string): string {
+  return `${API_KEY_OBFUSCATION_PREFIX}${btoa(key)}`;
+}
+
+export function decodeStoredGeminiKey(value: string): string {
+  if (!value.startsWith(API_KEY_OBFUSCATION_PREFIX)) return value;
   try {
-    const key =
-      window.localStorage.getItem('tb.userGeminiKey') ||
-      window.localStorage.getItem('user_gemini_key') ||
-      '';
-    return key.trim();
-  } catch {
+    return atob(value.slice(API_KEY_OBFUSCATION_PREFIX.length));
+  } catch (error) {
+    console.warn('Unable to decode the saved Gemini API key.', error);
     return '';
   }
 }
 
-export function setUserGeminiKey(key: string): void {
-  if (typeof window === 'undefined') return;
+export function getUserGeminiKey(): string {
+  if (typeof window === 'undefined') return '';
+  try {
+    for (const storageKey of API_KEY_STORAGE_KEYS) {
+      const storedValue = window.localStorage.getItem(storageKey);
+      if (storedValue) return decodeStoredGeminiKey(storedValue).trim();
+    }
+    return '';
+  } catch (error) {
+    console.error('Unable to read the saved Gemini API key from local storage.', error);
+    return '';
+  }
+}
+
+export function setUserGeminiKey(key: string): boolean {
+  if (typeof window === 'undefined') return false;
   const trimmed = key.trim();
   try {
     if (trimmed) {
-      window.localStorage.setItem('tb.userGeminiKey', trimmed);
-      window.localStorage.setItem('user_gemini_key', trimmed);
+      const obfuscated = encodeStoredGeminiKey(trimmed);
+      API_KEY_STORAGE_KEYS.forEach((storageKey) => window.localStorage.setItem(storageKey, obfuscated));
     } else {
-      window.localStorage.removeItem('tb.userGeminiKey');
-      window.localStorage.removeItem('user_gemini_key');
+      API_KEY_STORAGE_KEYS.forEach((storageKey) => window.localStorage.removeItem(storageKey));
     }
-  } catch {
-    // Ignore storage quota / private mode errors
+  } catch (error) {
+    console.error('Unable to save the Gemini API key to local storage.', error);
+    return false;
   }
   window.dispatchEvent(new CustomEvent(GEMINI_KEY_CHANGED_EVENT, { detail: { active: Boolean(trimmed) } }));
+  return true;
 }
 
 export function hasUserGeminiKey(): boolean {

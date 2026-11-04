@@ -7,6 +7,7 @@ import { FieldRenderer } from './FieldRenderer';
 import { UserProfile, UserProgress, SourceLanguage, TargetLanguage } from '../../types';
 import { downloadProgressBackup, importUserProgressJson, getVaultAuditSnapshot } from '../../utils/storage';
 import { API_BASE_URL } from '../../utils/api';
+import { getUserGeminiKey, setUserGeminiKey } from '../../services/geminiLexicon';
 import './preferences.css';
 
 interface PreferencesViewProps {
@@ -47,15 +48,7 @@ export function PreferencesView({
   });
 
   const [customGeminiKey, setCustomGeminiKey] = useState<string>(() => {
-    if (typeof localStorage !== 'undefined') {
-      return (
-        localStorage.getItem('tb.userApiKey') ||
-        localStorage.getItem('tb.userGeminiKey') ||
-        localStorage.getItem('user_gemini_key') ||
-        ''
-      );
-    }
-    return '';
+    return getUserGeminiKey();
   });
 
   const [isTestingKey, setIsTestingKey] = useState(false);
@@ -82,16 +75,17 @@ export function PreferencesView({
     const trimmed = val.trim();
     setCustomGeminiKey(trimmed);
     setTestResult(null);
-    if (typeof localStorage === 'undefined') return;
     if (trimmed) {
-      localStorage.setItem('tb.userApiKey', trimmed);
-      localStorage.setItem('tb.userGeminiKey', trimmed);
-      localStorage.setItem('user_gemini_key', trimmed);
+      if (!setUserGeminiKey(trimmed)) {
+        onToast?.(isArabic ? 'تعذر حفظ المفتاح. تحقق من إعدادات التخزين في المتصفح.' : 'Unable to save the key. Check your browser storage settings.');
+        return;
+      }
       onToast?.(isArabic ? '✅ تم حفظ مفتاح Gemini الخاص بك!' : '✅ Custom Gemini key saved!');
     } else {
-      localStorage.removeItem('tb.userApiKey');
-      localStorage.removeItem('tb.userGeminiKey');
-      localStorage.removeItem('user_gemini_key');
+      if (!setUserGeminiKey('')) {
+        onToast?.(isArabic ? 'تعذر إزالة المفتاح من التخزين.' : 'Unable to remove the key from browser storage.');
+        return;
+      }
       onToast?.(isArabic ? '🗑️ تم إزالة المفتاح المخصص' : '🗑️ Custom key removed');
     }
   };
@@ -122,9 +116,13 @@ export function PreferencesView({
 
       const data = await res.json();
       if (res.ok && data?.data?.status === 'verified') {
-        localStorage.setItem('tb.userApiKey', trimmed);
-        localStorage.setItem('tb.userGeminiKey', trimmed);
-        localStorage.setItem('user_gemini_key', trimmed);
+        if (!setUserGeminiKey(trimmed)) {
+          setTestResult({
+            status: 'error',
+            msg: isArabic ? 'تعذر حفظ المفتاح في تخزين المتصفح.' : 'The key was verified but could not be saved in browser storage.',
+          });
+          return;
+        }
 
         setTestResult({
           status: 'success',

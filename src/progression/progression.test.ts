@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { calculatePlayerLevel, calculateSkillAxisLevel, createInitialProgressionState, updateStreakAndShields } from './engine';
 import { calculateNextSrsState, getDueSrsQueue } from './srs';
 import { migrateLegacyStorageToProgression } from './migration';
-import { TARGET_LANGUAGES } from '../data/languages';
+import { TARGET_LANGUAGES, TARGET_LANGUAGE_LOCALES, TARGET_LANGUAGE_META } from '../data/languages';
 import { generateSmartProfile } from '../services/profileEngine';
 import {
   buildCourseStructure,
@@ -171,6 +171,29 @@ test('5a. language profiles build unlockable A0-A2 curricula for German, Spanish
       const a1Lessons = course[1].units.flatMap((unit) => unit.lessons);
       state.completedLessonIds.push(...a1Lessons.map((lesson) => lesson.id));
       assert.equal(getNextStageAfterLessonCompletion(state, a1Lessons[2].id), 'A2');
+    }
+
+    for (const language of TARGET_LANGUAGES) {
+      const meta = TARGET_LANGUAGE_META[language.code as keyof typeof TARGET_LANGUAGE_META];
+      assert.equal(meta.code, language.code, `${language.code} metadata code must match`);
+      assert.equal(meta.flag, language.flag, `${language.code} metadata flag must match`);
+      assert.equal(meta.nameAr, language.nameAr, `${language.code} Arabic name must match`);
+      assert.ok(
+        language.defaultVoice.startsWith(TARGET_LANGUAGE_LOCALES[language.code as keyof typeof TARGET_LANGUAGE_LOCALES]),
+        `${language.code} default neural voice must match its locale`
+      );
+
+      generateSmartProfile('ar', language.code, 'general', 'A0');
+      const course = buildCourseStructure();
+      assert.deepEqual(course.map((stage) => stage.stage), ['A0', 'A1', 'A2']);
+      for (const stage of course) {
+        const lessons = stage.units.flatMap((unit) => unit.lessons);
+        assert.ok(lessons.length > 0, `${language.code} ${stage.stage} must contain at least one lesson`);
+        assert.ok(
+          lessons.every((lesson) => lesson.exercises.length > 0),
+          `${language.code} ${stage.stage} lessons must contain exercises`
+        );
+      }
     }
   } finally {
     if (originalStorage) {

@@ -1,5 +1,22 @@
 import { expect, test } from '@playwright/test';
 
+test('Android landing page shows the APK download and mobile sticky CTA', async ({ page }) => {
+  await page.goto('/android');
+
+  await expect(page.getByRole('heading', { name: 'The Ultimate Offline Arabic-English AI Coach.' })).toBeVisible();
+  await expect(page.getByRole('link', { name: /Download APK/ }).first()).toHaveAttribute(
+    'href',
+    'https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v3.1.0/Thinking-Bridge-v3.1.0.apk'
+  );
+  await expect(page.getByRole('heading', { name: 'Focused learning. No clutter.' })).toBeVisible();
+  await expect(page.locator('.android-sticky-download')).not.toHaveClass(/is-visible/);
+
+  await page.evaluate(() => window.scrollTo(0, 400));
+  await expect(page.locator('.android-sticky-download')).toHaveClass(/is-visible/);
+  await expect(page.locator('.android-sticky-download a')).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(375);
+});
+
 test('new learner completes onboarding, unlocks a lesson, changes theme, and starts voice practice', async ({ page }) => {
   await page.addInitScript(() => {
     localStorage.clear();
@@ -100,11 +117,16 @@ test('new learner completes onboarding, unlocks a lesson, changes theme, and sta
   await expect(page.locator('html')).toHaveClass(/light/);
   await page.locator('input[type="password"]').fill('test-gemini-key');
   await page.getByRole('button', { name: 'حفظ', exact: true }).click();
-  const savedKeys = await page.evaluate(() => ({
-    camel: localStorage.getItem('tb.userGeminiKey'),
-    snake: localStorage.getItem('user_gemini_key'),
-  }));
-  expect(savedKeys).toEqual({ camel: 'test-gemini-key', snake: 'test-gemini-key' });
+  const savedKeys = await page.evaluate(() => {
+    const camel = localStorage.getItem('tb.userGeminiKey');
+    const snake = localStorage.getItem('user_gemini_key');
+    return {
+      camel: camel ? atob(camel.replace(/^base64:/, '')) : null,
+      snake: snake ? atob(snake.replace(/^base64:/, '')) : null,
+      encoded: Boolean(camel?.startsWith('base64:') && snake?.startsWith('base64:')),
+    };
+  });
+  expect(savedKeys).toEqual({ camel: 'test-gemini-key', snake: 'test-gemini-key', encoded: true });
 
   await page.getByRole('button', { name: 'رجوع' }).click();
   await page.getByRole('button', { name: 'التدريب' }).click();
