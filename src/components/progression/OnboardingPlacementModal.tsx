@@ -69,7 +69,7 @@ export function OnboardingPlacementModal({
       labelEn: 'Beginner',
       descAr: 'تكوين الجمل البسيطة وفك عقدة الأفعال المخفية',
       descEn: 'Basic clauses, copula fundamentals',
-      accent: 'border-emerald-500/40 text-emerald-400 bg-emerald-500/10'
+      accent: 'border-teal-400 text-teal-300 bg-teal-500/15'
     },
     {
       id: 'A1',
@@ -78,7 +78,7 @@ export function OnboardingPlacementModal({
       labelEn: 'Elementary',
       descAr: 'الربط التلقائي، الأزمنة اليومية والأفعال المركبة',
       descEn: 'Daily tenses, phrasal verbs, routine fluency',
-      accent: 'border-teal-500/40 text-teal-300 bg-teal-500/10'
+      accent: 'border-teal-400 text-teal-300 bg-teal-500/15'
     },
     {
       id: 'A2',
@@ -87,7 +87,7 @@ export function OnboardingPlacementModal({
       labelEn: 'Intermediate',
       descAr: 'الحديث والشرح دون توقف وترجمة في الرأس',
       descEn: 'Narratives, workplace conversation without lag',
-      accent: 'border-cyan-500/40 text-cyan-300 bg-cyan-500/10'
+      accent: 'border-teal-400 text-teal-300 bg-teal-500/15'
     }
   ];
 
@@ -139,20 +139,20 @@ export function OnboardingPlacementModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-bg/95 backdrop-blur-2xl flex items-center justify-center p-0 sm:p-4"
+      className="fixed inset-0 z-50 bg-bg/95 backdrop-blur-2xl flex items-center justify-center p-3 sm:p-4"
       dir={isArabic ? 'rtl' : 'ltr'}
     >
-      <div className="w-full h-[100dvh] flex flex-col sm:h-auto sm:max-h-[90vh] sm:max-w-[520px] sm:rounded-3xl bg-surface/90 border border-border p-4 sm:p-6 space-y-4 sm:space-y-6 text-start shadow-2xl overflow-hidden">
+      <div className="w-full h-[100dvh] flex flex-col sm:h-auto sm:max-h-[92vh] sm:max-w-[540px] sm:rounded-3xl bg-surface/95 border border-border p-5 sm:p-6 space-y-4 sm:space-y-5 text-start shadow-2xl overflow-hidden">
         {profileCreated ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-5 py-10 text-center" role="status" aria-live="polite">
-            <div className="w-16 h-16 rounded-full bg-success/15 border border-success/40 text-success flex items-center justify-center text-3xl">
+            <div className="w-16 h-16 rounded-full bg-teal-500/20 border border-teal-400 text-teal-400 flex items-center justify-center text-3xl">
               <Check size={32} />
             </div>
             <div className="space-y-2">
               <h2 className="text-xl font-black text-text">
                 {isArabic ? 'تم إنشاء ملفك التعليمي!' : 'Profile Created!'}
               </h2>
-              <p className="text-sm text-muted">
+              <p className="text-sm text-stone-300">
                 {isArabic ? 'أهلاً بك في Thinking Bridge!' : 'Welcome to Thinking Bridge!'}
               </p>
             </div>
@@ -163,16 +163,16 @@ export function OnboardingPlacementModal({
               </span>
               <span>{` | ${isArabic ? 'المستوى: ' : 'Level: '}${selectedStage} | ${isArabic ? 'الهدف: ' : 'Goal: '}${isArabic ? goals.find((item) => item.id === selectedGoal)?.titleAr : goals.find((item) => item.id === selectedGoal)?.titleEn}`}</span>
             </p>
-            <span className="text-xs text-muted">{isArabic ? 'جارٍ تجهيز مسارك…' : 'Preparing your learning path…'}</span>
+            <span className="text-xs text-stone-400">{isArabic ? 'جارٍ تجهيز مسارك…' : 'Preparing your learning path…'}</span>
           </div>
         ) : (
           <>
-        {/* Step Indicator */}
-        <div className="flex shrink-0 items-center justify-between text-xs font-bold text-muted">
-          <span className="text-primary font-black">
+        {/* Step Indicator Header */}
+        <div className="flex shrink-0 items-center justify-between text-xs font-bold border-b border-border/60 pb-3">
+          <span className="text-teal-400 font-black px-2.5 py-1 rounded-full bg-teal-500/10 border border-teal-500/20">
             {isArabic ? `الخطوة ${step + 1} من 3` : `Step ${step + 1} of 3`}
           </span>
-          <span>{isArabic ? 'إعداد الحساب والمسار' : 'Profile & Path Setup'}</span>
+          <span className="text-stone-300 font-semibold">{isArabic ? 'إعداد الحساب والمسار' : 'Profile & Path Setup'}</span>
         </div>
 
         {/* STEP 0: Language Pair */}
@@ -181,22 +181,21 @@ export function OnboardingPlacementModal({
             <div className="space-y-4 flex-1 min-h-0 overflow-y-auto scrollbar-hide pb-2">
               <div className="space-y-1">
                 <h3 className="text-lg font-black text-text flex items-center gap-2">
-                  <Globe size={20} className="text-primary" />
                   {isArabic ? 'ما اللغة التي تريد أن تفكّر بها؟' : 'Which language do you want to think in?'}
                 </h3>
-                <p className="text-xs text-muted">
+                <p className="text-xs text-stone-300 leading-relaxed font-medium">
                   {isArabic
                     ? 'اختر مسار التحول الذهني. يمكنك تغييره لاحقاً من الإعدادات.'
                     : 'Choose your thinking bridge. You can change this later in Settings.'}
                 </p>
               </div>
 
-              {/* Source Language */}
+              {/* Source Language (L1) */}
               <div>
-                <p className="text-xs font-bold text-primary mb-2 uppercase tracking-wider">
+                <p className="text-xs font-bold text-teal-400 mb-2 uppercase tracking-wider">
                   {isArabic ? '١. لغتي الأم / لهجتي الحالية (L1)' : '1. My native language / dialect (L1)'}
                 </p>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                   {(Object.keys(SOURCE_LANGUAGES) as SourceLanguage[]).map((code) => {
                     const meta = SOURCE_LANGUAGES[code];
                     const selected = selectedSource === code;
@@ -211,26 +210,29 @@ export function OnboardingPlacementModal({
                             if (next) setSelectedTarget(next);
                           }
                         }}
-                        className={`p-2.5 min-h-[48px] rounded-xl border text-xs font-bold transition flex items-center gap-2 ${
+                        className={`p-2.5 min-h-[48px] rounded-2xl border text-xs font-bold transition flex items-center justify-between gap-1.5 cursor-pointer ${
                           selected
-                            ? 'bg-primary/20 border-primary text-primary shadow-md ring-1 ring-primary/40'
-                            : 'bg-surface border-border text-text hover:border-surface-2'
+                            ? 'bg-teal-500/15 border-teal-400 text-teal-300 shadow-md ring-1 ring-teal-400/50'
+                            : 'bg-surface border-border text-text hover:border-teal-500/30'
                         }`}
                       >
-                        <LanguageFlag code={code} size={18} />
-                        <span className="truncate">{isArabic ? meta.nameAr : meta.nameEn}</span>
+                        <div className="flex items-center gap-2 min-w-0">
+                          <LanguageFlag code={code} size={18} />
+                          <span className="truncate">{isArabic ? meta.nameAr : meta.nameEn}</span>
+                        </div>
+                        {selected && <Check size={14} className="text-teal-400 shrink-0" />}
                       </button>
                     );
                   })}
                 </div>
               </div>
 
-              {/* Target Language */}
+              {/* Target Language (L2) */}
               <div>
-                <p className="text-xs font-bold text-amber-400 mb-2 uppercase tracking-wider">
+                <p className="text-xs font-bold text-teal-400 mb-2 uppercase tracking-wider">
                   {isArabic ? '٢. اللغة التي أريد التفكير بها (L2)' : '2. Language I want to think in (L2)'}
                 </p>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                   {availableTargets.map((code) => {
                     const meta = TARGET_LANGUAGE_META[code];
                     const selected = selectedTarget === code;
@@ -240,17 +242,17 @@ export function OnboardingPlacementModal({
                         type="button"
                         onClick={() => setSelectedTarget(code)}
                         aria-pressed={selected}
-                        className={`p-2.5 min-h-[48px] rounded-xl border text-xs font-bold transition flex items-center justify-between gap-1 ${
+                        className={`p-2.5 min-h-[48px] rounded-2xl border text-xs font-bold transition flex items-center justify-between gap-1.5 cursor-pointer ${
                           selected
-                            ? 'bg-amber-500/20 border-amber-500 text-amber-300 shadow-md ring-1 ring-amber-500/40'
-                            : 'bg-surface border-border text-text hover:border-surface-2'
+                            ? 'bg-teal-500/15 border-teal-400 text-teal-300 shadow-md ring-1 ring-teal-400/50'
+                            : 'bg-surface border-border text-text hover:border-teal-500/30'
                         }`}
                       >
                         <div className="flex items-center gap-2 min-w-0">
                           <LanguageFlag code={code} size={18} />
                           <span className="truncate font-bold text-text">{meta.nameNative}</span>
                         </div>
-                        {selected && <Check size={14} className="text-amber-400 shrink-0" />}
+                        {selected && <Check size={14} className="text-teal-400 shrink-0" />}
                       </button>
                     );
                   })}
@@ -260,10 +262,10 @@ export function OnboardingPlacementModal({
 
             <button
               onClick={() => setStep(1)}
-              className="sticky bottom-0 z-10 w-full shrink-0 border-t border-border bg-surface p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] min-h-[48px] rounded-2xl text-on-primary font-black text-sm shadow-lg flex items-center justify-center gap-2 active:scale-95"
+              className="sticky bottom-0 z-10 w-full shrink-0 bg-teal-500 hover:bg-teal-400 text-slate-950 font-black py-3.5 px-6 rounded-2xl text-base shadow-xl flex items-center justify-center gap-2 active:scale-95 transition cursor-pointer"
             >
               <span>{isArabic ? 'التالي' : 'Next'}</span>
-              {isArabic ? <ArrowLeft size={16} /> : <ArrowRight size={16} />}
+              {isArabic ? <ArrowLeft size={18} /> : <ArrowRight size={18} />}
             </button>
           </div>
         )}
@@ -276,7 +278,7 @@ export function OnboardingPlacementModal({
                 <h3 className="text-lg font-black text-text">
                   {isArabic ? 'ما هو مجالك وهدفك الأساسي؟' : 'What is your primary focus & goal?'}
                 </h3>
-                <p className="text-xs text-muted">
+                <p className="text-xs text-stone-300 leading-relaxed font-medium">
                   {isArabic
                     ? 'سيتم تكييف الأمثلة والذكاء الاصطناعي وفق سياقك المهني'
                     : 'Curriculum drills & AI prompts will adapt to your field'}
@@ -291,41 +293,41 @@ export function OnboardingPlacementModal({
                     <button
                       key={g.id}
                       onClick={() => setSelectedGoal(g.id)}
-                      className={`p-3.5 min-h-[52px] rounded-2xl border text-xs font-bold transition flex items-center justify-between text-start ${
+                      className={`p-3.5 min-h-[52px] rounded-2xl border text-xs font-bold transition flex items-center justify-between text-start cursor-pointer ${
                         isSelected
-                          ? 'bg-primary/20 border-primary text-primary shadow-md ring-1 ring-primary/40'
-                          : 'bg-surface border-border text-text hover:border-surface-2'
+                          ? 'bg-teal-500/15 border-teal-400 text-teal-300 shadow-md ring-1 ring-teal-400/50'
+                          : 'bg-surface border-border text-text hover:border-teal-500/30'
                       }`}
                     >
                       <div className="flex items-center gap-3 min-w-0">
-                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${isSelected ? 'bg-primary text-on-primary' : 'bg-surface-2 text-muted'}`}>
+                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${isSelected ? 'bg-teal-500 text-slate-950 font-bold' : 'bg-surface-2 text-stone-300'}`}>
                           <Icon size={18} />
                         </div>
                         <div className="min-w-0">
                           <span className="font-black text-text block truncate">{isArabic ? g.titleAr : g.titleEn}</span>
-                          <span className="text-[10px] text-muted block truncate">{isArabic ? g.descAr : g.descEn}</span>
+                          <span className="text-[10px] text-stone-300 block truncate">{isArabic ? g.descAr : g.descEn}</span>
                         </div>
                       </div>
-                      {isSelected && <Check size={18} className="text-primary shrink-0 ms-2" />}
+                      {isSelected && <Check size={18} className="text-teal-400 shrink-0 ms-2" />}
                     </button>
                   );
                 })}
               </div>
             </div>
 
-            <div className="sticky bottom-0 z-10 flex shrink-0 gap-2 border-t border-border bg-surface p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+            <div className="sticky bottom-0 z-10 flex shrink-0 gap-2 border-t border-border/60 bg-surface pt-3">
               <button
                 onClick={() => setStep(0)}
-                className="flex-1 py-4 min-h-[48px] rounded-2xl bg-surface border border-border text-text font-bold text-sm"
+                className="flex-1 py-3.5 min-h-[48px] rounded-2xl bg-surface border border-border text-text font-bold text-sm cursor-pointer hover:bg-surface-2 transition"
               >
                 {isArabic ? 'رجوع' : 'Back'}
               </button>
               <button
                 onClick={() => setStep(2)}
-                className="flex-[2] py-4 min-h-[48px] rounded-2xl bg-primary text-on-primary font-black text-sm shadow-lg active:scale-95 flex items-center justify-center gap-2"
+                className="flex-[2] py-3.5 min-h-[48px] rounded-2xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-black text-base shadow-xl active:scale-95 flex items-center justify-center gap-2 transition cursor-pointer"
               >
                 <span>{isArabic ? 'التالي' : 'Next'}</span>
-                {isArabic ? <ArrowLeft size={16} /> : <ArrowRight size={16} />}
+                {isArabic ? <ArrowLeft size={18} /> : <ArrowRight size={18} />}
               </button>
             </div>
           </div>
@@ -337,10 +339,10 @@ export function OnboardingPlacementModal({
             <div className="space-y-4 flex-1 min-h-0 overflow-y-auto scrollbar-hide pb-2">
               <div className="space-y-1">
                 <h3 className="text-lg font-black text-text flex items-center gap-2">
-                  <Sparkles size={20} className="text-primary" />
+                  <Sparkles size={20} className="text-teal-400" />
                   {isArabic ? 'حدد مستواك الحالي (CEFR)' : 'Select Your CEFR Level'}
                 </h3>
-                <p className="text-xs text-muted">
+                <p className="text-xs text-stone-300 leading-relaxed font-medium">
                   {isArabic
                     ? 'اختر نقطة انطلاقك. يمكنك التعديل والتبديل بحرية في أي وقت.'
                     : 'Choose your starting tier. Switch anytime from the main path.'}
@@ -354,10 +356,10 @@ export function OnboardingPlacementModal({
                     <button
                       key={lvl.id}
                       onClick={() => setSelectedStage(lvl.id)}
-                      className={`p-3.5 min-h-[56px] rounded-2xl border text-start transition flex items-center justify-between ${
+                      className={`p-3.5 min-h-[56px] rounded-2xl border text-start transition flex items-center justify-between cursor-pointer ${
                         isSelected
-                          ? `${lvl.accent} shadow-lg ring-2 ring-primary/40`
-                          : 'bg-surface border-border text-text hover:border-surface-2'
+                          ? `${lvl.accent} shadow-lg ring-1 ring-teal-400/50`
+                          : 'bg-surface border-border text-text hover:border-teal-500/30'
                       }`}
                     >
                       <div className="flex items-center gap-3 min-w-0">
@@ -368,28 +370,28 @@ export function OnboardingPlacementModal({
                           <span className="font-black text-xs text-text block truncate">
                             {isArabic ? lvl.labelAr : lvl.labelEn}
                           </span>
-                          <span className="text-[10px] text-muted block truncate">
+                          <span className="text-[10px] text-stone-300 block truncate">
                             {isArabic ? lvl.descAr : lvl.descEn}
                           </span>
                         </div>
                       </div>
-                      {isSelected && <Check size={18} className="text-primary shrink-0 ms-2" />}
+                      {isSelected && <Check size={18} className="text-teal-400 shrink-0 ms-2" />}
                     </button>
                   );
                 })}
               </div>
             </div>
 
-            <div className="sticky bottom-0 z-10 flex shrink-0 gap-2 border-t border-border bg-surface p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+            <div className="sticky bottom-0 z-10 flex shrink-0 gap-2 border-t border-border/60 bg-surface pt-3">
               <button
                 onClick={() => setStep(1)}
-                className="flex-1 py-4 min-h-[48px] rounded-2xl bg-surface border border-border text-text font-bold text-sm"
+                className="flex-1 py-3.5 min-h-[48px] rounded-2xl bg-surface border border-border text-text font-bold text-sm cursor-pointer hover:bg-surface-2 transition"
               >
                 {isArabic ? 'رجوع' : 'Back'}
               </button>
               <button
                 onClick={() => handleFinish(selectedStage)}
-                className="flex-[2] py-4 min-h-[48px] rounded-2xl bg-primary text-on-primary font-black text-sm shadow-xl active:scale-95 flex items-center justify-center gap-2"
+                className="flex-[2] py-3.5 min-h-[48px] rounded-2xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-black text-base shadow-xl active:scale-95 flex items-center justify-center gap-2 transition cursor-pointer"
               >
                 <span>{isArabic ? 'بدء التفكير الآن 🚀' : 'Start Thinking 🚀'}</span>
               </button>
