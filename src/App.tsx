@@ -17,6 +17,7 @@ import { useLanguagePair } from './hooks/useLanguagePair';
 import { LanguagePairBanner } from './components/LanguagePairBanner';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { LockedFeatureModal } from './components/LockedFeatureModal';
+import { ReviewPrompt } from './components/ReviewPrompt';
 import { API_QUOTA_LIMIT_EVENT, useApiKeyGate } from './hooks/useApiKeyGate';
 
 import { CefrStage, ProgressionState, LessonNode } from './progression/types';
@@ -523,6 +524,16 @@ export default function App() {
         onClose={() => setPrivacyOpen(false)}
         isArabic={isArabic}
       />
+
+      {/* Floating Review Prompt */}
+      {!onboardingOpen && !activeLessonNode && (
+        <ReviewPrompt
+          profile={profile}
+          onOpenFeedback={() => setFeedbackOpen(true)}
+          onToast={(msg) => showToast(T(msg, msg))}
+          isArabic={isArabic}
+        />
+      )}
 
       {/* Feedback Review Modal */}
       <FeedbackModal
