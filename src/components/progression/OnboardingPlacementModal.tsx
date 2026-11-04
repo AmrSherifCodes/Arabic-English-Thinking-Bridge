@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { CefrStage } from '../../progression/types';
 import { Check, Sparkles, Globe, Briefcase, GraduationCap, Plane, Cpu, ArrowLeft, ArrowRight } from 'lucide-react';
 import { SourceLanguage, TargetLanguage } from '../../types';
@@ -33,17 +33,11 @@ export function OnboardingPlacementModal({
   const [selectedTarget, setSelectedTarget] = useState<TargetLanguage>(initialTarget);
   const [selectedGoal, setSelectedGoal] = useState('tech');
   const [selectedStage, setSelectedStage] = useState<ProfileCefrLevel>('A0');
-
-  if (!isOpen) return null;
+  const [profileCreated, setProfileCreated] = useState(false);
 
   const handleFinish = (stage: ProfileCefrLevel) => {
-    generateSmartProfile(
-      selectedSource,
-      selectedTarget,
-      selectedGoal,
-      stage
-    );
-    onComplete(selectedGoal, 15, stage, selectedSource, selectedTarget);
+    setSelectedStage(stage);
+    setProfileCreated(true);
   };
 
   const availableTargets = SUPPORTED_PAIRS
@@ -123,12 +117,47 @@ export function OnboardingPlacementModal({
     }
   ];
 
+  useEffect(() => {
+    if (!isOpen || !profileCreated) return;
+    const completionTimer = window.setTimeout(() => {
+      generateSmartProfile(selectedSource, selectedTarget, selectedGoal, selectedStage);
+      onComplete(selectedGoal, 15, selectedStage, selectedSource, selectedTarget);
+    }, 2000);
+    return () => window.clearTimeout(completionTimer);
+  }, [isOpen, profileCreated]);
+
+  if (!isOpen) return null;
+
   return (
     <div
       className="fixed inset-0 z-50 bg-bg/95 backdrop-blur-2xl flex items-center justify-center p-3 sm:p-4"
       dir={isArabic ? 'rtl' : 'ltr'}
     >
       <div className="w-full h-full sm:h-auto sm:max-w-[520px] sm:rounded-3xl bg-surface/90 border border-border p-6 space-y-6 text-start shadow-2xl flex flex-col justify-between sm:justify-start overflow-y-auto">
+        {profileCreated ? (
+          <div className="flex flex-1 flex-col items-center justify-center gap-5 py-10 text-center" role="status" aria-live="polite">
+            <div className="w-16 h-16 rounded-full bg-success/15 border border-success/40 text-success flex items-center justify-center text-3xl">
+              <Check size={32} />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-xl font-black text-text">
+                {isArabic ? 'تم إنشاء ملفك التعليمي!' : 'Profile Created!'}
+              </h2>
+              <p className="text-sm text-muted">
+                {isArabic ? 'أهلاً بك في Thinking Bridge!' : 'Welcome to Thinking Bridge!'}
+              </p>
+            </div>
+            <p className="rounded-2xl border border-border bg-surface px-4 py-3 text-sm font-bold text-text">
+              <span>{isArabic ? 'مسارك: ' : 'Your path: '}</span>
+              <span aria-label={`${SOURCE_LANGUAGES[selectedSource].nameEn} to ${TARGET_LANGUAGE_META[selectedTarget].nameEn}`}>
+                {SOURCE_LANGUAGES[selectedSource].flag} ➔ {TARGET_LANGUAGE_META[selectedTarget].flag}
+              </span>
+              <span>{` | ${isArabic ? 'المستوى: ' : 'Level: '}${selectedStage} | ${isArabic ? 'الهدف: ' : 'Goal: '}${isArabic ? goals.find((item) => item.id === selectedGoal)?.titleAr : goals.find((item) => item.id === selectedGoal)?.titleEn}`}</span>
+            </p>
+            <span className="text-xs text-muted">{isArabic ? 'جارٍ تجهيز مسارك…' : 'Preparing your learning path…'}</span>
+          </div>
+        ) : (
+          <>
         {/* Step Indicator */}
         <div className="flex items-center justify-between text-xs font-bold text-muted">
           <span className="text-primary font-black">
@@ -359,6 +388,8 @@ export function OnboardingPlacementModal({
               </button>
             </div>
           </div>
+        )}
+          </>
         )}
       </div>
     </div>

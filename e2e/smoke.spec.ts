@@ -13,6 +13,7 @@ test('landing page launches the app with only the first lesson unlocked', async 
   await page.getByRole('button', { name: 'التالي' }).click();
   await page.getByRole('button', { name: 'التالي' }).click();
   await page.getByRole('button', { name: 'بدء التفكير الآن 🚀' }).click();
+  await expect(page.getByRole('heading', { name: 'تم إنشاء ملفك التعليمي!' })).toBeVisible();
 
   await expect(page.getByRole('button', { name: 'فعل الربط المخفي (am / is / are)' })).toBeEnabled();
   await expect(page.getByRole('button', { name: /أدوات التنكير والتعريف/ })).toBeDisabled();

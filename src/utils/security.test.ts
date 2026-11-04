@@ -8,13 +8,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ROOT_DIR = path.resolve(__dirname, '../../');
 
-test('1. index.html contains ZERO inline script blocks to comply with strict script-src', () => {
+test('1. index.html contains no executable inline scripts to comply with strict script-src', () => {
   const indexPath = path.join(ROOT_DIR, 'index.html');
   assert.ok(fs.existsSync(indexPath), 'index.html must exist at project root');
   const indexHtml = fs.readFileSync(indexPath, 'utf8');
 
-  // Regex matching any <script> tag that does NOT have a src attribute
-  const inlineScriptRegex = /<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi;
+  // JSON-LD is inert structured data, not executable inline JavaScript.
+  const inlineScriptRegex = /<script(?![^>]*\bsrc=)(?![^>]*\btype=["']application\/ld\+json["'])[^>]*>([\s\S]*?)<\/script>/gi;
   const inlineMatches = [];
   let match;
   while ((match = inlineScriptRegex.exec(indexHtml)) !== null) {
@@ -102,4 +102,3 @@ test('4. vercel.json and index.html CSP disallow unsafe-inline in script-src', (
     }
   }
 });
-

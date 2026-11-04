@@ -171,6 +171,19 @@ export const TARGET_LANGUAGES: LanguageConfig[] = [
   { code: 'it', nameEn: 'Italian', nameAr: 'الإيطالية', flag: '🇮🇹', defaultVoice: 'it-IT-IsabellaNeural' },
 ];
 
+export const TARGET_LANGUAGE_LOCALES: Record<TargetLanguage, string> = {
+  en: 'en-US',
+  de: 'de-DE',
+  ja: 'ja-JP',
+  es: 'es-ES',
+  fr: 'fr-FR',
+  zh: 'zh-CN',
+  hi: 'hi-IN',
+  ru: 'ru-RU',
+  pt: 'pt-BR',
+  it: 'it-IT',
+};
+
 export interface LanguagePairConfig {
   id: string;
   source: SourceLanguage;

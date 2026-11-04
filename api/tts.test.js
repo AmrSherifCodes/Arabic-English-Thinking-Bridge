@@ -135,12 +135,17 @@ test('5. POST body exceeding 8192 bytes returns 413 Payload Too Large', async ()
 test('6. Invalid voice falls back to language default', () => {
   assert.equal(ALLOWED_EDGE_VOICES.has('ar-EG-SalmaNeural'), true);
   assert.equal(ALLOWED_EDGE_VOICES.has('en-US-AvaNeural'), true);
+  assert.equal(ALLOWED_EDGE_VOICES.has('ja-JP-NanamiNeural'), true);
 
   // Valid voice accepted
   assert.equal(resolveEdgeVoice('en-US', 'en-GB-SoniaNeural'), 'en-GB-SoniaNeural');
+  assert.equal(resolveEdgeVoice('ja-JP', 'ja-JP-NanamiNeural'), 'ja-JP-NanamiNeural');
+  assert.equal(resolveEdgeVoice('es-ES'), 'es-ES-ElviraNeural');
+  assert.equal(resolveEdgeVoice('de-DE'), 'de-DE-KatjaNeural');
 
   // Arbitrary or malicious voice string rejected and falls back
   assert.equal(resolveEdgeVoice('en-US', 'malicious-voice-string'), 'en-US-AvaNeural');
+  assert.equal(resolveEdgeVoice('ja-JP', 'en-US-AvaNeural'), 'ja-JP-NanamiNeural');
   assert.equal(resolveEdgeVoice('ar-EG', 'some-random-voice'), 'ar-EG-SalmaNeural');
   assert.equal(resolveEdgeVoice('ar-SA', 'unknown-voice'), 'ar-SA-HamedNeural');
   assert.equal(resolveEdgeVoice('en-GB', 'fake-voice'), 'en-GB-SoniaNeural');

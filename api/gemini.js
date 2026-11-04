@@ -49,6 +49,18 @@ const TARGET_LANGUAGE_NAMES = {
   pt: 'Portuguese',
   it: 'Italian',
 };
+const SPEECH_LANGUAGE_NAMES = {
+  en: 'English',
+  de: 'German',
+  ja: 'Japanese',
+  es: 'Spanish',
+  fr: 'French',
+  zh: 'Chinese',
+  hi: 'Hindi',
+  ru: 'Russian',
+  pt: 'Portuguese',
+  it: 'Italian',
+};
 
 const entryProperties = {
   arabicWord: { type: Type.STRING },
@@ -410,7 +422,7 @@ async function generateStream(operation, body) {
       ['tech', 'corporate', 'travel', 'academic', 'study', 'business', 'general'].includes(profile.goal)
       ? profile.goal
       : 'general';
-    const domain = profile.domainFocus === 'tech' || goal === 'tech' || goal === 'corporate'
+    const domainFocus = profile.domainFocus === 'tech' || goal === 'tech' || goal === 'corporate'
       ? 'software engineering and tech vocabulary'
       : profile.domainFocus === 'travel' || goal === 'travel'
         ? 'travel and everyday-life vocabulary'
@@ -418,11 +430,13 @@ async function generateStream(operation, body) {
 
     const systemInstruction =
       `You are Amr, an empathetic language coach.\n` +
-      `The user is an Arabic speaker learning ${targetLang} (Level: ${level}, Goal: ${goal}).\n` +
-      `1. Focus examples on ${domain}.\n` +
-      `2. Respond in simple ${targetLang}, with brief Arabic explanations if the learner is confused.\n` +
-      `3. Gently point out L1 transfer errors specific to Arabic speakers learning ${targetLang}.\n` +
-      `4. Keep responses under 3 sentences.`;
+      `You are teaching ${targetLang}. The user's goal is ${goal}. Provide examples strictly related to ${domainFocus}.\n` +
+      `The user is an Arabic speaker learning ${targetLang} at level ${level}.\n` +
+      `Respond in simple ${targetLang}, with brief Arabic explanations if the learner is confused. Gently identify transfer errors from Arabic.\n` +
+      `${targetCode === 'ja'
+        ? 'Teach Japanese grammar using Japanese-specific rules: topic and case particles, context, and verb-final SOV order. Never explain Japanese by imposing English word order or English sentence structures.'
+        : `Explain ${targetLang} grammar using its own structure and rules, not by forcing English sentence patterns.`}\n` +
+      `Keep responses under 3 sentences.`;
 
     const contents = [
       ...history.map((h) => ({
@@ -460,6 +474,10 @@ async function generate(operation, body) {
   if (operation === 'transcribe') {
     const audioData = typeof body.audioData === 'string' ? body.audioData : '';
     const mimeType = typeof body.mimeType === 'string' ? body.mimeType : 'audio/webm';
+    const requestedLanguage = typeof body.language === 'string' ? body.language.split(/[-_]/)[0].toLowerCase() : 'en';
+    const transcriptionLanguage = Object.hasOwn(SPEECH_LANGUAGE_NAMES, requestedLanguage)
+      ? SPEECH_LANGUAGE_NAMES[requestedLanguage]
+      : 'English';
     if (!audioData) {
       return { status: 400, error: { code: 'empty-input', message: 'Audio data is missing.' } };
     }
@@ -478,7 +496,7 @@ async function generate(operation, body) {
               },
             },
             {
-              text: 'Transcribe the spoken audio accurately into English or Arabic text. Output ONLY the raw transcript text with zero preamble or commentary.',
+              text: `Transcribe the spoken audio accurately in ${transcriptionLanguage}. If the speaker is speaking Arabic, preserve the Arabic speech. Output ONLY the raw transcript text with zero preamble or commentary.`,
             },
           ],
         },

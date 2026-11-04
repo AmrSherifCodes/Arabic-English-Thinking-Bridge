@@ -7,17 +7,44 @@ export const ALLOWED_EDGE_VOICES = new Set([
   'ar-EG-SalmaNeural',
   'ar-SA-HamedNeural',
   'en-US-AvaNeural',
-  'en-GB-SoniaNeural'
+  'en-GB-SoniaNeural',
+  'de-DE-KatjaNeural',
+  'ja-JP-NanamiNeural',
+  'es-ES-ElviraNeural',
+  'fr-FR-DeniseNeural',
+  'zh-CN-XiaoxiaoNeural',
+  'hi-IN-SwaraNeural',
+  'ru-RU-SvetlanaNeural',
+  'pt-BR-FranciscaNeural',
+  'it-IT-IsabellaNeural'
 ]);
 
+const EDGE_VOICES_BY_LANGUAGE = {
+  ar: 'ar-EG-SalmaNeural',
+  de: 'de-DE-KatjaNeural',
+  ja: 'ja-JP-NanamiNeural',
+  es: 'es-ES-ElviraNeural',
+  fr: 'fr-FR-DeniseNeural',
+  zh: 'zh-CN-XiaoxiaoNeural',
+  hi: 'hi-IN-SwaraNeural',
+  ru: 'ru-RU-SvetlanaNeural',
+  pt: 'pt-BR-FranciscaNeural',
+  it: 'it-IT-IsabellaNeural',
+};
+
 export function resolveEdgeVoice(lang = 'en-US', requestedVoice = '') {
-  if (typeof requestedVoice === 'string' && ALLOWED_EDGE_VOICES.has(requestedVoice)) {
+  const norm = String(lang || 'en-US').trim().toLowerCase().replace('_', '-');
+  const languageCode = norm.split('-')[0];
+  if (
+    typeof requestedVoice === 'string' &&
+    ALLOWED_EDGE_VOICES.has(requestedVoice) &&
+    requestedVoice.slice(0, 2).toLowerCase() === languageCode
+  ) {
     return requestedVoice;
   }
-  const norm = String(lang || 'en-US').trim().toLowerCase().replace('_', '-');
+  if (languageCode === 'en' && norm === 'en-gb') return 'en-GB-SoniaNeural';
   if (norm === 'ar-sa') return 'ar-SA-HamedNeural';
-  if (norm.startsWith('ar')) return 'ar-EG-SalmaNeural';
-  if (norm === 'en-gb') return 'en-GB-SoniaNeural';
+  if (EDGE_VOICES_BY_LANGUAGE[languageCode]) return EDGE_VOICES_BY_LANGUAGE[languageCode];
   return 'en-US-AvaNeural';
 }
 
@@ -30,8 +57,8 @@ export function validateLang(lang) {
 
 function resolveGoogleLang(lang = 'en-US') {
   const norm = String(lang || 'en-US').trim().toLowerCase().replace('_', '-');
-  if (norm.startsWith('ar')) return 'ar';
-  return 'en';
+  const languageCode = norm.split('-')[0];
+  return EDGE_VOICES_BY_LANGUAGE[languageCode] ? languageCode : 'en';
 }
 
 export const ALLOWED_CORS_ORIGINS = new Set([
