@@ -94,3 +94,40 @@ body::before {
   color: rgba(233, 213, 255, 1) !important;
 }
 
+/* Shiny Glossy Buttons Effect */
+@keyframes shiny-shimmer {
+  0% { transform: translateX(-150%) skewX(-25deg); }
+  100% { transform: translateX(250%) skewX(-25deg); }
+}
+
+.btn-shiny {
+  position: relative !important;
+  overflow: hidden !important;
+  isolation: isolate;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .btn-shiny::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.35) 50%,
+      transparent 100%
+    );
+    transform: translateX(-150%) skewX(-25deg);
+    animation: shiny-shimmer 3.2s infinite ease-in-out;
+    pointer-events: none;
+  }
+}
+
+.btn-shiny:hover {
+  box-shadow: 0 0 25px rgba(45, 212, 191, 0.45);
+}
+

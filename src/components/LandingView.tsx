@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { usePwaInstall } from '../hooks/usePWAInstall';
 import { getPlatformInfo, storageAdapter } from '../platform/adapter';
+import { API_BASE_URL } from '../utils/api';
 
 interface LandingViewProps {
   onStartWebApp: () => void;
@@ -76,7 +77,7 @@ export function LandingView({ onStartWebApp, isArabic = true }: LandingViewProps
     setSubMessage(null);
 
     try {
-      const response = await fetch('/api/feedback', {
+      const response = await fetch(`${API_BASE_URL}/api/feedback`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type: 'subscribe', email: normalizedEmail }),

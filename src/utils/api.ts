@@ -1,7 +1,7 @@
 import { Capacitor } from '@capacitor/core';
 
 export const REMOTE_API_BASE_URL =
-  import.meta.env?.VITE_API_BASE_URL || 'https://amrsherif.localhost.cc';
+  import.meta.env?.VITE_API_BASE_URL || 'https://tb-eg.vercel.app';
 
 export function getApiBaseUrl(): string {
   if (typeof window === 'undefined') return REMOTE_API_BASE_URL;

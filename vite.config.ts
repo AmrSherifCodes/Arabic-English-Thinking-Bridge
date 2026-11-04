@@ -24,6 +24,7 @@ export default defineConfig(async ({ command, mode }) => {
     const { default: ttsHandler } = await import('./api/tts.js');
     const { default: agentHandler } = await import('./api/agent.js');
     const { default: feedbackHandler } = await import('./api/feedback.js');
+    const { default: reviewHandler } = await import('./api/review.js');
     devPlugins.push(
       basicSsl(),
       {
@@ -33,6 +34,7 @@ export default defineConfig(async ({ command, mode }) => {
           server.middlewares.use('/api/tts', ttsHandler);
           server.middlewares.use('/api/agent', agentHandler);
           server.middlewares.use('/api/feedback', feedbackHandler);
+          server.middlewares.use('/api/review', reviewHandler);
         },
       }
     );
@@ -50,9 +52,9 @@ export default defineConfig(async ({ command, mode }) => {
         includeAssets: ['favicon.ico', 'apple-touch-icon-180x180.png'],
         manifest: {
           id: BASE,
-          name: 'Thinking Bridge',
-          short_name: 'Thinking Bridge',
-          description: 'Learn English through the structure of Arabic.',
+          name: 'Thinking Bridge · فكّر إنجليزي',
+          short_name: 'فكّر إنجليزي',
+          description: 'Learn English through the structure of Arabic. Offline-first cognitive language bridge.',
           lang: 'ar',
           dir: 'rtl',
           start_url: '/',
@@ -66,7 +68,7 @@ export default defineConfig(async ({ command, mode }) => {
             { src: 'pwa-64x64.png', sizes: '64x64', type: 'image/png' },
             { src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' },
             { src: 'pwa-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
-            { src: 'maskable-icon.svg', sizes: '512x512', type: 'image/svg+xml', purpose: 'maskable' },
+            { src: 'maskable-icon-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
           ],
         },
         workbox: {
@@ -115,8 +117,27 @@ export default defineConfig(async ({ command, mode }) => {
             if (id.includes('node_modules/lucide-react')) {
               return 'icons-vendor';
             }
+            if (id.includes('src/data/dictionaries/')) {
+              if (id.includes('arabicDictionary') || id.includes('egyptian') || id.includes('levantine') || id.includes('gulf') || id.includes('moroccan')) {
+                return 'dict-arabic-dialects';
+              }
+              if (id.includes('germanDictionary')) return 'dict-german';
+              if (id.includes('japaneseDictionary')) return 'dict-japanese';
+              if (id.includes('spanishDictionary')) return 'dict-spanish';
+              if (id.includes('frenchDictionary')) return 'dict-french';
+              if (id.includes('chineseDictionary')) return 'dict-chinese';
+              if (id.includes('hindiDictionary')) return 'dict-hindi';
+              if (id.includes('greekDictionary')) return 'dict-greek';
+              if (id.includes('russianDictionary')) return 'dict-russian';
+              if (id.includes('italianDictionary')) return 'dict-italian';
+              if (id.includes('portugueseDictionary')) return 'dict-portuguese';
+              return 'dict-other';
+            }
+            if (id.includes('src/data/lessons') || id.includes('src/data/curriculum')) {
+              return 'curriculum-core';
+            }
             if (id.includes('src/data/') || id.includes('src/utils/arabicWordLexicon')) {
-              return 'curriculum-data';
+              return 'app-data';
             }
           },
         },

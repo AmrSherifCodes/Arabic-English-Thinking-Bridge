@@ -55,7 +55,7 @@ export function AppShell({
               <button
                 type="button"
                 onClick={onOpenLanding}
-                className="w-full flex items-center gap-3 px-3.5 py-3 min-h-[48px] rounded-2xl font-black text-xs text-amber-400 bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500/20 transition text-start mb-2"
+                className="btn-shiny w-full flex items-center gap-3 px-3.5 py-3 min-h-[48px] rounded-2xl font-black text-xs text-amber-400 bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500/20 transition text-start mb-2"
               >
                 <Home size={18} />
                 <span>{isArabic ? 'الصفحة الرئيسية 🏠' : 'Landing Page 🏠'}</span>

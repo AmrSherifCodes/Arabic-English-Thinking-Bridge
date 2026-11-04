@@ -1,5 +1,16 @@
 # Changelog
 
+## [3.2.1] - 2026-11-04
+
+### Security & Infrastructure
+- **Serverless Discord Feedback Loop**: Reinforced `/api/feedback` and `/api/review` serverless endpoints with CORS preflight handling and strict IP rate limiting.
+- **Production Domain Alignment**: Configured `https://tb-eg.vercel.app` as the primary production API base URL and fallback CORS origin across all serverless API handlers (`agent.js`, `gemini.js`, `tts.js`, `middleware.ts`).
+- **Zero-Secret Client Bundles**: Purged client-side webhook environments and secured all webhook tokens in git-ignored `.env` variables.
+
+### UI & Accessibility
+- **WCAG AA Color Palette**: Verified high-contrast typography (`Readex Pro`) and adaptive themes (Midnight Dark & Clean Slate Light) for learners of all ages.
+- **Game-First Progression**: Reinforced instant +100 XP rewards, Streak Shield 🛡️ protection, Variable-Ratio Mystery Chests 🎁, and hands-free voice AI practice.
+
 ## [3.2.0] - 2026-03-30 (Masterpiece Release)
 
 ### Added

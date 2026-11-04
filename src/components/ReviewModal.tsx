@@ -21,8 +21,8 @@ export function ReviewModal({ isOpen, onClose, onToast, isArabic = true }: Revie
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (text.trim().length < 10) {
-      onToast(isArabic ? 'يرجى كتابة رأيك بوضوح (10 أحرف على الأقل).' : 'Please write at least 10 characters.');
+    if (text.trim().length < 3) {
+      onToast(isArabic ? 'يرجى كتابة رأيك بوضوح (3 أحرف على الأقل).' : 'Please write at least 3 characters.');
       return;
     }
 
@@ -43,13 +43,28 @@ export function ReviewModal({ isOpen, onClose, onToast, isArabic = true }: Revie
       localStorage.setItem('tb.reviews.local', JSON.stringify(list.slice(0, 50)));
 
       // 2. Post to Vercel API
-      await fetch(`${API_BASE}/api/review`, {
+      let webhookDelivered = false;
+      const resp = await fetch(`${API_BASE}/api/review`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(reviewData),
       });
+      const resData = (await resp.json().catch(() => ({}))) as { ok?: boolean; error?: string; webhookFailed?: boolean };
 
-      onToast(isArabic ? '🌟 شكراً لتقييمك! تم إرسال مراجعتك بنجاح' : '🌟 Thank you! Your review was submitted.');
+      if (resp.status === 400) {
+        onToast(isArabic ? '❌ لم يتم قبول المراجعة: يرجى كتابة نص بين 3 و 500 حرف.' : `❌ Review rejected: ${resData.error || 'Please enter 3-500 characters'}`);
+        return;
+      }
+
+      if (resp.ok && resData.ok && !resData.webhookFailed) {
+        webhookDelivered = true;
+      }
+
+      if (webhookDelivered) {
+        onToast(isArabic ? '🌟 شكراً لتقييمك! تم إرسال مراجعتك بنجاح (Discord Live)' : '🌟 Thank you! Your review was submitted to live team.');
+      } else {
+        onToast(isArabic ? '📡 تم حفظ التقييم محلياً بنجاح وستتم المزامنة لاحقاً 💾' : '📡 Saved locally. Will sync when online 💾');
+      }
     } catch {
       onToast(isArabic ? 'تم حفظ التقييم محلياً وسيتم المزامنة لاحقاً 📡' : 'Saved locally. Will sync when online.');
     } finally {
@@ -177,7 +192,7 @@ export function ReviewModal({ isOpen, onClose, onToast, isArabic = true }: Revie
           <button
             type="submit"
             disabled={isSubmitting || text.trim().length < 10}
-            className="w-full py-2.5 rounded-xl bg-primary text-on-primary font-black text-xs shadow-md hover:opacity-90 disabled:opacity-50 transition flex items-center justify-center gap-2 active:scale-95"
+            className="btn-shiny w-full py-2.5 rounded-xl bg-primary text-on-primary font-black text-xs shadow-md hover:opacity-90 disabled:opacity-50 transition flex items-center justify-center gap-2 active:scale-95"
           >
             <Send size={14} />
             <span>{isArabic ? 'إرسال التقييم' : 'Submit Review'}</span>

@@ -96,7 +96,7 @@ test('Custom-domain origins are explicitly allowed and used as the CORS fallback
     assert.equal(ALLOWED_CORS_ORIGINS.has(origin), true);
     assert.equal(getCorsOrigin(origin), origin);
   }
-  assert.equal(getCorsOrigin('https://untrusted.example'), 'https://amrsherif.localhost.cc');
+  assert.equal(getCorsOrigin('https://untrusted.example'), 'https://tb-eg.vercel.app');
 });
 
 test('1b. Evil Vercel preview origin (https://evil-attacker.vercel.app) is rejected with 403 Forbidden while https://tb-eg.vercel.app is allowed', async () => {

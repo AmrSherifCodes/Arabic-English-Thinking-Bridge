@@ -78,8 +78,8 @@ test('4. vercel.json and index.html CSP disallow unsafe-inline in script-src', (
   assert.ok(cspHeader, 'vercel.json must have Content-Security-Policy header');
 
   const cspValue = cspHeader.value;
-  assert.ok(cspValue.includes('https://amrsherif.localhost.cc'));
-  assert.ok(cspValue.includes('https://www.amrsherif.localhost.cc'));
+  assert.ok(cspValue.includes('https://tb-eg.vercel.app'));
+  assert.ok(cspValue.includes('https://arabicenglishthinkingbridge.vercel.app'));
   const scriptSrcMatch = cspValue.match(/script-src\s+([^;]+)/i);
   assert.ok(scriptSrcMatch, 'CSP must contain script-src directive');
   const scriptSrcDirectives = scriptSrcMatch[1];
@@ -92,9 +92,9 @@ test('4. vercel.json and index.html CSP disallow unsafe-inline in script-src', (
   // Check index.html meta tag CSP
   const indexPath = path.join(ROOT_DIR, 'index.html');
   const indexHtml = fs.readFileSync(indexPath, 'utf8');
-  assert.match(indexHtml, /property="og:url" content="https:\/\/amrsherif\.localhost\.cc"/);
-  assert.match(indexHtml, /property="og:image" content="https:\/\/amrsherif\.localhost\.cc\/og-image\.jpg"/);
-  assert.match(indexHtml, /name="twitter:image" content="https:\/\/amrsherif\.localhost\.cc\/og-image\.jpg"/);
+  assert.match(indexHtml, /property="og:url" content="https:\/\/tb-eg\.vercel\.app"/);
+  assert.match(indexHtml, /property="og:image" content="https:\/\/tb-eg\.vercel\.app\/og-image\.jpg"/);
+  assert.match(indexHtml, /name="twitter:image" content="https:\/\/tb-eg\.vercel\.app\/og-image\.jpg"/);
   const metaCspMatch = indexHtml.match(/content="([^"]*default-src[^"]*)"/i);
   if (metaCspMatch) {
     const metaCsp = metaCspMatch[1];

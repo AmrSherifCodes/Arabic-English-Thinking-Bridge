@@ -79,7 +79,7 @@ export function PracticeHubView({
         {/* Mode 3: Corporate Bridge Translator */}
         <button
           onClick={onOpenCorporate}
-          className="p-4 rounded-3xl bg-stone-900 border border-blue-500/40 hover:border-blue-400 transition text-start shadow-md flex items-center justify-between"
+          className="btn-shiny p-4 rounded-3xl bg-stone-900 border border-blue-500/40 hover:border-blue-400 transition text-start shadow-md flex items-center justify-between"
         >
           <div className="space-y-1">
             <div className="flex items-center gap-1.5 text-blue-400 font-bold text-xs">

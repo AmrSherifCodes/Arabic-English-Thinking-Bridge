@@ -192,7 +192,7 @@ export function PathView({ state, targetLang, onSelectLesson, onSelectUnitCheckp
                       type="button"
                       disabled={!unlocked}
                       aria-label={`${isArabic ? lesson.titleAr : lesson.titleEn}${unlocked ? '' : isArabic ? ' — مقفول، أكمل الدرس السابق لفتحه' : ' — locked, complete the previous lesson to unlock'}`}
-                      className={`group relative flex flex-col items-center justify-center transition transform ${
+                      className={`btn-shiny group relative flex flex-col items-center justify-center transition transform ${
                         unlocked ? 'active:scale-90' : 'cursor-not-allowed opacity-55'
                       } ${xOffset}`}
                     >

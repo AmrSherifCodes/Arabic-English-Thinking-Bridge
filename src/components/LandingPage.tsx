@@ -217,6 +217,27 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
         <div className="absolute bottom-10 right-10 w-[450px] h-[450px] rounded-full bg-teal-600/10 blur-[110px]" />
       </div>
 
+      {/* 0. SECURITY & ZERO-TRACKING TRUST BANNER */}
+      <div className="relative z-50 bg-gradient-to-r from-emerald-950/90 via-stone-900 to-teal-950/90 border-b border-emerald-500/30 px-3 py-1.5 text-center text-[11px] font-bold text-emerald-300 flex items-center justify-center gap-2 flex-wrap shadow-md">
+        <div className="flex items-center gap-1.5">
+          <ShieldCheck size={14} className="text-emerald-400 shrink-0" />
+          <span>{isAr ? '🔒 خصوصية تامة وشفافية 100%:' : '🔒 100% Privacy & Local-First:'}</span>
+        </div>
+        <span className="text-stone-300 font-medium">
+          {isAr
+            ? 'مفتوح المصدر · لا إعلانات · لا تتبع (Zero Telemetry) · لا كوكيز · جميع بياناتك تُحفظ محلياً في جهازك فقط'
+            : '100% Open Source · Zero Tracking · No Cookies · No Accounts Required · All Progress Saved In Your Browser'}
+        </span>
+        <a
+          href="https://observatory.mozilla.org/analyze/tb-eg.vercel.app"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 hover:text-white hover:bg-emerald-500/30 text-[10px] font-black border border-emerald-500/30 transition"
+        >
+          <span>{isAr ? 'فحص Mozilla Observatory ↗' : 'Mozilla Observatory Audit ↗'}</span>
+        </a>
+      </div>
+
       {/* 1. HEADER NAV */}
       <header className="sticky top-0 z-50 backdrop-blur-xl bg-[#090D16]/80 border-b border-stone-800/80 px-4 py-3.5">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
@@ -245,7 +266,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
 
             <button
               onClick={handleLaunchApp}
-              className="px-5 py-2 rounded-xl bg-gradient-to-r from-teal-400 to-emerald-500 hover:from-teal-300 hover:to-emerald-400 text-stone-950 font-black text-xs transition shadow-lg shadow-teal-500/20 active:scale-95 flex items-center gap-1.5"
+              className="btn-shiny px-5 py-2 rounded-xl bg-gradient-to-r from-teal-400 to-emerald-500 hover:from-teal-300 hover:to-emerald-400 text-stone-950 font-black text-xs transition shadow-lg shadow-teal-500/20 active:scale-95 flex items-center gap-1.5"
             >
               <span>{dynamicCtaText}</span>
             </button>
@@ -282,7 +303,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
           <motion.div variants={fadeIn} className="flex flex-wrap justify-center items-center gap-4 pt-2">
             <button
               onClick={handleLaunchApp}
-              className="px-8 py-4 rounded-2xl bg-gradient-to-r from-teal-400 via-emerald-400 to-teal-500 hover:opacity-90 text-stone-950 font-black text-base transition shadow-2xl shadow-teal-500/30 active:scale-95 flex items-center gap-2"
+              className="btn-shiny px-8 py-4 rounded-2xl bg-gradient-to-r from-teal-400 via-emerald-400 to-teal-500 hover:opacity-90 text-stone-950 font-black text-base transition shadow-2xl shadow-teal-500/30 active:scale-95 flex items-center gap-2"
             >
               <span>{dynamicCtaText}</span>
               <ArrowRight size={18} className={isAr ? 'rotate-180' : ''} />

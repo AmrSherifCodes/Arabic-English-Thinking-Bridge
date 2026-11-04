@@ -46,12 +46,12 @@ test('2. agent handler responds to OPTIONS with 204 and CORS headers', async () 
 });
 
 test('agent API allows custom-domain origins and uses the primary domain as fallback', () => {
-  for (const origin of ['https://amrsherif.localhost.cc', 'https://www.amrsherif.localhost.cc']) {
+  for (const origin of ['https://tb-eg.vercel.app', 'https://thinkingbridge.vercel.app', 'https://arabicenglishthinkingbridge.vercel.app']) {
     assert.equal(ALLOWED_CORS_ORIGINS.has(origin), true);
     assert.equal(isAllowedOrigin(origin), true);
     assert.equal(getCorsOrigin(origin), origin);
   }
-  assert.equal(getCorsOrigin('https://untrusted.example'), 'https://amrsherif.localhost.cc');
+  assert.equal(getCorsOrigin('https://untrusted.example'), 'https://tb-eg.vercel.app');
 });
 
 test('3. agent handler rejects disallowed HTTP methods with 405', async () => {

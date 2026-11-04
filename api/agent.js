@@ -8,17 +8,13 @@ export const ALLOWED_CORS_ORIGINS = new Set([
   'https://tb-eg.vercel.app',
   'https://thinkingbridge.vercel.app',
   'https://arabicenglishthinkingbridge.vercel.app',
-  'https://amrsherif.localhost.cc',
-  'https://www.amrsherif.localhost.cc',
-  'http://amrsherif.localhost.cc',
-  'http://www.amrsherif.localhost.cc',
   'http://localhost:5173',
   'http://localhost:3000',
   'capacitor://localhost',
   'https://localhost'
 ]);
 
-const PROJECT_PREVIEW_ORIGIN_RE = /^https?:\/\/(?:tb-eg|thinkingbridge|arabic-?english-?thinking-?bridge|amrsherif\.localhost\.cc|www\.amrsherif\.localhost\.cc)(?:-[a-z0-9-]+)?\.(?:vercel\.app|localhost\.cc)$/i;
+const PROJECT_PREVIEW_ORIGIN_RE = /^https?:\/\/(?:tb-eg|thinkingbridge|arabic-?english-?thinking-?bridge)(?:-[a-z0-9-]+)?\.vercel\.app$/i;
 
 export function isAllowedOrigin(origin) {
   if (!origin) return false;
@@ -32,7 +28,7 @@ export function getCorsOrigin(origin) {
   if (isAllowedOrigin(origin)) {
     return origin;
   }
-  return 'https://amrsherif.localhost.cc';
+  return 'https://tb-eg.vercel.app';
 }
 
 // 1. Tool Definitions for the Autonomous Agent
@@ -43,7 +39,9 @@ export const agentTools = {
       query: z.string().describe('The linguistic structure, topic, or sentence to look up'),
       targetLanguage: z.enum(['en', 'de', 'ja']).default('en').describe('The target language')
     }),
-    execute: async ({ query, targetLanguage }) => {
+    execute: async (args = {}) => {
+      const query = (args && args.query) ? String(args.query) : 'nominal sentence transfer';
+      const targetLanguage = (args && args.targetLanguage) ? args.targetLanguage : 'en';
       const q = query.toLowerCase();
       let pattern = 'Subject-Verb-Object (SVO) skeleton with obligatory copula';
       let rule = 'English requires an explicit linking verb (am/is/are) in nominal sentences where Arabic omits it.';

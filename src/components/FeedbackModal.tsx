@@ -90,28 +90,35 @@ export function FeedbackModal({
       existingList.push(feedbackData);
       localStorage.setItem(FEEDBACK_STORAGE_KEY, JSON.stringify(existingList.slice(-50)));
 
+      let webhookDelivered = false;
+
       // 2. Dispatch to Serverless API
       try {
-        await fetch(`${API_BASE_URL}/api/feedback`, {
+        const resp = await fetch(`${API_BASE_URL}/api/feedback`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(feedbackData),
         });
+        const resData = (await resp.json().catch(() => ({}))) as { success?: boolean; webhookFailed?: boolean };
+        if (resp.ok && resData.success && !resData.webhookFailed) {
+          webhookDelivered = true;
+        }
       } catch {
         /* fallback to local storage */
       }
 
       // 3. Fallback direct client webhook dispatch if configured
       const clientWebhook = (import.meta as any)?.env?.VITE_DISCORD_WEBHOOK_URL;
-      if (clientWebhook) {
+      if (clientWebhook && !webhookDelivered) {
         try {
-          void fetch(clientWebhook, {
+          const directResp = await fetch(clientWebhook, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               content: `📩 **New Thinking Bridge Feedback!**\n**Rating:** ${rating}/5 ⭐\n**Category:** ${category}\n**Message:** ${message.trim()}\n**User:** ${isAnonymous ? 'Anonymous' : (profile?.name || 'Learner')}`,
             }),
           });
+          if (directResp.ok) webhookDelivered = true;
         } catch {
           /* noop */
         }
@@ -123,11 +130,19 @@ export function FeedbackModal({
         } catch { }
       }
 
-      onToast(
-        isArabic
-          ? '🎉 شكراً لرأيك الصريح! تم إضافة +100 XP ودرع استمرارية 🛡️'
-          : '🎉 Thank you for your review! +100 XP & 1 Streak Shield awarded! 🛡️'
-      );
+      if (webhookDelivered) {
+        onToast(
+          isArabic
+            ? '🎉 شكراً لرأيك! تم الإرسال للفريق مباشرة (Discord Live) وتم الحفظ محلياً 🟢'
+            : '🎉 Thank you! Sent to the live team (Discord Live) and saved locally 🟢'
+        );
+      } else {
+        onToast(
+          isArabic
+            ? '📡 تم حفظ التقييم محلياً بنجاح وستتم المزامنة تلقائياً عند إتاحة الخادم 💾'
+            : '📡 Feedback saved locally. Will sync automatically when connected 💾'
+        );
+      }
 
       onSubmit(feedbackData);
       onClose();
@@ -327,7 +342,7 @@ export function FeedbackModal({
             <button
               type="submit"
               disabled={isSubmitting}
-              className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-extrabold text-xs shadow-lg shadow-teal-900/40 transition active:scale-[0.98] disabled:opacity-50"
+              className="btn-shiny inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-extrabold text-xs shadow-lg shadow-teal-900/40 transition active:scale-[0.98] disabled:opacity-50"
             >
               <Send size={14} />
               <span>{isArabic ? 'إرسال واكسب 100 XP 🎁' : 'Submit & Claim 100 XP 🎁'}</span>

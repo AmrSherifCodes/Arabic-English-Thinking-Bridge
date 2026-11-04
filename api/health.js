@@ -1,3 +1,18 @@
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+let pkgVersion = 'v3.2.1';
+try {
+  const __dirname = dirname(fileURLToPath(import.meta.url));
+  const pkg = JSON.parse(readFileSync(join(__dirname, '../package.json'), 'utf8'));
+  if (pkg.version) {
+    pkgVersion = `v${pkg.version.replace(/^v/, '')}`;
+  }
+} catch {
+  pkgVersion = process.env.npm_package_version ? `v${process.env.npm_package_version.replace(/^v/, '')}` : 'v3.2.1';
+}
+
 export default function handler(req, res) {
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
   res.setHeader('Cache-Control', 'no-cache, no-store');
@@ -18,7 +33,7 @@ export default function handler(req, res) {
   res.end(JSON.stringify({
     status: 'healthy',
     service: 'Thinking Bridge',
-    version: 'v3.1.0',
+    version: pkgVersion,
     uptime: Math.round(process.uptime()),
     timestamp: Date.now(),
     storage: 'local-only',

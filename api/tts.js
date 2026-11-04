@@ -155,7 +155,7 @@ export function getCorsOrigin(origin) {
   if (isAllowedOrigin(origin)) {
     return origin;
   }
-  return 'https://amrsherif.localhost.cc';
+  return 'https://tb-eg.vercel.app';
 }
 
 function isAllowedUrlOrigin(urlStr) {

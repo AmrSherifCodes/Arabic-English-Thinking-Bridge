@@ -88,7 +88,7 @@ test('TTS allows both custom-domain origins and uses the primary domain as fallb
     assert.equal(ALLOWED_CORS_ORIGINS.has(origin), true);
     assert.equal(getCorsOrigin(origin), origin);
   }
-  assert.equal(getCorsOrigin('https://untrusted.example'), 'https://amrsherif.localhost.cc');
+  assert.equal(getCorsOrigin('https://untrusted.example'), 'https://tb-eg.vercel.app');
 });
 
 test('2. Disallowed referer returns 403 Forbidden', async () => {

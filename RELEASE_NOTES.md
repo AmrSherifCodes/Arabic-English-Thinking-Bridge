@@ -1,4 +1,4 @@
-# Thinking Bridge 3.2.0
+# Thinking Bridge 3.2.1
 ### Think in the language. Don't translate it.
 
 Most language apps teach you to swap words. Thinking Bridge teaches you to

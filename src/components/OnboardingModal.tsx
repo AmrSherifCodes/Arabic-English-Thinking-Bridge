@@ -758,7 +758,7 @@ export function OnboardingModal({
           <button
             type="button"
             onClick={handleNext}
-            className="px-5 py-2.5 rounded-2xl bg-teal-500 hover:bg-teal-400 active:scale-95 text-stone-950 font-black text-xs shadow-md transition flex items-center gap-1.5"
+            className="btn-shiny px-5 py-2.5 rounded-2xl bg-teal-500 hover:bg-teal-400 active:scale-95 text-stone-950 font-black text-xs shadow-md transition flex items-center gap-1.5"
           >
             {step < 3 ? (
               <>
