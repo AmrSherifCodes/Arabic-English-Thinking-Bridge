@@ -110,43 +110,50 @@ export default defineConfig(async ({ command, mode }) => {
       rollupOptions: {
         output: {
           manualChunks(id: string) {
+            const normId = id.replace(/\\/g, '/');
             if (
-              id.includes('node_modules/react/') ||
-              id.includes('node_modules/react-dom/') ||
-              id.includes('node_modules/scheduler/') ||
-              id.includes('node_modules/framer-motion')
+              normId.includes('node_modules/react/') ||
+              normId.includes('node_modules/react-dom/') ||
+              normId.includes('node_modules/scheduler/') ||
+              normId.includes('node_modules/framer-motion')
             ) {
               return 'react-vendor';
             }
-            if (id.includes('node_modules/@google/genai')) {
+            if (normId.includes('node_modules/@google/genai')) {
               return 'gemini-sdk';
             }
-            if (id.includes('node_modules/@capacitor')) {
+            if (normId.includes('node_modules/@capacitor')) {
               return 'capacitor-vendor';
             }
-            if (id.includes('node_modules/lucide-react')) {
+            if (normId.includes('node_modules/lucide-react')) {
               return 'icons-vendor';
             }
-            if (id.includes('src/data/dictionaries/')) {
-              if (id.includes('arabicDictionary') || id.includes('egyptian') || id.includes('levantine') || id.includes('gulf') || id.includes('moroccan')) {
+            if (normId.includes('src/data/dictionaries/')) {
+              if (
+                normId.includes('arabicDictionary') ||
+                normId.includes('egyptian') ||
+                normId.includes('levantine') ||
+                normId.includes('gulf') ||
+                normId.includes('moroccan')
+              ) {
                 return 'dict-arabic-dialects';
               }
-              if (id.includes('germanDictionary')) return 'dict-german';
-              if (id.includes('japaneseDictionary')) return 'dict-japanese';
-              if (id.includes('spanishDictionary')) return 'dict-spanish';
-              if (id.includes('frenchDictionary')) return 'dict-french';
-              if (id.includes('chineseDictionary')) return 'dict-chinese';
-              if (id.includes('hindiDictionary')) return 'dict-hindi';
-              if (id.includes('greekDictionary')) return 'dict-greek';
-              if (id.includes('russianDictionary')) return 'dict-russian';
-              if (id.includes('italianDictionary')) return 'dict-italian';
-              if (id.includes('portugueseDictionary')) return 'dict-portuguese';
+              if (normId.includes('germanDictionary')) return 'dict-german';
+              if (normId.includes('japaneseDictionary')) return 'dict-japanese';
+              if (normId.includes('spanishDictionary')) return 'dict-spanish';
+              if (normId.includes('frenchDictionary')) return 'dict-french';
+              if (normId.includes('chineseDictionary')) return 'dict-chinese';
+              if (normId.includes('hindiDictionary')) return 'dict-hindi';
+              if (normId.includes('greekDictionary')) return 'dict-greek';
+              if (normId.includes('russianDictionary')) return 'dict-russian';
+              if (normId.includes('italianDictionary')) return 'dict-italian';
+              if (normId.includes('portugueseDictionary')) return 'dict-portuguese';
               return 'dict-other';
             }
-            if (id.includes('src/data/lessons') || id.includes('src/data/curriculum')) {
+            if (normId.includes('src/data/lessons') || normId.includes('src/data/curriculum')) {
               return 'curriculum-core';
             }
-            if (id.includes('src/data/') || id.includes('src/utils/arabicWordLexicon')) {
+            if (normId.includes('src/data/') || normId.includes('src/utils/arabicWordLexicon')) {
               return 'app-data';
             }
           },

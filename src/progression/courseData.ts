@@ -1368,33 +1368,6 @@ export function generateProceduralStageLessons(
   if (!pool || pool.length < 10) {
     pool = rankedDict;
   }
-  if (!pool || pool.length === 0) {
-    if (targetLang === 'ja') {
-      pool = [
-        { term: 'こんにちは', sourceMeanings: { en: 'Hello', ar: 'مرحباً' } },
-        { term: '友達', sourceMeanings: { en: 'Friend', ar: 'صديق' } },
-        { term: '良い', sourceMeanings: { en: 'Good', ar: 'جيد' } },
-        { term: 'はい', sourceMeanings: { en: 'Yes', ar: 'نعم' } },
-        { term: 'いいえ', sourceMeanings: { en: 'No', ar: 'لا' } }
-      ] as any;
-    } else if (targetLang === 'de') {
-      pool = [
-        { term: 'Hallo', sourceMeanings: { en: 'Hello', ar: 'مرحباً' } },
-        { term: 'Freund', sourceMeanings: { en: 'Friend', ar: 'صديق' } },
-        { term: 'Gut', sourceMeanings: { en: 'Good', ar: 'جيد' } },
-        { term: 'Ja', sourceMeanings: { en: 'Yes', ar: 'نعم' } },
-        { term: 'Nein', sourceMeanings: { en: 'No', ar: 'لا' } }
-      ] as any;
-    } else {
-      pool = [
-        { term: 'Hello', sourceMeanings: { en: 'Hello', ar: 'مرحباً' } },
-        { term: 'Friend', sourceMeanings: { en: 'Friend', ar: 'صديق' } },
-        { term: 'Good', sourceMeanings: { en: 'Good', ar: 'جيد' } },
-        { term: 'Yes', sourceMeanings: { en: 'Yes', ar: 'نعم' } },
-        { term: 'No', sourceMeanings: { en: 'No', ar: 'لا' } }
-      ] as any;
-    }
-  }
 
   if (focusArea === 'tech' || focusArea === 'business' || focusArea === 'travel') {
     const keywords = focusArea === 'tech'
