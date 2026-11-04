@@ -1,29 +1,34 @@
 import { PrebuiltDeck } from '../prebuiltDecks';
-import { GERMAN_DICTIONARY } from '../dictionaries/germanDictionary';
 
 export const GERMAN_PREBUILT_DECKS: PrebuiltDeck[] = [
   {
     id: 'german-starter-a1',
     name: '🇩🇪 German Thinking Starter · Das Fundament',
-    description: 'Essential German sentences built on the V2 rule and Accusative case. Based on FreeDict & Tatoeba public domain corpus.',
+    description: 'Essential German sentences built on the V2 rule and Accusative case.',
     author: 'Thinking Bridge Open Commons',
     license: 'CC0 1.0 Public Domain',
-    disclaimer: '100% Free & Open Source. Sourced from FreeDict & Tatoeba.',
-    cards: GERMAN_DICTIONARY.slice(0, 100).map((entry) => ({
-      ar: (entry as any).translation || (entry as any).word || 'أنا أتعلم الألمانية',
-      en: (entry as any).word || (entry as any).translation || 'Ich lerne Deutsch',
-    })),
+    disclaimer: '100% Free & Open Source.',
+    cards: [
+      { ar: 'أنا أتعلم الألمانية', en: 'Ich lerne Deutsch' },
+      { ar: 'صباح الخير', en: 'Guten Morgen' },
+      { ar: 'كيف حالك؟', en: 'Wie geht es dir?' },
+      { ar: 'شكراً جزيلاً', en: 'Vielen Dank' },
+      { ar: 'نعم، أفهم ذلك', en: 'Ja, ich verstehe das' },
+    ],
   },
   {
     id: 'german-genders-vocab',
     name: '🇩🇪 High-Frequency Vocabulary & Genders (der/die/das)',
-    description: 'Core daily words with definite articles and plurals. Designed to build effortless gender instincts.',
+    description: 'Core daily words with definite articles and plurals.',
     author: 'Thinking Bridge Open Commons',
     license: 'CC0 1.0 Public Domain',
-    disclaimer: '100% Free & Open Source. Sourced from FreeDict.',
-    cards: GERMAN_DICTIONARY.slice(100, 200).map((entry) => ({
-      ar: (entry as any).translation || (entry as any).word || 'كلمة ألمانية',
-      en: (entry as any).word || (entry as any).translation || 'deutsches Wort',
-    })),
+    disclaimer: '100% Free & Open Source.',
+    cards: [
+      { ar: 'الرجل', en: 'der Mann' },
+      { ar: 'المرأة', en: 'die Frau' },
+      { ar: 'الطفل', en: 'das Kind' },
+      { ar: 'البيت', en: 'das Haus' },
+      { ar: 'السيارة', en: 'das Auto' },
+    ],
   },
 ];

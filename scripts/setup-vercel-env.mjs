@@ -12,6 +12,8 @@ const secrets = [
 ];
 
 const envs = ['production', 'preview'];
+const npxCmd = process.platform === 'win32' ? 'npx.cmd' : 'npx';
+const tokenFlag = process.env.VERCEL_TOKEN ? `--token ${process.env.VERCEL_TOKEN}` : '';
 
 for (const secret of secrets) {
   if (!secret.val) {
@@ -21,21 +23,31 @@ for (const secret of secrets) {
 
   for (const envTarget of envs) {
     console.log(`Setting ${secret.name} for ${envTarget}...`);
-    const res = spawnSync('npx', ['vercel', 'env', 'add', secret.name, envTarget, '--yes'], {
+    const args = ['--yes', 'vercel', 'env', 'add', secret.name, envTarget];
+    if (process.env.VERCEL_TOKEN) {
+      args.push('--token', process.env.VERCEL_TOKEN);
+    }
+
+    const res = spawnSync(npxCmd, args, {
       input: secret.val,
       encoding: 'utf8',
+      shell: true,
       stdio: ['pipe', 'inherit', 'inherit']
     });
+
     if (res.status !== 0) {
-      console.warn(`⚠️ Warning: vercel env add for ${secret.name} (${envTarget}) returned status ${res.status}`);
+      throw new Error(`❌ Failed to set Vercel environment variable ${secret.name} for ${envTarget} (exit status ${res.status})`);
     }
   }
 }
 
-console.log('🔄 Triggering Vercel production deployment...');
+console.log('📋 Listing active Vercel environment variables:');
 try {
-  execSync('npx vercel --prod --yes', { stdio: 'inherit', encoding: 'utf8' });
-  console.log('✅ Vercel production deployment completed successfully!');
+  execSync(`${npxCmd} --yes vercel env ls ${tokenFlag}`, { stdio: 'inherit', encoding: 'utf8', shell: true });
 } catch (err) {
-  console.warn(`⚠️ Vercel deployment warning: ${err.message}`);
+  console.warn(`⚠️ Listing env vars warning: ${err.message}`);
 }
+
+console.log('🔄 Triggering Vercel production deployment...');
+execSync(`${npxCmd} --yes vercel --prod ${tokenFlag}`, { stdio: 'inherit', encoding: 'utf8', shell: true });
+console.log('✅ Vercel production deployment completed successfully!');

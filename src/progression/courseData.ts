@@ -1368,6 +1368,33 @@ export function generateProceduralStageLessons(
   if (!pool || pool.length < 10) {
     pool = rankedDict;
   }
+  if (!pool || pool.length === 0) {
+    if (targetLang === 'ja') {
+      pool = [
+        { term: 'こんにちは', sourceMeanings: { en: 'Hello', ar: 'مرحباً' } },
+        { term: '友達', sourceMeanings: { en: 'Friend', ar: 'صديق' } },
+        { term: '良い', sourceMeanings: { en: 'Good', ar: 'جيد' } },
+        { term: 'はい', sourceMeanings: { en: 'Yes', ar: 'نعم' } },
+        { term: 'いいえ', sourceMeanings: { en: 'No', ar: 'لا' } }
+      ] as any;
+    } else if (targetLang === 'de') {
+      pool = [
+        { term: 'Hallo', sourceMeanings: { en: 'Hello', ar: 'مرحباً' } },
+        { term: 'Freund', sourceMeanings: { en: 'Friend', ar: 'صديق' } },
+        { term: 'Gut', sourceMeanings: { en: 'Good', ar: 'جيد' } },
+        { term: 'Ja', sourceMeanings: { en: 'Yes', ar: 'نعم' } },
+        { term: 'Nein', sourceMeanings: { en: 'No', ar: 'لا' } }
+      ] as any;
+    } else {
+      pool = [
+        { term: 'Hello', sourceMeanings: { en: 'Hello', ar: 'مرحباً' } },
+        { term: 'Friend', sourceMeanings: { en: 'Friend', ar: 'صديق' } },
+        { term: 'Good', sourceMeanings: { en: 'Good', ar: 'جيد' } },
+        { term: 'Yes', sourceMeanings: { en: 'Yes', ar: 'نعم' } },
+        { term: 'No', sourceMeanings: { en: 'No', ar: 'لا' } }
+      ] as any;
+    }
+  }
 
   if (focusArea === 'tech' || focusArea === 'business' || focusArea === 'travel') {
     const keywords = focusArea === 'tech'
@@ -1388,10 +1415,10 @@ export function generateProceduralStageLessons(
   }
 
   let i = result.length;
-  while (result.length < count) {
-    const entry1 = pool[i % pool.length] || pool[0];
-    const entry2 = pool[(i + 3) % pool.length] || pool[1];
-    const entry3 = pool[(i + 7) % pool.length] || pool[2];
+  while (result.length < count && pool.length > 0) {
+    const entry1 = pool[i % pool.length] || pool[0] || { term: 'Das', sourceMeanings: { en: 'That', ar: 'ذلك' } };
+    const entry2 = pool[(i + 3) % pool.length] || pool[1] || { term: 'ist', sourceMeanings: { en: 'is', ar: 'يكون' } };
+    const entry3 = pool[(i + 7) % pool.length] || pool[2] || { term: 'gut', sourceMeanings: { en: 'good', ar: 'جيد' } };
 
     const term1 = entry1.term || (entry1 as any).word || 'Das';
     const term2 = entry2.term || (entry2 as any).word || 'ist';

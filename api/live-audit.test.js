@@ -122,3 +122,15 @@ test('8. Live Deployment Health: fetches live https://tb-eg.vercel.app/api/healt
   const data = await resp.json();
   assert.equal(data.version, 'v3.2.1');
 });
+
+test('9. Live Webhook Delivery: POSTs live subscription to https://tb-eg.vercel.app/api/feedback and verifies webhook succeeds', { skip: !process.env.LIVE_WEBHOOK_AUDIT }, async () => {
+  const resp = await fetch('https://tb-eg.vercel.app/api/feedback', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ type: 'subscribe', email: 'audit-live-check@example.com' })
+  });
+  assert.equal(resp.status, 200);
+  const data = await resp.json();
+  assert.equal(data.success, true);
+  assert.equal(data.webhookFailed, false, 'Live webhook execution must succeed when env vars are configured');
+});

@@ -1,7 +1,6 @@
 import { ProgressionState, SrsItemRecord, Quest } from './types';
 import { PREBUILT_DECKS } from '../data/prebuiltDecks';
-import { GERMAN_DICTIONARY } from '../data/dictionaries/germanDictionary';
-import { JAPANESE_DICTIONARY } from '../data/dictionaries/japaneseDictionary';
+import { getTargetDictionary } from '../data/dictionaries';
 
 export const MAX_STATE_SIZE_BYTES = 65536; // 64 KB limit
 
@@ -51,28 +50,15 @@ export function resolveRealSrsCardText(cardId: string): { term: string; sourceTe
     }
   }
 
-  // 2. Search GERMAN_DICTIONARY
-  const deEntry = (GERMAN_DICTIONARY as any[]).find((e) => e.word === cardId || e.word?.toLowerCase() === cardId.toLowerCase() || e.id === cardId || e.term === cardId);
-  if (deEntry) {
-    const word = deEntry.word || deEntry.term || cardId;
-    const translation = deEntry.translation || deEntry.sourceMeanings?.ar || deEntry.sourceMeanings?.en || word;
-    return {
-      term: word,
-      sourceText: translation,
-      targetText: word,
-    };
-  }
-
-  // 3. Search JAPANESE_DICTIONARY
-  const jaEntry = (JAPANESE_DICTIONARY as any[]).find((e) => e.word === cardId || e.word?.toLowerCase() === cardId.toLowerCase() || e.id === cardId || e.term === cardId);
-  if (jaEntry) {
-    const word = jaEntry.word || jaEntry.term || cardId;
-    const translation = jaEntry.translation || jaEntry.sourceMeanings?.ar || jaEntry.sourceMeanings?.en || word;
-    return {
-      term: word,
-      sourceText: translation,
-      targetText: word,
-    };
+  // 2. Search Loaded Dictionaries
+  for (const lang of ['de', 'ja', 'es', 'fr', 'ar', 'arz']) {
+    const dict = getTargetDictionary(lang);
+    const match = dict.find((e) => e.word === cardId || e.word?.toLowerCase() === cardId.toLowerCase() || (e as any).id === cardId || e.term === cardId);
+    if (match) {
+      const word = match.word || match.term || cardId;
+      const translation = match.translation || match.sourceMeanings?.ar || match.sourceMeanings?.en || word;
+      return { term: word, sourceText: translation, targetText: word };
+    }
   }
 
   // Fallback
