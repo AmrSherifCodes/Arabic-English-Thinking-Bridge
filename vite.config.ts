@@ -115,9 +115,6 @@ export default defineConfig(async ({ command, mode }) => {
             if (id.includes('node_modules/lucide-react')) {
               return 'icons-vendor';
             }
-            if (id.includes('node_modules/@supabase')) {
-              return 'supabase-vendor';
-            }
             if (id.includes('src/data/') || id.includes('src/utils/arabicWordLexicon')) {
               return 'curriculum-data';
             }

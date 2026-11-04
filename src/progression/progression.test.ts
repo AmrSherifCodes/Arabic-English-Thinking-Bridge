@@ -134,9 +134,9 @@ test('5a. language profiles build unlockable A0-A2 curricula for German, Spanish
     assert.ok(TARGET_LANGUAGES.every((language) => language.defaultVoice.length > 0));
 
     const examples: Record<string, string[]> = {
-      de: ['Heute lerne ich Deutsch.', 'Ich sehe den Mann.', 'Morgen kauft der Lehrer einen Apfel.'],
+      de: ['Heute lerne ich Deutsch.', 'Ich sehe den Mann.', 'Morgen kauft der Lehrer einen Apfel.', 'Ich bin Schüler.'],
       es: ['La casa blanca es grande.', 'El libro rojo es nuevo.', 'Yo estudio español.'],
-      ja: ['Watashi wa gakusei desu.', 'Watashi wa neko o mimasu.', 'Watashi wa ie de benkyou shimasu.'],
+      ja: ['私は学生です。', '私は猫を見ます。', '私は家で勉強します。'],
     };
 
     for (const language of ['de', 'es', 'ja'] as const) {
@@ -146,20 +146,47 @@ test('5a. language profiles build unlockable A0-A2 curricula for German, Spanish
 
       const course = buildCourseStructure();
       assert.deepEqual(course.map((stage) => stage.stage), ['A0', 'A1', 'A2']);
+      const localizedTargets = course[0].units.flatMap((unit) =>
+        unit.lessons.flatMap((lesson) => lesson.exercises.map((exercise) => exercise.targetSentence))
+      );
+      for (const sentence of examples[language]) {
+        assert.ok(localizedTargets.includes(sentence), `${language} A0 must include ${sentence}`);
+      }
       for (const stage of course) {
         const lessons = stage.units.flatMap((unit) => unit.lessons);
-        assert.equal(lessons.length, 3, `${language} ${stage.stage} must have three lessons`);
+        assert.equal(lessons.length, 5, `${language} ${stage.stage} must have five localized lessons`);
         for (const lesson of lessons) {
           const exercise = lesson.exercises[0];
           assert.ok(exercise.promptAr.trim(), `${lesson.id} Arabic prompt must not be empty`);
           assert.ok(exercise.targetSentence.trim(), `${lesson.id} target must not be empty`);
-          assert.equal(exercise.wordChips!.join(' '), exercise.targetSentence);
-          assert.ok(exercise.breakdownChunks?.length, `${lesson.id} must include structure breakdowns`);
+          const isJapanese = language === 'ja';
           assert.equal(
-            exercise.breakdownChunks!.flatMap((chunk) => chunk.englishText.replace(/[.,!?;:]/g, '').split(/\s+/)).length,
-            exercise.targetSentence.replace(/[.,!?;:]/g, '').split(/\s+/).length,
-            `${lesson.id} breakdown must account for every target word`
+            isJapanese
+              ? exercise.wordChips!.join('').replace(/[。、「」]/g, '')
+              : exercise.wordChips!.join(' '),
+            isJapanese
+              ? exercise.targetSentence.replace(/[。、「」]/g, '')
+              : exercise.targetSentence
           );
+          if (isJapanese) {
+            assert.match(exercise.targetSentence, /[\u3040-\u30ff\u3400-\u9fff]/u, `${lesson.id} must use Japanese writing`);
+          } else {
+            assert.ok(!exercise.targetSentence.includes('Welcome to'), `${lesson.id} must not use placeholder content`);
+          }
+          assert.ok(exercise.breakdownChunks?.length, `${lesson.id} must include structure breakdowns`);
+          if (isJapanese) {
+            assert.deepEqual(
+              exercise.breakdownChunks!.map((chunk) => chunk.englishText).join(''),
+              exercise.wordChips!.join(''),
+              `${lesson.id} breakdown must account for every Japanese chip`
+            );
+          } else {
+            assert.equal(
+              exercise.breakdownChunks!.flatMap((chunk) => chunk.englishText.replace(/[.,!?;:]/g, '').split(/\s+/)).length,
+              exercise.targetSentence.replace(/[.,!?;:]/g, '').split(/\s+/).length,
+              `${lesson.id} breakdown must account for every target word`
+            );
+          }
         }
       }
       const a0Lessons = course[0].units.flatMap((unit) => unit.lessons);
@@ -172,6 +199,23 @@ test('5a. language profiles build unlockable A0-A2 curricula for German, Spanish
       state.completedLessonIds.push(...a1Lessons.map((lesson) => lesson.id));
       assert.equal(getNextStageAfterLessonCompletion(state, a1Lessons[2].id), 'A2');
     }
+
+    entries.set('tb.targetLang', 'ja');
+    entries.set('tb.activeProfileConfig', JSON.stringify({ targetLang: 'en' }));
+    const japaneseCourse = buildCourseStructure();
+    assert.ok(
+      japaneseCourse[0].units.flatMap((unit) => unit.lessons).some((lesson) =>
+        lesson.exercises.some((exercise) => exercise.targetSentence === '彼はエンジニアです。')
+      ),
+      'The persisted Japanese target must route to Japanese curriculum even when the profile config is stale'
+    );
+    assert.ok(
+      buildCourseStructure('de')[0].units.flatMap((unit) => unit.lessons).some((lesson) =>
+        lesson.exercises.some((exercise) => exercise.targetSentence === 'Ich sehe den Mann.')
+      ),
+      'An explicit target-language selection must override stored profile values'
+    );
+    entries.delete('tb.targetLang');
 
     for (const language of TARGET_LANGUAGES) {
       const meta = TARGET_LANGUAGE_META[language.code as keyof typeof TARGET_LANGUAGE_META];

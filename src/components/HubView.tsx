@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { MentorQuestion, TeacherBroadcast } from '../types';
-import { supabase } from '../services/supabase';
 import { resolveVoiceNoteFromVault } from '../utils/audioVault';
 import { BTN_GHOST, BTN_PRIMARY, CARD_CLASS } from './uiConstants';
 
@@ -82,33 +81,7 @@ export function HubView({
   onChangeBroadcastDraft,
   onPublishBroadcast
 }: HubViewProps) {
-  const [hasAdminSession, setHasAdminSession] = useState(false);
   const pendingQuestions = mentorQuestions.filter(q => !q.replies || q.replies.length === 0);
-
-  useEffect(() => {
-    const client = supabase;
-    if (!client) return;
-
-    let active = true;
-    const checkIsAdmin = (sess: any) => {
-      const user = sess?.user;
-      const role = user?.app_metadata?.role;
-      return role === 'admin' || user?.email?.trim().toLowerCase() === 'amrsherifwork@gmail.com';
-    };
-
-    void client.auth.getSession().then(({ data }) => {
-      if (active) setHasAdminSession(checkIsAdmin(data.session));
-    });
-
-    const { data: listener } = client.auth.onAuthStateChange((_event, nextSession) => {
-      if (active) setHasAdminSession(checkIsAdmin(nextSession));
-    });
-
-    return () => {
-      active = false;
-      listener.subscription.unsubscribe();
-    };
-  }, []);
 
   return (
     <div className="min-w-0">
@@ -223,15 +196,6 @@ export function HubView({
               <button type="button" className={BTN_PRIMARY} onClick={() => onUnlockTeacher()}>
                 Unlock Demo
               </button>
-              {hasAdminSession && (
-                <button
-                  type="button"
-                  className={BTN_GHOST}
-                  onClick={() => onUnlockTeacher('__admin_session__')}
-                >
-                  Unlock with Admin Session
-                </button>
-              )}
             </div>
             <p className="text-xs opacity-60 mt-2">
               Restricted to Teacher / Admin demo access. Replies and broadcasts in this sandbox save to local device storage only.

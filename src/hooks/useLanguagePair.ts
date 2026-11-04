@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { SourceLanguage, TargetLanguage, LanguagePair } from '../types';
-import { getPairConfig, isValidPair, SUPPORTED_PAIRS, TARGET_LANGUAGES } from '../data/languages';
+import { getPairConfig, isValidPair, SOURCE_LANGUAGES, SUPPORTED_PAIRS, TARGET_LANGUAGES } from '../data/languages';
 import i18n from '../i18n';
 
 const SOURCE_STORAGE_KEY = 'tb.sourceLang';
@@ -8,6 +8,10 @@ const TARGET_STORAGE_KEY = 'tb.targetLang';
 
 function isTargetLanguage(code: string): code is TargetLanguage {
   return TARGET_LANGUAGES.some((language) => language.code === code);
+}
+
+function isSourceLanguage(code: string): code is SourceLanguage {
+  return Object.prototype.hasOwnProperty.call(SOURCE_LANGUAGES, code);
 }
 
 function getInitialPair(): LanguagePair {
@@ -21,7 +25,7 @@ function getInitialPair(): LanguagePair {
       const urlFrom = (params.get('from') || params.get('source') || '').toLowerCase();
       const urlTo = (params.get('to') || params.get('target') || '').toLowerCase();
 
-      if (urlFrom === 'ar' || urlFrom === 'en') {
+      if (isSourceLanguage(urlFrom)) {
         source = urlFrom;
       }
       if (isTargetLanguage(urlTo)) {
@@ -30,6 +34,9 @@ function getInitialPair(): LanguagePair {
 
       // If URL had valid parameters, return immediately
       if (urlFrom || urlTo) {
+        if (!isValidPair(source, target)) {
+          target = SUPPORTED_PAIRS.find((pair) => pair.source === source)?.target || 'en';
+        }
         return { source, target };
       }
 
@@ -37,7 +44,7 @@ function getInitialPair(): LanguagePair {
       const storedSource = window.localStorage.getItem(SOURCE_STORAGE_KEY);
       const storedTarget = window.localStorage.getItem(TARGET_STORAGE_KEY);
 
-      if (storedSource === 'ar' || storedSource === 'en') {
+      if (storedSource && isSourceLanguage(storedSource)) {
         source = storedSource;
       }
       if (storedTarget && isTargetLanguage(storedTarget)) {
@@ -48,6 +55,9 @@ function getInitialPair(): LanguagePair {
         if (legacyLang === 'en') {
           source = 'en';
         }
+      }
+      if (!isValidPair(source, target)) {
+        target = SUPPORTED_PAIRS.find((pair) => pair.source === source)?.target || 'en';
       }
     } catch {
       // Non-browser fallback
@@ -62,12 +72,15 @@ export function useLanguagePair() {
 
   // Sync to document, i18n, localStorage, and URL
   const applyPair = useCallback((newSource: SourceLanguage, newTarget: TargetLanguage) => {
-    setPairState({ source: newSource, target: newTarget });
+    const target = isValidPair(newSource, newTarget)
+      ? newTarget
+      : SUPPORTED_PAIRS.find((pair) => pair.source === newSource)?.target || 'en';
+    setPairState({ source: newSource, target });
 
     if (typeof window !== 'undefined') {
       try {
         window.localStorage.setItem(SOURCE_STORAGE_KEY, newSource);
-        window.localStorage.setItem(TARGET_STORAGE_KEY, newTarget);
+        window.localStorage.setItem(TARGET_STORAGE_KEY, target);
         window.localStorage.setItem('tb.language', newSource);
 
         const activeProfileRaw = window.localStorage.getItem('tb.activeProfileConfig');
@@ -77,7 +90,7 @@ export function useLanguagePair() {
             if (typeof activeProfile === 'object' && activeProfile !== null && !Array.isArray(activeProfile)) {
               window.localStorage.setItem(
                 'tb.activeProfileConfig',
-                JSON.stringify({ ...activeProfile, sourceLang: newSource, targetLang: newTarget })
+                JSON.stringify({ ...activeProfile, sourceLang: newSource, targetLang: target })
               );
             }
           } catch (error) {
@@ -87,7 +100,7 @@ export function useLanguagePair() {
 
         // Sync URL query params without page reload for sharing
         const url = new URL(window.location.href);
-        if (newSource === 'ar' && newTarget === 'en') {
+        if (newSource === 'ar' && target === 'en') {
           // Clean default params for clean aesthetics
           url.searchParams.delete('from');
           url.searchParams.delete('to');
@@ -95,7 +108,7 @@ export function useLanguagePair() {
           url.searchParams.delete('target');
         } else {
           url.searchParams.set('from', newSource);
-          url.searchParams.set('to', newTarget);
+          url.searchParams.set('to', target);
         }
         window.history.replaceState({}, '', url.toString());
       } catch {
@@ -104,7 +117,7 @@ export function useLanguagePair() {
     }
 
     // Sync i18n & HTML dir
-    void i18n.changeLanguage(newSource);
+    void i18n.changeLanguage(newSource === 'ar' ? 'ar' : 'en');
     if (typeof document !== 'undefined') {
       document.documentElement.dir = newSource === 'ar' ? 'rtl' : 'ltr';
       document.documentElement.lang = newSource;
@@ -125,7 +138,7 @@ export function useLanguagePair() {
 
   // Initial mount sync for direction and i18n
   useEffect(() => {
-    void i18n.changeLanguage(pair.source);
+    void i18n.changeLanguage(pair.source === 'ar' ? 'ar' : 'en');
     if (typeof document !== 'undefined') {
       document.documentElement.dir = pair.source === 'ar' ? 'rtl' : 'ltr';
       document.documentElement.lang = pair.source;

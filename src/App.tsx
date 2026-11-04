@@ -7,7 +7,7 @@ import { Keyboard, KeyboardResize } from '@capacitor/keyboard';
 import { Download } from 'lucide-react';
 
 import { AppTab } from './components/navigation/AppShell';
-import { LandingView } from './components/LandingView';
+import { LandingPage } from './components/LandingPage';
 import { PwaInstallBanner } from './components/PwaInstallBanner';
 import { useUserProfile } from './hooks/useUserProfile';
 import { loadUserProgress } from './utils/storage';
@@ -16,6 +16,8 @@ import { AIHelper, AIHelperRequest } from './components/AIHelper';
 import { useLanguagePair } from './hooks/useLanguagePair';
 import { LanguagePairBanner } from './components/LanguagePairBanner';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { LockedFeatureModal } from './components/LockedFeatureModal';
+import { API_QUOTA_LIMIT_EVENT, useApiKeyGate } from './hooks/useApiKeyGate';
 
 import { CefrStage, ProgressionState, LessonNode } from './progression/types';
 import { migrateLegacyStorageToProgression } from './progression/migration';
@@ -62,6 +64,7 @@ const CorporateBridgeView = lazy(() => import('./features/corporate/CorporateBri
 const PreferencesView = lazy(() => import('./features/preferences/PreferencesView').then((m) => ({ default: m.PreferencesView })));
 const FeedbackModal = lazy(() => import('./components/FeedbackModal').then((m) => ({ default: m.FeedbackModal })));
 const LanguageSelectorModal = lazy(() => import('./components/LanguageSelectorModal').then((m) => ({ default: m.LanguageSelectorModal })));
+const AdminFeedbackView = lazy(() => import('./components/AdminFeedbackView').then((m) => ({ default: m.AdminFeedbackView })));
 
 type View =
   | { name: 'shell' }
@@ -70,7 +73,8 @@ type View =
   | { name: 'voice' }
   | { name: 'flashcards' }
   | { name: 'corporate' }
-  | { name: 'preferences' };
+  | { name: 'preferences' }
+  | { name: 'admin' };
 
 export default function App() {
   const [view, setView] = useState<View>(() => {
@@ -78,16 +82,16 @@ export default function App() {
       if (typeof window !== 'undefined') {
         const path = window.location.pathname.toLowerCase();
         const urlParams = new URLSearchParams(window.location.search);
-        const isNative = Capacitor.isNativePlatform();
-        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
 
-        if (!isNative && path === '/android') return { name: 'android' };
-        if (!isNative && !isStandalone && (path === '/' || path === '' || urlParams.get('landing') === 'true')) {
-          return { name: 'landing' };
+        if (path === '/android') return { name: 'android' };
+        if (urlParams.get('admin') === 'true') return { name: 'admin' };
+        if (urlParams.get('app') === 'true' || path === '/app') {
+          return { name: 'shell' };
         }
       }
     } catch {}
-    return { name: 'shell' };
+    // TASK 1 FIX: Always load LandingPage first on native Android and Web
+    return { name: 'landing' };
   });
 
   const launchApp = () => {
@@ -125,7 +129,9 @@ export default function App() {
 
   const { profile, saveProfile } = useUserProfile();
   const { sourceLang, targetLang, setPair } = useLanguagePair();
+  const { hasKey } = useApiKeyGate();
   const [progress] = useState<UserProgress>(loadUserProgress());
+  const [lockedFeatureOpen, setLockedFeatureOpen] = useState(false);
 
   const isArabic = (profile?.language || 'arabic') === 'arabic';
 
@@ -141,7 +147,9 @@ export default function App() {
       const next = updater(prev);
       try {
         localStorage.setItem('tb.progressionState', JSON.stringify(next));
-      } catch {}
+      } catch (error) {
+        console.error('Unable to persist progression state locally.', error);
+      }
       return next;
     });
   };
@@ -176,6 +184,14 @@ export default function App() {
     setToastMsg(msg);
     toastTimerRef.current = window.setTimeout(() => setToastMsg(null), 3000);
   };
+
+  useEffect(() => {
+    const handleQuotaLimit = () => {
+      showToast(T('وصلت إلى حد الذكاء الاصطناعي اليومي. يتجدد غداً.', 'Daily AI limit reached. Resets tomorrow.'));
+    };
+    window.addEventListener(API_QUOTA_LIMIT_EVENT, handleQuotaLimit);
+    return () => window.removeEventListener(API_QUOTA_LIMIT_EVENT, handleQuotaLimit);
+  }, [isArabic]);
 
   // Status Bar & Capacitor Mobile Setup
   useEffect(() => {
@@ -234,7 +250,7 @@ export default function App() {
   if (view.name === 'landing') {
     return (
       <ErrorBoundary>
-        <LandingView onStartWebApp={launchApp} isArabic={isArabic} />
+        <LandingPage onLaunchApp={launchApp} isArabic={isArabic} />
       </ErrorBoundary>
     );
   }
@@ -289,8 +305,9 @@ export default function App() {
               />
               <PathView
                 state={progression}
+                targetLang={targetLang}
                 onSelectLesson={(lesson) => {
-                  if (isLessonUnlocked(progression, lesson)) setActiveLessonNode(lesson);
+                  if (isLessonUnlocked(progression, lesson, targetLang)) setActiveLessonNode(lesson);
                 }}
                 onSelectUnitCheckpoint={() => {}}
                 isArabic={isArabic}
@@ -301,9 +318,15 @@ export default function App() {
           {activeTab === 'practice' && (
             <PracticeHubView
               state={progression}
-              onOpenVoice={() => setView({ name: 'voice' })}
+              onOpenVoice={() => {
+                if (hasKey) setView({ name: 'voice' });
+                else setLockedFeatureOpen(true);
+              }}
               onOpenFlashcards={() => setView({ name: 'flashcards' })}
-              onOpenCorporate={() => setView({ name: 'corporate' })}
+              onOpenCorporate={() => {
+                if (hasKey) setView({ name: 'corporate' });
+                else setLockedFeatureOpen(true);
+              }}
               isArabic={isArabic}
             />
           )}
@@ -344,14 +367,22 @@ export default function App() {
       )}
 
       {/* 2. Specialized Route Overlays */}
-      {view.name === 'voice' && (
+      {view.name === 'voice' && hasKey && (
         <VoicePracticeView
           onBack={goHome}
+          onOpenPreferences={() => setView({ name: 'preferences' })}
           progress={progress}
           profile={profile}
           onToast={(msg) => showToast(T(msg, msg))}
           sourceLang={sourceLang}
           targetLang={targetLang}
+        />
+      )}
+      {view.name === 'voice' && !hasKey && (
+        <LockedFeatureModal
+          isArabic={isArabic}
+          onClose={goHome}
+          onOpenPreferences={() => setView({ name: 'preferences' })}
         />
       )}
 
@@ -365,12 +396,23 @@ export default function App() {
         />
       )}
 
-      {view.name === 'corporate' && (
+      {view.name === 'corporate' && hasKey && (
         <CorporateBridgeView
           onBack={goHome}
           onToast={(msg) => showToast(T(msg, msg))}
           preferredVoice={progress.preferredVoice}
         />
+      )}
+      {view.name === 'corporate' && !hasKey && (
+        <LockedFeatureModal
+          isArabic={isArabic}
+          onClose={goHome}
+          onOpenPreferences={() => setView({ name: 'preferences' })}
+        />
+      )}
+
+      {view.name === 'admin' && (
+        <AdminFeedbackView onBack={goHome} isArabic={isArabic} />
       )}
 
       {view.name === 'preferences' && (
@@ -466,7 +508,28 @@ export default function App() {
 
       {/* Floating AI Helper */}
       {!onboardingOpen && !activeLessonNode && (
-        <AIHelper profile={profile} request={aiHelperRequest} />
+        hasKey ? (
+          <AIHelper profile={profile} request={aiHelperRequest} />
+        ) : (
+          <button
+            type="button"
+            onClick={() => setLockedFeatureOpen(true)}
+            aria-label={isArabic ? 'فتح مساعد الذكاء الاصطناعي' : 'Unlock the AI helper'}
+            className="fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom,0px))] right-4 z-[999] flex h-14 w-14 items-center justify-center rounded-full border border-primary/40 bg-primary text-on-primary shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          >
+            🔑
+          </button>
+        )
+      )}
+      {lockedFeatureOpen && (
+        <LockedFeatureModal
+          isArabic={isArabic}
+          onClose={() => setLockedFeatureOpen(false)}
+          onOpenPreferences={() => {
+            setLockedFeatureOpen(false);
+            setView({ name: 'preferences' });
+          }}
+        />
       )}
 
       {/* Floating Toast Notification */}

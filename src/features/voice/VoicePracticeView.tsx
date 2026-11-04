@@ -1,10 +1,14 @@
 import React, { useEffect, useMemo, useState, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useVoiceOrchestrator, VoiceState } from './useVoiceOrchestrator';
 import { UserProfile, UserProgress, SourceLanguage, TargetLanguage } from '../../types';
 import { unlockAudio } from '../../utils/audio';
+import { soundFX } from '../../utils/soundFX';
 import { TabTutorialModal } from '../../components/TabTutorialModal';
 import { applyHabitWin } from '../../utils/habitPsychology';
 import { speechAdapter } from '../../platform/adapter';
+import { GEMINI_KEY_CHANGED_EVENT, getUserGeminiKey } from '../../services/geminiLexicon';
+import { Lock } from 'lucide-react';
 import './voice.css';
 
 const LABELS_AR: Record<VoiceState, string> = {
@@ -42,6 +46,7 @@ interface VoicePracticeViewProps {
   profile?: UserProfile | null;
   updateAndSaveProgress?: (updater: (prev: UserProgress) => UserProgress) => void;
   onToast?: (msg: string) => void;
+  onOpenPreferences?: () => void;
   sourceLang?: SourceLanguage;
   targetLang?: TargetLanguage;
 }
@@ -52,11 +57,14 @@ export function VoicePracticeView({
   profile,
   updateAndSaveProgress,
   onToast,
+  onOpenPreferences,
   sourceLang = 'ar',
   targetLang = 'en'
 }: VoicePracticeViewProps) {
   const speechCapabilities = speechAdapter.getSpeechCapabilities();
   const [showGuide, setShowGuide] = useState(false);
+  const [avatarImgFailed, setAvatarImgFailed] = useState(false);
+  const [hasApiKey, setHasApiKey] = useState(() => Boolean(getUserGeminiKey()));
   const {
     state,
     interimTranscript,
@@ -82,6 +90,16 @@ export function VoicePracticeView({
   const [isOnline, setIsOnline] = useState<boolean>(() =>
     typeof navigator !== 'undefined' ? navigator.onLine : true
   );
+
+  useEffect(() => {
+    const refreshApiKeyState = () => setHasApiKey(Boolean(getUserGeminiKey()));
+    window.addEventListener(GEMINI_KEY_CHANGED_EVENT, refreshApiKeyState);
+    window.addEventListener('storage', refreshApiKeyState);
+    return () => {
+      window.removeEventListener(GEMINI_KEY_CHANGED_EVENT, refreshApiKeyState);
+      window.removeEventListener('storage', refreshApiKeyState);
+    };
+  }, []);
 
   useEffect(() => {
     if (pendingFeedbackDraft) {
@@ -132,8 +150,9 @@ export function VoicePracticeView({
 
   const handleMicClick = () => {
     unlockAudio();
+    try { soundFX.playChipSelect(); } catch {}
     if (error) clearError();
-    if (state === 'listening') {
+    if (state === 'listening' || state === 'speaking' || state === 'thinking') {
       stopTurn();
     } else {
       startTurn();
@@ -264,27 +283,123 @@ export function VoicePracticeView({
         </div>
       </header>
 
-      <div className="voice__stage">
+      <div className="voice__stage relative">
+        {/* Soft Lock API Overlay when user key is missing */}
+        {!hasApiKey && (
+          <div className="absolute inset-x-4 top-1/4 z-30 p-4 rounded-3xl bg-stone-950/90 border border-amber-500/40 shadow-2xl backdrop-blur-xl text-center space-y-3 animate-in fade-in zoom-in">
+            <div className="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-500/40 flex items-center justify-center font-black text-2xl mx-auto">
+              🔒
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-sm font-black text-white">
+                {isAr ? 'ربط مفتاح Gemini API المجاني' : 'Connect Free Gemini API Key'}
+              </h3>
+              <p className="text-xs text-stone-300 leading-relaxed">
+                {isAr
+                  ? 'افتح المعلم الصوتي المباشر والسرعة الكاملة مجاناً بوضع مفتاحك الخاص.'
+                  : 'Unlock AI Voice Coach & full speed by connecting your own key.'}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={onOpenPreferences}
+              className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-black text-xs transition shadow-lg active:scale-95"
+            >
+              {isAr ? '🔑 إضافة المفتاح في الإعدادات' : '🔑 Connect API Key in Settings'}
+            </button>
+          </div>
+        )}
+
+        {/* Avatar Image / Glowing Orb Container with Call Interface Effects */}
         <div
-          className={`voice__orb voice__orb--${state}`}
-          style={{
-            transform:
-              state === 'listening'
-                ? `scale(${1 + Math.min(0.4, (micVolume || 0) / 100)})`
-                : state === 'speaking'
-                ? `scale(${1 + Math.sin(Date.now() / 180) * 0.12})`
-                : 'scale(1)',
-            boxShadow:
-              state === 'listening'
-                ? `0 0 ${20 + (micVolume || 0) / 2}px rgba(45, 212, 191, 0.7)`
-                : state === 'speaking'
-                ? `0 0 32px rgba(251, 191, 36, 0.8)`
-                : undefined,
-            transition: 'transform 0.08s ease-out, box-shadow 0.08s ease-out',
-          }}
-          aria-hidden
+          className={`cursor-pointer transition-all duration-300 flex flex-col items-center justify-center relative ${
+            !hasApiKey ? 'blur-md opacity-50 pointer-events-none' : ''
+          }`}
           onClick={handleMicClick}
-        />
+        >
+          {state === 'listening' && (
+            <div
+              className="absolute inset-0 rounded-3xl border-2 border-teal-400 animate-ping opacity-30 pointer-events-none"
+              style={{ transform: `scale(${1.08 + Math.min(0.35, (micVolume || 0) / 100)})` }}
+            />
+          )}
+
+          {!avatarImgFailed ? (
+            <img
+              src={
+                state === 'speaking'
+                  ? '/avatars/talking.png'
+                  : state === 'thinking' || state === 'transcribing'
+                  ? '/avatars/thinking.png'
+                  : state === 'listening'
+                  ? '/avatars/listening.png'
+                  : '/avatars/idle.png'
+              }
+              alt="AI Avatar"
+              onError={() => setAvatarImgFailed(true)}
+              className="w-40 h-40 object-cover rounded-3xl border-2 border-teal-500/40 shadow-2xl shadow-teal-500/20 hover:scale-105 transition-transform"
+            />
+          ) : (
+            <div
+              className={`voice__orb voice__orb--${state}`}
+              style={{
+                transform:
+                  state === 'listening'
+                    ? `scale(${1 + Math.min(0.4, (micVolume || 0) / 100)})`
+                    : state === 'speaking'
+                    ? `scale(${1 + Math.sin(Date.now() / 180) * 0.12})`
+                    : 'scale(1)',
+                boxShadow:
+                  state === 'listening'
+                    ? `0 0 ${20 + (micVolume || 0) / 2}px rgba(45, 212, 191, 0.7)`
+                    : state === 'speaking'
+                    ? `0 0 32px rgba(251, 191, 36, 0.8)`
+                    : undefined,
+                transition: 'transform 0.08s ease-out, box-shadow 0.08s ease-out',
+              }}
+              aria-hidden
+            />
+          )}
+        </div>
+
+        {/* Dynamic Waveform Visualizer for Speaking State */}
+        {state === 'speaking' && (
+          <div className="flex items-center gap-1.5 justify-center my-2.5">
+            {[0, 1, 2, 3].map((bar) => (
+              <motion.div
+                key={bar}
+                animate={{ height: [8, 28 + (bar % 2) * 10, 8] }}
+                transition={{
+                  repeat: Infinity,
+                  duration: 0.45 + bar * 0.12,
+                  repeatType: 'reverse',
+                }}
+                className="w-1.5 bg-amber-400 rounded-full"
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Dynamic Thinking Dots Indicator */}
+        {(state === 'thinking' || state === 'transcribing') && (
+          <div className="flex items-center gap-1 justify-center my-2 text-teal-400 font-bold text-xs">
+            <span>{isAr ? 'عمرو شريف يفكر' : 'Amr is thinking'}</span>
+            {[0, 1, 2].map((dot) => (
+              <motion.span
+                key={dot}
+                animate={{ y: [0, -5, 0] }}
+                transition={{
+                  repeat: Infinity,
+                  duration: 0.5,
+                  delay: dot * 0.15,
+                }}
+              >
+                .
+              </motion.span>
+            ))}
+          </div>
+        )}
+
         <p className="voice__status">{currentLabels[state]}</p>
 
         {!isOnline && (

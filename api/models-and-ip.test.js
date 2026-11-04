@@ -33,7 +33,9 @@ test('Models runtime: generateContentWithFallback skips 404 models immediately w
   const queriedModels = [];
   const mockAi = {
     models: {
-      async generateContent({ model }) {
+      async generateContent({ model, config }) {
+        assert.equal(config.maxOutputTokens, 250);
+        assert.equal(config.temperature, 0.7);
         queriedModels.push(model);
         if (model === 'gemini-3.6-flash') {
           const err = new Error('Model gemini-3.6-flash was not found (404 NOT_FOUND).');

@@ -5,7 +5,8 @@ import {
   SkillAxis,
   Quest,
   Achievement,
-  LeagueMember
+  LeagueMember,
+  LessonNode
 } from './types';
 
 export const XP_PER_EXERCISE = 10;
@@ -198,4 +199,31 @@ export function updateStreakAndShields(
  */
 export function generateDefaultLeagueMembers(): LeagueMember[] {
   return []; // Honest empty state when < 5 real users
+}
+
+/**
+ * Algorithmic Difficulty Sorter
+ * Adaptively selects the next optimal lesson based on user streak, XP, and stage performance.
+ */
+export function selectNextLessonByDifficulty(
+  state: ProgressionState,
+  availableLessons: LessonNode[]
+): LessonNode | null {
+  if (!availableLessons || availableLessons.length === 0) return null;
+
+  const uncompleted = availableLessons.filter(
+    (lesson) => !state.completedLessonIds.includes(lesson.id)
+  );
+  const pool = uncompleted.length > 0 ? uncompleted : availableLessons;
+
+  // High performance: streak > 5 or level > 3 -> serve higher difficulty
+  const isHighPerformer = state.streak >= 5 || state.overallLevel >= 3;
+
+  const sorted = [...pool].sort((a, b) => {
+    const diffA = (a as any).difficultyScore || 50;
+    const diffB = (b as any).difficultyScore || 50;
+    return isHighPerformer ? diffB - diffA : diffA - diffB;
+  });
+
+  return sorted[0] || pool[0];
 }

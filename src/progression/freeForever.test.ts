@@ -70,6 +70,8 @@ test('2. Guests make ZERO database/network calls (Strict local-first rule)', asy
 
 test('3. State completeness: preserves completed lessons, quests, achievements, dates & card cap', () => {
   const base = createInitialProgressionState();
+  base.xp = 275;
+  base.streak = 8;
   base.completedLessonIds = ['p1-l1', 'p1-l2'];
   base.lastActiveDate = '2026-11-05';
   base.weekendPauseActive = true;
@@ -79,12 +81,16 @@ test('3. State completeness: preserves completed lessons, quests, achievements, 
   base.achievements[0].unlockedAt = Date.now();
 
   const compact = compactProgressionState(base);
+  assert.equal(compact.xp, 275, 'XP must be preserved for Supabase sync');
+  assert.equal(compact.strk, 8, 'Streak must be preserved for Supabase sync');
   assert.deepEqual(compact.cls, ['p1-l1', 'p1-l2'], 'Completed lesson IDs must be preserved');
   assert.equal(compact.lad, '2026-11-05', 'Last active date must be preserved');
   assert.equal(compact.wp, true, 'Weekend pause setting must be preserved');
   assert.equal(compact.cap, 50, 'Daily cards cap must be preserved');
 
   const decompacted = decompactUserState(compact, createInitialProgressionState());
+  assert.equal(decompacted.xp, 275);
+  assert.equal(decompacted.streak, 8);
   assert.deepEqual(decompacted.completedLessonIds, ['p1-l1', 'p1-l2']);
   assert.equal(decompacted.lastActiveDate, '2026-11-05');
   assert.equal(decompacted.weekendPauseActive, true);

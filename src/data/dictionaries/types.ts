@@ -16,10 +16,7 @@ export interface MultiLangDictionaryEntry {
   term: string; // The word/phrase in the target language (e.g. "der Kaffee", "学生")
   normalizedTerm: string;
   targetLang: TargetLanguage; // 'en' | 'de' | 'ja'
-  sourceMeanings: {
-    ar: string; // Meaning in Arabic
-    en: string; // Meaning in English
-  };
+  sourceMeanings: Record<string, string>;
   partOfSpeech: 'noun' | 'verb' | 'adjective' | 'adverb' | 'phrase' | 'particle' | 'pronoun' | 'conjunction' | 'preposition';
   // German-specific:
   gender?: 'der' | 'die' | 'das';
@@ -34,4 +31,3 @@ export interface MultiLangDictionaryEntry {
   frequencyRank?: number;
   category?: 'core' | 'daily' | 'work' | 'travel' | 'academic';
 }
-

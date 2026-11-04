@@ -4,6 +4,8 @@ import { API_BASE_URL } from '../../utils/api';
 import { useNativeSpeech } from '../voice/useNativeSpeech';
 import { isFranco, francoToArabic } from '../../utils/franco';
 import { speakWithRate } from '../../utils/audio';
+import { getUserGeminiKey } from '../../services/geminiLexicon';
+import { consumeDailyApiQuota } from '../../utils/apiQuota';
 import './corporate.css';
 
 interface ToneOption {
@@ -65,12 +67,23 @@ export function CorporateBridgeView({ onBack, onToast, preferredVoice }: Corpora
     if (!raw) return;
 
     const finalThought = isFranco(raw) ? francoToArabic(raw) : raw;
+    const userKey = getUserGeminiKey();
+    if (!userKey) {
+      onToast?.('Add your Gemini API key in Settings to use AI features.');
+      return;
+    }
+    if (!consumeDailyApiQuota()) return;
+
     setLoading(true);
 
     try {
       const response = await fetch(`${API_BASE_URL}/api/gemini`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-api-key': userKey,
+          'X-User-Gemini-Key': userKey,
+        },
         body: JSON.stringify({
           operation: 'corporate-bridge',
           thought: finalThought,
@@ -297,4 +310,3 @@ export function CorporateBridgeView({ onBack, onToast, preferredVoice }: Corpora
     </div>
   );
 }
-

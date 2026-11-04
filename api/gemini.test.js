@@ -153,9 +153,32 @@ test('3. Android origin (capacitor://localhost) receives exact matched CORS head
   assert.equal(res.getHeader('access-control-allow-origin'), 'capacitor://localhost');
 });
 
+test('POST requests without a user API key are rejected with BYOK_REQUIRED', async () => {
+  const req = createMockReq({
+    method: 'POST',
+    body: {
+      operation: 'explain-error',
+      submitted: 'test',
+      target: 'test',
+      userApiKey: 'body-only-key-is-not-accepted',
+    },
+    headers: { 'x-user-api-key': undefined, 'x-user-gemini-key': 'alias-only-key' },
+  });
+  const res = createMockRes();
+
+  await handler(req, res);
+
+  assert.equal(res.statusCode, 403);
+  assert.deepEqual(res.json, {
+    error: 'BYOK_REQUIRED',
+    message: 'You must provide your own Gemini API key.',
+  });
+});
+
 test('4. explain-error rejects oversized submitted text (>500 chars) with 400 Bad Request', async () => {
   const req = createMockReq({
     method: 'POST',
+    headers: { 'x-user-api-key': 'test-user-key' },
     body: {
       operation: 'explain-error',
       submitted: 'A'.repeat(501),
@@ -174,6 +197,7 @@ test('4. explain-error rejects oversized submitted text (>500 chars) with 400 Ba
 test('5. explain-error rejects oversized conceptId (>80 chars) with 400 Bad Request', async () => {
   const req = createMockReq({
     method: 'POST',
+    headers: { 'x-user-api-key': 'test-user-key' },
     body: {
       operation: 'explain-error',
       conceptId: 'c'.repeat(81),
@@ -192,6 +216,7 @@ test('5. explain-error rejects oversized conceptId (>80 chars) with 400 Bad Requ
 test('6. Malformed JSON body in POST returns 400 Bad Request without leaking server details', async () => {
   const req = createMockReq({
     method: 'POST',
+    headers: { 'x-user-api-key': 'test-user-key' },
     body: '{"invalid_json: unclosed'
   });
   const res = createMockRes();
@@ -275,6 +300,7 @@ test('9. Active Gemini models are valid and exclude retired 404 models', () => {
 test('10. transcribe operation rejects empty audio data with 400 Bad Request', async () => {
   const req = createMockReq({
     method: 'POST',
+    headers: { 'x-user-api-key': 'test-user-key' },
     body: { operation: 'transcribe', audioData: '' }
   });
   const res = createMockRes();
@@ -291,6 +317,7 @@ test('10. transcribe operation rejects empty audio data with 400 Bad Request', a
 test('11. corporate-bridge operation rejects empty thought with 400 Bad Request', async () => {
   const req = createMockReq({
     method: 'POST',
+    headers: { 'x-user-api-key': 'test-user-key' },
     body: { operation: 'corporate-bridge', thought: '' }
   });
   const res = createMockRes();

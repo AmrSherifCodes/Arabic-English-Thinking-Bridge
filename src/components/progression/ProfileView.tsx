@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { ProgressionState } from '../../progression/types';
 import { SkillRadar } from './SkillRadar';
 import { UserProfile } from '../../types';
 import { TARGET_LANGUAGE_META } from '../../data/languages';
-import { Shield, Download, Trash2, Settings, HelpCircle, Moon, Sun, Lock, Share2 } from 'lucide-react';
+import { Shield, Download, Upload, Trash2, Settings, HelpCircle, Moon, Sun, Lock, Share2 } from 'lucide-react';
 
 interface ProfileViewProps {
   state: ProgressionState;
@@ -31,6 +31,66 @@ export function ProfileView({
   isArabic = true,
 }: ProfileViewProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleExportJson = () => {
+    const backupData = {
+      version: '3.1.0',
+      exportedAt: new Date().toISOString(),
+      progressionState: state,
+      userProfile: profile,
+      activeProfileConfig: localStorage.getItem('tb.activeProfileConfig')
+        ? JSON.parse(localStorage.getItem('tb.activeProfileConfig')!)
+        : null,
+      userProgress: localStorage.getItem('tb_user_progress')
+        ? JSON.parse(localStorage.getItem('tb_user_progress')!)
+        : null,
+    };
+
+    const json = JSON.stringify(backupData, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Thinking_Bridge_Backup_${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    onToast?.(isArabic ? '💾 تم تصدير النسخة الاحتياطية بنجاح!' : '💾 Backup JSON exported successfully!');
+  };
+
+  const handleRestoreJson = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const text = event.target?.result as string;
+        const parsed = JSON.parse(text);
+
+        if (parsed.progressionState) {
+          localStorage.setItem('tb.progressionState', JSON.stringify(parsed.progressionState));
+        }
+        if (parsed.userProfile) {
+          localStorage.setItem('tb.userProfile', JSON.stringify(parsed.userProfile));
+        }
+        if (parsed.activeProfileConfig) {
+          localStorage.setItem('tb.activeProfileConfig', JSON.stringify(parsed.activeProfileConfig));
+        }
+        if (parsed.userProgress) {
+          localStorage.setItem('tb_user_progress', JSON.stringify(parsed.userProgress));
+        }
+
+        onToast?.(isArabic ? '✅ تم استعادة النسخة الاحتياطية! جاري إعادة التحميل...' : '✅ Backup restored! Reloading...');
+        setTimeout(() => window.location.reload(), 1200);
+      } catch {
+        onToast?.(isArabic ? '❌ خطأ في تنسيق ملف النسخة الاحتياطية' : '❌ Invalid backup file format');
+      }
+    };
+    reader.readAsText(file);
+  };
 
   const shareProgress = async () => {
     let targetLang = 'en';
@@ -179,12 +239,47 @@ export function ProfileView({
 
         <div className="flex flex-col gap-2">
           <button
-            onClick={onExportData}
+            onClick={() => {
+              import('../../utils/ankiExport').then(({ exportToAnki }) => {
+                const count = exportToAnki(state);
+                onToast?.(isArabic
+                  ? `📥 تم تصدير ${count} بطاقة إلى Anki`
+                  : `📥 Exported ${count} cards to Anki`);
+              }).catch((error: unknown) => {
+                console.error('Unable to export the Anki deck.', error);
+                onToast?.(isArabic
+                  ? 'لا توجد بطاقات محفوظة للتصدير'
+                  : error instanceof Error ? error.message : 'Unable to export the Anki deck');
+              });
+            }}
+            className="w-full p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 font-bold text-xs hover:bg-amber-500/20 transition flex items-center justify-between"
+          >
+            <span>{isArabic ? 'تصدير بطاقات الاستذكار إلى Anki (CSV)' : 'Export SRS Deck to Anki (CSV)'}</span>
+            <Download size={14} className="text-amber-400" />
+          </button>
+
+          <button
+            onClick={handleExportJson}
             className="w-full p-2.5 rounded-xl bg-stone-950 border border-stone-800 text-stone-300 font-bold text-xs hover:border-teal-500/50 transition flex items-center justify-between"
           >
-            <span>{isArabic ? 'تصدير نسخة احتياطية من بياناتي (Export JSON)' : 'Export my data (JSON)'}</span>
+            <span>{isArabic ? 'تصدير نسخة احتياطية (Export JSON)' : 'Export Backup (JSON)'}</span>
             <Download size={14} className="text-teal-400" />
           </button>
+
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="w-full p-2.5 rounded-xl bg-stone-950 border border-stone-800 text-stone-300 font-bold text-xs hover:border-teal-500/50 transition flex items-center justify-between"
+          >
+            <span>{isArabic ? 'استعادة من نسخة احتياطية (Restore JSON)' : 'Restore from Backup (JSON)'}</span>
+            <Upload size={14} className="text-teal-400" />
+          </button>
+          <input
+            type="file"
+            ref={fileInputRef}
+            accept=".json"
+            onChange={handleRestoreJson}
+            className="hidden"
+          />
 
           <button
             onClick={onOpenPrivacyPolicy}

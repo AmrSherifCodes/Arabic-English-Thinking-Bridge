@@ -49,12 +49,12 @@ export function LanguagePairBanner({
         className="pointer-events-none absolute -top-12 -right-12 w-48 h-48 rounded-full bg-amber-500/10 blur-3xl"
       />
 
-      <div className="relative z-10 flex flex-col gap-4">
+      <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 flex-wrap">
         {/* Top bar: Badge & Quick modal trigger */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30">
-            <Sparkles className="w-3 h-3 text-amber-400" />
-            {isAr ? 'مسار التحول الذهني النشط' : 'Active Thinking Bridge'}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 w-full flex-wrap">
+          <span className="inline-flex items-center gap-1.5 flex-wrap px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+            <Sparkles className="w-3 h-3 text-amber-400 shrink-0" />
+            <span>{isAr ? 'مسار التحول الذهني النشط' : 'Active Thinking Bridge'}</span>
           </span>
 
           <div className="flex flex-wrap items-center gap-2">

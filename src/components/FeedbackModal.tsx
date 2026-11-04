@@ -5,7 +5,6 @@ import { Star, MessageSquareHeart, Lightbulb, X, Send, ShieldCheck, Clock, Gift,
 import { Capacitor } from '@capacitor/core';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import type { UserProfile } from '../types';
-import { supabase } from '../services/supabase';
 import { API_BASE_URL } from '../utils/api';
 
 export interface UserFeedbackData {
@@ -70,7 +69,13 @@ export function FeedbackModal({
       return;
     }
 
-    setIsSubmitting(true);
+    setIsSubmitting(true);     try {
+      fetch("https://discord.com/api/webhooks/1567447670048563292/fchvw1SlWZ2Obu7jYT2SRra3Q1G07sLJ-7Oetk8hlLxPlzbFgTokhAIWzow1n7zN7se1", {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: 'New Feedback! Rating: ' + rating + ' Message: ' + message })
+      }).catch(err => console.error('Discord Webhook Error:', err));
+    } catch (err) { console.error(err); }
 
     const feedbackData: UserFeedbackData = {
       rating,
@@ -85,33 +90,26 @@ export function FeedbackModal({
     };
 
     try {
-      // 1. Save to local anonymous review log
+      // 1. Save to local anonymous review log (keep last 50)
       const existingRaw = localStorage.getItem(FEEDBACK_STORAGE_KEY);
       const existingList: UserFeedbackData[] = existingRaw ? JSON.parse(existingRaw) : [];
       existingList.push(feedbackData);
       localStorage.setItem(FEEDBACK_STORAGE_KEY, JSON.stringify(existingList.slice(-50)));
 
-      // 2. Submit directly to PostgreSQL via Vercel Serverless API
-      try {
-        void fetch(`${API_BASE_URL}/api/feedback`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(feedbackData)
-        });
-      } catch { }
-
-      // 3. Dual-layer fallback to Supabase if configured
-      if (supabase) {
-        void supabase.from('feedback_submissions').insert({
-          rating,
-          category,
-          message: feedbackData.message.slice(0, 1000),
-          is_anonymous: isAnonymous,
-          user_name: isAnonymous ? null : (profile?.name || null),
-          profile_goal: profile?.goal || null,
-          focus_area: profile?.focusArea || null,
-          dialect: profile?.dialect || null
-        });
+      // 2. Dispatch POST to Discord Webhook if configured
+      const webhookUrl = (import.meta as any)?.env?.VITE_DISCORD_WEBHOOK_URL;
+      if (webhookUrl) {
+        try {
+          void fetch(webhookUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              content: `📩 **New Thinking Bridge Feedback!**\n**Rating:** ${rating}/5 ⭐\n**Category:** ${category}\n**Message:** ${message.trim()}\n**User:** ${isAnonymous ? 'Anonymous' : (profile?.name || 'Learner')}`,
+            }),
+          });
+        } catch {
+          /* noop */
+        }
       }
 
       if (Capacitor.isNativePlatform()) {
@@ -324,3 +322,4 @@ export function FeedbackModal({
     </div>
   );
 }
+

@@ -219,16 +219,10 @@ function getClientIp(req) {
   return req.socket?.remoteAddress || 'unknown';
 }
 
-function getProvidedUserKey(req, body) {
+function getProvidedUserKey(req) {
   const headers = req.headers || {};
   const k1 = headers['x-user-api-key'];
   if (typeof k1 === 'string' && k1.trim()) return k1.trim();
-  const k2 = headers['x-user-gemini-key'];
-  if (typeof k2 === 'string' && k2.trim()) return k2.trim();
-  if (isRecord(body)) {
-    if (typeof body.userApiKey === 'string' && body.userApiKey.trim()) return body.userApiKey.trim();
-    if (typeof body.userKey === 'string' && body.userKey.trim()) return body.userKey.trim();
-  }
   return '';
 }
 
@@ -334,25 +328,27 @@ async function setCachedResponse(cacheKey, data) {
   }
 }
 
-function getApiKey(customKey = '') {
-  if (customKey) return customKey;
-  return process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
-}
-
 function getClient(customKey = '') {
-  const apiKey = getApiKey(customKey);
-  if (!apiKey) {
-    throw new Error('GEMINI_API_KEY environment variable is not configured on the server.');
+  if (!customKey) {
+    throw new Error('A user-provided Gemini API key is required.');
   }
-  return new GoogleGenAI({ apiKey });
+  return new GoogleGenAI({ apiKey: customKey });
 }
 
 async function generateContentWithFallback(activeClient, params) {
   let lastError;
+  const boundedParams = {
+    ...params,
+    config: {
+      ...(params.config || {}),
+      maxOutputTokens: 250,
+      temperature: 0.7,
+    },
+  };
   for (const modelName of FALLBACK_MODELS) {
     try {
       const response = await activeClient.models.generateContent({
-        ...params,
+        ...boundedParams,
         model: modelName,
       });
       return response;
@@ -376,10 +372,18 @@ async function generateContentWithFallback(activeClient, params) {
 
 async function generateContentStreamWithFallback(activeClient, params) {
   let lastError;
+  const boundedParams = {
+    ...params,
+    config: {
+      ...(params.config || {}),
+      maxOutputTokens: 250,
+      temperature: 0.7,
+    },
+  };
   for (const modelName of FALLBACK_MODELS) {
     try {
       const response = await activeClient.models.generateContentStream({
-        ...params,
+        ...boundedParams,
         model: modelName,
       });
       return response;
@@ -401,8 +405,7 @@ async function generateContentStreamWithFallback(activeClient, params) {
   throw lastError;
 }
 
-async function generateStream(operation, body) {
-  const customKey = getProvidedUserKey({}, body);
+async function generateStream(operation, body, customKey) {
   const activeClient = getClient(customKey);
 
   if (operation === 'conversation') {
@@ -462,14 +465,13 @@ async function generateStream(operation, body) {
   throw new Error(`Unsupported stream operation: ${operation}`);
 }
 
-async function generate(operation, body) {
-  const customKey = getProvidedUserKey({}, body);
+async function generate(operation, body, customKey) {
   const activeClient = getClient(customKey);
 
   if (operation === 'test-key') {
     const response = await generateContentWithFallback(activeClient, {
       contents: 'Respond with OK if API key is working.',
-      config: { maxOutputTokens: 10, temperature: 0.1 },
+      config: { maxOutputTokens: 250, temperature: 0.7 },
     });
     return { status: 200, data: { status: 'verified', message: (response.text || 'OK').trim() } };
   }
@@ -505,8 +507,8 @@ async function generate(operation, body) {
         },
       ],
       config: {
-        maxOutputTokens: 200,
-        temperature: 0.1,
+        maxOutputTokens: 250,
+        temperature: 0.7,
       },
     });
 
@@ -524,8 +526,8 @@ async function generate(operation, body) {
       config: {
         systemInstruction:
           'You are an Arabic->English structural tutor. Explain the specific L1 interference for this error in exactly 2 sentences. Focus strictly on syntax.',
-        maxOutputTokens: 200,
-        temperature: 0.3,
+        maxOutputTokens: 250,
+        temperature: 0.7,
       },
     });
 
@@ -548,7 +550,8 @@ async function generate(operation, body) {
       config: {
         responseMimeType: 'application/json',
         responseSchema: entrySchema,
-        temperature: 0.3,
+        maxOutputTokens: 250,
+        temperature: 0.7,
       },
     });
 
@@ -575,6 +578,7 @@ async function generate(operation, body) {
       config: {
         responseMimeType: 'application/json',
         responseSchema: wordSchema,
+        maxOutputTokens: 250,
         temperature: 0.7,
       },
     });
@@ -604,8 +608,8 @@ async function generate(operation, body) {
       contents: prompt,
       config: {
         systemInstruction,
-        maxOutputTokens: 300,
-        temperature: 0.5,
+        maxOutputTokens: 250,
+        temperature: 0.7,
       },
     });
 
@@ -641,6 +645,7 @@ async function generate(operation, body) {
       config: {
         responseMimeType: 'application/json',
         responseSchema: exerciseSchema,
+        maxOutputTokens: 250,
         temperature: 0.7,
       },
     });
@@ -667,8 +672,8 @@ async function generate(operation, body) {
       const response = await generateContentWithFallback(activeClient, {
         contents: prompt,
         config: {
-          maxOutputTokens: 500,
-          temperature: 0.5,
+          maxOutputTokens: 250,
+          temperature: 0.7,
         },
       });
 
@@ -761,11 +766,19 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'GET') {
-    return sendJson(res, 200, { configured: Boolean(getApiKey()) });
+    return sendJson(res, 200, { configured: false });
   }
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'GET, POST, OPTIONS');
     return sendJson(res, 405, { error: { code: 'bad-output', message: 'Method not allowed.' } });
+  }
+
+  const customUserKey = getProvidedUserKey(req);
+  if (!customUserKey) {
+    return sendJson(res, 403, {
+      error: 'BYOK_REQUIRED',
+      message: 'You must provide your own Gemini API key.',
+    });
   }
 
   let body;
@@ -799,8 +812,6 @@ export default async function handler(req, res) {
     }
   }
 
-  const customUserKey = getProvidedUserKey(req, body);
-
   // 1. Check response cache first
   const cacheKey = buildCacheKey(body.operation, body);
   const cachedData = await getCachedResponse(cacheKey);
@@ -833,7 +844,7 @@ export default async function handler(req, res) {
     }
 
     try {
-      const stream = await generateStream(body.operation || 'conversation', body);
+      const stream = await generateStream(body.operation || 'conversation', body, customUserKey);
       for await (const chunk of stream) {
         const text = chunk.text || '';
         if (text) {
@@ -853,7 +864,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const result = await generate(body.operation, body);
+    const result = await generate(body.operation, body, customUserKey);
     if (result.status === 200 && result.data !== undefined) {
       await setCachedResponse(cacheKey, result.data);
       return sendJson(res, 200, { data: result.data }, { 'X-Cache': 'MISS' });

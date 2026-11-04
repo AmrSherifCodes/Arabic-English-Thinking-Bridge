@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { motion } from 'framer-motion';
 import { LessonNode, ExerciseItem } from '../../progression/types';
 import { CheckCircle2, XCircle, ArrowRight, Zap, Timer, Sparkles } from 'lucide-react';
 import { computeNextHintWord } from '../../utils/habitPsychology';
-import confetti from 'canvas-confetti';
 import { soundFX } from '../../utils/soundFX';
 
 interface LessonRunnerProps {
@@ -21,6 +21,7 @@ export function LessonRunner({
   const exercises = lesson.exercises;
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedChips, setSelectedChips] = useState<string[]>([]);
+  const [shuffledOptions, setShuffledOptions] = useState<string[]>([]);
   const [userInput, setUserInput] = useState('');
   const [isAnswered, setIsAnswered] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
@@ -31,11 +32,25 @@ export function LessonRunner({
   const exerciseStartTimeRef = useRef<number>(Date.now());
   const [responseTimesMs, setResponseTimesMs] = useState<number[]>([]);
 
-  // 3.5s Keyboard/Selection Inactivity Auto-Complete (Beginner Feature)
   const [autoHintPill, setAutoHintPill] = useState<string | null>(null);
-  const [inactivityProgress, setInactivityProgress] = useState<number>(0);
 
   const currentExercise: ExerciseItem = exercises[currentIndex] || exercises[0];
+  const isJapaneseExercise = /[\u3040-\u30ff\u3400-\u9fff]/u.test(currentExercise.targetSentence);
+
+  useEffect(() => {
+    const rawOptions = currentExercise.options && currentExercise.options.length > 0
+      ? currentExercise.options
+      : currentExercise.wordChips && currentExercise.wordChips.length > 0
+      ? currentExercise.wordChips
+      : currentExercise.targetSentence ? currentExercise.targetSentence.split(/\s+/) : [];
+
+    const options = [...rawOptions];
+    for (let index = options.length - 1; index > 0; index -= 1) {
+      const swapIndex = Math.floor(Math.random() * (index + 1));
+      [options[index], options[swapIndex]] = [options[swapIndex], options[index]];
+    }
+    setShuffledOptions(options);
+  }, [currentExercise.id, currentIndex]);
 
   useEffect(() => {
     exerciseStartTimeRef.current = Date.now();
@@ -57,7 +72,7 @@ export function LessonRunner({
 
       // Smart Fallback: If currentChoice didn't match prefix, find first target token not yet in selectedChips
       if (!candidateOption) {
-        const targetTokens = targetSentence.replace(/[.,?!]/g, '').split(/\s+/).filter(Boolean);
+        const targetTokens = currentExercise.wordChips || targetSentence.replace(/[.,?!]/g, '').split(/\s+/).filter(Boolean);
         for (const token of targetTokens) {
           const opt = (currentExercise.options || []).find(
             (o) => o.toLowerCase() === token.toLowerCase() && !selectedChips.includes(o)
@@ -73,8 +88,8 @@ export function LessonRunner({
         setSelectedChips((prev) => [...prev, candidateOption!]);
         setAutoHintPill(
           isArabic
-            ? `💡 المساعد الذكي (3.5s): تم اختيار "${candidateOption}"`
-            : `💡 Smart Helper (3.5s): Auto-selected "${candidateOption}"`
+            ? `💡 تلميح: أضفنا "${candidateOption}" إلى إجابتك`
+            : `💡 Hint: Added "${candidateOption}" to your answer`
         );
       }
     } else {
@@ -84,41 +99,14 @@ export function LessonRunner({
         setUserInput(updatedInput);
         setAutoHintPill(
           isArabic
-            ? `💡 المساعد الذكي (3.5s): تم إكمال "${nextWord}"`
-            : `💡 Smart Helper (3.5s): Auto-inserted "${nextWord}"`
+            ? `💡 تلميح: أضفنا "${nextWord}" إلى إجابتك`
+            : `💡 Hint: Added "${nextWord}" to your answer`
         );
       }
     }
   }, [isAnswered, showSummary, currentExercise, selectedChips, userInput, isArabic]);
 
-  // 3.5-second inactivity countdown timer
-  useEffect(() => {
-    if (isAnswered || showSummary) {
-      setInactivityProgress(0);
-      return;
-    }
-
-    setInactivityProgress(0);
-    const intervalMs = 100;
-    const totalMs = 3500;
-    const stepIncrement = (intervalMs / totalMs) * 100;
-
-    const interval = window.setInterval(() => {
-      setInactivityProgress((prev) => {
-        const next = prev + stepIncrement;
-        if (next >= 100) {
-          window.clearInterval(interval);
-          triggerAutoHelper();
-          return 0;
-        }
-        return next;
-      });
-    }, intervalMs);
-
-    return () => window.clearInterval(interval);
-  }, [userInput, selectedChips, currentIndex, isAnswered, showSummary, triggerAutoHelper]);
-
-  // Dismiss auto-hint notification banner after 2.5s
+  // Dismiss the manual-hint confirmation after 2.5s.
   useEffect(() => {
     if (autoHintPill) {
       const t = window.setTimeout(() => setAutoHintPill(null), 2500);
@@ -139,13 +127,19 @@ export function LessonRunner({
       userSentence = userInput.trim();
     }
 
-    const normUser = userSentence.toLowerCase().replace(/['".,?!]/g, '').trim();
-    const normTarget = currentExercise.targetSentence.toLowerCase().replace(/['".,?!]/g, '').trim();
+    const normalizeAnswer = (value: string) => {
+      const normalized = value.toLowerCase().replace(/['".,?!。、「」]/g, '');
+      return isJapaneseExercise
+        ? normalized.replace(/\s+/g, '')
+        : normalized.trim().replace(/\s+/g, ' ');
+    };
+    const normUser = normalizeAnswer(userSentence);
+    const normTarget = normalizeAnswer(currentExercise.targetSentence);
 
     const isMatch =
       normUser === normTarget ||
       (currentExercise.acceptableAlternatives || []).some(
-        (alt) => alt.toLowerCase().replace(/['".,?!]/g, '').trim() === normUser
+        (alt) => normalizeAnswer(alt) === normUser
       );
 
     setIsCorrect(isMatch);
@@ -154,9 +148,6 @@ export function LessonRunner({
 
     if (isMatch) {
       setCorrectAnswersCount((prev) => prev + 1);
-      try {
-        confetti({ particleCount: 25, spread: 60, origin: { y: 0.7 } });
-      } catch {}
     }
   };
 
@@ -258,7 +249,7 @@ export function LessonRunner({
 
   return (
     <div className="fixed inset-0 z-50 bg-bg/90 backdrop-blur-xl flex items-center justify-center p-0 sm:p-4" dir={isArabic ? 'rtl' : 'ltr'}>
-      <div className="w-full h-full sm:h-[88vh] sm:max-w-[480px] sm:rounded-3xl bg-bg border border-border shadow-2xl flex flex-col justify-between overflow-hidden relative">
+      <div className="w-full h-[100dvh] flex flex-col sm:h-auto sm:max-h-[90vh] sm:max-w-[480px] sm:rounded-3xl bg-bg border border-border shadow-2xl overflow-hidden relative">
         {/* Top Header Progress Bar */}
         <div className="p-4 border-b border-border flex items-center gap-3 bg-surface/50">
           <button
@@ -281,8 +272,30 @@ export function LessonRunner({
         </div>
 
         {/* Exercise Body */}
-        <div className="flex-1 p-6 overflow-y-auto space-y-6">
-          {/* Auto-Complete Beginner Hint Pill Banner */}
+        <motion.div
+          key={currentIndex}
+          animate={isAnswered && isCorrect
+            ? { scale: [1, 1.02, 1], boxShadow: '0 0 20px rgba(16, 185, 129, 0.4)' }
+            : { scale: 1, boxShadow: '0 0 0 rgba(16, 185, 129, 0)' }}
+          transition={{ duration: 0.4 }}
+          className={`flex-1 min-h-0 p-4 sm:p-6 overflow-y-auto space-y-6 relative transition-all duration-300 ${
+            isAnswered && isCorrect ? 'ring-4 ring-success/50 rounded-2xl' : ''
+          }`}
+        >
+          {isAnswered && isCorrect && (
+            <motion.div
+              key={`xp-${currentIndex}`}
+              initial={{ y: 0, opacity: 1 }}
+              animate={{ y: -50, opacity: 0 }}
+              transition={{ duration: 0.9, ease: 'easeOut' }}
+              aria-live="polite"
+              className="pointer-events-none absolute end-5 top-6 z-10 rounded-full border border-success/40 bg-success/20 px-3 py-1 text-sm font-black text-success"
+            >
+              +10 XP
+            </motion.div>
+          )}
+
+          {/* Manual hint confirmation */}
           {autoHintPill && (
             <div className="p-3 rounded-2xl bg-primary/20 border border-primary/40 text-primary text-xs font-bold flex items-center gap-2 animate-bounce shadow-md">
               <Sparkles size={16} className="shrink-0" />
@@ -290,23 +303,14 @@ export function LessonRunner({
             </div>
           )}
 
-          {/* 3.5s Inactivity Countdown & Manual Helper Button */}
+          {/* Manual hint button */}
           {!isAnswered && (
             <div className="flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-2xl bg-surface border border-border">
               <div className="flex items-center gap-2.5 flex-1 min-w-0">
                 <Sparkles size={18} className="text-primary shrink-0" />
-                <div className="flex-1 space-y-1 min-w-0">
-                  <div className="flex justify-between text-[10px] font-bold text-muted">
-                    <span>{isArabic ? 'المساعد الذكي (3.5s)' : '3.5s Auto Helper'}</span>
-                    <span>{Math.round(inactivityProgress)}%</span>
-                  </div>
-                  <div className="w-full bg-surface-2 h-1.5 rounded-full overflow-hidden">
-                    <div
-                      className="bg-primary h-full transition-all duration-100 ease-linear"
-                      style={{ width: `${inactivityProgress}%` }}
-                    />
-                  </div>
-                </div>
+                <span className="flex-1 text-[10px] font-bold text-muted">
+                  {isArabic ? 'خذ وقتك، لا تنتقل إلا عندما تكون مستعداً' : 'Take your time; continue when you are ready'}
+                </span>
               </div>
 
               <button
@@ -322,7 +326,7 @@ export function LessonRunner({
           {/* Source Thought Prompt */}
           <div className="p-4 rounded-3xl bg-surface border border-border space-y-2">
             <span className="text-[10px] font-black uppercase tracking-wider text-success block">
-              {isArabic ? 'عَبّر عن الفكرة بترتيب إنجليزي صحيح:' : 'Express thought in English:'}
+              {isArabic ? 'عَبّر عن الفكرة بترتيب اللغة المستهدفة:' : 'Express the thought in the target language:'}
             </span>
             <h2 className="text-lg font-black text-text" dir="auto">
               "{isArabic ? currentExercise.promptAr : currentExercise.promptEn}"
@@ -352,7 +356,7 @@ export function LessonRunner({
                         }
                       }}
                       dir="ltr"
-                      className="px-3.5 py-2.5 rounded-xl bg-surface border border-border font-black text-sm text-text active:scale-95 shadow-sm"
+                      className="px-3.5 py-2.5 rounded-xl bg-purple-500/20 border border-purple-400 text-purple-200 font-black text-sm active:scale-95 shadow-sm"
                     >
                       {chip}
                     </button>
@@ -362,7 +366,7 @@ export function LessonRunner({
 
               {/* Available Word Chips Bank */}
               <div className="flex flex-wrap gap-2 justify-center pt-2" dir="ltr">
-                {(currentExercise.options || []).map((chip, idx) => {
+                {shuffledOptions.map((chip, idx) => {
                   const isSelected = selectedChips.includes(chip);
                   return (
                     <button
@@ -397,7 +401,7 @@ export function LessonRunner({
                 onChange={(e) => setUserInput(e.target.value)}
                 disabled={isAnswered}
                 dir="ltr"
-                placeholder={isArabic ? 'اكتب الجملة بالإنجليزية هنا...' : 'Type sentence in English...'}
+                placeholder={isArabic ? 'اكتب الجملة باللغة المستهدفة هنا...' : 'Type the sentence in the target language...'}
                 className="w-full p-4 rounded-2xl bg-surface-2 border border-border text-text text-base font-bold placeholder:text-muted focus:outline-none focus:border-success min-h-[100px] resize-none"
               />
             </div>
@@ -408,7 +412,7 @@ export function LessonRunner({
             <div
               className={`p-4 rounded-2xl border text-start ${
                 isCorrect
-                  ? 'bg-success/15 border-success text-text'
+                  ? 'bg-success/15 border-success text-text animate-pulse'
                   : 'bg-danger/15 border-danger text-text'
               }`}
               dir={isArabic ? 'rtl' : 'ltr'}
@@ -440,10 +444,10 @@ export function LessonRunner({
               )}
             </div>
           )}
-        </div>
+        </motion.div>
 
         {/* Sticky Bottom Action Bar */}
-        <div className="sticky bottom-0 bg-surface border-t border-border p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] z-30">
+        <div className="sticky bottom-0 bg-surface p-4 border-t border-border z-10 shrink-0 pb-[calc(1rem+env(safe-area-inset-bottom))]">
           {!isAnswered ? (
             <button
               onClick={handleCheckAnswer}

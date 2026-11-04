@@ -40,9 +40,18 @@ export function OnboardingPlacementModal({
     setProfileCreated(true);
   };
 
-  const availableTargets = SUPPORTED_PAIRS
-    .filter((p) => p.source === selectedSource)
-    .map((p) => p.target);
+  const availableTargets = (Object.keys(TARGET_LANGUAGE_META) as TargetLanguage[])
+    .filter((code) => code !== selectedSource);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setSelectedSource(initialSource);
+    setSelectedTarget(
+      initialTarget === initialSource
+        ? (Object.keys(TARGET_LANGUAGE_META) as TargetLanguage[]).find((code) => code !== initialSource) || 'en'
+        : initialTarget
+    );
+  }, [isOpen, initialSource, initialTarget]);
 
   const cefrLevels: {
     id: ProfileCefrLevel;
@@ -133,7 +142,7 @@ export function OnboardingPlacementModal({
       className="fixed inset-0 z-50 bg-bg/95 backdrop-blur-2xl flex items-center justify-center p-0 sm:p-4"
       dir={isArabic ? 'rtl' : 'ltr'}
     >
-      <div className="w-full h-[100dvh] max-h-[100dvh] sm:h-auto sm:max-h-[90vh] sm:max-w-[520px] sm:rounded-3xl bg-surface/90 border border-border p-4 sm:p-6 space-y-4 sm:space-y-6 text-start shadow-2xl flex flex-col overflow-hidden">
+      <div className="w-full h-[100dvh] flex flex-col sm:h-auto sm:max-h-[90vh] sm:max-w-[520px] sm:rounded-3xl bg-surface/90 border border-border p-4 sm:p-6 space-y-4 sm:space-y-6 text-start shadow-2xl overflow-hidden">
         {profileCreated ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-5 py-10 text-center" role="status" aria-live="polite">
             <div className="w-16 h-16 rounded-full bg-success/15 border border-success/40 text-success flex items-center justify-center text-3xl">
@@ -197,8 +206,10 @@ export function OnboardingPlacementModal({
                         type="button"
                         onClick={() => {
                           setSelectedSource(code);
-                          const first = SUPPORTED_PAIRS.find((p) => p.source === code);
-                          if (first) setSelectedTarget(first.target);
+                          if (selectedTarget === code) {
+                            const next = (Object.keys(TARGET_LANGUAGE_META) as TargetLanguage[]).find((t) => t !== code);
+                            if (next) setSelectedTarget(next);
+                          }
                         }}
                         className={`p-3.5 min-h-[52px] rounded-2xl border text-xs font-bold transition flex flex-col items-center gap-1 ${
                           selected
@@ -219,7 +230,7 @@ export function OnboardingPlacementModal({
                 <p className="text-xs font-semibold text-muted mb-2 uppercase tracking-wider">
                   {isArabic ? '٢. أريد أن أتعلّم التفكير بـ' : '2. I want to build reflexes in'}
                 </p>
-                <div className="grid gap-2 max-h-[32dvh] sm:max-h-56 overflow-y-auto scrollbar-hide pr-1">
+                <div className="grid grid-cols-2 gap-2">
                   {availableTargets.map((code) => {
                     const meta = TARGET_LANGUAGE_META[code];
                     const selected = selectedTarget === code;
@@ -228,17 +239,18 @@ export function OnboardingPlacementModal({
                         key={code}
                         type="button"
                         onClick={() => setSelectedTarget(code)}
-                        className={`p-3 rounded-2xl border text-xs font-bold transition flex items-center justify-between ${
+                        aria-pressed={selected}
+                        className={`min-w-0 p-3 rounded-2xl border text-xs font-bold transition flex items-start justify-between gap-1 ${
                           selected
                             ? 'bg-primary/20 border-primary text-primary shadow-md'
                             : 'bg-surface border-border text-text hover:border-surface-2'
                         }`}
                       >
-                        <div className="flex items-center gap-2.5">
+                        <div className="flex min-w-0 items-center gap-2">
                           <LanguageFlag code={code} size={20} />
-                          <div className="text-start">
-                            <span className="font-bold text-text block">{meta.nameEn}</span>
-                            <span className="text-[10px] text-muted block">
+                          <div className="min-w-0 text-start">
+                            <span className="block truncate font-bold text-text">{isArabic ? meta.nameAr : meta.nameEn}</span>
+                            <span className="block truncate text-[10px] text-muted">
                               {isArabic ? meta.descriptionAr : meta.descriptionEn}
                             </span>
                           </div>
@@ -253,7 +265,7 @@ export function OnboardingPlacementModal({
 
             <button
               onClick={() => setStep(1)}
-              className="sticky bottom-0 z-10 w-full shrink-0 py-4 min-h-[48px] rounded-2xl bg-primary text-on-primary font-black text-sm shadow-lg flex items-center justify-center gap-2 active:scale-95"
+              className="sticky bottom-0 z-10 w-full shrink-0 border-t border-border bg-surface p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] min-h-[48px] rounded-2xl text-on-primary font-black text-sm shadow-lg flex items-center justify-center gap-2 active:scale-95"
             >
               <span>{isArabic ? 'التالي' : 'Next'}</span>
               {isArabic ? <ArrowLeft size={16} /> : <ArrowRight size={16} />}
@@ -306,7 +318,7 @@ export function OnboardingPlacementModal({
               </div>
             </div>
 
-            <div className="sticky bottom-0 z-10 flex shrink-0 gap-2 bg-surface/95 py-1">
+            <div className="sticky bottom-0 z-10 flex shrink-0 gap-2 border-t border-border bg-surface p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
               <button
                 onClick={() => setStep(0)}
                 className="flex-1 py-4 min-h-[48px] rounded-2xl bg-surface border border-border text-text font-bold text-sm"
@@ -340,7 +352,7 @@ export function OnboardingPlacementModal({
                 </p>
               </div>
 
-              <div className="grid gap-2 max-h-[38dvh] sm:max-h-[340px] overflow-y-auto scrollbar-hide pr-1">
+              <div className="grid gap-2">
                 {cefrLevels.map((lvl) => {
                   const isSelected = selectedStage === lvl.id;
                   return (
@@ -373,7 +385,7 @@ export function OnboardingPlacementModal({
               </div>
             </div>
 
-            <div className="sticky bottom-0 z-10 flex shrink-0 gap-2 bg-surface/95 py-1">
+            <div className="sticky bottom-0 z-10 flex shrink-0 gap-2 border-t border-border bg-surface p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
               <button
                 onClick={() => setStep(1)}
                 className="flex-1 py-4 min-h-[48px] rounded-2xl bg-surface border border-border text-text font-bold text-sm"

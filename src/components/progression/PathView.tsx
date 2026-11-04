@@ -3,16 +3,18 @@ import { ProgressionState, StageNode, LessonNode } from '../../progression/types
 import { buildCourseStructure, isLessonUnlocked, isStageUnlocked } from '../../progression/courseData';
 import { Play, Crown, CheckCircle2, Target, LockKeyhole } from 'lucide-react';
 import { EmptyLessonState } from '../EmptyLessonState';
+import { TargetLanguage } from '../../types';
 
 interface PathViewProps {
   state: ProgressionState;
+  targetLang: TargetLanguage;
   onSelectLesson: (lesson: LessonNode) => void;
   onSelectUnitCheckpoint: (unitId: string) => void;
   isArabic?: boolean;
 }
 
-export function PathView({ state, onSelectLesson, onSelectUnitCheckpoint, isArabic = true }: PathViewProps) {
-  const courseStructure: StageNode[] = buildCourseStructure();
+export function PathView({ state, targetLang, onSelectLesson, onSelectUnitCheckpoint, isArabic = true }: PathViewProps) {
+  const courseStructure: StageNode[] = useMemo(() => buildCourseStructure(targetLang), [targetLang]);
   const [viewedStage, setViewedStage] = useState<string>(state.currentStage);
   const activeStageNode = courseStructure.find((s) => s.stage === viewedStage) || courseStructure[0];
   const currentStageNode = courseStructure.find((s) => s.stage === state.currentStage) || courseStructure[0];
@@ -87,7 +89,7 @@ export function PathView({ state, onSelectLesson, onSelectUnitCheckpoint, isArab
       <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
         {courseStructure.map((stg) => {
           const isActive = stg.stage === viewedStage;
-          const unlocked = isStageUnlocked(state, stg.stage);
+          const unlocked = isStageUnlocked(state, stg.stage, targetLang);
           return (
             <button
               key={stg.stage}
@@ -113,7 +115,7 @@ export function PathView({ state, onSelectLesson, onSelectUnitCheckpoint, isArab
         })}
       </div>
 
-      {!isStageUnlocked(state, activeStageNode.stage) && (
+      {!isStageUnlocked(state, activeStageNode.stage, targetLang) && (
         <div role="status" className="p-4 rounded-2xl bg-surface border border-border text-center space-y-1">
           <LockKeyhole className="mx-auto text-muted" size={20} aria-hidden="true" />
           <p className="text-sm font-black text-text">
@@ -128,14 +130,14 @@ export function PathView({ state, onSelectLesson, onSelectUnitCheckpoint, isArab
       )}
 
       {/* Empty State when stage has zero completed lessons */}
-      {isStageUnlocked(state, activeStageNode.stage) &&
+      {isStageUnlocked(state, activeStageNode.stage, targetLang) &&
         activeStageNode.units.every((u) => u.lessons.every((l) => !state.completedLessonIds.includes(l.id))) && (
         <EmptyLessonState
           stage={activeStageNode.stage}
           isArabic={isArabic}
           onStartFirstLesson={() => {
             const firstLesson = activeStageNode.units[0]?.lessons[0];
-            if (firstLesson && isLessonUnlocked(state, firstLesson)) onSelectLesson(firstLesson);
+            if (firstLesson && isLessonUnlocked(state, firstLesson, targetLang)) onSelectLesson(firstLesson);
           }}
         />
       )}
@@ -177,7 +179,7 @@ export function PathView({ state, onSelectLesson, onSelectUnitCheckpoint, isArab
                 {unit.lessons.map((lesson) => {
                   const crowns = state.lessonCrowns[lesson.id] || 0;
                   const isCompleted = state.completedLessonIds.includes(lesson.id);
-                  const unlocked = isLessonUnlocked(state, lesson);
+                  const unlocked = isLessonUnlocked(state, lesson, targetLang);
                   const stageLessonIndex = stageLessons.findIndex((item) => item.id === lesson.id);
                   const previousLesson = stageLessons[stageLessonIndex - 1];
 

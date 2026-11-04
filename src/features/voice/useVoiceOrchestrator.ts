@@ -4,6 +4,7 @@ import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { GoogleGenAI } from '@google/genai';
 import { getUserGeminiKey } from '../../services/geminiLexicon';
 import { API_BASE_URL } from '../../utils/api';
+import { consumeDailyApiQuota } from '../../utils/apiQuota';
 import {
   generateSmartConversationReply,
   extractFeedbackDraft,
@@ -17,8 +18,9 @@ import { useNativeSpeech } from './useNativeSpeech';
 import { usePreferences } from '../preferences/usePreferences';
 import { unlockAudio, speakWithNativeSpeechSynthesis } from '../../utils/audio';
 import { saveFeedback } from '../../services/feedback';
+import { fetchAIContext } from '../../services/aiContextFetcher';
 import { SourceLanguage, TargetLanguage } from '../../types';
-import { TARGET_LANGUAGES, TARGET_LANGUAGE_LOCALES } from '../../data/languages';
+import { SOURCE_LANGUAGES, TARGET_LANGUAGES, TARGET_LANGUAGE_LOCALES } from '../../data/languages';
 
 export type VoiceState = 'idle' | 'listening' | 'transcribing' | 'thinking' | 'speaking';
 
@@ -750,97 +752,127 @@ export function useVoiceOrchestrator(
 
       // 1. Try direct client-side Gemini SDK streaming if user key exists
       const userKey = getUserGeminiKey();
-      if (userKey) {
-        try {
-          const ai = new GoogleGenAI({ apiKey: userKey });
-          const profile = getStoredProfile();
-          const targetLanguage = TARGET_LANGUAGES.find((language) => language.code === profile.targetLang)?.nameEn || 'English';
-          const domainFocus = profile.domainFocus === 'tech' || profile.goal === 'tech' || profile.goal === 'corporate'
-            ? 'software engineering and technology'
-            : profile.domainFocus === 'travel' || profile.goal === 'travel'
-              ? 'travel and everyday life'
-              : 'daily life';
-          const translationInstruction = voiceCommand === 'translate-arabic'
-            ? 'The learner explicitly requested an Arabic translation. Return only the natural Arabic translation, overriding the usual target-language response preference.'
-            : '';
-          const resultStream = await ai.models.generateContentStream({
-            model: 'gemini-2.5-flash',
-            contents: [
-              ...messages.slice(-6).map((m) => ({
-                role: m.role === 'user' ? 'user' : 'model',
-                parts: [{ text: m.text }],
-              })),
-              { role: 'user', parts: [{ text: requestText }] },
-            ],
-            config: {
-              systemInstruction: `You are Amr, an empathetic language coach teaching ${targetLanguage}.
-The learner speaks ${profile.dialect} and is learning ${targetLanguage} (Level: ${profile.level}, Goal: ${profile.goal}).
-Provide examples strictly related to ${domainFocus}. Use ${targetLanguage} as the primary language for instruction, and explain its grammar using its own structure rather than English sentence patterns. Gently point out relevant Arabic L1 transfer errors. Keep responses under 3 sentences.
-${translationInstruction}`,
-              maxOutputTokens: 250,
-              temperature: 0.7,
-            },
-          });
+      if (!userKey) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `assistant-${Date.now()}`,
+            role: 'assistant',
+            text: 'Add your Gemini API key in Settings to use AI features.',
+            timestamp: Date.now(),
+          },
+        ]);
+        setState('idle');
+        return;
+      }
+      if (!consumeDailyApiQuota()) {
+        setState('idle');
+        return;
+      }
 
-          let clientAccumulated = '';
-          let clientBuffer = '';
-          let clientWordIdx = 0;
+      try {
+        const ai = new GoogleGenAI({ apiKey: userKey });
+        const profile = getStoredProfile();
+        const targetLanguage = TARGET_LANGUAGES.find((language) => language.code === profile.targetLang)?.nameEn || 'English';
+        const sourceLanguage = SOURCE_LANGUAGES[profile.sourceLanguage]?.nameNative || 'Arabic';
+        const learnerDialect = profile.sourceLanguage === 'ar' ? profile.dialect : sourceLanguage;
+        const domainFocus = profile.domainFocus === 'tech' || profile.goal === 'tech' || profile.goal === 'corporate'
+          ? 'software engineering and technology'
+          : profile.domainFocus === 'travel' || profile.goal === 'travel'
+            ? 'travel and everyday life'
+            : 'daily life';
+        const translationInstruction = voiceCommand === 'translate-arabic'
+          ? 'The learner explicitly requested an Arabic translation. Return only the natural Arabic translation, overriding the usual target-language response preference.'
+          : '';
 
-          for await (const chunk of resultStream) {
-            const textChunk = chunk.text || '';
-            if (!textChunk) continue;
+        const aiContext = await fetchAIContext();
+        const systemInstructionText = (aiContext.systemPromptTemplate || '')
+          .replace('{dialect}', String(learnerDialect))
+          .replace('{targetLanguage}', targetLanguage)
+          .replace('{level}', String(profile.level))
+          .replace('{goal}', String(profile.goal))
+          .replace('{domainFocus}', domainFocus) +
+          `\n${translationInstruction}`;
 
-            clientAccumulated += textChunk;
-            clientBuffer += textChunk;
+        const resultStream = await ai.models.generateContentStream({
+          model: 'gemini-2.5-flash',
+          contents: [
+            ...messages.slice(-6).map((m) => ({
+              role: m.role === 'user' ? 'user' : 'model',
+              parts: [{ text: m.text }],
+            })),
+            { role: 'user', parts: [{ text: requestText }] },
+          ],
+          config: {
+            systemInstruction: systemInstructionText,
+            maxOutputTokens: 250,
+            temperature: 0.7,
+          },
+        });
 
-            setCurrentAssistantText(clientAccumulated);
+        let clientAccumulated = '';
+        let clientBuffer = '';
+        let clientWordIdx = 0;
 
-            const sentences = clientBuffer.match(/[^.!?]+[.!?]+/g);
-            if (sentences) {
-              for (const s of sentences) {
-                clientBuffer = clientBuffer.slice(s.length);
-                const cleanSent = s.trim();
-                if (cleanSent) {
-                  const wList = cleanSent.split(/\s+/);
-                  prefetchSentence(cleanSent, abortCtrl.signal, totalDispatchedRef.current++, clientWordIdx);
-                  clientWordIdx += wList.length;
-                }
+        for await (const chunk of resultStream) {
+          const textChunk = chunk.text || '';
+          if (!textChunk) continue;
+
+          clientAccumulated += textChunk;
+          clientBuffer += textChunk;
+
+          setCurrentAssistantText(clientAccumulated);
+
+          const sentences = clientBuffer.match(/[^.!?]+[.!?]+/g);
+          if (sentences) {
+            for (const s of sentences) {
+              clientBuffer = clientBuffer.slice(s.length);
+              const cleanSent = s.trim();
+              if (cleanSent) {
+                const wList = cleanSent.split(/\s+/);
+                prefetchSentence(cleanSent, abortCtrl.signal, totalDispatchedRef.current++, clientWordIdx);
+                clientWordIdx += wList.length;
               }
             }
           }
-
-          if (clientBuffer.trim()) {
-            const cleanSent = clientBuffer.trim();
-            prefetchSentence(cleanSent, abortCtrl.signal, totalDispatchedRef.current++, clientWordIdx);
-          }
-
-          streamDoneRef.current = true;
-          checkAndPlayQueue();
-
-          if (clientAccumulated.trim()) {
-            setMessages((prev) => [
-              ...prev,
-              {
-                id: `assistant-${Date.now()}`,
-                role: 'assistant',
-                text: clientAccumulated.trim(),
-                timestamp: Date.now(),
-                feedbackDraft: newFeedbackDraft || undefined,
-                feedbackStatus: newFeedbackDraft ? 'pending' : undefined,
-              },
-            ]);
-          }
-          return;
-        } catch (clientChatErr: any) {
-          if (clientChatErr.name === 'AbortError') {
-            console.log('[useVoiceOrchestrator] Interrupted by user (barge-in).');
-            return;
-          }
-          console.warn('[useVoiceOrchestrator] Direct client-side Gemini Chat stream failed, falling back to server route:', clientChatErr);
         }
+
+        if (clientBuffer.trim()) {
+          const cleanSent = clientBuffer.trim();
+          prefetchSentence(cleanSent, abortCtrl.signal, totalDispatchedRef.current++, clientWordIdx);
+        }
+
+        streamDoneRef.current = true;
+        checkAndPlayQueue();
+
+        if (clientAccumulated.trim()) {
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: `assistant-${Date.now()}`,
+              role: 'assistant',
+              text: clientAccumulated.trim(),
+              timestamp: Date.now(),
+              feedbackDraft: newFeedbackDraft || undefined,
+              feedbackStatus: newFeedbackDraft ? 'pending' : undefined,
+            },
+          ]);
+        }
+        return;
+      } catch (clientChatErr: any) {
+        if (clientChatErr.name === 'AbortError') {
+          console.log('[useVoiceOrchestrator] Interrupted by user (barge-in).');
+          return;
+        }
+        console.warn('[useVoiceOrchestrator] Direct client-side Gemini Chat stream failed, falling back to the BYOK server route:', clientChatErr);
       }
 
       // 2. Server route fallback
+      if (!consumeDailyApiQuota()) {
+        setState('idle');
+        return;
+      }
+
       let accumulatedReply = '';
       let sentenceBuffer = '';
       let runningWordIndex = 0;
@@ -856,6 +888,8 @@ ${translationInstruction}`,
           headers: {
             'Content-Type': 'application/json',
             Accept: 'text/event-stream',
+            'x-user-api-key': userKey,
+            'X-User-Gemini-Key': userKey,
           },
           body: JSON.stringify({
             operation: 'conversation',

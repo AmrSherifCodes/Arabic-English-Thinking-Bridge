@@ -28,7 +28,7 @@ export const SOURCE_LANGUAGES: Record<SourceLanguage, LanguageMeta> = {
     nameAr: 'العربية',
     flag: '🇪🇬',
     direction: 'rtl',
-    descriptionEn: 'I currently think in Arabic (Mother Tongue)',
+    descriptionEn: 'I currently think in Arabic',
     descriptionAr: 'لغتي الأم والتفكير التلقائي بالعربية',
     badge: 'الأم'
   },
@@ -42,6 +42,105 @@ export const SOURCE_LANGUAGES: Record<SourceLanguage, LanguageMeta> = {
     descriptionEn: 'I currently think in English',
     descriptionAr: 'أفكر حالياً بالإنجليزية',
     badge: 'Fluent'
+  },
+  de: {
+    code: 'de',
+    nameEn: 'German',
+    nameNative: 'Deutsch',
+    nameAr: 'الألمانية',
+    flag: '🇩🇪',
+    direction: 'ltr',
+    descriptionEn: 'I currently think in German',
+    descriptionAr: 'أفكر حالياً بالألمانية',
+    badge: 'Native'
+  },
+  es: {
+    code: 'es',
+    nameEn: 'Spanish',
+    nameNative: 'Español',
+    nameAr: 'الإسبانية',
+    flag: '🇪🇸',
+    direction: 'ltr',
+    descriptionEn: 'I currently think in Spanish',
+    descriptionAr: 'أفكر حالياً بالإسبانية',
+    badge: 'Native'
+  },
+  ja: {
+    code: 'ja',
+    nameEn: 'Japanese',
+    nameNative: '日本語',
+    nameAr: 'اليابانية',
+    flag: '🇯🇵',
+    direction: 'ltr',
+    descriptionEn: 'I currently think in Japanese',
+    descriptionAr: 'أفكر حالياً باليابانية',
+    badge: 'Native'
+  },
+  fr: {
+    code: 'fr',
+    nameEn: 'French',
+    nameNative: 'Français',
+    nameAr: 'الفرنسية',
+    flag: '🇫🇷',
+    direction: 'ltr',
+    descriptionEn: 'I currently think in French',
+    descriptionAr: 'أفكر حالياً بالفرنسية',
+    badge: 'Native'
+  },
+  zh: {
+    code: 'zh',
+    nameEn: 'Chinese',
+    nameNative: '中文',
+    nameAr: 'الصينية',
+    flag: '🇨🇳',
+    direction: 'ltr',
+    descriptionEn: 'I currently think in Chinese',
+    descriptionAr: 'أفكر حالياً بالصينية',
+    badge: 'Native'
+  },
+  hi: {
+    code: 'hi',
+    nameEn: 'Hindi',
+    nameNative: 'हिन्दी',
+    nameAr: 'الهندية',
+    flag: '🇮🇳',
+    direction: 'ltr',
+    descriptionEn: 'I currently think in Hindi',
+    descriptionAr: 'أفكر حالياً بالهندية',
+    badge: 'Native'
+  },
+  ru: {
+    code: 'ru',
+    nameEn: 'Russian',
+    nameNative: 'Русский',
+    nameAr: 'الروسية',
+    flag: '🇷🇺',
+    direction: 'ltr',
+    descriptionEn: 'I currently think in Russian',
+    descriptionAr: 'أفكر حالياً بالروسية',
+    badge: 'Native'
+  },
+  pt: {
+    code: 'pt',
+    nameEn: 'Portuguese',
+    nameNative: 'Português',
+    nameAr: 'البرتغالية',
+    flag: '🇧🇷',
+    direction: 'ltr',
+    descriptionEn: 'I currently think in Portuguese',
+    descriptionAr: 'أفكر حالياً بالبرتغالية',
+    badge: 'Native'
+  },
+  it: {
+    code: 'it',
+    nameEn: 'Italian',
+    nameNative: 'Italiano',
+    nameAr: 'الإيطالية',
+    flag: '🇮🇹',
+    direction: 'ltr',
+    descriptionEn: 'I currently think in Italian',
+    descriptionAr: 'أفكر حالياً بالإيطالية',
+    badge: 'Native'
   }
 };
 
@@ -196,7 +295,7 @@ export interface LanguagePairConfig {
   bridgeConceptEn: string;
 }
 
-export const SUPPORTED_PAIRS: LanguagePairConfig[] = [
+const CURATED_SUPPORTED_PAIRS: LanguagePairConfig[] = [
   {
     id: 'ar-en',
     source: 'ar',
@@ -407,6 +506,32 @@ export const SUPPORTED_PAIRS: LanguagePairConfig[] = [
     bridgeConceptEn: 'Adapting to agreement and pro-drop'
   }
 ];
+
+export const SUPPORTED_PAIRS: LanguagePairConfig[] = Object.keys(SOURCE_LANGUAGES)
+  .flatMap((sourceCode) => Object.keys(TARGET_LANGUAGE_META)
+    .filter((targetCode) => targetCode !== sourceCode)
+    .map((targetCode) => {
+      const source = sourceCode as SourceLanguage;
+      const target = targetCode as TargetLanguage;
+      const curatedPair = CURATED_SUPPORTED_PAIRS.find(
+        (pair) => pair.source === source && pair.target === target
+      );
+      if (curatedPair) return curatedPair;
+
+      const sourceMeta = SOURCE_LANGUAGES[source];
+      const targetMeta = TARGET_LANGUAGE_META[target];
+      return {
+        id: `${source}-${target}`,
+        source,
+        target,
+        titleAr: `من ${sourceMeta.nameAr} إلى ${targetMeta.nameAr}`,
+        titleEn: `Think ${targetMeta.nameEn} · From ${sourceMeta.nameEn}`,
+        taglineAr: `جسر التحول الذهني من ${sourceMeta.nameAr} إلى ${targetMeta.nameAr}`,
+        taglineEn: `Build direct thinking habits from ${sourceMeta.nameEn} into ${targetMeta.nameEn}`,
+        bridgeConceptAr: `قارن تركيب ${targetMeta.nameAr} بلغتك الحالية وتدرّب على بناء الجمل مباشرة.`,
+        bridgeConceptEn: `Compare ${targetMeta.nameEn} structures with your current language and practice building sentences directly.`,
+      };
+    }));
 
 export function isValidPair(source: string, target: string): boolean {
   return SUPPORTED_PAIRS.some(p => p.source === source && p.target === target);

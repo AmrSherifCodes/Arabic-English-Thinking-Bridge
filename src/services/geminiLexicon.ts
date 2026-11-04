@@ -1,7 +1,10 @@
 import { GoogleGenAI, Type } from '@google/genai';
 import type { UserProfile } from '../hooks/useUserProfile';
-import type { Exercise } from '../types';
+import type { Exercise, SourceLanguage, TargetLanguage } from '../types';
 import { API_BASE_URL } from '../utils/api';
+import { consumeDailyApiQuota } from '../utils/apiQuota';
+import { SOURCE_LANGUAGES, TARGET_LANGUAGE_META } from '../data/languages';
+import { fetchAIContext } from './aiContextFetcher';
 
 export const USER_GEMINI_KEY_STORAGE = 'tb.userGeminiKey';
 export const LEGACY_GEMINI_KEY_STORAGE = 'user_gemini_key';
@@ -195,7 +198,11 @@ async function generateWithDirectFallback(
   let lastError: unknown;
   for (const model of DIRECT_MODELS) {
     try {
-      return await ai.models.generateContent({ ...params, model });
+      return await ai.models.generateContent({
+        ...params,
+        config: { ...params.config, maxOutputTokens: 250, temperature: 0.7 },
+        model,
+      });
     } catch (err) {
       lastError = err;
       continue;
@@ -307,14 +314,20 @@ async function requestGeminiWithUserKey<T>(
     const promptText = String(payload.prompt || '');
     const context = (payload.context || {}) as Record<string, unknown>;
     const profile = (context.profile || {}) as UserProfile;
-    const dialectName = profile.dialect === 'egyptian' ? 'Egyptian Arabic (Ammiya)' : 'Modern Standard Arabic (MSA/Fusha)';
-
-    const systemInstruction =
-      `You are an expert Arabic-English structural tutor.\n` +
-      `The user speaks ${dialectName}.\n` +
-      `Explain English grammar, syntax, or vocabulary in clear, friendly Arabic (Egyptian style).\n` +
-      `Break down sentences into structural chunks (Subject, Verb, Object, Auxiliary) and explain WHY the rule exists.\n` +
-      `Keep explanations concise, encouraging, and clear.`;
+    const activeConfig = readActiveLanguageConfig();
+    const sourceLang = (profile.sourceLanguage || activeConfig.sourceLang || 'ar') as SourceLanguage;
+    const targetLang = (profile.targetLanguage || activeConfig.targetLang || 'en') as TargetLanguage;
+    const dialectName = sourceLang === 'ar'
+      ? profile.dialect === 'egyptian' ? 'Egyptian Arabic (Ammiya)' : 'Modern Standard Arabic (MSA/Fusha)'
+      : SOURCE_LANGUAGES[sourceLang]?.nameNative || sourceLang;
+    const template = (await fetchAIContext()).systemPromptTemplate;
+    const systemInstruction = template
+      .replaceAll('{dialect}', dialectName)
+      .replaceAll('{targetLanguage}', TARGET_LANGUAGE_META[targetLang]?.nameNative || targetLang)
+      .replaceAll('{level}', profile.level || 'beginner')
+      .replaceAll('{goal}', profile.goal || 'general')
+      .replaceAll('{domainFocus}', String(profile.focusArea || profile.goal || 'everyday communication')) +
+      '\nExplain grammar through clear structural chunks and why the pattern works. Keep explanations concise and supportive.';
 
     const response = await generateWithDirectFallback(ai, {
       contents: promptText,
@@ -375,6 +388,23 @@ async function requestGeminiWithUserKey<T>(
   throw new Error(`Unsupported operation: ${operation}`);
 }
 
+function readActiveLanguageConfig(): { sourceLang?: string; targetLang?: string } {
+  try {
+    const raw = window.localStorage.getItem('tb.activeProfileConfig');
+    if (!raw) return {};
+    const parsed: unknown = JSON.parse(raw);
+    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) return {};
+    const config = parsed as Record<string, unknown>;
+    return {
+      sourceLang: typeof config.sourceLang === 'string' ? config.sourceLang : undefined,
+      targetLang: typeof config.targetLang === 'string' ? config.targetLang : undefined,
+    };
+  } catch (error) {
+    console.warn('Unable to read active language settings for AI tutor context.', error);
+    return {};
+  }
+}
+
 function toLexiconError(err: unknown): LexiconError {
   if (err instanceof LexiconError) return err;
   const msg = err instanceof Error ? err.message : String(err || '');
@@ -390,12 +420,20 @@ async function requestGemini<T>(
   signal?: AbortSignal
 ): Promise<T> {
   const userKey = getUserGeminiKey();
-  if (userKey) {
-    try {
-      return await requestGeminiWithUserKey<T>(userKey, operation, payload);
-    } catch (err) {
-      console.warn('Direct user key request failed, falling back to server route:', err);
-    }
+  if (!userKey) {
+    throw new LexiconError('missing-key', 'Add your Gemini API key in Settings to use AI features.');
+  }
+  if (!consumeDailyApiQuota()) {
+    throw new LexiconError('rate-limited', 'Daily AI limit reached. Resets tomorrow.');
+  }
+
+  try {
+    return await requestGeminiWithUserKey<T>(userKey, operation, payload);
+  } catch (err) {
+    console.warn('Direct user key request failed, falling back to the BYOK server route:', err);
+  }
+  if (!consumeDailyApiQuota()) {
+    throw new LexiconError('rate-limited', 'Daily AI limit reached. Resets tomorrow.');
   }
 
   const controller = new AbortController();
@@ -404,17 +442,15 @@ async function requestGemini<T>(
   signal?.addEventListener('abort', abortRequest, { once: true });
   if (signal?.aborted) controller.abort();
 
-  const userCustomKey = getUserGeminiKey();
   const reqHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
-  if (userCustomKey) {
-    reqHeaders['X-User-Gemini-Key'] = userCustomKey.trim();
-  }
+  reqHeaders['x-user-api-key'] = userKey;
+  reqHeaders['X-User-Gemini-Key'] = userKey;
 
   try {
     const response = await fetch(`${API_BASE_URL}/api/gemini`, {
       method: 'POST',
       headers: reqHeaders,
-      body: JSON.stringify({ ...payload, operation, userKey: userCustomKey || undefined }),
+      body: JSON.stringify({ ...payload, operation }),
       signal: controller.signal
     });
     const result: unknown = await response.json();

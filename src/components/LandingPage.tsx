@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { TargetLanguage } from '../types';
 import { TARGET_LANGUAGE_META } from '../data/languages';
+import { Capacitor } from '@capacitor/core';
 
 interface LandingPageProps {
   onLaunchApp: () => void;
@@ -186,7 +187,10 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
 
   const targetMeta = userTarget ? TARGET_LANGUAGE_META[userTarget] : null;
 
-  const dynamicCtaText = targetMeta
+  const isNative = Capacitor.isNativePlatform();
+  const dynamicCtaText = isNative
+    ? isAr ? 'افتح التطبيق 🚀' : 'Launch App 🚀'
+    : targetMeta
     ? isAr
       ? `متابعة تعلم ${targetMeta.nameAr} ${targetMeta.flag} 🚀`
       : `Resume Learning ${targetMeta.nameEn} ${targetMeta.flag} 🚀`

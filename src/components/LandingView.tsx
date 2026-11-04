@@ -42,6 +42,10 @@ export function LandingView({ onStartWebApp, isArabic = true }: LandingViewProps
   });
   const [subMessage, setSubMessage] = useState<string | null>(null);
   const [detectedOs, setDetectedOs] = useState<'android' | 'ios' | 'windows' | 'mac' | 'other'>('other');
+  const [isNativeAndroid] = useState(() => {
+    const platform = getPlatformInfo();
+    return platform.os === 'android' && platform.isCapacitor;
+  });
   const { isInstallable, triggerInstall, showIosHint } = usePwaInstall();
 
   const easterEggRef = useRef<HTMLDivElement>(null);
@@ -469,11 +473,19 @@ export function LandingView({ onStartWebApp, isArabic = true }: LandingViewProps
                 <span className="text-[10px] text-[var(--landing-muted)] block">v3.1.0 · APK</span>
               </div>
               <a
-                href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v3.1.0/Thinking-Bridge-v3.1.0.apk"
+                href={isNativeAndroid ? '/app' : 'https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v3.1.0/Thinking-Bridge-v3.1.0.apk'}
+                onClick={isNativeAndroid ? (event) => {
+                  event.preventDefault();
+                  onStartWebApp();
+                } : undefined}
                 className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-[var(--landing-accent-teal)] text-stone-950 font-bold text-xs w-full hover:opacity-90 transition"
               >
-                <Download size={13} aria-hidden="true" />
-                <span>{isAr ? 'تحميل APK' : 'Download APK'}</span>
+                {isNativeAndroid ? <ArrowDown size={13} aria-hidden="true" /> : <Download size={13} aria-hidden="true" />}
+                <span>
+                  {isNativeAndroid
+                    ? (isAr ? 'تشغيل التطبيق 🚀' : 'Launch App 🚀')
+                    : (isAr ? 'تحميل APK' : 'Download APK')}
+                </span>
               </a>
               {isInstallable && (
                 <button type="button" onClick={() => void triggerInstall()} className="text-[10px] font-bold text-[var(--landing-muted)] underline underline-offset-2">

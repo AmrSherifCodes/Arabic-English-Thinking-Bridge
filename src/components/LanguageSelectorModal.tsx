@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X, Check, ArrowRight, Share2, Globe, Sparkles } from 'lucide-react';
 import { SourceLanguage, TargetLanguage } from '../types';
 import { SOURCE_LANGUAGES, TARGET_LANGUAGES, TARGET_LANGUAGE_META, SUPPORTED_PAIRS, getPairConfig } from '../data/languages';
@@ -23,6 +23,12 @@ export function LanguageSelectorModal({
 }: LanguageSelectorModalProps) {
   const [selectedSource, setSelectedSource] = useState<SourceLanguage>(currentSource);
   const [selectedTarget, setSelectedTarget] = useState<TargetLanguage>(currentTarget);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setSelectedSource(currentSource);
+    setSelectedTarget(currentTarget);
+  }, [isOpen, currentSource, currentTarget]);
 
   if (!isOpen) return null;
 
@@ -97,7 +103,13 @@ export function LanguageSelectorModal({
                   <button
                     key={langKey}
                     type="button"
-                    onClick={() => setSelectedSource(langKey)}
+                    onClick={() => {
+                      setSelectedSource(langKey);
+                      if (!SUPPORTED_PAIRS.some((pair) => pair.source === langKey && pair.target === selectedTarget)) {
+                        const firstTarget = SUPPORTED_PAIRS.find((pair) => pair.source === langKey)?.target;
+                        if (firstTarget) setSelectedTarget(firstTarget);
+                      }
+                    }}
                     className={`flex flex-col items-start p-3.5 rounded-xl border text-left transition-all ${
                       isSelected
                         ? 'border-indigo-600 bg-indigo-50/60 dark:bg-indigo-950/40 dark:border-indigo-500 shadow-xs'
@@ -126,7 +138,7 @@ export function LanguageSelectorModal({
               {isAr ? '٢. اللغة التي أريد أن أفكّر بها (اللغة الهدف):' : '2. I want to learn to think in (Target Language):'}
             </label>
             <div className="space-y-2.5">
-              {TARGET_LANGUAGES.map(({ code }) => {
+              {TARGET_LANGUAGES.filter(({ code }) => code !== selectedSource).map(({ code }) => {
                 const langKey = code as TargetLanguage;
                 const meta = TARGET_LANGUAGE_META[langKey];
                 const isSelected = selectedTarget === langKey;

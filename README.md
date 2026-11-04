@@ -6,7 +6,7 @@
   <!-- Badges -->
   <img src="https://img.shields.io/badge/React-19-blue?style=flat-square&logo=react" alt="React" />
   <img src="https://img.shields.io/badge/Vite-8-purple?style=flat-square&logo=vite" alt="Vite" />
-  <img src="https://img.shields.io/badge/Supabase-Backend-green?style=flat-square&logo=supabase" alt="Supabase" />
+  <img src="https://img.shields.io/badge/Storage-Local--first-teal?style=flat-square" alt="Local-first storage" />
   <img src="https://img.shields.io/badge/Gemini-AI-orange?style=flat-square&logo=google" alt="Gemini" />
   <img src="https://img.shields.io/badge/License-All%20Rights%20Reserved-red?style=flat-square" alt="License" />
 </div>
@@ -76,24 +76,16 @@ For signed APKs, add these repository Actions secrets: `ANDROID_KEYSTORE_BASE64`
 
 ---
 
-## 📊 Capacity & Free Tier Limits
+## 📊 Local-First Storage & Service Limits
 
-Thinking Bridge is architected to remain **100% Free Forever** without requiring paid cloud infrastructure or surprise bills.
+Learning progress, lessons, flashcards, and feedback remain on the device. The app does not require a cloud database or account to learn.
 
-### Live Health & Capacity Endpoint
-* Endpoint: `/api/health`
-* Inspect health, server uptime, and active capacity limits.
-
-### Free Limits to Monitor & Where to Check
-1. **Supabase Database & Auth (Free Tier)**
-   * **Limits**: 500 MB DB Storage, 50,000 Monthly Active Users (MAU), 5 GB Egress/month.
-   * **Architecture Safeguard**: Single compact row (`public.user_state`) capped at 64 KB per user. Guests make 0 DB calls.
-   * **Dashboard**: [app.supabase.com](https://app.supabase.com) ➔ Settings ➔ Usage.
-2. **Google Gemini AI (Free Tier)**
+### Optional Services
+1. **Google Gemini AI**
    * **Limits**: 15 Requests/Minute (RPM), 1,500 Requests/Day (RPD).
-   * **Architecture Safeguard**: Per-IP/User daily quotas with response caching. Users can also enter their own free Gemini key in Settings (`localStorage`). Fallbacks automatically to local offline engine.
+   * Users can add their own Gemini key in Settings; daily usage limits are enforced locally. Core lessons and progress work offline.
    * **Dashboard**: [console.cloud.google.com](https://console.cloud.google.com) ➔ API & Services.
-3. **Vercel Web Hosting (Free Hobby Tier)**
+2. **Vercel Web Hosting (Free Hobby Tier)**
    * **Limits**: 100 GB Bandwidth/month, 100k Serverless Function Executions/day.
    * **Dashboard**: [vercel.com](https://vercel.com) ➔ Usage.
 

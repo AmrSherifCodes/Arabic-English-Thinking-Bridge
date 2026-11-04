@@ -86,3 +86,11 @@ body::before {
     scroll-behavior: auto !important;
   }
 }
+
+/* Selected Word Chip Styling - Faint Purple */
+.chip-selected {
+  background-color: rgba(168, 85, 247, 0.2) !important;
+  border: 1px solid rgba(192, 132, 252, 0.8) !important;
+  color: rgba(233, 213, 255, 1) !important;
+}
+

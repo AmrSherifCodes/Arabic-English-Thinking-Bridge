@@ -7,6 +7,7 @@ import { FieldRenderer } from './FieldRenderer';
 import { UserProfile, UserProgress, SourceLanguage, TargetLanguage } from '../../types';
 import { downloadProgressBackup, importUserProgressJson, getVaultAuditSnapshot } from '../../utils/storage';
 import { API_BASE_URL } from '../../utils/api';
+import { consumeDailyApiQuota } from '../../utils/apiQuota';
 import { getUserGeminiKey, setUserGeminiKey } from '../../services/geminiLexicon';
 import './preferences.css';
 
@@ -104,6 +105,14 @@ export function PreferencesView({
     setTestResult(null);
 
     try {
+      if (!consumeDailyApiQuota()) {
+        setTestResult({
+          status: 'error',
+          msg: isArabic ? 'تم الوصول إلى الحد اليومي للذكاء الاصطناعي. يتجدد غداً.' : 'Daily AI limit reached. Resets tomorrow.',
+        });
+        return;
+      }
+
       const res = await fetch(`${API_BASE_URL}/api/gemini`, {
         method: 'POST',
         headers: {
@@ -111,7 +120,7 @@ export function PreferencesView({
           'x-user-api-key': trimmed,
           'X-User-Gemini-Key': trimmed,
         },
-        body: JSON.stringify({ operation: 'test-key', userApiKey: trimmed }),
+        body: JSON.stringify({ operation: 'test-key' }),
       });
 
       const data = await res.json();
@@ -284,7 +293,7 @@ export function PreferencesView({
               <div className="flex items-center justify-between">
                 <span className="font-bold text-sm text-text flex items-center gap-1.5">
                   <Key size={16} className="text-primary" />
-                  <span>{isArabic ? 'مفتاح Gemini الخاص بك (tb.userApiKey)' : 'Personal Gemini API Key'}</span>
+                  <span>{isArabic ? 'مفتاح Gemini الخاص بك' : 'Personal Gemini API Key'}</span>
                 </span>
                 <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-success/20 text-success">
                   {isArabic ? 'بلا حدود مجانية' : 'Unlimited Free'}

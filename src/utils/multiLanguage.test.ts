@@ -11,8 +11,10 @@ test('1. SUPPORTED_PAIRS defines all required source-to-target language pairs', 
   assert.ok(isValidPair('ar', 'ja'), 'Arabic -> Japanese must be valid');
   assert.ok(isValidPair('en', 'de'), 'English -> German must be valid');
   assert.ok(isValidPair('en', 'ja'), 'English -> Japanese must be valid');
+  assert.ok(isValidPair('fr', 'ja'), 'French -> Japanese must be valid');
+  assert.ok(isValidPair('es', 'ru'), 'Spanish -> Russian must be valid');
 
-  assert.equal(isValidPair('fr', 'en'), false, 'Unsupported language must be false');
+  assert.equal(isValidPair('fr', 'fr'), false, 'A language cannot be paired with itself');
 });
 
 test('2. getCurriculum returns valid pedagogical phases for Arabic -> English (canonical)', () => {
@@ -125,4 +127,3 @@ test('9. GERMAN_PREBUILT_DECKS and JAPANESE_PREBUILT_DECKS provide valid flashca
   assert.ok(JAPANESE_PREBUILT_DECKS.length >= 2, 'Must have at least 2 Japanese prebuilt decks');
   assert.ok(JAPANESE_PREBUILT_DECKS[0].cards.length > 0, 'Japanese deck must have cards');
 });
-
