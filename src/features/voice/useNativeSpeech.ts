@@ -133,19 +133,27 @@ export function useNativeSpeech({
           if (status === 'stopped') updateListening(false);
         });
 
+        const partialListener = await NativeSpeechRecognition.addListener('partialResults', ({ matches }) => {
+          if (matches && matches[0]) {
+            latestTranscriptRef.current = matches[0].trim();
+            setInterimTranscript(latestTranscriptRef.current);
+          }
+        });
+
         updateListening(true);
         onSpeechStart?.();
         setInterimTranscript('Listening…');
         const result = await NativeSpeechRecognition.start({
           language,
-          maxResults: 1,
+          maxResults: 5,
           prompt: 'Speak now',
-          partialResults: false,
+          partialResults: true,
           popup: false,
         });
         if (abortedRef.current) return;
-        const finalMatch = result.matches?.[0]?.trim() || '';
+        const finalMatch = result.matches?.[0]?.trim() || latestTranscriptRef.current || '';
         latestTranscriptRef.current = finalMatch;
+        partialListener.remove();
         triggerSpeechEnd(finalMatch);
       } catch (recognitionError) {
         if (abortedRef.current) return;
