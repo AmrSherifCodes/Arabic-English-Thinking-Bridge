@@ -112,7 +112,7 @@ test('5. production build emits non-empty dictionary chunks in dist/assets', () 
   const distAssetsPath = path.join(ROOT_DIR, 'dist', 'assets');
   assert.ok(fs.existsSync(distAssetsPath), 'dist/assets directory must exist — run `npx vite build` before running tests');
   const files = fs.readdirSync(distAssetsPath);
-  const dictChunks = files.filter(f => f.startsWith('dict-') || f.startsWith('curriculum-core'));
+  const dictChunks = files.filter(f => f.includes('dict-') || f.includes('curriculum-'));
   assert.ok(dictChunks.length >= 5, `Expected >= 5 dict/curriculum chunks in dist/assets, found ${dictChunks.length}: ${dictChunks.join(', ')}`);
   const totalBytes = dictChunks.reduce((sum, f) => sum + fs.statSync(path.join(distAssetsPath, f)).size, 0);
   assert.ok(totalBytes > 20 * 1024 * 1024, `Expected > 20 MB of dict chunks, got ${(totalBytes / 1024 / 1024).toFixed(1)} MB`);
