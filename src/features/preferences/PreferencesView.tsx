@@ -41,9 +41,11 @@ export function PreferencesView({
   const { values, set, schema } = usePreferences();
   const isArabic = profile?.language === 'arabic';
 
-  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+  type ThemeChoice = 'dark' | 'emerald' | 'sapphire' | 'light';
+
+  const [theme, setTheme] = useState<ThemeChoice>(() => {
     if (typeof localStorage !== 'undefined') {
-      return (localStorage.getItem('tb.theme') as 'dark' | 'light') || 'dark';
+      return (localStorage.getItem('tb.theme') as ThemeChoice) || 'dark';
     }
     return 'dark';
   });
@@ -55,21 +57,26 @@ export function PreferencesView({
   const [isTestingKey, setIsTestingKey] = useState(false);
   const [testResult, setTestResult] = useState<{ status: 'success' | 'error'; msg: string } | null>(null);
 
-  const handleThemeChange = (newTheme: 'dark' | 'light') => {
+  const handleThemeChange = (newTheme: ThemeChoice) => {
     setTheme(newTheme);
     if (typeof localStorage !== 'undefined') {
       localStorage.setItem('tb.theme', newTheme);
     }
+    document.documentElement.classList.remove('dark', 'light', 'theme-emerald', 'theme-sapphire');
     if (newTheme === 'light') {
       document.documentElement.classList.add('light');
-      document.documentElement.classList.remove('dark');
       document.documentElement.style.colorScheme = 'light';
+    } else if (newTheme === 'emerald') {
+      document.documentElement.classList.add('dark', 'theme-emerald');
+      document.documentElement.style.colorScheme = 'dark';
+    } else if (newTheme === 'sapphire') {
+      document.documentElement.classList.add('dark', 'theme-sapphire');
+      document.documentElement.style.colorScheme = 'dark';
     } else {
       document.documentElement.classList.add('dark');
-      document.documentElement.classList.remove('light');
       document.documentElement.style.colorScheme = 'dark';
     }
-    onToast?.(isArabic ? `☀️ تم التبديل إلى الوضع ${newTheme === 'light' ? 'الفاتح' : 'الداكن'}` : `Switched to ${newTheme} mode`);
+    onToast?.(isArabic ? `🎨 تم تغيير المظهر بنجاح!` : `Theme updated successfully!`);
   };
 
   const handleSaveGeminiKey = (val: string) => {
@@ -262,25 +269,43 @@ export function PreferencesView({
             {isArabic ? 'المظهر ومفتاح الذكاء الاصطناعي (BYOK)' : 'Appearance & AI Key'}
           </h2>
           <div className="pref-section__fields space-y-4">
-            <div className="flex items-center justify-between p-3 rounded-2xl bg-surface-2 border border-border">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 rounded-2xl bg-surface-2 border border-border gap-2.5">
               <span className="font-bold text-sm text-text">
-                {isArabic ? 'نمط المظهر (Theme)' : 'Theme Mode'}
+                {isArabic ? 'نمط المظهر والوسام (Theme Palette)' : 'Theme Palette'}
               </span>
-              <div className="flex items-center gap-1.5">
+              <div className="grid grid-cols-2 sm:flex sm:items-center gap-1.5">
                 <button
                   type="button"
                   onClick={() => handleThemeChange('dark')}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
-                    theme === 'dark' ? 'bg-primary text-on-primary shadow-sm' : 'text-muted'
+                  className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer ${
+                    theme === 'dark' ? 'bg-teal-500 text-slate-950 shadow-sm' : 'text-stone-300 hover:bg-surface'
                   }`}
                 >
                   🌙 {isArabic ? 'داكن' : 'Dark'}
                 </button>
                 <button
                   type="button"
+                  onClick={() => handleThemeChange('emerald')}
+                  className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer ${
+                    theme === 'emerald' ? 'bg-emerald-500 text-slate-950 shadow-sm' : 'text-stone-300 hover:bg-surface'
+                  }`}
+                >
+                  🌿 {isArabic ? 'زيتوني' : 'Olive'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleThemeChange('sapphire')}
+                  className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer ${
+                    theme === 'sapphire' ? 'bg-sky-400 text-slate-950 shadow-sm' : 'text-stone-300 hover:bg-surface'
+                  }`}
+                >
+                  🌊 {isArabic ? 'ياقوتي' : 'Sapphire'}
+                </button>
+                <button
+                  type="button"
                   onClick={() => handleThemeChange('light')}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
-                    theme === 'light' ? 'bg-primary text-on-primary shadow-sm' : 'text-muted'
+                  className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer ${
+                    theme === 'light' ? 'bg-teal-600 text-white shadow-sm' : 'text-stone-300 hover:bg-surface'
                   }`}
                 >
                   ☀️ {isArabic ? 'فاتح' : 'Light'}

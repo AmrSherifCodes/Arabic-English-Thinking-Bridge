@@ -1,14 +1,20 @@
 (function () {
   try {
-    var saved = localStorage.getItem('tb.theme');
+    var saved = localStorage.getItem('tb.theme') || 'dark';
     var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    document.documentElement.classList.remove('dark', 'light', 'theme-emerald', 'theme-sapphire');
+
     if (saved === 'light' || (!saved && !prefersDark)) {
       document.documentElement.classList.add('light');
-      document.documentElement.classList.remove('dark');
       document.documentElement.style.colorScheme = 'light';
+    } else if (saved === 'emerald') {
+      document.documentElement.classList.add('dark', 'theme-emerald');
+      document.documentElement.style.colorScheme = 'dark';
+    } else if (saved === 'sapphire') {
+      document.documentElement.classList.add('dark', 'theme-sapphire');
+      document.documentElement.style.colorScheme = 'dark';
     } else {
       document.documentElement.classList.add('dark');
-      document.documentElement.classList.remove('light');
       document.documentElement.style.colorScheme = 'dark';
     }
   } catch (e) {}

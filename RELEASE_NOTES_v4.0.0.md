@@ -3,6 +3,7 @@
 
 **Release date:** 2026-11-05
 **Web App:** https://tb-eg.vercel.app
+**Single Android Release:** Thinking-Bridge-v4.0.0.apk
 **Repository:** https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge
 **Constitution:** https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/blob/main/CONSTITUTION.md
 
@@ -14,21 +15,16 @@ Pre-modern Arab scholars were the world's bridge-builders: they carried Greek, P
 
 ## What's in v4.0.0
 
-### Fixed
-- All 15 language dictionaries now correctly ship in the production bundle (confirmed live at tb-eg.vercel.app — code-split dictionary chunks)
-- Boot sequence gates React DOM rendering on dictionary resolution, avoiding empty lesson states on cold start
-- Canonical URLs, Open Graph tags, and JSON-LD schema corrected to `https://tb-eg.vercel.app`
-- `og-image.jpg`, `sitemap.xml`, and `manifest.webmanifest` return 200 with optimized content
-- Theme initialization honors OS dark/light preference when no user choice is saved
-- API endpoints use allowlist CORS instead of wildcard-with-credentials
-- `/api/feedback` and `/api/review` report `webhookFailed` status honestly instead of masking Discord errors
-
-### Added
-- Live audit test suite (test #8 health, test #9 webhook)
-- Production build artifact assertion in CI
-- Boot-time dictionary preloading with graceful fallback
-- SRS card resolution now resolves to real terms from dictionaries
-- `preloadDictionaries` helper for pre-fetching target languages
+### Fixed & Enhanced
+- **Single Unified Android Build**: 1 clean, optimized Capacitor Android release build (`Thinking-Bridge-v4.0.0.apk`) with synced web assets.
+- **Multiple Theme Color Palettes**: Added 4 customizable theme palettes in Settings:
+  - 🌙 **Midnight Obsidian** (Deep Dark Mode)
+  - 🌿 **Pan-Arab Emerald** (Rich Olive & Mint)
+  - 🌊 **Mediterranean Sapphire** (Ocean Blue)
+  - ☀️ **Light Parchment** (High Contrast Light Mode)
+- **Responsive Desktop & Mobile UI**: Refactored Onboarding Modal with 4-column side-by-side desktop layout and high-accessibility primary action buttons.
+- **Secure Serverless Webhooks**: Removed hardcoded webhooks from source code; feedback now routes strictly through Vercel serverless environment variables.
+- **Clean Vercel Builds**: Configured trusted dependencies and increased chunk limits for zero-warning production deployments.
 
 ### Attribution
 Built on the *Thinking Method* of **Mihalis Eleftheriou** and **[Language Transfer](https://www.languagetransfer.org/)** — the pedagogical foundation this project would not exist without.

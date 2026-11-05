@@ -37,8 +37,52 @@
   --color-danger: #EF4444;
 }
 
+/* Emerald Olive Theme (Pan-Arab Emerald) */
+html.theme-emerald {
+  --bg: #0B130E;
+  --surface: #111E16;
+  --border: #1E3326;
+  --text: #ECFDF5;
+  --muted: #86EFAC;
+  --accent-teal: #10B981;
+  --secondary-amber: #34D399;
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: #192D21;
+  --color-border: var(--border);
+  --color-text: var(--text);
+  --color-text-soft: #D1FAE5;
+  --color-muted: var(--muted);
+  --color-primary: #10B981;
+  --color-on-primary: #064E3B;
+  --color-success: #34D399;
+  --color-danger: #F87171;
+}
+
+/* Sapphire Ocean Theme (Mediterranean Sapphire) */
+html.theme-sapphire {
+  --bg: #0A111C;
+  --surface: #101B2B;
+  --border: #1E2E45;
+  --text: #F0F9FF;
+  --muted: #7DD3FC;
+  --accent-teal: #38BDF8;
+  --secondary-amber: #818CF8;
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: #19283D;
+  --color-border: var(--border);
+  --color-text: var(--text);
+  --color-text-soft: #E0F2FE;
+  --color-muted: var(--muted);
+  --color-primary: #38BDF8;
+  --color-on-primary: #0C4A6E;
+  --color-success: #34D399;
+  --color-danger: #F87171;
+}
+
+/* Light Theme Tokens */
 html.light {
-  /* Light Theme Tokens */
   --bg: #F7FAF9;
   --surface: #FFFFFF;
   --border: #C9D4D5;
@@ -53,8 +97,8 @@ html.light {
   --color-text: var(--text);
   --color-text-soft: #1F2937;
   --color-muted: var(--muted);
-  --color-primary: #805800;
-  --color-on-primary: #111827;
+  --color-primary: #0F766E;
+  --color-on-primary: #FFFFFF;
   --color-success: #047857;
   --color-danger: #DC2626;
 }
