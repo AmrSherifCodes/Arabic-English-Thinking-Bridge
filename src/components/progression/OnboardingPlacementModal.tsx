@@ -139,10 +139,10 @@ export function OnboardingPlacementModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-bg/95 backdrop-blur-2xl flex items-center justify-center p-3 sm:p-4"
+      className="fixed inset-0 z-50 bg-bg/95 backdrop-blur-2xl flex items-center justify-center p-3 sm:p-4 md:p-6"
       dir={isArabic ? 'rtl' : 'ltr'}
     >
-      <div className="w-full h-[100dvh] flex flex-col sm:h-auto sm:max-h-[92vh] sm:max-w-[540px] sm:rounded-3xl bg-surface/95 border border-border p-5 sm:p-6 space-y-4 sm:space-y-5 text-start shadow-2xl overflow-hidden">
+      <div className="w-full h-[100dvh] flex flex-col sm:h-auto sm:max-h-[92vh] max-w-[95vw] md:max-w-[720px] lg:max-w-[860px] sm:rounded-3xl bg-surface/95 border border-border p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-5 text-start shadow-2xl overflow-hidden">
         {profileCreated ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-5 py-10 text-center" role="status" aria-live="polite">
             <div className="w-16 h-16 rounded-full bg-teal-500/20 border border-teal-400 text-teal-400 flex items-center justify-center text-3xl">
@@ -190,72 +190,75 @@ export function OnboardingPlacementModal({
                 </p>
               </div>
 
-              {/* Source Language (L1) */}
-              <div>
-                <p className="text-xs font-bold text-teal-400 mb-2 uppercase tracking-wider">
-                  {isArabic ? '١. لغتي الأم / لهجتي الحالية (L1)' : '1. My native language / dialect (L1)'}
-                </p>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                  {(Object.keys(SOURCE_LANGUAGES) as SourceLanguage[]).map((code) => {
-                    const meta = SOURCE_LANGUAGES[code];
-                    const selected = selectedSource === code;
-                    return (
-                      <button
-                        key={code}
-                        type="button"
-                        onClick={() => {
-                          setSelectedSource(code);
-                          if (selectedTarget === code) {
-                            const next = (Object.keys(TARGET_LANGUAGE_META) as TargetLanguage[]).find((t) => t !== code);
-                            if (next) setSelectedTarget(next);
-                          }
-                        }}
-                        className={`p-2.5 min-h-[48px] rounded-2xl border text-xs font-bold transition flex items-center justify-between gap-1.5 cursor-pointer ${
-                          selected
-                            ? 'bg-teal-500/15 border-teal-400 text-teal-300 shadow-md ring-1 ring-teal-400/50'
-                            : 'bg-surface border-border text-text hover:border-teal-500/30'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2 min-w-0">
-                          <LanguageFlag code={code} size={18} />
-                          <span className="truncate">{isArabic ? meta.nameAr : meta.nameEn}</span>
-                        </div>
-                        {selected && <Check size={14} className="text-teal-400 shrink-0" />}
-                      </button>
-                    );
-                  })}
+              {/* Side-by-Side Container on Desktop (md+) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
+                {/* Source Language (L1) */}
+                <div>
+                  <p className="text-xs font-bold text-teal-400 mb-2 uppercase tracking-wider">
+                    {isArabic ? '١. لغتي الأم / لهجتي الحالية (L1)' : '1. My native language / dialect (L1)'}
+                  </p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                    {(Object.keys(SOURCE_LANGUAGES) as SourceLanguage[]).map((code) => {
+                      const meta = SOURCE_LANGUAGES[code];
+                      const selected = selectedSource === code;
+                      return (
+                        <button
+                          key={code}
+                          type="button"
+                          onClick={() => {
+                            setSelectedSource(code);
+                            if (selectedTarget === code) {
+                              const next = (Object.keys(TARGET_LANGUAGE_META) as TargetLanguage[]).find((t) => t !== code);
+                              if (next) setSelectedTarget(next);
+                            }
+                          }}
+                          className={`p-2.5 min-h-[48px] rounded-2xl border text-xs font-bold transition flex items-center justify-between gap-1.5 cursor-pointer ${
+                            selected
+                              ? 'bg-teal-500/15 border-teal-400 text-teal-300 shadow-md ring-1 ring-teal-400/50'
+                              : 'bg-surface border-border text-text hover:border-teal-500/30'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 min-w-0">
+                            <LanguageFlag code={code} size={18} />
+                            <span className="truncate">{isArabic ? meta.nameAr : meta.nameEn}</span>
+                          </div>
+                          {selected && <Check size={14} className="text-teal-400 shrink-0" />}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
 
-              {/* Target Language (L2) */}
-              <div>
-                <p className="text-xs font-bold text-teal-400 mb-2 uppercase tracking-wider">
-                  {isArabic ? '٢. اللغة التي أريد التفكير بها (L2)' : '2. Language I want to think in (L2)'}
-                </p>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                  {availableTargets.map((code) => {
-                    const meta = TARGET_LANGUAGE_META[code];
-                    const selected = selectedTarget === code;
-                    return (
-                      <button
-                        key={code}
-                        type="button"
-                        onClick={() => setSelectedTarget(code)}
-                        aria-pressed={selected}
-                        className={`p-2.5 min-h-[48px] rounded-2xl border text-xs font-bold transition flex items-center justify-between gap-1.5 cursor-pointer ${
-                          selected
-                            ? 'bg-teal-500/15 border-teal-400 text-teal-300 shadow-md ring-1 ring-teal-400/50'
-                            : 'bg-surface border-border text-text hover:border-teal-500/30'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2 min-w-0">
-                          <LanguageFlag code={code} size={18} />
-                          <span className="truncate font-bold text-text">{meta.nameNative}</span>
-                        </div>
-                        {selected && <Check size={14} className="text-teal-400 shrink-0" />}
-                      </button>
-                    );
-                  })}
+                {/* Target Language (L2) */}
+                <div>
+                  <p className="text-xs font-bold text-teal-400 mb-2 uppercase tracking-wider">
+                    {isArabic ? '٢. اللغة التي أريد التفكير بها (L2)' : '2. Language I want to think in (L2)'}
+                  </p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                    {availableTargets.map((code) => {
+                      const meta = TARGET_LANGUAGE_META[code];
+                      const selected = selectedTarget === code;
+                      return (
+                        <button
+                          key={code}
+                          type="button"
+                          onClick={() => setSelectedTarget(code)}
+                          aria-pressed={selected}
+                          className={`p-2.5 min-h-[48px] rounded-2xl border text-xs font-bold transition flex items-center justify-between gap-1.5 cursor-pointer ${
+                            selected
+                              ? 'bg-teal-500/15 border-teal-400 text-teal-300 shadow-md ring-1 ring-teal-400/50'
+                              : 'bg-surface border-border text-text hover:border-teal-500/30'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 min-w-0">
+                            <LanguageFlag code={code} size={18} />
+                            <span className="truncate font-bold text-text">{meta.nameNative}</span>
+                          </div>
+                          {selected && <Check size={14} className="text-teal-400 shrink-0" />}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             </div>
@@ -285,7 +288,7 @@ export function OnboardingPlacementModal({
                 </p>
               </div>
 
-              <div className="grid gap-2.5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
                 {goals.map((g) => {
                   const Icon = g.icon;
                   const isSelected = selectedGoal === g.id;
@@ -349,7 +352,7 @@ export function OnboardingPlacementModal({
                 </p>
               </div>
 
-              <div className="grid gap-2">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5">
                 {cefrLevels.map((lvl) => {
                   const isSelected = selectedStage === lvl.id;
                   return (
