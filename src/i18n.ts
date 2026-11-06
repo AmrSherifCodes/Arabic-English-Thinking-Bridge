@@ -2,16 +2,17 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import en from './locales/en.json';
 import ar from './locales/ar.json';
+import tr from './locales/tr.json';
 
 /**
  * Detect browser language:
  * Defaults to Arabic ('ar') if browser language is Arabic or if in Arab region.
  */
-export function getInitialLanguage(): 'ar' | 'en' {
+export function getInitialLanguage(): 'ar' | 'en' | 'tr' {
   if (typeof window === 'undefined') return 'ar';
   try {
     const stored = window.localStorage.getItem('tb.language');
-    if (stored === 'ar' || stored === 'en') return stored;
+    if (stored === 'ar' || stored === 'en' || stored === 'tr') return stored as 'ar' | 'en' | 'tr';
     
     // Check user profile if set
     const userProfileStr = window.localStorage.getItem('tb.userProfile');
@@ -36,7 +37,8 @@ void i18n
   .init({
     resources: {
       en: { translation: en },
-      ar: { translation: ar }
+      ar: { translation: ar },
+      tr: { translation: tr }
     },
     lng: initialLang,
     fallbackLng: 'ar',
@@ -55,6 +57,7 @@ i18n.on('languageChanged', (lng) => {
   if (typeof document !== 'undefined') {
     document.documentElement.dir = lng === 'ar' ? 'rtl' : 'ltr';
     document.documentElement.lang = lng;
+    window.localStorage.setItem('tb.language', lng);
   }
 });
 

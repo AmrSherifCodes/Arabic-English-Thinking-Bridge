@@ -1,6 +1,6 @@
 import { ProgressionState, SrsItemRecord, Quest } from './types';
 import { PREBUILT_DECKS } from '../data/prebuiltDecks';
-import { getTargetDictionary } from '../data/dictionaries';
+import { getTargetDictionary, getTargetDictionaryAsync } from '../data/dictionaries';
 
 export const MAX_STATE_SIZE_BYTES = 65536; // 64 KB limit
 

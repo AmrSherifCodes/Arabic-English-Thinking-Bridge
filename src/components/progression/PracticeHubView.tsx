@@ -8,6 +8,8 @@ interface PracticeHubViewProps {
   onOpenVoice: () => void;
   onOpenFlashcards: () => void;
   onOpenCorporate: () => void;
+  onOpenMaintenance?: () => void;
+  onOpenPronunciation?: () => void;
   isArabic?: boolean;
 }
 
@@ -16,6 +18,8 @@ export function PracticeHubView({
   onOpenVoice,
   onOpenFlashcards,
   onOpenCorporate,
+  onOpenMaintenance,
+  onOpenPronunciation,
   isArabic = true,
 }: PracticeHubViewProps) {
   const dueItems = getDueSrsQueue(state.srsItems, state.dailyCardsCap);
@@ -95,6 +99,48 @@ export function PracticeHubView({
           </div>
           <Briefcase className="text-blue-400 shrink-0" size={28} />
         </button>
+
+        {/* Mode 4: Local Pronunciation Recorder */}
+        {onOpenPronunciation && (
+          <button
+            onClick={onOpenPronunciation}
+            className="p-4 rounded-3xl bg-stone-900 border border-purple-500/40 hover:border-purple-400 transition text-start shadow-md flex items-center justify-between"
+          >
+            <div className="space-y-1">
+              <div className="flex items-center gap-1.5 text-purple-400 font-bold text-xs">
+                <Zap size={14} />
+                <span>{isArabic ? 'بدون إنترنت · Offline' : 'Local Only'}</span>
+              </div>
+              <h3 className="font-black text-sm text-white">
+                {isArabic ? 'مُسجّل النطق المحلّي' : 'Local Pronunciation Recorder'}
+              </h3>
+              <p className="text-xs text-stone-400">
+                {isArabic ? 'سجّل صوتك واستمع إليه محلياً بدون إرساله لأي خادم' : 'Record and check your voice on-device'}
+              </p>
+            </div>
+          </button>
+        )}
+
+        {/* Mode 5: Low-End Phone Maintenance Guide */}
+        {onOpenMaintenance && (
+          <button
+            onClick={onOpenMaintenance}
+            className="p-4 rounded-3xl bg-stone-900 border border-emerald-500/40 hover:border-emerald-400 transition text-start shadow-md flex items-center justify-between"
+          >
+            <div className="space-y-1">
+              <div className="flex items-center gap-1.5 text-emerald-400 font-bold text-xs">
+                <Zap size={14} />
+                <span>{isArabic ? 'تحسين الأداء · Hardware Optimization' : 'Phone Maintenance'}</span>
+              </div>
+              <h3 className="font-black text-sm text-white">
+                {isArabic ? 'دليل صيانة وتسريع الهاتف' : 'Low-End Device Maintenance'}
+              </h3>
+              <p className="text-xs text-stone-400">
+                {isArabic ? '7 خطوات تفاعلية لإطالة عمر هاتفك وتسريعه' : '7 interactive steps to optimize low-end phones'}
+              </p>
+            </div>
+          </button>
+        )}
       </div>
     </div>
   );

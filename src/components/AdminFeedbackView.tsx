@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { GoogleGenAI } from '@google/genai';
 import { ArrowLeft, BookOpen, Bug, Lightbulb, RefreshCw, Sparkles, Trash2 } from 'lucide-react';
+import { RTLIcon } from './RTLIcon';
 import { getUserGeminiKey } from '../services/geminiLexicon';
 import { consumeDailyApiQuota } from '../utils/apiQuota';
 
@@ -119,7 +120,7 @@ export function AdminFeedbackView({ onBack, isArabic = true }: AdminFeedbackView
       <header className="flex items-center justify-between border-b border-stone-800 pb-4">
         <div className="flex items-center gap-3">
           <button type="button" onClick={onBack} aria-label={isArabic ? 'رجوع' : 'Back'} className="rounded-xl border border-stone-800 bg-stone-900 p-2.5 text-stone-300 hover:text-white">
-            <ArrowLeft size={18} />
+            <RTLIcon icon={ArrowLeft} size={18} />
           </button>
           <div>
             <h1 className="text-lg font-black text-white">{isArabic ? 'ملاحظات هذا الجهاز' : 'Feedback on this device'}</h1>
