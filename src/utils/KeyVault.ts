@@ -2,6 +2,7 @@
  * KeyVault.ts
  * Implements local-only, AES-GCM encryption for BYOK Gemini API Keys.
  */
+import { safeLocalStorageGetItem, safeLocalStorageSetItem } from './storage';
 
 export class KeyVault {
   // Exported for testing so we can verify 'extractable: false'
@@ -47,11 +48,11 @@ export class KeyVault {
       ciphertext: Array.from(new Uint8Array(ciphertext))
     };
 
-    localStorage.setItem('tb_secure_vault', JSON.stringify(bundle));
+    safeLocalStorageSetItem('tb_secure_vault', JSON.stringify(bundle));
   }
 
   public static async decrypt(passphrase: string): Promise<string | null> {
-    const data = localStorage.getItem('tb_secure_vault');
+    const data = safeLocalStorageGetItem('tb_secure_vault');
     if (!data) return null;
 
     try {
@@ -69,13 +70,13 @@ export class KeyVault {
 
       const dec = new TextDecoder();
       return dec.decode(decryptedBuffer);
-    } catch (e) {
+    } catch {
       console.error('Decryption failed. Incorrect passphrase or corrupted vault.');
       return null; // Do not throw
     }
   }
 
   public static isVaultConfigured(): boolean {
-    return localStorage.getItem('tb_secure_vault') !== null;
+    return safeLocalStorageGetItem('tb_secure_vault') !== null;
   }
 }

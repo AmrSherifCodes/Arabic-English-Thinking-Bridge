@@ -14,6 +14,29 @@ const MENTOR_QUESTIONS_KEY = 'thinking_english_mentor_q_v1';
 const BROADCASTS_KEY = 'thinking_english_broadcasts_v2';
 const TEACHER_PIN_KEY = 'thinking_english_teacher_pin_v2';
 
+export function safeLocalStorageGetItem(key: string): string | null {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+export function safeLocalStorageSetItem(key: string, value: string): boolean {
+  try {
+    localStorage.setItem(key, value);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function safeLocalStorageRemoveItem(key: string): void {
+  try {
+    localStorage.removeItem(key);
+  } catch {}
+}
+
 export const TEACHER_PIN = '';
 export const DEFAULT_PIN = TEACHER_PIN;
 
