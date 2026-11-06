@@ -699,3 +699,20 @@ export function getPairConfig(source: SourceLanguage, target: TargetLanguage): L
   // Fallback to default
   return SUPPORTED_PAIRS[0];
 }
+
+export function getLanguageFontFamily(langCode?: string): string {
+  if (!langCode) return 'inherit';
+  if (['ar', 'arz', 'apc', 'afb', 'ary', 'ar-EG', 'ar-MA', 'ar-SD', 'ar-SA', 'ar-SY', 'ar-IQ', 'ar-YE'].includes(langCode)) {
+    return "'Cairo', 'Tajawal', 'Readex Pro', sans-serif";
+  }
+  if (langCode === 'ja') {
+    return "'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', 'Meiryo', sans-serif";
+  }
+  if (langCode === 'zh') {
+    return "'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif";
+  }
+  if (langCode === 'hi') {
+    return "'Noto Sans Devanagari', 'Kohinoor Devanagari', sans-serif";
+  }
+  return "'Inter', 'Readex Pro', system-ui, -apple-system, sans-serif";
+}

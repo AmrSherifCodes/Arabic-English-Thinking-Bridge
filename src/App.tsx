@@ -7,6 +7,7 @@ import { Download } from 'lucide-react';
 
 import { AppTab } from './components/navigation/AppShell';
 import { LandingPage } from './components/LandingPage';
+import { Onboarding } from './components/Onboarding';
 import { PwaInstallBanner } from './components/PwaInstallBanner';
 import { useUserProfile } from './hooks/useUserProfile';
 import { loadUserProgress } from './utils/storage';
@@ -94,7 +95,10 @@ export default function App() {
         }
       }
     } catch {}
-    // TASK 1 FIX: Always load LandingPage first on native Android and Web
+    // Option B: Native mobile apps (Capacitor Android/iOS) bypass marketing landing page completely
+    if (Capacitor.isNativePlatform()) {
+      return { name: 'shell' };
+    }
     return { name: 'landing' };
   });
 
@@ -326,8 +330,8 @@ export default function App() {
                   </div>
                   <p className="text-xs text-stone-200 font-medium leading-relaxed">
                     {isArabic
-                      ? 'أضف مفتاح Google Gemini API المجاني الخاص بك لتفعيل التدريب الصوتي، وتصدير Anki، والمحادثات المفتوحة.'
-                      : 'Add your free Google Gemini API key to enable Voice Practice, Anki Export, and unlimited AI conversations.'}
+                      ? 'أضف مفتاح Google Gemini API المجاني الخاص بك لتفعيل التدريب الصوتي والمحادثات المفتوحة.'
+                      : 'Add your free Google Gemini API key to enable Voice Practice and unlimited AI conversations.'}
                   </p>
                 </div>
               )}
@@ -421,9 +425,11 @@ export default function App() {
         <FlashcardsView
           profile={profile}
           progress={progress}
-          updateAndSaveProgress={() => {}}
+          updateAndSaveProgress={updateAndSaveProgress}
           onBack={goHome}
           onToast={(msg) => showToast(T(msg, msg))}
+          sourceLang={sourceLang}
+          targetLang={targetLang}
         />
       )}
 
@@ -487,47 +493,42 @@ export default function App() {
         />
       )}
 
-      {/* Onboarding & Placement Modal */}
-      <OnboardingPlacementModal
-        isOpen={onboardingOpen}
-        onComplete={(goal, dailyMin, stage, source, target) => {
-          setPair(source, target);
-          saveProfile({
-            language: profile?.language || 'arabic',
-            dialect: profile?.dialect || 'egyptian',
-            level: profile?.level || 'beginner',
-            ...profile,
-            goal: (goal === 'corporate'
-              ? 'business'
-              : ['academic', 'travel', 'business', 'work', 'general', 'daily'].includes(goal)
-                ? goal
-                : 'general') as LearningGoal,
-            sourceLanguage: source,
-            targetLanguage: target,
-          });
-          updateProgression((p) => ({
-            ...p,
-            dailyDailyTargetMin: dailyMin,
-            currentStage: stage,
-            currentUnitId: `${stage.toLowerCase()}-unit-1`,
-          }));
-          setOnboardingOpen(false);
-          const goalLabel =
-            goal === 'work'
-              ? 'الشغل والشركات 💼'
-              : goal === 'travel'
-              ? 'السفر والتواصل ✈️'
-              : goal === 'study'
-              ? 'الدراسة والأبحاث 🎓'
-              : goal === 'corporate'
-              ? 'الشغل والشركات 💼'
-              : 'الطلاقة التلقائية 🚀';
-          showToast(T(`🚀 تم تخصيص المسار والمحتوى خصيصاً لهدفك: ${goalLabel}`, `Path tailored for: ${goalLabel}`));
-        }}
-        isArabic={isArabic}
-        initialSource={sourceLang}
-        initialTarget={targetLang}
-      />
+      {/* Game-Style Diagnostic Onboarding Modal */}
+      {onboardingOpen && (
+        <Onboarding
+          initialProfile={profile}
+          onComplete={(newProfile, extraData) => {
+            saveProfile({
+              ...profile,
+              ...newProfile,
+            });
+            const stage: CefrStage = extraData?.diagnosticLevel === 'intermediate' ? 'A2' : 'A0';
+            updateProgression((p) => ({
+              ...p,
+              currentStage: stage,
+              currentUnitId: `${stage.toLowerCase()}-unit-1`,
+            }));
+            try {
+              const activeConfig = {
+                cefrLevel: stage,
+                targetLang: newProfile.targetLanguage || 'en',
+                sourceLang: newProfile.sourceLanguage || 'arz',
+                focusArea: newProfile.goal || 'general',
+                diagnosticOrigin: extraData?.diagnosticLevel || 'beginner',
+              };
+              localStorage.setItem('tb.activeProfileConfig', JSON.stringify(activeConfig));
+            } catch (err) {
+              console.warn('Unable to persist active profile config locally.', err);
+            }
+            setOnboardingOpen(false);
+            const toastMsg = extraData?.diagnosticLevel === 'intermediate'
+              ? T('🚀 تم تخصيص جسر التفكير — موقعك A2 (جسر B1)', "🚀 Mission initialized — you're at A2 (B1 Bridge)")
+              : T('🚀 تم تخصيص جسر التفكير وانطلقت اللعبة!', 'Mission initialized! Game Started 🚀');
+            showToast(toastMsg);
+          }}
+          onCancel={() => setOnboardingOpen(false)}
+        />
+      )}
 
       {/* Language Selector Modal */}
       <LanguageSelectorModal

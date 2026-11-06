@@ -83,6 +83,26 @@ test('calculateSM2 computes canonical interval progression I(1)=1, I(2)=6, I(n)=
   assert.equal(rep4.reps, 4);
   assert.equal(rep4.int, Math.round(15 * 2.5)); // 38 days
   assert.equal(rep4.due, now + 38 * ONE_DAY_MS);
+
+  // Fifth repetition, graded Good (q=4)
+  const rep5 = calculateSM2(rep4, 2, { now });
+  assert.equal(rep5.reps, 5);
+  assert.equal(rep5.int, Math.round(38 * 2.5)); // 95 days
+  assert.equal(rep5.due, now + 95 * ONE_DAY_MS);
+});
+
+test('calculateSM2 5 consecutive Good ratings produces interval progression 1 -> 6 -> 15 -> 38 -> 95', () => {
+  const now = 1700000000000;
+  const g1 = calculateSM2(undefined, 2, { now });
+  assert.equal(g1.int, 1);
+  const g2 = calculateSM2(g1, 2, { now });
+  assert.equal(g2.int, 6);
+  const g3 = calculateSM2(g2, 2, { now });
+  assert.equal(g3.int, 15);
+  const g4 = calculateSM2(g3, 2, { now });
+  assert.equal(g4.int, 38);
+  const g5 = calculateSM2(g4, 2, { now });
+  assert.equal(g5.int, 95);
 });
 
 test('calculateSM2 handles lapse / failure (Again, q < 3) by resetting repetitions and incrementing lapses', () => {
@@ -101,7 +121,12 @@ test('calculateSM2 handles lapse / failure (Again, q < 3) by resetting repetitio
   assert.equal(failed.int, 0); // Intraday review
   assert.equal(failed.lapses, 1); // Lapses incremented
   assert.equal(failed.due, now + TEN_MINUTES_MS);
-  assert.ok(failed.ease < 2.5); // Ease factor dropped
+  assert.equal(failed.ease, 1.96); // Ease factor dropped by 0.54 (>= 0.20)
+
+  // Verify clamping at MIN_EASE (1.3)
+  const lowEaseCard = { ease: 1.4, int: 5, reps: 2, lapses: 2, due: now, nextReviewDate: now };
+  const failedLow = calculateSM2(lowEaseCard, 0, { now });
+  assert.equal(failedLow.ease, MIN_EASE);
 });
 
 test('calculateSM2 supports explicit quality rating q in [0, 5]', () => {

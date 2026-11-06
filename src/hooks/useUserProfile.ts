@@ -31,10 +31,12 @@ function readUserProfile(): UserProfile | null {
     if (!isUserProfile(parsed)) return null;
 
     const record = parsed as unknown as UserProfile;
-    return {
+    // Migration: enforce 'arabic' UI for Arabic-speaking learners with legacy 'english' UI setting
+    const uiLang = record.language === 'english' ? 'arabic' : (record.language ?? 'arabic');
+    const migrated: UserProfile = {
       ...record,
       name: typeof record.name === 'string' ? record.name.trim() : undefined,
-      language: record.language ?? 'arabic',
+      language: uiLang,
       dialect: record.dialect ?? 'egyptian',
       level: record.level ?? 'beginner',
       learningStyle: typeof record.learningStyle === 'string' && VALID_STYLES.includes(record.learningStyle)
@@ -42,6 +44,16 @@ function readUserProfile(): UserProfile | null {
         : 'visual',
       focusArea: typeof record.focusArea === 'string' ? record.focusArea : 'daily-speech'
     };
+
+    if (record.language === 'english') {
+      try {
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
+      } catch {
+        /* noop */
+      }
+    }
+
+    return migrated;
   } catch {
     return null;
   }

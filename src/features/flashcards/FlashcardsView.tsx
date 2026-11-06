@@ -153,6 +153,8 @@ export function FlashcardsView({
       {engine.activeDeckId === null ? (
         <DeckListView
           profile={profile}
+          sourceLang={sourceLang}
+          targetLang={targetLang}
           coreDecks={coreDecks}
           expandedDecks={activeExpandedDecks}
           prebuiltDecks={activePrebuiltDecks}
@@ -166,6 +168,8 @@ export function FlashcardsView({
       ) : (
         <ReviewView
           profile={profile}
+          sourceLang={sourceLang}
+          targetLang={targetLang}
           deckName={activeDeckTitle}
           deckStats={engine.getDeckStats(engine.activeDeckId)}
           activeQueue={engine.reviewQueue || []}

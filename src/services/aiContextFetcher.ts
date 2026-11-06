@@ -67,3 +67,22 @@ function isAIContextData(value: unknown): value is AIContextData {
     typeof data.coachPersonality === 'string' &&
     typeof data.updatedAt === 'string';
 }
+
+export function getAICompanionPrompt(): string {
+  if (typeof localStorage === 'undefined') return '';
+  try {
+    const companion = localStorage.getItem('tb.aiCompanion');
+    if (companion === 'strict') {
+      return '\nAI Companion Style: You are a strict teacher. Correct every grammatical error immediately and explain why.';
+    }
+    if (companion === 'chill') {
+      return '\nAI Companion Style: You are a chill friend. Focus on conversational flow, do not interrupt to correct minor grammar unless it breaks understanding.';
+    }
+    if (companion === 'analyst') {
+      return '\nAI Companion Style: You are a smart analyst. Break down the sentence structure and explain the logic behind the syntax.';
+    }
+  } catch {
+    /* noop */
+  }
+  return '';
+}

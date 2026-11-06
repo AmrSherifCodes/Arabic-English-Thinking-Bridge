@@ -14,6 +14,10 @@ export interface DeckStats {
   learningCount: number;
   dueCount: number;
   totalCards: number;
+  cappedNewCount: number;
+  cappedLearningCount: number;
+  cappedDueCount: number;
+  cappedTotal: number;
 }
 
 export interface FlashcardItemData {

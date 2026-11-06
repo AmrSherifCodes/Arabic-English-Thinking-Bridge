@@ -178,10 +178,36 @@ export const getDeckStats = (
     if (!sched) {
       newCount++;
     } else if ((sched.nextReviewDate ?? sched.due) <= now) {
-      dueCount++;
+      if (sched.reps === 0 || sched.int < 1) {
+        learningCount++;
+      } else {
+        dueCount++;
+      }
     } else if (sched.reps === 0 || sched.int < 1) {
       learningCount++;
     }
   }
-  return { newCount, learningCount, dueCount, totalCards: keys.length };
+
+  const cappedLearningCount = Math.min(learningCount, 20);
+  const cappedDueCount = Math.min(dueCount, 100);
+  const cappedNewCount = Math.min(newCount, 20);
+
+  const totalDue = dueCount + learningCount;
+  let cappedTotal = 0;
+  if (totalDue > 0) {
+    cappedTotal = Math.min(totalDue, 100);
+  } else if (newCount > 0) {
+    cappedTotal = Math.min(newCount, 20);
+  }
+
+  return {
+    newCount,
+    learningCount,
+    dueCount,
+    totalCards: keys.length,
+    cappedNewCount,
+    cappedLearningCount,
+    cappedDueCount,
+    cappedTotal
+  };
 };

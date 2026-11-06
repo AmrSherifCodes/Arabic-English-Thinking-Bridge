@@ -1,282 +1,513 @@
+import React, { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useState } from 'react';
-import { UserProfile } from '../hooks/useUserProfile';
-import { isArabicUI, uiText } from '../utils/i18n';
-import { BouncyButton } from './BouncyButton';
+import {
+  Briefcase,
+  Plane,
+  Clapperboard,
+  GraduationCap,
+  Bot,
+  Smile,
+  Brain,
+  CheckCircle2,
+  Sparkles,
+  ArrowRight,
+  ArrowLeft,
+  Zap,
+} from 'lucide-react';
+import { UserProfile, LearningGoal } from '../types';
 
 interface OnboardingProps {
   initialProfile?: UserProfile | null;
-  onComplete: (profile: UserProfile) => void;
+  onComplete: (
+    profile: UserProfile,
+    extraData?: { companion: 'strict' | 'chill' | 'analyst'; diagnosticLevel: 'beginner' | 'intermediate' | 'advanced' }
+  ) => void;
   onCancel?: () => void;
 }
 
-const CHOICE_CLASS =
-  'w-full rounded-2xl border border-white/20 bg-white/10 px-5 py-4 text-left text-base font-semibold text-white transition-colors hover:border-olive-300 hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive-300';
-
 export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingProps) {
   const [step, setStep] = useState(0);
-  const [language, setLanguage] = useState<UserProfile['language']>(
-    initialProfile?.language ?? 'arabic'
-  );
-  const [dialect, setDialect] = useState<UserProfile['dialect']>(
-    initialProfile?.dialect ?? 'egyptian'
-  );
-  const [level, setLevel] = useState<UserProfile['level']>(
-    initialProfile?.level ?? 'beginner'
-  );
-  const [error, setError] = useState<string | null>(null);
+  const [direction, setDirection] = useState(1); // 1 = forward, -1 = back
 
-  const rtl = step > 0 && isArabicUI(language);
-  const t = (en: string, ar: string) => (step === 0 ? `${en} · ${ar}` : uiText(language, en, ar));
-  const choiceAlignClass = rtl ? `${CHOICE_CLASS} text-right` : CHOICE_CLASS;
+  // Game onboarding choices state
+  const [selectedMission, setSelectedMission] = useState<LearningGoal>(
+    initialProfile?.goal || 'business'
+  );
+  const [diagnosticLevel, setDiagnosticLevel] = useState<'beginner' | 'intermediate' | 'advanced'>(
+    initialProfile?.level || 'beginner'
+  );
+  const [companion, setCompanion] = useState<'strict' | 'chill' | 'analyst'>('chill');
+  const [diagnosticSelected, setDiagnosticSelected] = useState<string | null>(null);
 
-  const completeOnboarding = (selectedGoal: UserProfile['goal']) => {
+  const goToNextStep = (nextDir = 1) => {
+    setDirection(nextDir);
+    setStep((prev) => Math.min(prev + 1, 3));
+  };
+
+  const goToPrevStep = () => {
+    setDirection(-1);
+    setStep((prev) => Math.max(prev - 1, 0));
+  };
+
+  const handleFinish = () => {
+    const updatedProfile: UserProfile = {
+      language: 'arabic', // Arabic UI
+      dialect: 'egyptian',
+      level: diagnosticLevel,
+      goal: selectedMission,
+      sourceLanguage: 'arz',
+      targetLanguage: 'en',
+    };
+
+    // Save companion preference locally
     try {
-      onComplete({ language, dialect, level, goal: selectedGoal });
+      localStorage.setItem('tb.aiCompanion', companion);
     } catch {
-      setError(
-        uiText(
-          language,
-          'We couldn’t save your profile. Check browser storage and try again.',
-          'تعذر حفظ ملفك الشخصي. يرجى التحقق من مساحة تخزين المتصفح والمحاولة مرة أخرى.'
-        )
-      );
+      /* noop */
     }
+
+    onComplete(updatedProfile, { companion, diagnosticLevel });
+  };
+
+  const slideVariants = {
+    enter: (dir: number) => ({
+      x: dir > 0 ? 120 : -120,
+      opacity: 0,
+      scale: 0.95,
+    }),
+    center: {
+      x: 0,
+      opacity: 1,
+      scale: 1,
+    },
+    exit: (dir: number) => ({
+      x: dir < 0 ? 120 : -120,
+      opacity: 0,
+      scale: 0.95,
+    }),
   };
 
   return (
     <div
-      dir={rtl ? 'rtl' : 'ltr'}
-      className="fixed inset-0 z-50 flex min-h-dvh items-center justify-center overflow-y-auto bg-cover bg-center p-4"
-      style={{
-        backgroundImage:
-          "linear-gradient(rgba(12, 16, 13, 0.86), rgba(12, 16, 13, 0.9)), url('/arabic-pattern.png')"
-      }}
+      dir="rtl"
+      className="fixed inset-0 z-50 h-screen w-screen overflow-hidden flex flex-col items-center justify-center bg-[#090D16] text-[#EEF2F5] p-4 select-none font-arabic"
     >
-      <div className="w-full max-w-md rounded-3xl border border-white/15 bg-stone-950/85 p-6 text-white shadow-2xl backdrop-blur-md sm:p-8">
-        <div className="mb-7 flex items-center justify-between gap-4">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-olive-300">
-              Thinking Bridge
-            </p>
-            <p className="mt-1 text-sm text-stone-300">
-              {step === 0
-                ? `Step 1 of 4 · الخطوة 1 من 4`
-                : uiText(language, `Step ${step + 1} of 4`, `الخطوة ${step + 1} من 4`)}
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="flex gap-1.5" aria-label={`Step ${step + 1} of 4`}>
-              {[0, 1, 2, 3].map(index => (
-                <span
-                  key={index}
-                  className={`h-1.5 w-7 rounded-full ${
-                    index <= step ? 'bg-olive-300' : 'bg-white/20'
-                  }`}
-                />
-              ))}
+      {/* Dynamic Ambient Glow Background */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[550px] rounded-full bg-gradient-to-tr from-teal-500/20 via-emerald-500/15 to-amber-500/10 blur-[100px] animate-pulse" />
+      </div>
+
+      {/* Main Game Container */}
+      <div className="w-full max-w-lg rounded-3xl border border-teal-500/30 bg-stone-900/90 p-6 sm:p-8 shadow-2xl backdrop-blur-xl relative z-10 overflow-hidden flex flex-col justify-between min-h-[520px]">
+        {/* Header Bar with Level Progress */}
+        <div className="flex items-center justify-between gap-4 mb-6 pb-4 border-b border-stone-800">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-xl bg-teal-500/20 border border-teal-500/40 flex items-center justify-center text-teal-300">
+              <Sparkles size={18} />
             </div>
-            {initialProfile && onCancel && (
-              <BouncyButton
-                type="button"
-                onClick={onCancel}
-                className="rounded-lg px-2 py-1 text-xs font-medium text-stone-300 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive-300"
-              >
-                {uiText(language, 'Cancel', 'إلغاء')}
-              </BouncyButton>
-            )}
+            <div>
+              <p className="text-xs font-black tracking-wider uppercase text-teal-400">
+                جسر التفكير · Thinking Bridge
+              </p>
+              <p className="text-[11px] text-stone-400 font-medium">
+                {step === 0 && 'المهمة الأولى · Step 1 of 4'}
+                {step === 1 && 'اختبار التفكير · Step 2 of 4'}
+                {step === 2 && 'رفيق الرحلة · Step 3 of 4'}
+                {step === 3 && 'انطلاق اللعبة · Ready'}
+              </p>
+            </div>
+          </div>
+
+          {/* Game Dots Progress */}
+          <div className="flex items-center gap-1.5" aria-label={`الخطوة ${step + 1} من 4`}>
+            {[0, 1, 2, 3].map((idx) => (
+              <span
+                key={idx}
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  idx === step
+                    ? 'w-7 bg-teal-400 shadow-lg shadow-teal-500/50'
+                    : idx < step
+                    ? 'w-2 bg-emerald-500'
+                    : 'w-2 bg-stone-700'
+                }`}
+              />
+            ))}
           </div>
         </div>
 
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.div
-            key={step}
-            initial={{ opacity: 0, x: 18 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -18 }}
-            transition={{ duration: 0.2 }}
-          >
-            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-              {step === 0 && t('What do you want to learn?', 'ماذا تريد أن تتعلم؟')}
-              {step === 1 &&
-                uiText(
-                  language,
-                  'Which Arabic dialect do you want to learn?',
-                  'أي لهجة عربية تفضل استخدامها في الأمثلة والشرح؟'
-                )}
-              {step === 2 &&
-                uiText(language, 'What is your current level?', 'ما هو مستواك الحالي؟')}
-              {step === 3 &&
-                uiText(language, 'Why are you learning?', 'ما هو هدفك الأساسي من التعلم؟')}
-            </h1>
-            <p className="mt-2 text-sm leading-relaxed text-stone-300">
-              {step === 0 &&
-                t(
-                  'Choose the language you want to focus on.',
-                  'اختر اللغة التي ترغب في التركيز عليها.'
-                )}
-              {step === 1 &&
-                uiText(
-                  language,
-                  'Choose Egyptian Arabic (Ammiya) or Modern Standard Arabic (MSA/Fusha).',
-                  'اختر العامية المصرية أو العربية الفصحى.'
-                )}
-              {step === 2 &&
-                uiText(
-                  language,
-                  'We’ll use this to help shape your learning path.',
-                  'سنستخدم هذا لتخصيص مسارك التعليمي.'
-                )}
-              {step === 3 &&
-                uiText(
-                  language,
-                  'Pick the goal that matters most to you.',
-                  'اختر الهدف الأكثر أهمية بالنسبة لك.'
-                )}
-            </p>
+        {/* Animated Card Body */}
+        <div className="relative flex-1 flex flex-col justify-center my-2">
+          <AnimatePresence mode="wait" custom={direction}>
+            {/* SCREEN 1: MISSION SELECTION */}
+            {step === 0 && (
+              <motion.div
+                key="step0"
+                custom={direction}
+                variants={slideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ duration: 0.3, ease: 'easeOut' }}
+                className="space-y-4 text-start"
+              >
+                <div>
+                  <h1 className="text-2xl sm:text-3xl font-black text-white leading-snug">
+                    اختر <span className="text-teal-400">مهمتك الأولى</span> 🎯
+                  </h1>
+                  <p className="text-xs sm:text-sm text-stone-300 mt-1">
+                    حدد المجال الذي تريد أن تفكر وتتحدث فيه بطلاقة أولاً:
+                  </p>
+                </div>
 
-            <div className="mt-6 grid gap-3">
-              {step === 0 && (
-                <>
-                  <BouncyButton
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                  <button
                     type="button"
-                    className={CHOICE_CLASS}
                     onClick={() => {
-                      setLanguage('english');
-                      setStep(1);
-                      setError(null);
+                      setSelectedMission('business');
+                      goToNextStep(1);
                     }}
+                    className={`p-4 rounded-2xl border text-start transition-all flex items-start gap-3 ${
+                      selectedMission === 'business'
+                        ? 'bg-teal-500/20 border-teal-400 text-white shadow-lg shadow-teal-500/10'
+                        : 'bg-stone-800/80 border-stone-700 text-stone-200 hover:border-teal-500/50 hover:bg-stone-800'
+                    }`}
                   >
-                    English (تعلم الإنجليزية — واجهة عربية)
-                  </BouncyButton>
-                  <BouncyButton
-                    type="button"
-                    className={CHOICE_CLASS}
-                    onClick={() => {
-                      setLanguage('arabic');
-                      setStep(1);
-                      setError(null);
-                    }}
-                  >
-                    Arabic (Learn Arabic — English UI)
-                  </BouncyButton>
-                </>
-              )}
-              {step === 1 && (
-                <>
-                  <BouncyButton
-                    type="button"
-                    className={choiceAlignClass}
-                    onClick={() => {
-                      setDialect('egyptian');
-                      setStep(2);
-                      setError(null);
-                    }}
-                  >
-                    {uiText(language, 'Egyptian (Ammiya) 🇪🇬', 'العامية المصرية 🇪🇬')}
-                  </BouncyButton>
-                  <BouncyButton
-                    type="button"
-                    className={choiceAlignClass}
-                    onClick={() => {
-                      setDialect('msa');
-                      setStep(2);
-                      setError(null);
-                    }}
-                  >
-                    {uiText(language, 'Standard (Fusha) 📖', 'العربية الفصحى 📖')}
-                  </BouncyButton>
-                </>
-              )}
-              {step === 2 && (
-                <>
-                  <BouncyButton
-                    type="button"
-                    className={choiceAlignClass}
-                    onClick={() => {
-                      setLevel('beginner');
-                      setStep(3);
-                      setError(null);
-                    }}
-                  >
-                    {uiText(language, 'Beginner', 'مبتدئ (Beginner)')}
-                  </BouncyButton>
-                  <BouncyButton
-                    type="button"
-                    className={choiceAlignClass}
-                    onClick={() => {
-                      setLevel('intermediate');
-                      setStep(3);
-                      setError(null);
-                    }}
-                  >
-                    {uiText(language, 'Intermediate', 'متوسط (Intermediate)')}
-                  </BouncyButton>
-                  <BouncyButton
-                    type="button"
-                    className={choiceAlignClass}
-                    onClick={() => {
-                      setLevel('advanced');
-                      setStep(3);
-                      setError(null);
-                    }}
-                  >
-                    {uiText(language, 'Advanced', 'متقدم (Advanced)')}
-                  </BouncyButton>
-                </>
-              )}
-              {step === 3 && (
-                <>
-                  <BouncyButton
-                    type="button"
-                    className={choiceAlignClass}
-                    onClick={() => {
-                      completeOnboarding('travel');
-                    }}
-                  >
-                    {uiText(language, 'Travel', 'السفر والتنقل (Travel)')}
-                  </BouncyButton>
-                  <BouncyButton
-                    type="button"
-                    className={choiceAlignClass}
-                    onClick={() => {
-                      completeOnboarding('work');
-                    }}
-                  >
-                    {uiText(language, 'Work', 'العمل وخدمة العملاء (Work)')}
-                  </BouncyButton>
-                  <BouncyButton
-                    type="button"
-                    className={choiceAlignClass}
-                    onClick={() => {
-                      completeOnboarding('general');
-                    }}
-                  >
-                    {uiText(language, 'General', 'تعلم عام ودراسة (General)')}
-                  </BouncyButton>
-                </>
-              )}
-            </div>
-          </motion.div>
-        </AnimatePresence>
+                    <div className="p-2 rounded-xl bg-teal-500/30 text-teal-300 shrink-0 mt-0.5">
+                      <Briefcase size={20} />
+                    </div>
+                    <div>
+                      <h2 className="text-sm font-bold">💼 عالم الأعمال</h2>
+                      <p className="text-[11px] text-stone-400 mt-0.5">إيميلات، اجتماعات، وتفاوض شركات</p>
+                    </div>
+                  </button>
 
-        {error && (
-          <p role="alert" className="mt-4 text-sm font-medium text-rose-300">
-            {error}
-          </p>
-        )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedMission('travel');
+                      goToNextStep(1);
+                    }}
+                    className={`p-4 rounded-2xl border text-start transition-all flex items-start gap-3 ${
+                      selectedMission === 'travel'
+                        ? 'bg-teal-500/20 border-teal-400 text-white shadow-lg shadow-teal-500/10'
+                        : 'bg-stone-800/80 border-stone-700 text-stone-200 hover:border-teal-500/50 hover:bg-stone-800'
+                    }`}
+                  >
+                    <div className="p-2 rounded-xl bg-amber-500/30 text-amber-300 shrink-0 mt-0.5">
+                      <Plane size={20} />
+                    </div>
+                    <div>
+                      <h2 className="text-sm font-bold">✈️ السفر والمغامرة</h2>
+                      <p className="text-[11px] text-stone-400 mt-0.5">المطارات، المطاعم، وحياة الخارج</p>
+                    </div>
+                  </button>
 
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedMission('general');
+                      goToNextStep(1);
+                    }}
+                    className={`p-4 rounded-2xl border text-start transition-all flex items-start gap-3 ${
+                      selectedMission === 'general'
+                        ? 'bg-teal-500/20 border-teal-400 text-white shadow-lg shadow-teal-500/10'
+                        : 'bg-stone-800/80 border-stone-700 text-stone-200 hover:border-teal-500/50 hover:bg-stone-800'
+                    }`}
+                  >
+                    <div className="p-2 rounded-xl bg-purple-500/30 text-purple-300 shrink-0 mt-0.5">
+                      <Clapperboard size={20} />
+                    </div>
+                    <div>
+                      <h2 className="text-sm font-bold">🎬 الأفلام والميديا</h2>
+                      <p className="text-[11px] text-stone-400 mt-0.5">تعبيرات دارجة وحوارات سينمائية</p>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedMission('academic');
+                      goToNextStep(1);
+                    }}
+                    className={`p-4 rounded-2xl border text-start transition-all flex items-start gap-3 ${
+                      selectedMission === 'academic'
+                        ? 'bg-teal-500/20 border-teal-400 text-white shadow-lg shadow-teal-500/10'
+                        : 'bg-stone-800/80 border-stone-700 text-stone-200 hover:border-teal-500/50 hover:bg-stone-800'
+                    }`}
+                  >
+                    <div className="p-2 rounded-xl bg-blue-500/30 text-blue-300 shrink-0 mt-0.5">
+                      <GraduationCap size={20} />
+                    </div>
+                    <div>
+                      <h2 className="text-sm font-bold">🎓 الدراسة والجامعة</h2>
+                      <p className="text-[11px] text-stone-400 mt-0.5">أبحاث علمية ومناقشات أكاديمية</p>
+                    </div>
+                  </button>
+                </div>
+              </motion.div>
+            )}
+
+            {/* SCREEN 2: DIAGNOSTIC THINKING TEST */}
+            {step === 1 && (
+              <motion.div
+                key="step1"
+                custom={direction}
+                variants={slideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ duration: 0.3, ease: 'easeOut' }}
+                className="space-y-4 text-start"
+              >
+                <div>
+                  <h1 className="text-xl sm:text-2xl font-black text-white leading-snug">
+                    اختبار التفكير: <span className="text-amber-400">لا تترجم حرفياً!</span> 🧠
+                  </h1>
+                  <p className="text-xs text-stone-300 mt-1">
+                    اختر المعنى الذهني الحقيقي للعبارة التالية:
+                  </p>
+                </div>
+
+                {/* Question Scenario Box */}
+                <div className="p-4 rounded-2xl bg-gradient-to-r from-stone-800 via-stone-850 to-stone-900 border border-teal-500/40 text-center space-y-1 shadow-inner">
+                  <span className="text-[10px] font-bold text-teal-400 tracking-wider uppercase">
+                    English Thought Scenario
+                  </span>
+                  <p className="text-xl font-black text-amber-300 dir-ltr font-mono">
+                    &quot;Let the cat out.&quot;
+                  </p>
+                </div>
+
+                <div className="space-y-2.5 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDiagnosticSelected('literal');
+                      setDiagnosticLevel('beginner');
+                      goToNextStep(1);
+                    }}
+                    className="w-full p-3.5 rounded-2xl border border-stone-700 bg-stone-800/80 hover:border-amber-500/50 hover:bg-stone-800 text-start text-xs font-semibold text-stone-200 transition-all flex items-center justify-between"
+                  >
+                    <span>❌ أخرج القطة خارج المنزل (ترجمة حرفية)</span>
+                    <span className="text-[10px] text-stone-400 bg-stone-900 px-2 py-0.5 rounded-md">
+                      مبتدئ A1
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDiagnosticSelected('meaning');
+                      setDiagnosticLevel('intermediate');
+                      goToNextStep(1);
+                    }}
+                    className="w-full p-3.5 rounded-2xl border border-teal-500/50 bg-teal-950/30 hover:border-teal-400 hover:bg-teal-900/30 text-start text-xs font-bold text-teal-200 transition-all flex items-center justify-between shadow-md"
+                  >
+                    <span>💡 أفشى السر أو كشف المستور (المعنى الاصطلاحي)</span>
+                    <span className="text-[10px] text-teal-300 bg-teal-900/60 px-2 py-0.5 rounded-md">
+                      متوسط A2/B1
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDiagnosticSelected('unknown');
+                      setDiagnosticLevel('beginner');
+                      goToNextStep(1);
+                    }}
+                    className="w-full p-3.5 rounded-2xl border border-stone-700 bg-stone-800/80 hover:border-stone-500 text-start text-xs font-medium text-stone-300 transition-all flex items-center justify-between"
+                  >
+                    <span>❓ لا أعرف المعنى، أريد البدء من الأساسيات</span>
+                    <span className="text-[10px] text-stone-400 bg-stone-900 px-2 py-0.5 rounded-md">
+                      تأسيس A0
+                    </span>
+                  </button>
+                </div>
+              </motion.div>
+            )}
+
+            {/* SCREEN 3: AI COMPANION SELECTION */}
+            {step === 2 && (
+              <motion.div
+                key="step2"
+                custom={direction}
+                variants={slideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ duration: 0.3, ease: 'easeOut' }}
+                className="space-y-4 text-start"
+              >
+                <div>
+                  <h1 className="text-xl sm:text-2xl font-black text-white leading-snug">
+                    من سيكون <span className="text-emerald-400">رفيقك في الرحلة؟</span> 🤖
+                  </h1>
+                  <p className="text-xs text-stone-300 mt-1">
+                    اختر شخصية الذكاء الاصطناعي التي تناسب أسلوبك في التعلم:
+                  </p>
+                </div>
+
+                <div className="space-y-3 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCompanion('strict');
+                      goToNextStep(1);
+                    }}
+                    className={`w-full p-3.5 rounded-2xl border text-start transition-all flex items-center gap-3.5 ${
+                      companion === 'strict'
+                        ? 'bg-rose-500/20 border-rose-400 text-white shadow-lg'
+                        : 'bg-stone-800/80 border-stone-700 text-stone-200 hover:border-rose-400/50 hover:bg-stone-800'
+                    }`}
+                  >
+                    <div className="p-2.5 rounded-xl bg-rose-500/30 text-rose-300 shrink-0">
+                      <Bot size={22} />
+                    </div>
+                    <div>
+                      <h2 className="text-sm font-bold">🤖 المعلم الصارم (Strict Tutor)</h2>
+                      <p className="text-[11px] text-stone-400 mt-0.5">
+                        يدقق في القواعد فوراً ويصلح كل خطأ بدقة متناهية
+                      </p>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCompanion('chill');
+                      goToNextStep(1);
+                    }}
+                    className={`w-full p-3.5 rounded-2xl border text-start transition-all flex items-center gap-3.5 ${
+                      companion === 'chill'
+                        ? 'bg-emerald-500/20 border-emerald-400 text-white shadow-lg'
+                        : 'bg-stone-800/80 border-stone-700 text-stone-200 hover:border-emerald-400/50 hover:bg-stone-800'
+                    }`}
+                  >
+                    <div className="p-2.5 rounded-xl bg-emerald-500/30 text-emerald-300 shrink-0">
+                      <Smile size={22} />
+                    </div>
+                    <div>
+                      <h2 className="text-sm font-bold">😎 الصديق المتفهم (Chill Friend)</h2>
+                      <p className="text-[11px] text-stone-400 mt-0.5">
+                        يركز على طلاقة الحديث ويكسر حاجز الخوف من الخطأ
+                      </p>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCompanion('analyst');
+                      goToNextStep(1);
+                    }}
+                    className={`w-full p-3.5 rounded-2xl border text-start transition-all flex items-center gap-3.5 ${
+                      companion === 'analyst'
+                        ? 'bg-teal-500/20 border-teal-400 text-white shadow-lg'
+                        : 'bg-stone-800/80 border-stone-700 text-stone-200 hover:border-teal-400/50 hover:bg-stone-800'
+                    }`}
+                  >
+                    <div className="p-2.5 rounded-xl bg-teal-500/30 text-teal-300 shrink-0">
+                      <Brain size={22} />
+                    </div>
+                    <div>
+                      <h2 className="text-sm font-bold">🧠 المحلل الذكي (Smart Analyst)</h2>
+                      <p className="text-[11px] text-stone-400 mt-0.5">
+                        يشرح لك المنطق الذهني وسبب ترتيب كل جملة
+                      </p>
+                    </div>
+                  </button>
+                </div>
+              </motion.div>
+            )}
+
+            {/* SCREEN 4: GAME READY & LAUNCH */}
+            {step === 3 && (
+              <motion.div
+                key="step3"
+                custom={direction}
+                variants={slideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ duration: 0.3, ease: 'easeOut' }}
+                className="space-y-5 text-center py-2"
+              >
+                <div className="w-16 h-16 rounded-3xl bg-gradient-to-tr from-teal-400 to-emerald-400 text-stone-950 mx-auto flex items-center justify-center text-3xl shadow-xl shadow-teal-500/30 animate-bounce">
+                  ⚡
+                </div>
+
+                <div>
+                  <h1 className="text-2xl sm:text-3xl font-black text-white">
+                    أنت جاهز للمهمة! 🚀
+                  </h1>
+                  <p className="text-xs sm:text-sm text-stone-300 mt-1 max-w-sm mx-auto leading-relaxed">
+                    تم تخصيص جسر التفكير خصيصاً لمهمتك ومستواك الذهني.
+                  </p>
+                </div>
+
+                {/* Selected Options Summary Pill */}
+                <div className="p-4 rounded-2xl bg-stone-800/90 border border-stone-700 text-start space-y-2 text-xs">
+                  <div className="flex items-center justify-between text-stone-300">
+                    <span>المهمة المختارة:</span>
+                    <span className="font-bold text-teal-300">
+                      {selectedMission === 'business'
+                        ? '💼 عالم الأعمال'
+                        : selectedMission === 'travel'
+                        ? '✈️ السفر والمغامرة'
+                        : selectedMission === 'academic'
+                        ? '🎓 الدراسة والجامعة'
+                        : '🎬 الأفلام والميديا'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-stone-300">
+                    <span>المستوى التشخيصي:</span>
+                    <span className="font-bold text-amber-300">
+                      {diagnosticLevel === 'intermediate' ? 'متوسط A2/B1' : 'تأسيس A1/A0'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-stone-300">
+                    <span>رفيق الذكاء الاصطناعي:</span>
+                    <span className="font-bold text-emerald-300">
+                      {companion === 'strict'
+                        ? '🤖 المعلم الصارم'
+                        : companion === 'analyst'
+                        ? '🧠 المحلل الذكي'
+                        : '😎 الصديق المتفهم'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Big Launch Button */}
+                <button
+                  type="button"
+                  onClick={handleFinish}
+                  className="w-full py-4 rounded-2xl bg-gradient-to-r from-teal-400 via-emerald-400 to-teal-300 text-stone-950 text-base font-black shadow-xl shadow-teal-500/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
+                >
+                  <span>ابدأ اللعبة الآن</span>
+                  <Zap size={20} className="fill-current" />
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Navigation Footer */}
         {step > 0 && (
-          <BouncyButton
-            type="button"
-            onClick={() => {
-              setStep(currentStep => currentStep - 1);
-              setError(null);
-            }}
-            className="mt-6 rounded-lg px-2 py-2 text-sm font-medium text-stone-300 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive-300"
-          >
-            {uiText(language, '← Back', '→ رجوع')}
-          </BouncyButton>
+          <div className="pt-4 border-t border-stone-800 flex items-center justify-between">
+            <button
+              type="button"
+              onClick={goToPrevStep}
+              className="text-xs font-bold text-stone-400 hover:text-white flex items-center gap-1.5 transition-colors"
+            >
+              <ArrowRight size={16} />
+              <span>رجوع</span>
+            </button>
+
+            <span className="text-[11px] text-stone-500 font-mono">
+              Thinking Bridge v4.0
+            </span>
+          </div>
         )}
       </div>
     </div>

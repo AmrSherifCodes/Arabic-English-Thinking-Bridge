@@ -143,7 +143,7 @@ export function ProfileView({
             </div>
           </div>
 
-          <span className="px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-black">
+          <span className="max-w-full text-ellipsis overflow-hidden whitespace-nowrap px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-black">
             {isArabic ? `المرحلة ${state.currentStage}` : `Stage ${state.currentStage}`}
           </span>
         </div>

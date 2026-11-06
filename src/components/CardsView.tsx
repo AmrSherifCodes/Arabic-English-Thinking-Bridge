@@ -3,7 +3,8 @@ import { TabTutorialModal } from './TabTutorialModal';
 import confetti from 'canvas-confetti';
 import { PrebuiltDeck } from '../data/prebuiltDecks';
 import type { UserProfile } from '../hooks/useUserProfile';
-import type { CardSchedule } from '../types';
+import type { CardSchedule, SourceLanguage, TargetLanguage } from '../types';
+import { SOURCE_LANGUAGES, TARGET_LANGUAGE_META, getLanguageFontFamily } from '../data/languages';
 import { speakWithRate } from '../utils/audio';
 import { isArabicUI, uiText } from '../utils/i18n';
 import { getCardIntervalPreviews } from '../utils/sm2';
@@ -24,6 +25,8 @@ import {
 
 export interface DeckListViewProps {
   profile?: UserProfile | null;
+  sourceLang?: SourceLanguage;
+  targetLang?: TargetLanguage;
   coreDecks: DeckDefinition[];
   expandedDecks: PrebuiltDeck[];
   prebuiltDecks: PrebuiltDeck[];
@@ -38,11 +41,13 @@ export interface DeckListViewProps {
 /**
  * Anki Mobile Deck List Dashboard ("The Vision")
  * - Three-column stats on the right: New (Blue), Learning (Red), Due (Green)
- * - Prominent "Study All Due Cards" button at the top
+ * - Prominent "Study All Due Cards" button at the top with daily cap
  * - Core Decks + Prebuilt Master Decks (150 Cards) + Open Source Decks (100% Copyright-Free CC0)
  */
 export function DeckListView({
   profile,
+  sourceLang = 'ar',
+  targetLang = 'en',
   coreDecks,
   expandedDecks,
   prebuiltDecks,
@@ -58,9 +63,13 @@ export function DeckListView({
   const isEgyptianOnly = profile?.dialect === 'egyptian';
   const [showGuide, setShowGuide] = useState(false);
 
+  const sourceMeta = SOURCE_LANGUAGES[sourceLang] || SOURCE_LANGUAGES['ar'];
+  const targetMeta = TARGET_LANGUAGE_META[targetLang] || TARGET_LANGUAGE_META['en'];
+
   const allStats = getDeckStats('all');
-  const totalDueOrNew = allStats.newCount + allStats.learningCount + allStats.dueCount;
-  const customStats = getDeckStats('custom');
+  const actualDueTotal = allStats.dueCount + allStats.learningCount;
+  const isDueMode = actualDueTotal > 0;
+
   const undownloadedExpandedCount = expandedDecks
     .filter(d => !importedDecks.includes(d.id))
     .reduce((sum, d) => sum + d.cards.length, 0);
@@ -162,6 +171,7 @@ export function DeckListView({
               id={`study-os-${deck.id}`}
               onClick={() => onSelectDeck(deck.id)}
               className={BTN_PRIMARY}
+              style={{ minHeight: 48 }}
             >
               {t('Study', 'ادرس')}
             </button>
@@ -171,6 +181,7 @@ export function DeckListView({
               id={`download-deck-${deck.id}`}
               onClick={() => onDownloadDeck(deck)}
               className={BTN_PRIMARY + ' shrink-0'}
+              style={{ minHeight: 48 }}
             >
               ⬇ {t('Download', 'تحميل')} ({deck.cards.length})
             </button>
@@ -202,6 +213,7 @@ export function DeckListView({
             onClick={() => setShowGuide(true)}
             className="px-2.5 py-1.5 rounded-xl bg-stone-100 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-xs font-semibold text-stone-700 dark:text-stone-300 hover:text-teal-600 dark:hover:text-teal-400 flex items-center gap-1.5 transition"
             aria-label="How flashcards work"
+            style={{ minHeight: 40 }}
           >
             <span>❓</span>
             <span>{t('Guide', 'دليل البطاقات')}</span>
@@ -212,14 +224,25 @@ export function DeckListView({
         <button
           type="button"
           id="study-all-btn"
-          disabled={totalDueOrNew === 0}
+          disabled={allStats.totalCards === 0 || (actualDueTotal === 0 && allStats.newCount === 0)}
           onClick={() => onSelectDeck('all')}
           className="w-full py-4 px-6 rounded-2xl bg-teal-700 hover:bg-teal-800 active:scale-[0.98] text-white font-black text-base sm:text-lg shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2.5 text-center disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
+          style={{ minHeight: 56 }}
         >
           <span>⚡</span>
-          <span>{t('Study All Due Cards', 'ابدأ مراجعة البطاقات المستحقة')}</span>
+          <span>
+            {isDueMode
+              ? t(`Study ${allStats.cappedTotal} Cards`, `ادرس ${allStats.cappedTotal} بطاقات`)
+              : allStats.newCount > 0
+              ? t(`Learn ${allStats.cappedNewCount} New Cards`, `تعلم ${allStats.cappedNewCount} بطاقات جديدة`)
+              : t('All Cards Completed! ✨', 'أكملت جميع البطاقات! ✨')}
+          </span>
           <span className="text-xs font-bold opacity-90 bg-teal-800/80 px-2.5 py-0.5 rounded-xl">
-            {totalDueOrNew} {t('due', 'مستحق')}
+            {isDueMode
+              ? `${allStats.cappedTotal} / ${actualDueTotal} ${t('due', 'مستحق')}`
+              : allStats.newCount > 0
+              ? `${allStats.cappedNewCount} / ${allStats.newCount} ${t('new', 'جديدة')}`
+              : '0'}
           </span>
         </button>
       </div>
@@ -233,7 +256,10 @@ export function DeckListView({
                   'Egyptian Arabic (Ammiya) Decks 🇪🇬',
                   'مجموعات العامية المصرية المخصصة 🇪🇬'
                 )
-              : t('Core Curriculum Decks', 'المجموعات الأساسية للمنهج')}
+              : t(
+                  `Decks for ${targetMeta.nameEn} (from ${sourceMeta.nameEn})`,
+                  `مجموعات ${targetMeta.nameAr} (من ${sourceMeta.nameAr})`
+                )}
           </span>
         </div>
 
@@ -251,6 +277,7 @@ export function DeckListView({
                   id={`deck-card-${deck.id}`}
                   onClick={() => onSelectDeck(deck.id)}
                   className="w-full text-right p-4 rounded-2xl border-2 border-dashed border-stone-300 dark:border-stone-700 hover:border-teal-600 dark:hover:border-teal-500 bg-stone-50/70 dark:bg-stone-900/70 transition-all flex items-center justify-between gap-3 group cursor-pointer"
+                  style={{ minHeight: 52 }}
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="w-10 h-10 rounded-xl bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-400 flex items-center justify-center text-lg font-bold shrink-0">
@@ -279,6 +306,7 @@ export function DeckListView({
                 id={`deck-card-${deck.id}`}
                 onClick={() => onSelectDeck(deck.id)}
                 className="w-full text-right p-4 rounded-2xl border border-stone-200/90 dark:border-stone-800 bg-white dark:bg-stone-900 shadow-xs hover:shadow-md hover:border-teal-600 dark:hover:border-teal-500 transition-all flex items-center justify-between gap-3 group cursor-pointer"
+                style={{ minHeight: 56 }}
               >
                 <div className="flex items-center gap-3.5 min-w-0">
                   <div className="w-11 h-11 rounded-2xl bg-teal-50 dark:bg-stone-800 text-teal-700 dark:text-teal-300 flex items-center justify-center text-xl shrink-0 group-hover:scale-105 transition-transform border border-teal-100 dark:border-stone-700">
@@ -323,8 +351,8 @@ export function DeckListView({
               <div>
                 <span className="text-xs font-semibold opacity-75">
                   {t(
-                    'Prebuilt Master Decks (150 Cards · CEFR A1–B2 · CC0 Public Domain)',
-                    'مجموعات الإتقان الجاهزة (150 بطاقة · المستويات A1–B2 · ملكية عامة CC0)'
+                    `Prebuilt Master Decks (${targetMeta.nameEn} · CC0 Public Domain)`,
+                    `مجموعات الإتقان الجاهزة (${targetMeta.nameAr} · ملكية عامة CC0)`
                   )}
                 </span>
               </div>
@@ -369,6 +397,8 @@ export function DeckListView({
 
 export interface ReviewViewProps {
   profile?: UserProfile | null;
+  sourceLang?: SourceLanguage;
+  targetLang?: TargetLanguage;
   deckName: string;
   deckStats: DeckStats;
   activeQueue: string[];
@@ -392,6 +422,8 @@ export interface ReviewViewProps {
  */
 export function ReviewView({
   profile,
+  sourceLang = 'ar',
+  targetLang = 'en',
   deckName,
   deckStats,
   activeQueue,
@@ -416,6 +448,12 @@ export function ReviewView({
   const isEgyptian = profile?.dialect === 'egyptian';
   const intervalPreviews = getCardIntervalPreviews(currentCardSchedule, isStruggling);
 
+  const sourceMeta = SOURCE_LANGUAGES[sourceLang] || SOURCE_LANGUAGES['ar'];
+  const targetMeta = TARGET_LANGUAGE_META[targetLang] || TARGET_LANGUAGE_META['en'];
+
+  const sourceFont = getLanguageFontFamily(sourceMeta.code);
+  const targetFont = getLanguageFontFamily(targetMeta.code);
+
   return (
     <div id="anki-review-view" dir={rtl ? 'rtl' : 'ltr'} className="mx-auto w-full">
       {/* Review Header */}
@@ -426,6 +464,7 @@ export function ReviewView({
             id="back-to-decks-btn"
             onClick={onBackToDecks}
             className={BTN_GHOST + ' !px-3 !py-1.5 text-xs shrink-0'}
+            style={{ minHeight: 48 }}
           >
             {t('← Decks', '→ المجموعات')}
           </button>
@@ -465,6 +504,7 @@ export function ReviewView({
           title={t('Undo last card grade', 'التراجع عن آخر تقييم')}
           aria-label={t('Undo last card grade', 'التراجع عن آخر تقييم')}
           className={BTN_GHOST + ' !px-3 !py-1.5 text-xs shrink-0'}
+          style={{ minHeight: 48 }}
         >
           {t('↩️ Undo', '↩️ تراجع')}
         </button>
@@ -508,14 +548,14 @@ export function ReviewView({
                 )
               ) : (
                 t(
-                  `No cards are in "${deckName}" yet. Visit the Translate tab to save custom Arabic–English sentences and grow your personal deck.`,
+                  `No cards are in "${deckName}" yet. Visit the Translate tab to save custom words/sentences and grow your personal deck.`,
                   `لا توجد بطاقات في "${deckName}" بعد. انتقل إلى تبويب الترجمة لحفظ جملك الخاصة وتوسيع مجموعتك.`
                 )
               )
             ) : (
               t(
-                `All due ${isEgyptian ? 'Egyptian Arabic ' : ''}cards in "${deckName}" have been reviewed. Check back soon when your next cards are due!`,
-                `تمت مراجعة جميع البطاقات المستحقة ${isEgyptian ? 'بالعامية المصرية ' : ''}في "${deckName}". عد قريباً عند حلول موعد المراجعة القادمة!`
+                `All due cards in "${deckName}" have been reviewed. Check back soon when your next cards are due!`,
+                `تمت مراجعة جميع البطاقات المستحقة في "${deckName}". عد قريباً عند حلول موعد المراجعة القادمة!`
               )
             )}
           </p>
@@ -523,7 +563,7 @@ export function ReviewView({
             «العلمُ غرسٌ، والصبرُ جذوره، والثمرةُ لسانٌ فصيح»
           </p>
           <div className="mt-4 flex justify-center gap-2">
-            <button type="button" onClick={onBackToDecks} className={BTN_PRIMARY}>
+            <button type="button" onClick={onBackToDecks} className={BTN_PRIMARY} style={{ minHeight: 48 }}>
               {t('← Back to Deck List', '→ العودة إلى قائمة المجموعات')}
             </button>
           </div>
@@ -545,54 +585,63 @@ export function ReviewView({
             isFlipped={cardAnswerShown}
             onFlip={cardAnswerShown ? onHideAnswer : onShowAnswer}
             front={
-              <div dir="rtl" className={`${CARD_CLASS} text-center py-5`}>
-                <InteractiveArabicSentence
-                  sentence={currentCardData.ar}
-                  exercise={currentCardData.exercise}
-                  preferredVoice={preferredVoice}
-                  className="ar text-3xl leading-relaxed font-semibold"
-                  showCaption={true}
-                  resetKey={`card-${currentKey}`}
-                />
+              <div dir={sourceMeta.direction} style={{ fontFamily: sourceFont }} className={`${CARD_CLASS} text-center py-5`}>
+                {sourceMeta.direction === 'rtl' ? (
+                  <InteractiveArabicSentence
+                    sentence={currentCardData.ar}
+                    exercise={currentCardData.exercise}
+                    preferredVoice={preferredVoice}
+                    className="ar text-3xl sm:text-4xl leading-relaxed font-semibold"
+                    showCaption={true}
+                    resetKey={`card-${currentKey}`}
+                  />
+                ) : (
+                  <div className="text-3xl sm:text-4xl leading-relaxed font-semibold">
+                    {currentCardData.ar}
+                  </div>
+                )}
                 <div className="mt-3 flex justify-center">
                   <button
                     type="button"
                     className={`${BTN_GHOST} text-xs`}
+                    style={{ minHeight: 48 }}
                     onClick={e => {
                       e.stopPropagation();
                       speakWithRate(currentCardData.ar, 1, preferredVoice);
                     }}
                   >
-                    {t('🔊 Hear Arabic', '🔊 استمع للعربية')}
+                    {t(`🔊 Hear ${sourceMeta.nameEn}`, `🔊 استمع لـ ${sourceMeta.nameAr}`)}
                   </button>
                 </div>
               </div>
             }
             back={
               <div className={`${CARD_CLASS} text-center py-5`}>
-                <div dir="rtl" className="ar text-3xl leading-relaxed font-semibold">
+                <div dir={sourceMeta.direction} style={{ fontFamily: sourceFont }} className="text-3xl sm:text-4xl leading-relaxed font-semibold">
                   {currentCardData.ar}
                 </div>
                 <hr className="my-4 border-slate-300 dark:border-slate-700" />
-                <div dir="ltr" translate="no" className="text-xl font-semibold mb-1">
+                <div dir={targetMeta.direction} style={{ fontFamily: targetFont }} translate="no" className="text-2xl sm:text-3xl font-bold mb-1">
                   {currentCardData.en}
                 </div>
-                <div dir="rtl" className="text-sm font-bold text-amber-600 dark:text-amber-400 mb-3 flex items-center justify-center gap-1.5 flex-wrap">
-                  <span className="text-xs opacity-75 font-normal text-stone-500 dark:text-stone-400">
-                    {t('Pronounced:', 'النطق بالعربي:')}
-                  </span>
-                  <span className="bg-amber-500/10 dark:bg-amber-400/15 text-amber-700 dark:text-amber-300 px-2.5 py-0.5 rounded-lg border border-amber-500/30 font-semibold tracking-wide">
-                    {getArabicPhoneticSpelling(currentCardData.en)}
-                  </span>
-                </div>
+                {sourceMeta.direction === 'rtl' && (
+                  <div dir="rtl" className="text-sm font-bold text-amber-600 dark:text-amber-400 mb-3 flex items-center justify-center gap-1.5 flex-wrap">
+                    <span className="text-xs opacity-75 font-normal text-stone-500 dark:text-stone-400">
+                      {t('Pronounced:', 'النطق بالعربي:')}
+                    </span>
+                    <span className="bg-amber-500/10 dark:bg-amber-400/15 text-amber-700 dark:text-amber-300 px-2.5 py-0.5 rounded-lg border border-amber-500/30 font-semibold tracking-wide">
+                      {getArabicPhoneticSpelling(currentCardData.en)}
+                    </span>
+                  </div>
+                )}
                 {currentCardData.breakdownChunks && (
                   <div className="grid grid-cols-2 gap-2 text-left">
                     {currentCardData.breakdownChunks.map((chunk, idx) => (
                       <div key={idx} className={`rounded-xl p-2 ${CHUNK_COLORS[chunk.role]}`}>
-                        <div dir="rtl" className="ar font-semibold">
+                        <div dir={sourceMeta.direction} style={{ fontFamily: sourceFont }} className="font-semibold">
                           {chunk.arabicText}
                         </div>
-                        <div dir="ltr" translate="no" className="font-semibold text-sm">
+                        <div dir={targetMeta.direction} style={{ fontFamily: targetFont }} translate="no" className="font-semibold text-sm">
                           {chunk.englishText}
                         </div>
                       </div>
@@ -603,22 +652,24 @@ export function ReviewView({
                   <button
                     type="button"
                     className={BTN_GHOST}
+                    style={{ minHeight: 48 }}
                     onClick={e => {
                       e.stopPropagation();
                       speakWithRate(currentCardData.ar, 1, preferredVoice);
                     }}
                   >
-                    {t('🔊 Hear Arabic', '🔊 استمع للعربية')}
+                    {t(`🔊 Hear ${sourceMeta.nameEn}`, `🔊 استمع لـ ${sourceMeta.nameAr}`)}
                   </button>
                   <button
                     type="button"
                     className={BTN_GHOST}
+                    style={{ minHeight: 48 }}
                     onClick={e => {
                       e.stopPropagation();
                       speakWithRate(currentCardData.en, 1, preferredVoice);
                     }}
                   >
-                    {t('🔊 Hear English', '🔊 استمع للإنجليزية')}
+                    {t(`🔊 Hear ${targetMeta.nameEn}`, `🔊 استمع لـ ${targetMeta.nameAr}`)}
                   </button>
                 </div>
               </div>
@@ -630,6 +681,7 @@ export function ReviewView({
               type="button"
               id="show-answer-btn"
               className={`${BTN_PRIMARY} mt-4 w-full`}
+              style={{ minHeight: 52 }}
               onClick={onShowAnswer}
             >
               {t('👀 Tap to reveal answer', '👀 اضغط لإظهار الإجابة')}
@@ -662,7 +714,7 @@ export function ReviewView({
                           });
                         }
                       }}
-                      className={`${bgClass} text-white rounded-xl py-2.5 px-2 text-xs font-semibold min-h-[56px] transition-colors flex flex-col items-center justify-center`}
+                      className={`${bgClass} text-white rounded-xl py-2.5 px-2 text-xs font-semibold min-h-[56px] transition-colors flex flex-col items-center justify-center cursor-pointer`}
                     >
                       <div className="text-xs sm:text-sm font-bold whitespace-nowrap">
                         {friendlyLabel}
@@ -687,6 +739,7 @@ export function ReviewView({
             id="ask-ai-about-card-btn"
             onClick={onAskAIAboutCard}
             className={`${BTN_GHOST} mt-3 w-full`}
+            style={{ minHeight: 48 }}
           >
             {t('✨ Ask AI about this word', '✨ اسأل المساعد الذكي عن هذه الكلمة')}
           </BouncyButton>

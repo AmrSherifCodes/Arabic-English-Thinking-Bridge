@@ -45,6 +45,10 @@ export const MIN_EASE = 1.3;
 export const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 export const TEN_MINUTES_MS = 10 * 60 * 1000;
 
+export const DAILY_CAP_NEW = 20;
+export const DAILY_CAP_REVIEW = 100;
+export const DAILY_CAP_LEARNING = 20;
+
 /**
  * Maps 4-button Anki grade (0: Again, 1: Hard, 2: Good, 3: Easy)
  * to standard SuperMemo SM-2 quality rating (0-5).

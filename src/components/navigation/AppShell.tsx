@@ -144,16 +144,20 @@ export function AppShell({
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
+          const label = isArabic ? tab.labelAr : tab.labelEn;
           return (
             <button
               key={tab.id}
+              type="button"
+              aria-label={label}
+              aria-current={isActive ? 'page' : undefined}
               onClick={() => onTabChange(tab.id)}
-              className={`flex flex-1 min-w-0 flex-col items-center justify-center py-1 px-1 min-h-[48px] rounded-xl transition ${
-                isActive ? 'text-success font-black' : 'text-muted font-semibold hover:text-text'
+              className={`flex flex-1 min-w-0 flex-col items-center justify-center py-1 px-1 min-h-[48px] rounded-xl transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-success ${
+                isActive ? 'text-success font-black bg-success/10' : 'text-muted font-semibold hover:text-text hover:bg-surface-2'
               }`}
             >
               <Icon size={20} className={isActive ? 'scale-110 transition-transform' : ''} />
-              <span className="text-[10px] mt-0.5">{isArabic ? tab.labelAr : tab.labelEn}</span>
+              <span className="text-[10px] mt-0.5">{label}</span>
             </button>
           );
         })}

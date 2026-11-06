@@ -61,7 +61,9 @@ export function PathView({ state, targetLang, onSelectLesson, onSelectUnitCheckp
       <div className="p-4.5 rounded-3xl bg-surface border border-border shadow-xl flex items-center justify-between">
         <div className="space-y-1 text-start">
           <span className="text-[10px] font-black uppercase tracking-wider text-success block">
-            {isArabic ? `المرحلة الحالية: ${continueStageNode.stage}` : `Current Stage: ${continueStageNode.stage}`}
+            {isArabic
+              ? `المرحلة الحالية: ${continueStageNode.stage === 'A2' ? 'A2 (جسر B1)' : continueStageNode.stage}`
+              : `Current Stage: ${continueStageNode.stage === 'A2' ? 'A2 (B1 Bridge)' : continueStageNode.stage}`}
           </span>
           <h3 className="text-sm font-black text-text">
             {isArabic ? continueStageNode.titleAr : continueStageNode.titleEn}

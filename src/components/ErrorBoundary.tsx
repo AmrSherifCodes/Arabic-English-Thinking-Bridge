@@ -23,6 +23,10 @@ export class ErrorBoundary extends Component<Props, State> {
     console.error('[ErrorBoundary] Uncaught error:', error, errorInfo);
   }
 
+  private handleReset = () => {
+    this.setState({ hasError: false, error: undefined });
+  };
+
   private handleReload = () => {
     if (typeof window !== 'undefined') {
       window.location.reload();
@@ -48,17 +52,31 @@ export class ErrorBoundary extends Component<Props, State> {
 
           <div className="space-y-2 max-w-md">
             <h1 className="text-xl sm:text-2xl font-black text-white">
-              {i18next.t('error.title')}
+              {isArabic ? 'حدث خطأ غير متوقع في التطبيق' : 'An unexpected error occurred'}
             </h1>
+            <p className="text-xs text-stone-400">
+              {isArabic
+                ? 'حافظنا على تقدمك المحلي آمنًا. يمكنك إعادة المحاولة أو تحميل التطبيق مجدداً.'
+                : 'Your local progress remains safe. Try recovering or reloading the app.'}
+            </p>
           </div>
 
-          <button
-            type="button"
-            onClick={this.handleReload}
-            className="px-6 py-3 rounded-2xl bg-gradient-to-r from-teal-400 to-emerald-500 hover:from-teal-300 hover:to-emerald-400 text-stone-950 font-black text-xs transition shadow-xl active:scale-95"
-          >
-            {i18next.t('error.reload')}
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={this.handleReset}
+              className="px-5 py-2.5 rounded-2xl bg-surface border border-border hover:bg-surface-2 text-text font-bold text-xs transition"
+            >
+              {isArabic ? 'إعادة المحاولة' : 'Try again'}
+            </button>
+            <button
+              type="button"
+              onClick={this.handleReload}
+              className="px-6 py-2.5 rounded-2xl bg-gradient-to-r from-teal-400 to-emerald-500 hover:from-teal-300 hover:to-emerald-400 text-stone-950 font-black text-xs transition shadow-xl active:scale-95"
+            >
+              {isArabic ? 'إعادة تحميل التطبيق' : 'Reload app'}
+            </button>
+          </div>
         </div>
       );
     }

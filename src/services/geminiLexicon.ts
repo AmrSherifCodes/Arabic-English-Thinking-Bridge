@@ -3,7 +3,7 @@ import type { Exercise, SourceLanguage, TargetLanguage } from '../types';
 import { API_BASE_URL } from '../utils/api';
 import { consumeDailyApiQuota } from '../utils/apiQuota';
 import { SOURCE_LANGUAGES, TARGET_LANGUAGE_META } from '../data/languages';
-import { fetchAIContext } from './aiContextFetcher';
+import { fetchAIContext, getAICompanionPrompt } from './aiContextFetcher';
 
 export const USER_GEMINI_KEY_STORAGE = 'tb.userGeminiKey';
 export const LEGACY_GEMINI_KEY_STORAGE = 'user_gemini_key';
@@ -321,13 +321,15 @@ async function requestGeminiWithUserKey<T>(
       ? profile.dialect === 'egyptian' ? 'Egyptian Arabic (Ammiya)' : 'Modern Standard Arabic (MSA/Fusha)'
       : SOURCE_LANGUAGES[sourceLang]?.nameNative || sourceLang;
     const template = (await fetchAIContext()).systemPromptTemplate;
+    const companionPrompt = getAICompanionPrompt();
     const systemInstruction = template
       .replaceAll('{dialect}', dialectName)
       .replaceAll('{targetLanguage}', TARGET_LANGUAGE_META[targetLang]?.nameNative || targetLang)
       .replaceAll('{level}', profile.level || 'beginner')
       .replaceAll('{goal}', profile.goal || 'general')
       .replaceAll('{domainFocus}', String(profile.focusArea || profile.goal || 'everyday communication')) +
-      '\nExplain grammar through clear structural chunks and why the pattern works. Keep explanations concise and supportive.';
+      '\nExplain grammar through clear structural chunks and why the pattern works. Keep explanations concise and supportive.' +
+      companionPrompt;
 
     const response = await generateWithDirectFallback(ai, {
       contents: promptText,

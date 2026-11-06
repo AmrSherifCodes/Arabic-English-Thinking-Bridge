@@ -38,16 +38,39 @@ export function useDeckEngine(
     const cardsMap = currentProgress.cards || {};
     const now = Date.now();
 
-    const dueList = keys
-      .filter(k => {
-        if (!getCardData(k, currentProgress, dictionaryEntries, profile)) return false;
-        const sched = cardsMap[k];
-        if (!sched) return true;
-        return (sched.nextReviewDate ?? sched.due) <= now;
-      })
-      .slice(0, 50);
+    const validKeys = keys.filter(k => !!getCardData(k, currentProgress, dictionaryEntries, profile));
 
-    return mixRetentionIntoDueQueue(dueList, currentProgress, 2);
+    const learningCards: string[] = [];
+    const reviewCards: string[] = [];
+    const newCards: string[] = [];
+
+    for (const k of validKeys) {
+      const sched = cardsMap[k];
+      if (!sched) {
+        newCards.push(k);
+      } else if ((sched.nextReviewDate ?? sched.due) <= now) {
+        if (sched.reps === 0 || sched.int < 1) {
+          learningCards.push(k);
+        } else {
+          reviewCards.push(k);
+        }
+      }
+    }
+
+    const cappedLearning = learningCards.slice(0, 20);
+    const cappedReview = reviewCards.slice(0, 100);
+    const combinedDue = [...cappedLearning, ...cappedReview];
+
+    let queue: string[] = [];
+    if (combinedDue.length > 0) {
+      const remainingSpace = Math.max(0, 100 - combinedDue.length);
+      const cappedNew = newCards.slice(0, Math.min(20, remainingSpace));
+      queue = [...combinedDue, ...cappedNew];
+    } else {
+      queue = newCards.slice(0, 20);
+    }
+
+    return mixRetentionIntoDueQueue(queue, currentProgress, 2);
   };
 
   const handleSelectDeck = (deckId: string) => {
@@ -167,6 +190,6 @@ export function useDeckEngine(
     handleUndoLastGrade,
     handleAskAIAboutCard,
     getCardData: (id: string) => getCardData(id, progress, dictionaryEntries, profile),
-    totalDueOrNew: getDeckStats('all', progress, dictionaryEntries, profile).newCount + getDeckStats('all', progress, dictionaryEntries, profile).learningCount + getDeckStats('all', progress, dictionaryEntries, profile).dueCount
+    totalDueOrNew: getDeckStats('all', progress, dictionaryEntries, profile).cappedTotal
   };
 }

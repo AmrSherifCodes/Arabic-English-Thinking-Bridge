@@ -17,7 +17,7 @@ import { useNativeSpeech } from './useNativeSpeech';
 import { usePreferences } from '../preferences/usePreferences';
 import { unlockAudio, speakWithNativeSpeechSynthesis } from '../../utils/audio';
 import { saveFeedback } from '../../services/feedback';
-import { fetchAIContext } from '../../services/aiContextFetcher';
+import { fetchAIContext, getAICompanionPrompt } from '../../services/aiContextFetcher';
 import { SourceLanguage, TargetLanguage } from '../../types';
 import { SOURCE_LANGUAGES, TARGET_LANGUAGES, TARGET_LANGUAGE_LOCALES } from '../../data/languages';
 
@@ -789,13 +789,15 @@ export function useVoiceOrchestrator(
           : '';
 
         const aiContext = await fetchAIContext();
+        const companionPrompt = getAICompanionPrompt();
         const systemInstructionText = (aiContext.systemPromptTemplate || '')
           .replace('{dialect}', String(learnerDialect))
           .replace('{targetLanguage}', targetLanguage)
           .replace('{level}', String(profile.level))
           .replace('{goal}', String(profile.goal))
           .replace('{domainFocus}', domainFocus) +
-          `\n${translationInstruction}`;
+          `\n${translationInstruction}` +
+          companionPrompt;
 
         const resultStream = await ai.models.generateContentStream({
           model: 'gemini-2.5-flash',
