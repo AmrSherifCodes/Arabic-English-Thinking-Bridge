@@ -1443,13 +1443,18 @@ export function generateProceduralStageLessons(
   return result;
 }
 
-export function buildCourseStructure(requestedTarget?: TargetLanguage): StageNode[] {
+export function buildCourseStructure(
+  requestedTarget?: TargetLanguage,
+  requestedSource?: string,
+  requestedFocus?: string
+): StageNode[] {
   const activeProfile = readActiveProfile();
   const targetLang = requestedTarget ?? activeProfile?.targetLang ?? 'en';
-  const focusArea = activeProfile?.focusArea || 'general';
+  const focusArea = requestedFocus ?? activeProfile?.focusArea ?? 'general';
+  const sourceLang = requestedSource ?? activeProfile?.sourceLang ?? 'arz';
 
   if (lastRoutedTargetLang !== targetLang) {
-    console.log('[Curriculum Router] Loading language:', targetLang, 'Focus Area:', focusArea);
+    console.log('[Curriculum Router] Loading language:', targetLang, 'Focus Area:', focusArea, 'Source:', sourceLang);
     lastRoutedTargetLang = targetLang;
   }
 
@@ -1468,9 +1473,9 @@ export function buildCourseStructure(requestedTarget?: TargetLanguage): StageNod
       const seedA1 = LOCALIZED_A1_A2_LESSONS[targetLang]?.A1 || [];
       const seedA2 = LOCALIZED_A1_A2_LESSONS[targetLang]?.A2 || [];
 
-      const a0 = generateProceduralStageLessons(targetLang, 'A0', seedA0, focusArea);
-      const a1 = generateProceduralStageLessons(targetLang, 'A1', seedA1, focusArea);
-      const a2 = generateProceduralStageLessons(targetLang, 'A2', seedA2, focusArea);
+      const a0 = generateProceduralStageLessons(targetLang, 'A0', seedA0, focusArea, 10, sourceLang);
+      const a1 = generateProceduralStageLessons(targetLang, 'A1', seedA1, focusArea, 15, sourceLang);
+      const a2 = generateProceduralStageLessons(targetLang, 'A2', seedA2, focusArea, 20, sourceLang);
 
       return [
         createLocalizedStage(STAGE_DEFINITIONS[0], a0),
@@ -1496,11 +1501,12 @@ export function buildCourseStructure(requestedTarget?: TargetLanguage): StageNod
 
 let lastRoutedTargetLang: TargetLanguage | undefined;
 
-function readActiveProfile(): { targetLang: TargetLanguage; focusArea?: string } | null {
+function readActiveProfile(): { targetLang: TargetLanguage; focusArea?: string; sourceLang?: string } | null {
   if (typeof localStorage === 'undefined') return null;
   try {
     const directTarget = localStorage.getItem('tb.targetLang');
     let focusArea = 'general';
+    let sourceLang = 'arz';
 
     const rawConfig = localStorage.getItem('tb.activeProfileConfig');
     if (rawConfig) {
@@ -1508,11 +1514,12 @@ function readActiveProfile(): { targetLang: TargetLanguage; focusArea?: string }
       if (parsedConfig && typeof parsedConfig === 'object') {
         if (typeof parsedConfig.goal === 'string') focusArea = parsedConfig.goal;
         if (typeof parsedConfig.focusArea === 'string') focusArea = parsedConfig.focusArea;
+        if (typeof parsedConfig.sourceLang === 'string') sourceLang = parsedConfig.sourceLang;
       }
     }
 
     if (directTarget && TARGET_LANGUAGES.some((l) => l.code === directTarget)) {
-      return { targetLang: directTarget as TargetLanguage, focusArea };
+      return { targetLang: directTarget as TargetLanguage, focusArea, sourceLang };
     }
 
     if (rawConfig) {
@@ -1520,7 +1527,7 @@ function readActiveProfile(): { targetLang: TargetLanguage; focusArea?: string }
       if (parsedConfig && typeof parsedConfig === 'object' && 'targetLang' in parsedConfig) {
         const lang = parsedConfig.targetLang;
         if (typeof lang === 'string' && TARGET_LANGUAGES.some((l) => l.code === lang)) {
-          return { targetLang: lang as TargetLanguage, focusArea };
+          return { targetLang: lang as TargetLanguage, focusArea, sourceLang };
         }
       }
     }
@@ -1532,10 +1539,13 @@ function readActiveProfile(): { targetLang: TargetLanguage; focusArea?: string }
         if (typeof parsedProfile.focusArea === 'string') focusArea = parsedProfile.focusArea;
         else if (typeof parsedProfile.goal === 'string') focusArea = parsedProfile.goal;
 
+        if (typeof parsedProfile.sourceLanguage === 'string') sourceLang = parsedProfile.sourceLanguage;
+        else if (typeof parsedProfile.dialect === 'string') sourceLang = parsedProfile.dialect === 'egyptian' ? 'arz' : 'ar';
+
         if ('targetLanguage' in parsedProfile) {
           const lang = parsedProfile.targetLanguage;
           if (typeof lang === 'string' && TARGET_LANGUAGES.some((l) => l.code === lang)) {
-            return { targetLang: lang as TargetLanguage, focusArea };
+            return { targetLang: lang as TargetLanguage, focusArea, sourceLang };
           }
         }
       }
