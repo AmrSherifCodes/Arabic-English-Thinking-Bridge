@@ -188,7 +188,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
     },
   };
 
-  // Supported 10+ languages for marquee
+  // Supported 10 target languages for marquee
   const marqueeLanguages = [
     { flag: '🇬🇧', nameEn: 'English', nameAr: 'الإنجليزية' },
     { flag: '🇩🇪', nameEn: 'Deutsch', nameAr: 'الألمانية' },
@@ -197,9 +197,9 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
     { flag: '🇫🇷', nameEn: 'Français', nameAr: 'الفرنسية' },
     { flag: '🇮🇹', nameEn: 'Italiano', nameAr: 'الإيطالية' },
     { flag: '🇨🇳', nameEn: '中文', nameAr: 'الصينية' },
-    { flag: '🇹🇷', nameEn: 'Türkçe', nameAr: 'التركية' },
+    { flag: '🇵🇹', nameEn: 'Português', nameAr: 'البرتغالية' },
     { flag: '🇷🇺', nameEn: 'Русский', nameAr: 'الروسية' },
-    { flag: '🇰🇷', nameEn: '한국어', nameAr: 'الكورية' },
+    { flag: '🇮🇳', nameEn: 'हिन्दी', nameAr: 'الهندية' },
   ];
 
   const targetMeta = userTarget ? TARGET_LANGUAGE_META[userTarget] : null;
@@ -351,7 +351,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
 
           {/* Tech Stack Badge */}
           <motion.div variants={fadeIn} className="text-[11px] text-stone-400 font-mono pt-1">
-            <span>Built with React 19, Vite, Tauri v2, & Gemini 2.5</span>
+            <span>Built with React 19, Vite, Tauri v2, & Gemini</span>
           </motion.div>
         </motion.div>
 
@@ -600,8 +600,8 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
               </h3>
               <p className="text-xs sm:text-sm text-stone-400 leading-relaxed">
                 {isAr
-                  ? '27 درساً متكاملاً عبر مستويات A0-C2 يتكيف مع قواعد النقل اللغوي لأي لغة مستهدفة (إنجليزية، ألمانية، يابانية) لمعالجة الأخطاء التلقائية.'
-                  : '27 lessons across A0-C2 levels that adapt L1 transfer rules for any target language (English, German, Japanese) to fix structural habits.'}
+                  ? '27 درساً متكاملاً عبر مستويات A0-A2 يتكيف مع قواعد النقل اللغوي للغات الهدف (مثل الإنجليزية، الألمانية، اليابانية) لمعالجة الأخطاء التلقائية.'
+                  : '27 lessons across A0-A2 levels that adapt L1 transfer rules for target languages (such as English, German, Japanese) to fix structural habits.'}
               </p>
             </div>
           </TiltCard>
@@ -617,7 +617,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
               </h3>
               <p className="text-xs sm:text-sm text-stone-400 leading-relaxed">
                 {isAr
-                  ? 'تدريب محادثة صوتي مباشر مع دعم المقاطعة الفورية (Barge-in) ومحاكاة النطق الطبيعي مدعوماً بذكاء Gemini 2.5 Flash.'
+                  ? 'تدريب محادثة صوتي مباشر مع دعم المقاطعة الفورية (Barge-in) ومحاكاة النطق الطبيعي مدعوماً بذكاء Gemini Flash.'
                   : 'Real-time voice-to-voice practice with barge-in support, powered by Gemini.'}
               </p>
             </div>

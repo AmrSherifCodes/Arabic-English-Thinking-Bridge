@@ -1,5 +1,13 @@
 # Changelog
 
+## [4.0.2] - 2026-11-06
+
+### Claim Truth & Release Alignment Pass
+- **Landing Page Alignment:** Corrected language list to match supported targets (removed Turkish/Korean, added Portuguese/Hindi), updated CEFR claim to A0-A2, and reconciled Gemini Flash model references.
+- **Onboarding Placement Streamlining:** Simplified onboarding placement modal to 3 transparent steps (native dialect, target language, and goal preference) with explicit curriculum disclosure.
+- **Zero Telemetry Verification:** Confirmed full removal of `@vercel/analytics` and validated strict offline/local-first data policies.
+- **Android Asset Sync:** Built and synced Capacitor Android assets with verified CSP meta headers and relative asset paths.
+
 ## [4.0.1] - 2026-11-06
 
 ### Android & Release Readiness Hotfix
