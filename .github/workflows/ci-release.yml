@@ -101,6 +101,12 @@ jobs:
           chmod +x android/gradlew
           android/gradlew -p android assembleDebug
 
+      - name: Assert signing is configured for tag builds
+        if: startsWith(github.ref, 'refs/tags/v') && env.ANDROID_SIGNING_ENABLED != 'true'
+        run: |
+          echo "::error::Refusing to publish a tag release without Android signing secrets."
+          exit 1
+
       - name: Configure release signing
         if: ${{ env.ANDROID_SIGNING_ENABLED == 'true' }}
         run: |
@@ -136,4 +142,9 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
+          name: Thinking Bridge ${{ github.ref_name }}
+          body: |
+            Official Android release. Download the APK below.
+
+            Includes major edge refinements, RTL typesetting fixes, and accessibility improvements.
           files: release-apks/*.apk

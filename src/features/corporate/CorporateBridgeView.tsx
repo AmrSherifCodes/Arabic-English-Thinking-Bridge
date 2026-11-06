@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Copy, Check, Volume2, Sparkles, Mic, Send, Briefcase } from 'lucide-react';
+import { RTLIcon } from '../../components/RTLIcon';
 import { API_BASE_URL } from '../../utils/api';
 import { useNativeSpeech } from '../voice/useNativeSpeech';
 import { isFranco, francoToArabic } from '../../utils/franco';
@@ -124,7 +125,7 @@ export function CorporateBridgeView({ onBack, onToast, preferredVoice }: Corpora
       {/* Header */}
       <header className="corporate__header">
         <button type="button" className="corporate__back-btn" onClick={onBack} aria-label="رجوع">
-          <ArrowLeft size={18} />
+          <RTLIcon icon={ArrowLeft} size={18} />
         </button>
         <div className="corporate__title-group">
           <h1 className="corporate__title">من البلدي لـ Corporate 💼</h1>

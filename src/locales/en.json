@@ -12,7 +12,11 @@
     "cards": "Flashcards",
     "hub": "Situations",
     "translate": "Translate",
-    "messages": "Contact"
+    "messages": "Contact",
+    "conversation": "Voice AI",
+    "profile": "Profile",
+    "main": "Main navigation",
+    "close": "Close"
   },
   "landing": {
     "headline": "Learn to think in English — without translating in your head",
@@ -122,5 +126,17 @@
     "english": "English",
     "german": "German",
     "japanese": "Japanese"
+  },
+  "error": {
+    "title": "Something went wrong. Please refresh.",
+    "reload": "Reload"
+  },
+  "pwa": {
+    "install": "Install App",
+    "hint": "Get a faster offline experience and quick access from your home screen.",
+    "iosHint": "On iPhone: Tap the Share button, then select \"Add to Home Screen\".",
+    "shareTitle": "Share",
+    "addToHome": "Add to Home Screen",
+    "installNow": "Install Now"
   }
 }

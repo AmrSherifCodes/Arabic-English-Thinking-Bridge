@@ -1,5 +1,13 @@
 # Changelog
 
+## [4.0.0] - 2026-11-05
+
+### Major Release & Edge Refinements
+- **RTL & Typography Fixes:** Implemented correct line-height globally (`1.8`) for Arabic UI to prevent diacritic clipping, and enforced consistent RTL mirroring via `i18next` integration across standard components.
+- **Safe Area Insets:** Refined iOS and Android physical notch avoidance using `env(safe-area-inset)` utilities directly mapped to structural wrappers.
+- **Hardcoded Strings Purge:** Relocated remaining hardcoded interface text (e.g., `ErrorBoundary`, `PwaInstallBanner`) into structured JSON translation scopes.
+- **Android CI/CD Automation:** Bumped internal version mapping to `versionCode 401` and synchronized `versionName` to `4.0.0`. Hardened `.github/workflows/ci-release.yml` to fail tag builds when Android signing secrets are absent.
+
 ## [3.2.1] - 2026-11-04
 
 ### Security & Infrastructure
