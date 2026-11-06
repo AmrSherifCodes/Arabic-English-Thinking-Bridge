@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect, lazy, Suspense } from 'react';
-import { Analytics } from '@vercel/analytics/react';
 import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
 import { StatusBar, Style } from '@capacitor/status-bar';
@@ -263,12 +262,9 @@ export default function App() {
   if (view.name === 'android') {
     return (
       <ErrorBoundary>
-        <>
-          <Analytics />
-          <Suspense fallback={<main className="android-landing min-h-screen" aria-busy="true">Loading Thinking Bridge…</main>}>
-            <AndroidLandingPage />
-          </Suspense>
-        </>
+        <Suspense fallback={<main className="android-landing min-h-screen" aria-busy="true">Loading Thinking Bridge…</main>}>
+          <AndroidLandingPage />
+        </Suspense>
       </ErrorBoundary>
     );
   }

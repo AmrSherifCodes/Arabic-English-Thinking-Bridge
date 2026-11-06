@@ -4,10 +4,10 @@ export const GERMAN_PREBUILT_DECKS: PrebuiltDeck[] = [
   {
     id: 'german-starter-a1',
     name: '🇩🇪 German Thinking Starter · Das Fundament',
-    description: 'Essential German sentences built on the V2 rule and Accusative case. Based on FreeDict & Tatoeba public domain corpus.',
+    description: 'Essential German sentences built on the V2 rule and Accusative case. Handcrafted core phrases by Thinking Bridge Open Commons. CC0 1.0.',
     author: 'Thinking Bridge Open Commons',
     license: 'CC0 1.0 Public Domain',
-    disclaimer: '100% Free & Open Source. Sourced from FreeDict & Tatoeba.',
+    disclaimer: 'Handcrafted. CC0 1.0.',
     cards: [
       { ar: 'أنا أتعلم الألمانية', en: 'Ich lerne Deutsch' },
       { ar: 'أنا أعيش في برلين', en: 'Ich wohne in Berlin' },
@@ -27,7 +27,7 @@ export const GERMAN_PREBUILT_DECKS: PrebuiltDeck[] = [
     description: 'Core daily words with definite articles and plurals. Designed to build effortless gender instincts.',
     author: 'Thinking Bridge Open Commons',
     license: 'CC0 1.0 Public Domain',
-    disclaimer: '100% Free & Open Source. Sourced from FreeDict.',
+    disclaimer: 'Handcrafted. CC0 1.0.',
     cards: [
       { ar: 'الرجل', en: 'der Mann' },
       { ar: 'المرأة', en: 'die Frau' },

@@ -35,3 +35,10 @@
 
 ## CSP Nonce Details
 - **Note:** The Content-Security-Policy is static (no nonce is used). This is because the application is fully static and offline-first without Server-Side Rendering (SSR). A static `script-src 'self'` is used instead.
+
+## Cross-Origin Resource Sharing on static assets
+- **Header:** `Access-Control-Allow-Origin: *` is returned on static assets.
+- **Vercel CDN Default:** Vercel edge nodes emit `Access-Control-Allow-Origin: *` by default for cacheable static assets (e.g. `index.html`, `manifest.webmanifest`, JS/CSS bundles).
+- **Security Assessment:** This is not exploitable. No authenticated cross-origin reads are possible because `Access-Control-Allow-Credentials: true` is never sent. Furthermore, all data endpoints under `/api/*` enforce an explicit origin allowlist in `middleware.ts` (lines 38-55, 144).
+- **Decision:** Accept risk; do not attempt header override for static assets.
+

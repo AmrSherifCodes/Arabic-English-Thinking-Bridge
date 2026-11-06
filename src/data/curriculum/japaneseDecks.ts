@@ -4,10 +4,10 @@ export const JAPANESE_PREBUILT_DECKS: PrebuiltDeck[] = [
   {
     id: 'japanese-starter-a1',
     name: '🇯🇵 Japanese Thinking Starter · 基礎 (Kisou)',
-    description: 'Essential Japanese sentences with Kana readings and Romaji context. Based on JMdict & Tatoeba public domain corpus.',
+    description: 'Essential Japanese sentences with Kana readings and Romaji context. Handcrafted core phrases by Thinking Bridge Open Commons. CC0 1.0.',
     author: 'Thinking Bridge Open Commons',
     license: 'CC0 1.0 Public Domain',
-    disclaimer: '100% Free & Open Source. Sourced from JMdict & Tatoeba.',
+    disclaimer: 'Handcrafted. CC0 1.0.',
     cards: [
       { ar: 'أنا أدرس اليابانية', en: '日本語を勉強します (Nihongo o benkyou shimasu)' },
       { ar: 'مرحباً', en: 'こんにちは (Konnichiwa)' },
@@ -27,7 +27,7 @@ export const JAPANESE_PREBUILT_DECKS: PrebuiltDeck[] = [
     description: 'Essential Japanese Kanji words with Kana Furigana readings and English meanings.',
     author: 'Thinking Bridge Open Commons',
     license: 'CC0 1.0 Public Domain',
-    disclaimer: '100% Free & Open Source. Sourced from JMdict.',
+    disclaimer: 'Handcrafted. CC0 1.0.',
     cards: [
       { ar: 'اليابان', en: '日本 (Nihon)' },
       { ar: 'شخص', en: '人 (Hito)' },
