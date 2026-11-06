@@ -66,6 +66,8 @@ const PreferencesView = lazy(() => import('./features/preferences/PreferencesVie
 const FeedbackModal = lazy(() => import('./components/FeedbackModal').then((m) => ({ default: m.FeedbackModal })));
 const LanguageSelectorModal = lazy(() => import('./components/LanguageSelectorModal').then((m) => ({ default: m.LanguageSelectorModal })));
 const AdminFeedbackView = lazy(() => import('./components/AdminFeedbackView').then((m) => ({ default: m.AdminFeedbackView })));
+const MaintenanceGuide = lazy(() => import('./features/maintenance/MaintenanceGuide').then((m) => ({ default: m.MaintenanceGuide })));
+const PronunciationRecorder = lazy(() => import('./features/voice/PronunciationRecorder').then((m) => ({ default: m.PronunciationRecorder })));
 
 type View =
   | { name: 'shell' }
@@ -75,7 +77,9 @@ type View =
   | { name: 'flashcards' }
   | { name: 'corporate' }
   | { name: 'preferences' }
-  | { name: 'admin' };
+  | { name: 'admin' }
+  | { name: 'maintenance' }
+  | { name: 'pronunciation' };
 
 export default function App() {
   const [view, setView] = useState<View>(() => {
@@ -356,6 +360,8 @@ export default function App() {
                 if (hasKey) setView({ name: 'corporate' });
                 else setLockedFeatureOpen(true);
               }}
+              onOpenMaintenance={() => setView({ name: 'maintenance' })}
+              onOpenPronunciation={() => setView({ name: 'pronunciation' })}
               isArabic={isArabic}
             />
           )}
@@ -442,6 +448,24 @@ export default function App() {
 
       {view.name === 'admin' && (
         <AdminFeedbackView onBack={goHome} isArabic={isArabic} />
+      )}
+
+      {view.name === 'maintenance' && (
+        <div className="min-h-screen bg-[#0A0E13] text-[#EEF2F5] p-4" dir={isArabic ? 'rtl' : 'ltr'}>
+          <button onClick={goHome} className="mb-4 px-4 py-2 bg-stone-800 rounded-xl text-sm font-bold">
+            {isArabic ? '← العودة' : '← Back'}
+          </button>
+          <MaintenanceGuide />
+        </div>
+      )}
+
+      {view.name === 'pronunciation' && (
+        <div className="min-h-screen bg-[#0A0E13] text-[#EEF2F5] p-4 flex flex-col items-center justify-center" dir={isArabic ? 'rtl' : 'ltr'}>
+          <button onClick={goHome} className="mb-4 px-4 py-2 bg-stone-800 rounded-xl text-sm font-bold self-start">
+            {isArabic ? '← العودة' : '← Back'}
+          </button>
+          <PronunciationRecorder />
+        </div>
       )}
 
       {view.name === 'preferences' && (

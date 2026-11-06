@@ -131,3 +131,9 @@ body::before {
   box-shadow: 0 0 25px rgba(45, 212, 191, 0.45);
 }
 
+
+@layer utilities {
+  .pb-safe { padding-bottom: env(safe-area-inset-bottom, 1rem); }
+  .pt-safe { padding-top: env(safe-area-inset-top, 1rem); }
+}
+html[dir='rtl'] body { line-height: 1.8; }

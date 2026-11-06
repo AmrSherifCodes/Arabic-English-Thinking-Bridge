@@ -1,4 +1,5 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
+import i18next from 'i18next';
 
 interface Props {
   children?: ReactNode;
@@ -47,7 +48,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
           <div className="space-y-2 max-w-md">
             <h1 className="text-xl sm:text-2xl font-black text-white">
-              {isArabic ? 'حدث خطأ ما. يرجى تحديث الصفحة.' : 'Something went wrong. Please refresh.'}
+              {i18next.t('error.title')}
             </h1>
           </div>
 
@@ -56,7 +57,7 @@ export class ErrorBoundary extends Component<Props, State> {
             onClick={this.handleReload}
             className="px-6 py-3 rounded-2xl bg-gradient-to-r from-teal-400 to-emerald-500 hover:from-teal-300 hover:to-emerald-400 text-stone-950 font-black text-xs transition shadow-xl active:scale-95"
           >
-            {isArabic ? 'تحديث الصفحة' : 'Reload'}
+            {i18next.t('error.reload')}
           </button>
         </div>
       );

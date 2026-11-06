@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from 'framer-motion';
 import {
   Sparkles,
@@ -106,8 +107,24 @@ function TypewriterSubheadline({ text, isAr }: { text: string; isAr: boolean }) 
 }
 
 export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps) {
-  const [lang, setLang] = useState<'en' | 'ar'>(isArabic ? 'ar' : 'en');
-  const isAr = lang === 'ar';
+  const { i18n } = useTranslation();
+  const lang = i18n.language || 'ar';
+  const isAr = lang.startsWith('ar');
+
+  const tUI = (en: string, ar: string, tr: string) => {
+    if (lang.startsWith('ar')) return ar;
+    if (lang.startsWith('tr')) return tr;
+    return en;
+  };
+
+  const [liteMode, setLiteMode] = useState(false);
+  useEffect(() => {
+    if (typeof navigator !== 'undefined') {
+      const memory = (navigator as any).deviceMemory || 8;
+      const cores = navigator.hardwareConcurrency || 4;
+      if (memory < 4 || cores <= 4) setLiteMode(true);
+    }
+  }, []);
 
   const [videoModalOpen, setVideoModalOpen] = useState(false);
   const [byokModalOpen, setByokModalOpen] = useState(false);
@@ -189,7 +206,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
 
   const isNative = Capacitor.isNativePlatform();
   const dynamicCtaText = isNative
-    ? isAr ? 'افتح التطبيق 🚀' : 'Launch App 🚀'
+    ? tUI('Launch App 🚀', 'افتح التطبيق 🚀', 'Launch App 🚀')
     : targetMeta
     ? isAr
       ? `متابعة تعلم ${targetMeta.nameAr} ${targetMeta.flag} 🚀`
@@ -204,29 +221,35 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
 
   return (
     <div
-      className={`min-h-screen bg-[#090D16] text-[#F9FAFB] antialiased overflow-x-hidden selection:bg-teal-500/30 selection:text-teal-200 relative ${isAr ? 'font-arabic' : 'font-sans-en'}`}
-      dir={isAr ? 'rtl' : 'ltr'}
+      className={`min-h-screen bg-[#090D16] text-[#F9FAFB] antialiased overflow-x-hidden selection:bg-teal-500/30 selection:text-teal-200 relative ${tUI('font-sans-en', 'font-arabic', 'font-sans-en')}`}
+      dir={tUI('ltr', 'rtl', 'ltr')}
       style={{ scrollBehavior: 'smooth' }}
     >
       {/* Background Interactive Glassmorphic Orb with Mobile Guard */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
         <motion.div
           style={{ x: orbX, y: orbY }}
-          className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[650px] h-[650px] rounded-full bg-gradient-to-tr from-teal-500/20 via-amber-500/10 to-emerald-500/15 blur-[120px] animate-pulse"
+          className={`absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[650px] h-[650px] rounded-full bg-gradient-to-tr from-teal-500/20 via-amber-500/10 to-emerald-500/15 animate-pulse ${liteMode ? 'blur-[40px] opacity-50' : 'blur-[120px]'}`}
         />
-        <div className="absolute bottom-10 right-10 w-[450px] h-[450px] rounded-full bg-teal-600/10 blur-[110px]" />
+        <div className={`absolute bottom-10 end-10 w-[450px] h-[450px] rounded-full bg-teal-600/10 ${liteMode ? 'blur-[40px] opacity-50' : 'blur-[110px]'}`} />
       </div>
 
       {/* 0. SECURITY & ZERO-TRACKING TRUST BANNER */}
       <div className="relative z-50 bg-gradient-to-r from-emerald-950/90 via-stone-900 to-teal-950/90 border-b border-emerald-500/30 px-3 py-1.5 text-center text-[11px] font-bold text-emerald-300 flex items-center justify-center gap-2 flex-wrap shadow-md">
         <div className="flex items-center gap-1.5">
           <ShieldCheck size={14} className="text-emerald-400 shrink-0" />
-          <span>{isAr ? '🔒 خصوصية تامة وشفافية 100%:' : '🔒 100% Privacy & Local-First:'}</span>
+          <span>{tUI('🔒 100% Privacy & Local-First:', '🔒 خصوصية تامة وشفافية 100%:', '🔒 %100 Gizlilik ve Yerel-İlk:')}</span>
         </div>
         <span className="text-stone-300 font-medium">
-          {isAr
-            ? 'مفتوح المصدر · لا إعلانات · لا تتبع (Zero Telemetry) · لا كوكيز · جميع بياناتك تُحفظ محلياً في جهازك فقط'
-            : '100% Open Source · Zero Tracking · No Cookies · No Accounts Required · All Progress Saved In Your Browser'}
+          <a href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge" target="_blank" rel="noopener noreferrer" className="underline hover:text-white">
+            {tUI('100% Open Source', 'مفتوح المصدر', '100% Açık Kaynak')}
+          </a>
+          {' · '}
+          {tUI(
+            'Zero Tracking · No Cookies · No Accounts Required · All Progress Saved In Your Browser',
+            'لا إعلانات · لا تتبع (Zero Telemetry) · لا كوكيز · جميع بياناتك تُحفظ محلياً في جهازك فقط',
+            'Sıfır İzleme · Çerez Yok · Hesap Gerekmez · Tüm İlerleme Tarayıcınıza Kaydedilir'
+          )}
         </span>
         <a
           href="https://observatory.mozilla.org/analyze/tb-eg.vercel.app"
@@ -234,7 +257,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 hover:text-white hover:bg-emerald-500/30 text-[10px] font-black border border-emerald-500/30 transition"
         >
-          <span>{isAr ? 'فحص Mozilla Observatory ↗' : 'Mozilla Observatory Audit ↗'}</span>
+          <span>{tUI('Mozilla Observatory Audit ↗', 'فحص Mozilla Observatory ↗', 'Mozilla Observatory Audit ↗')}</span>
         </a>
       </div>
 
@@ -250,19 +273,25 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
                 Thinking Bridge
               </span>
               <span className="text-[10px] text-teal-400 font-bold uppercase tracking-wider block">
-                {isAr ? 'جسر التحول الذهني' : 'Cognitive Transfer Engine'}
+                {tUI('Cognitive Transfer Engine', 'جسر التحول الذهني', 'Cognitive Transfer Engine')}
               </span>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => setLang((prev) => (prev === 'ar' ? 'en' : 'ar'))}
-              className="px-3 py-1.5 rounded-xl border border-stone-800 bg-stone-900/80 hover:border-teal-500/50 text-xs font-bold transition flex items-center gap-1.5 text-stone-300"
-            >
-              <Globe size={14} className="text-teal-400" />
-              <span>{isAr ? 'English' : 'العربية'}</span>
-            </button>
+            <div className="relative flex items-center">
+              <Globe size={14} className="absolute start-3 text-teal-400 pointer-events-none" />
+              <select
+                value={lang}
+                onChange={(e) => i18n.changeLanguage(e.target.value)}
+                className="ps-8 pe-4 py-1.5 rounded-xl border border-stone-800 bg-stone-900/80 hover:border-teal-500/50 text-xs font-bold transition text-stone-300 appearance-none cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
+                dir="ltr"
+              >
+                <option value="ar">🇸🇦 العربية</option>
+                <option value="en">🇬🇧 English</option>
+                <option value="tr">🇹🇷 Türkçe</option>
+              </select>
+            </div>
 
             <button
               onClick={handleLaunchApp}
@@ -280,7 +309,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
           {/* Active Dev & Open Source Flex Badge */}
           <motion.div variants={fadeIn} className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-teal-500/10 border border-teal-500/30 text-teal-300 text-xs font-bold shadow-inner">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping shrink-0" />
-            <span>{isAr ? 'تطوير مستمر · مفتوح المصدر 100% · يعمل بدون إنترنت' : 'Active Development · 100% Open-Source · Offline First'}</span>
+            <span>{tUI('Active Development · 100% Open-Source · Offline First', 'تطوير مستمر · مفتوح المصدر 100% · يعمل بدون إنترنت', 'Active Development · 100% Open-Source · Offline First')}</span>
           </motion.div>
 
           <motion.h1 variants={fadeIn} className="text-4xl sm:text-6xl font-black text-white tracking-tight leading-[1.15]">
@@ -316,7 +345,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
               className="px-7 py-4 rounded-2xl bg-stone-900 border border-stone-800 hover:border-teal-500/50 text-stone-200 font-bold text-base transition flex items-center gap-2 hover:text-white"
             >
               <Github size={20} className="text-teal-400" />
-              <span>{isAr ? 'الكود المصدري على GitHub' : 'View GitHub'}</span>
+              <span>{tUI('View GitHub', 'الكود المصدري على GitHub', 'View GitHub')}</span>
             </a>
           </motion.div>
 
@@ -326,38 +355,31 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
           </motion.div>
         </motion.div>
 
-        {/* Task 5: Animated Language Marquee (Mobile Optimized Container) */}
-        <div className="pt-6 overflow-hidden touch-pan-y w-full relative">
-          <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-[#090D16] to-transparent z-10 pointer-events-none" />
-          <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-[#090D16] to-transparent z-10 pointer-events-none" />
-
-          <motion.div
-            animate={{ x: isAr ? [0, 600] : [0, -600] }}
-            transition={{ repeat: Infinity, duration: 28, ease: 'linear' }}
-            className="flex items-center gap-4 whitespace-nowrap"
-          >
-            {[...marqueeLanguages, ...marqueeLanguages].map((item, idx) => (
+        {/* Clean Language Grid instead of duplicated Marquee */}
+        <div className="pt-8 w-full max-w-3xl mx-auto">
+          <div className="flex flex-wrap justify-center items-center gap-3">
+            {marqueeLanguages.map((item, idx) => (
               <div
                 key={idx}
-                className="px-4 py-2 rounded-2xl bg-stone-900/80 border border-stone-800 flex items-center gap-2 text-xs font-bold text-stone-300 shrink-0 shadow-sm"
+                className="px-3 py-1.5 rounded-xl bg-stone-900/80 border border-stone-800 flex items-center gap-2 text-xs font-bold text-stone-300 shadow-sm transition-colors"
               >
-                <span className="text-lg">{item.flag}</span>
-                <span>{isAr ? item.nameAr : item.nameEn}</span>
+                <span className="text-sm">{item.flag}</span>
+                <span>{tUI(item.nameEn, item.nameAr, item.nameEn)}</span>
               </div>
             ))}
-          </motion.div>
+          </div>
         </div>
       </section>
 
       {/* 3. TASK 1: THE YOUTUBE BRIDGE (Video Container & Modal) */}
       <section className="relative z-10 px-4 py-12 max-w-4xl mx-auto text-center space-y-6">
         <div className="space-y-2">
-          <span className="text-xs font-black uppercase tracking-wider text-red-400 flex items-center justify-center gap-1.5">
+          <a href="https://www.youtube.com/@SciAmrSherif" target="_blank" rel="noopener noreferrer" className="text-xs font-black uppercase tracking-wider text-red-400 flex items-center justify-center gap-1.5 hover:text-red-300 transition-colors">
             <Youtube size={16} />
-            <span>{isAr ? 'شاهد القصة الكاملة على يوتيوب' : 'Featured on YouTube'}</span>
-          </span>
+            <span>{tUI('Featured on YouTube ↗', 'شاهد القصة الكاملة على يوتيوب ↗', 'YouTube\'da Öne Çıkanlar ↗')}</span>
+          </a>
           <h2 className="text-2xl sm:text-3xl font-black text-white">
-            {isAr ? 'رحلة بناء جسر التفكير في 15 دقيقة' : 'The 15-Minute Engineering Story'}
+            {tUI('The 15-Minute Engineering Story', 'رحلة بناء جسر التفكير في 15 دقيقة', '15 Dakikalık Mühendislik Hikayesi')}
           </h2>
         </div>
 
@@ -380,8 +402,8 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
             </div>
           </div>
 
-          <div className="absolute bottom-4 left-4 right-4 text-start flex items-center justify-between text-xs font-bold text-stone-200">
-            <span>🎬 {isAr ? 'مشاهدة الفيديو الوثائقي' : 'Watch Full Documentary'}</span>
+          <div className="absolute bottom-4 inset-x-4 text-start flex items-center justify-between text-xs font-bold text-stone-200">
+            <span>🎬 {tUI('Watch Full Documentary', 'مشاهدة الفيديو الوثائقي', 'Watch Full Documentary')}</span>
             <span className="px-2.5 py-1 rounded-lg bg-stone-950/80 border border-stone-800">15:00</span>
           </div>
         </div>
@@ -395,7 +417,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-red-600/20 border border-red-500/40 text-red-400 hover:bg-red-600 hover:text-white text-xs font-black transition active:scale-95 shadow-md"
           >
             <Youtube size={16} className="fill-current" />
-            <span>{isAr ? 'اشترك في قناة @SciAmrSherif على يوتيوب' : 'Subscribe to @SciAmrSherif'}</span>
+            <span>{tUI('Subscribe to @SciAmrSherif', 'اشترك في قناة @SciAmrSherif على يوتيوب', 'Subscribe to @SciAmrSherif')}</span>
           </a>
         </div>
       </section>
@@ -405,10 +427,10 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
         <div className="max-w-5xl mx-auto space-y-12 text-center">
           <div className="space-y-2">
             <span className="text-xs font-black uppercase tracking-wider text-teal-400 block">
-              {isAr ? 'كيف يعمل النظام؟' : 'How It Works'}
+              {tUI('How It Works', 'كيف يعمل النظام؟', 'How It Works')}
             </span>
             <h2 className="text-3xl sm:text-4xl font-black text-white">
-              {isAr ? '3 خطوات لبناء بديهة لغوية فورية' : '3 Steps to Instant Native Reflexes'}
+              {tUI('3 Steps to Instant Native Reflexes', '3 خطوات لبناء بديهة لغوية فورية', '3 Steps to Instant Native Reflexes')}
             </h2>
           </div>
 
@@ -419,7 +441,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
                 1
               </div>
               <h3 className="text-base font-black text-white">
-                📝 {isAr ? 'خوض اختبار تحديد المستوى' : 'Take the Placement Test'}
+                📝 {tUI('Take the Placement Test', 'خوض اختبار تحديد المستوى', 'Take the Placement Test')}
               </h3>
               <p className="text-xs text-stone-400 leading-relaxed">
                 {isAr
@@ -434,7 +456,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
                 2
               </div>
               <h3 className="text-base font-black text-white">
-                🧠 {isAr ? 'إعادة برمجة الهيكل الذهني' : 'Rewire Your Brain'}
+                🧠 {tUI('Rewire Your Brain', 'إعادة برمجة الهيكل الذهني', 'Rewire Your Brain')}
               </h3>
               <p className="text-xs text-stone-400 leading-relaxed">
                 {isAr
@@ -449,14 +471,26 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
                 3
               </div>
               <h3 className="text-base font-black text-white">
-                🎙️ {isAr ? 'التحدث الصوتي المباشر' : 'Speak with AI Coach'}
+                🎙️ {tUI('Speak with AI Coach', 'التحدث الصوتي المباشر', 'Yapay Zeka Koçuyla Konuş')}
               </h3>
               <p className="text-xs text-stone-400 leading-relaxed">
-                {isAr
-                  ? 'اختبر بديهتك الجديدة في محادثات صوتية فورية مع المعلم الذكي مع دعم المقاطعة الفورية وتصحيح النطق.'
-                  : 'Test your new cognitive reflexes in real-time voice conversations with your AI coach.'}
+                {tUI(
+                  'Test your new cognitive reflexes in real-time voice conversations with your AI coach.',
+                  'اختبر بديهتك الجديدة في محادثات صوتية فورية مع المعلم الذكي مع دعم المقاطعة الفورية وتصحيح النطق.',
+                  'Yapay zeka koçunuzla gerçek zamanlı sesli konuşmalarda yeni bilişsel reflekslerinizi test edin.'
+                )}
               </p>
             </div>
+          </div>
+
+          <div className="pt-8 flex justify-center">
+            <button
+              onClick={handleLaunchApp}
+              className="btn-shiny px-8 py-4 rounded-2xl bg-gradient-to-r from-teal-400 via-emerald-400 to-teal-500 text-stone-950 font-black text-base transition shadow-xl active:scale-95 flex items-center gap-2"
+            >
+              <span>{tUI('Begin Level Test 🚀', 'ابدأ تحديد المستوى الآن 🚀', 'Seviye Testine Başla 🚀')}</span>
+              <ArrowRight size={18} className={isAr ? 'rotate-180' : ''} />
+            </button>
           </div>
         </div>
       </section>
@@ -492,7 +526,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
             <div className="pt-2 space-y-0.5">
               <span className="font-extrabold text-white text-lg block">Amr Sherif</span>
               <span className="text-xs text-teal-400 font-bold block">
-                {isAr ? 'مبتكر ومطور جسر التفكير' : 'Creator & Lead Architect'}
+                {tUI('Creator & Lead Architect', 'مبتكر ومطور جسر التفكير', 'Creator & Lead Architect')}
               </span>
             </div>
           </motion.div>
@@ -507,7 +541,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
           >
             <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-black">
               <Award size={14} />
-              <span>{isAr ? 'قصة الابتكار والدافع' : 'Why I Built This'}</span>
+              <span>{tUI('Why I Built This', 'قصة الابتكار والدافع', 'Why I Built This')}</span>
             </div>
 
             <h2 className="text-2xl sm:text-3xl font-black text-white leading-snug">
@@ -547,10 +581,10 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
       <section className="relative z-10 px-4 py-20 max-w-6xl mx-auto space-y-12">
         <div className="text-center space-y-3">
           <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
-            {isAr ? 'مميزات هندسية فريدة' : 'Architected for Cognitive Speed'}
+            {tUI('Architected for Cognitive Speed', 'مميزات هندسية فريدة', 'Architected for Cognitive Speed')}
           </h2>
           <p className="text-sm text-stone-400 max-w-lg mx-auto">
-            {isAr ? 'حلول جذريّة لمشكلات التفكير والترجمة التلقائية في الدماغ' : 'Radical solutions designed to break direct translation dependencies.'}
+            {tUI('Radical solutions designed to break direct translation dependencies.', 'حلول جذريّة لمشكلات التفكير والترجمة التلقائية في الدماغ', 'Radical solutions designed to break direct translation dependencies.')}
           </p>
         </div>
 
@@ -562,7 +596,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
                 🧠
               </div>
               <h3 className="text-lg font-black text-white">
-                {isAr ? 'إعادة البرمجة الذهنية' : 'Cognitive Rewiring'}
+                {tUI('Cognitive Rewiring', 'إعادة البرمجة الذهنية', 'Cognitive Rewiring')}
               </h3>
               <p className="text-xs sm:text-sm text-stone-400 leading-relaxed">
                 {isAr
@@ -579,7 +613,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
                 🎙️
               </div>
               <h3 className="text-lg font-black text-white">
-                {isAr ? 'المعلم الصوتي الذكي' : 'AI Voice Tutor'}
+                {tUI('AI Voice Tutor', 'المعلم الصوتي الذكي', 'AI Voice Tutor')}
               </h3>
               <p className="text-xs sm:text-sm text-stone-400 leading-relaxed">
                 {isAr
@@ -597,23 +631,39 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
                   🔑
                 </div>
                 <h3 className="text-lg font-black text-white">
-                  {isAr ? 'مفتاحك المجاني (BYOK)' : 'Bring Your Own Key'}
+                  {tUI('Bring Your Own Key', 'مفتاحك المجاني (BYOK)', 'Bring Your Own Key')}
                 </h3>
                 <p className="text-xs sm:text-sm text-stone-400 leading-relaxed">
-                  {isAr
-                    ? 'أدخل مفتاحك المجاني الخاص من Google AI Studio لاستخدام بلا حدود أو اشتراكات. لا توجد جدران دفع أو إعلانات للأبد.'
-                    : 'Add your own free Gemini API key for unlimited access. No paywalls, no subscriptions.'}
+                  {tUI(
+                    'Add your own free Gemini API key for unlimited access. No paywalls, no subscriptions.',
+                    'أدخل مفتاحك المجاني الخاص من Google AI Studio لاستخدام بلا حدود أو اشتراكات. لا توجد جدران دفع أو إعلانات للأبد.',
+                    'Sınırsız erişim için kendi ücretsiz Gemini API anahtarınızı ekleyin. Ödeme duvarı yok, abonelik yok.'
+                  )}
                 </p>
+                <div className="mt-4 flex flex-col gap-2 relative z-20">
+                  <input
+                    type="password"
+                    placeholder={tUI('Paste Gemini API key...', 'الصق مفتاح Gemini هنا...', 'Gemini API anahtarını yapıştırın...')}
+                    className="w-full px-3 py-2 bg-stone-950 border border-stone-800 rounded-lg text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors text-left"
+                    dir="ltr"
+                    onChange={(e) => {
+                       if (typeof localStorage !== 'undefined') {
+                         localStorage.setItem('tb.geminiKey', e.target.value);
+                       }
+                    }}
+                  />
+                </div>
               </div>
 
-              <button
-                type="button"
-                onClick={() => setByokModalOpen(true)}
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-400 hover:text-emerald-300 hover:underline pt-2"
+              <a
+                href="https://aistudio.google.com/app/apikey"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-400 hover:text-emerald-300 hover:underline pt-4 relative z-20"
               >
                 <HelpCircle size={14} />
-                <span>{isAr ? 'كيف تحصل على مفتاح مجاني؟ (دليل دقيقة)' : 'How to get a free key (1-min guide)'}</span>
-              </button>
+                <span>{tUI('How to get a free key (1-min guide) ↗', 'كيف تحصل على مفتاح مجاني؟ (دليل دقيقة) ↗', 'Ücretsiz anahtar nasıl alınır? (1 dakikalık rehber) ↗')}</span>
+              </a>
             </div>
           </TiltCard>
         </div>
@@ -686,7 +736,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
               <div className="flex items-center justify-between pb-2 border-b border-stone-800">
                 <span className="font-bold text-sm text-white flex items-center gap-2">
                   <Youtube size={18} className="text-red-500" />
-                  <span>{isAr ? 'وثائقي بناء جسر التفكير' : 'Thinking Bridge Documentary'}</span>
+                  <span>{tUI('Thinking Bridge Documentary', 'وثائقي بناء جسر التفكير', 'Thinking Bridge Documentary')}</span>
                 </span>
                 <button
                   onClick={() => setVideoModalOpen(false)}
@@ -714,7 +764,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
                   rel="noopener noreferrer"
                   className="px-6 py-2.5 rounded-xl bg-red-600 text-white font-bold text-xs hover:bg-red-500 transition shadow-md"
                 >
-                  {isAr ? 'اشترك في القناة لمتابعة الشروحات 🚀' : 'Subscribe to @SciAmrSherif 🚀'}
+                  {tUI('Subscribe to @SciAmrSherif 🚀', 'اشترك في القناة لمتابعة الشروحات 🚀', 'Subscribe to @SciAmrSherif 🚀')}
                 </a>
               </div>
             </motion.div>
@@ -736,7 +786,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
                 <div className="flex items-center gap-2">
                   <Key size={20} className="text-emerald-400" />
                   <h3 className="font-black text-base text-white">
-                    {isAr ? 'كيف تحصل على مفتاح Gemini مجاناً؟' : 'How to get a free Gemini Key'}
+                    {tUI('How to get a free Gemini Key', 'كيف تحصل على مفتاح Gemini مجاناً؟', 'How to get a free Gemini Key')}
                   </h3>
                 </div>
                 <button
@@ -751,7 +801,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
                 {/* Step 1 */}
                 <div className="p-3.5 rounded-2xl bg-stone-950/80 border border-stone-800 space-y-2">
                   <span className="font-black text-emerald-400 block">
-                    {isAr ? 'الخطوة ١: افتح Google AI Studio' : 'Step 1: Open Google AI Studio'}
+                    {tUI('Step 1: Open Google AI Studio', 'الخطوة ١: افتح Google AI Studio', 'Step 1: Open Google AI Studio')}
                   </span>
                   <p className="text-stone-400">
                     {isAr
@@ -772,7 +822,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
                 {/* Step 2 */}
                 <div className="p-3.5 rounded-2xl bg-stone-950/80 border border-stone-800 space-y-1.5">
                   <span className="font-black text-emerald-400 block">
-                    {isAr ? 'الخطوة ٢: انسخ المفتاح في إعدادات التطبيق' : 'Step 2: Paste key into Settings'}
+                    {tUI('Step 2: Paste key into Settings', 'الخطوة ٢: انسخ المفتاح في إعدادات التطبيق', 'Step 2: Paste key into Settings')}
                   </span>
                   <p className="text-stone-400">
                     {isAr
@@ -799,7 +849,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
                 }}
                 className="w-full py-3.5 rounded-2xl bg-emerald-400 hover:bg-emerald-300 text-stone-950 font-black text-xs transition active:scale-95 shadow-lg"
               >
-                {isAr ? 'الانتقال للتطبيق وإدخال المفتاح 🚀' : 'Launch App & Enter Key 🚀'}
+                {tUI('Launch App & Enter Key 🚀', 'الانتقال للتطبيق وإدخال المفتاح 🚀', 'Launch App & Enter Key 🚀')}
               </button>
             </motion.div>
           </div>
