@@ -1,5 +1,14 @@
 # Changelog
 
+## [4.0.1] - 2026-11-06
+
+### Android & Release Readiness Hotfix
+- Removed `@vercel/analytics` dependency (honoured "zero telemetry" claim on Android + web).
+- Corrected German / Japanese prebuilt deck attribution to handcrafted CC0 1.0.
+- Restored meta CSP in `index.html` (Capacitor WebView previously had no CSP).
+- Documented Vercel CDN ACAO-* as accepted risk.
+- Added deployment policy + branch protection guide.
+
 ## [4.0.0] - 2026-11-05
 
 ### Major Release & Edge Refinements
