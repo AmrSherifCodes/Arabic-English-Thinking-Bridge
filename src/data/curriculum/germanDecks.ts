@@ -1,5 +1,4 @@
 import { PrebuiltDeck } from '../prebuiltDecks';
-import { GERMAN_DICTIONARY } from '../dictionaries/germanDictionary';
 
 export const GERMAN_PREBUILT_DECKS: PrebuiltDeck[] = [
   {
@@ -9,10 +8,18 @@ export const GERMAN_PREBUILT_DECKS: PrebuiltDeck[] = [
     author: 'Thinking Bridge Open Commons',
     license: 'CC0 1.0 Public Domain',
     disclaimer: '100% Free & Open Source. Sourced from FreeDict & Tatoeba.',
-    cards: GERMAN_DICTIONARY.slice(0, 100).map((entry) => ({
-      ar: (entry as any).translation || (entry as any).word || 'أنا أتعلم الألمانية',
-      en: (entry as any).word || (entry as any).translation || 'Ich lerne Deutsch',
-    })),
+    cards: [
+      { ar: 'أنا أتعلم الألمانية', en: 'Ich lerne Deutsch' },
+      { ar: 'أنا أعيش في برلين', en: 'Ich wohne in Berlin' },
+      { ar: 'الطقس جميل اليوم', en: 'Das Wetter ist heute schön' },
+      { ar: 'أين محطة القطار؟', en: 'Wo ist der Bahnhof?' },
+      { ar: 'شكراً جزيلاً', en: 'Vielen Dank' },
+      { ar: 'صباح الخير', en: 'Guten Morgen' },
+      { ar: 'مساء الخير', en: 'Guten Abend' },
+      { ar: 'كيف حالك؟', en: 'Wie geht es dir?' },
+      { ar: 'أنا بحاجة إلى مساعدة', en: 'Ich brauche Hilfe' },
+      { ar: 'كم سعر هذا؟', en: 'Wie viel kostet das?' },
+    ],
   },
   {
     id: 'german-genders-vocab',
@@ -21,9 +28,17 @@ export const GERMAN_PREBUILT_DECKS: PrebuiltDeck[] = [
     author: 'Thinking Bridge Open Commons',
     license: 'CC0 1.0 Public Domain',
     disclaimer: '100% Free & Open Source. Sourced from FreeDict.',
-    cards: GERMAN_DICTIONARY.slice(100, 200).map((entry) => ({
-      ar: (entry as any).translation || (entry as any).word || 'كلمة ألمانية',
-      en: (entry as any).word || (entry as any).translation || 'deutsches Wort',
-    })),
+    cards: [
+      { ar: 'الرجل', en: 'der Mann' },
+      { ar: 'المرأة', en: 'die Frau' },
+      { ar: 'الطفل', en: 'das Kind' },
+      { ar: 'المنزل', en: 'das Haus' },
+      { ar: 'السيارة', en: 'das Auto' },
+      { ar: 'الكتاب', en: 'das Buch' },
+      { ar: 'المدينة', en: 'die Stadt' },
+      { ar: 'المدرسة', en: 'die Schule' },
+      { ar: 'العمل', en: 'die Arbeit' },
+      { ar: 'الماء', en: 'das Wasser' },
+    ],
   },
 ];

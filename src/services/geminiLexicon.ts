@@ -1,4 +1,3 @@
-import { GoogleGenAI, Type } from '@google/genai';
 import type { UserProfile } from '../hooks/useUserProfile';
 import type { Exercise, SourceLanguage, TargetLanguage } from '../types';
 import { API_BASE_URL } from '../utils/api';
@@ -116,65 +115,65 @@ const DIRECT_MODELS = [
 ] as const;
 
 const directEntryProperties = {
-  arabicWord: { type: Type.STRING },
-  englishTranslation: { type: Type.STRING },
-  dialect: { type: Type.STRING, enum: [...ARABIC_DIALECTS] },
-  partOfSpeech: { type: Type.STRING, enum: [...PARTS_OF_SPEECH] },
-  situations: { type: Type.ARRAY, items: { type: Type.STRING, enum: [...SITUATIONS] } },
-  exampleSentenceArabic: { type: Type.STRING },
-  exampleSentenceEnglish: { type: Type.STRING },
+  arabicWord: { type: 'STRING' },
+  englishTranslation: { type: 'STRING' },
+  dialect: { type: 'STRING', enum: [...ARABIC_DIALECTS] },
+  partOfSpeech: { type: 'STRING', enum: [...PARTS_OF_SPEECH] },
+  situations: { type: 'ARRAY', items: { type: 'STRING', enum: [...SITUATIONS] } },
+  exampleSentenceArabic: { type: 'STRING' },
+  exampleSentenceEnglish: { type: 'STRING' },
 };
 
 const directEntrySchema = {
-  type: Type.OBJECT,
+  type: 'OBJECT',
   properties: directEntryProperties,
   required: Object.keys(directEntryProperties),
 };
 
 const directWordSchema = {
-  type: Type.ARRAY,
+  type: 'ARRAY',
   items: {
-    type: Type.OBJECT,
+    type: 'OBJECT',
     properties: {
-      arabicWord: { type: Type.STRING },
-      englishTranslation: { type: Type.STRING },
+      arabicWord: { type: 'STRING' },
+      englishTranslation: { type: 'STRING' },
     },
     required: ['arabicWord', 'englishTranslation'],
   },
 };
 
 const directChunkSchema = {
-  type: Type.OBJECT,
+  type: 'OBJECT',
   properties: {
-    arabicText: { type: Type.STRING },
-    englishText: { type: Type.STRING },
+    arabicText: { type: 'STRING' },
+    englishText: { type: 'STRING' },
     role: {
-      type: Type.STRING,
+      type: 'STRING',
       enum: ['subject', 'verb', 'object', 'connector', 'modifier', 'auxiliary'],
     },
-    explanation: { type: Type.STRING },
+    explanation: { type: 'STRING' },
   },
   required: ['arabicText', 'englishText', 'role', 'explanation'],
 };
 
 const directExerciseSchema = {
-  type: Type.OBJECT,
+  type: 'OBJECT',
   properties: {
-    arabicThought: { type: Type.STRING },
-    englishTarget: { type: Type.STRING },
+    arabicThought: { type: 'STRING' },
+    englishTarget: { type: 'STRING' },
     acceptableAlternatives: {
-      type: Type.ARRAY,
-      items: { type: Type.STRING },
+      type: 'ARRAY',
+      items: { type: 'STRING' },
     },
     wordChips: {
-      type: Type.ARRAY,
-      items: { type: Type.STRING },
+      type: 'ARRAY',
+      items: { type: 'STRING' },
     },
     breakdownChunks: {
-      type: Type.ARRAY,
+      type: 'ARRAY',
       items: directChunkSchema,
     },
-    habitHint: { type: Type.STRING },
+    habitHint: { type: 'STRING' },
   },
   required: [
     'arabicThought',
@@ -192,15 +191,15 @@ function parseDirectJson(text: string | undefined): unknown {
 }
 
 async function generateWithDirectFallback(
-  ai: GoogleGenAI,
-  params: Omit<Parameters<GoogleGenAI['models']['generateContent']>[0], 'model'>
+  ai: any,
+  params: Record<string, unknown>
 ) {
   let lastError: unknown;
   for (const model of DIRECT_MODELS) {
     try {
       return await ai.models.generateContent({
         ...params,
-        config: { ...params.config, maxOutputTokens: 250, temperature: 0.7 },
+        config: { ...(params.config as Record<string, unknown>), maxOutputTokens: 250, temperature: 0.7 },
         model,
       });
     } catch (err) {
@@ -216,6 +215,7 @@ async function requestGeminiWithUserKey<T>(
   operation: 'entry' | 'deck' | 'tutor' | 'generate-exercise' | 'conversation' | 'explain-error',
   payload: Record<string, unknown>
 ): Promise<T> {
+  const { GoogleGenAI } = await import('@google/genai');
   const ai = new GoogleGenAI({ apiKey: userKey });
 
   if (operation === 'explain-error') {

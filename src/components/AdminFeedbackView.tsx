@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from 'react';
-import { GoogleGenAI } from '@google/genai';
 import { ArrowLeft, BookOpen, Bug, Lightbulb, RefreshCw, Sparkles, Trash2 } from 'lucide-react';
 import { RTLIcon } from './RTLIcon';
 import { getUserGeminiKey } from '../services/geminiLexicon';
@@ -84,6 +83,7 @@ export function AdminFeedbackView({ onBack, isArabic = true }: AdminFeedbackView
     setSummarizing(true);
     setError('');
     try {
+      const { GoogleGenAI } = await import('@google/genai');
       const ai = new GoogleGenAI({ apiKey: userKey });
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',

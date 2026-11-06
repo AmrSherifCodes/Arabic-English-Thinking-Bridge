@@ -103,7 +103,7 @@
         },
         {
           "key": "X-XSS-Protection",
-          "value": "1; mode=block"
+          "value": "0"
         },
         {
           "key": "Strict-Transport-Security",
@@ -115,7 +115,7 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self' capacitor: http://localhost https://localhost; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; style-src-attr 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https://flagcdn.com; media-src 'self' data: blob:; connect-src 'self' capacitor: http://localhost https://localhost https://tb-eg.vercel.app https://arabicenglishthinkingbridge.vercel.app https://generativelanguage.googleapis.com https://api.mymemory.translated.net https://*.upstash.io; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';"
+          "value": "default-src 'self' capacitor: http://localhost https://localhost; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https://flagcdn.com; media-src 'self' data: blob:; connect-src 'self' capacitor: http://localhost https://localhost https://tb-eg.vercel.app https://arabicenglishthinkingbridge.vercel.app https://generativelanguage.googleapis.com https://api.mymemory.translated.net; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';"
         },
         {
           "key": "Cross-Origin-Opener-Policy",

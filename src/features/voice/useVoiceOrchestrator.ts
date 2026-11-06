@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
-import { GoogleGenAI } from '@google/genai';
 import { getUserGeminiKey } from '../../services/geminiLexicon';
 import { API_BASE_URL } from '../../utils/api';
 import { consumeDailyApiQuota } from '../../utils/apiQuota';
@@ -774,6 +773,7 @@ export function useVoiceOrchestrator(
       }
 
       try {
+        const { GoogleGenAI } = await import('@google/genai');
         const ai = new GoogleGenAI({ apiKey: userKey });
         const profile = getStoredProfile();
         const targetLanguage = TARGET_LANGUAGES.find((language) => language.code === profile.targetLang)?.nameEn || 'English';

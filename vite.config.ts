@@ -144,6 +144,9 @@ export default defineConfig(async ({ command, mode }) => {
               return 'icons-vendor';
             }
             if (normId.includes('src/data/dictionaries/')) {
+              if (normId.includes('index.ts') || normId.includes('types.ts')) {
+                return undefined;
+              }
               if (
                 normId.includes('arabicDictionary') ||
                 normId.includes('egyptian') ||
@@ -164,12 +167,6 @@ export default defineConfig(async ({ command, mode }) => {
               if (normId.includes('italianDictionary')) return 'dict-italian';
               if (normId.includes('portugueseDictionary')) return 'dict-portuguese';
               return 'dict-other';
-            }
-            if (normId.includes('src/data/lessons') || normId.includes('src/data/curriculum')) {
-              return 'curriculum-core';
-            }
-            if (normId.includes('src/data/') || normId.includes('src/utils/arabicWordLexicon')) {
-              return 'app-data';
             }
           },
         },
