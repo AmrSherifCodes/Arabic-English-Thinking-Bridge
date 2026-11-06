@@ -2,6 +2,10 @@ export type ChunkRole = 'subject' | 'verb' | 'object' | 'connector' | 'modifier'
 
 export type SourceLanguage =
   | 'ar'
+  | 'arz'
+  | 'apc'
+  | 'afb'
+  | 'ary'
   | 'ar-EG'
   | 'ar-MA'
   | 'ar-SD'

@@ -32,6 +32,50 @@ export const SOURCE_LANGUAGES: Record<SourceLanguage, LanguageMeta> = {
     descriptionAr: 'العربية الفصحى لغة التفكير والتواصل الرسمية',
     badge: 'الأم'
   },
+  arz: {
+    code: 'arz',
+    nameEn: 'Egyptian Arabic',
+    nameNative: 'عامية مصرية',
+    nameAr: 'عامية مصرية',
+    flag: '🇪🇬',
+    direction: 'rtl',
+    descriptionEn: 'Egyptian Dialect (Masri)',
+    descriptionAr: 'اللهجة المصرية للتفكير والتحدث الفوري',
+    badge: 'مصر'
+  },
+  apc: {
+    code: 'apc',
+    nameEn: 'Levantine Arabic',
+    nameNative: 'لهجة شامية',
+    nameAr: 'لهجة شامية',
+    flag: '🇸🇾',
+    direction: 'rtl',
+    descriptionEn: 'Levantine Dialect (Shami)',
+    descriptionAr: 'اللهجة الشامية للتفكير والتواصل',
+    badge: 'الشام'
+  },
+  afb: {
+    code: 'afb',
+    nameEn: 'Gulf Arabic',
+    nameNative: 'لهجة خليجية',
+    nameAr: 'لهجة خليجية',
+    flag: '🇸🇦',
+    direction: 'rtl',
+    descriptionEn: 'Gulf Dialect (Khaleeji)',
+    descriptionAr: 'اللهجة الخليجية للتواصل والتفكير',
+    badge: 'الخليج'
+  },
+  ary: {
+    code: 'ary',
+    nameEn: 'Moroccan Darija',
+    nameNative: 'دارجة مغربية',
+    nameAr: 'دارجة مغربية',
+    flag: '🇲🇦',
+    direction: 'rtl',
+    descriptionEn: 'Moroccan Darija',
+    descriptionAr: 'الدارجة المغربية للتفكير اليومي',
+    badge: 'المغرب'
+  },
   'ar-EG': {
     code: 'ar-EG',
     nameEn: 'Egyptian Arabic',

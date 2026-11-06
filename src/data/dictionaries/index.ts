@@ -1,4 +1,5 @@
 import { SourceLanguage, TargetLanguage } from '../../types';
+import { ENGLISH_DICTIONARY } from './englishDictionary';
 
 export * from './types';
 
@@ -30,6 +31,7 @@ export const DICTIONARY_LOADERS: Record<string, () => Promise<DictWordEntry[]>> 
   apc: async () => (await import('./levantineArabicDictionary')).LEVANTINEARABIC_DICTIONARY,
   afb: async () => (await import('./gulfArabicDictionary')).GULFARABIC_DICTIONARY,
   ary: async () => (await import('./moroccanArabicDictionary')).MOROCCANARABIC_DICTIONARY,
+  en: async () => (await import('./englishDictionary')).ENGLISH_DICTIONARY,
 };
 
 export async function getTargetDictionaryAsync(targetLang: string): Promise<DictWordEntry[]> {
@@ -51,7 +53,10 @@ export async function getTargetDictionaryAsync(targetLang: string): Promise<Dict
 export function getTargetDictionary(targetLang: string): DictWordEntry[] {
   const match = loadedDictionaryCache[targetLang];
   if (match) return match;
-  if (targetLang === 'en') return [];
+  if (targetLang === 'en') {
+    loadedDictionaryCache['en'] = ENGLISH_DICTIONARY;
+    return ENGLISH_DICTIONARY;
+  }
   void getTargetDictionaryAsync(targetLang);
   return [];
 }
@@ -104,8 +109,11 @@ export function lookupTargetTerm(
   const clean = term.trim().toLowerCase();
   const dict = getTargetDictionary(targetLang);
 
-  return dict.find((e) =>
-    (e.word || e.term || '').toLowerCase() === clean ||
-    (e.translation || '').toLowerCase() === clean
-  ) || null;
+  return (
+    dict.find((e) => {
+      const w = (e.word || e.term || '').toLowerCase();
+      const t = (e.translation || '').toLowerCase();
+      return w === clean || t === clean || w.includes(clean) || t.includes(clean);
+    }) || null
+  );
 }

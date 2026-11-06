@@ -497,3 +497,187 @@ export function buildLanguagePairLexicon(
 
   return bridged;
 }
+
+export interface LessonDefinition {
+  id: string;
+  titleEn: string;
+  titleAr: string;
+  descriptionEn: string;
+  descriptionAr: string;
+  promptAr: string;
+  promptEn: string;
+  targetSentence: string;
+  sourceThought: string;
+  wordChips: string[];
+  breakdownChunks: Array<{
+    arabicText: string;
+    englishText: string;
+    role: string;
+    explanation: string;
+  }>;
+  explanationAr: string;
+  explanationEn: string;
+  cefrLevel: CEFRLevel;
+  focusArea: FocusArea;
+  sourceLang: LanguageCode;
+  targetLang: LanguageCode;
+}
+
+const CEFR_LESSON_COUNTS: Record<CEFRLevel, number> = {
+  A0: 10,
+  A1: 15,
+  A2: 20,
+  B1: 25,
+  B2: 30,
+  C1: 35,
+  C2: 40,
+};
+
+const FOCUS_VOCABULARY: Record<string, Record<FocusArea, string[]>> = {
+  en: {
+    travel: ['hotel', 'ticket', 'airport', 'flight', 'station', 'road', 'passport', 'luggage', 'reservation', 'map'],
+    corporate: ['meeting', 'client', 'office', 'deal', 'contract', 'project', 'report', 'strategy', 'market', 'budget'],
+    academic: ['research', 'data', 'paper', 'experiment', 'analysis', 'hypothesis', 'theory', 'system', 'method', 'lab'],
+    conversation: ['friend', 'chat', 'coffee', 'family', 'story', 'weekend', 'hobby', 'house', 'weather', 'music'],
+    'dialect-immersion': ['banter', 'slang', 'vibe', 'idiom', 'phrase', 'street', 'local', 'nuance', 'metaphor', 'twist'],
+    general: ['book', 'good', 'work', 'day', 'time', 'world', 'life', 'city', 'school', 'home'],
+  },
+  de: {
+    travel: ['Hotel', 'Ticket', 'Flughafen', 'Flug', 'Bahnhof', 'Straße', 'Reisepass', 'Gepäck', 'Reservierung', 'Karte'],
+    corporate: ['Meeting', 'Kunde', 'Büro', 'Deal', 'Vertrag', 'Projekt', 'Bericht', 'Strategie', 'Markt', 'Budget'],
+    academic: ['Forschung', 'Daten', 'Papier', 'Experiment', 'Analyse', 'Hypothese', 'Theorie', 'System', 'Methode', 'Labor'],
+    conversation: ['Freund', 'Chat', 'Kaffee', 'Familie', 'Geschichte', 'Wochenende', 'Hobby', 'Haus', 'Wetter', 'Musik'],
+    'dialect-immersion': ['Redewendung', 'Umgangssprache', 'Atmosphäre', 'Redensart', 'Ausdruck', 'Straße', 'Lokal', 'Nuance', 'Metapher', 'Wendung'],
+    general: ['Buch', 'gut', 'Arbeit', 'Tag', 'Zeit', 'Welt', 'Leben', 'Stadt', 'Schule', 'Haus'],
+  },
+  ja: {
+    travel: ['ホテル', 'チケット', '空港', 'フライト', '駅', '道路', 'パスポート', '荷物', '予約', '地図'],
+    corporate: ['会議', 'クライアント', 'オフィス', '取引', '契約', 'プロジェクト', '報告書', '戦略', '市場', '予算'],
+    academic: ['研究', 'データ', '論文', '実験', '分析', '仮説', '理論', 'システム', '方法', 'ラボ'],
+    conversation: ['友達', 'チャット', 'コーヒー', '家族', '話', '週末', '趣味', '家', '天気', '音楽'],
+    'dialect-immersion': ['方言', 'スラング', '雰囲気', '慣用句', 'フレーズ', '街', 'ローカル', 'ニュアンス', '比喩', 'ひねり'],
+    general: ['本', '良い', '仕事', '日', '時間', '世界', '人生', '都市', '学校', '家'],
+  },
+  es: {
+    travel: ['hotel', 'billete', 'aeropuerto', 'vuelo', 'estación', 'camino', 'pasaporte', 'equipaje', 'reserva', 'mapa'],
+    corporate: ['reunión', 'cliente', 'oficina', 'trato', 'contrato', 'proyecto', 'informe', 'estrategia', 'mercado', 'presupuesto'],
+    academic: ['investigación', 'datos', 'artículo', 'experimento', 'análisis', 'hipótesis', 'teoría', 'sistema', 'método', 'laboratorio'],
+    conversation: ['amigo', 'chat', 'café', 'familia', 'historia', 'fin de semana', 'afición', 'casa', 'tiempo', 'música'],
+    'dialect-immersion': ['modismo', 'jerga', 'ambiente', 'frase hecha', 'expresión', 'calle', 'local', 'matiz', 'metáfora', 'giro'],
+    general: ['libro', 'bueno', 'trabajo', 'día', 'tiempo', 'mundo', 'vida', 'ciudad', 'escuela', 'casa'],
+  },
+  fr: {
+    travel: ['hôtel', 'billet', 'aéroport', 'vol', 'gare', 'route', 'passeport', 'bagages', 'réservation', 'carte'],
+    corporate: ['réunion', 'client', 'bureau', 'accord', 'contrat', 'projet', 'rapport', 'stratégie', 'marché', 'budget'],
+    academic: ['recherche', 'données', 'article', 'expérience', 'analyse', 'hypothèse', 'théorie', 'système', 'méthode', 'laboratoire'],
+    conversation: ['ami', 'chat', 'café', 'famille', 'histoire', 'week-end', 'hobby', 'maison', 'météo', 'musique'],
+    'dialect-immersion': ['idiome', 'argot', 'ambiance', 'expression', 'phrase', 'rue', 'local', 'nuance', 'métaphore', 'tournure'],
+    general: ['livre', 'bon', 'travail', 'jour', 'temps', 'monde', 'vie', 'ville', 'école', 'maison'],
+  },
+};
+
+function getSourceSentence(sourceLang: LanguageCode, focusArea: FocusArea, index: number): string {
+  const isArabicDialect = ['ar', 'arz', 'apc', 'afb', 'ary'].includes(sourceLang);
+
+  if (isArabicDialect) {
+    switch (sourceLang) {
+      case 'arz':
+        if (focusArea === 'travel') return `ازيك، عاوز اروح الفندق دلوقتي. (درس سفر #${index + 1})`;
+        if (focusArea === 'corporate') return `ازيك، اجتماع العميل كويس أوي ده. (درس شركات #${index + 1})`;
+        if (focusArea === 'academic') return `بيانات البحث دي كويسة أوي دلوقتي. (درس أكاديمي #${index + 1})`;
+        if (focusArea === 'conversation') return `ازيك يا صاحبي، تعال نشرب قهوة دلوقتي. (محادثة #${index + 1})`;
+        if (focusArea === 'dialect-immersion') return `ايه النظام ده يا معلم، التعبير ده جامد أوي. (عامية #${index + 1})`;
+        return `ازيك، الكتاب ده كويس دلوقتي. (درس عام #${index + 1})`;
+      case 'apc':
+        if (focusArea === 'travel') return `كيفك، بدي روح على الفندق هلق. (درس سفر #${index + 1})`;
+        if (focusArea === 'corporate') return `كيفك، اجتماع العميل منيح كتير هاد. (درس شركات #${index + 1})`;
+        if (focusArea === 'academic') return `بيانات البحث هادي منيحة كتير هلق. (درس أكاديمي #${index + 1})`;
+        if (focusArea === 'conversation') return `كيفك يا رفيقي، تعا نشرب قهوة هلق. (محادثة #${index + 1})`;
+        if (focusArea === 'dialect-immersion') return `شو الوضع هاد يا معلم، التعبير هاد قوي كتير. (اللهجة #${index + 1})`;
+        return `كيفك، الكتاب هاد منيح هلق. (درس عام #${index + 1})`;
+      case 'afb':
+        if (focusArea === 'travel') return `شلونك، ابي اروح الفندق الحين. (درس سفر #${index + 1})`;
+        if (focusArea === 'corporate') return `شلونك، اجتماع العميل زين وايد هذا. (درس شركات #${index + 1})`;
+        if (focusArea === 'academic') return `بيانات البحث هذي زينة وايد الحين. (درس أكاديمي #${index + 1})`;
+        if (focusArea === 'conversation') return `شلونك يا صاحبي، تعال نشرب قهوة الحين. (محادثة #${index + 1})`;
+        if (focusArea === 'dialect-immersion') return `شنو السالفة هذا يا الحبيب، التعبير هذا قوي وايد. (لهجة #${index + 1})`;
+        return `شلونك، الكتاب هذا زين الحين. (درس عام #${index + 1})`;
+      case 'ary':
+        if (focusArea === 'travel') return `كداير، بغيت نمشي للأوتيل دابا. (درس سفر #${index + 1})`;
+        if (focusArea === 'corporate') return `كداير، اجتماع العميل مزيان بزاف هادا. (درس شركات #${index + 1})`;
+        if (focusArea === 'academic') return `بيانات البحث هادي مزيانة بزاف دابا. (درس أكاديمي #${index + 1})`;
+        if (focusArea === 'conversation') return `كداير أ عشيري، أجي نشربو قهوة دابا. (محادثة #${index + 1})`;
+        if (focusArea === 'dialect-immersion') return `شنو الخبار هادا أ معلم، التعبير هادا ناضي بزاف. (دارجة #${index + 1})`;
+        return `كداير، الكتاب هادا مزيان دابا. (درس عام #${index + 1})`;
+      case 'ar':
+      default:
+        if (focusArea === 'travel') return `كيف حالك، أريد الذهاب إلى الفندق الآن. (درس سفر #${index + 1})`;
+        if (focusArea === 'corporate') return `كيف حالك، اجتماع العميل هذا جيد جداً. (درس شركات #${index + 1})`;
+        if (focusArea === 'academic') return `كيف حالك، بيانات البحث هذه جيدة جداً الآن. (درس أكاديمي #${index + 1})`;
+        if (focusArea === 'conversation') return `كيف حالك يا صديقي، تعال نشرب القهوة الآن. (محادثة #${index + 1})`;
+        if (focusArea === 'dialect-immersion') return `ما هذا الأسلوب يا صديقي، هذا التعبير ممتاز جداً. (تعمق #${index + 1})`;
+        return `كيف حالك، هذا الكتاب جيد الآن. (درس عام #${index + 1})`;
+    }
+  }
+
+  if (sourceLang === 'de') return `Wie geht es dir, ich möchte jetzt lernen #${index + 1}.`;
+  if (sourceLang === 'fr') return `Comment vas-tu, je veux apprendre maintenant #${index + 1}.`;
+  if (sourceLang === 'es') return `Cómo estás, quiero aprender ahora #${index + 1}.`;
+
+  return `How are you, I want to study ${focusArea} now #${index + 1}.`;
+}
+
+export function getLessons(
+  sourceLang: LanguageCode,
+  targetLang: LanguageCode,
+  focusArea: FocusArea,
+  cefrLevel: CEFRLevel
+): LessonDefinition[] {
+  const count = CEFR_LESSON_COUNTS[cefrLevel] || 15;
+  const targetVocabMap = FOCUS_VOCABULARY[targetLang] || FOCUS_VOCABULARY['en'];
+  const vocab = targetVocabMap[focusArea] || targetVocabMap['general'];
+
+  const lessons: LessonDefinition[] = [];
+
+  for (let i = 0; i < count; i++) {
+    const word1 = vocab[i % vocab.length] || 'book';
+    const word2 = vocab[(i + 1) % vocab.length] || 'good';
+    const word3 = vocab[(i + 2) % vocab.length] || 'time';
+
+    const lessonNum = i + 1;
+    const lessonId = `${targetLang}-${cefrLevel.toLowerCase()}-${focusArea}-${sourceLang}-${lessonNum}`;
+
+    const targetSentence =
+      targetLang === 'ja' || targetLang === 'zh'
+        ? `${word1}${word2}${word3}`
+        : `${word1} ${word2} ${word3}.`;
+
+    const sourceThought = getSourceSentence(sourceLang, focusArea, i);
+
+    lessons.push({
+      id: lessonId,
+      titleEn: `Lesson ${lessonNum}: ${word1}`,
+      titleAr: `الدرس ${lessonNum}: ${word1}`,
+      descriptionEn: `${cefrLevel} ${focusArea} drill #${lessonNum} (${sourceLang} -> ${targetLang})`,
+      descriptionAr: `تمرين ${focusArea} مستوى ${cefrLevel} رقم ${lessonNum}`,
+      promptAr: sourceThought,
+      promptEn: `Express in ${targetLang}: ${word1} ${word2}`,
+      targetSentence,
+      sourceThought,
+      wordChips: [word1, word2, word3],
+      breakdownChunks: [
+        { arabicText: sourceThought, englishText: word1, role: 'subject', explanation: `Term: ${word1}` },
+        { arabicText: sourceThought, englishText: word2, role: 'verb', explanation: `Term: ${word2}` },
+        { arabicText: sourceThought, englishText: word3, role: 'object', explanation: `Term: ${word3}` },
+      ],
+      explanationAr: `شرح التمرين: ${sourceThought}`,
+      explanationEn: `Structure drill for ${word1} ${word2}`,
+      cefrLevel,
+      focusArea,
+      sourceLang,
+      targetLang,
+    });
+  }
+
+  return lessons;
+}
