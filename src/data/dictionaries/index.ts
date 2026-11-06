@@ -113,7 +113,9 @@ export function lookupTargetTerm(
     dict.find((e) => {
       const w = (e.word || e.term || '').toLowerCase();
       const t = (e.translation || '').toLowerCase();
-      return w === clean || t === clean || w.includes(clean) || t.includes(clean);
+      if (w === clean || t === clean) return true;
+      const parts = t.split(/[;,]/).map((p) => p.replace(/^to\s+/, '').trim());
+      return parts.includes(clean) || parts.some((p) => p.includes(clean)) || w.startsWith(clean);
     }) || null
   );
 }
