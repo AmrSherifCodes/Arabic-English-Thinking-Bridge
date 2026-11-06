@@ -120,3 +120,27 @@ test('5. production build emits non-empty dictionary chunks in dist/assets', () 
   const totalBytes = dictChunks.reduce((sum, f) => sum + fs.statSync(path.join(distAssetsPath, f)).size, 0);
   assert.ok(totalBytes > 20 * 1024 * 1024, `Expected > 20 MB of dict chunks, got ${(totalBytes / 1024 / 1024).toFixed(1)} MB`);
 });
+
+test('6. index.html meta CSP equals vercel.json Content-Security-Policy header value byte-for-byte', () => {
+  const vercelPath = path.join(ROOT_DIR, 'vercel.json');
+  assert.ok(fs.existsSync(vercelPath), 'vercel.json must exist');
+  const vercelConfig = JSON.parse(fs.readFileSync(vercelPath, 'utf8'));
+  const globalHeaderRule = vercelConfig.headers?.find((h: any) => h.source === '/(.*)');
+  assert.ok(globalHeaderRule, 'vercel.json must have global /(.*) header rule');
+  const cspHeader = globalHeaderRule.headers?.find((h: any) => h.key === 'Content-Security-Policy');
+  assert.ok(cspHeader, 'vercel.json must have Content-Security-Policy header');
+  const vercelCspValue = cspHeader.value;
+
+  const indexPath = path.join(ROOT_DIR, 'index.html');
+  const indexHtml = fs.readFileSync(indexPath, 'utf8');
+  const metaCspMatch = indexHtml.match(/<meta\s+http-equiv=["']Content-Security-Policy["']\s+content="([^"]+)"/i);
+  assert.ok(metaCspMatch, 'index.html must contain a <meta http-equiv="Content-Security-Policy"> tag');
+  const indexMetaCspValue = metaCspMatch[1];
+
+  assert.equal(
+    indexMetaCspValue,
+    vercelCspValue,
+    'index.html meta CSP content must match vercel.json Content-Security-Policy header byte-for-byte'
+  );
+});
+
