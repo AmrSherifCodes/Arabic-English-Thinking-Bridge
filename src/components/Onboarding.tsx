@@ -28,6 +28,8 @@ interface OnboardingProps {
 export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingProps) {
   const [step, setStep] = useState(0);
   const [direction, setDirection] = useState(1); // 1 = forward, -1 = back
+  const [showArabicSubChoice, setShowArabicSubChoice] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Game onboarding choices state
   const [selectedMission, setSelectedMission] = useState<LearningGoal>(
@@ -39,14 +41,42 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
   const [companion, setCompanion] = useState<'strict' | 'chill' | 'analyst'>('chill');
   const [diagnosticSelected, setDiagnosticSelected] = useState<string | null>(null);
 
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage(null);
+    }, 3500);
+  };
+
   const goToNextStep = (nextDir = 1) => {
     setDirection(nextDir);
-    setStep((prev) => Math.min(prev + 1, 3));
+    setStep((prev) => Math.min(prev + 1, 4));
   };
 
   const goToPrevStep = () => {
+    if (step === 0 && showArabicSubChoice) {
+      setShowArabicSubChoice(false);
+      return;
+    }
     setDirection(-1);
     setStep((prev) => Math.max(prev - 1, 0));
+  };
+
+  const handleSelectDirectionCardA = () => {
+    try {
+      localStorage.setItem('tb.learningDirection', 'ar-to-x');
+    } catch {}
+    goToNextStep(1);
+  };
+
+  const handleSelectDirectionCardBSubChoice = (dialect: string) => {
+    try {
+      localStorage.setItem('tb.targetArabicDialect', dialect);
+      localStorage.setItem('tb.learningDirection', 'ar-to-x');
+    } catch {}
+    showToast('🚧 المسار العكسي قادم قريباً · Reverse path coming soon');
+    setShowArabicSubChoice(false);
+    // Stay on step 0 (do not advance), forcing user to select Card A for Arabic-first path
   };
 
   const handleFinish = () => {
@@ -97,8 +127,15 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[550px] rounded-full bg-gradient-to-tr from-teal-500/20 via-emerald-500/15 to-amber-500/10 blur-[100px] animate-pulse" />
       </div>
 
+      {/* Toast Banner Notice */}
+      {toastMessage && (
+        <div className="absolute top-6 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-2xl bg-amber-500 text-stone-950 font-black text-xs shadow-2xl animate-bounce flex items-center gap-2 border border-amber-300">
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
       {/* Main Game Container */}
-      <div className="w-full max-w-lg rounded-3xl border border-teal-500/30 bg-stone-900/90 p-6 sm:p-8 shadow-2xl backdrop-blur-xl relative z-10 overflow-hidden flex flex-col justify-between min-h-[520px]">
+      <div className="w-full max-w-lg rounded-3xl border border-teal-500/30 bg-stone-900/90 p-6 sm:p-8 shadow-2xl backdrop-blur-xl relative z-10 overflow-hidden flex flex-col justify-between min-h-[540px]">
         {/* Header Bar with Level Progress */}
         <div className="flex items-center justify-between gap-4 mb-6 pb-4 border-b border-stone-800">
           <div className="flex items-center gap-2">
@@ -110,17 +147,18 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
                 جسر التفكير · Thinking Bridge
               </p>
               <p className="text-[11px] text-stone-400 font-medium">
-                {step === 0 && 'المهمة الأولى · Step 1 of 4'}
-                {step === 1 && 'اختبار التفكير · Step 2 of 4'}
-                {step === 2 && 'رفيق الرحلة · Step 3 of 4'}
-                {step === 3 && 'انطلاق اللعبة · Ready'}
+                {step === 0 && 'اتجاه التعلم · Step 1 of 5'}
+                {step === 1 && 'المهمة الأولى · Step 2 of 5'}
+                {step === 2 && 'اختبار التفكير · Step 3 of 5'}
+                {step === 3 && 'رفيق الرحلة · Step 4 of 5'}
+                {step === 4 && 'انطلاق اللعبة · Ready'}
               </p>
             </div>
           </div>
 
           {/* Game Dots Progress */}
-          <div className="flex items-center gap-1.5" aria-label={`الخطوة ${step + 1} من 4`}>
-            {[0, 1, 2, 3].map((idx) => (
+          <div className="flex items-center gap-1.5" aria-label={`الخطوة ${step + 1} من 5`}>
+            {[0, 1, 2, 3, 4].map((idx) => (
               <span
                 key={idx}
                 className={`h-2 rounded-full transition-all duration-300 ${
@@ -138,10 +176,126 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
         {/* Animated Card Body */}
         <div className="relative flex-1 flex flex-col justify-center my-2">
           <AnimatePresence mode="wait" custom={direction}>
-            {/* SCREEN 1: MISSION SELECTION */}
+            {/* STEP 0: LEARNING DIRECTION SELECTION */}
             {step === 0 && (
               <motion.div
-                key="step0"
+                key="step0-dir"
+                custom={direction}
+                variants={slideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ duration: 0.3, ease: 'easeOut' }}
+                className="space-y-4 text-start"
+              >
+                {!showArabicSubChoice ? (
+                  <>
+                    <div>
+                      <h1 className="text-2xl sm:text-3xl font-black text-white leading-snug">
+                        من أين <span className="text-teal-400">تبدأ رحلتك؟</span> 🌐
+                      </h1>
+                      <p className="text-xs sm:text-sm text-stone-300 mt-1">
+                        Where do you want to start? Choose your path:
+                      </p>
+                    </div>
+
+                    <div className="space-y-3 pt-2">
+                      <button
+                        type="button"
+                        onClick={handleSelectDirectionCardA}
+                        className="w-full p-4 rounded-2xl border border-teal-500/40 bg-teal-950/20 hover:border-teal-400 hover:bg-teal-900/30 text-start transition-all flex items-center justify-between shadow-lg"
+                      >
+                        <div className="space-y-1">
+                          <h2 className="text-sm sm:text-base font-black text-white flex items-center gap-2">
+                            <span>🇪🇬</span>
+                            <span>أنا عربي وأريد تعلم لغة جديدة</span>
+                          </h2>
+                          <p className="text-xs text-teal-300 font-medium dir-ltr text-start">
+                            I&apos;m Arabic, learning another language
+                          </p>
+                        </div>
+                        <ArrowLeft size={20} className="text-teal-400 shrink-0 ms-2" />
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setShowArabicSubChoice(true)}
+                        className="w-full p-4 rounded-2xl border border-stone-700 bg-stone-800/80 hover:border-amber-400/60 hover:bg-stone-800 text-start transition-all flex items-center justify-between shadow-md"
+                      >
+                        <div className="space-y-1">
+                          <h2 className="text-sm sm:text-base font-black text-white flex items-center gap-2">
+                            <span>🌍</span>
+                            <span>أنا لست عربي وأريد تعلم العربية</span>
+                          </h2>
+                          <p className="text-xs text-amber-300 font-medium dir-ltr text-start">
+                            I&apos;m not Arabic, learning Arabic
+                          </p>
+                        </div>
+                        <ArrowLeft size={20} className="text-stone-400 shrink-0 ms-2" />
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div>
+                      <h1 className="text-xl sm:text-2xl font-black text-white leading-snug">
+                        اختر <span className="text-amber-400">اللهجة العربية</span> 🎯
+                      </h1>
+                      <p className="text-xs text-stone-300 mt-1">
+                        Select your desired target Arabic dialect:
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2.5 pt-2">
+                      <button
+                        type="button"
+                        onClick={() => handleSelectDirectionCardBSubChoice('egyptian')}
+                        className="p-3.5 rounded-2xl border border-stone-700 bg-stone-800/90 hover:border-teal-400 hover:bg-teal-950/40 text-start transition-all"
+                      >
+                        <span className="text-lg">🇪🇬</span>
+                        <h2 className="text-xs font-bold text-white mt-1">مصري</h2>
+                        <span className="text-[10px] text-stone-400 block">Egyptian</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleSelectDirectionCardBSubChoice('gulf')}
+                        className="p-3.5 rounded-2xl border border-stone-700 bg-stone-800/90 hover:border-teal-400 hover:bg-teal-950/40 text-start transition-all"
+                      >
+                        <span className="text-lg">🌴</span>
+                        <h2 className="text-xs font-bold text-white mt-1">خليجي</h2>
+                        <span className="text-[10px] text-stone-400 block">Gulf</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleSelectDirectionCardBSubChoice('levantine')}
+                        className="p-3.5 rounded-2xl border border-stone-700 bg-stone-800/90 hover:border-teal-400 hover:bg-teal-950/40 text-start transition-all"
+                      >
+                        <span className="text-lg">🏛️</span>
+                        <h2 className="text-xs font-bold text-white mt-1">شامي</h2>
+                        <span className="text-[10px] text-stone-400 block">Levantine</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleSelectDirectionCardBSubChoice('msa')}
+                        className="p-3.5 rounded-2xl border border-stone-700 bg-stone-800/90 hover:border-teal-400 hover:bg-teal-950/40 text-start transition-all"
+                      >
+                        <span className="text-lg">📖</span>
+                        <h2 className="text-xs font-bold text-white mt-1">فصحى</h2>
+                        <span className="text-[10px] text-stone-400 block">MSA Standard</span>
+                      </button>
+                    </div>
+                  </>
+                )}
+              </motion.div>
+            )}
+
+            {/* SCREEN 1: MISSION SELECTION */}
+            {step === 1 && (
+              <motion.div
+                key="step1-mission"
                 custom={direction}
                 variants={slideVariants}
                 initial="enter"
@@ -248,9 +402,9 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
             )}
 
             {/* SCREEN 2: DIAGNOSTIC THINKING TEST */}
-            {step === 1 && (
+            {step === 2 && (
               <motion.div
-                key="step1"
+                key="step2-diag"
                 custom={direction}
                 variants={slideVariants}
                 initial="enter"
@@ -328,9 +482,9 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
             )}
 
             {/* SCREEN 3: AI COMPANION SELECTION */}
-            {step === 2 && (
+            {step === 3 && (
               <motion.div
-                key="step2"
+                key="step3-comp"
                 custom={direction}
                 variants={slideVariants}
                 initial="enter"
@@ -422,9 +576,9 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
             )}
 
             {/* SCREEN 4: GAME READY & LAUNCH */}
-            {step === 3 && (
+            {step === 4 && (
               <motion.div
-                key="step3"
+                key="step4-launch"
                 custom={direction}
                 variants={slideVariants}
                 initial="enter"
@@ -448,6 +602,14 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
 
                 {/* Selected Options Summary Pill */}
                 <div className="p-4 rounded-2xl bg-stone-800/90 border border-stone-700 text-start space-y-2 text-xs">
+                  <div className="flex items-center justify-between text-stone-300">
+                    <span>اتجاه التعلم:</span>
+                    <span className="font-bold text-teal-300">
+                      {localStorage.getItem('tb.learningDirection') === 'x-to-ar'
+                        ? '🌍 لست عربي ← تعلم العربية'
+                        : '🇪🇬 عربي ← تعلم لغة جديدة'}
+                    </span>
+                  </div>
                   <div className="flex items-center justify-between text-stone-300">
                     <span>المهمة المختارة:</span>
                     <span className="font-bold text-teal-300">
@@ -493,7 +655,7 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
         </div>
 
         {/* Navigation Footer */}
-        {step > 0 && (
+        {(step > 0 || showArabicSubChoice) && (
           <div className="pt-4 border-t border-stone-800 flex items-center justify-between">
             <button
               type="button"

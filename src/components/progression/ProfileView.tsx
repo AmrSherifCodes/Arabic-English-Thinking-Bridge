@@ -172,6 +172,28 @@ export function ProfileView({
           <Share2 size={15} />
           {isArabic ? 'مشاركة تقدمي' : 'Share My Progress'}
         </button>
+
+        {/* Top Anki Deck Export Entry Point */}
+        <button
+          type="button"
+          onClick={() => {
+            import('../../utils/ankiExport').then(({ exportToAnki }) => {
+              const count = exportToAnki(state);
+              onToast?.(isArabic
+                ? `📥 تم تصدير ${count} بطاقة إلى Anki`
+                : `📥 Exported ${count} cards to Anki`);
+            }).catch((error: unknown) => {
+              console.error('Unable to export the Anki deck.', error);
+              onToast?.(isArabic
+                ? 'لا توجد بطاقات محفوظة للتصدير'
+                : error instanceof Error ? error.message : 'Unable to export the Anki deck');
+            });
+          }}
+          className="w-full flex items-center justify-center gap-2 rounded-xl bg-amber-500/10 border border-amber-500/30 px-3 py-2 text-xs font-bold text-amber-300 transition hover:bg-amber-500/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-400"
+        >
+          <Download size={15} className="text-amber-400" />
+          <span>{isArabic ? '📤 تصدير بطاقاتي إلى Anki (CSV)' : '📤 Export my cards to Anki (CSV)'}</span>
+        </button>
       </div>
 
       {/* 2. 5-Skill Radar Chart */}

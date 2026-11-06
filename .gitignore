@@ -42,3 +42,9 @@ src-tauri/gen/
 
 *.zip
 .aider*
+
+# Debug artifacts & scripts
+artifacts/
+.artifacts/
+capture_screenshots.mjs
+
