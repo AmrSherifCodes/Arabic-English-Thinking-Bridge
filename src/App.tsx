@@ -511,6 +511,7 @@ export default function App() {
             try {
               const activeConfig = {
                 cefrLevel: stage,
+                placedFrom: extraData?.diagnosticLevel === 'intermediate' ? 'intermediate-bridge' : 'beginner',
                 targetLang: newProfile.targetLanguage || 'en',
                 sourceLang: newProfile.sourceLanguage || 'arz',
                 focusArea: newProfile.goal || 'general',
