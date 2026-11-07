@@ -4,6 +4,7 @@ import { buildCourseStructure, isLessonUnlocked, isStageUnlocked } from '../../p
 import { Play, Crown, CheckCircle2, Target, LockKeyhole } from 'lucide-react';
 import { EmptyLessonState } from '../EmptyLessonState';
 import { TargetLanguage } from '../../types';
+import confetti from 'canvas-confetti';
 
 interface PathViewProps {
   state: ProgressionState;
@@ -271,7 +272,18 @@ export function PathView({ state, targetLang, onSelectLesson, onSelectUnitCheckp
                     </div>
 
                     {/* Lesson Nodes Path */}
-                    <div className="flex flex-col items-center gap-6 relative">
+                    <div className="flex flex-col items-center gap-6 relative py-4">
+                      {/* SVG Winding Path Connector */}
+                      <svg className="absolute top-0 left-0 w-full h-full -z-10 opacity-30" preserveAspectRatio="none">
+                        <path
+                          d={`M 50% 0 Q 80% 25%, 50% 50% T 50% 100%`}
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                          strokeDasharray="8 8"
+                          className="text-border"
+                        />
+                      </svg>
                       {unit.lessons.map((lesson) => {
                         const crowns = state.lessonCrowns[lesson.id] || 0;
                         const isCompleted = state.completedLessonIds.includes(lesson.id);
@@ -279,12 +291,17 @@ export function PathView({ state, targetLang, onSelectLesson, onSelectUnitCheckp
                         const stageLessonIndex = stageLessons.findIndex((item) => item.id === lesson.id);
                         const previousLesson = stageLessons[stageLessonIndex - 1];
 
-                        const xOffset = stageLessonIndex % 3 === 0 ? 'translate-x-0' : stageLessonIndex % 3 === 1 ? 'translate-x-6' : '-translate-x-6';
+                        const xOffset = stageLessonIndex % 3 === 0 ? 'translate-x-0' : stageLessonIndex % 3 === 1 ? 'translate-x-12' : '-translate-x-12';
 
                         return (
                           <button
                             key={lesson.id}
-                            onClick={() => onSelectLesson(lesson)}
+                            onClick={() => {
+                              if (!isCompleted) {
+                                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+                              }
+                              onSelectLesson(lesson);
+                            }}
                             type="button"
                             disabled={!unlocked}
                             aria-label={`${isArabic ? lesson.titleAr : lesson.titleEn}${unlocked ? '' : isArabic ? ' — مقفول، أكمل الدرس السابق لفتحه' : ' — locked, complete the previous lesson to unlock'}`}
