@@ -1,4 +1,7 @@
 import type { ProgressionState } from '../progression/types';
+import { Capacitor } from '@capacitor/core';
+import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
 
 function escapeCsv(value: string): string {
   return `"${value.replace(/"/g, '""')}"`;
@@ -42,23 +45,40 @@ export function createAnkiCsv(progress: ProgressionState): string {
   ].join('\n');
 }
 
-export function exportToAnki(
+export async function exportToAnki(
   progress: ProgressionState,
   filename = 'Thinking_Bridge_Anki_Deck.csv'
-): number {
+): Promise<number> {
   const csv = createAnkiCsv(progress);
   const cardCount = getExportableCards(progress).length;
   // Add UTF-8 BOM (\uFEFF) to ensure Arabic characters display perfectly in Anki/Excel
-  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
+  const csvWithBOM = '\uFEFF' + csv;
 
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  window.setTimeout(() => URL.revokeObjectURL(url), 0);
+  if (Capacitor.isNativePlatform()) {
+    const writeResult = await Filesystem.writeFile({
+      path: filename,
+      data: csvWithBOM,
+      directory: Directory.Cache,
+      encoding: Encoding.UTF8
+    });
+
+    await Share.share({
+      title: 'Thinking Bridge Anki Deck',
+      url: writeResult.uri,
+      dialogTitle: 'Export Anki Deck'
+    });
+  } else {
+    const blob = new Blob([csvWithBOM], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 0);
+  }
 
   return cardCount;
 }

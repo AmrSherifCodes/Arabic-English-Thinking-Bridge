@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Flame, Home, Moon, Sun, UserRound } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';

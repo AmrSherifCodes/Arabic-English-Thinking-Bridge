@@ -177,8 +177,8 @@ export function ProfileView({
         <button
           type="button"
           onClick={() => {
-            import('../../utils/ankiExport').then(({ exportToAnki }) => {
-              const count = exportToAnki(state);
+            import('../../utils/ankiExport').then(async ({ exportToAnki }) => {
+              const count = await exportToAnki(state);
               onToast?.(isArabic
                 ? `📥 تم تصدير ${count} بطاقة إلى Anki`
                 : `📥 Exported ${count} cards to Anki`);
@@ -262,8 +262,8 @@ export function ProfileView({
         <div className="flex flex-col gap-2">
           <button
             onClick={() => {
-              import('../../utils/ankiExport').then(({ exportToAnki }) => {
-                const count = exportToAnki(state);
+              import('../../utils/ankiExport').then(async ({ exportToAnki }) => {
+                const count = await exportToAnki(state);
                 onToast?.(isArabic
                   ? `📥 تم تصدير ${count} بطاقة إلى Anki`
                   : `📥 Exported ${count} cards to Anki`);

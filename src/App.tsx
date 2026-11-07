@@ -138,8 +138,20 @@ export default function App() {
   const { profile, saveProfile } = useUserProfile();
   const { sourceLang, targetLang, setPair } = useLanguagePair();
   const { hasKey } = useApiKeyGate();
-  const [progress] = useState<UserProgress>(loadUserProgress());
+  const [progress, setProgress] = useState<UserProgress>(loadUserProgress());
   const [lockedFeatureOpen, setLockedFeatureOpen] = useState(false);
+
+  const updateAndSaveProgress = (updater: (prev: UserProgress) => UserProgress) => {
+    setProgress((prev) => {
+      const next = updater(prev);
+      try {
+        localStorage.setItem('tb_user_progress', JSON.stringify(next));
+      } catch (err) {
+        console.warn('Unable to persist user progress locally.', err);
+      }
+      return next;
+    });
+  };
 
   const isArabic = (profile?.language || 'arabic') === 'arabic';
 

@@ -211,11 +211,9 @@ export function PathView({ state, targetLang, onSelectLesson, onSelectUnitCheckp
               <h3 className="text-base font-black text-text">
                 {isArabic ? currentLesson.titleAr : currentLesson.titleEn}
               </h3>
-              {currentLesson.grammarFocus && (
-                <p className="text-xs text-muted mt-0.5">
-                  {isArabic ? `التركيز: ${currentLesson.grammarFocus}` : `Focus: ${currentLesson.grammarFocus}`}
-                </p>
-              )}
+              <p className="text-xs text-muted mt-0.5">
+                {isArabic ? currentLesson.descriptionAr : currentLesson.descriptionEn}
+              </p>
             </div>
 
             <button
