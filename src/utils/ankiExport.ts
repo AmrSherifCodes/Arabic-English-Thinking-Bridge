@@ -48,7 +48,8 @@ export function exportToAnki(
 ): number {
   const csv = createAnkiCsv(progress);
   const cardCount = getExportableCards(progress).length;
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  // Add UTF-8 BOM (\uFEFF) to ensure Arabic characters display perfectly in Anki/Excel
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
 

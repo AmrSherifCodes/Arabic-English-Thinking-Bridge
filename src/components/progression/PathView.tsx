@@ -18,6 +18,31 @@ export function PathView({ state, targetLang, onSelectLesson, onSelectUnitCheckp
   const courseStructure: StageNode[] = useMemo(() => buildCourseStructure(targetLang), [targetLang]);
   const [viewedStage, setViewedStage] = useState<string>(state.currentStage);
   const [showAllLessons, setShowAllLessons] = useState<boolean>(false);
+  const [isIdle, setIsIdle] = useState(false);
+
+  useEffect(() => {
+    let timeout: ReturnType<typeof setTimeout>;
+    const resetIdle = () => {
+      setIsIdle(false);
+      clearTimeout(timeout);
+      timeout = setTimeout(() => setIsIdle(true), 5000);
+    };
+
+    resetIdle();
+    window.addEventListener('touchstart', resetIdle, { passive: true });
+    window.addEventListener('mousemove', resetIdle, { passive: true });
+    window.addEventListener('keydown', resetIdle, { passive: true });
+    window.addEventListener('scroll', resetIdle, { passive: true });
+
+    return () => {
+      clearTimeout(timeout);
+      window.removeEventListener('touchstart', resetIdle);
+      window.removeEventListener('mousemove', resetIdle);
+      window.removeEventListener('keydown', resetIdle);
+      window.removeEventListener('scroll', resetIdle);
+    };
+  }, []);
+
   const activeStageNode = courseStructure.find((s) => s.stage === viewedStage) || courseStructure[0];
   const currentStageNode = courseStructure.find((s) => s.stage === state.currentStage) || courseStructure[0];
   const continueStageNode = currentStageNode;
@@ -97,8 +122,15 @@ export function PathView({ state, targetLang, onSelectLesson, onSelectUnitCheckp
               allLessons.find((l) => !state.completedLessonIds.includes(l.id)) || allLessons[0];
             if (firstUnfinished) onSelectLesson(firstUnfinished);
           }}
-          className="px-5 py-3 min-h-[48px] rounded-2xl bg-primary text-on-primary font-black text-xs shadow-lg transition active:scale-95 flex items-center gap-2 shrink-0"
+          className={`px-5 py-3 min-h-[48px] rounded-2xl bg-primary text-on-primary font-black text-xs shadow-lg transition active:scale-95 flex items-center gap-2 shrink-0 relative ${
+            isIdle ? 'ring-4 ring-primary ring-offset-2 ring-offset-surface animate-pulse' : ''
+          }`}
         >
+          {isIdle && (
+            <span className="absolute -top-8 left-1/2 -translate-x-1/2 text-2xl animate-bounce">
+              👇
+            </span>
+          )}
           <Play size={16} fill="currentColor" />
           <span>{isArabic ? 'متابعة' : 'Continue'}</span>
         </button>
@@ -288,6 +320,7 @@ export function PathView({ state, targetLang, onSelectLesson, onSelectUnitCheckp
                         const crowns = state.lessonCrowns[lesson.id] || 0;
                         const isCompleted = state.completedLessonIds.includes(lesson.id);
                         const unlocked = isLessonUnlocked(state, lesson, targetLang);
+                        const isCurrent = lesson.id === currentLesson?.id;
                         const stageLessonIndex = stageLessons.findIndex((item) => item.id === lesson.id);
                         const previousLesson = stageLessons[stageLessonIndex - 1];
 
@@ -297,7 +330,7 @@ export function PathView({ state, targetLang, onSelectLesson, onSelectUnitCheckp
                           <button
                             key={lesson.id}
                             onClick={() => {
-                              if (!isCompleted) {
+                              if (!isCompleted && unlocked) {
                                 confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
                               }
                               onSelectLesson(lesson);
@@ -315,14 +348,21 @@ export function PathView({ state, targetLang, onSelectLesson, onSelectUnitCheckp
                                 <span>{crowns}</span>
                               </span>
                             )}
+                            {isCurrent && isIdle && showAllLessons && (
+                              <span className="absolute -top-8 left-1/2 -translate-x-1/2 text-2xl animate-bounce z-20">
+                                👇
+                              </span>
+                            )}
 
                             <div
                               className={`w-16 h-16 rounded-full border-4 flex items-center justify-center shadow-lg transition-all ${
                                 isCompleted
                                   ? 'bg-success border-success text-on-primary ring-4 ring-success/20'
-                                  : unlocked
-                                    ? 'bg-surface border-border text-muted group-hover:border-success'
-                                    : 'bg-surface-2 border-border text-muted'
+                                  : isCurrent
+                                    ? 'bg-primary border-primary text-on-primary ring-4 ring-primary/30 animate-pulse'
+                                    : unlocked
+                                      ? 'bg-surface border-border text-muted group-hover:border-success'
+                                      : 'bg-surface-2 border-border text-muted'
                               }`}
                             >
                               {isCompleted
