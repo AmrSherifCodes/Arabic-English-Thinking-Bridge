@@ -68,7 +68,7 @@ export function ReviewPrompt({
           transition={{ type: 'spring', stiffness: 350, damping: 25 }}
           onClick={handleCardClick}
           dir={effectiveIsArabic ? 'rtl' : 'ltr'}
-          className="fixed left-3 bottom-24 z-[9999] cursor-pointer max-w-[280px] sm:max-w-xs rounded-2xl border border-amber-500/50 bg-stone-900/98 p-3 shadow-2xl backdrop-blur-md hover:border-amber-400 transition-all hover:scale-105 active:scale-95 ring-2 ring-amber-500/20"
+          className="fixed left-3 bottom-36 z-[9999] cursor-pointer max-w-[280px] sm:max-w-xs rounded-2xl border border-amber-500/50 bg-stone-900/98 p-3 shadow-2xl backdrop-blur-md hover:border-amber-400 transition-all hover:scale-105 active:scale-95 ring-2 ring-amber-500/20"
         >
           <div className="flex items-start justify-between gap-2">
             <div className="flex items-center gap-2 min-w-0">
