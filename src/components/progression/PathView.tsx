@@ -5,6 +5,8 @@ import { Play, Crown, CheckCircle2, Target, LockKeyhole } from 'lucide-react';
 import { EmptyLessonState } from '../EmptyLessonState';
 import { TargetLanguage } from '../../types';
 import confetti from 'canvas-confetti';
+import { getCurrentTheme } from '../../progression/rotationEngine';
+import { Sparkles } from 'lucide-react';
 
 interface PathViewProps {
   state: ProgressionState;
@@ -63,6 +65,8 @@ export function PathView({ state, targetLang, onSelectLesson, onSelectUnitCheckp
     return stageLessons.slice(currentLessonIndex + 1, currentLessonIndex + 3);
   }, [stageLessons, currentLessonIndex, currentLesson]);
 
+  const currentTheme = useMemo(() => getCurrentTheme(state), [state]);
+
   useEffect(() => {
     setViewedStage(state.currentStage);
   }, [state.currentStage]);
@@ -99,6 +103,22 @@ export function PathView({ state, targetLang, onSelectLesson, onSelectUnitCheckp
 
   return (
     <div className="space-y-6 max-w-[480px] mx-auto pb-32 sm:pb-36" dir={isArabic ? 'rtl' : 'ltr'}>
+      {/* 0. Dynamic Daily Theme Banner */}
+      <div className="p-4 rounded-2xl bg-teal-500/10 border border-teal-500/30 text-start space-y-1">
+        <div className="flex items-center gap-2">
+          <Sparkles className="text-teal-400 w-4 h-4" />
+          <span className="text-xs font-bold text-teal-300">
+            {isArabic ? 'مسار اليوم المتجدد' : "Today's Rotating Focus"}
+          </span>
+        </div>
+        <h3 className="text-sm font-black text-text">
+          {currentTheme.title}
+        </h3>
+        <p className="text-xs text-muted">
+          {currentTheme.reasonWhy}
+        </p>
+      </div>
+
       {/* 1. Top Big Continue CTA */}
       <div className="p-4.5 rounded-3xl bg-surface border border-border shadow-xl flex items-center justify-between">
         <div className="space-y-1 text-start">

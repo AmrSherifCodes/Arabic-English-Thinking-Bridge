@@ -414,22 +414,16 @@ export default function App() {
       )}
 
       {/* 2. Specialized Route Overlays */}
-      {view.name === 'voice' && hasKey && (
+      {view.name === 'voice' && (
         <VoicePracticeView
           onBack={goHome}
           onOpenPreferences={() => setView({ name: 'preferences' })}
           progress={progress}
           profile={profile}
+          updateAndSaveProgress={updateAndSaveProgress}
           onToast={(msg) => showToast(T(msg, msg))}
           sourceLang={sourceLang}
           targetLang={targetLang}
-        />
-      )}
-      {view.name === 'voice' && !hasKey && (
-        <LockedFeatureModal
-          isArabic={isArabic}
-          onClose={goHome}
-          onOpenPreferences={() => setView({ name: 'preferences' })}
         />
       )}
 
