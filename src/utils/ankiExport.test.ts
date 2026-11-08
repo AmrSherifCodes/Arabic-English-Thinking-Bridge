@@ -21,7 +21,7 @@ test('Anki export converts saved SRS cards into target-to-source CSV rows', () =
 
   assert.equal(
     createAnkiCsv(state),
-    '#separator:Comma\n#html:false\n#tags column:3\nFront,Back,Tags\n"Er sagt ""Kaffee""","قهوة","ThinkingBridge de"'
+    '\uFEFF#separator:Comma\n#html:false\n#tags column:3\nFront,Back,Tags\n"Er sagt ""Kaffee""","قهوة","ThinkingBridge de"'
   );
 });
 

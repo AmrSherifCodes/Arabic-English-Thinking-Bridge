@@ -212,7 +212,7 @@ export function DeckListView({
             type="button"
             onClick={() => setShowGuide(true)}
             className="px-2.5 py-1.5 rounded-xl bg-stone-100 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-xs font-semibold text-stone-700 dark:text-stone-300 hover:text-teal-600 dark:hover:text-teal-400 flex items-center gap-1.5 transition"
-            aria-label="How flashcards work"
+            aria-label={t('How flashcards work', 'كيف تعمل البطاقات')}
             style={{ minHeight: 40 }}
           >
             <span>❓</span>

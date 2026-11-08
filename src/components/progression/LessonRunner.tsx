@@ -27,6 +27,7 @@ export function LessonRunner({
   const [isCorrect, setIsCorrect] = useState(false);
   const [correctAnswersCount, setCorrectAnswersCount] = useState(0);
   const [showSummary, setShowSummary] = useState(false);
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
 
   // Automaticity Timer Tracking (Reflex Speed in Seconds)
   const exerciseStartTimeRef = useRef<number>(Date.now());
@@ -264,7 +265,7 @@ export function LessonRunner({
         {/* Top Header Progress Bar */}
         <div className="p-4 border-b border-border flex items-center gap-3 bg-surface/50">
           <button
-            onClick={onClose}
+            onClick={() => setShowExitConfirm(true)}
             className="p-2 min-h-[48px] min-w-[48px] flex items-center justify-center rounded-xl bg-surface-2 text-muted hover:text-text font-bold transition"
             aria-label={isArabic ? 'إغلاق' : 'Close'}
           >
@@ -481,6 +482,37 @@ export function LessonRunner({
             </button>
           )}
         </div>
+
+        {showExitConfirm && (
+          <div className="absolute inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+            <div className="w-full max-w-sm rounded-3xl border border-border bg-surface p-5 text-center space-y-4 shadow-2xl">
+              <h3 className="text-base font-black text-text">
+                {isArabic ? 'إنهاء الدرس؟' : 'Leave the lesson?'}
+              </h3>
+              <p className="text-xs text-muted leading-relaxed">
+                {isArabic
+                  ? 'سيتم فقدان تقدمك في هذا الدرس. هل تريد الخروج؟'
+                  : 'Your progress in this lesson will be lost. Leave anyway?'}
+              </p>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowExitConfirm(false)}
+                  className="flex-1 py-3 min-h-[48px] rounded-2xl bg-primary text-on-primary font-black text-sm transition active:scale-95"
+                >
+                  {isArabic ? 'متابعة التعلم' : 'Keep learning'}
+                </button>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="flex-1 py-3 min-h-[48px] rounded-2xl bg-surface-2 border border-border text-text font-black text-sm transition active:scale-95"
+                >
+                  {isArabic ? 'خروج' : 'Leave'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

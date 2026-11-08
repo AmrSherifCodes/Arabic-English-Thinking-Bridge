@@ -14,6 +14,11 @@ function isSourceLanguage(code: string): code is SourceLanguage {
   return Object.prototype.hasOwnProperty.call(SOURCE_LANGUAGES, code);
 }
 
+/** Arabic and all of its dialects share the Arabic UI direction. */
+function isArabicSource(code: string): boolean {
+  return code.startsWith('ar');
+}
+
 function getInitialPair(): LanguagePair {
   let source: SourceLanguage = 'ar';
   let target: TargetLanguage = 'en';
@@ -44,13 +49,32 @@ function getInitialPair(): LanguagePair {
       const storedSource = window.localStorage.getItem(SOURCE_STORAGE_KEY);
       const storedTarget = window.localStorage.getItem(TARGET_STORAGE_KEY);
 
+      // Fall back to the onboarding profile so the header matches the dialect
+      // the learner picked (for example Egyptian Arabic -> arz).
+      let profileSource: unknown;
+      let profileTarget: unknown;
+      try {
+        const profileRaw = window.localStorage.getItem('tb.userProfile');
+        const activeRaw = window.localStorage.getItem('tb.activeProfileConfig');
+        const profile = profileRaw ? JSON.parse(profileRaw) : null;
+        const active = activeRaw ? JSON.parse(activeRaw) : null;
+        profileSource = profile?.sourceLanguage ?? active?.sourceLang;
+        profileTarget = profile?.targetLanguage ?? active?.targetLang;
+      } catch {
+        // Ignore malformed profile data
+      }
+
       if (storedSource && isSourceLanguage(storedSource)) {
         source = storedSource;
+      } else if (typeof profileSource === 'string' && isSourceLanguage(profileSource)) {
+        source = profileSource;
       }
       if (storedTarget && isTargetLanguage(storedTarget)) {
         target = storedTarget;
+      } else if (typeof profileTarget === 'string' && isTargetLanguage(profileTarget)) {
+        target = profileTarget;
       } else {
-        // Check old tb.language or tb.userProfile
+        // Check old tb.language
         const legacyLang = window.localStorage.getItem('tb.language');
         if (legacyLang === 'en') {
           source = 'en';
@@ -79,9 +103,10 @@ export function useLanguagePair() {
 
     if (typeof window !== 'undefined') {
       try {
+        const uiLang = isArabicSource(newSource) ? 'ar' : 'en';
         window.localStorage.setItem(SOURCE_STORAGE_KEY, newSource);
         window.localStorage.setItem(TARGET_STORAGE_KEY, target);
-        window.localStorage.setItem('tb.language', newSource);
+        window.localStorage.setItem('tb.language', uiLang);
 
         const activeProfileRaw = window.localStorage.getItem('tb.activeProfileConfig');
         if (activeProfileRaw) {
@@ -117,9 +142,10 @@ export function useLanguagePair() {
     }
 
     // Sync i18n & HTML dir
-    void i18n.changeLanguage(newSource === 'ar' ? 'ar' : 'en');
+    const uiLang = isArabicSource(newSource) ? 'ar' : 'en';
+    void i18n.changeLanguage(uiLang);
     if (typeof document !== 'undefined') {
-      document.documentElement.dir = newSource === 'ar' ? 'rtl' : 'ltr';
+      document.documentElement.dir = uiLang === 'ar' ? 'rtl' : 'ltr';
       document.documentElement.lang = newSource;
     }
   }, []);
@@ -138,9 +164,10 @@ export function useLanguagePair() {
 
   // Initial mount sync for direction and i18n
   useEffect(() => {
-    void i18n.changeLanguage(pair.source === 'ar' ? 'ar' : 'en');
+    const uiLang = isArabicSource(pair.source) ? 'ar' : 'en';
+    void i18n.changeLanguage(uiLang);
     if (typeof document !== 'undefined') {
-      document.documentElement.dir = pair.source === 'ar' ? 'rtl' : 'ltr';
+      document.documentElement.dir = uiLang === 'ar' ? 'rtl' : 'ltr';
       document.documentElement.lang = pair.source;
     }
   }, [pair.source]);

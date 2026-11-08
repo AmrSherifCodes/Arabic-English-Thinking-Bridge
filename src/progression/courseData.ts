@@ -1278,7 +1278,13 @@ function createLocalizedStage(
   };
 }
 
-function mapLegacyExerciseToItem(exercise: Exercise, lessonId: string, index: number): ExerciseItem {
+function mapLegacyExerciseToItem(
+  exercise: Exercise,
+  lessonId: string,
+  index: number,
+  fallbackExplanationAr?: string,
+  fallbackExplanationEn?: string
+): ExerciseItem {
   const chips = exercise.wordChips.length > 0
     ? exercise.wordChips
     : exercise.englishTarget.split(' ');
@@ -1293,8 +1299,8 @@ function mapLegacyExerciseToItem(exercise: Exercise, lessonId: string, index: nu
     acceptableAlternatives: exercise.acceptableAlternatives,
     wordChips: chips,
     options: chips,
-    explanationAr: exercise.habitHintAr || 'ركز على تركيب الجملة وتجنب الترجمة الحرفية.',
-    explanationEn: 'Focus on English structure rather than word-for-word translation.',
+    explanationAr: exercise.habitHintAr || fallbackExplanationAr || 'ركز على تركيب الجملة وتجنب الترجمة الحرفية.',
+    explanationEn: exercise.habitHint || fallbackExplanationEn || 'Focus on English structure rather than word-for-word translation.',
     skillAxes: ['structure', 'writing', 'vocabulary'],
   };
 }
@@ -1322,7 +1328,13 @@ function createStageNode(
       descriptionEn: lesson.transferConcept,
       icon: '🧠',
       exercises: lesson.exercises.map((exercise, exerciseIndex) =>
-        mapLegacyExerciseToItem(exercise, lesson.id, exerciseIndex)
+        mapLegacyExerciseToItem(
+          exercise,
+          lesson.id,
+          exerciseIndex,
+          lesson.transferConceptAr,
+          lesson.transferConcept
+        )
       ),
     }));
 
@@ -1338,7 +1350,13 @@ function createStageNode(
       lessons: mappedLessons,
       checkpointTest: unitLessons.flatMap((lesson) =>
         lesson.exercises.map((exercise, exerciseIndex) =>
-          mapLegacyExerciseToItem(exercise, lesson.id, exerciseIndex)
+          mapLegacyExerciseToItem(
+            exercise,
+            lesson.id,
+            exerciseIndex,
+            lesson.transferConceptAr,
+            lesson.transferConcept
+          )
         )
       ),
     };

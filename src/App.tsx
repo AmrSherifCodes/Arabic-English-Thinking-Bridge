@@ -501,7 +501,19 @@ export default function App() {
         onClose={() => setLangSelectorOpen(false)}
         currentSource={sourceLang}
         currentTarget={targetLang}
-        onSelectPair={setPair}
+        onSelectPair={(source, target) => {
+          const targetChanged = target !== targetLang;
+          setPair(source, target);
+          if (targetChanged) {
+            // A new target language starts from the beginning of its own path,
+            // instead of inheriting the previous language's stage (e.g. A2).
+            updateProgression((prev) => ({
+              ...prev,
+              currentStage: 'A0',
+              currentUnitId: 'a0-unit-1',
+            }));
+          }
+        }}
         onToast={(msg) => showToast(T(msg, msg))}
       />
 

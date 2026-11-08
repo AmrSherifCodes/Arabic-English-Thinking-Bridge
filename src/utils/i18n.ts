@@ -6,13 +6,13 @@ export { default as i18n } from '../i18n';
 export type UILang = 'en' | 'ar';
 
 /**
- * Determines the UI display language from the learner's target language:
- * - Learning Arabic (`language === 'arabic'`) -> UI is in English (`'en'`)
- * - Learning English (`language === 'english'`) -> UI is in Arabic (`'ar'`)
+ * Determines the UI display language from the learner's native language:
+ * - Native Arabic (`language === 'arabic'`) -> Arabic UI (`'ar'`)
+ * - Non-Arabic native (`language === 'english'`) -> English UI (`'en'`)
  */
 export function getUILang(learningLanguage?: UserProfile['language'] | null): UILang {
-  if (learningLanguage === 'english') return 'ar';
-  if (learningLanguage === 'arabic') return 'en';
+  if (learningLanguage === 'arabic') return 'ar';
+  if (learningLanguage === 'english') return 'en';
   return (i18n.language === 'en' ? 'en' : 'ar') as UILang;
 }
 
@@ -21,8 +21,7 @@ export function isArabicUI(learningLanguage?: UserProfile['language'] | null): b
 }
 
 /**
- * Returns `enText` when the user is learning Arabic (English UI),
- * and `arText` when the user is learning English (Arabic UI).
+ * Returns `arText` for Arabic-native learners and `enText` for everyone else.
  */
 export function uiText(
   learningLanguage: UserProfile['language'] | null | undefined,

@@ -13,6 +13,16 @@ interface LanguageSelectorModalProps {
   onToast?: (msg: string) => void;
 }
 
+// Legacy ISO aliases that duplicate the canonical dialect codes below.
+// They stay supported in storage/URLs, but showing them twice in the picker
+// confuses learners ("عامية مصرية" appeared as both arz and ar-EG).
+const DUPLICATE_ARABIC_ALIASES = new Set<SourceLanguage>([
+  'ar-EG',
+  'ar-MA',
+  'ar-SA',
+  'ar-SY',
+]);
+
 export function LanguageSelectorModal({
   isOpen,
   onClose,
@@ -36,6 +46,9 @@ export function LanguageSelectorModal({
 
   const isAr = selectedSource.startsWith('ar');
   const activePairConfig = getPairConfig(selectedSource, selectedTarget);
+  const sourceOptions = (Object.keys(SOURCE_LANGUAGES) as SourceLanguage[]).filter(
+    (code) => !DUPLICATE_ARABIC_ALIASES.has(code) || code === currentSource
+  );
 
   const handleApply = () => {
     onSelectPair(selectedSource, selectedTarget);
@@ -101,7 +114,7 @@ export function LanguageSelectorModal({
           {step === 1 && (
             <div className="space-y-3">
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {(Object.keys(SOURCE_LANGUAGES) as SourceLanguage[]).map((langKey) => {
+                {sourceOptions.map((langKey) => {
                   const meta = SOURCE_LANGUAGES[langKey];
                   const isSelected = selectedSource === langKey;
                   return (

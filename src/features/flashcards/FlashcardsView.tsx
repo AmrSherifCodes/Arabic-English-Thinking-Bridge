@@ -11,6 +11,7 @@ import { JAPANESE_PREBUILT_DECKS } from '../../data/curriculum/japaneseDecks';
 import { SourceLanguage, TargetLanguage } from '../../types';
 import { DeckDefinition, FlashcardItemData } from '../../components/uiConstants';
 import { BTN_GHOST, BTN_PRIMARY } from '../../components/uiConstants';
+import { uiText } from '../../utils/i18n';
 
 const CORE_DECKS: DeckDefinition[] = [
   {
@@ -65,6 +66,59 @@ export function FlashcardsView({
 }: FlashcardsViewProps) {
   const isGerman = targetLang === 'de';
   const isJapanese = targetLang === 'ja';
+  const t = (en: string, ar: string) => uiText(profile?.language, en, ar);
+
+  const localizedCoreDecks: DeckDefinition[] = CORE_DECKS.map((deck) => {
+    switch (deck.id) {
+      case 'phase-1':
+        return {
+          ...deck,
+          name: t('Phase 1: Foundations', 'المرحلة ١: الأساسات'),
+          subtitle: t(
+            'Lessons 1–8 · Copula, Possession & SVO Skeleton',
+            'الدروس ١–٨ · فعل الربط والملكية وبناء الجملة'
+          ),
+        };
+      case 'phase-2':
+        return {
+          ...deck,
+          name: t('Phase 2: Flow & Nuance', 'المرحلة ٢: الانسيابية والفروق الدقيقة'),
+          subtitle: t(
+            'Lessons 9–16 · Relative Clauses, Conditionals & Phrasal Verbs',
+            'الدروس ٩–١٦ · الجمل الوصلية والشرطية والأفعال المركبة'
+          ),
+        };
+      case 'phase-3':
+        return {
+          ...deck,
+          name: t('Phase 3: Mastery & Register', 'المرحلة ٣: الإتقان والمستوى اللغوي'),
+          subtitle: t(
+            'Lessons 17–24 · Inversion, Clefts, False Friends & C1 Collocations',
+            'الدروس ١٧–٢٤ · التقديم والتأكيد والأصدقاء الخادعون ومتلازمات C1'
+          ),
+        };
+      case 'custom':
+        return {
+          ...deck,
+          name: t('My Custom Translations', 'ترجماتي الخاصة'),
+          subtitle: t(
+            'Saved & bulk-imported from the Translate tab',
+            'محفوظة ومستوردة من تبويب الترجمة'
+          ),
+        };
+      case 'master-dictionary':
+        return {
+          ...deck,
+          name: t('Master Dictionary', 'القاموس الشامل'),
+          subtitle: t(
+            'Profile-matched Arabic vocabulary with examples (+10k words)',
+            'مفردات عربية مطابقة لملفك مع أمثلة (+١٠ آلاف كلمة)'
+          ),
+        };
+      default:
+        return deck;
+    }
+  });
 
   const activeCoreDecks = isGerman
     ? [
@@ -76,7 +130,7 @@ export function FlashcardsView({
         { id: 'phase-1', name: 'Phase 1: 基礎 The Skeleton', subtitle: 'SOV word order, Particles (は, を, に) & Furigana' },
         { id: 'custom', name: 'My Custom Japanese Cards', subtitle: 'Saved words, kanji, and practice sentences' }
       ]
-    : CORE_DECKS;
+    : localizedCoreDecks;
 
   const activePrebuiltDecks = isGerman
     ? GERMAN_PREBUILT_DECKS
@@ -103,7 +157,7 @@ export function FlashcardsView({
       ...prev,
       importedDecks: Array.from(new Set([...(prev.importedDecks || []), deck.id]))
     }));
-    onToast(`Downloaded ${deck.name} to your decks!`);
+    onToast(t(`Downloaded ${deck.name} to your decks!`, `تم تنزيل ${deck.name} إلى مجموعاتك!`));
   };
 
   const handleDownloadAllExpandedDecks = () => {
@@ -114,22 +168,26 @@ export function FlashcardsView({
         ...EXPANDED_DECKS.map(d => d.id)
       ]))
     }));
-    onToast(`Downloaded all 4 Master Decks!`);
+    onToast(t('Downloaded all 4 Master Decks!', 'تم تنزيل المجموعات الأربع كاملة!'));
   };
 
   const isEgyptianOnly = profile?.dialect === 'egyptian';
   const visibleCoreDecks = isEgyptianOnly
-    ? CORE_DECKS.filter(d => d.id === 'master-dictionary' || d.id === 'custom').sort((a, b) =>
+    ? localizedCoreDecks.filter(d => d.id === 'master-dictionary' || d.id === 'custom').sort((a, b) =>
         a.id === 'master-dictionary' ? -1 : b.id === 'master-dictionary' ? 1 : 0
       )
-    : CORE_DECKS;
+    : localizedCoreDecks;
 
   const coreDecks = visibleCoreDecks.map(deck => {
     if (deck.id === 'master-dictionary') {
+      const count = dictionaryEntries.length.toLocaleString();
       return {
         ...deck,
-        name: `Personalized Vocabulary (${dictionaryEntries.length.toLocaleString()} words)`,
-        subtitle: `${dictionaryEntries.length.toLocaleString()} words matched to your dialect`
+        name: t(`Personalized Vocabulary (${count} words)`, `مفرداتك الشخصية (${count} كلمة)`),
+        subtitle: t(
+          `${count} words matched to your dialect`,
+          `${count} كلمة مطابقة لهجتك`
+        )
       };
     }
     return deck;
@@ -137,17 +195,17 @@ export function FlashcardsView({
 
   const activeDeckTitle =
     engine.activeDeckId === 'all'
-      ? 'All Due Cards'
+      ? t('All Due Cards', 'كل البطاقات المستحقة')
       : coreDecks.find(d => d.id === engine.activeDeckId)?.name ||
         [...PREBUILT_DECKS, ...EXPANDED_DECKS].find(d => d.id === engine.activeDeckId)?.name ||
-        'Review';
+        t('Review', 'مراجعة');
 
   return (
     <div className="p-3 sm:p-5 md:p-6 min-h-[100dvh] bg-[var(--bg,#0b0d10)] text-[var(--fg,#e9ecf1)]">
       <div className="max-w-4xl mx-auto w-full">
       
         <button onClick={onBack} style={{ minHeight: 48, padding: '8px 16px', borderRadius: 8, background: '#ffffff1a', color: 'inherit', border: 0, cursor: 'pointer', marginBottom: 16 }}>
-        ← Back to Menu
+        {t('← Back to Menu', '→ العودة للقائمة')}
       </button>
 
       {engine.activeDeckId === null ? (

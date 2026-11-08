@@ -18,8 +18,8 @@ export function getInitialLanguage(): 'ar' | 'en' | 'tr' {
     const userProfileStr = window.localStorage.getItem('tb.userProfile');
     if (userProfileStr) {
       const parsed = JSON.parse(userProfileStr);
-      if (parsed?.language === 'english') return 'ar'; // English learner uses Arabic UI
-      if (parsed?.language === 'arabic') return 'en';
+      if (parsed?.language === 'arabic') return 'ar'; // Arabic-native user → Arabic UI
+      if (parsed?.language === 'english') return 'en'; // Non-Arabic user → English UI
     }
 
     const navLang = (navigator.language || (navigator as { userLanguage?: string }).userLanguage || '').toLowerCase();

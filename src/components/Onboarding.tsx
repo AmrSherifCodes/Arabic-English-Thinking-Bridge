@@ -158,11 +158,11 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
                 جسر التفكير · Thinking Bridge
               </p>
               <p className="text-[11px] text-stone-400 font-medium">
-                {step === 0 && 'اتجاه التعلم · Step 1 of 5'}
-                {step === 1 && 'المهمة الأولى · Step 2 of 5'}
-                {step === 2 && 'اختبار التفكير · Step 3 of 5'}
-                {step === 3 && 'رفيق الرحلة · Step 4 of 5'}
-                {step === 4 && 'انطلاق اللعبة · Ready'}
+                {step === 0 && 'اتجاه التعلم · الخطوة ١ من ٥'}
+                {step === 1 && 'المهمة الأولى · الخطوة ٢ من ٥'}
+                {step === 2 && 'اختبار التفكير · الخطوة ٣ من ٥'}
+                {step === 3 && 'رفيق الرحلة · الخطوة ٤ من ٥'}
+                {step === 4 && 'انطلاق اللعبة · جاهز'}
               </p>
             </div>
           </div>
