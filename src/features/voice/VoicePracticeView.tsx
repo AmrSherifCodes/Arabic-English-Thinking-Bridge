@@ -10,7 +10,7 @@ import { speechAdapter } from '../../platform/adapter';
 import './voice.css';
 
 const LABELS_AR: Record<VoiceState, string> = {
-  idle: 'اضغط المايك للبدء في التحدث مع عمرو',
+  idle: 'اضغط على المايك للبدء في التحدث مع عمرو',
   listening: 'جاري الاستماع... اتكلم براحتك',
   transcribing: 'جاري تحويل كلامك لنص...',
   thinking: 'عمرو شريف يفكر في الرد...',
@@ -61,6 +61,8 @@ export function VoicePracticeView({
 }: VoicePracticeViewProps) {
   const speechCapabilities = speechAdapter.getSpeechCapabilities();
   const [showGuide, setShowGuide] = useState(false);
+  const [showTextInput, setShowTextInput] = useState(false);
+  const [typedText, setTypedText] = useState('');
   const [avatarImgFailed, setAvatarImgFailed] = useState(false);
   const {
     state,
@@ -78,6 +80,7 @@ export function VoicePracticeView({
     pendingFeedbackDraft,
     submitPendingFeedback,
     cancelPendingFeedback,
+    handleManualText,
   } = useVoiceOrchestrator(targetLang, sourceLang);
 
   const [editedFeedbackText, setEditedFeedbackText] = useState('');
@@ -221,8 +224,8 @@ export function VoicePracticeView({
         </button>
         <div className="voice__title-group">
           <span className="voice__title">{isAr ? 'تدريب المحادثة الصوتي' : 'Voice Practice'}</span>
-          <span className="text-[11px] font-black px-2 py-0.5 rounded-full bg-teal-500/15 text-teal-400 border border-teal-500/30">
-            {sourceLang === 'ar' ? '🇪🇬' : '🇬🇧'} ➔ {targetLang === 'de' ? '🇩🇪 Deutsch' : targetLang === 'ja' ? '🇯🇵 日本語' : '🇬🇧 English'}
+          <span className="text-[11px] font-black px-2 py-0.5 rounded-full bg-teal-500/15 text-teal-400 border border-teal-500/30 inline-flex items-center gap-1.5" dir="ltr">
+            {sourceLang === 'ar' ? '🇪🇬' : '🇬🇧'} {isAr ? '←' : '→'} {targetLang === 'de' ? '🇩🇪 Deutsch' : targetLang === 'ja' ? '🇯🇵 日本語' : '🇬🇧 English'}
           </span>
           {isDebugMode && latencyMetrics.ttfa != null && (
             <span className="voice__latency-badge">
@@ -235,7 +238,7 @@ export function VoicePracticeView({
             type="button"
             className="voice__type-toggle"
             onClick={() => setShowGuide(true)}
-            aria-label="How voice practice works"
+            aria-label={isAr ? 'كيف يعمل التدريب الصوتي' : 'How voice practice works'}
             title={isAr ? 'دليل التدريب الصوتي' : 'Voice Guide'}
           >
             ❓
@@ -267,7 +270,7 @@ export function VoicePracticeView({
                   ? '/avatars/listening.png'
                   : '/avatars/idle.png'
               }
-              alt="AI Avatar"
+              alt={isAr ? 'صورة عمرو' : 'AI Avatar'}
               onError={() => setAvatarImgFailed(true)}
               className="w-40 h-40 object-cover rounded-3xl border-2 border-teal-500/40 shadow-2xl shadow-teal-500/20 hover:scale-105 transition-transform"
             />
@@ -391,7 +394,7 @@ export function VoicePracticeView({
                 type="button"
                 className="voice__error-dismiss"
                 onClick={clearError}
-                aria-label="Dismiss error"
+                aria-label={isAr ? 'إغلاق' : 'Dismiss error'}
               >
                 ✕
               </button>
@@ -411,7 +414,8 @@ export function VoicePracticeView({
           <div className="voice__bubble" aria-live="polite">
             {interimTranscript && (
               <div className="voice__bubble-user">
-                <span className="voice__bubble-label">{isAr ? 'أنت:' : 'You:'}</span> {interimTranscript}
+                <span className="voice__bubble-label">{isAr ? 'أنت:' : 'You:'}</span>{' '}
+                {isAr && interimTranscript === 'Listening…' ? 'جاري الاستماع...' : interimTranscript}
               </div>
             )}
             {activeAiText && (
@@ -512,16 +516,48 @@ export function VoicePracticeView({
 
       <footer className="voice__footer">
         <button
+          type="button"
+          className="voice__text-toggle text-xs text-teal-400 underline mb-2"
+          onClick={() => setShowTextInput((v) => !v)}
+        >
+          {isAr ? '⌨️ اكتب بدلاً من التحدث' : '⌨️ Type instead of speaking'}
+        </button>
+        {showTextInput && (
+          <form
+            className="voice__text-form flex gap-2 mb-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (typedText.trim()) {
+                handleManualText(typedText.trim());
+                setTypedText('');
+                setShowTextInput(false);
+              }
+            }}
+          >
+            <input
+              type="text"
+              value={typedText}
+              onChange={(e) => setTypedText(e.target.value)}
+              placeholder={isAr ? 'اكتب جملتك هنا...' : 'Type your sentence here...'}
+              className="flex-1 px-3 py-2 rounded-xl bg-surface-2 border border-border text-text text-sm"
+              dir={isAr ? 'rtl' : 'ltr'}
+            />
+            <button type="submit" className="px-4 py-2 rounded-xl bg-teal-500 text-white text-sm font-bold">
+              {isAr ? 'إرسال' : 'Send'}
+            </button>
+          </form>
+        )}
+        <button
           className={`voice__mic ${
             state === 'speaking' || state === 'thinking' ? 'voice__mic--interrupt' : ''
           } ${state === 'listening' ? 'voice__mic--active' : ''}`}
           onClick={handleMicClick}
           aria-label={
             state === 'speaking' || state === 'thinking'
-              ? 'Interrupt and speak'
+              ? (isAr ? 'إيقاف والتحدث' : 'Interrupt and speak')
               : state === 'listening'
-                ? 'Stop listening'
-                : 'Tap to speak'
+                ? (isAr ? 'إيقاف الاستماع' : 'Stop listening')
+                : (isAr ? 'اضغط للتحدث' : 'Tap to speak')
           }
         >
           {state === 'speaking' || state === 'thinking' ? '✋' : '🎙️'}

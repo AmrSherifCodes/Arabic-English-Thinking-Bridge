@@ -1,26 +1,27 @@
-import { describe, it, expect } from 'vitest';
+import { describe, test } from 'node:test';
+import { ok } from 'node:assert';
 import { getTargetDictionaryAsync } from '../data/dictionaries';
 
 describe('Dictionary Profiles Verification', () => {
   const targetLanguages = ['es', 'fr', 'de', 'it', 'pt', 'ru', 'zh', 'ja', 'hi', 'el'];
 
   targetLanguages.forEach((lang) => {
-    it(`should successfully load dictionary for target language: ${lang}`, async () => {
+    test(`should successfully load dictionary for target language: ${lang}`, async () => {
       const dict = await getTargetDictionaryAsync(lang as any);
-      expect(dict).toBeDefined();
-      expect(Array.isArray(dict)).toBe(true);
+      ok(dict !== undefined);
+      ok(Array.isArray(dict));
       if (dict.length > 0) {
-        expect(dict[0]).toHaveProperty('word');
+        ok('word' in dict[0]);
       }
     });
   });
 
   const sourceDialects = ['arz', 'apc', 'afb', 'ary'];
   sourceDialects.forEach((dialect) => {
-    it(`should safely resolve dialetcs for source: ${dialect}`, async () => {
+    test(`should safely resolve dialects for source: ${dialect}`, async () => {
       const dict = await getTargetDictionaryAsync(dialect as any);
-      expect(dict).toBeDefined();
-      expect(Array.isArray(dict)).toBe(true);
+      ok(dict !== undefined);
+      ok(Array.isArray(dict));
     });
   });
 });

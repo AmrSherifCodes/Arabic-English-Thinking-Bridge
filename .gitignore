@@ -48,3 +48,10 @@ artifacts/
 .artifacts/
 capture_screenshots.mjs
 
+
+# Android signing (Nitron) - never commit
+*.keystore
+*.jks
+nitron.keystore.json
+*.apk
+dist/*.aab

@@ -1,47 +1,47 @@
 /**
  * @vitest-environment jsdom
  */
-import { describe, it, expect, vi } from 'vitest';
-import { useOfflineSpeech } from '../features/voice/useOfflineSpeech';
-import { renderHook, act, waitFor } from '@testing-library/react';
+const { JSDOM } = require('jsdom');
+const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', { url: 'http://localhost' });
+(globalThis as any).window = dom.window;
+(globalThis as any).document = dom.window.document;
+try { Object.defineProperty(globalThis, 'navigator', { value: dom.window.navigator, writable: true, configurable: true }); } catch {}
 
-// Mock Capacitor Core
-vi.mock('@capacitor/core', () => ({
-  Capacitor: {
-    isNativePlatform: () => true
-  },
-  registerPlugin: () => ({
-    init: vi.fn().mockResolvedValue(undefined),
-    startListening: vi.fn().mockResolvedValue(undefined),
-    stopListening: vi.fn().mockResolvedValue(undefined),
-    addListener: vi.fn().mockImplementation((event, cb) => {
-      if (event === 'onFinalResult') {
-        setTimeout(() => cb({ text: 'مرحبا' }), 50);
-      }
-      return { remove: vi.fn() };
-    })
-  })
-}));
+import { describe, test } from 'node:test';
+import { strictEqual, ok } from 'node:assert';
+import { renderHook, act, waitFor } from '@testing-library/react';
+import { useOfflineSpeech } from '../features/voice/useOfflineSpeech';
 
 describe('Offline Voice Pipeline', () => {
-  it('should initialize, start listening, and receive transcript', async () => {
-    const { result } = renderHook(() => useOfflineSpeech());
+  test('should initialize, start listening, and receive transcript', async () => {
+    const listeners: Record<string, (res: any) => void> = {};
+    const mockPlugin: any = {
+      init: async () => {},
+      startListening: async () => {},
+      stopListening: async () => {},
+      addListener: (event: string, cb: (res: any) => void) => {
+        listeners[event] = cb;
+        if (event === 'onFinalResult') {
+          setTimeout(() => cb({ text: 'مرحبا' }), 50);
+        }
+        return { remove: () => {} };
+      },
+    };
 
-    // Wait for init
+    const { result } = renderHook(() => useOfflineSpeech(mockPlugin, true));
+
     await waitFor(() => {
-      expect(result.current.isReady).toBe(true);
+      strictEqual(result.current.isReady, true);
     });
 
-    // Start listening
     act(() => {
       result.current.startListening();
     });
-    expect(result.current.isListening).toBe(true);
+    strictEqual(result.current.isListening, true);
 
-    // Wait for final result mock
     await waitFor(() => {
-      expect(result.current.transcript).toBe('مرحبا');
-      expect(result.current.isListening).toBe(false);
+      strictEqual(result.current.transcript, 'مرحبا');
+      strictEqual(result.current.isListening, false);
     });
   });
 });

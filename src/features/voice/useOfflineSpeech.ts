@@ -10,15 +10,16 @@ export interface OfflineSTTPlugin {
   addListener(eventName: 'onFinalResult', listenerFunc: (result: { text: string }) => void): any;
 }
 
-const OfflineSTT = registerPlugin<OfflineSTTPlugin>('OfflineSTT');
+export function useOfflineSpeech(plugin?: OfflineSTTPlugin, isNative?: boolean) {
+  const OfflineSTT: OfflineSTTPlugin = plugin ?? registerPlugin<OfflineSTTPlugin>('OfflineSTT');
+  const native = isNative ?? Capacitor.isNativePlatform();
 
-export function useOfflineSpeech() {
   const [transcript, setTranscript] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    if (!Capacitor.isNativePlatform()) return;
+    if (!native) return;
 
     let partialListener: any;
     let finalListener: any;
@@ -50,7 +51,7 @@ export function useOfflineSpeech() {
   }, []);
 
   const startListening = async () => {
-    if (!isReady || !Capacitor.isNativePlatform()) return;
+    if (!isReady || !native) return;
     try {
       setTranscript('');
       setIsListening(true);
@@ -62,7 +63,7 @@ export function useOfflineSpeech() {
   };
 
   const stopListening = async () => {
-    if (!isReady || !Capacitor.isNativePlatform()) return;
+    if (!isReady || !native) return;
     try {
       await OfflineSTT.stopListening();
       setIsListening(false);
