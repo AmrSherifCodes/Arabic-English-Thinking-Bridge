@@ -27,10 +27,13 @@ interface CorporateBridgeResult {
   };
 }
 
+import { TargetLanguage } from '../../types';
+
 interface CorporateBridgeViewProps {
   onBack: () => void;
   onToast?: (msg: string) => void;
   preferredVoice?: string;
+  targetLang?: TargetLanguage;
 }
 
 const PRESETS = [
@@ -41,7 +44,7 @@ const PRESETS = [
   'الميزانية دي مش مكفية الشغل المطلوب',
 ];
 
-export function CorporateBridgeView({ onBack, onToast, preferredVoice }: CorporateBridgeViewProps) {
+export function CorporateBridgeView({ onBack, onToast, preferredVoice, targetLang = 'en' }: CorporateBridgeViewProps) {
   const [inputThought, setInputThought] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<CorporateBridgeResult | null>(null);
@@ -73,7 +76,7 @@ export function CorporateBridgeView({ onBack, onToast, preferredVoice }: Corpora
 
     // Always produce a deterministic offline result first: it renders instantly
     // and guarantees the screen is never empty, with or without a network.
-    const offlineResult = buildCorporateBridgeOffline(finalThought);
+    const offlineResult = buildCorporateBridgeOffline(finalThought, targetLang);
     setResult(offlineResult);
 
     if (!isOnline()) {
@@ -102,6 +105,7 @@ export function CorporateBridgeView({ onBack, onToast, preferredVoice }: Corpora
         body: JSON.stringify({
           operation: 'corporate-bridge',
           thought: finalThought,
+          targetLang,
         }),
       });
 

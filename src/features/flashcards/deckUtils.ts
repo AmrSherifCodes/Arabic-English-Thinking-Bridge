@@ -1,20 +1,30 @@
-import { UserProfile, UserProgress } from '../../types';
+import { UserProfile, UserProgress, Phase, Lesson, Exercise, SourceLanguage, TargetLanguage } from '../../types';
 import { PHASES_DATA } from '../../data/lessons';
 import { EXPANDED_DECKS } from '../../data/expandedDecks';
 import { PREBUILT_DECKS } from '../../data/prebuiltDecks';
 import { GERMAN_PREBUILT_DECKS } from '../../data/curriculum/germanDecks';
 import { JAPANESE_PREBUILT_DECKS } from '../../data/curriculum/japaneseDecks';
+import { SPANISH_PREBUILT_DECKS } from '../../data/curriculum/spanishDecks';
+import { getCurriculum } from '../../data/curriculumRegistry';
 import { LexiconEntry } from '../../services/geminiLexicon';
 import { DeckStats, FlashcardItemData } from '../../components/uiConstants';
 
 const ALL_LESSONS = PHASES_DATA.flatMap(p => p.lessons);
-const ALL_EXERCISES = ALL_LESSONS.flatMap(l => l.exercises);
-const ALL_PREBUILT_DECKS = [...EXPANDED_DECKS, ...PREBUILT_DECKS, ...GERMAN_PREBUILT_DECKS, ...JAPANESE_PREBUILT_DECKS];
-const PHASE_EXERCISE_IDS: Record<'phase-1' | 'phase-2' | 'phase-3', string[]> = {
-  'phase-1': (PHASES_DATA[0]?.lessons ?? []).flatMap(l => l.exercises.map(e => e.id)),
-  'phase-2': (PHASES_DATA[1]?.lessons ?? []).flatMap(l => l.exercises.map(e => e.id)),
-  'phase-3': (PHASES_DATA[2]?.lessons ?? []).flatMap(l => l.exercises.map(e => e.id))
-};
+const ALL_PREBUILT_DECKS = [...EXPANDED_DECKS, ...PREBUILT_DECKS, ...GERMAN_PREBUILT_DECKS, ...JAPANESE_PREBUILT_DECKS, ...SPANISH_PREBUILT_DECKS];
+
+function getExerciseIndex(
+  sourceLang: SourceLanguage,
+  targetLang: TargetLanguage
+): { phases: Phase[]; allExercises: Exercise[]; byPhase: Record<string, string[]> } {
+  const phases = getCurriculum(sourceLang, targetLang);
+  const allExercises = phases.flatMap(p => p.lessons.flatMap(l => l.exercises));
+  const byPhase: Record<string, string[]> = {
+    'phase-1': (phases[0]?.lessons ?? []).flatMap(l => l.exercises.map(e => e.id)),
+    'phase-2': (phases[1]?.lessons ?? []).flatMap(l => l.exercises.map(e => e.id)),
+    'phase-3': (phases[2]?.lessons ?? []).flatMap(l => l.exercises.map(e => e.id)),
+  };
+  return { phases, allExercises, byPhase };
+}
 
 export const getMasterDictionaryCardKey = (entry: LexiconEntry): string =>
   `md:${encodeURIComponent(entry.arabicWord)}:${encodeURIComponent(entry.englishTranslation)}` +
@@ -24,7 +34,9 @@ export const getDeckCardKeys = (
   deckId: string | null,
   currentProgress: UserProgress,
   dictionaryEntries: LexiconEntry[],
-  profile: UserProfile | null
+  profile: UserProfile | null,
+  sourceLang: SourceLanguage = 'ar',
+  targetLang: TargetLanguage = 'en'
 ): string[] => {
   const solvedSet = new Set(currentProgress.completedExerciseIds);
   const sortSolvedFirst = (ids: string[]) =>
@@ -48,8 +60,10 @@ export const getDeckCardKeys = (
     return [];
   }
 
+  const { byPhase } = getExerciseIndex(sourceLang, targetLang);
+
   if (deckId === 'phase-1' || deckId === 'phase-2' || deckId === 'phase-3') {
-    return sortSolvedFirst(PHASE_EXERCISE_IDS[deckId]);
+    return sortSolvedFirst(byPhase[deckId] ?? []);
   }
 
   const prebuilt = ALL_PREBUILT_DECKS.find(d => d.id === deckId);
@@ -62,9 +76,9 @@ export const getDeckCardKeys = (
   }
 
   const allPhaseIds = sortSolvedFirst([
-    ...PHASE_EXERCISE_IDS['phase-1'],
-    ...PHASE_EXERCISE_IDS['phase-2'],
-    ...PHASE_EXERCISE_IDS['phase-3']
+    ...(byPhase['phase-1'] ?? []),
+    ...(byPhase['phase-2'] ?? []),
+    ...(byPhase['phase-3'] ?? [])
   ]);
   const masterDictionaryIds = dictionaryEntries.map(getMasterDictionaryCardKey);
   const expandedIds = EXPANDED_DECKS.flatMap(d => d.cards.map((_, idx) => `c:${d.id}-${idx}`));
@@ -76,7 +90,9 @@ export const getCardData = (
   k: string,
   currentProgress: UserProgress,
   dictionaryEntries: LexiconEntry[],
-  profile: UserProfile | null
+  profile: UserProfile | null,
+  sourceLang: SourceLanguage = 'ar',
+  targetLang: TargetLanguage = 'en'
 ): FlashcardItemData | null => {
   if (k.startsWith('md:')) {
     const [, arabicWord, englishTranslation, dialectKey] = k.split(':');
@@ -136,7 +152,8 @@ export const getCardData = (
 
   if (profile?.dialect === 'egyptian') return null;
 
-  const exById = ALL_EXERCISES.find(x => x.id === k);
+  const { allExercises, phases } = getExerciseIndex(sourceLang, targetLang);
+  const exById = allExercises.find(x => x.id === k);
   if (exById) {
     return {
       ar: exById.arabicThought,
@@ -146,8 +163,9 @@ export const getCardData = (
       exercise: exById
     };
   }
+  const allLessons = phases.flatMap(p => p.lessons);
   const [li, ei] = k.split('-').map(Number);
-  const exByIdx = ALL_LESSONS[li]?.exercises[ei];
+  const exByIdx = allLessons[li]?.exercises[ei];
   if (exByIdx) {
     return {
       ar: exByIdx.arabicThought,
@@ -164,9 +182,11 @@ export const getDeckStats = (
   deckId: string,
   currentProgress: UserProgress,
   dictionaryEntries: LexiconEntry[],
-  profile: UserProfile | null
+  profile: UserProfile | null,
+  sourceLang: SourceLanguage = 'ar',
+  targetLang: TargetLanguage = 'en'
 ): DeckStats => {
-  const keys = getDeckCardKeys(deckId, currentProgress, dictionaryEntries, profile);
+  const keys = getDeckCardKeys(deckId, currentProgress, dictionaryEntries, profile, sourceLang, targetLang);
   const cardsMap = currentProgress.cards || {};
   const now = Date.now();
   let newCount = 0;

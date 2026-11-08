@@ -10,6 +10,7 @@ import { isArabicUI, uiText } from '../utils/i18n';
 import { getCardIntervalPreviews } from '../utils/sm2';
 import { getArabicPhoneticSpelling } from '../utils/arabicPhonetics';
 import { InteractiveArabicSentence } from './InteractiveArabicSentence';
+import { JapaneseFuriganaText } from './JapaneseFuriganaText';
 import { Flashcard } from './Flashcard';
 import { OliveBranchIcon } from './CulturalToast';
 import { BouncyButton } from './BouncyButton';
@@ -622,9 +623,22 @@ export function ReviewView({
                 </div>
                 <hr className="my-4 border-slate-300 dark:border-slate-700" />
                 <div dir={targetMeta.direction} style={{ fontFamily: targetFont }} translate="no" className="text-2xl sm:text-3xl font-bold mb-1">
-                  {currentCardData.en}
+                  {targetLang === 'ja' && currentCardData.exercise?.furiganaTarget ? (
+                    <JapaneseFuriganaText
+                      kanjiText={currentCardData.en}
+                      furiganaHtml={currentCardData.exercise.furiganaTarget}
+                      romajiText={currentCardData.exercise.romajiTarget}
+                    />
+                  ) : (
+                    currentCardData.en
+                  )}
                 </div>
-                {sourceMeta.direction === 'rtl' && (
+                {targetLang === 'ja' && currentCardData.exercise?.romajiTarget && (
+                  <div className="text-xs font-semibold text-teal-600 dark:text-teal-400 mb-2">
+                    {currentCardData.exercise.romajiTarget}
+                  </div>
+                )}
+                {targetLang === 'en' && sourceMeta.direction === 'rtl' && (
                   <div dir="rtl" className="text-sm font-bold text-amber-600 dark:text-amber-400 mb-3 flex items-center justify-center gap-1.5 flex-wrap">
                     <span className="text-xs opacity-75 font-normal text-stone-500 dark:text-stone-400">
                       {t('Pronounced:', 'النطق بالعربي:')}

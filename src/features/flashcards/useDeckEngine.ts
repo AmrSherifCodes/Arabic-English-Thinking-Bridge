@@ -1,7 +1,7 @@
 import { Capacitor } from '@capacitor/core';
 import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
 import { useState } from 'react';
-import { CardSchedule, UserProgress, UserProfile } from '../../types';
+import { CardSchedule, UserProgress, UserProfile, SourceLanguage, TargetLanguage } from '../../types';
 import { calculateSM2 } from '../../utils/sm2';
 import { applyHabitWin } from '../../utils/habitPsychology';
 import { mixRetentionIntoDueQueue } from '../../utils/adaptiveCurriculum';
@@ -25,7 +25,9 @@ export function useDeckEngine(
   dictionaryEntries: LexiconEntry[],
   onAskAIAboutCard: (card: FlashcardItemData) => void,
   showToast: (msg: string) => void,
-  onAnswer?: (isCorrect: boolean) => void
+  onAnswer?: (isCorrect: boolean) => void,
+  sourceLang: SourceLanguage = 'ar',
+  targetLang: TargetLanguage = 'en'
 ) {
   const [activeDeckId, setActiveDeckId] = useState<string | null>(null);
   const [reviewQueue, setReviewQueue] = useState<string[] | null>(null);
@@ -34,11 +36,11 @@ export function useDeckEngine(
   const [isStruggling, setIsStruggling] = useState(false);
 
   const computeDueCardQueue = (currentProgress: UserProgress, deckId: string | null): string[] => {
-    const keys = getDeckCardKeys(deckId, currentProgress, dictionaryEntries, profile);
+    const keys = getDeckCardKeys(deckId, currentProgress, dictionaryEntries, profile, sourceLang, targetLang);
     const cardsMap = currentProgress.cards || {};
     const now = Date.now();
 
-    const validKeys = keys.filter(k => !!getCardData(k, currentProgress, dictionaryEntries, profile));
+    const validKeys = keys.filter(k => !!getCardData(k, currentProgress, dictionaryEntries, profile, sourceLang, targetLang));
 
     const learningCards: string[] = [];
     const reviewCards: string[] = [];
@@ -170,7 +172,7 @@ export function useDeckEngine(
 
   const handleAskAIAboutCard = () => {
     const activeCardQueue = reviewQueue || [];
-    const card = activeCardQueue[0] ? getCardData(activeCardQueue[0], progress, dictionaryEntries, profile) : null;
+    const card = activeCardQueue[0] ? getCardData(activeCardQueue[0], progress, dictionaryEntries, profile, sourceLang, targetLang) : null;
     if (!card) return;
     onAskAIAboutCard(card);
   };
@@ -184,12 +186,12 @@ export function useDeckEngine(
     setCardAnswerShown,
     undoSnapshot,
     isStruggling,
-    getDeckStats: (id: string) => getDeckStats(id, progress, dictionaryEntries, profile),
+    getDeckStats: (id: string) => getDeckStats(id, progress, dictionaryEntries, profile, sourceLang, targetLang),
     handleSelectDeck,
     handleCardGrade,
     handleUndoLastGrade,
     handleAskAIAboutCard,
-    getCardData: (id: string) => getCardData(id, progress, dictionaryEntries, profile),
-    totalDueOrNew: getDeckStats('all', progress, dictionaryEntries, profile).cappedTotal
+    getCardData: (id: string) => getCardData(id, progress, dictionaryEntries, profile, sourceLang, targetLang),
+    totalDueOrNew: getDeckStats('all', progress, dictionaryEntries, profile, sourceLang, targetLang).cappedTotal
   };
 }

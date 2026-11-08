@@ -300,6 +300,8 @@ export function generateSmartConversationReply(
       ? "Ich höre zu! Sprich einfach auf Deutsch oder Arabisch."
       : targetLang === 'ja'
       ? "聞いていますよ！日本語でもアラビア語でも気軽に話してください。"
+      : targetLang === 'es'
+      ? "¡Te escucho! Habla en español o en árabe, incluso una frase sencilla."
       : "I'm listening! Feel free to say anything in English or Arabic, even just a simple sentence.";
   }
 
@@ -380,6 +382,20 @@ export function generateSmartConversationReply(
       return "فهمتك تمام! باليابانية بنبدأ بالفاعل أو المبتدأ وبعده المفعول ونرمي الفعل في الآخر خالص (SOV). جرب تقول كلمة أو جملة بسيطة بالياباني!";
     }
     return "素晴らしいですね！日本語で直接考える習慣がついてきました。もっと詳しく教えてくれますか？";
+  }
+
+  // 5b. Spanish Target Experience
+  if (targetLang === 'es') {
+    if (lowerPrompt.includes('hola') || lowerPrompt.includes('buenos días') || lowerPrompt.includes('buenas')) {
+      return "¡Hola! Me alegra practicar contigo en español. ¿Cómo te va hoy?";
+    }
+    if (lowerPrompt.includes('cómo estás') || lowerPrompt.includes('que tal')) {
+      return "¡Muy bien, gracias! 💡 Recuerda siempre: en español el verbo concuerda con el sujeto (ser vs estar). ¿Qué quieres practicar hoy?";
+    }
+    if (isArabicInput) {
+      return "¡Entendido! En español pensamos con sujeto + verbo + objeto, pero el sujeto suele omitirse porque la terminación del verbo lo indica (pro-drop). Además, ser es para identidad y estar para estado/ubicación. ¡Prueba a decir una frase corta en español!";
+    }
+    return "¡Excelente! Tu español suena cada vez más natural. ¿Me puedes contar más en español?";
   }
 
   // 6. English Target Experience (Canonical)

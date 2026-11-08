@@ -2,6 +2,7 @@ import { Phase, SourceLanguage, TargetLanguage } from '../types';
 import { PHASES_DATA } from './lessons';
 import { getGermanPhases } from './curriculum/germanCurriculum';
 import { getJapanesePhases } from './curriculum/japaneseCurriculum';
+import { getSpanishPhases } from './curriculum/spanishCurriculum';
 
 export function getCurriculum(source: SourceLanguage = 'ar', target: TargetLanguage = 'en'): Phase[] {
   if (target === 'de') {
@@ -9,6 +10,9 @@ export function getCurriculum(source: SourceLanguage = 'ar', target: TargetLangu
   }
   if (target === 'ja') {
     return getJapanesePhases(source);
+  }
+  if (target === 'es') {
+    return getSpanishPhases(source);
   }
   if (source === 'en' && target === 'en') {
     // English-to-English advanced immersion: adapt PHASES_DATA
@@ -25,8 +29,8 @@ export function getCurriculum(source: SourceLanguage = 'ar', target: TargetLangu
     }));
   }
 
-  // Fallback for new languages (es, fr, zh, hi, ru, pt, it) until they have specialized curricula
-  if (['es', 'fr', 'zh', 'hi', 'ru', 'pt', 'it'].includes(target)) {
+  // Fallback for new languages (fr, zh, hi, ru, pt, it) until they have specialized curricula
+  if (['fr', 'zh', 'hi', 'ru', 'pt', 'it'].includes(target)) {
      // Return a generic mapped structure to prevent crashing
      return PHASES_DATA.map(p => ({
       ...p,
@@ -45,4 +49,3 @@ export function getCurriculum(source: SourceLanguage = 'ar', target: TargetLangu
   // Default: Arabic -> English (canonical PHASES_DATA)
   return PHASES_DATA;
 }
-

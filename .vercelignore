@@ -15,3 +15,13 @@ Thinking-English-v4.html
 scripts/
 api/*.test.js
 api/**/*.test.js
+*.apk
+*.aab
+*.keystore
+*.jks
+*.wav
+test/
+tests/
+__tests__/
+**/*.test.*
+**/*.spec.*

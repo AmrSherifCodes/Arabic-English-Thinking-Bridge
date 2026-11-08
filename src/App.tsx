@@ -420,6 +420,7 @@ export default function App() {
           onBack={goHome}
           onToast={(msg) => showToast(T(msg, msg))}
           preferredVoice={progress.preferredVoice}
+          targetLang={targetLang}
         />
       )}
 

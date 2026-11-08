@@ -9,7 +9,8 @@ import {
   getCorsOrigin,
   ALLOWED_CORS_ORIGINS,
   FALLBACK_MODELS,
-  MODEL
+  MODEL,
+  _cb
 } from './gemini.js';
 
 function createMockReq({
@@ -328,4 +329,44 @@ test('11. corporate-bridge operation rejects empty thought with 400 Bad Request'
   assert.deepEqual(res.json, {
     error: { code: 'empty-input', message: 'Thought is required and cannot exceed 500 characters.' }
   });
+});
+
+
+test('12. corporate-bridge prompt reflects targetLang', async () => {
+  const orig = _cb.generateContentWithFallback;
+  let captured = '';
+  _cb.generateContentWithFallback = async (_client, params) => {
+    captured = typeof params?.contents === 'string' ? params.contents : JSON.stringify(params?.contents);
+    return { text: JSON.stringify({ tones: { polite: { english: 'ok' }, assertive: { english: 'ok' }, executive: { english: 'ok' } } }) };
+  };
+  try {
+    let req = createMockReq({
+      method: 'POST',
+      headers: { 'x-user-api-key': 'test-user-key' },
+      body: { operation: 'corporate-bridge', thought: 'thought-de', targetLang: 'de' }
+    });
+    let res = createMockRes();
+    await handler(req, res);
+    assert.match(captured, /German|Deutsch/);
+
+    req = createMockReq({
+      method: 'POST',
+      headers: { 'x-user-api-key': 'test-user-key' },
+      body: { operation: 'corporate-bridge', thought: 'thought-ja', targetLang: 'ja' }
+    });
+    res = createMockRes();
+    await handler(req, res);
+    assert.match(captured, /Japanese/);
+
+    req = createMockReq({
+      method: 'POST',
+      headers: { 'x-user-api-key': 'test-user-key' },
+      body: { operation: 'corporate-bridge', thought: 'thought-en' }
+    });
+    res = createMockRes();
+    await handler(req, res);
+    assert.match(captured, /English/);
+  } finally {
+    _cb.generateContentWithFallback = orig;
+  }
 });

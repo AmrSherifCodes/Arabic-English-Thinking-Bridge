@@ -1,5 +1,6 @@
 import { StageNode, UnitNode, LessonNode, ExerciseItem, ExerciseType, ProgressionState, CefrStage } from './types';
 import { PHASES_DATA } from '../data/lessons';
+import { getCurriculum } from '../data/curriculumRegistry';
 import { TARGET_LANGUAGES, TARGET_LANGUAGE_META } from '../data/languages';
 import { getTargetDictionary } from '../data/dictionaries';
 import { assignCEFRLevels } from './cefrSorter';
@@ -1297,6 +1298,10 @@ function mapLegacyExerciseToItem(
     promptEn: exercise.englishTarget || exercise.targetSentence || '',
     targetSentence: exercise.targetSentence || exercise.englishTarget,
     acceptableAlternatives: exercise.acceptableAlternatives,
+    breakdownChunks: (exercise.breakdownChunks || []).map((chunk) => ({
+      ...chunk,
+      englishText: chunk.targetText || chunk.englishText,
+    })),
     wordChips: chips,
     options: chips,
     explanationAr: exercise.habitHintAr || fallbackExplanationAr || 'ركز على تركيب الجملة وتجنب الترجمة الحرفية.',
@@ -1478,8 +1483,16 @@ export function buildCourseStructure(
 
   switch (targetLang) {
     case 'de':
-    case 'es':
     case 'ja':
+    case 'es': {
+      const phases = getCurriculum('ar', targetLang);
+      return phases.map((phase, index) =>
+        createStageNode(
+          STAGE_DEFINITIONS[index] || STAGE_DEFINITIONS[STAGE_DEFINITIONS.length - 1],
+          phase.lessons
+        )
+      );
+    }
     case 'fr':
     case 'zh':
     case 'hi':

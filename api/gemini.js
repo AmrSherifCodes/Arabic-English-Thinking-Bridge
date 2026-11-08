@@ -662,14 +662,22 @@ async function generate(operation, body, customKey) {
     const thought = typeof body.thought === 'string' ? body.thought.trim() : '';
     if (!thought) return { status: 400, error: { code: 'empty-input', message: 'Thought parameter is required.' } };
 
+    const targetLang = typeof body.targetLang === 'string' ? body.targetLang : 'en';
+    const LANG_PROMPT = {
+      en: 'professional English',
+      de: 'professional German (Businessdeutsch, with proper Höflichkeitsform)',
+      ja: 'professional Japanese (丁寧語/敬語 business register)',
+    };
+    const targetDesc = LANG_PROMPT[targetLang] || LANG_PROMPT.en;
+
     const prompt =
-      `You are a Corporate Translator converting informal thoughts into professional English.\n` +
-      `Convert this Egyptian Arabic thought into 3 professional English tones (Polite, Assertive, Executive):\n` +
+      `You are a Corporate Translator converting informal thoughts into ${targetDesc}.\n` +
+      `Convert this Egyptian Arabic thought into 3 ${targetDesc} tones (Polite, Assertive, Executive):\n` +
       `Thought: "${thought}"\n` +
       `Return JSON matching the schema.`;
 
     try {
-      const response = await generateContentWithFallback(activeClient, {
+      const response = await _cb.generateContentWithFallback(activeClient, {
         contents: prompt,
         config: {
           maxOutputTokens: 250,
@@ -882,6 +890,8 @@ export default async function handler(req, res) {
 }
 
 export const config = { maxDuration: 60 };
+export const _cb = { generateContentWithFallback };
+
 export {
   handler,
   MODEL,
