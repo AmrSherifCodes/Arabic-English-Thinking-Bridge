@@ -3,7 +3,7 @@ import { ArrowDownToLine, AudioLines, BookOpen, Github, KeyRound, LockKeyhole, M
 import './android-landing-page.css';
 
 const APK_URL =
-  'https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v3.1.0/Thinking-Bridge-v3.1.0.apk';
+  'https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v4.0.2/ThinkingBridge-v4.0.2.apk';
 const RELEASES_URL = 'https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases';
 const GITHUB_URL = 'https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge';
 const X_URL = 'https://x.com/SciAmrSherif';
