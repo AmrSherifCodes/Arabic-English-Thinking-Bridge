@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { UserProfile, UserProgress } from '../../types';
 import { DeckListView, ReviewView } from '../../components/CardsView';
 import { useMasterDictionary } from '../../services/dictionaryLoader';
@@ -51,6 +51,8 @@ export interface FlashcardsViewProps {
   onToast: (msg: string) => void;
   onAskAIAboutCard?: (card: FlashcardItemData) => void;
   onAnswer?: (isCorrect: boolean) => void;
+  /** Optional deep-link: open this deck immediately instead of the deck list. */
+  initialDeckId?: string;
 }
 
 export function FlashcardsView({
@@ -61,6 +63,7 @@ export function FlashcardsView({
   onToast,
   onAskAIAboutCard,
   onAnswer,
+  initialDeckId,
   sourceLang = 'ar',
   targetLang = 'en'
 }: FlashcardsViewProps) {
@@ -151,6 +154,15 @@ export function FlashcardsView({
     onToast,
     onAnswer
   );
+
+  // Deep-link from the path checkpoints: open the requested deck once.
+  const didAutoOpenDeck = useRef(false);
+  useEffect(() => {
+    if (didAutoOpenDeck.current || !initialDeckId) return;
+    didAutoOpenDeck.current = true;
+    engine.handleSelectDeck(initialDeckId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialDeckId]);
 
   const handleDownloadOpenSourceDeck = (deck: PrebuiltDeck) => {
     updateAndSaveProgress(prev => ({

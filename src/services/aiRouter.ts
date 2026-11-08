@@ -3,6 +3,7 @@ import { generateTutorResponse } from './geminiLexicon';
 import { STATIC_DICTIONARY } from '../data/staticDictionary';
 import { generateLocalTutorResponse, isLocalAIReady } from './localAI';
 import { generateSmartConversationReply } from './smartConversation';
+import { isOnline } from '../utils/connectivity';
 import { UserProfile } from '../types';
 
 function isArabic(text: string): boolean {
@@ -50,19 +51,25 @@ export async function getPedagogicalAIResponse(
   prompt: string,
   context?: TutorContext
 ): Promise<{ text: string; mode: 'cloud' | 'local' | 'fallback' }> {
-  try {
-    const text = await generateTutorResponse(prompt, context || {});
-    return { text, mode: 'cloud' };
-  } catch (err) {
-    if (isLocalAIReady()) {
-      try {
-        const localText = await generateLocalTutorResponse(prompt);
-        return { text: localText, mode: 'local' };
-      } catch {}
+  // Offline-first gate: never wait on a doomed network request.
+  if (isOnline()) {
+    try {
+      const text = await generateTutorResponse(prompt, context || {});
+      return { text, mode: 'cloud' };
+    } catch {
+      // Fall through to the local engine.
     }
-    const fallbackText = getOfflineAnswer(prompt, context);
-    return { text: fallbackText, mode: 'fallback' };
   }
+
+  if (isLocalAIReady()) {
+    try {
+      const localText = await generateLocalTutorResponse(prompt);
+      return { text: localText, mode: 'local' };
+    } catch {}
+  }
+
+  const fallbackText = getOfflineAnswer(prompt, context);
+  return { text: fallbackText, mode: 'fallback' };
 }
 
 export async function askAIHelper(prompt: string, context?: TutorContext): Promise<string> {

@@ -72,7 +72,7 @@ type View =
   | { name: 'landing' }
   | { name: 'android' }
   | { name: 'voice' }
-  | { name: 'flashcards' }
+  | { name: 'flashcards'; deckId?: string }
   | { name: 'corporate' }
   | { name: 'preferences' }
   | { name: 'admin' }
@@ -150,6 +150,14 @@ export default function App() {
   };
 
   const isArabic = (profile?.language || 'arabic') === 'arabic';
+
+  // Deck opened by each stage's flashcard checkpoints in the masar path.
+  const stageFlashcardDecks =
+    profile?.dialect === 'egyptian'
+      ? ['master-dictionary', 'master-dictionary', 'master-dictionary']
+      : targetLang === 'en'
+        ? ['phase-1', 'phase-2', 'phase-3']
+        : [];
 
   useEffect(() => {
     if (view.name === 'landing') return;
@@ -325,8 +333,10 @@ export default function App() {
                 }}
                 onSelectUnitCheckpoint={() => {}}
                 onOpenVoice={() => setView({ name: 'voice' })}
-                onOpenFlashcards={() => setView({ name: 'flashcards' })}
+                onOpenFlashcards={(deckId) => setView({ name: 'flashcards', deckId })}
                 isArabic={isArabic}
+                progress={progress}
+                flashcardDeckIds={stageFlashcardDecks}
               />
             </div>
           )}
@@ -401,6 +411,7 @@ export default function App() {
           onToast={(msg) => showToast(T(msg, msg))}
           sourceLang={sourceLang}
           targetLang={targetLang}
+          initialDeckId={view.deckId}
         />
       )}
 

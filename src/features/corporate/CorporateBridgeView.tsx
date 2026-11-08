@@ -7,6 +7,8 @@ import { isFranco, francoToArabic } from '../../utils/franco';
 import { speakWithRate } from '../../utils/audio';
 import { getUserGeminiKey } from '../../services/geminiLexicon';
 import { consumeDailyApiQuota } from '../../utils/apiQuota';
+import { buildCorporateBridgeOffline } from '../../services/corporateBridgeOffline';
+import { isOnline } from '../../utils/connectivity';
 import './corporate.css';
 
 interface ToneOption {
@@ -68,13 +70,28 @@ export function CorporateBridgeView({ onBack, onToast, preferredVoice }: Corpora
     if (!raw) return;
 
     const finalThought = isFranco(raw) ? francoToArabic(raw) : raw;
-    const userKey = getUserGeminiKey();
 
+    // Always produce a deterministic offline result first: it renders instantly
+    // and guarantees the screen is never empty, with or without a network.
+    const offlineResult = buildCorporateBridgeOffline(finalThought);
+    setResult(offlineResult);
+
+    if (!isOnline()) {
+      setLoading(false);
+      onToast?.('وضع أوفلاين — تم توليد الصياغة محلياً بالكامل');
+      return;
+    }
+
+    const userKey = getUserGeminiKey();
     setLoading(true);
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
 
     try {
       const response = await fetch(`${API_BASE_URL}/api/gemini`, {
         method: 'POST',
+        signal: controller.signal,
         headers: {
           'Content-Type': 'application/json',
           ...(userKey && {
@@ -95,11 +112,13 @@ export function CorporateBridgeView({ onBack, onToast, preferredVoice }: Corpora
       const resJson = await response.json();
       if (resJson.data) {
         setResult(resJson.data);
+        consumeDailyApiQuota();
       }
     } catch (err: any) {
-      console.warn('[CorporateBridge] Error generating bridge:', err);
-      onToast?.('تعذر الاتصال بالذكاء الاصطناعي — تم استخدام المحرك المباشر');
+      console.warn('[CorporateBridge] Cloud unavailable, keeping offline bridge:', err);
+      onToast?.('الذكاء الاصطناعي غير متاح — تم استخدام المحرك المباشر');
     } finally {
+      clearTimeout(timeoutId);
       setLoading(false);
     }
   };

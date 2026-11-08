@@ -13,6 +13,8 @@ import {
   extractLastSentence,
   FeedbackDraft
 } from '../../services/smartConversation';
+import { translateEnglishToArabic } from '../../services/offlineTranslator';
+import { isOnline } from '../../utils/connectivity';
 import { useNativeSpeech } from './useNativeSpeech';
 import { usePreferences } from '../preferences/usePreferences';
 import { unlockAudio, speakWithNativeSpeechSynthesis } from '../../utils/audio';
@@ -752,6 +754,41 @@ export function useVoiceOrchestrator(
       nextPlayIndexRef.current = 0;
       streamDoneRef.current = false;
 
+      // 0. Offline-first: never wait on a doomed network round-trip.
+      const buildOfflineReply = (): string => {
+        if (voiceCommand === 'translate-arabic') {
+          const source = previousAssistantSentence || userText;
+          const translated = translateEnglishToArabic(source);
+          if (translated.text) return translated.text;
+        }
+        return generateSmartConversationReply(
+          userText,
+          messages.slice(-6).map((m) => ({ role: m.role === 'user' ? 'user' : 'model', text: m.text })),
+          getStoredProfile() as any,
+          effectiveTargetLang
+        );
+      };
+
+      if (!isOnline()) {
+        const offlineReply = buildOfflineReply();
+        setCurrentAssistantText(offlineReply);
+        const idx = totalDispatchedRef.current++;
+        streamDoneRef.current = true;
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `assistant-${Date.now()}`,
+            role: 'assistant',
+            text: offlineReply,
+            timestamp: Date.now(),
+            feedbackDraft: newFeedbackDraft || undefined,
+            feedbackStatus: newFeedbackDraft ? 'pending' : undefined,
+          },
+        ]);
+        prefetchSentence(offlineReply, abortCtrl.signal, idx);
+        return;
+      }
+
       const userKey = getUserGeminiKey();
 
       if (!consumeDailyApiQuota()) {
@@ -1023,14 +1060,21 @@ export function useVoiceOrchestrator(
 
         console.warn('[useVoiceOrchestrator] Stream fallback engaged:', err);
         // Fallback to deterministic offline conversational engine
-        const fallbackReply = generateSmartConversationReply(
+        const fallbackReply =
           voiceCommand === 'translate-arabic'
-            ? 'ترجم آخر جملة إلى العربية. الترجمة غير متاحة دون اتصال بالإنترنت.'
-            : userText,
-          messages.slice(-6).map((m) => ({ role: m.role === 'user' ? 'user' : 'model', text: m.text })),
-          getStoredProfile() as any,
-          effectiveTargetLang
-        );
+            ? translateEnglishToArabic(previousAssistantSentence || userText).text ||
+              generateSmartConversationReply(
+                userText,
+                messages.slice(-6).map((m) => ({ role: m.role === 'user' ? 'user' : 'model', text: m.text })),
+                getStoredProfile() as any,
+                effectiveTargetLang
+              )
+            : generateSmartConversationReply(
+                userText,
+                messages.slice(-6).map((m) => ({ role: m.role === 'user' ? 'user' : 'model', text: m.text })),
+                getStoredProfile() as any,
+                effectiveTargetLang
+              );
 
         setCurrentAssistantText(fallbackReply);
         setMessages((prev) => [
