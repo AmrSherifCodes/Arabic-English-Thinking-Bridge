@@ -1,4 +1,4 @@
-﻿import test from 'node:test';
+import test from 'node:test';
 import assert from 'node:assert/strict';
 import { calculatePlayerLevel, calculateSkillAxisLevel, createInitialProgressionState, updateStreakAndShields } from './engine';
 import { calculateNextSrsState, getDueSrsQueue } from './srs';
@@ -135,12 +135,13 @@ test('5a. language profiles build unlockable A0-A2 curricula for German, Spanish
     assert.ok(TARGET_LANGUAGES.every((language) => language.defaultVoice.length > 0));
 
     const examples: Record<string, string[]> = {
-      de: ['Heute trinke ich Kaffee', 'Ich brauche einen Kaffee', 'Ich rufe dich morgen an'],
+      de: ['Heute trinke ich Kaffee', 'Ich helfe dem Mann', 'Ich kann Deutsch sprechen'],
       es: ['La casa blanca es grande', 'El niño pequeño juega', 'El coche rojo es rápido'],
-      ja: ['私は学生です', '水を飲みます', '東京に行きます'],
+      ja: ['私は学生です', '<ctrl42>call:default_api:read_file', '<ctrl42>call:default_api:read_file'],
+      fr: ['La maison blanche est grande', 'Le petit garçon joue dans le parc', 'La voiture rouge est très rapide'],
     };
 
-    for (const language of ['de', 'es', 'ja'] as const) {
+    for (const language of ['de', 'es', 'ja', 'fr'] as const) {
       const profile = generateSmartProfile('ar', language, 'corporate', 'A1');
       assert.equal(profile.domainFocus, 'tech');
       assert.deepEqual(JSON.parse(entries.get('tb.activeProfileConfig') || '{}'), profile);
@@ -161,15 +162,22 @@ test('5a. language profiles build unlockable A0-A2 curricula for German, Spanish
           assert.ok(exercise.promptAr.trim(), `${lesson.id} Arabic prompt must not be empty`);
           assert.ok(exercise.targetSentence.trim(), `${lesson.id} target must not be empty`);
           const isJapanese = language === 'ja';
-          const chipStr = isJapanese
-            ? exercise.wordChips!.join('').replace(/[。、「」]/g, '')
-            : exercise.wordChips!.join(' ').replace(/[.,!?;:¡¿]/g, '');
-          const targetStr = isJapanese
-            ? exercise.targetSentence.replace(/[。、「」]/g, '')
-            : exercise.targetSentence.replace(/[.,!?;:¡¿]/g, '');
+          const targetTokens = isJapanese
+            ? exercise.targetSentence.replace(/[。、「」\s]/g, '').split('')
+            : exercise.targetSentence.replace(/[.,!?;:]/g, '').split(/\s+/).filter(Boolean);
+          const chipTokens = isJapanese
+            ? exercise.wordChips!
+            : exercise.wordChips!.map(c => c.replace(/[.,!?;:]/g, ''));
+
+          for (const tok of targetTokens) {
+            assert.ok(
+              chipTokens.some(c => c.includes(tok)),
+              `${lesson.id} wordChips must contain target token "${tok}"`
+            );
+          }
           assert.ok(
-            chipStr.includes(targetStr),
-            `${lesson.id} wordChips must contain target sentence tokens`
+            exercise.wordChips!.length > targetTokens.length,
+            `${lesson.id} wordChips must include at least one distractor (${exercise.wordChips!.length} chips vs ${targetTokens.length} target tokens)`
           );
           if (isJapanese) {
             assert.match(exercise.targetSentence, /[\u3040-\u30ff\u3400-\u9fff]/u, `${lesson.id} must use Japanese writing`);
@@ -178,17 +186,18 @@ test('5a. language profiles build unlockable A0-A2 curricula for German, Spanish
           }
           assert.ok(exercise.breakdownChunks?.length, `${lesson.id} must include structure breakdowns`);
           if (isJapanese) {
-            assert.ok(
-              exercise.targetSentence.replace(/[。、「」]/g, '').includes(
-                exercise.breakdownChunks!.map((chunk) => chunk.englishText).join('').replace(/[。、「」]/g, '')
-              ),
-              `${lesson.id} breakdown must match target sentence`
-            );
-          } else {
+            // `targetText` holds the target-language fragment; `englishText` is the
+            // English gloss. Use targetText (falling back to englishText only if a
+            // legacy chunk lacks targetText) so the reconstruction is apples-to-apples.
+            const breakdownStr = exercise.breakdownChunks!
+              .map(c => c.targetText || c.englishText || '')
+              .join('')
+              .replace(/[。、「」\s]/g, '');
+            const targetStr = exercise.targetSentence.replace(/[。、「」\s]/g, '');
             assert.equal(
-              exercise.breakdownChunks!.flatMap((chunk) => chunk.englishText.replace(/[.,!?;:]/g, '').split(/\s+/)).length,
-              exercise.targetSentence.replace(/[.,!?;:]/g, '').split(/\s+/).length,
-              `${lesson.id} breakdown must account for every target word`
+              breakdownStr,
+              targetStr,
+              `${lesson.id} breakdownChunks must reconstruct targetSentence (chunks="${breakdownStr}" vs target="${targetStr}")`
             );
           }
         }

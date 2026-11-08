@@ -99,7 +99,7 @@ export function getFrenchPhases(source: SourceLanguage = 'ar'): Phase[] {
                   englishText: 'in the park',
                   sourceText: isAr ? 'في الحديقة' : 'in the park',
                   targetText: 'dans le parc',
-                  role: 'prepositional_phrase',
+                  role: 'modifier',
                   explanation: 'Preposition dans + masculine noun le parc'
                 }
               ],
@@ -183,7 +183,7 @@ export function getFrenchPhases(source: SourceLanguage = 'ar'): Phase[] {
                   englishText: 'student',
                   sourceText: isAr ? 'طالب' : 'student',
                   targetText: 'étudiant',
-                  role: 'complement',
+                  role: 'modifier',
                   explanation: 'Profession/status without indefinite article in French'
                 },
                 {
@@ -191,7 +191,7 @@ export function getFrenchPhases(source: SourceLanguage = 'ar'): Phase[] {
                   englishText: 'at the university',
                   sourceText: isAr ? 'في الجامعة' : 'at the university',
                   targetText: 'à l’université',
-                  role: 'prepositional_phrase',
+                  role: 'modifier',
                   explanation: 'Preposition à + elided article l’ before vowel'
                 }
               ],
@@ -221,7 +221,7 @@ export function getFrenchPhases(source: SourceLanguage = 'ar'): Phase[] {
                   englishText: 'teacher',
                   sourceText: isAr ? 'أستاذ' : 'teacher',
                   targetText: 'professeur',
-                  role: 'complement',
+                  role: 'modifier',
                   explanation: 'Profession noun'
                 },
                 {
@@ -229,7 +229,7 @@ export function getFrenchPhases(source: SourceLanguage = 'ar'): Phase[] {
                   englishText: 'at school',
                   sourceText: isAr ? 'في المدرسة' : 'at school',
                   targetText: 'à l’école',
-                  role: 'prepositional_phrase',
+                  role: 'modifier',
                   explanation: 'Preposition à + l’école (vowel start)'
                 }
               ],
@@ -321,7 +321,7 @@ export function getFrenchPhases(source: SourceLanguage = 'ar'): Phase[] {
                   englishText: 'every day',
                   sourceText: isAr ? 'كل يوم' : 'every day',
                   targetText: 'tous les jours',
-                  role: 'time_phrase',
+                  role: 'modifier',
                   explanation: 'Time expression meaning every day'
                 }
               ],
@@ -351,7 +351,7 @@ export function getFrenchPhases(source: SourceLanguage = 'ar'): Phase[] {
                   englishText: 'in Paris',
                   sourceText: isAr ? 'في باريس' : 'in Paris',
                   targetText: 'à Paris',
-                  role: 'prepositional_phrase',
+                  role: 'modifier',
                   explanation: 'Preposition à before city names'
                 },
                 {
@@ -359,7 +359,7 @@ export function getFrenchPhases(source: SourceLanguage = 'ar'): Phase[] {
                   englishText: 'and we study there',
                   sourceText: isAr ? 'وندرس هناك' : 'and we study there',
                   targetText: 'et nous étudions là-bas',
-                  role: 'clause',
+                  role: 'connector',
                   explanation: 'étudier with nous (-ons) + adverb là-bas'
                 }
               ],
@@ -389,7 +389,7 @@ export function getFrenchPhases(source: SourceLanguage = 'ar'): Phase[] {
                   englishText: 'in a big office',
                   sourceText: isAr ? 'في مكتب كبير' : 'in a big office',
                   targetText: 'dans un grand bureau',
-                  role: 'prepositional_phrase',
+                  role: 'modifier',
                   explanation: 'dans + article un + adjective grand + noun bureau'
                 },
                 {
@@ -397,7 +397,7 @@ export function getFrenchPhases(source: SourceLanguage = 'ar'): Phase[] {
                   englishText: 'downtown',
                   sourceText: isAr ? 'في وسط المدينة' : 'downtown',
                   targetText: 'au centre-ville',
-                  role: 'prepositional_phrase',
+                  role: 'modifier',
                   explanation: 'au (à + le) + centre-ville'
                 }
               ],
@@ -473,7 +473,7 @@ export function getFrenchPhases(source: SourceLanguage = 'ar'): Phase[] {
                   englishText: 'tired',
                   sourceText: isAr ? 'متعب' : 'tired',
                   targetText: 'fatigué',
-                  role: 'complement',
+                  role: 'modifier',
                   explanation: 'Masculine adjective fatigué'
                 },
                 {
@@ -481,7 +481,7 @@ export function getFrenchPhases(source: SourceLanguage = 'ar'): Phase[] {
                   englishText: 'today',
                   sourceText: isAr ? 'اليوم' : 'today',
                   targetText: 'aujourd’hui',
-                  role: 'time_phrase',
+                  role: 'modifier',
                   explanation: 'Time adverb'
                 }
               ],
@@ -519,7 +519,7 @@ export function getFrenchPhases(source: SourceLanguage = 'ar'): Phase[] {
                   englishText: 'in this city',
                   sourceText: isAr ? 'في هذه المدينة' : 'in this city',
                   targetText: 'dans cette ville',
-                  role: 'prepositional_phrase',
+                  role: 'modifier',
                   explanation: 'dans + demonstrative cette + feminine noun ville'
                 }
               ],
@@ -698,7 +698,7 @@ export function getFrenchPhases(source: SourceLanguage = 'ar'): Phase[] {
                   englishText: 'yesterday',
                   sourceText: isAr ? 'أمس' : 'yesterday',
                   targetText: 'hier',
-                  role: 'time_phrase',
+                  role: 'modifier',
                   explanation: 'Past time adverb'
                 }
               ],
@@ -736,7 +736,7 @@ export function getFrenchPhases(source: SourceLanguage = 'ar'): Phase[] {
                   englishText: 'on time',
                   sourceText: isAr ? 'في الوقت المناسب' : 'on time',
                   targetText: 'à temps',
-                  role: 'prepositional_phrase',
+                  role: 'modifier',
                   explanation: 'Idiomatic prepositional phrase meaning on time'
                 }
               ],
@@ -766,7 +766,7 @@ export function getFrenchPhases(source: SourceLanguage = 'ar'): Phase[] {
                   englishText: 'to the cinema',
                   sourceText: isAr ? 'إلى السينما' : 'to the cinema',
                   targetText: 'au cinéma',
-                  role: 'prepositional_phrase',
+                  role: 'modifier',
                   explanation: 'au = à + le'
                 },
                 {
@@ -774,7 +774,7 @@ export function getFrenchPhases(source: SourceLanguage = 'ar'): Phase[] {
                   englishText: 'with my friends',
                   sourceText: isAr ? 'مع أصدقائي' : 'with my friends',
                   targetText: 'avec mes amis',
-                  role: 'prepositional_phrase',
+                  role: 'modifier',
                   explanation: 'avec + plural possessive mes + amis'
                 }
               ],
@@ -812,7 +812,7 @@ export function getFrenchPhases(source: SourceLanguage = 'ar'): Phase[] {
                   englishText: 'When I was young',
                   sourceText: isAr ? 'عندما كنت صغيراً' : 'When I was young',
                   targetText: 'Quand j’étais jeune',
-                  role: 'clause',
+                  role: 'connector',
                   explanation: 'imparfait of être (étais) for state in past'
                 },
                 {
@@ -820,7 +820,7 @@ export function getFrenchPhases(source: SourceLanguage = 'ar'): Phase[] {
                   englishText: 'I used to play often',
                   sourceText: isAr ? 'كنت ألعاب كثيراً' : 'I used to play often',
                   targetText: 'je jouais souvent',
-                  role: 'clause',
+                  role: 'connector',
                   explanation: 'imparfait of jouer (-ais) for habitual action'
                 }
               ],
@@ -842,7 +842,7 @@ export function getFrenchPhases(source: SourceLanguage = 'ar'): Phase[] {
                   englishText: 'The weather was nice',
                   sourceText: isAr ? 'كان الطقس جميلاً' : 'The weather was nice',
                   targetText: 'Il faisait beau',
-                  role: 'clause',
+                  role: 'connector',
                   explanation: 'imparfait of faire for background weather description'
                 },
                 {
@@ -850,7 +850,7 @@ export function getFrenchPhases(source: SourceLanguage = 'ar'): Phase[] {
                   englishText: 'when we went out',
                   sourceText: isAr ? 'عندما خرجنا' : 'when we went out',
                   targetText: 'quand nous sommes sortis',
-                  role: 'clause',
+                  role: 'connector',
                   explanation: 'passé composé of sortir for specific completed action'
                 }
               ],
@@ -872,7 +872,7 @@ export function getFrenchPhases(source: SourceLanguage = 'ar'): Phase[] {
                   englishText: 'While I was studying',
                   sourceText: isAr ? 'بينما كنت أدرس' : 'While I was studying',
                   targetText: 'Pendant que j’étudiais',
-                  role: 'clause',
+                  role: 'connector',
                   explanation: 'pendant que + imparfait for ongoing past activity'
                 },
                 {
@@ -880,7 +880,7 @@ export function getFrenchPhases(source: SourceLanguage = 'ar'): Phase[] {
                   englishText: 'my friend called me',
                   sourceText: isAr ? 'اتصل بي صديقي' : 'my friend called me',
                   targetText: 'mon ami m’a téléphoné',
-                  role: 'clause',
+                  role: 'connector',
                   explanation: 'passé composé for punctual interrupting event'
                 }
               ],
@@ -926,7 +926,7 @@ export function getFrenchPhases(source: SourceLanguage = 'ar'): Phase[] {
                   englishText: 'every morning',
                   sourceText: isAr ? 'كل صباح' : 'every morning',
                   targetText: 'tous les matins',
-                  role: 'time_phrase',
+                  role: 'modifier',
                   explanation: 'Habitual time phrase'
                 },
                 {
@@ -934,7 +934,7 @@ export function getFrenchPhases(source: SourceLanguage = 'ar'): Phase[] {
                   englishText: 'on the train',
                   sourceText: isAr ? 'في القطار' : 'on the train',
                   targetText: 'dans le train',
-                  role: 'prepositional_phrase',
+                  role: 'modifier',
                   explanation: 'Preposition dans + masculine noun le train'
                 }
               ],
@@ -1040,7 +1040,7 @@ export function getFrenchPhases(source: SourceLanguage = 'ar'): Phase[] {
                   englishText: 'tomorrow morning',
                   sourceText: isAr ? 'غداً صباحاً' : 'tomorrow morning',
                   targetText: 'demain matin',
-                  role: 'time_phrase',
+                  role: 'modifier',
                   explanation: 'Time phrase for near future'
                 }
               ],
@@ -1070,7 +1070,7 @@ export function getFrenchPhases(source: SourceLanguage = 'ar'): Phase[] {
                   englishText: 'there at ten o’clock sharp',
                   sourceText: isAr ? 'هناك في تمام العاشرة' : 'there at ten o’clock sharp',
                   targetText: 'là-bas à dix heures précises',
-                  role: 'prepositional_phrase',
+                  role: 'modifier',
                   explanation: 'Adverb + time phrase'
                 }
               ],
@@ -1092,7 +1092,7 @@ export function getFrenchPhases(source: SourceLanguage = 'ar'): Phase[] {
                   englishText: 'Next year',
                   sourceText: isAr ? 'السنة القادمة' : 'Next year',
                   targetText: 'L’année prochaine',
-                  role: 'time_phrase',
+                  role: 'modifier',
                   explanation: 'Time expression'
                 },
                 {
@@ -1100,7 +1100,7 @@ export function getFrenchPhases(source: SourceLanguage = 'ar'): Phase[] {
                   englishText: 'we will visit France',
                   sourceText: isAr ? 'سنزور فرنسا' : 'we will visit France',
                   targetText: 'nous visiterons la France',
-                  role: 'clause',
+                  role: 'connector',
                   explanation: 'visiter in futur simple + feminine country la France'
                 }
               ],
@@ -1138,7 +1138,7 @@ export function getFrenchPhases(source: SourceLanguage = 'ar'): Phase[] {
                   englishText: 'I learn French',
                   sourceText: isAr ? 'أتعلم الفرنسية' : 'I learn French',
                   targetText: 'J’apprends le français',
-                  role: 'clause',
+                  role: 'connector',
                   explanation: 'apprendre present tense'
                 },
                 {
@@ -1176,7 +1176,7 @@ export function getFrenchPhases(source: SourceLanguage = 'ar'): Phase[] {
                   englishText: 'we stay at home',
                   sourceText: isAr ? 'سنبقى في المنزل' : 'we stay at home',
                   targetText: 'nous restons à la maison',
-                  role: 'clause',
+                  role: 'connector',
                   explanation: 'rester present tense + location phrase'
                 }
               ],
@@ -1198,7 +1198,7 @@ export function getFrenchPhases(source: SourceLanguage = 'ar'): Phase[] {
                   englishText: 'We prefer the train',
                   sourceText: isAr ? 'نفضل القطار' : 'We prefer the train',
                   targetText: 'Nous préférons le train',
-                  role: 'clause',
+                  role: 'connector',
                   explanation: 'préférer present tense with accent shift'
                 },
                 {
@@ -1263,7 +1263,7 @@ export function getFrenchPhases(source: SourceLanguage = 'ar'): Phase[] {
                   englishText: 'to the meeting on time',
                   sourceText: isAr ? 'إلى الاجتماع في الوقت المحدد' : 'to the meeting on time',
                   targetText: 'à la réunion à l’heure',
-                  role: 'prepositional_phrase',
+                  role: 'modifier',
                   explanation: 'Location and time phrases'
                 }
               ],
@@ -1285,7 +1285,7 @@ export function getFrenchPhases(source: SourceLanguage = 'ar'): Phase[] {
                   englishText: 'I am very happy that',
                   sourceText: isAr ? 'يسعدني كثيراً أن' : 'I am very happy that',
                   targetText: 'Je suis très heureux que',
-                  role: 'clause',
+                  role: 'connector',
                   explanation: 'Expression of emotion triggering subjonctif'
                 },
                 {
@@ -1293,7 +1293,7 @@ export function getFrenchPhases(source: SourceLanguage = 'ar'): Phase[] {
                   englishText: 'you are here with us',
                   sourceText: isAr ? 'تكون هنا معنا' : 'you are here with us',
                   targetText: 'tu sois là avec nous',
-                  role: 'clause',
+                  role: 'connector',
                   explanation: 'subjonctif of être (sois)'
                 }
               ],
@@ -1399,7 +1399,7 @@ export function getFrenchPhases(source: SourceLanguage = 'ar'): Phase[] {
                   englishText: 'with this file',
                   sourceText: isAr ? 'في هذا الملف' : 'with this file',
                   targetText: 'avec ce dossier',
-                  role: 'prepositional_phrase',
+                  role: 'modifier',
                   explanation: 'avec + demonstrative ce + dossier'
                 }
               ],
@@ -1429,7 +1429,7 @@ export function getFrenchPhases(source: SourceLanguage = 'ar'): Phase[] {
                   englishText: 'we meet next week',
                   sourceText: isAr ? 'نلتقي الأسبوع القادم' : 'we meet next week',
                   targetText: 'nous nous rencontrions la semaine prochaine',
-                  role: 'clause',
+                  role: 'connector',
                   explanation: 'Reflexive subjonctif verb + time phrase'
                 }
               ],
@@ -1581,7 +1581,7 @@ export function getFrenchPhases(source: SourceLanguage = 'ar'): Phase[] {
                   englishText: 'I continue to work',
                   sourceText: isAr ? 'أواصل العمل' : 'I continue to work',
                   targetText: 'je continue à travailler',
-                  role: 'clause',
+                  role: 'connector',
                   explanation: 'continuer à + infinitive'
                 }
               ],
@@ -1603,7 +1603,7 @@ export function getFrenchPhases(source: SourceLanguage = 'ar'): Phase[] {
                   englishText: 'The project is difficult',
                   sourceText: isAr ? 'المشروع صعب' : 'The project is difficult',
                   targetText: 'Le projet est difficile',
-                  role: 'clause',
+                  role: 'connector',
                   explanation: 'First independent clause'
                 },
                 {
@@ -1641,7 +1641,7 @@ export function getFrenchPhases(source: SourceLanguage = 'ar'): Phase[] {
                   englishText: 'we will hold an urgent meeting',
                   sourceText: isAr ? 'سنعقد اجتماعاً طارئاً' : 'we will hold an urgent meeting',
                   targetText: 'nous tiendrons une réunion urgente',
-                  role: 'clause',
+                  role: 'connector',
                   explanation: 'tenir in futur simple + noun phrase'
                 }
               ],
@@ -1687,7 +1687,7 @@ export function getFrenchPhases(source: SourceLanguage = 'ar'): Phase[] {
                   englishText: 'please find attached the document',
                   sourceText: isAr ? 'يرجى تجد المرفق' : 'please find attached the document',
                   targetText: 'veuillez trouver ci-joint le document',
-                  role: 'clause',
+                  role: 'connector',
                   explanation: 'veuillez (polite vouloir) + trouver ci-joint'
                 }
               ],

@@ -23,5 +23,5 @@
     "allowImportingTsExtensions": true,
     "noEmit": true
   },
-  "exclude": ["dist", "src-tauri"]
+  "exclude": ["dist", "src-tauri", "trailer-tutor"]
 }

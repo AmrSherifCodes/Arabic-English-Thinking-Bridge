@@ -66,11 +66,37 @@ test('5. No Arabic characters in target fields (every exercise)', () => {
 
 test('6. Every targetSentence matches allowed French charset', () => {
   const phases = getFrenchPhases('ar');
-  const re = /^[\p{L}\p{N}\s.,;:!?'"()\-\u00C0-\u024F]+$/u;
+  const re = /^[\p{L}\p{N}\s.,;:!?'"’`()\-\u00C0-\u024F]+$/u;
   for (const p of phases) {
     for (const l of p.lessons) {
       for (const ex of l.exercises) {
         assert.match(ex.targetSentence || '', re, `bad charset in ${ex.id}: ${ex.targetSentence}`);
+      }
+    }
+  }
+});
+
+test('7. No cross-script contamination in targetSentence, wordChips, or alternatives', () => {
+  const phases = getFrenchPhases('ar');
+  // Cyrillic, Greek, Devanagari, CJK, Japanese kana, Arabic
+  const FORBIDDEN = /[\u0400-\u04FF\u0370-\u03FF\u0900-\u097F\u4E00-\u9FFF\u3040-\u30FF\u0600-\u06FF]/;
+  for (const p of phases) {
+    for (const l of p.lessons) {
+      for (const ex of l.exercises) {
+        assert.ok(!FORBIDDEN.test(ex.targetSentence || ''),
+          `cross-script in targetSentence ${ex.id}: ${ex.targetSentence}`);
+        for (const w of ex.wordChips) {
+          assert.ok(!FORBIDDEN.test(w),
+            `cross-script in wordChips ${ex.id}: ${w}`);
+        }
+        for (const a of ex.acceptableAlternatives) {
+          assert.ok(!FORBIDDEN.test(a),
+            `cross-script in acceptableAlternatives ${ex.id}: ${a}`);
+        }
+        for (const c of ex.breakdownChunks) {
+          assert.ok(!FORBIDDEN.test(c.targetText || ''),
+            `cross-script in targetText ${ex.id}: ${c.targetText}`);
+        }
       }
     }
   }

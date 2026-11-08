@@ -348,6 +348,37 @@ function genericBridge(thought: string, targetLang: TargetLanguage = 'en'): Corp
     };
   }
 
+  if (targetLang === 'fr') {
+    return {
+      originalThought: thought,
+      thinkingShift:
+        'En français professionnel, privilégiez la clarté et la politesse : sujet précis + action attendue + délai ferme.',
+      tones: {
+        polite: {
+          label: 'Courtois',
+          english: ensureSentence(
+            `Bonjour à tous, une remarque concernant ce sujet : ${core}. Pourrions-nous faire un point quand vous aurez un moment ? Merci`
+          ),
+          context: CONTEXTS.polite,
+        },
+        assertive: {
+          label: 'Direct',
+          english: ensureSentence(
+            `Équipe, ${core}. Merci de traiter ce point en priorité et de me confirmer le calendrier aujourd’hui`
+          ),
+          context: CONTEXTS.assertive,
+        },
+        executive: {
+          label: 'Exécutif',
+          english: ensureSentence(
+            `Action requise : ${core}. Responsable et date d’échéance à confirmer avant la fin de journée`
+          ),
+          context: CONTEXTS.executive,
+        },
+      },
+    };
+  }
+
   return {
     originalThought: thought,
     thinkingShift:
@@ -419,6 +450,17 @@ export function buildCorporateBridgeOffline(thought: string, targetLang: TargetL
           polite: { label: 'Cortés', english: preset.es.polite, context: CONTEXTS.polite },
           assertive: { label: 'Directo', english: preset.es.assertive, context: CONTEXTS.assertive },
           executive: { label: 'Ejecutivo', english: preset.es.executive, context: CONTEXTS.executive },
+        },
+      };
+    }
+    if (targetLang === 'fr' && preset.fr) {
+      return {
+        originalThought: raw,
+        thinkingShift: preset.fr.thinkingShift,
+        tones: {
+          polite: { label: 'Courtois', english: preset.fr.polite, context: CONTEXTS.polite },
+          assertive: { label: 'Direct', english: preset.fr.assertive, context: CONTEXTS.assertive },
+          executive: { label: 'Exécutif', english: preset.fr.executive, context: CONTEXTS.executive },
         },
       };
     }

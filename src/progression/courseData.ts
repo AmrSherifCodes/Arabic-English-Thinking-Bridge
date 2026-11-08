@@ -1484,7 +1484,8 @@ export function buildCourseStructure(
   switch (targetLang) {
     case 'de':
     case 'ja':
-    case 'es': {
+    case 'es':
+    case 'fr': {
       const phases = getCurriculum('ar', targetLang);
       return phases.map((phase, index) =>
         createStageNode(
@@ -1493,7 +1494,6 @@ export function buildCourseStructure(
         )
       );
     }
-    case 'fr':
     case 'zh':
     case 'hi':
     case 'ru':
