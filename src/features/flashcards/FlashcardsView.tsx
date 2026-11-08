@@ -9,6 +9,9 @@ import { PREBUILT_DECKS } from '../../data/prebuiltDecks';
 import { GERMAN_PREBUILT_DECKS } from '../../data/curriculum/germanDecks';
 import { JAPANESE_PREBUILT_DECKS } from '../../data/curriculum/japaneseDecks';
 import { SPANISH_PREBUILT_DECKS } from '../../data/curriculum/spanishDecks';
+import { FRENCH_PREBUILT_DECKS } from '../../data/curriculum/frenchDecks';
+import { ITALIAN_PREBUILT_DECKS } from '../../data/curriculum/italianDecks';
+import { PORTUGUESE_PREBUILT_DECKS } from '../../data/curriculum/portugueseDecks';
 import { SourceLanguage, TargetLanguage } from '../../types';
 import { DeckDefinition, FlashcardItemData } from '../../components/uiConstants';
 import { BTN_GHOST, BTN_PRIMARY } from '../../components/uiConstants';
@@ -71,6 +74,9 @@ export function FlashcardsView({
   const isGerman = targetLang === 'de';
   const isJapanese = targetLang === 'ja';
   const isSpanish = targetLang === 'es';
+  const isFrench = targetLang === 'fr';
+  const isItalian = targetLang === 'it';
+  const isPortuguese = targetLang === 'pt';
   const t = (en: string, ar: string) => uiText(profile?.language, en, ar);
 
   const localizedCoreDecks: DeckDefinition[] = CORE_DECKS.map((deck) => {
@@ -142,6 +148,27 @@ export function FlashcardsView({
         { id: 'phase-3', name: 'Phase 3: Dominio', subtitle: 'Subjunctive, conditional & business register' },
         { id: 'custom', name: 'My Custom Spanish Cards', subtitle: 'Saved words and practice sentences' }
       ]
+    : isFrench
+    ? [
+        { id: 'phase-1', name: 'Phase 1: Les Fondations', subtitle: 'Gender agreement (le/la), être/avoir & negation' },
+        { id: 'phase-2', name: 'Phase 2: Passé & Subjonctif', subtitle: 'Passé composé, imparfait & subjunctive foundations' },
+        { id: 'phase-3', name: 'Phase 3: Maîtrise & Registre', subtitle: 'Conditionnel, inversion & professional register' },
+        { id: 'custom', name: 'My Custom French Cards', subtitle: 'Saved words and practice sentences' }
+      ]
+    : isItalian
+    ? [
+        { id: 'phase-1', name: 'Phase 1: Fondamenti', subtitle: 'Gendered articles (il/la), essere/avere & present tense' },
+        { id: 'phase-2', name: 'Phase 2: Passato e Connessioni', subtitle: 'Passato prossimo, imperfetto & pronouns' },
+        { id: 'phase-3', name: 'Phase 3: Padronanza', subtitle: 'Congiuntivo, condizionale & business register' },
+        { id: 'custom', name: 'My Custom Italian Cards', subtitle: 'Saved words and practice sentences' }
+      ]
+    : isPortuguese
+    ? [
+        { id: 'phase-1', name: 'Phase 1: Fundamentos', subtitle: 'Gender agreement (o/a), ser/estar/ter & present tense' },
+        { id: 'phase-2', name: 'Phase 2: Passado e Conectores', subtitle: 'Pretérito perfeito/imperfeito & pronouns' },
+        { id: 'phase-3', name: 'Phase 3: Domínio e Registro', subtitle: 'Subjuntivo, condicional & corporate register' },
+        { id: 'custom', name: 'My Custom Portuguese Cards', subtitle: 'Saved words and practice sentences' }
+      ]
     : localizedCoreDecks;
 
   const activePrebuiltDecks = isGerman
@@ -150,11 +177,15 @@ export function FlashcardsView({
     ? JAPANESE_PREBUILT_DECKS
     : isSpanish
     ? SPANISH_PREBUILT_DECKS
-    : isSpanish
-    ? SPANISH_PREBUILT_DECKS
+    : isFrench
+    ? FRENCH_PREBUILT_DECKS
+    : isItalian
+    ? ITALIAN_PREBUILT_DECKS
+    : isPortuguese
+    ? PORTUGUESE_PREBUILT_DECKS
     : PREBUILT_DECKS;
 
-  const activeExpandedDecks = (isGerman || isJapanese || isSpanish) ? [] : EXPANDED_DECKS;
+  const activeExpandedDecks = (isGerman || isJapanese || isSpanish || isFrench || isItalian || isPortuguese) ? [] : EXPANDED_DECKS;
   const { entries: dictionaryEntries } = useMasterDictionary();
   const [attributionDeck, setAttributionDeck] = useState<PrebuiltDeck | null>(null);
 
@@ -223,7 +254,10 @@ export function FlashcardsView({
   const activeDeckTitle =
     engine.activeDeckId === 'all'
       ? t('All Due Cards', 'كل البطاقات المستحقة')
-      : coreDecks.find(d => d.id === engine.activeDeckId)?.name ||
+      : activeCoreDecks.find(d => d.id === engine.activeDeckId)?.name ||
+        coreDecks.find(d => d.id === engine.activeDeckId)?.name ||
+        activePrebuiltDecks.find(d => d.id === engine.activeDeckId)?.name ||
+        activeExpandedDecks.find(d => d.id === engine.activeDeckId)?.name ||
         [...PREBUILT_DECKS, ...EXPANDED_DECKS].find(d => d.id === engine.activeDeckId)?.name ||
         t('Review', 'مراجعة');
 

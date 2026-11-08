@@ -479,6 +479,98 @@ export function getGermanPhases(source: SourceLanguage): Phase[] {
                 : 'Place "kann" in position 2 and push "sprechen" in its infinitive form to the very end.'
             }
           ]
+        },
+        {
+          id: 'de-p1-l5',
+          phaseId: 1,
+          phaseTitle: 'Das Fundament · German Foundations',
+          phaseLevel: 'A1 – A2',
+          number: 5,
+          title: 'Negation: nicht vs kein',
+          titleAr: 'النفي بالألمانية (kein للأسماء و nicht للأفعال والصفات)',
+          transferConcept: isAr
+            ? 'في الألمانية، ينفى الاسم المسبوق بنكرة أو بدون أداة بـ kein (مثل kein Geld / keinen Schlüssel). أما الأفعال والصفات والأسماء المعرفة فتنفي بـ nicht!'
+            : 'In German, nouns with indefinite or zero articles are negated with "kein" (e.g. "kein Geld" / "keinen Schlüssel"). Verbs, adjectives, and definite nouns are negated with "nicht"!',
+          transferConceptAr: 'استخدم kein لنفي الأسماء النكرة، واستخدم nicht لنفي الأفعال والصفات.',
+          weakSpotTag: 'negation-nicht-kein',
+          exercises: [
+            {
+              id: 'de-ex-1-5-1',
+              arabicThought: 'أنا ليس لدي مفتاح (مذكر)',
+              englishTarget: 'Ich habe keinen Schlüssel',
+              sourceThought: sourceThought(source, 'أنا ليس لدي مفتاح', 'I have no key'),
+              targetSentence: 'Ich habe keinen Schlüssel',
+              acceptableAlternatives: ['Ich habe keinen Schlüssel dabei'],
+              wordChips: ['Ich', 'habe', 'keinen', 'Schlüssel', 'nicht', 'ein', 'keine'],
+              breakdownChunks: [
+                {
+                  arabicText: 'Ich',
+                  englishText: 'I',
+                  sourceText: sourceThought(source, 'أنا', 'I'),
+                  targetText: 'Ich',
+                  role: 'subject',
+                  explanation: 'Subject'
+                },
+                {
+                  arabicText: 'habe',
+                  englishText: 'have',
+                  sourceText: sourceThought(source, 'عندي', 'have'),
+                  targetText: 'habe',
+                  role: 'verb',
+                  explanation: 'Verb requiring accusative'
+                },
+                {
+                  arabicText: 'keinen Schlüssel',
+                  englishText: 'no key',
+                  sourceText: sourceThought(source, 'ليس لدي مفتاح', 'no key'),
+                  targetText: 'keinen Schlüssel',
+                  role: 'object',
+                  explanation: 'Accusative masculine negation: kein -> keinen'
+                }
+              ],
+              habitHint: isAr
+                ? 'مفتاح مذكر (der Schlüssel) ومفعول به، لنفيه نستخدم keinen بدلاً من nicht.'
+                : 'Key is masculine (der Schlüssel). In accusative negation, use "keinen".'
+            },
+            {
+              id: 'de-ex-1-5-2',
+              arabicThought: 'هذا ليس صحيحاً',
+              englishTarget: 'Das ist nicht richtig',
+              sourceThought: sourceThought(source, 'هذا ليس صحيحاً', 'That is not correct'),
+              targetSentence: 'Das ist nicht richtig',
+              acceptableAlternatives: ['Das ist nicht falsch'],
+              wordChips: ['Das', 'ist', 'nicht', 'richtig', 'kein', 'keine', 'es'],
+              breakdownChunks: [
+                {
+                  arabicText: 'Das',
+                  englishText: 'That',
+                  sourceText: sourceThought(source, 'هذا', 'That'),
+                  targetText: 'Das',
+                  role: 'subject',
+                  explanation: 'Demonstrative subject'
+                },
+                {
+                  arabicText: 'ist',
+                  englishText: 'is',
+                  sourceText: sourceThought(source, 'يكون', 'is'),
+                  targetText: 'ist',
+                  role: 'verb',
+                  explanation: 'Copula verb'
+                },
+                {
+                  arabicText: 'nicht richtig',
+                  englishText: 'not correct',
+                  sourceText: sourceThought(source, 'ليس صحيحاً', 'not correct'),
+                  targetText: 'nicht richtig',
+                  role: 'modifier',
+                  explanation: 'Adjective negated with nicht'
+                }
+              ],
+              habitHint: isAr
+                ? 'الصفات (مثل richtig) تنفى بـ nicht وليس بـ kein.'
+                : 'Adjectives like "richtig" are negated with "nicht", never "kein".'
+            }
+          ]
         }
       ]
     },
@@ -668,6 +760,190 @@ export function getGermanPhases(source: SourceLanguage): Phase[] {
                 : 'Put "habe" in position 2 and close the sentence with past participle "gelernt".'
             }
           ]
+        },
+        {
+          id: 'de-p2-l4',
+          phaseId: 2,
+          phaseTitle: 'Satzverbindungen & Dativ · Case Shifts & Clause Connectors',
+          phaseLevel: 'A2 – B1',
+          number: 4,
+          title: 'Two-Way Prepositions (Wechselpräpositionen)',
+          titleAr: 'حروف الجر المزدوجة (الموقع مع Dativ والحركة مع Akkusativ)',
+          transferConcept: isAr
+            ? 'حروف الجر مثل in, auf, an تتطلب Dativ عند الثبات والموقع (Wo? أين؟)، بينما تتطلب Akkusativ عند الحركة والاتجاه (Wohin? إلى أين؟): Der Schlüssel liegt auf dem Tisch.'
+            : 'Two-way prepositions (in, auf, an) take Dative for static location (Wo? Where?), but Accusative for directional movement (Wohin? Where to?): "Der Schlüssel liegt auf dem Tisch".',
+          transferConceptAr: 'الموقع الثابت يأخذ Dativ (auf dem Tisch)، والحركة إلى مكان تأخذ Akkusativ (auf den Tisch).',
+          weakSpotTag: 'two-way-prepositions',
+          exercises: [
+            {
+              id: 'de-ex-2-4-1',
+              arabicThought: 'المفتاح موضوع على الطاولة (ثبات/موقع)',
+              englishTarget: 'Der Schlüssel liegt auf dem Tisch',
+              sourceThought: sourceThought(source, 'المفتاح موضوع على الطاولة', 'The key is lying on the table'),
+              targetSentence: 'Der Schlüssel liegt auf dem Tisch',
+              acceptableAlternatives: ['Der Schlüssel ist auf dem Tisch'],
+              wordChips: ['Der', 'Schlüssel', 'liegt', 'auf', 'dem', 'Tisch', 'den', 'das'],
+              breakdownChunks: [
+                {
+                  arabicText: 'Der Schlüssel',
+                  englishText: 'The key',
+                  sourceText: sourceThought(source, 'المفتاح', 'The key'),
+                  targetText: 'Der Schlüssel',
+                  role: 'subject',
+                  explanation: 'Masculine nominative subject'
+                },
+                {
+                  arabicText: 'liegt',
+                  englishText: 'is lying',
+                  sourceText: sourceThought(source, 'موضوع', 'is lying'),
+                  targetText: 'liegt',
+                  role: 'verb',
+                  explanation: 'Static position verb'
+                },
+                {
+                  arabicText: 'auf dem Tisch',
+                  englishText: 'on the table',
+                  sourceText: sourceThought(source, 'على الطاولة', 'on the table'),
+                  targetText: 'auf dem Tisch',
+                  role: 'modifier',
+                  explanation: 'Dative location: der Tisch -> dem Tisch'
+                }
+              ],
+              habitHint: isAr
+                ? 'الفعل liegen يعبر عن موقع ثابت، لذلك auf تأخذ Dativ: dem Tisch.'
+                : 'The verb "liegen" shows static location, so "auf" requires Dative: "dem Tisch".'
+            },
+            {
+              id: 'de-ex-2-4-2',
+              arabicThought: 'أنا أضع المفتاح على الطاولة (حركة)',
+              englishTarget: 'Ich lege den Schlüssel auf den Tisch',
+              sourceThought: sourceThought(source, 'أنا أضع المفتاح على الطاولة', 'I put the key on the table'),
+              targetSentence: 'Ich lege den Schlüssel auf den Tisch',
+              acceptableAlternatives: ['Ich tue den Schlüssel auf den Tisch'],
+              wordChips: ['Ich', 'lege', 'den', 'Schlüssel', 'auf', 'den', 'Tisch', 'dem'],
+              breakdownChunks: [
+                {
+                  arabicText: 'Ich',
+                  englishText: 'I',
+                  sourceText: sourceThought(source, 'أنا', 'I'),
+                  targetText: 'Ich',
+                  role: 'subject',
+                  explanation: 'Subject'
+                },
+                {
+                  arabicText: 'lege',
+                  englishText: 'put',
+                  sourceText: sourceThought(source, 'أضع', 'put'),
+                  targetText: 'lege',
+                  role: 'verb',
+                  explanation: 'Action verb of movement'
+                },
+                {
+                  arabicText: 'den Schlüssel',
+                  englishText: 'the key',
+                  sourceText: sourceThought(source, 'المفتاح', 'the key'),
+                  targetText: 'den Schlüssel',
+                  role: 'object',
+                  explanation: 'Direct object'
+                },
+                {
+                  arabicText: 'auf den Tisch',
+                  englishText: 'onto the table',
+                  sourceText: sourceThought(source, 'على الطاولة', 'onto the table'),
+                  targetText: 'auf den Tisch',
+                  role: 'modifier',
+                  explanation: 'Accusative direction: der Tisch -> den Tisch'
+                }
+              ],
+              habitHint: isAr
+                ? 'الفعل legen يعبر عن حركة نقل، لذلك auf تأخذ Akkusativ: den Tisch.'
+                : 'The verb "legen" shows movement, so "auf" takes Accusative: "den Tisch".'
+            }
+          ]
+        },
+        {
+          id: 'de-p2-l5',
+          phaseId: 2,
+          phaseTitle: 'Satzverbindungen & Dativ · Case Shifts & Clause Connectors',
+          phaseLevel: 'A2 – B1',
+          number: 5,
+          title: 'Relative Clauses (Relativsätze)',
+          titleAr: 'جمل الوصل وضماءر الوصل (der, die, das)',
+          transferConcept: isAr
+            ? 'جملة الوصل توضح اسماً سابتاً. ضمير الوصل يوافق الاسم في الجنس والعدد، والفعل المصرف في جملة الوصل يُدفع دائماً إلى نهاية الجملة: Das ist der Mann, der hier arbeitet.'
+            : 'Relative clauses describe a preceding noun. The relative pronoun matches gender and number, and the conjugated verb moves to the very end of the relative clause: "Das ist der Mann, der hier arbeitet".',
+          transferConceptAr: 'ضمير الوصل يتبع جنس الاسم، والفعل المصرف يختم جملة الوصل.',
+          weakSpotTag: 'relative-clauses',
+          exercises: [
+            {
+              id: 'de-ex-2-5-1',
+              arabicThought: 'هذا هو الرجل الذي يعمل هنا',
+              englishTarget: 'Das ist der Mann, der hier arbeitet',
+              sourceThought: sourceThought(source, 'هذا هو الرجل الذي يعمل هنا', 'That is the man who works here'),
+              targetSentence: 'Das ist der Mann, der hier arbeitet',
+              acceptableAlternatives: ['Hier ist der Mann, der arbeitet'],
+              wordChips: ['Das', 'ist', 'der', 'Mann,', 'der', 'hier', 'arbeitet', 'arbeitest', 'den'],
+              breakdownChunks: [
+                {
+                  arabicText: 'Das ist der Mann,',
+                  englishText: 'That is the man,',
+                  sourceText: sourceThought(source, 'هذا هو الرجل', 'That is the man,'),
+                  targetText: 'Das ist der Mann,',
+                  role: 'subject',
+                  explanation: 'Main clause'
+                },
+                {
+                  arabicText: 'der',
+                  englishText: 'who',
+                  sourceText: sourceThought(source, 'الذي', 'who'),
+                  targetText: 'der',
+                  role: 'connector',
+                  explanation: 'Masculine nominative relative pronoun'
+                },
+                {
+                  arabicText: 'hier arbeitet',
+                  englishText: 'works here',
+                  sourceText: sourceThought(source, 'يعمل هنا', 'works here'),
+                  targetText: 'hier arbeitet',
+                  role: 'verb',
+                  explanation: 'End-position verb in relative clause'
+                }
+              ],
+              habitHint: isAr
+                ? 'ضمير الوصل der يعود على Mann، والفعل arbeitet يختم الجملة.'
+                : 'Relative pronoun "der" refers to "Mann", and verb "arbeitet" ends the clause.'
+            },
+            {
+              id: 'de-ex-2-5-2',
+              arabicThought: 'هذا هو الكتاب الذي أقرأه',
+              englishTarget: 'Das ist das Buch, das ich lese',
+              sourceThought: sourceThought(source, 'هذا هو الكتاب الذي أقرأه', 'That is the book that I am reading'),
+              targetSentence: 'Das ist das Buch, das ich lese',
+              acceptableAlternatives: ['Das ist das Buch, welches ich lese'],
+              wordChips: ['Das', 'ist', 'das', 'Buch,', 'das', 'ich', 'lese', 'der', 'liest'],
+              breakdownChunks: [
+                {
+                  arabicText: 'Das ist das Buch,',
+                  englishText: 'That is the book,',
+                  sourceText: sourceThought(source, 'هذا هو الكتاب', 'That is the book,'),
+                  targetText: 'Das ist das Buch,',
+                  role: 'subject',
+                  explanation: 'Main clause'
+                },
+                {
+                  arabicText: 'das ich lese',
+                  englishText: 'that I read',
+                  sourceText: sourceThought(source, 'الذي أقرأه', 'that I read'),
+                  targetText: 'das ich lese',
+                  role: 'verb',
+                  explanation: 'Neuter relative clause with verb at end'
+                }
+              ],
+              habitHint: isAr
+                ? 'الكتاب محايد (das Buch)، فضمير الوصل هو das والفعل lese في آخر الجملة.'
+                : 'Book is neuter (das Buch), relative pronoun is "das", verb "lese" goes at the end.'
+            }
+          ]
         }
       ]
     },
@@ -731,6 +1007,342 @@ export function getGermanPhases(source: SourceLanguage): Phase[] {
               habitHint: isAr
                 ? 'استخدم دائماً "Ich hätte gern..." للطلب الاحترافي في المقاهي والمطاعم والعمل.'
                 : 'Always use "Ich hätte gern..." for refined, polite requests in German.'
+            }
+          ]
+        },
+        {
+          id: 'de-p3-l2',
+          phaseId: 3,
+          phaseTitle: 'Souveräne Sprache · Mastery & Expressiveness',
+          phaseLevel: 'B1 – B2',
+          number: 2,
+          title: 'Passive Voice (Vorgangspassiv)',
+          titleAr: 'المبني للمجهول (werden + Partizip II)',
+          transferConcept: isAr
+            ? 'المبني للمجهول يركز على الحدث بدلاً من الفاعل. يصاغ بوضع فعل werden المصرف في الموقع 2 والتصريف الثالث (Partizip II) في ختام الجملة: Der Bericht wird heute geschrieben.'
+            : 'The passive voice emphasizes the action rather than the actor. Formed with conjugated "werden" in position 2 and the past participle (Partizip II) at the end: "Der Bericht wird heute geschrieben".',
+          transferConceptAr: 'المبني للمجهول = werden في الموقع 2 + Partizip II في ختام الجملة.',
+          weakSpotTag: 'passive-voice',
+          exercises: [
+            {
+              id: 'de-ex-3-2-1',
+              arabicThought: 'التقرير يُكتب اليوم (مبني للمجهول)',
+              englishTarget: 'Der Bericht wird heute geschrieben',
+              sourceThought: sourceThought(source, 'التقرير يُكتب اليوم', 'The report is written today'),
+              targetSentence: 'Der Bericht wird heute geschrieben',
+              acceptableAlternatives: ['Der Bericht wird heute verfasst'],
+              wordChips: ['Der', 'Bericht', 'wird', 'heute', 'geschrieben', 'ist', 'schreiben'],
+              breakdownChunks: [
+                {
+                  arabicText: 'Der Bericht',
+                  englishText: 'The report',
+                  sourceText: sourceThought(source, 'التقرير', 'The report'),
+                  targetText: 'Der Bericht',
+                  role: 'subject',
+                  explanation: 'Subject noun'
+                },
+                {
+                  arabicText: 'wird',
+                  englishText: 'is (being)',
+                  sourceText: sourceThought(source, 'يتم/يُكتب', 'is'),
+                  targetText: 'wird',
+                  role: 'auxiliary',
+                  explanation: 'Passive auxiliary verb in position 2'
+                },
+                {
+                  arabicText: 'heute geschrieben',
+                  englishText: 'written today',
+                  sourceText: sourceThought(source, 'اليوم كتابته', 'today written'),
+                  targetText: 'heute geschrieben',
+                  role: 'verb',
+                  explanation: 'Time adverb + Partizip II at end'
+                }
+              ],
+              habitHint: isAr
+                ? 'استخدم wird في الخانة 2 واختم الجملة بـ geschrieben.'
+                : 'Put "wird" in position 2 and finish the clause with participle "geschrieben".'
+            },
+            {
+              id: 'de-ex-3-2-2',
+              arabicThought: 'الرسالة تم إرسالها أمس',
+              englishTarget: 'Die E-Mail wurde gestern gesendet',
+              sourceThought: sourceThought(source, 'الرسالة تم إرسالها أمس', 'The email was sent yesterday'),
+              targetSentence: 'Die E-Mail wurde gestern gesendet',
+              acceptableAlternatives: ['Die E-Mail wurde gestern geschickt'],
+              wordChips: ['Die', 'E-Mail', 'wurde', 'gestern', 'gesendet', 'war', 'senden'],
+              breakdownChunks: [
+                {
+                  arabicText: 'Die E-Mail',
+                  englishText: 'The email',
+                  sourceText: sourceThought(source, 'الرسالة', 'The email'),
+                  targetText: 'Die E-Mail',
+                  role: 'subject',
+                  explanation: 'Subject'
+                },
+                {
+                  arabicText: 'wurde',
+                  englishText: 'was',
+                  sourceText: sourceThought(source, 'تمت', 'was'),
+                  targetText: 'wurde',
+                  role: 'auxiliary',
+                  explanation: 'Past passive auxiliary (wurde)'
+                },
+                {
+                  arabicText: 'gestern gesendet',
+                  englishText: 'sent yesterday',
+                  sourceText: sourceThought(source, 'إرسالها أمس', 'sent yesterday'),
+                  targetText: 'gestern gesendet',
+                  role: 'verb',
+                  explanation: 'Time adverb + past participle'
+                }
+              ],
+              habitHint: isAr
+                ? 'في الماضي للمبني للمجهول نستخدم wurde في الخانة 2.'
+                : 'In past passive voice, use "wurde" in position 2.'
+            }
+          ]
+        },
+        {
+          id: 'de-p3-l3',
+          phaseId: 3,
+          phaseTitle: 'Souveräne Sprache · Mastery & Expressiveness',
+          phaseLevel: 'B1 – B2',
+          number: 3,
+          title: 'Reflexive Verbs in Business (Reflexive Verben)',
+          titleAr: 'الأفعال المنعكسة في بيئة العمل (sich freuen, sich vorbereiten)',
+          transferConcept: isAr
+            ? 'الأفعال المنعكسة ترتبط بضمير منعكس (mich, dich, sich, uns). في سياق الشركات نستخدمها للتعبير عن التطلع والاهتمام والتحضير: Ich freue mich auf das Projekt.'
+            : 'Reflexive verbs use reflexive pronouns (mich, dich, sich, uns). In professional settings they express anticipation, interest, or preparation: "Ich freue mich auf das Projekt".',
+          transferConceptAr: 'الأفعال المنعكسة تستخدم الضمائر mich, dich, sich للتعبير عن الحالة والاهتمام.',
+          weakSpotTag: 'reflexive-verbs',
+          exercises: [
+            {
+              id: 'de-ex-3-3-1',
+              arabicThought: 'أنا متطلع إلى المشروع',
+              englishTarget: 'Ich freue mich auf das Projekt',
+              sourceThought: sourceThought(source, 'أنا متطلع إلى المشروع', 'I am looking forward to the project'),
+              targetSentence: 'Ich freue mich auf das Projekt',
+              acceptableAlternatives: ['Wir freuen uns auf das Projekt'],
+              wordChips: ['Ich', 'freue', 'mich', 'auf', 'das', 'Projekt', 'dich', 'sich'],
+              breakdownChunks: [
+                {
+                  arabicText: 'Ich',
+                  englishText: 'I',
+                  sourceText: sourceThought(source, 'أنا', 'I'),
+                  targetText: 'Ich',
+                  role: 'subject',
+                  explanation: 'Subject'
+                },
+                {
+                  arabicText: 'freue mich',
+                  englishText: 'look forward (myself)',
+                  sourceText: sourceThought(source, 'متطلع/أسعد', 'look forward'),
+                  targetText: 'freue mich',
+                  role: 'verb',
+                  explanation: 'Reflexive verb + pronoun (sich freuen)'
+                },
+                {
+                  arabicText: 'auf das Projekt',
+                  englishText: 'to the project',
+                  sourceText: sourceThought(source, 'إلى المشروع', 'to the project'),
+                  targetText: 'auf das Projekt',
+                  role: 'modifier',
+                  explanation: 'Prepositional object (auf + accusative)'
+                }
+              ],
+              habitHint: isAr
+                ? 'سياق التطلع يتطلب sich freuen auf + Akkusativ (mich auf das Projekt).'
+                : 'The idiom "looking forward to" requires "sich freuen auf" + Accusative.'
+            },
+            {
+              id: 'de-ex-3-3-2',
+              arabicThought: 'نحن مهتمون بهذا الحل',
+              englishTarget: 'Wir interessieren uns für diese Lösung',
+              sourceThought: sourceThought(source, 'نحن مهتمون بهذا الحل', 'We are interested in this solution'),
+              targetSentence: 'Wir interessieren uns für diese Lösung',
+              acceptableAlternatives: ['Ich interessiere mich für diese Lösung'],
+              wordChips: ['Wir', 'interessieren', 'uns', 'für', 'diese', 'Lösung', 'sich', 'mich'],
+              breakdownChunks: [
+                {
+                  arabicText: 'Wir interessieren uns',
+                  englishText: 'We interest ourselves',
+                  sourceText: sourceThought(source, 'نحن مهتمون', 'We are interested'),
+                  targetText: 'Wir interessieren uns',
+                  role: 'subject',
+                  explanation: 'Plural subject + reflexive pronoun (uns)'
+                },
+                {
+                  arabicText: 'für diese Lösung',
+                  englishText: 'in this solution',
+                  sourceText: sourceThought(source, 'بهذا الحل', 'in this solution'),
+                  targetText: 'für diese Lösung',
+                  role: 'modifier',
+                  explanation: 'für + accusative prepositional phrase'
+                }
+              ],
+              habitHint: isAr
+                ? 'الاهتمام بشيء = sich interessieren für + Akkusativ.'
+                : 'Expressing interest = "sich interessieren für" + Accusative.'
+            }
+          ]
+        },
+        {
+          id: 'de-p3-l4',
+          phaseId: 3,
+          phaseTitle: 'Souveräne Sprache · Mastery & Expressiveness',
+          phaseLevel: 'B1 – B2',
+          number: 4,
+          title: 'Purpose Clauses with um... zu',
+          titleAr: 'جمل الغاية والهدف (um... zu + المصدر)',
+          transferConcept: isAr
+            ? 'للتعبير عن الهدف والغاية (من أجل كذا)، نستخدم التركيب um... zu حيث توضع um بعد الفاصلة، وتوضع zu قبل المصدر في ختام الجملة تماماً: Ich lerne Deutsch, um in Deutschland zu arbeiten.'
+            : 'To express purpose ("in order to"), use the bracket "um... zu". "um" introduces the clause after a comma, and "zu" precedes the infinitive at the absolute end: "Ich lerne Deutsch, um in Deutschland zu arbeiten".',
+          transferConceptAr: 'جمل الهدف: um تبدأ الجملة الفرعية و zu تقف قبل المصدر في نهايتها.',
+          weakSpotTag: 'purpose-clauses-um-zu',
+          exercises: [
+            {
+              id: 'de-ex-3-4-1',
+              arabicThought: 'أنا أتعلم الألمانية لأعمل في ألمانيا',
+              englishTarget: 'Ich lerne Deutsch, um in Deutschland zu arbeiten',
+              sourceThought: sourceThought(source, 'أنا أتعلم الألمانية لأعمل في ألمانيا', 'I learn German to work in Germany'),
+              targetSentence: 'Ich lerne Deutsch, um in Deutschland zu arbeiten',
+              acceptableAlternatives: ['Ich studiere Deutsch, um in Deutschland zu arbeiten'],
+              wordChips: ['Ich', 'lerne', 'Deutsch,', 'um', 'in', 'Deutschland', 'zu', 'arbeiten', 'gearbeitet', 'weil'],
+              breakdownChunks: [
+                {
+                  arabicText: 'Ich lerne Deutsch,',
+                  englishText: 'I learn German,',
+                  sourceText: sourceThought(source, 'أنا أتعلم الألمانية', 'I learn German,'),
+                  targetText: 'Ich lerne Deutsch,',
+                  role: 'subject',
+                  explanation: 'Main clause'
+                },
+                {
+                  arabicText: 'um in Deutschland',
+                  englishText: 'in order in Germany',
+                  sourceText: sourceThought(source, 'من أجل في ألمانيا', 'in order in Germany'),
+                  targetText: 'um in Deutschland',
+                  role: 'connector',
+                  explanation: 'Purpose bracket start (um)'
+                },
+                {
+                  arabicText: 'zu arbeiten',
+                  englishText: 'to work',
+                  sourceText: sourceThought(source, 'أن أعمل', 'to work'),
+                  targetText: 'zu arbeiten',
+                  role: 'verb',
+                  explanation: 'Infinitive with zu ending the purpose clause'
+                }
+              ],
+              habitHint: isAr
+                ? 'ضع um في بداية جملة الهدف، واختم بـ zu ثم الفعل المصدر arbeiten.'
+                : 'Start the purpose clause with "um" and finish with "zu" + infinitive "arbeiten".'
+            },
+            {
+              id: 'de-ex-3-4-2',
+              arabicThought: 'نحن بحاجة إلى وقت إضافي لإكمال المهمة',
+              englishTarget: 'Wir brauchen mehr Zeit, um die Aufgabe zu erledigen',
+              sourceThought: sourceThought(source, 'نحن بحاجة إلى وقت إضافي لإكمال المهمة', 'We need more time to complete the task'),
+              targetSentence: 'Wir brauchen mehr Zeit, um die Aufgabe zu erledigen',
+              acceptableAlternatives: ['Wir benötigen mehr Zeit, um die Aufgabe zu beenden'],
+              wordChips: ['Wir', 'brauchen', 'mehr', 'Zeit,', 'um', 'die', 'Aufgabe', 'zu', 'erledigen', 'erledigt'],
+              breakdownChunks: [
+                {
+                  arabicText: 'Wir brauchen mehr Zeit,',
+                  englishText: 'We need more time,',
+                  sourceText: sourceThought(source, 'نحن نحتاج وقتاً أكثر', 'We need more time,'),
+                  targetText: 'Wir brauchen mehr Zeit,',
+                  role: 'subject',
+                  explanation: 'Main clause'
+                },
+                {
+                  arabicText: 'um die Aufgabe zu erledigen',
+                  englishText: 'to complete the task',
+                  sourceText: sourceThought(source, 'من أجل إنجاز المهمة', 'to complete the task'),
+                  targetText: 'um die Aufgabe zu erledigen',
+                  role: 'verb',
+                  explanation: 'um ... zu + infinitive bracket'
+                }
+              ],
+              habitHint: isAr
+                ? 'استخدم التركيب um die Aufgabe zu erledigen للتعبير عن الغاية والهدف.'
+                : 'Use "um ... zu" bracket to express purpose clearly.'
+            }
+          ]
+        },
+        {
+          id: 'de-p3-l5',
+          phaseId: 3,
+          phaseTitle: 'Souveräne Sprache · Mastery & Expressiveness',
+          phaseLevel: 'B1 – B2',
+          number: 5,
+          title: 'Concession & Contrast (obwohl / trotzdem)',
+          titleAr: 'أدوات التناقض والاستثناء (obwohl طاردة للفعل و trotzdem عاكسة للفاعل)',
+          transferConcept: isAr
+            ? 'للتعبير عن التناقض: obwohl (على الرغم من) هي أداة ربط فرعية تطرد الفعل إلى النهاية. أما trotzdem (مع ذلك) فهي ظرف يقع في الخانة 1 ويعكس الفاعل بعدها فوراً!'
+            : 'For contrast: "obwohl" (although) is a sub-clause conjunction kicking the verb to the end. "trotzdem" (nevertheless) is an adverb taking position 1 and inverting the subject!',
+          transferConceptAr: 'obwohl تطرد الفعل إلى النهاية، بينما trotzdem تضع الفعل في الخانة 2 ويعقبها الفاعل.',
+          weakSpotTag: 'contrast-connectors-obwohl',
+          exercises: [
+            {
+              id: 'de-ex-3-5-1',
+              arabicThought: 'على الرغم من أنها تمطر، أنا أذهب للمشي',
+              englishTarget: 'Obwohl es regnet, gehe ich spazieren',
+              sourceThought: sourceThought(source, 'على الرغم من أنها تمطر، أنا أذهب للمشي', 'Although it is raining, I go for a walk'),
+              targetSentence: 'Obwohl es regnet, gehe ich spazieren',
+              acceptableAlternatives: ['Ich gehe spazieren, obwohl es regnet'],
+              wordChips: ['Obwohl', 'es', 'regnet,', 'gehe', 'ich', 'spazieren', 'regnen', 'aber'],
+              breakdownChunks: [
+                {
+                  arabicText: 'Obwohl es regnet,',
+                  englishText: 'Although it rains,',
+                  sourceText: sourceThought(source, 'على الرغم من أنها تمطر', 'Although it rains,'),
+                  targetText: 'Obwohl es regnet,',
+                  role: 'connector',
+                  explanation: 'Sub-clause with verb at end'
+                },
+                {
+                  arabicText: 'gehe ich spazieren',
+                  englishText: 'go I walking',
+                  sourceText: sourceThought(source, 'أمشي أنا', 'go I walking'),
+                  targetText: 'gehe ich spazieren',
+                  role: 'verb',
+                  explanation: 'Main clause with inverted subject after sub-clause'
+                }
+              ],
+              habitHint: isAr
+                ? 'obwohl تطرد regnet لنهاية جملتها، والجملة الرئيسية تبدأ فوراً بالفعل gehe.'
+                : 'Conjunction "obwohl" kicks "regnet" to sub-clause end; the main clause starts with verb "gehe".'
+            },
+            {
+              id: 'de-ex-3-5-2',
+              arabicThought: 'هو متعب، مع ذلك يواصل العمل',
+              englishTarget: 'Er ist müde, trotzdem arbeitet er weiter',
+              sourceThought: sourceThought(source, 'هو متعب، مع ذلك يواصل العمل', 'He is tired, nevertheless he continues working'),
+              targetSentence: 'Er ist müde, trotzdem arbeitet er weiter',
+              acceptableAlternatives: ['Trotzdem arbeitet er weiter, obwohl er müde ist'],
+              wordChips: ['Er', 'ist', 'müde,', 'trotzdem', 'arbeitet', 'er', 'weiter', 'obwohl', 'arbeiten'],
+              breakdownChunks: [
+                {
+                  arabicText: 'Er ist müde,',
+                  englishText: 'He is tired,',
+                  sourceText: sourceThought(source, 'هو متعب', 'He is tired,'),
+                  targetText: 'Er ist müde,',
+                  role: 'subject',
+                  explanation: 'First main clause'
+                },
+                {
+                  arabicText: 'trotzdem arbeitet er weiter',
+                  englishText: 'nevertheless works he on',
+                  sourceText: sourceThought(source, 'مع ذلك يواصل العمل', 'nevertheless works he on'),
+                  targetText: 'trotzdem arbeitet er weiter',
+                  role: 'verb',
+                  explanation: 'Adverb in position 1 inverting subject er after arbeitet'
+                }
+              ],
+              habitHint: isAr
+                ? 'trotzdem تأخذ الخانة 1، ويليها الفعل arbeitet فوراً ثم الضمير er.'
+                : '"trotzdem" takes position 1, immediately followed by verb "arbeitet" and subject "er".'
             }
           ]
         }

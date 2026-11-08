@@ -1485,7 +1485,9 @@ export function buildCourseStructure(
     case 'de':
     case 'ja':
     case 'es':
-    case 'fr': {
+    case 'fr':
+    case 'it':
+    case 'pt': {
       const phases = getCurriculum('ar', targetLang);
       return phases.map((phase, index) =>
         createStageNode(
@@ -1497,8 +1499,6 @@ export function buildCourseStructure(
     case 'zh':
     case 'hi':
     case 'ru':
-    case 'pt':
-    case 'it':
     case 'el': {
       const seedA0 = LOCALIZED_A0_LESSONS[targetLang] || [];
       const seedA1 = LOCALIZED_A1_A2_LESSONS[targetLang]?.A1 || [];

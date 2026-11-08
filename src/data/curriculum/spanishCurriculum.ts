@@ -1238,7 +1238,7 @@ export function getSpanishPhases(source: SourceLanguage): Phase[] {
               sourceThought: isAr ? 'عزيزي السيد غارسيا، أنتظر ردك' : 'Dear Mr. García, I look forward to your reply',
               targetSentence: 'Estimado Sr. García, quedo a la espera de su respuesta',
               acceptableAlternatives: ['Estimado señor García, quedo a la espera de su respuesta.'],
-              wordChips: ['Estimado', 'Sr.', 'García,', 'quedo', 'a', 'la', 'espera', 'de', 'su', 'respuesta'],
+              wordChips: ['Estimado', 'Apreciado', /* distractor */ 'Sr.', 'García,', 'quedo', 'a', 'la', 'espera', 'de', 'su', 'respuesta'],
               breakdownChunks: [
                 {
                   arabicText: 'Estimado Sr. García',

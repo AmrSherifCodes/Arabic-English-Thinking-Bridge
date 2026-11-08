@@ -6,12 +6,14 @@ import { GERMAN_PREBUILT_DECKS } from '../../data/curriculum/germanDecks';
 import { JAPANESE_PREBUILT_DECKS } from '../../data/curriculum/japaneseDecks';
 import { SPANISH_PREBUILT_DECKS } from '../../data/curriculum/spanishDecks';
 import { FRENCH_PREBUILT_DECKS } from '../../data/curriculum/frenchDecks';
+import { ITALIAN_PREBUILT_DECKS } from '../../data/curriculum/italianDecks';
+import { PORTUGUESE_PREBUILT_DECKS } from '../../data/curriculum/portugueseDecks';
 import { getCurriculum } from '../../data/curriculumRegistry';
 import { LexiconEntry } from '../../services/geminiLexicon';
 import { DeckStats, FlashcardItemData } from '../../components/uiConstants';
 
 const ALL_LESSONS = PHASES_DATA.flatMap(p => p.lessons);
-const ALL_PREBUILT_DECKS = [...EXPANDED_DECKS, ...PREBUILT_DECKS, ...GERMAN_PREBUILT_DECKS, ...JAPANESE_PREBUILT_DECKS, ...SPANISH_PREBUILT_DECKS, ...FRENCH_PREBUILT_DECKS];
+const ALL_PREBUILT_DECKS = [...EXPANDED_DECKS, ...PREBUILT_DECKS, ...GERMAN_PREBUILT_DECKS, ...JAPANESE_PREBUILT_DECKS, ...SPANISH_PREBUILT_DECKS, ...FRENCH_PREBUILT_DECKS, ...ITALIAN_PREBUILT_DECKS, ...PORTUGUESE_PREBUILT_DECKS];
 
 function getExerciseIndex(
   sourceLang: SourceLanguage,

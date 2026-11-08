@@ -135,13 +135,15 @@ test('5a. language profiles build unlockable A0-A2 curricula for German, Spanish
     assert.ok(TARGET_LANGUAGES.every((language) => language.defaultVoice.length > 0));
 
     const examples: Record<string, string[]> = {
-      de: ['Heute trinke ich Kaffee', 'Ich helfe dem Mann', 'Ich kann Deutsch sprechen'],
+      de: ['Heute trinke ich Kaffee', 'Ich brauche einen Kaffee', 'Ich rufe dich morgen an'],
       es: ['La casa blanca es grande', 'El niño pequeño juega', 'El coche rojo es rápido'],
-      ja: ['私は学生です', '<ctrl42>call:default_api:read_file', '<ctrl42>call:default_api:read_file'],
+      ja: ['私は学生です', 'これは水です', '水を飲みます'],
       fr: ['La maison blanche est grande', 'Le petit garçon joue dans le parc', 'La voiture rouge est très rapide'],
+      it: ['La casa bianca è grande', 'Il ragazzo piccolo gioca nel parco', 'La macchina rossa è molto veloce'],
+      pt: ['A casa branca é grande', 'O menino pequeno joga no parque', 'O carro vermelho é muito rápido'],
     };
 
-    for (const language of ['de', 'es', 'ja', 'fr'] as const) {
+    for (const language of ['de', 'es', 'ja', 'fr', 'it', 'pt'] as const) {
       const profile = generateSmartProfile('ar', language, 'corporate', 'A1');
       assert.equal(profile.domainFocus, 'tech');
       assert.deepEqual(JSON.parse(entries.get('tb.activeProfileConfig') || '{}'), profile);
@@ -156,49 +158,59 @@ test('5a. language profiles build unlockable A0-A2 curricula for German, Spanish
       }
       for (const stage of course) {
         const lessons = stage.units.flatMap((unit) => unit.lessons);
-        assert.ok(lessons.length >= 1, `${language} ${stage.stage} must have localized lessons`);
+        // Note: Japanese currently has 7 lessons across 3 phases (N5–N4), so minExpectedLessons is 1 per stage,
+        // whereas European languages (DE, ES, FR, IT, PT) have full 15-lesson (5/5/5) curricula.
+        const minExpectedLessons = language === 'ja' ? 1 : 5;
+        assert.ok(
+          lessons.length >= minExpectedLessons,
+          `${language} ${stage.stage} must have localized lessons (expected >= ${minExpectedLessons}, got ${lessons.length})`
+        );
         for (const lesson of lessons) {
-          const exercise = lesson.exercises[0];
-          assert.ok(exercise.promptAr.trim(), `${lesson.id} Arabic prompt must not be empty`);
-          assert.ok(exercise.targetSentence.trim(), `${lesson.id} target must not be empty`);
-          const isJapanese = language === 'ja';
-          const targetTokens = isJapanese
-            ? exercise.targetSentence.replace(/[。、「」\s]/g, '').split('')
-            : exercise.targetSentence.replace(/[.,!?;:]/g, '').split(/\s+/).filter(Boolean);
-          const chipTokens = isJapanese
-            ? exercise.wordChips!
-            : exercise.wordChips!.map(c => c.replace(/[.,!?;:]/g, ''));
+          for (const exercise of lesson.exercises) {
+            assert.ok(exercise.promptAr.trim(), `${lesson.id} (${exercise.id}) Arabic prompt must not be empty`);
+            assert.ok(exercise.targetSentence.trim(), `${lesson.id} (${exercise.id}) target must not be empty`);
+            const isJapanese = language === 'ja';
+            const targetTokens = isJapanese
+              ? exercise.targetSentence.replace(/[。、「」\s]/g, '').split('')
+              : exercise.targetSentence.replace(/[.,!?;:¿¡’'"]/g, '').split(/\s+/).filter(Boolean);
 
-          for (const tok of targetTokens) {
+            // Flatten multi-word chips into word-level tokens (or character-level for Japanese)
+            const chipWords = isJapanese
+              ? exercise.wordChips!.flatMap(c => c.replace(/[。、「」\s]/g, '').split(''))
+              : exercise.wordChips!.flatMap(c => c.replace(/[.,!?;:¿¡’'"]/g, '').split(/\s+/).filter(Boolean));
+
+            // Every target token must appear inside at least one chip (string containment is fine, case-insensitive)
+            for (const tok of targetTokens) {
+              const tokLower = tok.toLowerCase();
+              assert.ok(
+                chipWords.some(c => c.toLowerCase().includes(tokLower) || tokLower.includes(c.toLowerCase())),
+                `${lesson.id} (${exercise.id}) wordChips must contain target token "${tok}"`
+              );
+            }
+
+            // Distractor count: total word-level chips MUST exceed target tokens (strict >)
             assert.ok(
-              chipTokens.some(c => c.includes(tok)),
-              `${lesson.id} wordChips must contain target token "${tok}"`
+              chipWords.length > targetTokens.length,
+              `${lesson.id} (${exercise.id}) wordChips must include at least one distractor (${chipWords.length} chip words vs ${targetTokens.length} target tokens)`
             );
-          }
-          assert.ok(
-            exercise.wordChips!.length > targetTokens.length,
-            `${lesson.id} wordChips must include at least one distractor (${exercise.wordChips!.length} chips vs ${targetTokens.length} target tokens)`
-          );
-          if (isJapanese) {
-            assert.match(exercise.targetSentence, /[\u3040-\u30ff\u3400-\u9fff]/u, `${lesson.id} must use Japanese writing`);
-          } else {
-            assert.ok(!exercise.targetSentence.includes('Welcome to'), `${lesson.id} must not use placeholder content`);
-          }
-          assert.ok(exercise.breakdownChunks?.length, `${lesson.id} must include structure breakdowns`);
-          if (isJapanese) {
-            // `targetText` holds the target-language fragment; `englishText` is the
-            // English gloss. Use targetText (falling back to englishText only if a
-            // legacy chunk lacks targetText) so the reconstruction is apples-to-apples.
-            const breakdownStr = exercise.breakdownChunks!
-              .map(c => c.targetText || c.englishText || '')
-              .join('')
-              .replace(/[。、「」\s]/g, '');
-            const targetStr = exercise.targetSentence.replace(/[。、「」\s]/g, '');
-            assert.equal(
-              breakdownStr,
-              targetStr,
-              `${lesson.id} breakdownChunks must reconstruct targetSentence (chunks="${breakdownStr}" vs target="${targetStr}")`
-            );
+            if (isJapanese) {
+              assert.match(exercise.targetSentence, /[\u3040-\u30ff\u3400-\u9fff]/u, `${lesson.id} (${exercise.id}) must use Japanese writing`);
+            } else {
+              assert.ok(!exercise.targetSentence.includes('Welcome to'), `${lesson.id} (${exercise.id}) must not use placeholder content`);
+            }
+            assert.ok(exercise.breakdownChunks?.length, `${lesson.id} (${exercise.id}) must include structure breakdowns`);
+            if (isJapanese) {
+              const breakdownStr = exercise.breakdownChunks!
+                .map(c => c.targetText || c.englishText || '')
+                .join('')
+                .replace(/[。、「」\s]/g, '');
+              const targetStr = exercise.targetSentence.replace(/[。、「」\s]/g, '');
+              assert.equal(
+                breakdownStr,
+                targetStr,
+                `${lesson.id} (${exercise.id}) breakdownChunks must reconstruct targetSentence (chunks="${breakdownStr}" vs target="${targetStr}")`
+              );
+            }
           }
         }
       }

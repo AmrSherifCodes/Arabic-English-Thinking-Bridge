@@ -336,7 +336,7 @@ export function getFrenchPhases(source: SourceLanguage = 'ar'): Phase[] {
               sourceThought: sourceThought(source, 'نحن نعيش في باريس وندرس هناك', 'We live in Paris and we study there'),
               targetSentence: 'Nous habitons à Paris et nous étudions là-bas',
               acceptableAlternatives: ['Nous habitons à Paris et étudions là-bas'],
-              wordChips: ['Nous', 'habitons', 'à', 'Paris', 'et', 'étudions', 'là-bas', 'habite'],
+              wordChips: ['Nous', 'habitons', 'à', 'Paris', 'et', 'nous', 'étudions', 'là-bas', 'habite', 'habiter'],
               breakdownChunks: [
                 {
                   arabicText: 'Nous habitons',
@@ -1191,7 +1191,7 @@ export function getFrenchPhases(source: SourceLanguage = 'ar'): Phase[] {
               sourceThought: sourceThought(source, 'نفضل القطار لأنه أسرع من الحافلة', 'We prefer the train for it is faster than the bus'),
               targetSentence: 'Nous préférons le train car il est plus rapide que l’autobus',
               acceptableAlternatives: ['Nous préférons le train parce qu’il est plus rapide que le bus'],
-              wordChips: ['Nous', 'préférons', 'le', 'train', 'car', 'il', 'est', 'plus', 'rapide', 'que', 'l’autobus'],
+              wordChips: ['Nous', 'préférons', 'le', 'train', 'car', 'il', 'est', 'plus', 'rapide', 'que', 'l’autobus', 'moins', 'parce' /* distractor */],
               breakdownChunks: [
                 {
                   arabicText: 'Nous préférons le train',
@@ -1248,7 +1248,7 @@ export function getFrenchPhases(source: SourceLanguage = 'ar'): Phase[] {
               sourceThought: sourceThought(source, 'يجب أن تأتي إلى الاجتماع في الوقت المحدد', 'You must come to the meeting on time'),
               targetSentence: 'Il faut que tu viennes à la réunion à l’heure',
               acceptableAlternatives: ['Il faut que vous veniez à la réunion à l’heure'],
-              wordChips: ['Il faut que', 'tu', 'viennes', 'à', 'la', 'réunion', 'à', 'l’heure', 'viens'],
+              wordChips: ['Il', 'faut', 'que', 'tu', 'viennes', 'à', 'la', 'réunion', 'à', 'l’heure', 'viens', 'venir'],
               breakdownChunks: [
                 {
                   arabicText: 'Il faut que tu viennes',
@@ -1414,7 +1414,7 @@ export function getFrenchPhases(source: SourceLanguage = 'ar'): Phase[] {
               sourceThought: sourceThought(source, 'أفضل أن نلتقي الأسبوع القادم', 'I would prefer that we meet next week'),
               targetSentence: 'J’aimerais que nous nous rencontrions la semaine prochaine',
               acceptableAlternatives: ['J’aimerais mieux qu’on se rencontre la semaine prochaine'],
-              wordChips: ['J’aimerais', 'que', 'nous', 'nous', 'rencontrions', 'la', 'semaine', 'prochaine'],
+              wordChips: ['J’aimerais', 'que', 'nous', 'nous', 'rencontrions', 'la', 'semaine', 'prochaine', 'aime', 'souhaite' /* distractor */],
               breakdownChunks: [
                 {
                   arabicText: 'J’aimerais que',
@@ -1596,7 +1596,7 @@ export function getFrenchPhases(source: SourceLanguage = 'ar'): Phase[] {
               sourceThought: sourceThought(source, 'المشروع صعب، ومع ذلك سنحققه', 'The project is difficult, however we will succeed at it'),
               targetSentence: 'Le projet est difficile, cependant nous le réussirons',
               acceptableAlternatives: ['Le projet est difficile, toutefois nous allons le réussir'],
-              wordChips: ['Le', 'projet', 'est', 'difficile', 'cependant', 'nous', 'le', 'réussirons'],
+              wordChips: ['Le', 'projet', 'est', 'difficile', 'cependant', 'nous', 'le', 'réussirons', 'mais', 'toutefois' /* distractor */],
               breakdownChunks: [
                 {
                   arabicText: 'Le projet est difficile',
@@ -1672,7 +1672,7 @@ export function getFrenchPhases(source: SourceLanguage = 'ar'): Phase[] {
               sourceThought: sourceThought(source, 'سيدي/سيدتي، يرجى الاطلاع على المرفق', 'Dear Sir/Madam, please find attached the document'),
               targetSentence: 'Madame, Monsieur, veuillez trouver ci-joint le document',
               acceptableAlternatives: ['Madame, Monsieur, veuillez trouver en pièce jointe le document'],
-              wordChips: ['Madame', 'Monsieur', 'veuillez', 'trouver', 'ci-joint', 'le', 'document'],
+              wordChips: ['Madame', 'Monsieur', 'veuillez', 'trouver', 'ci-joint', 'le', 'document', 'Cordialement' /* distractor */],
               breakdownChunks: [
                 {
                   arabicText: 'Madame, Monsieur',
@@ -1702,7 +1702,7 @@ export function getFrenchPhases(source: SourceLanguage = 'ar'): Phase[] {
               sourceThought: sourceThought(source, 'مع أطيب التحيات والتقدير الفائق', 'Please accept my distinguished greetings'),
               targetSentence: 'Veuillez agréer l’expression de mes salutations distinguées',
               acceptableAlternatives: ['Veuillez agréer mes salutations distinguées'],
-              wordChips: ['Veuillez', 'agréer', 'l’expression', 'de', 'mes', 'salutations', 'distinguées'],
+              wordChips: ['Veuillez', 'agréer', 'l’expression', 'de', 'mes', 'salutations', 'distinguées', 'Cordialement'],
               breakdownChunks: [
                 {
                   arabicText: 'Veuillez agréer',
@@ -1732,7 +1732,7 @@ export function getFrenchPhases(source: SourceLanguage = 'ar'): Phase[] {
               sourceThought: sourceThought(source, 'مع خالص التحيات المهنية', 'Best regards, the management team'),
               targetSentence: 'Bien cordialement, l’équipe de direction',
               acceptableAlternatives: ['Cordialement, l’équipe de direction'],
-              wordChips: ['Bien', 'cordialement', 'l’équipe', 'de', 'direction'],
+              wordChips: ['Bien', 'cordialement', 'l’équipe', 'de', 'direction', 'salutations'],
               breakdownChunks: [
                 {
                   arabicText: 'Bien cordialement',

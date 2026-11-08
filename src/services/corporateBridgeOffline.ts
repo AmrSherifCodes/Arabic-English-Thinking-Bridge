@@ -47,6 +47,18 @@ interface PresetBridge {
     assertive: string;
     executive: string;
   };
+  it?: {
+    thinkingShift: string;
+    polite: string;
+    assertive: string;
+    executive: string;
+  };
+  pt?: {
+    thinkingShift: string;
+    polite: string;
+    assertive: string;
+    executive: string;
+  };
 }
 
 const PRESET_BRIDGES: PresetBridge[] = [
@@ -83,6 +95,18 @@ const PRESET_BRIDGES: PresetBridge[] = [
       polite: 'Bonjour à tous, un point d’étape : le client prend du retard sur les données. Pourrions-nous faire une relance aujourd’hui ?',
       assertive: 'Le client tarde à envoyer les données et à répondre. Merci de faire un suivi aujourd’hui pour confirmer une date.',
       executive: 'Retard client sur les données. Action : relancer aujourd’hui et fixer une date d’engagement.'
+    },
+    it: {
+      thinkingShift: 'In italiano professionale, evidenzia il ritardo in modo collaborativo e richiedi una conferma di consegna.',
+      polite: 'Ciao a tutti, un aggiornamento: il cliente sta ritardando i dati. Potremmo fare un sollecito oggi?',
+      assertive: 'Il cliente sta ritardando dati e risposte. Per favore, verificate oggi e confermate una data.',
+      executive: 'Ritardo cliente sui dati. Azione: sollecitare oggi e confermare data di consegna.'
+    },
+    pt: {
+      thinkingShift: 'Em português profissional, foque no atraso técnico e solicite uma confirmação de entrega firme.',
+      polite: 'Olá equipa, uma atualização: o cliente está a atrasar os dados. Poderíamos fazer um ponto hoje?',
+      assertive: 'O cliente está a atrasar os dados e as respostas. Por favor, façam o seguimento hoje e confirmem a data.',
+      executive: 'Atraso do cliente nos dados. Ação: fazer seguimento hoje e assegurar data firme.'
     }
   },
   {
@@ -118,6 +142,18 @@ const PRESET_BRIDGES: PresetBridge[] = [
       polite: 'Veuillez excuser ma réponse tardive — j’étais en réunion et n’ai pas vu votre message. Je vous réponds très rapidement.',
       assertive: 'J’étais en réunion et n’ai pas pu consulter votre e-mail. Je le traite actuellement et vous réponds d’ici la fin de journée.',
       executive: 'Message manqué en raison d’une réunion. Traitement en cours ; retour avant la fin de journée.'
+    },
+    it: {
+      thinkingShift: 'In italiano professionale, scuse brevi + motivo + impegno di risposta rapida è la formula ideale.',
+      polite: 'Scusate per la risposta ritardata — ero in riunione e ho perso la vostra email. Vi risponderò a breve.',
+      assertive: 'Ero in riunione e non ho visto la vostra email. La sto esaminando ora e risponderò entro fine giornata.',
+      executive: 'Email persa a causa di una riunione. In esame ora; risposta entro EOD.'
+    },
+    pt: {
+      thinkingShift: 'Em português profissional, desculpa breve + motivo + compromisso de resposta rápida é ideal.',
+      polite: 'Peço desculpa pela resposta tardia — estava numa reunião e não vi o seu e-mail. Responderei em breve.',
+      assertive: 'Estava numa reunião e não consultei o seu e-mail. Estou a rever agora e responderei até ao fim do dia.',
+      executive: 'E-mail não lido devido a reunião. Em análise; resposta até ao fim do dia.'
     }
   },
   {
@@ -153,6 +189,18 @@ const PRESET_BRIDGES: PresetBridge[] = [
       polite: 'Pourrions-nous vérifier ces comptes ensemble ? Il me semble qu’il y a une légère erreur à contrôler.',
       assertive: 'Nous devons réviser ces comptes — une erreur est apparue et doit être corrigée.',
       executive: 'Action : réviser ces comptes. Une erreur identifiée nécessite une correction rapide.'
+    },
+    it: {
+      thinkingShift: 'In italiano professionale, richiedi una verifica collaborativa menzionando l’incongruenza senza accusare.',
+      polite: 'Potremmo verificare questi conti insieme? Credo ci sia un’incongruenza da controllare.',
+      assertive: 'Dobbiamo verificare questi conti — sembra esserci un errore da correggere.',
+      executive: 'Azione: verificare questi conti. Errore identificato da correggere.'
+    },
+    pt: {
+      thinkingShift: 'Em português profissional, peça uma verificação colaborativa mencionando a discrepância sem acusar.',
+      polite: 'Poderíamos verificar estas contas juntos? Parece haver uma discrepância a controlar.',
+      assertive: 'Precisamos de rever estas contas — parece haver um erro que deve ser corrigido.',
+      executive: 'Ação: rever estas contas. Erro identificado necessita de correção.'
     }
   },
   {
@@ -188,6 +236,18 @@ const PRESET_BRIDGES: PresetBridge[] = [
       polite: 'Il serait préférable de finaliser ceci avant la fin de la semaine. Pourrions-nous valider le plan d’action ?',
       assertive: 'Nous devons impérativement terminer ceci avant la fin de la semaine. Merci de confirmer votre partie aujourd’hui.',
       executive: 'Délai ferme : fin de semaine. Merci à chaque responsable de confirmer aujourd’hui.'
+    },
+    it: {
+      thinkingShift: 'Fissa una scadenza chiara (entro fine settimana) e richiedi la conferma dei responsabili.',
+      polite: 'Sarebbe meglio concludere entro fine settimana se possibile. Potremmo allineare piano e responsabili?',
+      assertive: 'Dobbiamo terminare questo entro fine settimana. Si prega di confermare la propria parte oggi.',
+      executive: 'Scadenza tassativa: fine settimana. Tutti i responsabili devono confermare oggi.'
+    },
+    pt: {
+      thinkingShift: 'Fixe um prazo claro (até ao fim da semana) e solicite a confirmação dos responsáveis.',
+      polite: 'Seria preferível concluir isto antes do fim da semana. Poderíamos alinhar o plano e responsáveis?',
+      assertive: 'Temos de terminar isto antes do fim da semana. Por favor, confirmem a vossa parte hoje.',
+      executive: 'Prazo firme: fim da semana. Todos os responsáveis devem confirmar hoje.'
     }
   },
   {
@@ -223,6 +283,18 @@ const PRESET_BRIDGES: PresetBridge[] = [
       polite: 'Le budget actuel ne semble pas couvrir l’intégralité du périmètre. Pourrions-nous faire un point ?',
       assertive: 'Le budget est insuffisant pour le périmètre demandé. Il nous faut un montant révisé pour continuer.',
       executive: 'Écart budget vs périmètre. Décision requise : augmenter le budget ou ajuster le périmètre.'
+    },
+    it: {
+      thinkingShift: 'Presenta il divario tra budget e ambito per ottenere una decisione chiara.',
+      polite: 'Il budget attuale non sembra coprire l’intero ambito. Potremmo esaminarlo insieme?',
+      assertive: 'Il budget non copre l’ambito richiesto. Abbiamo bisogno di una cifra rivista prima di procedere.',
+      executive: 'Divario budget vs ambito. Decisione necessaria: aumentare il budget o ridurre l’ambito.'
+    },
+    pt: {
+      thinkingShift: 'Apresente a lacuna entre o orçamento e o escopo para obter uma decisão clara.',
+      polite: 'O orçamento atual não parece cobrir o escopo necessário. Poderíamos rever juntos?',
+      assertive: 'O orçamento não cobre o escopo necessário. Precisamos de um valor revisto antes de prosseguir.',
+      executive: 'Lacuna orçamento vs escopo. Decisão necessária: aumentar o orçamento ou reduzir o escopo.'
     }
   },
 ];
@@ -379,6 +451,68 @@ function genericBridge(thought: string, targetLang: TargetLanguage = 'en'): Corp
     };
   }
 
+  if (targetLang === 'it') {
+    return {
+      originalThought: thought,
+      thinkingShift:
+        'In italiano professionale, combina cortesia e chiarezza: argomento chiaro + azione richiesta + scadenza precisa.',
+      tones: {
+        polite: {
+          label: 'Cortese',
+          english: ensureSentence(
+            `Ciao a tutti, una nota riguardo a questo tema: ${core}. Potremmo esaminarlo quando avete un momento? Grazie`
+          ),
+          context: CONTEXTS.polite,
+        },
+        assertive: {
+          label: 'Diretto',
+          english: ensureSentence(
+            `Team, ${core}. Per favore, date priorità a questo e confermate la tempistica oggi`
+          ),
+          context: CONTEXTS.assertive,
+        },
+        executive: {
+          label: 'Esecutivo',
+          english: ensureSentence(
+            `Azione richiesta: ${core}. Responsabile e scadenza da confermare entro fine giornata`
+          ),
+          context: CONTEXTS.executive,
+        },
+      },
+    };
+  }
+
+  if (targetLang === 'pt') {
+    return {
+      originalThought: thought,
+      thinkingShift:
+        'Em português profissional, privilegie a clareza e a objetividade: assunto claro + ação necessária + prazo definido.',
+      tones: {
+        polite: {
+          label: 'Cortês',
+          english: ensureSentence(
+            `Olá equipa, uma nota rápida sobre este assunto: ${core}. Poderíamos rever quando tiverem um momento? Obrigado`
+          ),
+          context: CONTEXTS.polite,
+        },
+        assertive: {
+          label: 'Direto',
+          english: ensureSentence(
+            `Equipa, ${core}. Por favor, priorizem isto e confirmem o prazo hoje`
+          ),
+          context: CONTEXTS.assertive,
+        },
+        executive: {
+          label: 'Executivo',
+          english: ensureSentence(
+            `Ação necessária: ${core}. Responsável e prazo a confirmar até ao final do dia`
+          ),
+          context: CONTEXTS.executive,
+        },
+      },
+    };
+  }
+
   return {
     originalThought: thought,
     thinkingShift:
@@ -461,6 +595,28 @@ export function buildCorporateBridgeOffline(thought: string, targetLang: TargetL
           polite: { label: 'Courtois', english: preset.fr.polite, context: CONTEXTS.polite },
           assertive: { label: 'Direct', english: preset.fr.assertive, context: CONTEXTS.assertive },
           executive: { label: 'Exécutif', english: preset.fr.executive, context: CONTEXTS.executive },
+        },
+      };
+    }
+    if (targetLang === 'it' && preset.it) {
+      return {
+        originalThought: raw,
+        thinkingShift: preset.it.thinkingShift,
+        tones: {
+          polite: { label: 'Cortese', english: preset.it.polite, context: CONTEXTS.polite },
+          assertive: { label: 'Diretto', english: preset.it.assertive, context: CONTEXTS.assertive },
+          executive: { label: 'Esecutivo', english: preset.it.executive, context: CONTEXTS.executive },
+        },
+      };
+    }
+    if (targetLang === 'pt' && preset.pt) {
+      return {
+        originalThought: raw,
+        thinkingShift: preset.pt.thinkingShift,
+        tones: {
+          polite: { label: 'Cortês', english: preset.pt.polite, context: CONTEXTS.polite },
+          assertive: { label: 'Direto', english: preset.pt.assertive, context: CONTEXTS.assertive },
+          executive: { label: 'Executivo', english: preset.pt.executive, context: CONTEXTS.executive },
         },
       };
     }
