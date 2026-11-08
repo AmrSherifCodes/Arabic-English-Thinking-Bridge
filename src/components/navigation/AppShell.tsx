@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ProgressionState } from '../../progression/types';
 import { TargetLanguage } from '../../types';
 import { LanguageFlag } from '../LanguageFlag';
 import { Map, Zap, Award, Trophy, User, Home } from 'lucide-react';
+import { PrivacyPolicyModal } from '../../PrivacyPolicyModal';
 
 export type AppTab = 'path' | 'practice' | 'quests' | 'league' | 'profile';
 
@@ -25,6 +26,8 @@ export function AppShell({
   isArabic = true,
   onOpenLanding,
 }: AppShellProps) {
+  const [privacyOpen, setPrivacyOpen] = useState(false);
+
   const tabs = [
     { id: 'path' as AppTab, labelAr: 'المسار', labelEn: 'Path', icon: Map },
     { id: 'practice' as AppTab, labelAr: 'التدريب', labelEn: 'Practice', icon: Zap },
@@ -134,8 +137,13 @@ export function AppShell({
         </header>
 
         {/* Dynamic Tab Body - Centered Mobile-First Container (Max-Width 480px) */}
-        <main className="flex-1 min-w-0 p-4 sm:p-6 pb-[calc(80px+env(safe-area-inset-bottom))] md:pb-6 overflow-y-auto max-w-[480px] mx-auto w-full">
-          {children}
+        <main className="flex-1 min-w-0 p-4 sm:p-6 pb-[calc(80px+env(safe-area-inset-bottom))] md:pb-6 overflow-y-auto max-w-[480px] mx-auto w-full flex flex-col">
+          <div className="flex-1">
+            {children}
+          </div>
+          <footer className="mt-8 text-center pb-4">
+            <button onClick={() => setPrivacyOpen(true)} className="text-xs text-muted hover:text-text transition-colors">Privacy</button>
+          </footer>
         </main>
       </div>
 
@@ -162,6 +170,8 @@ export function AppShell({
           );
         })}
       </nav>
+
+      <PrivacyPolicyModal open={privacyOpen} onClose={() => setPrivacyOpen(false)} />
     </div>
   );
 }
