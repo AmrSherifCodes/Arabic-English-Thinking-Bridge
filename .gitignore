@@ -46,6 +46,8 @@ src-tauri/gen/
 # Debug artifacts & scripts
 artifacts/
 .artifacts/
+audit/
+scripts/capture.js
 capture_screenshots.mjs
 
 

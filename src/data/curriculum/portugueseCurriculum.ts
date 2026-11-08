@@ -849,7 +849,7 @@ export function getPortuguesePhases(source: SourceLanguage = 'ar'): Phase[] {
               sourceThought: sourceThought(source, 'بينما كنت أدرس، اتصل بي صديقي', 'While I was studying, my friend called me'),
               targetSentence: 'Enquanto eu estudava, o meu amigo ligou-me',
               acceptableAlternatives: ['Enquanto eu estudava, o meu amigo me ligou'],
-              wordChips: ['Enquanto', 'eu', 'estudava', 'o', 'meu', 'amigo', 'ligou-me', 'amanhã'],
+              wordChips: ['Enquanto', 'eu', 'estudava', 'o', 'meu', 'amigo', 'ligou-me', 'estudei' /* distractor: pretérito perfeito vs imperfeito */],
               breakdownChunks: [
                 {
                   arabicText: 'Enquanto eu estudava',

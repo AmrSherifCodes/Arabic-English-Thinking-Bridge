@@ -857,7 +857,7 @@ export function getItalianPhases(source: SourceLanguage = 'ar'): Phase[] {
               sourceThought: sourceThought(source, 'بينما كنت أدرس، اتصل بي صديقي', 'While I was studying, my friend called me'),
               targetSentence: 'Mentre studiavo, il mio amico mi ha telefonato',
               acceptableAlternatives: ['Il mio amico mi ha telefonato mentre studiavo'],
-              wordChips: ['Mentre', 'quando', 'studiavo', 'il', 'mio', 'amico', 'mi', 'ha', 'telefonato', 'domani'],
+              wordChips: ['Mentre', 'quando', 'studiavo', 'il', 'mio', 'amico', 'mi', 'ha', 'telefonato', 'ho studiato' /* distractor: passato prossimo vs imperfetto */],
               breakdownChunks: [
                 {
                   arabicText: 'Mentre studiavo',
