@@ -269,9 +269,13 @@ export function ProgressView({
           >
             Email
           </a>
+          <a
+            href={FEEDBACK_FORM_URL}
+            target="_blank"
+            rel="noopener noreferrer"
             className={`${BTN_GHOST} flex-1 text-center flex items-center justify-center`}
           >
-            Email
+            📝 Form
           </a>
           <button type="button" onClick={onCopyFeedback} className={`${BTN_GHOST} flex-1`}>
             Copy

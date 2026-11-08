@@ -324,6 +324,8 @@ export default function App() {
                   if (isLessonUnlocked(progression, lesson, targetLang)) setActiveLessonNode(lesson);
                 }}
                 onSelectUnitCheckpoint={() => {}}
+                onOpenVoice={() => setView({ name: 'voice' })}
+                onOpenFlashcards={() => setView({ name: 'flashcards' })}
                 isArabic={isArabic}
               />
             </div>

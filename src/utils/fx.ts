@@ -96,6 +96,7 @@ export function evaluateBadges(
 export const FEEDBACK_FORM_URL = 'https://forms.gle/QhXYEV3gEusYLnxf9'; // Google Form review link
 export const DEFAULT_SHARED_APP_URL =
   'https://ais-pre-qp3icj4ktcb7lwv2zyeyno-589911161083.europe-west3.run.app';
+export const TEACHER_WHATSAPP = ''; // Empty for public release (opens WhatsApp contact picker)
 
 export function feedbackMessage(
   rating: number,

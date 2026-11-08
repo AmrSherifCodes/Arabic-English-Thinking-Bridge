@@ -3,7 +3,7 @@ import { ProgressionState } from '../../progression/types';
 import { SkillRadar } from './SkillRadar';
 import { UserProfile } from '../../types';
 import { TARGET_LANGUAGE_META } from '../../data/languages';
-import { Shield, Download, Upload, Trash2, Settings, HelpCircle, Moon, Sun, Lock, Share2 } from 'lucide-react';
+import { Shield, Download, Upload, Trash2, Settings, HelpCircle, Moon, Sun, Lock, Share2, CheckCircle2 } from 'lucide-react';
 
 interface ProfileViewProps {
   state: ProgressionState;

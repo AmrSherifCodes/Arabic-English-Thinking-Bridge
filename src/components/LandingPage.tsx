@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from 'framer-motion';
 import {
@@ -22,88 +22,27 @@ import {
   CheckCircle2,
   HelpCircle,
   Lock,
+  Mail,
+  Star,
+  MessageSquare,
+  BookOpen,
+  Layers,
+  RefreshCw,
+  Smartphone,
+  Laptop,
+  Apple,
+  WifiOff,
+  Shield,
+  Heart,
 } from 'lucide-react';
-import { TargetLanguage } from '../types';
-import { TARGET_LANGUAGE_META } from '../data/languages';
 import { Capacitor } from '@capacitor/core';
+import { getPlatformInfo, storageAdapter } from '../platform/adapter';
+import { API_BASE_URL } from '../utils/api';
+import { usePwaInstall } from '../hooks/usePWAInstall';
 
 interface LandingPageProps {
   onLaunchApp: () => void;
   isArabic?: boolean;
-}
-
-// Task 3: True 3D Tilt Card Component
-function TiltCard({ children, className = '' }: { children: React.ReactNode; className?: string }) {
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-
-  const mouseXSpring = useSpring(x, { stiffness: 200, damping: 20 });
-  const mouseYSpring = useSpring(y, { stiffness: 200, damping: 20 });
-
-  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ['10deg', '-10deg']);
-  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ['-10deg', '10deg']);
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (
-      typeof window !== 'undefined' &&
-      ('ontouchstart' in window || window.innerWidth < 768 || window.matchMedia('(pointer: coarse)').matches)
-    ) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    const width = rect.width;
-    const height = rect.height;
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
-    const xPct = mouseX / width - 0.5;
-    const yPct = mouseY / height - 0.5;
-    x.set(xPct);
-    y.set(yPct);
-  };
-
-  const handleMouseLeave = () => {
-    x.set(0);
-    y.set(0);
-  };
-
-  return (
-    <motion.div
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      style={{
-        rotateY,
-        rotateX,
-        transformStyle: 'preserve-3d',
-      }}
-      className={`relative perspective-1000 ${className}`}
-    >
-      <div style={{ transform: 'translateZ(20px)' }}>{children}</div>
-    </motion.div>
-  );
-}
-
-// Task 2: Letter-by-letter Typewriter Effect
-function TypewriterSubheadline({ text, isAr }: { text: string; isAr: boolean }) {
-  const [displayed, setDisplayed] = useState('');
-
-  useEffect(() => {
-    setDisplayed('');
-    let i = 0;
-    const timer = setInterval(() => {
-      if (i < text.length) {
-        setDisplayed(text.slice(0, i + 1));
-        i++;
-      } else {
-        clearInterval(timer);
-      }
-    }, 25);
-    return () => clearInterval(timer);
-  }, [text]);
-
-  return (
-    <span className={`min-h-[3.5rem] inline-block font-normal text-base sm:text-xl text-stone-300 max-w-2xl mx-auto leading-relaxed ${isAr ? 'font-arabic' : 'font-sans-en'}`}>
-      {displayed}
-      <span className="animate-pulse text-teal-400 font-bold ms-1">|</span>
-    </span>
-  );
 }
 
 export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps) {
@@ -111,9 +50,8 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
   const lang = i18n.language || 'ar';
   const isAr = lang.startsWith('ar');
 
-  const tUI = (en: string, ar: string, tr: string) => {
+  const tUI = (en: string, ar: string) => {
     if (lang.startsWith('ar')) return ar;
-    if (lang.startsWith('tr')) return tr;
     return en;
   };
 
@@ -128,33 +66,85 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
 
   const [videoModalOpen, setVideoModalOpen] = useState(false);
   const [byokModalOpen, setByokModalOpen] = useState(false);
+  const [email, setEmail] = useState('');
+  const [subscribing, setSubscribing] = useState(false);
+  const [subscribed, setSubscribed] = useState<boolean>(() => {
+    return storageAdapter.getItem('tb.subscribed') === 'true';
+  });
+  const [subMessage, setSubMessage] = useState<string | null>(null);
+  const [showIosGuide, setShowIosGuide] = useState(false);
+  const [detectedOs, setDetectedOs] = useState<'android' | 'ios' | 'windows' | 'mac' | 'other'>('other');
+  const [isNativeAndroid] = useState(() => {
+    const platform = getPlatformInfo();
+    return platform.os === 'android' && platform.isCapacitor;
+  });
+  const { isInstallable, triggerInstall, showIosHint } = usePwaInstall();
 
-  const handleLaunchApp = () => {
+  const easterEggRef = useRef<HTMLDivElement>(null);
+
+  // Smart OS Detection
+  useEffect(() => {
+    const { os } = getPlatformInfo();
+    if (os === 'macos') setDetectedOs('mac');
+    else if (os === 'android' || os === 'ios' || os === 'windows') setDetectedOs(os);
+    else setDetectedOs('other');
+  }, []);
+
+  const handleLaunchApp = useCallback(() => {
     onLaunchApp();
+  }, [onLaunchApp]);
+
+  const handleSubscribe = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const normalizedEmail = email.trim().toLowerCase();
+    if (normalizedEmail.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+      setSubMessage(isAr ? 'يرجى إدخال بريد إلكتروني صحيح' : 'Please enter a valid email');
+      return;
+    }
+
+    setSubscribing(true);
+    setSubMessage(null);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/feedback`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'subscribe', email: normalizedEmail }),
+      });
+      const result = await response.json() as { success?: boolean };
+      if (!response.ok || result.success !== true) {
+        throw new Error('Subscription request failed');
+      }
+      storageAdapter.setItem('tb.subscribed', 'true');
+      setSubscribed(true);
+      setEmail('');
+      setSubMessage(isAr ? 'تم الاشتراك بنجاح! تم فتح الميزات الخاصة 🎉' : 'Subscribed successfully! Secret features unlocked 🎉');
+
+      window.setTimeout(() => {
+        easterEggRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    } catch {
+      setSubMessage(isAr ? 'تعذر إكمال الاشتراك. حاول مرة أخرى لاحقاً.' : 'Subscription failed. Please try again later.');
+    } finally {
+      setSubscribing(false);
+    }
   };
 
-  // Read profile & target language from localStorage for CRO dynamic CTA
-  const [userTarget] = useState<TargetLanguage | null>(() => {
-    try {
-      if (typeof localStorage !== 'undefined') {
-        const storedLang = localStorage.getItem('tb.targetLang') as TargetLanguage;
-        if (storedLang && TARGET_LANGUAGE_META[storedLang]) return storedLang;
+  // Animation variants
+  const fadeIn = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
+  };
 
-        const rawProfile = localStorage.getItem('tb.userProfile');
-        if (rawProfile) {
-          const parsed = JSON.parse(rawProfile);
-          if (parsed.targetLanguage && TARGET_LANGUAGE_META[parsed.targetLanguage as TargetLanguage]) {
-            return parsed.targetLanguage as TargetLanguage;
-          }
-        }
-      }
-    } catch {
-      /* noop */
-    }
-    return null;
-  });
+  const staggerContainer = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.15 },
+    },
+  };
 
-  // Task 5: Mobile Parallax Guard (Disable mouse-parallax orb on mobile/touch screens)
+  // Background orb animation
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
   const orbX = useSpring(mouseX, { stiffness: 40, damping: 25 });
@@ -174,552 +164,530 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, [mouseX, mouseY]);
 
-  // Animation variants
-  const fadeIn = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
-  };
-
-  const staggerContainer = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.15 },
-    },
-  };
-
-  // Supported 10 target languages for marquee
-  const marqueeLanguages = [
-    { flag: '🇬🇧', nameEn: 'English', nameAr: 'الإنجليزية' },
-    { flag: '🇩🇪', nameEn: 'Deutsch', nameAr: 'الألمانية' },
-    { flag: '🇯🇵', nameEn: '日本語', nameAr: 'اليابانية' },
-    { flag: '🇪🇸', nameEn: 'Español', nameAr: 'الإسبانية' },
-    { flag: '🇫🇷', nameEn: 'Français', nameAr: 'الفرنسية' },
-    { flag: '🇮🇹', nameEn: 'Italiano', nameAr: 'الإيطالية' },
-    { flag: '🇨🇳', nameEn: '中文', nameAr: 'الصينية' },
-    { flag: '🇵🇹', nameEn: 'Português', nameAr: 'البرتغالية' },
-    { flag: '🇷🇺', nameEn: 'Русский', nameAr: 'الروسية' },
-    { flag: '🇮🇳', nameEn: 'हिन्दी', nameAr: 'الهندية' },
-  ];
-
-  const targetMeta = userTarget ? TARGET_LANGUAGE_META[userTarget] : null;
-
-  const isNative = Capacitor.isNativePlatform();
-  const dynamicCtaText = isNative
-    ? tUI('Launch App 🚀', 'افتح التطبيق 🚀', 'Launch App 🚀')
-    : targetMeta
-    ? isAr
-      ? `متابعة تعلم ${targetMeta.nameAr} ${targetMeta.flag} 🚀`
-      : `Resume Learning ${targetMeta.nameEn} ${targetMeta.flag} 🚀`
-    : isAr
-    ? 'ابدأ التعلم مجاناً 🚀'
-    : 'Start Learning Free 🚀';
-
-  const heroSubheadlineText = isAr
-    ? 'توقف عن الترجمة. ابدأ التفكير بـ 10+ لغات عالمية بدون ترجمة حرفية.'
-    : 'Stop translating. Start thinking in 10+ languages.';
-
   return (
     <div
-      className={`min-h-screen bg-[#090D16] text-[#F9FAFB] antialiased overflow-x-hidden selection:bg-teal-500/30 selection:text-teal-200 relative ${tUI('font-sans-en', 'font-arabic', 'font-sans-en')}`}
-      dir={tUI('ltr', 'rtl', 'ltr')}
-      style={{ scrollBehavior: 'smooth' }}
+      className={`landing-shell min-h-screen text-[var(--text)] bg-[var(--bg)] transition-colors duration-300 ${tUI('font-sans-en', 'font-arabic')}`}
+      dir={tUI('ltr', 'rtl')}
+      lang={lang}
+      style={{ scrollBehavior: 'smooth', fontFamily: 'var(--font)' }}
     >
       {/* Background Interactive Glassmorphic Orb with Mobile Guard */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
         <motion.div
           style={{ x: orbX, y: orbY }}
-          className={`absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[650px] h-[650px] rounded-full bg-gradient-to-tr from-teal-500/20 via-amber-500/10 to-emerald-500/15 animate-pulse ${liteMode ? 'blur-[40px] opacity-50' : 'blur-[120px]'}`}
+          className={`absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[650px] h-[650px] rounded-full bg-gradient-to-tr from-[var(--accent-teal)]/20 via-[var(--secondary-amber)]/10 to-emerald-500/15 animate-pulse ${liteMode ? 'blur-[40px] opacity-50' : 'blur-[120px]'}`}
         />
-        <div className={`absolute bottom-10 end-10 w-[450px] h-[450px] rounded-full bg-teal-600/10 ${liteMode ? 'blur-[40px] opacity-50' : 'blur-[110px]'}`} />
+        <div className={`absolute bottom-10 end-10 w-[450px] h-[450px] rounded-full bg-[var(--accent-teal)]/10 ${liteMode ? 'blur-[40px] opacity-50' : 'blur-[110px]'}`} />
       </div>
 
-      {/* 0. SECURITY & ZERO-TRACKING TRUST BANNER */}
-      <div className="relative z-50 bg-gradient-to-r from-emerald-950/90 via-stone-900 to-teal-950/90 border-b border-emerald-500/30 px-3 py-1.5 text-center text-[11px] font-bold text-emerald-300 flex items-center justify-center gap-2 flex-wrap shadow-md">
-        <div className="flex items-center gap-1.5">
-          <ShieldCheck size={14} className="text-emerald-400 shrink-0" />
-          <span>{tUI('🔒 100% Privacy & Local-First:', '🔒 خصوصية تامة وشفافية 100%:', '🔒 %100 Gizlilik ve Yerel-İlk:')}</span>
-        </div>
-        <span className="text-stone-300 font-medium">
-          <a href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge" target="_blank" rel="noopener noreferrer" className="underline hover:text-white">
-            {tUI('100% Open Source', 'مفتوح المصدر', '100% Açık Kaynak')}
-          </a>
-          {' · '}
-          {tUI(
-            'Zero Tracking · No Cookies · No Accounts Required · All Progress Saved In Your Browser',
-            'لا إعلانات · لا تتبع (Zero Telemetry) · لا كوكيز · جميع بياناتك تُحفظ محلياً في جهازك فقط',
-            'Sıfır İzleme · Çerez Yok · Hesap Gerekmez · Tüm İlerleme Tarayıcınıza Kaydedilir'
-          )}
-        </span>
-        <a
-          href="https://observatory.mozilla.org/analyze/tb-eg.vercel.app"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 hover:text-white hover:bg-emerald-500/30 text-[10px] font-black border border-emerald-500/30 transition"
-        >
-          <span>{tUI('Mozilla Observatory Audit ↗', 'فحص Mozilla Observatory ↗', 'Mozilla Observatory Audit ↗')}</span>
-        </a>
-      </div>
-
-      {/* 1. HEADER NAV */}
-      <header className="sticky top-0 z-50 backdrop-blur-xl bg-[#090D16]/80 border-b border-stone-800/80 px-4 py-3.5">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-teal-400 to-emerald-500 flex items-center justify-center text-stone-950 font-black text-xl shadow-lg shadow-teal-500/20">
+      {/* 1. NAV HEADER */}
+      <header className="sticky top-0 z-50 backdrop-blur-xl bg-[var(--bg)]/80 border-b border-[var(--border)]/80 px-4 py-3.5">
+        <div className="max-w-[var(--max-width)] mx-auto flex flex-wrap items-center justify-between gap-y-3">
+          {/* Logo */}
+          <div className="flex items-center gap-2.5">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[var(--accent-teal)] to-emerald-500 flex items-center justify-center text-stone-950 font-black text-xl shadow-lg shadow-[var(--accent-teal)]/20">
               🧠
             </div>
             <div>
               <span className="font-extrabold text-base tracking-tight text-white block">
-                Thinking Bridge
+                {tUI('Thinking Bridge', 'جسر التفكير')}
               </span>
-              <span className="text-[10px] text-teal-400 font-bold uppercase tracking-wider block">
-                {tUI('Cognitive Transfer Engine', 'جسر التحول الذهني', 'Cognitive Transfer Engine')}
+              <span className="text-[10px] text-[var(--accent-teal)] font-bold uppercase tracking-wider block">
+                {tUI('Cognitive Transfer Engine', 'جسر التحول الذهني')}
               </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="relative flex items-center">
-              <Globe size={14} className="absolute start-3 text-teal-400 pointer-events-none" />
-              <select
-                value={lang}
-                onChange={(e) => i18n.changeLanguage(e.target.value)}
-                className="ps-8 pe-4 py-1.5 rounded-xl border border-stone-800 bg-stone-900/80 hover:border-teal-500/50 text-xs font-bold transition text-stone-300 appearance-none cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
-                dir="ltr"
-              >
-                <option value="ar">🇸🇦 العربية</option>
-                <option value="en">🇬🇧 English</option>
-                <option value="tr">🇹🇷 Türkçe</option>
-              </select>
-            </div>
+          {/* Nav Links */}
+          <nav aria-label={tUI('Main navigation', 'التنقل الرئيسي')} className="order-3 flex w-full items-center justify-center gap-4 text-[10px] font-bold text-[var(--muted)] sm:order-none sm:w-auto sm:gap-6 sm:text-xs">
+            <a href="#subscribe-section" className="hover:text-[var(--accent-teal)] transition">
+              {tUI('Subscribe', 'اشترك')}
+            </a>
+            <a href="#how-it-works" className="hover:text-[var(--accent-teal)] transition">
+              {tUI('How it works', 'كيف يعمل')}
+            </a>
+            <a href="#download-section" className="hover:text-[var(--accent-teal)] transition">
+              {tUI('Download', 'التحميل')}
+            </a>
+          </nav>
+
+          {/* Controls: AR/EN Toggle */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => i18n.changeLanguage(lang.startsWith('ar') ? 'en' : 'ar')}
+              className="px-2.5 py-1 rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface)] text-xs font-bold hover:border-[var(--accent-teal)] transition flex items-center gap-1.5"
+              aria-label={tUI('Switch to Arabic', 'التبديل إلى الإنجليزية')}
+            >
+              <Globe size={13} className="text-[var(--accent-teal)]" />
+              <span>{tUI('العربية', 'English')}</span>
+            </button>
 
             <button
               onClick={handleLaunchApp}
-              className="btn-shiny px-5 py-2 rounded-xl bg-gradient-to-r from-teal-400 to-emerald-500 hover:from-teal-300 hover:to-emerald-400 text-stone-950 font-black text-xs transition shadow-lg shadow-teal-500/20 active:scale-95 flex items-center gap-1.5"
+              className="btn-shiny px-5 py-2 rounded-[var(--radius-md)] bg-gradient-to-r from-[var(--accent-teal)] to-emerald-500 hover:from-teal-300 hover:to-emerald-400 text-stone-950 font-black text-xs transition shadow-lg shadow-[var(--accent-teal)]/20 active:scale-95 flex items-center gap-1.5"
             >
-              <span>{dynamicCtaText}</span>
+              <span>{tUI('Start Free 🚀', 'ابدأ مجاناً 🚀')}</span>
             </button>
           </div>
         </div>
       </header>
 
       {/* 2. HERO SECTION */}
-      <section className="relative z-10 px-4 pt-16 pb-10 max-w-5xl mx-auto text-center space-y-8">
-        <motion.div initial="hidden" animate="visible" variants={staggerContainer} className="space-y-6">
-          {/* Active Dev & Open Source Flex Badge */}
-          <motion.div variants={fadeIn} className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-teal-500/10 border border-teal-500/30 text-teal-300 text-xs font-bold shadow-inner">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping shrink-0" />
-            <span>{tUI('Active Development · 100% Open-Source · Offline First', 'تطوير مستمر · مفتوح المصدر 100% · يعمل بدون إنترنت', 'Active Development · 100% Open-Source · Offline First')}</span>
-          </motion.div>
+      <section className="relative z-10 px-4 pt-16 pb-10 max-w-[var(--max-width)] mx-auto">
+        <div className="grid grid-cols-1 min-[820px]:grid-cols-12 gap-10 items-center">
+          {/* Left Text Column */}
+          <div className="min-[820px]:col-span-7 space-y-6 text-start">
+            {/* Pill */}
+            <motion.div initial="hidden" animate="visible" variants={fadeIn} className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--accent-teal)]/10 border border-[var(--accent-teal)]/30 text-[var(--accent-teal)] text-xs font-bold">
+              <Zap size={13} />
+              <span>{tUI('100% Free · Works Offline (First load ~28 MB)', 'مجاني 100% · يعمل بدون إنترنت (التحميل الأول ~28 ميجا)')}</span>
+            </motion.div>
 
-          <motion.h1 variants={fadeIn} className="text-4xl sm:text-6xl font-black text-white tracking-tight leading-[1.15]">
-            {isAr ? (
-              <>
-                توقف عن الترجمة. <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 via-emerald-300 to-amber-300">ابدأ التفكير بـ 10+ لغات.</span>
-              </>
-            ) : (
-              <>
-                Stop Translating. <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 via-emerald-300 to-amber-300">Start Thinking in 10+ Languages.</span>
-              </>
-            )}
-          </motion.h1>
+            {/* Main H1 */}
+            <motion.h1 initial="hidden" animate="visible" variants={fadeIn} className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-tight">
+              {isAr ? (
+                <>
+                  فكّر بالإنجليزي، <br />
+                  <span className="text-[var(--accent-teal)]">مش تترجم.</span>
+                </>
+              ) : (
+                <>
+                  Think directly, <br />
+                  <span className="text-[var(--accent-teal)]">don't translate.</span>
+                </>
+              )}
+            </motion.h1>
 
-          {/* Task 2: Subheadline Typewriter Dynamic Effect */}
-          <motion.div variants={fadeIn} className="block">
-            <TypewriterSubheadline text={heroSubheadlineText} isAr={isAr} />
-          </motion.div>
+            {/* Tagline */}
+            <motion.p initial="hidden" animate="visible" variants={fadeIn} className="text-base sm:text-xl font-bold text-[var(--secondary-amber)]">
+              "Think the structure. Don't memorize words."
+            </motion.p>
 
-          <motion.div variants={fadeIn} className="flex flex-wrap justify-center items-center gap-4 pt-2">
-            <button
-              onClick={handleLaunchApp}
-              className="btn-shiny px-8 py-4 rounded-2xl bg-gradient-to-r from-teal-400 via-emerald-400 to-teal-500 hover:opacity-90 text-stone-950 font-black text-base transition shadow-2xl shadow-teal-500/30 active:scale-95 flex items-center gap-2"
-            >
-              <span>{dynamicCtaText}</span>
-              <ArrowRight size={18} className={isAr ? 'rotate-180' : ''} />
-            </button>
+            <motion.p initial="hidden" animate="visible" variants={fadeIn} className="text-sm sm:text-base text-[var(--muted)] leading-relaxed max-w-xl">
+              {isAr
+                ? 'جسر إدراكي يربط طريقة تفكيرك بالعربي مع التراكيب الإنجليزية الحقيقية. بطل ترجمة حرفية في دماغك وابدأ اتكلم ببديهة وطلاقة.'
+                : 'A cognitive bridge that maps your native thoughts directly into natural English structures. Stop translating word-for-word and gain natural spoken reflexes.'}
+            </motion.p>
 
-            <a
-              href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-7 py-4 rounded-2xl bg-stone-900 border border-stone-800 hover:border-teal-500/50 text-stone-200 font-bold text-base transition flex items-center gap-2 hover:text-white"
-            >
-              <Github size={20} className="text-teal-400" />
-              <span>{tUI('View GitHub', 'الكود المصدري على GitHub', 'View GitHub')}</span>
-            </a>
-          </motion.div>
-
-          {/* Tech Stack Badge */}
-          <motion.div variants={fadeIn} className="text-[11px] text-stone-400 font-mono pt-1">
-            <span>Built with React 19, Vite, Tauri v2, & Gemini</span>
-          </motion.div>
-        </motion.div>
-
-        {/* Clean Language Grid instead of duplicated Marquee */}
-        <div className="pt-8 w-full max-w-3xl mx-auto">
-          <div className="flex flex-wrap justify-center items-center gap-3">
-            {marqueeLanguages.map((item, idx) => (
-              <div
-                key={idx}
-                className="px-3 py-1.5 rounded-xl bg-stone-900/80 border border-stone-800 flex items-center gap-2 text-xs font-bold text-stone-300 shadow-sm transition-colors"
+            {/* CTAs */}
+            <motion.div initial="hidden" animate="visible" variants={fadeIn} className="flex flex-wrap gap-3 pt-2">
+              <a
+                href="#download-section"
+                className="btn-shiny px-6 py-3.5 rounded-[var(--radius-md)] bg-gradient-to-r from-[var(--accent-teal)] via-emerald-400 to-[var(--accent-teal)] hover:opacity-90 active:scale-95 text-stone-950 font-black text-sm transition shadow-2xl shadow-[var(--accent-teal)]/30 flex items-center gap-2"
               >
-                <span className="text-sm">{item.flag}</span>
-                <span>{tUI(item.nameEn, item.nameAr, item.nameEn)}</span>
+                <Download size={16} />
+                <span>{tUI('Download App', 'تحميل التطبيق')}</span>
+              </a>
+
+              <button
+                onClick={handleLaunchApp}
+                className="px-6 py-3.5 rounded-[var(--radius-md)] bg-[var(--surface)] hover:bg-[var(--border)] border border-[var(--border)] font-bold text-sm text-[var(--text)] transition flex items-center gap-2"
+              >
+                <Globe size={16} className="text-[var(--accent-teal)]" />
+                <span>{tUI('Try on Web', 'تجربة على الويب')}</span>
+              </button>
+            </motion.div>
+
+            {/* Meta Stats */}
+            <motion.div initial="hidden" animate="visible" variants={fadeIn} className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-4 text-xs font-bold text-[var(--muted)] border-t border-[var(--border)]/50">
+              <div className="flex items-center gap-1.5">
+                <CheckCircle2 size={14} className="text-[var(--accent-teal)]" />
+                <span>{tUI('27 Interactive Lessons', '27 درس تفاعلي')}</span>
               </div>
-            ))}
+              <div className="flex items-center gap-1.5">
+                <CheckCircle2 size={14} className="text-[var(--accent-teal)]" />
+                <span>{tUI('10,000+ Words & Phrases', '10,000+ كلمة وجملة')}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <CheckCircle2 size={14} className="text-[var(--accent-teal)]" />
+                <span>{tUI('100% Free', 'مجاني 100%')}</span>
+              </div>
+            </motion.div>
           </div>
-        </div>
-      </section>
 
-      {/* 3. TASK 1: THE YOUTUBE BRIDGE (Video Container & Modal) */}
-      <section className="relative z-10 px-4 py-12 max-w-4xl mx-auto text-center space-y-6">
-        <div className="space-y-2">
-          <a href="https://www.youtube.com/@SciAmrSherif" target="_blank" rel="noopener noreferrer" className="text-xs font-black uppercase tracking-wider text-red-400 flex items-center justify-center gap-1.5 hover:text-red-300 transition-colors">
-            <Youtube size={16} />
-            <span>{tUI('Featured on YouTube ↗', 'شاهد القصة الكاملة على يوتيوب ↗', 'YouTube\'da Öne Çıkanlar ↗')}</span>
-          </a>
-          <h2 className="text-2xl sm:text-3xl font-black text-white">
-            {tUI('The 15-Minute Engineering Story', 'رحلة بناء جسر التفكير في 15 دقيقة', '15 Dakikalık Mühendislik Hikayesi')}
-          </h2>
-        </div>
+          {/* Right Phone Mockup */}
+          <div className="min-[820px]:col-span-5 flex justify-center">
+            <div className="w-full max-w-[320px] rounded-[38px] p-4 bg-stone-950 border-4 border-[var(--border)] shadow-2xl relative overflow-hidden">
+              <div className="w-28 h-4 bg-stone-900 rounded-full mx-auto mb-4 border border-stone-800"></div>
 
-        {/* 16:9 Glassmorphic Video Container */}
-        <div
-          onClick={() => setVideoModalOpen(true)}
-          className="relative aspect-video w-full rounded-3xl border border-stone-800 bg-stone-900/90 overflow-hidden shadow-2xl cursor-pointer group hover:border-teal-500/60 transition-all duration-300"
-        >
-          <img
-            src="/amr.jpg"
-            alt="YouTube Video Thumbnail"
-            className="w-full h-full object-cover opacity-60 group-hover:opacity-75 transition-opacity duration-300 group-hover:scale-105"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-950/40 to-transparent" />
+              {/* Sample AR to EN Chat Mockup */}
+              <div className="space-y-3 text-xs font-medium">
+                <div className="bg-stone-900/90 border border-stone-800 p-3 rounded-2xl text-start">
+                  <span className="text-[10px] text-[var(--muted)] block mb-1">{tUI('User:', 'المستخدم:')}</span>
+                  <p className="text-white font-bold" dir="rtl">"ازيك يا عمرو؟ عامل ايه اليوم؟"</p>
+                </div>
 
-          {/* Glowing Play Button Overlay */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-20 h-20 rounded-full bg-red-600/90 text-white flex items-center justify-center shadow-2xl shadow-red-600/50 group-hover:scale-110 transition-transform duration-300 border-2 border-white/20">
-              <Play size={32} className="ms-1 fill-current" />
+                <div className="bg-[var(--surface)] border border-[var(--accent-teal)]/30 p-3 rounded-2xl text-start relative">
+                  <div className="flex items-center gap-1.5 text-[10px] font-bold text-[var(--accent-teal)] mb-1">
+                    <Sparkles size={11} />
+                    <span>{tUI('Amr Sherif (AI Coach)', 'عمرو شريف (المدرب الذكي)')}</span>
+                  </div>
+                  <p className="text-stone-200 font-bold mb-1">
+                    "Hello! I am doing fantastic today. How is your day going?"
+                  </p>
+                  <p className="text-[10px] text-[var(--secondary-amber)] bg-stone-950/60 p-2 rounded-xl mt-2 leading-relaxed">
+                    💡 <strong>{tUI('Thinking Bridge:', 'جسر التفكير:')}</strong> {tUI('"عامل ايه" ➔ In English we ask about the current action/state: <strong>"How are you doing?"</strong>', '"عامل ايه" ➔ في الإنجليزية نسأل عن الفعل/الحالة الحالية: <strong>"How are you doing?"</strong>')}
+                  </p>
+                </div>
+
+                <div className="bg-stone-900/90 border border-stone-800 p-2.5 rounded-xl text-center text-[11px] text-[var(--muted)] font-bold">
+                  ⚡ {tUI('Spaced Repetition Flashcards Due:', 'بطاقات الاستذكار المتباعد المستحقة:')} <strong>4,090</strong>
+                </div>
+              </div>
             </div>
           </div>
-
-          <div className="absolute bottom-4 inset-x-4 text-start flex items-center justify-between text-xs font-bold text-stone-200">
-            <span>🎬 {tUI('Watch Full Documentary', 'مشاهدة الفيديو الوثائقي', 'Watch Full Documentary')}</span>
-            <span className="px-2.5 py-1 rounded-lg bg-stone-950/80 border border-stone-800">15:00</span>
-          </div>
-        </div>
-
-        {/* Sub-Video Subscribe Button */}
-        <div className="pt-2">
-          <a
-            href="https://www.youtube.com/@SciAmrSherif?sub_confirmation=1"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-red-600/20 border border-red-500/40 text-red-400 hover:bg-red-600 hover:text-white text-xs font-black transition active:scale-95 shadow-md"
-          >
-            <Youtube size={16} className="fill-current" />
-            <span>{tUI('Subscribe to @SciAmrSherif', 'اشترك في قناة @SciAmrSherif على يوتيوب', 'Subscribe to @SciAmrSherif')}</span>
-          </a>
         </div>
       </section>
 
-      {/* 4. HOW IT WORKS (3-Step Visual Timeline) */}
-      <section id="how-it-works" className="relative z-10 px-4 py-16 bg-stone-950/60 border-y border-stone-800/80">
-        <div className="max-w-5xl mx-auto space-y-12 text-center">
-          <div className="space-y-2">
-            <span className="text-xs font-black uppercase tracking-wider text-teal-400 block">
-              {tUI('How It Works', 'كيف يعمل النظام؟', 'How It Works')}
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-black text-white">
-              {tUI('3 Steps to Instant Native Reflexes', '3 خطوات لبناء بديهة لغوية فورية', '3 Steps to Instant Native Reflexes')}
+      {/* 3. HOW IT WORKS */}
+      <section id="how-it-works" className="relative z-10 px-4 py-16 bg-[var(--surface)] border-y border-[var(--border)]">
+        <div className="max-w-[var(--max-width)] mx-auto space-y-10 text-center">
+          <div>
+            <h2 className="text-2xl sm:text-4xl font-black tracking-tight mb-2">
+              {tUI('How the Cognitive Bridge Works', 'كيف يعمل جسر التحول الذهني؟')}
             </h2>
+            <p className="text-xs sm:text-sm text-[var(--muted)]">
+              {tUI('3 science-backed steps to stop word-for-word translation', '3 خطوات علمية للتخلص التام من الترجمة الحرفية')}
+            </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6 text-start">
-            {/* Step 1 */}
-            <div className="p-6 rounded-3xl bg-stone-900/80 border border-stone-800 space-y-3 relative shadow-xl hover:border-teal-500/40 transition">
-              <div className="w-10 h-10 rounded-2xl bg-teal-500/20 text-teal-300 border border-teal-500/40 flex items-center justify-center font-black text-base">
-                1
+          <div className="grid grid-cols-1 min-[820px]:grid-cols-3 gap-6 text-start">
+            {/* Card 1 */}
+            <article className="p-6 rounded-[var(--radius-md)] bg-[var(--bg)] border border-[var(--border)] space-y-3 hover:border-[var(--accent-teal)]/40 transition">
+              <div className="w-12 h-12 rounded-2xl bg-[var(--accent-teal)]/10 border border-[var(--accent-teal)]/30 text-[var(--accent-teal)] flex items-center justify-center font-black text-2xl">
+                <BookOpen size={24} aria-hidden="true" />
               </div>
-              <h3 className="text-base font-black text-white">
-                📝 {tUI('Take the Placement Test', 'خوض اختبار تحديد المستوى', 'Take the Placement Test')}
+              <h3 className="font-bold text-base text-[var(--text)]">
+                {tUI('Understand Structure', 'فهم البناء وتفكيك العقد')}
               </h3>
-              <p className="text-xs text-stone-400 leading-relaxed">
+              <p className="text-xs text-[var(--muted)] leading-relaxed">
                 {isAr
-                  ? 'اختر لغتك الأم، واللغة التي تريد أن تفكر بها (إنجليزي، ألماني، ياباني)، وهدفك العملي لتخصيص الخريطة التعليمية.'
-                  : 'Select your native thinking language, target language (English, German, Japanese), and practical goals.'}
+                  ? 'التعرف على الفروق الجوهرية بين التفكير بالعربي والإنجليزي (مثل الأفعال المخفية وحروف الجر).'
+                  : 'Identify structural shifts between native Arabic thinking and natural English reflexes.'}
               </p>
-            </div>
+            </article>
 
-            {/* Step 2 */}
-            <div className="p-6 rounded-3xl bg-stone-900/80 border border-stone-800 space-y-3 relative shadow-xl hover:border-amber-500/40 transition">
-              <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center justify-center font-black text-base">
-                2
+            {/* Card 2 */}
+            <article className="p-6 rounded-[var(--radius-md)] bg-[var(--bg)] border border-[var(--border)] space-y-3 hover:border-[var(--secondary-amber)]/40 transition">
+              <div className="w-12 h-12 rounded-2xl bg-[var(--secondary-amber)]/10 border border-[var(--secondary-amber)]/30 text-[var(--secondary-amber)] flex items-center justify-center font-black text-2xl">
+                <Mic size={24} aria-hidden="true" />
               </div>
-              <h3 className="text-base font-black text-white">
-                🧠 {tUI('Rewire Your Brain', 'إعادة برمجة الهيكل الذهني', 'Rewire Your Brain')}
+              <h3 className="font-bold text-base text-[var(--text)]">
+                {tUI('Practice Speaking', 'ممارسة محادثة تفاعلية')}
               </h3>
-              <p className="text-xs text-stone-400 leading-relaxed">
+              <p className="text-xs text-[var(--muted)] leading-relaxed">
                 {isAr
-                  ? 'حل تمارين تركيب الجمل التفاعلية التي تفكك عادات النقل اللغوي الخاطئة وتحول تفكيرك إلى المسار المباشر.'
-                  : 'Complete interactive sentence-building exercises that break L1 transfer traps and automate target grammar.'}
+                  ? 'التحدث مع المدرب الذكي عمرو شريف وتلقي تصحيحات فورية بلباقة دون خوف من الخطأ.'
+                  : 'Practice real-time speaking with AI coach Amr Sherif with instant, polite feedback.'}
               </p>
-            </div>
+            </article>
 
-            {/* Step 3 */}
-            <div className="p-6 rounded-3xl bg-stone-900/80 border border-stone-800 space-y-3 relative shadow-xl hover:border-emerald-500/40 transition">
-              <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center justify-center font-black text-base">
-                3
+            {/* Card 3 */}
+            <article className="p-6 rounded-[var(--radius-md)] bg-[var(--bg)] border border-[var(--border)] space-y-3 hover:border-emerald-500/40 transition">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center font-black text-2xl">
+                <RefreshCw size={24} aria-hidden="true" />
               </div>
-              <h3 className="text-base font-black text-white">
-                🎙️ {tUI('Speak with AI Coach', 'التحدث الصوتي المباشر', 'Yapay Zeka Koçuyla Konuş')}
+              <h3 className="font-bold text-base text-[var(--text)]">
+                {tUI('Review Daily (SM-2)', 'مراجعة ذكية يومية (SM-2)')}
               </h3>
-              <p className="text-xs text-stone-400 leading-relaxed">
-                {tUI(
-                  'Test your new cognitive reflexes in real-time voice conversations with your AI coach.',
-                  'اختبر بديهتك الجديدة في محادثات صوتية فورية مع المعلم الذكي مع دعم المقاطعة الفورية وتصحيح النطق.',
-                  'Yapay zeka koçunuzla gerçek zamanlı sesli konuşmalarda yeni bilişsel reflekslerinizi test edin.'
-                )}
+              <p className="text-xs text-[var(--muted)] leading-relaxed">
+                {isAr
+                  ? 'نظام تكرار متباعد يحسب التوقيت الأمثل لمراجعة الكلمات والبطاقات قبل أن تنساها.'
+                  : 'Spaced repetition system calculating the exact interval before you forget a phrase.'}
               </p>
-            </div>
+            </article>
           </div>
 
           <div className="pt-8 flex justify-center">
             <button
               onClick={handleLaunchApp}
-              className="btn-shiny px-8 py-4 rounded-2xl bg-gradient-to-r from-teal-400 via-emerald-400 to-teal-500 text-stone-950 font-black text-base transition shadow-xl active:scale-95 flex items-center gap-2"
+              className="btn-shiny px-8 py-4 rounded-[var(--radius-md)] bg-gradient-to-r from-[var(--accent-teal)] via-emerald-400 to-[var(--accent-teal)] text-stone-950 font-black text-base transition shadow-xl active:scale-95 flex items-center gap-2"
             >
-              <span>{tUI('Begin Level Test 🚀', 'ابدأ تحديد المستوى الآن 🚀', 'Seviye Testine Başla 🚀')}</span>
+              <span>{tUI('Begin Level Test 🚀', 'ابدأ تحديد المستوى الآن 🚀')}</span>
               <ArrowRight size={18} className={isAr ? 'rotate-180' : ''} />
             </button>
           </div>
         </div>
       </section>
 
-      {/* 5. WHY I BUILT THIS STORY */}
-      <section className="relative z-10 px-4 py-16 bg-stone-900/40">
-        <div className="max-w-5xl mx-auto grid md:grid-cols-12 gap-10 items-center">
-          {/* Amr's Photo Avatar Column */}
-          <motion.div
-            initial={{ opacity: 0, x: isAr ? 30 : -30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="md:col-span-5 flex flex-col items-center text-center space-y-4"
-          >
-            <div className="relative">
-              <div className="w-48 h-48 sm:w-56 sm:h-56 rounded-3xl p-1 bg-gradient-to-tr from-teal-400 via-amber-400 to-emerald-400 shadow-2xl shadow-teal-500/20">
-                <img
-                  src="/amr.jpg"
-                  alt="Amr Sherif"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = '/amr-avatar.png';
-                  }}
-                  className="w-full h-full object-cover rounded-[22px] bg-stone-950"
-                />
-              </div>
-              <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-stone-950 border border-teal-500/50 text-teal-400 text-xs font-black tracking-wide shadow-xl flex items-center gap-1.5 whitespace-nowrap">
-                <Sparkles size={12} />
-                <span>Amr Sherif · Alexandria, Egypt 🇪🇬</span>
-              </div>
+      {/* 4. STATS STRIP */}
+      <section className="px-4 py-10 max-w-[var(--max-width)] mx-auto">
+        <div className="grid grid-cols-1 min-[820px]:grid-cols-4 gap-4 text-center">
+          <div className="p-4 rounded-[var(--radius-sm)] bg-[var(--surface)] border border-[var(--border)]">
+            <span className="text-2xl sm:text-3xl font-black text-[var(--accent-teal)] block mb-1">27</span>
+            <span className="text-xs text-[var(--muted)] font-bold">{tUI('Interactive Lessons', 'درس تفاعلي')}</span>
+          </div>
+          <div className="p-4 rounded-[var(--radius-sm)] bg-[var(--surface)] border border-[var(--border)]">
+            <span className="text-2xl sm:text-3xl font-black text-[var(--secondary-amber)] block mb-1">4090</span>
+            <span className="text-xs text-[var(--muted)] font-bold">{tUI('Spaced Flashcards', 'بطاقة استذكار')}</span>
+          </div>
+          <div className="p-4 rounded-[var(--radius-sm)] bg-[var(--surface)] border border-[var(--border)]">
+            <span className="text-2xl sm:text-3xl font-black text-[var(--accent-teal)] block mb-1">10,000+</span>
+            <span className="text-xs text-[var(--muted)] font-bold">{tUI('Words & Sentences', 'مفردة وجملة')}</span>
+          </div>
+          <div className="p-4 rounded-[var(--radius-sm)] bg-[var(--surface)] border border-[var(--border)]">
+            <span className="text-2xl sm:text-3xl font-black text-[var(--text)] block mb-1">0</span>
+            <span className="text-xs text-[var(--muted)] font-bold">{tUI('Cost', 'التكلفة')}</span>
+          </div>
+        </div>
+      </section>
+
+      {/* 5. SUBSCRIBE SECTION */}
+      <section id="subscribe-section" className="px-4 py-16 bg-[var(--surface)] border-t border-[var(--border)]">
+        <div className="max-w-xl mx-auto text-center space-y-6">
+          <div className="inline-flex items-center gap-1.5 text-xs font-bold text-[var(--secondary-amber)] px-3 py-1 rounded-full bg-[var(--secondary-amber)]/10 border border-[var(--secondary-amber)]/20">
+            <Star size={13} />
+            <span>{tUI('Unlock Exclusive Features', 'احصل على الميزات المتقدمة')}</span>
+          </div>
+
+          <h2 className="text-2xl sm:text-3xl font-black tracking-tight">
+            {tUI('Subscribe for updates & secret features', 'اشترك لمتابعة التحديثات وفتح المميزات الخاصة')}
+          </h2>
+
+          <form onSubmit={handleSubscribe} className="flex flex-col min-[820px]:flex-row gap-2 max-w-md mx-auto">
+            <label className="sr-only" htmlFor="subscription-email">{tUI('Email address', 'البريد الإلكتروني')}</label>
+            <input
+              id="subscription-email"
+              type="email"
+              name="email"
+              autoComplete="email"
+              dir="ltr"
+              maxLength={254}
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder={tUI('Enter your email...', 'أدخل بريدك الإلكتروني...')}
+              className="flex-1 px-4 py-3 rounded-[var(--radius-sm)] bg-[var(--bg)] border border-[var(--border)] text-sm text-[var(--text)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-teal)]"
+              required
+            />
+            <button
+              type="submit"
+              disabled={subscribing}
+              className="px-6 py-3 rounded-[var(--radius-sm)] bg-[var(--accent-teal)] hover:opacity-90 active:scale-95 text-stone-950 font-black text-sm transition"
+            >
+              {subscribing ? (tUI('Submitting...', 'جاري الإرسال...')) : (tUI('Subscribe', 'اشترك الآن'))}
+            </button>
+          </form>
+
+          <p className="text-[11px] leading-relaxed text-[var(--muted)]">
+            {tUI('Your email is used only for product updates. We do not use tracking or analytics.', 'يُستخدم بريدك لإرسال تحديثات المنتج فقط. لا نستخدم أدوات تتبع أو تحليلات.')}
+          </p>
+
+          {subMessage && (
+            <p role="status" aria-live="polite" className="text-xs font-bold text-[var(--accent-teal)] mt-2">
+              {subMessage}
+            </p>
+          )}
+        </div>
+      </section>
+
+      {/* 6. EASTER EGG (Rendered ONLY if subscribed === true) */}
+      {subscribed && (
+        <section ref={easterEggRef} className="px-4 py-16 bg-gradient-to-b from-[var(--bg)] to-[var(--surface)] border-t border-[var(--border)]">
+          <div className="max-w-[var(--max-width)] mx-auto space-y-8 text-center">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--accent-teal)]/10 text-[var(--accent-teal)] border border-[var(--accent-teal)]/30 text-xs font-black">
+              <Sparkles size={14} />
+              <span>{tUI('🎉 Subscriber Exclusive Features Unlocked!', '🎉 تم فتح الميزات الخاصة للمشتركين!')}</span>
             </div>
 
-            <div className="pt-2 space-y-0.5">
-              <span className="font-extrabold text-white text-lg block">Amr Sherif</span>
-              <span className="text-xs text-teal-400 font-bold block">
-                {tUI('Creator & Lead Architect', 'مبتكر ومطور جسر التفكير', 'Creator & Lead Architect')}
-              </span>
-            </div>
-          </motion.div>
-
-          {/* Story Content Column */}
-          <motion.div
-            initial={{ opacity: 0, x: isAr ? -30 : 30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="md:col-span-7 space-y-5 text-start"
-          >
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-black">
-              <Award size={14} />
-              <span>{tUI('Why I Built This', 'قصة الابتكار والدافع', 'Why I Built This')}</span>
-            </div>
-
-            <h2 className="text-2xl sm:text-3xl font-black text-white leading-snug">
-              {isAr ? (
-                <>
-                  من الصدمة في اختبار اللغة...{' '}
-                  <span className="text-teal-400">إلى ابتكار نموذج تحول ذهني مجاني</span> للعالم العربي.
-                </>
-              ) : (
-                <>
-                  From an exam failure frustration...{' '}
-                  <span className="text-teal-400">to architecting an open cognitive bridge</span> for humanity.
-                </>
-              )}
+            <h2 className="text-2xl sm:text-4xl font-black text-[var(--text)]">
+              {tUI('Advanced Cognitive Tools', 'أدوات التحول الذهني المتقدمة')}
             </h2>
 
-            <p className="text-sm sm:text-base text-stone-300 leading-relaxed font-normal">
-              {isAr
-                ? 'عندما كنت طالباً جامعياً، قضيت 3 أسابيع كاملة في تعلّم الألمانية لأحصل على 11/160 فقط في اختبار OnSET! شعرت بالإحباط الشديد من التطبيقات التقليدية التي تدفعك للاشتراكات وتعلّمك الترجمة كلمة بكلمة. لذلك قررت بناء جسر التفكير لمساعدة كل متحدث بالعربية على إعادة برمجة عقله للتفكير المباشر باللغة المستهدفة. تطبيق مجاني 100%، مفتوح المصدر، ويعمل بدون إنترنت للحفاظ على الخصوصية والمجانية للجميع.'
-                : 'As an undergrad, I spent 3 weeks learning German only to score 11/160 on the OnSET exam. I was frustrated. Duolingo kept nagging me to pay, and traditional apps taught me to translate word-for-word. So I took things into my own hands. I built Thinking Bridge to help every Arabic speaker rewire their brain to think in English—not just translate it. It\'s 100% open-source, offline-first, and uses a Bring Your Own Key (BYOK) model so it stays free for humanity.'}
-            </p>
-
-            <div className="pt-2">
-              <button
-                onClick={handleLaunchApp}
-                className="px-6 py-3 rounded-xl bg-teal-400 hover:bg-teal-300 text-stone-950 font-black text-xs transition shadow-md active:scale-95 flex items-center gap-2"
-              >
-                <span>{dynamicCtaText}</span>
-                <ArrowRight size={16} className={isAr ? 'rotate-180' : ''} />
-              </button>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* 6. FEATURE GRID (3 Columns with True 3D Tilt Cards & BYOK Tutorial Modal Trigger) */}
-      <section className="relative z-10 px-4 py-20 max-w-6xl mx-auto space-y-12">
-        <div className="text-center space-y-3">
-          <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
-            {tUI('Architected for Cognitive Speed', 'مميزات هندسية فريدة', 'Architected for Cognitive Speed')}
-          </h2>
-          <p className="text-sm text-stone-400 max-w-lg mx-auto">
-            {tUI('Radical solutions designed to break direct translation dependencies.', 'حلول جذريّة لمشكلات التفكير والترجمة التلقائية في الدماغ', 'Radical solutions designed to break direct translation dependencies.')}
-          </p>
-        </div>
-
-        <div className="grid md:grid-cols-3 gap-6">
-          {/* Feature 1: True 3D Tilt Card */}
-          <TiltCard>
-            <div className="p-6 rounded-3xl bg-stone-900/90 border border-stone-800 space-y-4 hover:border-teal-400/80 transition-all duration-300 shadow-xl hover:shadow-teal-500/10 text-start group cursor-pointer h-full">
-              <div className="w-12 h-12 rounded-2xl bg-teal-500/10 border border-teal-500/30 text-teal-400 flex items-center justify-center font-black text-2xl group-hover:scale-110 transition-transform">
-                🧠
-              </div>
-              <h3 className="text-lg font-black text-white">
-                {tUI('Cognitive Rewiring', 'إعادة البرمجة الذهنية', 'Cognitive Rewiring')}
-              </h3>
-              <p className="text-xs sm:text-sm text-stone-400 leading-relaxed">
-                {isAr
-                  ? '27 درساً متكاملاً عبر مستويات A0-A2 يتكيف مع قواعد النقل اللغوي للغات الهدف (مثل الإنجليزية، الألمانية، اليابانية) لمعالجة الأخطاء التلقائية.'
-                  : '27 lessons across A0-A2 levels that adapt L1 transfer rules for target languages (such as English, German, Japanese) to fix structural habits.'}
-              </p>
-            </div>
-          </TiltCard>
-
-          {/* Feature 2: True 3D Tilt Card */}
-          <TiltCard>
-            <div className="p-6 rounded-3xl bg-stone-900/90 border border-stone-800 space-y-4 hover:border-amber-400/80 transition-all duration-300 shadow-xl hover:shadow-amber-500/10 text-start group cursor-pointer h-full">
-              <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center font-black text-2xl group-hover:scale-110 transition-transform">
-                🎙️
-              </div>
-              <h3 className="text-lg font-black text-white">
-                {tUI('AI Voice Tutor', 'المعلم الصوتي الذكي', 'AI Voice Tutor')}
-              </h3>
-              <p className="text-xs sm:text-sm text-stone-400 leading-relaxed">
-                {isAr
-                  ? 'تدريب محادثة صوتي مباشر مع دعم المقاطعة الفورية (Barge-in) ومحاكاة النطق الطبيعي مدعوماً بذكاء Gemini Flash.'
-                  : 'Real-time voice-to-voice practice with barge-in support, powered by Gemini.'}
-              </p>
-            </div>
-          </TiltCard>
-
-          {/* Feature 3: True 3D Tilt Card + Task 3 BYOK Micro-Tutorial Trigger */}
-          <TiltCard>
-            <div className="p-6 rounded-3xl bg-stone-900/90 border border-stone-800 space-y-4 hover:border-emerald-400/80 transition-all duration-300 shadow-xl hover:shadow-emerald-500/10 text-start group h-full flex flex-col justify-between">
-              <div className="space-y-4">
-                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center font-black text-2xl group-hover:scale-110 transition-transform">
-                  🔑
-                </div>
-                <h3 className="text-lg font-black text-white">
-                  {tUI('Bring Your Own Key', 'مفتاحك المجاني (BYOK)', 'Bring Your Own Key')}
+            {/* 2x2 Features Grid */}
+            <div className="grid grid-cols-1 min-[820px]:grid-cols-2 gap-6 text-start">
+              <div className="p-6 rounded-[var(--radius-md)] bg-[var(--surface)] border border-[var(--accent-teal)]/40 space-y-2">
+                <MessageSquare className="text-[var(--accent-teal)]" size={24} />
+                <h3 className="font-bold text-base text-[var(--text)]">
+                  {tUI('1. AI Conversation Practice', '1. تدريب المحادثة مع عمرو شريف')}
                 </h3>
-                <p className="text-xs sm:text-sm text-stone-400 leading-relaxed">
-                  {tUI(
-                    'Add your own free Gemini API key for unlimited access. No paywalls, no subscriptions.',
-                    'أدخل مفتاحك المجاني الخاص من Google AI Studio لاستخدام بلا حدود أو اشتراكات. لا توجد جدران دفع أو إعلانات للأبد.',
-                    'Sınırsız erişim için kendi ücretsiz Gemini API anahtarınızı ekleyin. Ödeme duvarı yok, abonelik yok.'
-                  )}
+                <p className="text-xs text-[var(--muted)]">
+                  {tUI('Speak directly with AI coach Amr Sherif with live feedback.', 'تحدث بصوتك مباشرة مع مدربك الذكي واحصل على تصحيحات وتغذية راجعة حية.')}
                 </p>
-                <div className="mt-4 flex flex-col gap-2 relative z-20">
-                  <input
-                    type="password"
-                    placeholder={tUI('Paste Gemini API key...', 'الصق مفتاح Gemini هنا...', 'Gemini API anahtarını yapıştırın...')}
-                    className="w-full px-3 py-2 bg-stone-950 border border-stone-800 rounded-lg text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors text-left"
-                    dir="ltr"
-                    onChange={(e) => {
-                       if (typeof localStorage !== 'undefined') {
-                         localStorage.setItem('tb.geminiKey', e.target.value);
-                       }
-                    }}
-                  />
-                </div>
               </div>
 
+              <div className="p-6 rounded-[var(--radius-md)] bg-[var(--surface)] border border-[var(--accent-teal)]/40 space-y-2">
+                <BookOpen className="text-[var(--secondary-amber)]" size={24} />
+                <h3 className="font-bold text-base text-[var(--text)]">
+                  {tUI('2. 27 Interactive Lessons', '2. 27 درساً تفاعلياً متكاملاً')}
+                </h3>
+                <p className="text-xs text-[var(--muted)]">
+                  {tUI('Step-by-step curriculum scaling from basics to executive phrasing.', 'مسار تعليمي يتدرج من الأساسيات إلى الاحتراف في صياغة الأفكار.')}
+                </p>
+              </div>
+
+              <div className="p-6 rounded-[var(--radius-md)] bg-[var(--surface)] border border-[var(--accent-teal)]/40 space-y-2">
+                <Zap className="text-[var(--accent-teal)]" size={24} />
+                <h3 className="font-bold text-base text-[var(--text)]">
+                  {tUI('3. "Baladi to Corporate" Bridge', '3. مترجم «من البلدي إلى Corporate»')}
+                </h3>
+                <p className="text-xs text-[var(--muted)]">
+                  {tUI('Convert raw colloquial thoughts into polished corporate English.', 'تحويل أفكارك بالعامية المصرية إلى صياغات شركات احترافية بثوانٍ.')}
+                </p>
+              </div>
+
+              <div className="p-6 rounded-[var(--radius-md)] bg-[var(--surface)] border border-[var(--accent-teal)]/40 space-y-2">
+                <Layers className="text-[var(--secondary-amber)]" size={24} />
+                <h3 className="font-bold text-base text-[var(--text)]">
+                  {tUI('4. 4,090 Spaced Flashcards', '4. 4090 بطاقات استذكار متباعد')}
+                </h3>
+                <p className="text-xs text-[var(--muted)]">
+                  {tUI('Retain your vocabulary effortlessly using the SM-2 algorithm.', 'حافظ على حصيلتك اللغوية بدون نسيان عبر خوارزمية SM-2.')}
+                </p>
+              </div>
+            </div>
+
+            <button
+              onClick={handleLaunchApp}
+              className="btn-shiny px-8 py-3.5 rounded-[var(--radius-md)] bg-[var(--accent-teal)] hover:opacity-90 active:scale-95 text-stone-950 font-black text-sm transition shadow-lg"
+            >
+              {tUI('Start Practice Now 🚀', 'الدخول للتمارين الآن 🚀')}
+            </button>
+          </div>
+        </section>
+      )}
+
+      {/* 7. DOWNLOAD SECTION */}
+      <section id="download-section" className="px-4 py-16 max-w-[var(--max-width)] mx-auto">
+        <div className="text-center space-y-8">
+          <div>
+            <h2 className="text-2xl sm:text-4xl font-black tracking-tight mb-2">
+              {tUI('Download for Your Device', 'حمل التطبيق على جهازك')}
+            </h2>
+            <p className="text-xs sm:text-sm text-[var(--muted)]">
+              {tUI('Works natively across all platforms with full offline support', 'يعمل على جميع المنصات والهواتف بدون إنترنت')}
+            </p>
+          </div>
+
+          {/* Highlighted OS Card */}
+          <div className="grid grid-cols-1 min-[820px]:grid-cols-2 min-[1100px]:grid-cols-4 gap-4">
+            {/* Android */}
+            <div className={`p-5 rounded-[var(--radius-md)] border text-center space-y-3 ${detectedOs === 'android' ? 'bg-[var(--surface)] border-[var(--accent-teal)] ring-2 ring-[var(--accent-teal)]/30' : 'bg-[var(--bg)] border-[var(--border)]'}`}>
+              <Smartphone className="mx-auto text-[var(--accent-teal)]" size={28} />
+              <div>
+                <span className="font-bold text-sm text-[var(--text)] block">Android</span>
+                <span className="text-[10px] text-[var(--muted)] block">v3.1.0 · APK</span>
+              </div>
               <a
-                href="https://aistudio.google.com/app/apikey"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-400 hover:text-emerald-300 hover:underline pt-4 relative z-20"
+                href={isNativeAndroid ? '/app' : 'https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v3.1.0/Thinking-Bridge-v3.1.0.apk'}
+                onClick={isNativeAndroid ? (event) => {
+                  event.preventDefault();
+                  onLaunchApp();
+                } : undefined}
+                className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-[var(--accent-teal)] text-stone-950 font-bold text-xs w-full hover:opacity-90 transition"
               >
-                <HelpCircle size={14} />
-                <span>{tUI('How to get a free key (1-min guide) ↗', 'كيف تحصل على مفتاح مجاني؟ (دليل دقيقة) ↗', 'Ücretsiz anahtar nasıl alınır? (1 dakikalık rehber) ↗')}</span>
+                {isNativeAndroid ? <ArrowRight size={13} aria-hidden="true" /> : <Download size={13} aria-hidden="true" />}
+                <span>
+                  {isNativeAndroid
+                    ? (tUI('Launch App 🚀', 'تشغيل التطبيق 🚀'))
+                    : (tUI('Download APK', 'تحميل APK'))}
+                </span>
+              </a>
+              {isInstallable && (
+                <button type="button" onClick={() => void triggerInstall()} className="text-[10px] font-bold text-[var(--muted)] underline underline-offset-2">
+                  {tUI('Install web app', 'تثبيت نسخة الويب')}
+                </button>
+              )}
+            </div>
+
+            {/* iOS / PWA */}
+            <div className={`p-5 rounded-[var(--radius-md)] border text-center space-y-3 ${detectedOs === 'ios' ? 'bg-[var(--surface)] border-[var(--accent-teal)] ring-2 ring-[var(--accent-teal)]/30' : 'bg-[var(--bg)] border-[var(--border)]'}`}>
+              <Apple className="mx-auto text-[var(--text)]" size={28} />
+              <div>
+                <span className="font-bold text-sm text-[var(--text)] block">iOS / iPhone</span>
+                <span className="text-[10px] text-[var(--muted)] block">PWA / Web App</span>
+              </div>
+              <button
+                onClick={() => {
+                  if (showIosHint) setShowIosGuide(value => !value);
+                  else if (isInstallable) void triggerInstall();
+                  else onLaunchApp();
+                }}
+                className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-[var(--surface)] border border-[var(--border)] text-[var(--text)] font-bold text-xs w-full hover:border-[var(--accent-teal)] transition"
+              >
+                <ExternalLink size={13} />
+                <span>{showIosHint ? (tUI('Install guide', 'طريقة التثبيت')) : isInstallable ? (tUI('Install app', 'تثبيت التطبيق')) : (tUI('Open Web App', 'تشغيل على الويب'))}</span>
+              </button>
+              {showIosGuide && showIosHint && (
+                <p role="status" className="text-[11px] leading-relaxed text-[var(--muted)]">
+                  {tUI('In Safari, tap Share, then choose "Add to Home Screen".', 'في Safari اضغط مشاركة، ثم اختر «إضافة إلى الشاشة الرئيسية».')}
+                </p>
+              )}
+              {showIosHint && (
+                <button onClick={onLaunchApp} className="text-xs font-bold text-[var(--accent-teal)] underline underline-offset-2">
+                  {tUI('Open web app', 'فتح تطبيق الويب')}
+                </button>
+              )}
+            </div>
+
+            {/* Windows */}
+            <div className={`p-5 rounded-[var(--radius-md)] border text-center space-y-3 ${detectedOs === 'windows' ? 'bg-[var(--surface)] border-[var(--accent-teal)] ring-2 ring-[var(--accent-teal)]/30' : 'bg-[var(--bg)] border-[var(--border)]'}`}>
+              <Laptop className="mx-auto text-[var(--secondary-amber)]" size={28} />
+              <div>
+                <span className="font-bold text-sm text-[var(--text)] block">Windows / Desktop</span>
+                <span className="text-[10px] text-[var(--muted)] block">PWA / Desktop release</span>
+              </div>
+              <button
+                onClick={() => isInstallable ? void triggerInstall() : onLaunchApp()}
+                className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-[var(--surface)] border border-[var(--border)] text-[var(--text)] font-bold text-xs w-full hover:border-[var(--accent-teal)] transition"
+              >
+                <Globe size={13} />
+                <span>{isInstallable ? (tUI('Install PWA', 'تثبيت التطبيق')) : (tUI('Open Web App', 'تشغيل على الويب'))}</span>
+              </button>
+              <a href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/latest" className="block text-[10px] font-bold text-[var(--muted)] underline underline-offset-2">
+                {tUI('Desktop releases', 'إصدارات سطح المكتب')}
               </a>
             </div>
-          </TiltCard>
+
+            {/* macOS */}
+            <div className={`p-5 rounded-[var(--radius-md)] border text-center space-y-3 ${detectedOs === 'mac' ? 'bg-[var(--surface)] border-[var(--accent-teal)] ring-2 ring-[var(--accent-teal)]/30' : 'bg-[var(--bg)] border-[var(--border)]'}`}>
+              <Apple className="mx-auto text-[var(--muted)]" size={28} />
+              <div>
+                <span className="font-bold text-sm text-[var(--text)] block">macOS</span>
+                <span className="text-[10px] text-[var(--muted)] block">PWA / Desktop release</span>
+              </div>
+              <button
+                onClick={() => isInstallable ? void triggerInstall() : onLaunchApp()}
+                className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-[var(--surface)] border border-[var(--border)] text-[var(--text)] font-bold text-xs w-full hover:border-[var(--accent-teal)] transition"
+              >
+                <Globe size={13} />
+                <span>{isInstallable ? (tUI('Install PWA', 'تثبيت التطبيق')) : (tUI('Open Web App', 'تشغيل على الويب'))}</span>
+              </button>
+              <a href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/latest" className="block text-[10px] font-bold text-[var(--muted)] underline underline-offset-2">
+                {tUI('Desktop releases', 'إصدارات سطح المكتب')}
+              </a>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* 7. FOOTER & SOCIALS */}
-      <footer className="relative z-10 px-4 py-12 bg-stone-950 border-t border-stone-800 text-center space-y-6">
-        <div className="max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-6">
-          <div className="text-start">
-            <span className="text-sm font-black text-white block">Thinking Bridge</span>
-            <span className="text-xs text-stone-400 block">
-              © 2026 Amr Sherif. Built in Alexandria, Egypt 🇪🇬.
-            </span>
-          </div>
+      {/* 8. FOOTER */}
+      <footer className="px-4 py-8 bg-[var(--surface)] border-t border-[var(--border)] text-center text-xs text-[var(--muted)] space-y-3">
+        <p className="font-bold text-[var(--text)]">
+          {tUI('Made in Alexandria, Egypt', 'صُنع في الإسكندرية، مصر')}
+        </p>
 
-          <div className="flex flex-wrap items-center gap-3">
-            <a
-              href="https://www.youtube.com/@SciAmrSherif?sub_confirmation=1"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-2.5 rounded-xl bg-stone-900 border border-stone-800 text-red-400 hover:bg-red-600 hover:text-white transition"
-              aria-label="YouTube"
-            >
-              <Youtube size={18} />
-            </a>
+        <p>
+          {tUI('With gratitude to ', 'إهداء وتقدير إلى ')}
+          <a href="https://www.languagetransfer.org/" target="_blank" rel="noopener noreferrer" aria-label="Mihalis Eleftheriou and Language Transfer" className="underline underline-offset-2 hover:text-[var(--accent-teal)] transition">
+            Mihalis Eleftheriou & Language Transfer
+          </a>
+          {' · CC0 1.0'}
+        </p>
+        <p>Copyright (c) 2024-Present Amr Sherif Abdelaal</p>
 
-            <a
-              href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-2.5 rounded-xl bg-stone-900 border border-stone-800 text-teal-400 hover:bg-teal-500 hover:text-stone-950 transition"
-              aria-label="GitHub"
-            >
-              <Github size={18} />
-            </a>
-
-            <a
-              href="https://linkedin.com/in/sciamrsherif-abdelaal"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-2.5 rounded-xl bg-stone-900 border border-stone-800 text-blue-400 hover:bg-blue-600 hover:text-white transition"
-              aria-label="LinkedIn"
-            >
-              <Linkedin size={18} />
-            </a>
-
-            <a
-              href="https://x.com/sciamrsherif"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-2.5 rounded-xl bg-stone-900 border border-stone-800 text-amber-400 hover:bg-amber-500 hover:text-stone-950 transition"
-              aria-label="X (Twitter)"
-            >
-              <span className="font-black text-sm">𝕏</span>
-            </a>
-          </div>
+        <div className="flex flex-wrap justify-center gap-4 pt-1 font-bold">
+          <a href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge" target="_blank" rel="noopener noreferrer" aria-label="GitHub repository" className="hover:text-[var(--accent-teal)] transition">
+            GitHub
+          </a>
+          <a href="https://youtube.com/@SciAmrSherif" target="_blank" rel="noopener noreferrer" aria-label="YouTube channel" className="hover:text-[var(--accent-teal)] transition">
+            YouTube
+          </a>
+          <a href="https://linkedin.com/in/sciamrsherif-abdelaal" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn profile" className="hover:text-[var(--accent-teal)] transition">
+            LinkedIn
+          </a>
+          <a href="mailto:amrsherifbusiness@gmail.com" aria-label="Email Amr Sherif" className="hover:text-[var(--accent-teal)] transition">
+            Email
+          </a>
         </div>
       </footer>
 
@@ -736,7 +704,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
               <div className="flex items-center justify-between pb-2 border-b border-stone-800">
                 <span className="font-bold text-sm text-white flex items-center gap-2">
                   <Youtube size={18} className="text-red-500" />
-                  <span>{tUI('Thinking Bridge Documentary', 'وثائقي بناء جسر التفكير', 'Thinking Bridge Documentary')}</span>
+                  <span>{tUI('Thinking Bridge Documentary', 'وثائقي بناء جسر التفكير')}</span>
                 </span>
                 <button
                   onClick={() => setVideoModalOpen(false)}
@@ -764,7 +732,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
                   rel="noopener noreferrer"
                   className="px-6 py-2.5 rounded-xl bg-red-600 text-white font-bold text-xs hover:bg-red-500 transition shadow-md"
                 >
-                  {tUI('Subscribe to @SciAmrSherif 🚀', 'اشترك في القناة لمتابعة الشروحات 🚀', 'Subscribe to @SciAmrSherif 🚀')}
+                  {tUI('Subscribe to @SciAmrSherif 🚀', 'اشترك في القناة لمتابعة الشروحات 🚀')}
                 </a>
               </div>
             </motion.div>
@@ -772,7 +740,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
         )}
       </AnimatePresence>
 
-      {/* TASK 3: BYOK TUTORIAL MODAL */}
+      {/* BYOK TUTORIAL MODAL */}
       <AnimatePresence>
         {byokModalOpen && (
           <div className="fixed inset-0 z-50 bg-stone-950/90 backdrop-blur-xl flex items-center justify-center p-4">
@@ -786,7 +754,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
                 <div className="flex items-center gap-2">
                   <Key size={20} className="text-emerald-400" />
                   <h3 className="font-black text-base text-white">
-                    {tUI('How to get a free Gemini Key', 'كيف تحصل على مفتاح Gemini مجاناً؟', 'How to get a free Gemini Key')}
+                    {tUI('How to get a free Gemini Key', 'كيف تحصل على مفتاح Gemini مجاناً؟')}
                   </h3>
                 </div>
                 <button
@@ -801,7 +769,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
                 {/* Step 1 */}
                 <div className="p-3.5 rounded-2xl bg-stone-950/80 border border-stone-800 space-y-2">
                   <span className="font-black text-emerald-400 block">
-                    {tUI('Step 1: Open Google AI Studio', 'الخطوة ١: افتح Google AI Studio', 'Step 1: Open Google AI Studio')}
+                    {tUI('Step 1: Open Google AI Studio', 'الخطوة ١: افتح Google AI Studio')}
                   </span>
                   <p className="text-stone-400">
                     {isAr
@@ -822,7 +790,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
                 {/* Step 2 */}
                 <div className="p-3.5 rounded-2xl bg-stone-950/80 border border-stone-800 space-y-1.5">
                   <span className="font-black text-emerald-400 block">
-                    {tUI('Step 2: Paste key into Settings', 'الخطوة ٢: انسخ المفتاح في إعدادات التطبيق', 'Step 2: Paste key into Settings')}
+                    {tUI('Step 2: Paste key into Settings', 'الخطوة ٢: انسخ المفتاح في إعدادات التطبيق')}
                   </span>
                   <p className="text-stone-400">
                     {isAr
@@ -849,7 +817,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
                 }}
                 className="w-full py-3.5 rounded-2xl bg-emerald-400 hover:bg-emerald-300 text-stone-950 font-black text-xs transition active:scale-95 shadow-lg"
               >
-                {tUI('Launch App & Enter Key 🚀', 'الانتقال للتطبيق وإدخال المفتاح 🚀', 'Launch App & Enter Key 🚀')}
+                {tUI('Launch App & Enter Key 🚀', 'الانتقال للتطبيق وإدخال المفتاح 🚀')}
               </button>
             </motion.div>
           </div>

@@ -29,7 +29,7 @@ body {
   width: 100%;
   max-width: 100%;
   overflow-x: hidden;
-  font-family: 'Cairo', 'Inter', 'Readex Pro', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: var(--font), 'Cairo', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
@@ -50,12 +50,12 @@ body {
 }
 
 .landing-shell :focus-visible {
-  outline: 3px solid var(--landing-accent-teal);
+  outline: 3px solid var(--accent-teal);
   outline-offset: 3px;
 }
 
 .font-arabic {
-  font-family: 'Cairo', 'Tajawal', 'Readex Pro', sans-serif !important;
+  font-family: 'Cairo', 'Tajawal', var(--font), sans-serif !important;
 }
 
 .font-sans-en {
@@ -130,7 +130,6 @@ body::before {
 .btn-shiny:hover {
   box-shadow: 0 0 25px rgba(45, 212, 191, 0.45);
 }
-
 
 @layer utilities {
   .pb-safe { padding-bottom: env(safe-area-inset-bottom, 1rem); }

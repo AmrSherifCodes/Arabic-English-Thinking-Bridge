@@ -36,7 +36,9 @@ export function createAnkiCsv(progress: ProgressionState): string {
     ].join(',')
   );
 
-  return [
+  // Prepend the UTF-8 BOM (\uFEFF) so Arabic, Japanese, and Chinese
+  // characters are detected as UTF-8 by Anki and spreadsheet apps.
+  return '\uFEFF' + [
     '#separator:Comma',
     '#html:false',
     '#tags column:3',
@@ -51,8 +53,8 @@ export async function exportToAnki(
 ): Promise<number> {
   const csv = createAnkiCsv(progress);
   const cardCount = getExportableCards(progress).length;
-  // Add UTF-8 BOM (\uFEFF) to ensure Arabic characters display perfectly in Anki/Excel
-  const csvWithBOM = '\uFEFF' + csv;
+  // createAnkiCsv already includes the UTF-8 BOM (\uFEFF).
+  const csvWithBOM = csv;
 
   if (Capacitor.isNativePlatform()) {
     const writeResult = await Filesystem.writeFile({

@@ -7,8 +7,6 @@ import { soundFX } from '../../utils/soundFX';
 import { TabTutorialModal } from '../../components/TabTutorialModal';
 import { applyHabitWin } from '../../utils/habitPsychology';
 import { speechAdapter } from '../../platform/adapter';
-import { GEMINI_KEY_CHANGED_EVENT } from '../../services/geminiLexicon';
-import { Lock } from 'lucide-react';
 import './voice.css';
 
 const LABELS_AR: Record<VoiceState, string> = {
@@ -77,14 +75,11 @@ export function VoicePracticeView({
     currentSpokenWordIndex,
     startTurn,
     stopTurn,
-    handleManualText,
     pendingFeedbackDraft,
     submitPendingFeedback,
     cancelPendingFeedback,
   } = useVoiceOrchestrator(targetLang, sourceLang);
 
-  const [textInput, setTextInput] = useState('');
-  const [showInput, setShowInput] = useState(!speechCapabilities.sttSupported);
   const [editedFeedbackText, setEditedFeedbackText] = useState('');
   const [isOnline, setIsOnline] = useState<boolean>(() =>
     typeof navigator !== 'undefined' ? navigator.onLine : true
@@ -95,10 +90,6 @@ export function VoicePracticeView({
       setEditedFeedbackText(pendingFeedbackDraft.polishedMessage);
     }
   }, [pendingFeedbackDraft]);
-
-  useEffect(() => {
-    if (error) setShowInput(true);
-  }, [error]);
 
   const prevMsgCountRef = useRef(messages.length);
   useEffect(() => {
@@ -125,10 +116,7 @@ export function VoicePracticeView({
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => {
-      setIsOnline(false);
-      setShowInput(true);
-    };
+    const handleOffline = () => setIsOnline(false);
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
     return () => {
@@ -146,16 +134,6 @@ export function VoicePracticeView({
     } else {
       startTurn();
     }
-  };
-
-  const handleSendText = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!textInput.trim()) return;
-    unlockAudio();
-    if (error) clearError();
-    handleManualText(textInput);
-    setTextInput('');
-    setShowInput(false);
   };
 
   // Build a set of words already practiced or known by the user
@@ -316,6 +294,31 @@ export function VoicePracticeView({
           )}
         </div>
 
+        {/* Dynamic Waveform Visualizer for Listening State (5 vertical bars) */}
+        {state === 'listening' && (
+          <div className="flex items-center gap-1.5 justify-center my-3 h-10">
+            {[0, 1, 2, 3, 4].map((bar) => (
+              <motion.div
+                key={bar}
+                animate={{
+                  height: [
+                    12,
+                    Math.max(20, Math.min(44, 14 + (bar % 2 === 0 ? 26 : 16) * (micVolume ? micVolume / 100 : 1))),
+                    12,
+                  ],
+                }}
+                transition={{
+                  repeat: Infinity,
+                  duration: 0.35 + bar * 0.08,
+                  repeatType: 'reverse',
+                  ease: 'easeInOut',
+                }}
+                className="w-2 bg-teal-400 rounded-full shadow-md shadow-teal-400/50"
+              />
+            ))}
+          </div>
+        )}
+
         {/* Dynamic Waveform Visualizer for Speaking State */}
         {state === 'speaking' && (
           <div className="flex items-center gap-1.5 justify-center my-2.5">
@@ -359,8 +362,8 @@ export function VoicePracticeView({
         {!isOnline && (
           <div className="voice__offline-banner" role="status">
             {isAr
-              ? '📡 أنت غير متصل بالإنترنت. التحدث الصوتي متوقف مؤقتاً، لكن يمكنك التدرب بالكتابة.'
-              : '📡 You are offline. Voice streaming is paused, but you can practice using text.'}
+              ? '📡 أنت غير متصل بالإنترنت. التحدث الصوتي متوقف مؤقتاً.'
+              : '📡 You are offline. Voice streaming is paused.'}
           </div>
         )}
 
@@ -368,11 +371,8 @@ export function VoicePracticeView({
           <div className="voice__error-box" role="status" aria-live="polite">
             <p className="voice__error">
               {isAr
-                ? 'التعرّف على الكلام غير متاح على هذا الجهاز. يمكنك المتابعة بالكتابة.'
-                : 'Speech recognition is unavailable on this device. You can continue by typing.'}
-            </p>
-            <p lang={isAr ? 'en' : 'ar'} dir={isAr ? 'ltr' : 'rtl'} className="voice__hint">
-              {isAr ? 'Speech recognition is unavailable. Continue with text practice.' : 'التعرّف على الكلام غير متاح. تابع التدريب بالكتابة.'}
+                ? 'التعرّف على الكلام غير متاح على هذا الجهاز.'
+                : 'Speech recognition is unavailable on this device.'}
             </p>
           </div>
         )}
@@ -382,14 +382,9 @@ export function VoicePracticeView({
             <div className="voice__error-row">
               <p className="voice__error">
                 {speechUnsupported ? (
-                  <>
-                    <span>{isAr ? 'التعرّف على الكلام غير متاح على هذا الجهاز. يمكنك المتابعة بالكتابة.' : 'Speech recognition is unavailable on this device. You can continue by typing.'}</span>
-                    <span lang={isAr ? 'en' : 'ar'} dir={isAr ? 'ltr' : 'rtl'} className="mt-1 block text-[11px] opacity-80">
-                      {isAr ? 'Speech recognition is unavailable on this device. Continue with text practice.' : 'التعرّف على الكلام غير متاح على هذا الجهاز. يمكنك متابعة التدريب بالكتابة.'}
-                    </span>
-                  </>
+                  <span>{isAr ? 'التعرّف على الكلام غير متاح على هذا الجهاز.' : 'Speech recognition is unavailable on this device.'}</span>
                 ) : isAr && error.includes('Could not transcribe audio')
-                  ? 'تعذر التعرف الصوتي. يمكنك كتابة رسالتك أدناه والبدء فوراً!'
+                  ? 'تعذر التعرف الصوتي. اضغط المايك وأعد المحاولة.'
                   : error}
               </p>
               <button
@@ -406,13 +401,6 @@ export function VoicePracticeView({
                 {isAr
                   ? 'تم حظر الوصول إلى الميكروفون. يرجى تفعيل السماح بالميكروفون من إعدادات المتصفح للتحدث مع عمرو.'
                   : 'Microphone access is blocked. Please enable permissions in your device settings to speak with Amr.'}
-              </p>
-            )}
-            {error.toLowerCase().includes('network') && (
-              <p className="voice__hint">
-                {isAr
-                  ? '🦁 تستخدم متصفح Brave أو مانع التتبع؟ يتم تحويل التسجيل إلى وضع الصوت المباشر أو الكتابة أدناه!'
-                  : '🦁 Using Brave or privacy shields? Direct recording is active, or you can practice by typing below!'}
               </p>
             )}
           </div>
@@ -521,22 +509,6 @@ export function VoicePracticeView({
           </div>
         )}
       </div>
-
-      {showInput && (
-        <form className="voice__input-bar" onSubmit={handleSendText}>
-          <input
-            type="text"
-            className="voice__text-input"
-            placeholder={isAr ? 'اكتب رسالتك لعمرو هنا...' : 'Type your message here...'}
-            value={textInput}
-            onChange={(e) => setTextInput(e.target.value)}
-            autoFocus
-          />
-          <button type="submit" className="voice__send-btn">
-            {isAr ? 'إرسال' : 'Send'}
-          </button>
-        </form>
-      )}
 
       <footer className="voice__footer">
         <button
