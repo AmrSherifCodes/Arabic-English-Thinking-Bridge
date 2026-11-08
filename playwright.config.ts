@@ -8,7 +8,6 @@ export default defineConfig({
   use: {
     baseURL: 'https://localhost:4173',
     ignoreHTTPSErrors: true,
-    channel: 'chrome',
     viewport: { width: 375, height: 667 },
   },
   webServer: {

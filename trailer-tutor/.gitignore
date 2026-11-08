@@ -1,0 +1,4 @@
+node_modules/
+out/*.mp4
+out/*-source.mp4
+out/*-final.mp4
