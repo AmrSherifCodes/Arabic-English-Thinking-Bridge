@@ -1,6 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Capacitor, type PluginListenerHandle } from '@capacitor/core';
-import { SpeechRecognition as NativeSpeechRecognition } from '@capacitor-community/speech-recognition';
+import { Capacitor, registerPlugin } from '@capacitor/core';
+import type { PluginListenerHandle } from '@capacitor/core';
+
+export interface OfflineSTTPlugin {
+  init(options: { modelPath: string; sampleRate: number }): Promise<void>;
+  startListening(): Promise<void>;
+  stopListening(): Promise<void>;
+  addListener(eventName: 'onPartialResult', listenerFunc: (result: { text: string }) => void): Promise<PluginListenerHandle>;
+  addListener(eventName: 'onFinalResult', listenerFunc: (result: { text: string }) => void): Promise<PluginListenerHandle>;
+}
+const OfflineSTT = registerPlugin<OfflineSTTPlugin>('OfflineSTT');
 
 interface BrowserSpeechResult {
   isFinal: boolean;
@@ -115,52 +124,37 @@ export function useNativeSpeech({
 
     if (isNative) {
       try {
-        let permission = await NativeSpeechRecognition.checkPermissions();
-        if (permission.speechRecognition !== 'granted') {
-          permission = await NativeSpeechRecognition.requestPermissions();
-        }
-        if (permission.speechRecognition !== 'granted') {
-          throw new Error('Microphone and speech-recognition permission was denied.');
-        }
-
-        const availability = await NativeSpeechRecognition.available();
-        if (!availability.available) {
-          throw new Error('Speech recognition is not available on this device. Use text input instead.');
-        }
+        await OfflineSTT.init({ modelPath: 'models/vosk-model-small-ar-mgb2', sampleRate: 16000 });
 
         await stateListenerRef.current?.remove();
-        stateListenerRef.current = await NativeSpeechRecognition.addListener('listeningState', ({ status }) => {
-          if (status === 'stopped') updateListening(false);
-        });
 
-        const partialListener = await NativeSpeechRecognition.addListener('partialResults', ({ matches }) => {
-          if (matches && matches[0]) {
-            latestTranscriptRef.current = matches[0].trim();
+        const partialListener = await OfflineSTT.addListener('onPartialResult', (res: any) => {
+          if (res.text) {
+            latestTranscriptRef.current = res.text.trim();
             setInterimTranscript(latestTranscriptRef.current);
           }
+        });
+
+        const finalListener = await OfflineSTT.addListener('onFinalResult', (res: any) => {
+          if (abortedRef.current) return;
+          const finalMatch = res.text?.trim() || latestTranscriptRef.current || '';
+          latestTranscriptRef.current = finalMatch;
+          partialListener.remove();
+          finalListener.remove();
+          triggerSpeechEnd(finalMatch);
         });
 
         updateListening(true);
         onSpeechStart?.();
         setInterimTranscript('Listening…');
-        const result = await NativeSpeechRecognition.start({
-          language,
-          maxResults: 5,
-          prompt: 'Speak now',
-          partialResults: true,
-          popup: false,
-        });
-        if (abortedRef.current) return;
-        const finalMatch = result.matches?.[0]?.trim() || latestTranscriptRef.current || '';
-        latestTranscriptRef.current = finalMatch;
-        partialListener.remove();
-        triggerSpeechEnd(finalMatch);
+
+        await OfflineSTT.startListening();
       } catch (recognitionError) {
         if (abortedRef.current) return;
         console.error('[useNativeSpeech] Native speech recognition failed.', recognitionError);
         const message = recognitionError instanceof Error
           ? recognitionError.message
-          : 'Could not start speech recognition. Check microphone permission or use text input.';
+          : 'Could not start offline speech recognition. Check microphone permission or use text input.';
         setError(message);
         setInterimTranscript('');
         updateListening(false);
@@ -243,7 +237,7 @@ export function useNativeSpeech({
     clearSilenceTimer();
     if (isNative) {
       try {
-        await NativeSpeechRecognition.stop();
+        await OfflineSTT.stopListening();
       } catch (stopError) {
         console.warn('[useNativeSpeech] Native recognition stop failed.', stopError);
         triggerSpeechEnd(latestTranscriptRef.current);
@@ -264,7 +258,7 @@ export function useNativeSpeech({
     clearSilenceTimer();
     if (isNative) {
       try {
-        await NativeSpeechRecognition.stop();
+        await OfflineSTT.stopListening();
       } catch (stopError) {
         console.warn('[useNativeSpeech] Native recognition abort failed.', stopError);
       }

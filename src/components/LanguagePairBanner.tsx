@@ -19,7 +19,7 @@ export function LanguagePairBanner({
   onOpenSelector,
   className = ''
 }: LanguagePairBannerProps) {
-  const isAr = sourceLang === 'ar';
+  const isAr = sourceLang.startsWith('ar');
   const sourceMeta = SOURCE_LANGUAGES[sourceLang] || SOURCE_LANGUAGES['ar'];
   const targetMeta = TARGET_LANGUAGE_META[targetLang] || TARGET_LANGUAGE_META['en'];
 

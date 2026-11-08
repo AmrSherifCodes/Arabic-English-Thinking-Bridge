@@ -752,131 +752,117 @@ export function useVoiceOrchestrator(
       nextPlayIndexRef.current = 0;
       streamDoneRef.current = false;
 
-      // 1. Try direct client-side Gemini SDK streaming if user key exists
       const userKey = getUserGeminiKey();
-      if (!userKey) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `assistant-${Date.now()}`,
-            role: 'assistant',
-            text: 'Add your Gemini API key in Settings to use AI features.',
-            timestamp: Date.now(),
-          },
-        ]);
-        setState('idle');
-        return;
-      }
+
       if (!consumeDailyApiQuota()) {
         setState('idle');
         return;
       }
 
-      try {
-        const { GoogleGenAI } = await import('@google/genai');
-        const ai = new GoogleGenAI({ apiKey: userKey });
-        const profile = getStoredProfile();
-        const targetLanguage = TARGET_LANGUAGES.find((language) => language.code === profile.targetLang)?.nameEn || 'English';
-        const sourceLanguage = SOURCE_LANGUAGES[profile.sourceLanguage]?.nameNative || 'Arabic';
-        const learnerDialect = profile.sourceLanguage === 'ar' ? profile.dialect : sourceLanguage;
-        const domainFocus = profile.domainFocus === 'tech' || profile.goal === 'tech' || profile.goal === 'corporate'
-          ? 'software engineering and technology'
-          : profile.domainFocus === 'travel' || profile.goal === 'travel'
-            ? 'travel and everyday life'
-            : 'daily life';
-        const translationInstruction = voiceCommand === 'translate-arabic'
-          ? 'The learner explicitly requested an Arabic translation. Return only the natural Arabic translation, overriding the usual target-language response preference.'
-          : '';
+      // 1. Try direct client-side Gemini SDK streaming if user key exists
+      if (userKey) {
+        try {
+          const { GoogleGenAI } = await import('@google/genai');
+          const ai = new GoogleGenAI({ apiKey: userKey });
+          const profile = getStoredProfile();
+          const targetLanguage = TARGET_LANGUAGES.find((language) => language.code === profile.targetLang)?.nameEn || 'English';
+          const sourceLanguage = SOURCE_LANGUAGES[profile.sourceLanguage]?.nameNative || 'Arabic';
+          const learnerDialect = profile.sourceLanguage === 'ar' ? profile.dialect : sourceLanguage;
+          const domainFocus = profile.domainFocus === 'tech' || profile.goal === 'tech' || profile.goal === 'corporate'
+            ? 'software engineering and technology'
+            : profile.domainFocus === 'travel' || profile.goal === 'travel'
+              ? 'travel and everyday life'
+              : 'daily life';
+          const translationInstruction = voiceCommand === 'translate-arabic'
+            ? 'The learner explicitly requested an Arabic translation. Return only the natural Arabic translation, overriding the usual target-language response preference.'
+            : '';
 
-        const aiContext = await fetchAIContext();
-        const companionPrompt = getAICompanionPrompt();
-        const systemInstructionText = (aiContext.systemPromptTemplate || '')
-          .replace('{dialect}', String(learnerDialect))
-          .replace('{targetLanguage}', targetLanguage)
-          .replace('{level}', String(profile.level))
-          .replace('{goal}', String(profile.goal))
-          .replace('{domainFocus}', domainFocus) +
-          `\n${translationInstruction}` +
-          companionPrompt;
+          const aiContext = await fetchAIContext();
+          const companionPrompt = getAICompanionPrompt();
+          const systemInstructionText = (aiContext.systemPromptTemplate || '')
+            .replace('{dialect}', String(learnerDialect))
+            .replace('{targetLanguage}', targetLanguage)
+            .replace('{level}', String(profile.level))
+            .replace('{goal}', String(profile.goal))
+            .replace('{domainFocus}', domainFocus) +
+            `\n${translationInstruction}` +
+            companionPrompt;
 
-        const resultStream = await ai.models.generateContentStream({
-          model: 'gemini-2.5-flash',
-          contents: [
-            ...messages.slice(-6).map((m) => ({
-              role: m.role === 'user' ? 'user' : 'model',
-              parts: [{ text: m.text }],
-            })),
-            { role: 'user', parts: [{ text: requestText }] },
-          ],
-          config: {
-            systemInstruction: systemInstructionText,
-            maxOutputTokens: 250,
-            temperature: 0.7,
-          },
-        });
+          const resultStream = await ai.models.generateContentStream({
+            model: 'gemini-2.5-flash',
+            contents: [
+              ...messages.slice(-6).map((m) => ({
+                role: m.role === 'user' ? 'user' : 'model',
+                parts: [{ text: m.text }],
+              })),
+              { role: 'user', parts: [{ text: requestText }] },
+            ],
+            config: {
+              systemInstruction: systemInstructionText,
+              maxOutputTokens: 250,
+              temperature: 0.7,
+            },
+          });
 
-        let clientAccumulated = '';
-        let clientBuffer = '';
-        let clientWordIdx = 0;
+          let clientAccumulated = '';
+          let clientBuffer = '';
+          let clientWordIdx = 0;
 
-        for await (const chunk of resultStream) {
-          const textChunk = chunk.text || '';
-          if (!textChunk) continue;
+          for await (const chunk of resultStream) {
+            const textChunk = chunk.text || '';
+            if (!textChunk) continue;
 
-          clientAccumulated += textChunk;
-          clientBuffer += textChunk;
+            clientAccumulated += textChunk;
+            clientBuffer += textChunk;
 
-          setCurrentAssistantText(clientAccumulated);
+            setCurrentAssistantText(clientAccumulated);
 
-          const sentences = clientBuffer.match(/[^.!?]+[.!?]+/g);
-          if (sentences) {
-            for (const s of sentences) {
-              clientBuffer = clientBuffer.slice(s.length);
-              const cleanSent = s.trim();
-              if (cleanSent) {
-                const wList = cleanSent.split(/\s+/);
-                prefetchSentence(cleanSent, abortCtrl.signal, totalDispatchedRef.current++, clientWordIdx);
-                clientWordIdx += wList.length;
+            const sentences = clientBuffer.match(/[^.!?]+[.!?]+/g);
+            if (sentences) {
+              for (const s of sentences) {
+                clientBuffer = clientBuffer.slice(s.length);
+                const cleanSent = s.trim();
+                if (cleanSent) {
+                  const wList = cleanSent.split(/\s+/);
+                  prefetchSentence(cleanSent, abortCtrl.signal, totalDispatchedRef.current++, clientWordIdx);
+                  clientWordIdx += wList.length;
+                }
               }
             }
           }
-        }
 
-        if (clientBuffer.trim()) {
-          const cleanSent = clientBuffer.trim();
-          prefetchSentence(cleanSent, abortCtrl.signal, totalDispatchedRef.current++, clientWordIdx);
-        }
+          if (clientBuffer.trim()) {
+            const cleanSent = clientBuffer.trim();
+            prefetchSentence(cleanSent, abortCtrl.signal, totalDispatchedRef.current++, clientWordIdx);
+          }
 
-        streamDoneRef.current = true;
-        checkAndPlayQueue();
+          streamDoneRef.current = true;
+          checkAndPlayQueue();
 
-        if (clientAccumulated.trim()) {
-          setMessages((prev) => [
-            ...prev,
-            {
-              id: `assistant-${Date.now()}`,
-              role: 'assistant',
-              text: clientAccumulated.trim(),
-              timestamp: Date.now(),
-              feedbackDraft: newFeedbackDraft || undefined,
-              feedbackStatus: newFeedbackDraft ? 'pending' : undefined,
-            },
-          ]);
-        }
-        return;
-      } catch (clientChatErr: any) {
-        if (clientChatErr.name === 'AbortError') {
-          console.log('[useVoiceOrchestrator] Interrupted by user (barge-in).');
+          if (clientAccumulated.trim()) {
+            setMessages((prev) => [
+              ...prev,
+              {
+                id: `assistant-${Date.now()}`,
+                role: 'assistant',
+                text: clientAccumulated.trim(),
+                timestamp: Date.now(),
+                feedbackDraft: newFeedbackDraft || undefined,
+                feedbackStatus: newFeedbackDraft ? 'pending' : undefined,
+              },
+            ]);
+          }
           return;
+        } catch (clientChatErr: any) {
+          if (clientChatErr.name === 'AbortError') {
+            console.log('[useVoiceOrchestrator] Interrupted by user (barge-in).');
+            return;
+          }
+          console.warn('[useVoiceOrchestrator] Direct client-side Gemini Chat stream failed, falling back to the BYOK server route:', clientChatErr);
         }
-        console.warn('[useVoiceOrchestrator] Direct client-side Gemini Chat stream failed, falling back to the BYOK server route:', clientChatErr);
       }
 
       // 2. Server route fallback
-      if (!consumeDailyApiQuota()) {
-        setState('idle');
-        return;
-      }
 
       let accumulatedReply = '';
       let sentenceBuffer = '';

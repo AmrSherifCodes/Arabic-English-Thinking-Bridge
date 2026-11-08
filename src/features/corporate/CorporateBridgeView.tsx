@@ -69,11 +69,6 @@ export function CorporateBridgeView({ onBack, onToast, preferredVoice }: Corpora
 
     const finalThought = isFranco(raw) ? francoToArabic(raw) : raw;
     const userKey = getUserGeminiKey();
-    if (!userKey) {
-      onToast?.('Add your Gemini API key in Settings to use AI features.');
-      return;
-    }
-    if (!consumeDailyApiQuota()) return;
 
     setLoading(true);
 
@@ -82,8 +77,10 @@ export function CorporateBridgeView({ onBack, onToast, preferredVoice }: Corpora
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-user-api-key': userKey,
-          'X-User-Gemini-Key': userKey,
+          ...(userKey && {
+            'x-user-api-key': userKey,
+            'X-User-Gemini-Key': userKey,
+          }),
         },
         body: JSON.stringify({
           operation: 'corporate-bridge',

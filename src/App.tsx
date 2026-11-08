@@ -16,7 +16,6 @@ import { AIHelper, AIHelperRequest } from './components/AIHelper';
 import { useLanguagePair } from './hooks/useLanguagePair';
 import { LanguagePairBanner } from './components/LanguagePairBanner';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import { LockedFeatureModal } from './components/LockedFeatureModal';
 import { ReviewPrompt } from './components/ReviewPrompt';
 import { API_QUOTA_LIMIT_EVENT, useApiKeyGate } from './hooks/useApiKeyGate';
 
@@ -139,7 +138,6 @@ export default function App() {
   const { sourceLang, targetLang, setPair } = useLanguagePair();
   const { hasKey } = useApiKeyGate();
   const [progress, setProgress] = useState<UserProgress>(loadUserProgress());
-  const [lockedFeatureOpen, setLockedFeatureOpen] = useState(false);
 
   const updateAndSaveProgress = (updater: (prev: UserProgress) => UserProgress) => {
     setProgress((prev) => {
@@ -322,32 +320,6 @@ export default function App() {
                 onOpenSelector={() => setLangSelectorOpen(true)}
               />
 
-              {/* AI Upsell Soft-Lock Banner */}
-              {!hasKey && (
-                <div className="p-3.5 rounded-2xl bg-stone-900 border border-amber-500/40 text-start space-y-2 shadow-xl animate-in fade-in">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-lg shrink-0">🤖</span>
-                      <h3 className="text-xs sm:text-sm font-extrabold text-amber-400 truncate">
-                        {isArabic ? 'تفعيل معلم الذكاء الاصطناعي الصوتي' : 'Unlock the AI Voice Tutor'}
-                      </h3>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setView({ name: 'preferences' })}
-                      className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 text-xs font-black transition active:scale-95 shrink-0 shadow-md"
-                    >
-                      {isArabic ? 'ربط المفتاح' : 'Connect API Key'}
-                    </button>
-                  </div>
-                  <p className="text-xs text-stone-200 font-medium leading-relaxed">
-                    {isArabic
-                      ? 'أضف مفتاح Google Gemini API المجاني الخاص بك لتفعيل التدريب الصوتي والمحادثات المفتوحة.'
-                      : 'Add your free Google Gemini API key to enable Voice Practice and unlimited AI conversations.'}
-                  </p>
-                </div>
-              )}
-
               <PathView
                 state={progression}
                 targetLang={targetLang}
@@ -363,15 +335,9 @@ export default function App() {
           {activeTab === 'practice' && (
             <PracticeHubView
               state={progression}
-              onOpenVoice={() => {
-                if (hasKey) setView({ name: 'voice' });
-                else setLockedFeatureOpen(true);
-              }}
+              onOpenVoice={() => setView({ name: 'voice' })}
               onOpenFlashcards={() => setView({ name: 'flashcards' })}
-              onOpenCorporate={() => {
-                if (hasKey) setView({ name: 'corporate' });
-                else setLockedFeatureOpen(true);
-              }}
+              onOpenCorporate={() => setView({ name: 'corporate' })}
               onOpenMaintenance={() => setView({ name: 'maintenance' })}
               onOpenPronunciation={() => setView({ name: 'pronunciation' })}
               isArabic={isArabic}
@@ -439,18 +405,11 @@ export default function App() {
         />
       )}
 
-      {view.name === 'corporate' && hasKey && (
+      {view.name === 'corporate' && (
         <CorporateBridgeView
           onBack={goHome}
           onToast={(msg) => showToast(T(msg, msg))}
           preferredVoice={progress.preferredVoice}
-        />
-      )}
-      {view.name === 'corporate' && !hasKey && (
-        <LockedFeatureModal
-          isArabic={isArabic}
-          onClose={goHome}
-          onOpenPreferences={() => setView({ name: 'preferences' })}
         />
       )}
 
@@ -575,28 +534,7 @@ export default function App() {
 
       {/* Floating AI Helper */}
       {!onboardingOpen && !activeLessonNode && (
-        hasKey ? (
-          <AIHelper profile={profile} request={aiHelperRequest} />
-        ) : (
-          <button
-            type="button"
-            onClick={() => setLockedFeatureOpen(true)}
-            aria-label={isArabic ? 'فتح مساعد الذكاء الاصطناعي' : 'Unlock the AI helper'}
-            className="fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom,0px))] right-4 z-[999] flex h-14 w-14 items-center justify-center rounded-full border border-primary/40 bg-primary text-on-primary shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-          >
-            🔑
-          </button>
-        )
-      )}
-      {lockedFeatureOpen && (
-        <LockedFeatureModal
-          isArabic={isArabic}
-          onClose={() => setLockedFeatureOpen(false)}
-          onOpenPreferences={() => {
-            setLockedFeatureOpen(false);
-            setView({ name: 'preferences' });
-          }}
-        />
+        <AIHelper profile={profile} request={aiHelperRequest} />
       )}
 
       {/* Floating Toast Notification */}
