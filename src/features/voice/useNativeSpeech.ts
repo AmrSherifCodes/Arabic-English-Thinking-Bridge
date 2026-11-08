@@ -103,15 +103,24 @@ export function useNativeSpeech({
   const resetSilenceTimer = useCallback((text: string) => {
     clearSilenceTimer();
     if (!text.trim()) return;
-    silenceTimerRef.current = setTimeout(() => {
-      try {
-        webRecognizerRef.current?.stop();
-      } catch (stopError) {
-        console.warn('[useNativeSpeech] Could not stop browser recognition after silence.', stopError);
+    silenceTimerRef.current = setTimeout(async () => {
+      if (isNative) {
+        try {
+          await OfflineSTT.stopListening();
+        } catch (err) {
+          console.warn('[useNativeSpeech] Could not stop native recognition after silence.', err);
+        }
         triggerSpeechEnd(latestTranscriptRef.current || text);
+      } else {
+        try {
+          webRecognizerRef.current?.stop();
+        } catch (stopError) {
+          console.warn('[useNativeSpeech] Could not stop browser recognition after silence.', stopError);
+          triggerSpeechEnd(latestTranscriptRef.current || text);
+        }
       }
     }, silenceTimeoutMs);
-  }, [clearSilenceTimer, silenceTimeoutMs, triggerSpeechEnd]);
+  }, [clearSilenceTimer, silenceTimeoutMs, triggerSpeechEnd, isNative]);
 
   const startListening = useCallback(async (language = 'en-US') => {
     setError(null);
@@ -132,6 +141,7 @@ export function useNativeSpeech({
           if (res.text) {
             latestTranscriptRef.current = res.text.trim();
             setInterimTranscript(latestTranscriptRef.current);
+            resetSilenceTimer(latestTranscriptRef.current);
           }
         });
 
@@ -240,8 +250,8 @@ export function useNativeSpeech({
         await OfflineSTT.stopListening();
       } catch (stopError) {
         console.warn('[useNativeSpeech] Native recognition stop failed.', stopError);
-        triggerSpeechEnd(latestTranscriptRef.current);
       }
+      triggerSpeechEnd(latestTranscriptRef.current);
       return;
     }
 

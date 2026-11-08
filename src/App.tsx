@@ -510,15 +510,7 @@ export default function App() {
         isArabic={isArabic}
       />
 
-      {/* Floating Review Prompt */}
-      {!onboardingOpen && !activeLessonNode && (
-        <ReviewPrompt
-          profile={profile}
-          onOpenFeedback={() => setFeedbackOpen(true)}
-          onToast={(msg) => showToast(T(msg, msg))}
-          isArabic={isArabic}
-        />
-      )}
+
 
       {/* Feedback Review Modal */}
       <FeedbackModal

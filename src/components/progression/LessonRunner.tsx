@@ -61,8 +61,17 @@ export function LessonRunner({
 
     const targetSentence = currentExercise.targetSentence || '';
 
+    const normalizeAnswer = (value: string) => {
+      const normalized = value.toLowerCase().replace(/['".,?!。、「」]/g, '');
+      return normalized.trim().replace(/\s+/g, ' ');
+    };
+
     if (currentExercise.type === 'structure_builder') {
       const currentChoice = selectedChips.join(' ');
+
+      // If already correct, don't show hint
+      if (normalizeAnswer(currentChoice) === normalizeAnswer(targetSentence)) return;
+
       const { nextWord } = computeNextHintWord(targetSentence, currentChoice);
 
       // Try to find nextWord in available options that hasn't been selected yet
@@ -93,6 +102,7 @@ export function LessonRunner({
         );
       }
     } else {
+      if (normalizeAnswer(userInput) === normalizeAnswer(targetSentence)) return;
       const { nextWord, prefixToKeep } = computeNextHintWord(targetSentence, userInput);
       if (nextWord) {
         const updatedInput = prefixToKeep ? `${prefixToKeep} ${nextWord}` : nextWord;
@@ -144,6 +154,7 @@ export function LessonRunner({
 
     setIsCorrect(isMatch);
     if (isMatch) soundFX.playCorrect(); else soundFX.playError();
+    setAutoHintPill(null); // Clear any active hint
     setIsAnswered(true);
 
     if (isMatch) {

@@ -262,13 +262,6 @@ export function VoicePracticeView({
           >
             ❓
           </button>
-          <button
-            className="voice__type-toggle"
-            onClick={() => setShowInput((prev) => !prev)}
-            aria-label="Toggle text input"
-          >
-            ⌨️
-          </button>
         </div>
       </header>
 

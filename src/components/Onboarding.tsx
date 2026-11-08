@@ -50,7 +50,14 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
 
   const goToNextStep = (nextDir = 1) => {
     setDirection(nextDir);
-    setStep((prev) => Math.min(prev + 1, 4));
+    setStep((prev) => {
+      const next = prev + 1;
+      if (next === 3) {
+        setCompanion('chill');
+        return 4;
+      }
+      return Math.min(next, 4);
+    });
   };
 
   const goToPrevStep = () => {
@@ -59,7 +66,11 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
       return;
     }
     setDirection(-1);
-    setStep((prev) => Math.max(prev - 1, 0));
+    setStep((prev) => {
+      const next = prev - 1;
+      if (next === 3) return 2;
+      return Math.max(next, 0);
+    });
   };
 
   const handleSelectDirectionCardA = () => {
@@ -428,7 +439,7 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
                     English Thought Scenario
                   </span>
                   <p className="text-xl font-black text-amber-300 dir-ltr font-mono">
-                    &quot;Let the cat out.&quot;
+                    &quot;It's raining cats and dogs.&quot;
                   </p>
                 </div>
 
@@ -442,7 +453,7 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
                     }}
                     className="w-full p-3.5 rounded-2xl border border-stone-700 bg-stone-800/80 hover:border-amber-500/50 hover:bg-stone-800 text-start text-xs font-semibold text-stone-200 transition-all flex items-center justify-between"
                   >
-                    <span>❌ أخرج القطة خارج المنزل (ترجمة حرفية)</span>
+                    <span>❌ تمطر قططاً وكلاباً (ترجمة حرفية)</span>
                     <span className="text-[10px] text-stone-400 bg-stone-900 px-2 py-0.5 rounded-md">
                       مبتدئ A1
                     </span>
@@ -457,7 +468,7 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
                     }}
                     className="w-full p-3.5 rounded-2xl border border-teal-500/50 bg-teal-950/30 hover:border-teal-400 hover:bg-teal-900/30 text-start text-xs font-bold text-teal-200 transition-all flex items-center justify-between shadow-md"
                   >
-                    <span>💡 أفشى السر أو كشف المستور (المعنى الاصطلاحي)</span>
+                    <span>💡 تمطر بغزارة (المعنى الاصطلاحي)</span>
                     <span className="text-[10px] text-teal-300 bg-teal-900/60 px-2 py-0.5 rounded-md">
                       متوسط A2/B1
                     </span>

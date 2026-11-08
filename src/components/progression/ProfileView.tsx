@@ -33,6 +33,30 @@ export function ProfileView({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportSuccess, setExportSuccess] = useState(false);
+
+  const handleExportToAnki = async () => {
+    setIsExporting(true);
+    setExportSuccess(false);
+    try {
+      const { exportToAnki } = await import('../../utils/ankiExport');
+      const count = await exportToAnki(state);
+      setExportSuccess(true);
+      setTimeout(() => setExportSuccess(false), 3000);
+      onToast?.(isArabic
+        ? `📥 تم تصدير ${count} بطاقة إلى Anki`
+        : `📥 Exported ${count} cards to Anki`);
+    } catch (error: unknown) {
+      console.error('Unable to export the Anki deck.', error);
+      onToast?.(isArabic
+        ? 'لا توجد بطاقات محفوظة للتصدير'
+        : error instanceof Error ? error.message : 'Unable to export the Anki deck');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const handleExportJson = () => {
     const backupData = {
       version: '3.1.0',
@@ -174,26 +198,38 @@ export function ProfileView({
         </button>
 
         {/* Top Anki Deck Export Entry Point */}
-        <button
-          type="button"
-          onClick={() => {
-            import('../../utils/ankiExport').then(async ({ exportToAnki }) => {
-              const count = await exportToAnki(state);
-              onToast?.(isArabic
-                ? `📥 تم تصدير ${count} بطاقة إلى Anki`
-                : `📥 Exported ${count} cards to Anki`);
-            }).catch((error: unknown) => {
-              console.error('Unable to export the Anki deck.', error);
-              onToast?.(isArabic
-                ? 'لا توجد بطاقات محفوظة للتصدير'
-                : error instanceof Error ? error.message : 'Unable to export the Anki deck');
-            });
-          }}
-          className="w-full flex items-center justify-center gap-2 rounded-xl bg-amber-500/10 border border-amber-500/30 px-3 py-2 text-xs font-bold text-amber-300 transition hover:bg-amber-500/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-400"
-        >
-          <Download size={15} className="text-amber-400" />
-          <span>{isArabic ? '📤 تصدير بطاقاتي إلى Anki (CSV)' : '📤 Export my cards to Anki (CSV)'}</span>
-        </button>
+        <div className="w-full p-4 rounded-2xl bg-stone-900 border border-stone-800 flex flex-col gap-3">
+          <div className="flex items-center gap-3 text-stone-300 text-sm font-bold">
+            <div className="p-2 rounded-lg bg-amber-500/20 text-amber-400">
+              <Download size={18} />
+            </div>
+            <div className="text-start flex-1">
+              <h4 className="text-white">{isArabic ? 'تصدير إلى Anki' : 'Export to Anki'}</h4>
+              <p className="text-[10px] text-stone-400 font-normal">
+                {isArabic ? 'احفظ بطاقاتك لتراجعها لاحقاً' : 'Save your cards for later review'}
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={handleExportToAnki}
+            disabled={isExporting || exportSuccess}
+            className="w-full flex items-center justify-center gap-2 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:bg-stone-800 disabled:text-stone-500 text-stone-950 px-3 py-2.5 text-xs font-black transition-all"
+          >
+            {isExporting ? (
+              <span className="w-4 h-4 border-2 border-stone-400 border-t-amber-400 rounded-full animate-spin" />
+            ) : exportSuccess ? (
+              <>
+                <CheckCircle2 size={16} className="text-emerald-500" />
+                <span>{isArabic ? 'تم التصدير بنجاح' : 'Exported Successfully'}</span>
+              </>
+            ) : (
+              <>
+                <span>{isArabic ? 'تصدير بصيغة CSV' : 'Export as CSV'}</span>
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
       {/* 2. 5-Skill Radar Chart */}
@@ -261,23 +297,22 @@ export function ProfileView({
 
         <div className="flex flex-col gap-2">
           <button
-            onClick={() => {
-              import('../../utils/ankiExport').then(async ({ exportToAnki }) => {
-                const count = await exportToAnki(state);
-                onToast?.(isArabic
-                  ? `📥 تم تصدير ${count} بطاقة إلى Anki`
-                  : `📥 Exported ${count} cards to Anki`);
-              }).catch((error: unknown) => {
-                console.error('Unable to export the Anki deck.', error);
-                onToast?.(isArabic
-                  ? 'لا توجد بطاقات محفوظة للتصدير'
-                  : error instanceof Error ? error.message : 'Unable to export the Anki deck');
-              });
-            }}
-            className="w-full p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 font-bold text-xs hover:bg-amber-500/20 transition flex items-center justify-between"
+            onClick={handleExportToAnki}
+            disabled={isExporting || exportSuccess}
+            className="w-full p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 font-bold text-xs hover:bg-amber-500/20 disabled:opacity-50 transition flex items-center justify-between"
           >
-            <span>{isArabic ? 'تصدير بطاقات الاستذكار إلى Anki (CSV)' : 'Export SRS Deck to Anki (CSV)'}</span>
-            <Download size={14} className="text-amber-400" />
+            <span>
+              {isExporting ? (isArabic ? 'جاري التصدير...' : 'Exporting...')
+                : exportSuccess ? (isArabic ? 'تم التصدير بنجاح' : 'Exported Successfully')
+                : (isArabic ? 'تصدير بطاقات الاستذكار إلى Anki (CSV)' : 'Export SRS Deck to Anki (CSV)')}
+            </span>
+            {isExporting ? (
+              <span className="w-3.5 h-3.5 border-2 border-amber-400/30 border-t-amber-400 rounded-full animate-spin" />
+            ) : exportSuccess ? (
+              <CheckCircle2 size={14} className="text-emerald-400" />
+            ) : (
+              <Download size={14} className="text-amber-400" />
+            )}
           </button>
 
           <button
