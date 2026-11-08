@@ -667,6 +667,14 @@ async function generate(operation, body, customKey) {
       en: 'professional English',
       de: 'professional German (Businessdeutsch, with proper Höflichkeitsform)',
       ja: 'professional Japanese (丁寧語/敬語 business register)',
+      es: 'professional Spanish (Español profesional / corporativo)',
+      fr: 'professional French (Français professionnel / d\'affaires)',
+      it: 'professional Italian (Italiano professionale / aziendale)',
+      pt: 'professional Portuguese (Português profissional / corporativo)',
+      ru: 'professional Russian (Деловой русский язык)',
+      zh: 'professional Chinese (商务中文)',
+      hi: 'professional Hindi (व्यावसायिक हिंदी)',
+      el: 'professional Greek (Επαγγελματικά ελληνικά)',
     };
     const targetDesc = LANG_PROMPT[targetLang] || LANG_PROMPT.en;
 
