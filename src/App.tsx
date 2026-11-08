@@ -12,12 +12,11 @@ import { PwaInstallBanner } from './components/PwaInstallBanner';
 import { useUserProfile } from './hooks/useUserProfile';
 import { loadUserProgress } from './utils/storage';
 import { UserProgress, LearningGoal } from './types';
-import { AIHelper, AIHelperRequest } from './components/AIHelper';
 import { useLanguagePair } from './hooks/useLanguagePair';
 import { LanguagePairBanner } from './components/LanguagePairBanner';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { ReviewPrompt } from './components/ReviewPrompt';
-import { API_QUOTA_LIMIT_EVENT, useApiKeyGate } from './hooks/useApiKeyGate';
+import { API_QUOTA_LIMIT_EVENT } from './hooks/useApiKeyGate';
 
 import { CefrStage, ProgressionState, LessonNode } from './progression/types';
 import { migrateLegacyStorageToProgression } from './progression/migration';
@@ -136,7 +135,6 @@ export default function App() {
 
   const { profile, saveProfile } = useUserProfile();
   const { sourceLang, targetLang, setPair } = useLanguagePair();
-  const { hasKey } = useApiKeyGate();
   const [progress, setProgress] = useState<UserProgress>(loadUserProgress());
 
   const updateAndSaveProgress = (updater: (prev: UserProgress) => UserProgress) => {
@@ -174,7 +172,6 @@ export default function App() {
 
   const [toastMsg, setToastMsg] = useState<React.ReactNode | null>(null);
   const toastTimerRef = useRef<number | null>(null);
-  const [aiHelperRequest] = useState<AIHelperRequest | null>(null);
   const [showApkBanner, setShowApkBanner] = useState(false);
 
   useEffect(() => {
@@ -531,11 +528,6 @@ export default function App() {
         onToast={(msg) => showToast(T(msg, msg))}
         profile={profile}
       />
-
-      {/* Floating AI Helper */}
-      {!onboardingOpen && !activeLessonNode && (
-        <AIHelper profile={profile} request={aiHelperRequest} />
-      )}
 
       {/* Floating Toast Notification */}
       {toastMsg && (

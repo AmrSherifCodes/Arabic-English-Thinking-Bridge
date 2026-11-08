@@ -93,7 +93,6 @@ export function evaluateBadges(
   ];
 }
 
-export const TEACHER_WHATSAPP = ''; // Optional: set country code + digits locally; empty opens WhatsApp contact picker without exposing a personal number
 export const FEEDBACK_FORM_URL = 'https://forms.gle/QhXYEV3gEusYLnxf9'; // Google Form review link
 export const DEFAULT_SHARED_APP_URL =
   'https://ais-pre-qp3icj4ktcb7lwv2zyeyno-589911161083.europe-west3.run.app';
@@ -113,7 +112,7 @@ export function feedbackMessage(
   return `Thinking English™ feedback\nRating: ${rating ? rating + '/5' : '-'}\nLessons done: ${p.completedLessonIds.length}/${lessonsTotal} · Score: ${p.score}\nHardest: ${weak}\n\n${text}\n\nReview Form: ${FEEDBACK_FORM_URL}`;
 }
 
-export function buildFriendShareWhatsAppMessage(customAppUrl?: string): string {
+export function buildFriendShareMessage(customAppUrl?: string): string {
   const origin =
     customAppUrl ||
     (typeof window !== 'undefined' && window.location?.origin && !window.location.origin.includes('localhost')
@@ -126,14 +125,6 @@ export function buildFriendShareWhatsAppMessage(customAppUrl?: string): string {
     `📝 *Share your review & feedback / شاركنا رأيك وتقييمك بعد التجربة:*\n${FEEDBACK_FORM_URL}`
   );
 }
-
-export const waLink = (msg: string) =>
-  TEACHER_WHATSAPP
-    ? `https://wa.me/${TEACHER_WHATSAPP}?text=${encodeURIComponent(msg)}`
-    : `https://wa.me/?text=${encodeURIComponent(msg)}`;
-
-export const waFriendShareLink = (msg: string) =>
-  `https://wa.me/?text=${encodeURIComponent(msg)}`;
 
 export const mailLink = (msg: string) =>
   `mailto:?subject=${encodeURIComponent('Thinking English™ feedback')}&body=${encodeURIComponent(msg)}`;

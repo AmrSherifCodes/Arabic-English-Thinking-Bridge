@@ -1,14 +1,12 @@
 import React from 'react';
 import { Lesson, Phase, UserProgress } from '../types';
 import {
-  buildFriendShareWhatsAppMessage,
+  buildFriendShareMessage,
   calculateLevelInfo,
   evaluateBadges,
   FEEDBACK_FORM_URL,
   feedbackMessage,
   mailLink,
-  waFriendShareLink,
-  waLink
 } from '../utils/fx';
 import { InteractiveArabicSentence } from './InteractiveArabicSentence';
 import { ReviewHeatmapCard } from './ReviewHeatmapCard';
@@ -201,15 +199,15 @@ export function ProgressView({
         />
       </div>
 
-      {/* Share with Friends on WhatsApp */}
+      {/* Share with Friends */}
       <div className={CARD_CLASS}>
-        <h3 className="font-semibold mb-1">📲 Share with friends on WhatsApp</h3>
+        <h3 className="font-semibold mb-1">📲 Share with friends</h3>
         <p className="text-xs opacity-75 mb-2.5">
           Send your friends the live app link along with the review form (
           <span className="underline">{FEEDBACK_FORM_URL}</span>) in one tap:
         </p>
         <pre className="whitespace-pre-wrap text-xs rounded-xl bg-stone-100 dark:bg-stone-900/70 p-3 border border-stone-300 dark:border-stone-700 mb-2.5 leading-relaxed">
-          {buildFriendShareWhatsAppMessage()}
+          {buildFriendShareMessage()}
         </pre>
         <div className="flex flex-wrap gap-2">
           <button
@@ -218,22 +216,14 @@ export function ProgressView({
             onClick={onDownloadOfflineHtml}
             className={`${BTN_PRIMARY} w-full text-center flex items-center justify-center cursor-pointer`}
           >
-            📥 Download Thinking-English.html File (Attach in WhatsApp)
+            📥 Download Thinking-English.html File
           </button>
-          <a
-            href={waFriendShareLink(buildFriendShareWhatsAppMessage())}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`${BTN_GHOST} flex-1 text-center flex items-center justify-center`}
-          >
-            📲 Send Link on WhatsApp
-          </a>
           <button
             type="button"
             onClick={() => {
               navigator.clipboard
-                ?.writeText(buildFriendShareWhatsAppMessage())
-                .then(() => onToast('WhatsApp message copied ✓'))
+                ?.writeText(buildFriendShareMessage())
+                .then(() => onToast('Message copied ✓'))
                 .catch(() => onToast('Copy not supported here'));
             }}
             className={`${BTN_GHOST} flex-1`}
@@ -270,19 +260,15 @@ export function ProgressView({
         />
         <div className="flex flex-wrap gap-2 mt-2">
           <a
-            href={waLink(
+            href={mailLink(
               feedbackMessage(feedbackRating, feedbackText, progress, allLessons.length)
             )}
             target="_blank"
             rel="noopener noreferrer"
             className={`${BTN_PRIMARY} flex-1 text-center flex items-center justify-center`}
           >
-            WhatsApp
+            Email
           </a>
-          <a
-            href={mailLink(
-              feedbackMessage(feedbackRating, feedbackText, progress, allLessons.length)
-            )}
             className={`${BTN_GHOST} flex-1 text-center flex items-center justify-center`}
           >
             Email

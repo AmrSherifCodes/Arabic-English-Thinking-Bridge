@@ -1,5 +1,5 @@
 /**
- * Utility functions for Web Share API and WhatsApp sharing fallback.
+ * Utility functions for Web Share API and sharing fallback.
  */
 
 export interface ShareDataPayload {
@@ -21,15 +21,17 @@ export async function shareAchievementOrProgress(data: ShareDataPayload): Promis
       });
       return true;
     } catch {
-      /* User cancelled or share failed, fallback to WhatsApp */
+      /* User cancelled or share failed, fallback to copy to clipboard */
     }
   }
 
-  // Fallback: Open WhatsApp directly
-  const encoded = encodeURIComponent(fullText);
-  const waUrl = `https://wa.me/?text=${encoded}`;
-  if (typeof window !== 'undefined') {
-    window.open(waUrl, '_blank', 'noopener,noreferrer');
+  // Fallback: Copy to clipboard
+  try {
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      await navigator.clipboard.writeText(fullText);
+    }
+  } catch {
+    /* Copy failed */
   }
   return true;
 }
