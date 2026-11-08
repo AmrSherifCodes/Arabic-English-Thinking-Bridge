@@ -41,6 +41,12 @@ interface PresetBridge {
     assertive: string;
     executive: string;
   };
+  fr?: {
+    thinkingShift: string;
+    polite: string;
+    assertive: string;
+    executive: string;
+  };
 }
 
 const PRESET_BRIDGES: PresetBridge[] = [
@@ -71,6 +77,12 @@ const PRESET_BRIDGES: PresetBridge[] = [
       polite: 'Hola equipo, una actualización: el cliente está retrasando los datos y tarda en responder. ¿Podríamos hacer seguimiento hoy?',
       assertive: 'El cliente está retrasando los datos y las respuestas. Por favor, hagan seguimiento hoy y confirmen la fecha de entrega.',
       executive: 'Retraso del cliente en datos y respuestas bloquea el avance. Acción: escalar hoy y asegurar fecha firme de entrega.'
+    },
+    fr: {
+      thinkingShift: 'En français professionnel, formulez le retard de manière factuelle et demandez un suivi bienveillant mais ferme.',
+      polite: 'Bonjour à tous, un point d’étape : le client prend du retard sur les données. Pourrions-nous faire une relance aujourd’hui ?',
+      assertive: 'Le client tarde à envoyer les données et à répondre. Merci de faire un suivi aujourd’hui pour confirmer une date.',
+      executive: 'Retard client sur les données. Action : relancer aujourd’hui et fixer une date d’engagement.'
     }
   },
   {
@@ -100,6 +112,12 @@ const PRESET_BRIDGES: PresetBridge[] = [
       polite: 'Disculpen la demora en la respuesta — estaba en una reunión y perdí su correo. Les responderé en breve.',
       assertive: 'Estaba en una reunión y no vi su correo. Lo reviso ahora y respondo antes de que termine el día.',
       executive: 'Correo perdido por reunión. Revisando ahora; respuesta antes de EOD.'
+    },
+    fr: {
+      thinkingShift: 'Une excuse brève + cause + engagement de réponse rapide est la formule idéale en français d’affaires.',
+      polite: 'Veuillez excuser ma réponse tardive — j’étais en réunion et n’ai pas vu votre message. Je vous réponds très rapidement.',
+      assertive: 'J’étais en réunion et n’ai pas pu consulter votre e-mail. Je le traite actuellement et vous réponds d’ici la fin de journée.',
+      executive: 'Message manqué en raison d’une réunion. Traitement en cours ; retour avant la fin de journée.'
     }
   },
   {
@@ -129,6 +147,12 @@ const PRESET_BRIDGES: PresetBridge[] = [
       polite: '¿Podríamos revisar estas cuentas? Creo que puede haber un error que conviene verificar.',
       assertive: 'Debemos revisar estas cuentas — parece haber un error que debe corregirse.',
       executive: 'Acción: revisar estas cuentas. Se identificó un error que requiere corrección.'
+    },
+    fr: {
+      thinkingShift: 'Proposez une vérification conjointe en utilisant un vocabulaire constructif (erreur/écart).',
+      polite: 'Pourrions-nous vérifier ces comptes ensemble ? Il me semble qu’il y a une légère erreur à contrôler.',
+      assertive: 'Nous devons réviser ces comptes — une erreur est apparue et doit être corrigée.',
+      executive: 'Action : réviser ces comptes. Une erreur identifiée nécessite une correction rapide.'
     }
   },
   {
@@ -158,6 +182,12 @@ const PRESET_BRIDGES: PresetBridge[] = [
       polite: 'Deberíamos cerrar esto antes de fin de semana si es posible. ¿Podemos alinear un plan y responsables?',
       assertive: 'Debemos terminar esto antes de fin de semana. Por favor, confirmen su parte hoy.',
       executive: 'Fecha límite firme: fin de semana. Todos los responsables a confirmar hoy.'
+    },
+    fr: {
+      thinkingShift: 'Fixez une échéance claire (fin de semaine) et demandez la confirmation des responsables.',
+      polite: 'Il serait préférable de finaliser ceci avant la fin de la semaine. Pourrions-nous valider le plan d’action ?',
+      assertive: 'Nous devons impérativement terminer ceci avant la fin de la semaine. Merci de confirmer votre partie aujourd’hui.',
+      executive: 'Délai ferme : fin de semaine. Merci à chaque responsable de confirmer aujourd’hui.'
     }
   },
   {
@@ -187,6 +217,12 @@ const PRESET_BRIDGES: PresetBridge[] = [
       polite: 'El presupuesto actual no parece cubrir el alcance requerido. ¿Podríamos revisarlo juntos?',
       assertive: 'El presupuesto no cubre el alcance requerido. Necesitamos una cifra revisada antes de continuar.',
       executive: 'Brecha presupuesto vs. alcance. Decisión necesaria: aumentar presupuesto o reducir alcance.'
+    },
+    fr: {
+      thinkingShift: 'Présentez le décalage entre le budget et le périmètre pour obtenir un arbitrage clair.',
+      polite: 'Le budget actuel ne semble pas couvrir l’intégralité du périmètre. Pourrions-nous faire un point ?',
+      assertive: 'Le budget est insuffisant pour le périmètre demandé. Il nous faut un montant révisé pour continuer.',
+      executive: 'Écart budget vs périmètre. Décision requise : augmenter le budget ou ajuster le périmètre.'
     }
   },
 ];
