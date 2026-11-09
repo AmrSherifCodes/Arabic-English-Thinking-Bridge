@@ -1,11 +1,14 @@
-import React from 'react';
-import { Github, Linkedin, ExternalLink, Code2, Sparkles, Award } from 'lucide-react';
+import React, { useState } from 'react';
+import { Github, Linkedin, ExternalLink, Code2, Sparkles, Award, ScrollText } from 'lucide-react';
+import { ConstitutionModal } from './ConstitutionModal';
 
 interface FounderSectionProps {
   isArabic?: boolean;
 }
 
 export function FounderSection({ isArabic = true }: FounderSectionProps) {
+  const [constitutionOpen, setConstitutionOpen] = useState(false);
+
   return (
     <section className="max-w-[1200px] mx-auto px-4 py-16" dir={isArabic ? 'rtl' : 'ltr'}>
       <div className="relative rounded-3xl border border-[var(--landing-border)] bg-[var(--landing-surface)]/80 backdrop-blur-xl p-8 sm:p-12 overflow-hidden shadow-2xl">
@@ -83,6 +86,14 @@ export function FounderSection({ isArabic = true }: FounderSectionProps) {
                 <span className="text-[var(--landing-secondary-amber)] font-black text-xs">𝕏</span>
                 <span>@sciamrsherif</span>
               </a>
+
+              <button
+                onClick={() => setConstitutionOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-stone-900 border border-stone-800 text-stone-200 text-xs font-bold hover:border-teal-400 hover:text-white transition shadow-sm"
+              >
+                <ScrollText size={14} className="text-teal-400" />
+                <span>{isArabic ? '📜 الدستور' : '📜 Constitution'}</span>
+              </button>
             </div>
           </div>
 
@@ -151,6 +162,12 @@ export function FounderSection({ isArabic = true }: FounderSectionProps) {
           </div>
         </div>
       </div>
+
+      <ConstitutionModal
+        isOpen={constitutionOpen}
+        onClose={() => setConstitutionOpen(false)}
+        isArabic={isArabic}
+      />
     </section>
   );
 }
