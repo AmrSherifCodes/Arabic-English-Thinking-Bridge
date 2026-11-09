@@ -583,6 +583,14 @@ export function LandingView({ onStartWebApp, isArabic = true }: LandingViewProps
         </p>
         <p>Copyright (c) 2024-Present Amr Sherif Abdelaal</p>
 
+        <div className="flex justify-center items-center gap-2 mt-1 mb-2">
+          <img
+            src="https://github.com/AmrSherifCodes.png"
+            alt="Amr Sherif (@sciamrsherif)"
+            className="w-12 h-12 rounded-full border border-[var(--landing-border)]"
+          />
+        </div>
+
         <div className="flex flex-wrap justify-center gap-4 pt-1 font-bold">
           <a href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge" target="_blank" rel="noopener noreferrer" aria-label="GitHub repository" className="hover:text-[var(--landing-accent-teal)] transition">
             GitHub
