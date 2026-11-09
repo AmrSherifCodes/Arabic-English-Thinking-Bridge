@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Globe } from 'lucide-react';
 import constitutionEn from '../channelConstitution.md?raw';
 import constitutionAr from '../channelConstitution.ar.md?raw';
@@ -12,6 +12,21 @@ interface ConstitutionModalProps {
 export function ConstitutionModal({ isOpen, onClose, isArabic = true }: ConstitutionModalProps) {
   const [showArabic, setShowArabic] = useState(isArabic);
 
+  useEffect(() => {
+    setShowArabic(isArabic);
+  }, [isArabic]);
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const content = showArabic ? constitutionAr : constitutionEn;
@@ -22,13 +37,20 @@ export function ConstitutionModal({ isOpen, onClose, isArabic = true }: Constitu
       dir={isArabic ? 'rtl' : 'ltr'}
       role="dialog"
       aria-modal="true"
+      onClick={onClose}
+      onKeyDown={(e) => e.key === 'Escape' && onClose()}
+      tabIndex={-1}
+      aria-labelledby="constitution-title"
     >
-      <div className="w-full max-w-2xl rounded-3xl bg-[#0F151C] border border-[#1E2933] p-6 space-y-4 text-start max-h-[85vh] overflow-y-auto shadow-2xl flex flex-col">
+      <div
+        className="w-full max-w-2xl rounded-3xl bg-[#0F151C] border border-[#1E2933] p-6 space-y-4 text-start max-h-[85vh] overflow-y-auto shadow-2xl flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="flex items-center justify-between border-b border-stone-800 pb-3 shrink-0">
           <div className="flex items-center gap-2 text-teal-400 font-black text-sm">
             <Globe size={18} />
-            <span>{showArabic ? 'دستور القناة' : 'Channel Constitution'}</span>
+            <span id="constitution-title">{showArabic ? 'دستور القناة' : 'Channel Constitution'}</span>
           </div>
           <button onClick={onClose} className="text-stone-400 hover:text-white font-bold text-xs">
             <X size={18} />
