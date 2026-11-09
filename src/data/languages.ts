@@ -277,6 +277,17 @@ export const SOURCE_LANGUAGES: Record<SourceLanguage, LanguageMeta> = {
 };
 
 export const TARGET_LANGUAGE_META: Record<TargetLanguage, LanguageMeta> = {
+  ar: {
+    code: 'ar',
+    nameEn: 'Arabic',
+    nameNative: 'العربية',
+    nameAr: 'العربية',
+    flag: '🇸🇦',
+    direction: 'rtl',
+    descriptionEn: 'Modern Standard Arabic',
+    descriptionAr: 'العربية الفصحى',
+    badge: 'العربية',
+  },
   en: {
     code: 'en',
     nameEn: 'English',
@@ -401,6 +412,7 @@ export const TARGET_LANGUAGE_META: Record<TargetLanguage, LanguageMeta> = {
 };
 
 export const TARGET_LANGUAGES: LanguageConfig[] = [
+  { code: 'ar', nameEn: 'Arabic', nameAr: 'العربية', flag: '🇸🇦', defaultVoice: 'ar-SA-HamedNeural' },
   { code: 'en', nameEn: 'English', nameAr: 'الإنجليزية', flag: '🇬🇧', defaultVoice: 'en-US-AvaNeural' },
   { code: 'de', nameEn: 'German', nameAr: 'الألمانية', flag: '🇩🇪', defaultVoice: 'de-DE-KatjaNeural' },
   { code: 'ja', nameEn: 'Japanese', nameAr: 'اليابانية', flag: '🇯🇵', defaultVoice: 'ja-JP-NanamiNeural' },
@@ -415,6 +427,7 @@ export const TARGET_LANGUAGES: LanguageConfig[] = [
 ];
 
 export const TARGET_LANGUAGE_LOCALES: Record<TargetLanguage, string> = {
+  ar: 'ar-SA',
   en: 'en-US',
   de: 'de-DE',
   ja: 'ja-JP',
@@ -561,6 +574,17 @@ const CURATED_SUPPORTED_PAIRS: LanguagePairConfig[] = [
     taglineEn: 'The cognitive transfer bridge from Arabic to Italian',
     bridgeConceptAr: 'التكيف مع التوافق وإسقاط الفاعل كما في العربية',
     bridgeConceptEn: 'Adapting to agreement and pro-drop similar to Arabic'
+  },
+  {
+    id: 'en-ar',
+    source: 'en',
+    target: 'ar',
+    titleAr: 'من الإنجليزية للعربية · فكّر بالعربية',
+    titleEn: 'Think Arabic · From English',
+    taglineAr: 'دماغك يفكر عربي من الإنجليزية',
+    taglineEn: 'The cognitive transfer bridge from English to Arabic',
+    bridgeConceptAr: 'بناء الجمل العربية بالترتيب الصحيح (VSO/SVO)',
+    bridgeConceptEn: 'Arabic sentence structure and verb-subject-object order'
   },
   {
     id: 'en-de',

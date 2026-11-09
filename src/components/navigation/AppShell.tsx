@@ -3,7 +3,7 @@ import { ProgressionState } from '../../progression/types';
 import { TargetLanguage } from '../../types';
 import { LanguageFlag } from '../LanguageFlag';
 import { Map, Zap, Award, Trophy, User, Home } from 'lucide-react';
-import { PrivacyPolicyModal } from '../../PrivacyPolicyModal';
+import { PrivacyPolicyModal } from '../progression/PrivacyPolicyModal';
 
 export type AppTab = 'path' | 'practice' | 'quests' | 'league' | 'profile';
 
@@ -171,7 +171,7 @@ export function AppShell({
         })}
       </nav>
 
-      <PrivacyPolicyModal open={privacyOpen} onClose={() => setPrivacyOpen(false)} />
+      <PrivacyPolicyModal isOpen={privacyOpen} onClose={() => setPrivacyOpen(false)} />
     </div>
   );
 }
