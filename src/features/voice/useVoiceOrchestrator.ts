@@ -1167,7 +1167,7 @@ export function useVoiceOrchestrator(
     unlockAudio();
     stopAudio();
     setState('listening');
-    const sttLang = TARGET_LANGUAGE_LOCALES[effectiveTargetLang];
+    const sttLang = TARGET_LANGUAGE_LOCALES[effectiveTargetLang] || 'ar-SA';
     startListening(sttLang).catch(() => {
       setState('idle');
     });

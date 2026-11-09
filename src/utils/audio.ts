@@ -384,7 +384,7 @@ export function isSpeechRecognitionSupported(): boolean {
   );
 }
 
-export function createSpeechRecognition(): any | null {
+export function createSpeechRecognition(lang: string = 'en-US'): any | null {
   if (typeof window === 'undefined') return null;
   // In Brave, webkitSpeechRecognition triggers network errors; do not instantiate
   if (typeof navigator !== 'undefined' && Boolean((navigator as any).brave)) {
@@ -396,7 +396,7 @@ export function createSpeechRecognition(): any | null {
 
   if (!SpeechRecognition) return null;
   const recognizer = new SpeechRecognition();
-  recognizer.lang = 'en-US';
+  recognizer.lang = lang;
   recognizer.interimResults = false;
   recognizer.maxAlternatives = 1;
   return recognizer;

@@ -77,27 +77,33 @@
   border-radius: 50%;
   background: radial-gradient(circle at 30% 30%, #4f8cff, #7a5cff 60%, #1a1e29);
   box-shadow: 0 0 35px rgba(79, 140, 255, 0.35);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: transform 0.12s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.12s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
 }
 
 .voice__orb--listening {
   transform: scale(1.15);
   box-shadow: 0 0 60px rgba(79, 140, 255, 0.85);
-  animation: orb-pulse 1.6s infinite ease-in-out;
+  animation: orb-pulse 0.9s infinite ease-in-out, swoosh 0.4s ease-out;
 }
 
 .voice__orb--transcribing,
 .voice__orb--thinking {
   transform: scale(0.96);
   box-shadow: 0 0 50px rgba(255, 209, 92, 0.85);
-  animation: orb-spin 2s infinite linear;
+  animation: orb-spin 0.8s infinite linear, swoosh 0.4s ease-out;
 }
 
 .voice__orb--speaking {
   transform: scale(1.12);
   box-shadow: 0 0 60px rgba(92, 255, 158, 0.85);
-  animation: orb-speak 1.2s infinite ease-in-out;
+  animation: orb-speak 0.7s infinite ease-in-out, swoosh 0.4s ease-out;
+}
+
+@keyframes swoosh {
+  0% { transform: scale(0.9); }
+  50% { transform: scale(1.15); }
+  100% { transform: scale(0.9); }
 }
 
 @keyframes orb-pulse {
