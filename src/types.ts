@@ -25,7 +25,7 @@ export type SourceLanguage =
   | 'it'
   | 'el';
 
-export type TargetLanguage = 'en' | 'de' | 'ja' | 'es' | 'fr' | 'zh' | 'hi' | 'ru' | 'pt' | 'it' | 'el';
+export type TargetLanguage = 'ar' | 'en' | 'de' | 'ja' | 'es' | 'fr' | 'zh' | 'hi' | 'ru' | 'pt' | 'it' | 'el';
 
 export interface LanguagePair {
   source: SourceLanguage;

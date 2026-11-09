@@ -1514,7 +1514,8 @@ export function buildCourseStructure(
         createLocalizedStage(STAGE_DEFINITIONS[2], a2),
       ];
     }
-    case 'en': {
+    case 'en':
+    case 'ar': {
       const lessons = PHASES_DATA.flatMap((phase) => phase.lessons);
       return STAGE_DEFINITIONS.map((definition, index) =>
         createStageNode(

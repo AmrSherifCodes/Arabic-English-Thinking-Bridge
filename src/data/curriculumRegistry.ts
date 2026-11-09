@@ -41,6 +41,23 @@ export function getCurriculum(source: SourceLanguage = 'ar', target: TargetLangu
     }));
   }
 
+  if (target === 'ar') {
+    // Foreign -> Arabic: swap sourceThought and targetSentence
+    return PHASES_DATA.map(p => ({
+      ...p,
+      lessons: p.lessons.map(l => ({
+        ...l,
+        title: l.titleAr || l.title,
+        titleAr: l.title,
+        exercises: l.exercises.map(ex => ({
+          ...ex,
+          sourceThought: ex.englishTarget || ex.targetSentence,
+          targetSentence: ex.arabicThought || ex.sourceThought,
+        })),
+      })),
+    }));
+  }
+
   // Fallback for new languages (zh, hi, ru, el) until they have specialized curricula
   if (['zh', 'hi', 'ru', 'el'].includes(target)) {
      // Return a generic mapped structure to prevent crashing
