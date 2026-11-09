@@ -70,7 +70,7 @@ export function AndroidLandingPage() {
             <ArrowDownToLine size={23} aria-hidden="true" />
             <span>Download APK <span aria-hidden="true">🚀</span></span>
           </a>
-          <span className="android-version">Version 3.1.0 · Android · Free</span>
+          <span className="android-version">Version 4.0.2 · Android · Free</span>
           <p className="android-device-hint" role="status">
             {isAndroid
               ? 'Your Android download is ready. Allow installs from this source if prompted.'

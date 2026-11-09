@@ -1,3 +1,5 @@
+import soundCues from './audio-cues.json';
+
 export const FPS = 30;
 export const DURATION_SECONDS = 60;
 export const DURATION_FRAMES = FPS * DURATION_SECONDS;
@@ -21,11 +23,11 @@ export const BEATS = {
   silenceEnd: 690,
   questionAfterSilence: 690,
   openBridgeReveal: 780,
-  lessonCount: 930,
-  wordCount: 1000,
-  freeClaim: 1070,
-  offlineClaim: 1140,
-  spacedReviewClaim: 1210,
+  lessonCount: 900,
+  wordCount: 960,
+  freeClaim: 1020,
+  offlineClaim: 1080,
+  spacedReviewClaim: 1140,
   giftLine: 1320,
   brandReveal: 1365,
   endCardStart: 1560,
@@ -41,11 +43,5 @@ export const COUNTDOWN = [
   {label: '1', frame: BEATS.countdownOne},
 ] as const;
 
-export const SOUND_CUES = {
-  terminalKeyFrames: [16, 38, 60, 82, 104],
-  countdownFrames: [BEATS.countdownThree, BEATS.countdownTwo, BEATS.countdownOne],
-  lockThud: BEATS.paywallAppears,
-  discouragedTap: BEATS.studentReact,
-  brightReveal: BEATS.openBridgeReveal,
-  featureChime: BEATS.spacedReviewClaim,
-} as const;
+export const SOUND_CUES = soundCues;
+

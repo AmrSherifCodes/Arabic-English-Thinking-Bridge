@@ -29,3 +29,4 @@ If a preview deployment or CI workflow is blocked due to SSO authentication, exp
 - **STOP immediately.** Do NOT push directly to `main` as a workaround.
 - Ask the human user to execute `vercel login` in their terminal or temporarily configure preview deployment settings.
 - Wait for human intervention before proceeding.
+# Canonical Domainntb-eg.vercel.app is the canonical user-facing URL.narabicenglishthinkingbridge.vercel.app 301 redirects to tb-eg.vercel.app.

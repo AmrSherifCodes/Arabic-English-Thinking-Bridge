@@ -1,0 +1,11 @@
+{
+  "terminalKeyFrames": [16, 38, 60, 82, 104],
+  "countdownFrames": [138, 168, 198],
+  "studentFootstepFrames": [240, 250, 260],
+  "lockThudFrame": 360,
+  "discouragedTapFrame": 510,
+  "pianoNoteFrame": 705,
+  "featureChimeFrame": 1200,
+  "trueSilenceStartFrame": 660,
+  "trueSilenceEndFrame": 690
+}

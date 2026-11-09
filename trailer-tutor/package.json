@@ -5,10 +5,10 @@
   "scripts": {
     "studio": "remotion studio src/index.ts",
     "build:audio": "python audio/build_sfx.py",
-    "still": "remotion still src/index.ts TutorTax-9x16 stills/reveal-9x16.png --frame=1365",
-    "render:9x16": "remotion render src/index.ts TutorTax-9x16 out/tutor-tax-9x16-source.mp4 --codec=h264 --crf=18 --pixel-format=yuv420p --x264-preset=fast && ffmpeg -i out/tutor-tax-9x16-source.mp4 -vf \"scale=in_range=full:out_range=tv:out_color_matrix=bt709\" -af volume=3dB -c:v libx264 -preset fast -crf 18 -pix_fmt yuv420p -color_range tv -c:a aac -b:a 192k -movflags +faststart out/tutor-tax-9x16.mp4 -y",
-    "render:1x1": "remotion render src/index.ts TutorTax-1x1 out/tutor-tax-1x1.mp4 --codec=h264 --crf=18 --pixel-format=yuv420p --x264-preset=fast",
-    "render:16x9": "remotion render src/index.ts TutorTax-16x9 out/tutor-tax-16x9.mp4 --codec=h264 --crf=18 --pixel-format=yuv420p --x264-preset=fast"
+    "still": "remotion still src/index.ts Master-16x9 stills/master-poster.png --frame=1390",
+    "render:9x16": "remotion render src/index.ts Master-9x16 out/master-9x16-source.mp4 --codec=h264 --crf=18 --pixel-format=yuv420p --x264-preset=fast && ffmpeg -i out/master-9x16-source.mp4 -vf \"scale=in_range=full:out_range=tv:out_color_matrix=bt709,drawbox=x=0:y=0:w=iw:h=ih:color=black:t=fill:enable='between(n,660,689)'\" -af volume=3dB -c:v libx264 -preset fast -crf 18 -pix_fmt yuv420p -color_range tv -force_key_frames 22 -c:a aac -b:a 192k -movflags +faststart out/master-trailer-9x16.mp4 -y",
+    "render:1x1": "remotion render src/index.ts Master-1x1 out/master-1x1.mp4 --codec=h264 --crf=18 --pixel-format=yuv420p --x264-preset=fast",
+    "render:16x9": "remotion render src/index.ts Master-16x9 out/master-16x9-source.mp4 --codec=h264 --crf=18 --pixel-format=yuv420p --x264-preset=fast && ffmpeg -i out/master-16x9-source.mp4 -vf \"scale=in_range=full:out_range=tv:out_color_matrix=bt709,drawbox=x=0:y=0:w=iw:h=ih:color=black:t=fill:enable='between(n,660,689)'\" -af volume=3dB -c:v libx264 -preset fast -crf 18 -pix_fmt yuv420p -color_range tv -force_key_frames 22 -c:a aac -b:a 192k -movflags +faststart out/master-trailer-16x9.mp4 -y"
   },
   "dependencies": {
     "@remotion/cli": "^4.0.0",
