@@ -1539,12 +1539,15 @@ export function buildCourseStructure(
     case 'pt':
     case 'tr': {
       const phases = getCurriculum('ar', targetLang);
-      return phases.map((phase, index) =>
-        createStageNode(
-          STAGE_DEFINITIONS[index] || STAGE_DEFINITIONS[STAGE_DEFINITIONS.length - 1],
-          phase.lessons
-        )
-      );
+      const lessons = phases.flatMap((phase) => phase.lessons);
+      return STAGE_DEFINITIONS.map((definition, index) => {
+        const start = (index * LESSONS_PER_STAGE) % Math.max(1, lessons.length);
+        let slice = lessons.slice(start, start + LESSONS_PER_STAGE);
+        if (slice.length < LESSONS_PER_STAGE && lessons.length > 0) {
+          slice = [...slice, ...lessons.slice(0, LESSONS_PER_STAGE - slice.length)];
+        }
+        return createStageNode(definition, slice.length > 0 ? slice : lessons);
+      });
     }
     case 'zh':
     case 'hi':
@@ -1554,25 +1557,49 @@ export function buildCourseStructure(
       const seedA1 = LOCALIZED_A1_A2_LESSONS[targetLang]?.A1 || [];
       const seedA2 = LOCALIZED_A1_A2_LESSONS[targetLang]?.A2 || [];
 
-      const a0 = generateProceduralStageLessons(targetLang, 'A0', seedA0, focusArea, 10, sourceLang);
-      const a1 = generateProceduralStageLessons(targetLang, 'A1', seedA1, focusArea, 15, sourceLang);
-      const a2 = generateProceduralStageLessons(targetLang, 'A2', seedA2, focusArea, 20, sourceLang);
+      const a0 = generateProceduralStageLessons(targetLang as any, 'A0', seedA0, focusArea, 10, sourceLang);
+      const a1 = generateProceduralStageLessons(targetLang as any, 'A1', seedA1, focusArea, 15, sourceLang);
+      const a2 = generateProceduralStageLessons(targetLang as any, 'A2', seedA2, focusArea, 20, sourceLang);
+      const allProcedural = [...a0, ...a1, ...a2];
 
-      return [
-        createLocalizedStage(STAGE_DEFINITIONS[0], a0),
-        createLocalizedStage(STAGE_DEFINITIONS[1], a1),
-        createLocalizedStage(STAGE_DEFINITIONS[2], a2),
-      ];
+      const convertedLessons: Lesson[] = allProcedural.map(loc => ({
+        id: loc.id,
+        titleAr: loc.titleAr,
+        titleEn: loc.titleEn,
+        descriptionAr: loc.descriptionAr,
+        descriptionEn: loc.descriptionEn,
+        exercises: [{
+          id: `${loc.id}-main`,
+          arabicThought: loc.promptAr,
+          englishTarget: loc.targetSentence,
+          acceptableAlternatives: [loc.targetSentence],
+          wordChips: loc.wordChips || loc.targetSentence.split(/\s+/),
+          breakdownChunks: loc.breakdownChunks || []
+        }]
+      }));
+
+      const finalLessons = convertedLessons.length > 0 ? convertedLessons : PHASES_DATA.flatMap(p => p.lessons);
+
+      return STAGE_DEFINITIONS.map((definition, index) => {
+        const start = (index * LESSONS_PER_STAGE) % finalLessons.length;
+        let slice = finalLessons.slice(start, start + LESSONS_PER_STAGE);
+        if (slice.length < LESSONS_PER_STAGE) {
+          slice = [...slice, ...finalLessons.slice(0, LESSONS_PER_STAGE - slice.length)];
+        }
+        return createStageNode(definition, slice);
+      });
     }
     case 'en':
     case 'ar': {
       const lessons = PHASES_DATA.flatMap((phase) => phase.lessons);
-      return STAGE_DEFINITIONS.map((definition, index) =>
-        createStageNode(
-          definition,
-          lessons.slice(index * LESSONS_PER_STAGE, (index + 1) * LESSONS_PER_STAGE)
-        )
-      );
+      return STAGE_DEFINITIONS.map((definition, index) => {
+        const start = (index * LESSONS_PER_STAGE) % lessons.length;
+        let slice = lessons.slice(start, start + LESSONS_PER_STAGE);
+        if (slice.length < LESSONS_PER_STAGE) {
+          slice = [...slice, ...lessons.slice(0, LESSONS_PER_STAGE - slice.length)];
+        }
+        return createStageNode(definition, slice);
+      });
     }
     default: {
       const unexpectedTarget: any = targetLang;

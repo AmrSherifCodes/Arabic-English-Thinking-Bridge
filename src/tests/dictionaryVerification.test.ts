@@ -11,7 +11,7 @@ describe('Dictionary Profiles Verification', () => {
       ok(dict !== undefined);
       ok(Array.isArray(dict));
       if (dict.length > 0) {
-        ok('word' in dict[0]);
+        ok('word' in dict[0] || 'germanWord' in dict[0] || 'kanji' in dict[0] || 'term' in dict[0]);
       }
     });
   });

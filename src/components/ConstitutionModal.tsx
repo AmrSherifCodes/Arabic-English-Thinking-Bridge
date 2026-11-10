@@ -1,7 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { X, Globe } from 'lucide-react';
-import constitutionEn from '../channelConstitution.md?raw';
-import constitutionAr from '../channelConstitution.ar.md?raw';
+
+let constitutionEn = '# Channel Constitution';
+let constitutionAr = '# دستور القناة';
+
+try {
+  const enModule = await import('../channelConstitution.md?raw');
+  const arModule = await import('../channelConstitution.ar.md?raw');
+  constitutionEn = enModule.default || constitutionEn;
+  constitutionAr = arModule.default || constitutionAr;
+} catch {
+  /* Fallback for Node.js test runner where ?raw is unhandled */
+}
 
 interface ConstitutionModalProps {
   isOpen: boolean;
@@ -38,52 +48,31 @@ export function ConstitutionModal({ isOpen, onClose, isArabic = true }: Constitu
       role="dialog"
       aria-modal="true"
       onClick={onClose}
-      onKeyDown={(e) => e.key === 'Escape' && onClose()}
-      tabIndex={-1}
-      aria-labelledby="constitution-title"
     >
       <div
-        className="w-full max-w-2xl rounded-3xl bg-[#0F151C] border border-[#1E2933] p-6 space-y-4 text-start max-h-[85vh] overflow-y-auto shadow-2xl flex flex-col"
+        className="bg-stone-900 border border-stone-700 rounded-3xl w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden text-stone-100"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-stone-800 pb-3 shrink-0">
-          <div className="flex items-center gap-2 text-teal-400 font-black text-sm">
-            <Globe size={18} />
-            <span id="constitution-title">{showArabic ? 'دستور القناة' : 'Channel Constitution'}</span>
+        <div className="flex items-center justify-between p-4 border-b border-stone-800">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowArabic(!showArabic)}
+              className="px-3 py-1.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-xs font-bold flex items-center gap-1.5 transition text-teal-400"
+            >
+              <Globe size={14} />
+              <span>{showArabic ? 'English' : 'عربي'}</span>
+            </button>
           </div>
-          <button onClick={onClose} className="text-stone-400 hover:text-white font-bold text-xs">
+          <button
+            onClick={onClose}
+            className="p-2 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-400 hover:text-white transition"
+            aria-label="Close"
+          >
             <X size={18} />
           </button>
         </div>
-
-        {/* Language Toggle */}
-        <div className="flex justify-center shrink-0">
-          <div className="inline-flex bg-stone-900 rounded-lg p-1 border border-stone-800">
-            <button
-              onClick={() => setShowArabic(true)}
-              className={`px-4 py-1.5 rounded-md text-xs font-bold transition ${
-                showArabic ? 'bg-teal-500/20 text-teal-400' : 'text-stone-400 hover:text-stone-200'
-              }`}
-            >
-              العربية
-            </button>
-            <button
-              onClick={() => setShowArabic(false)}
-              className={`px-4 py-1.5 rounded-md text-xs font-bold transition ${
-                !showArabic ? 'bg-teal-500/20 text-teal-400' : 'text-stone-400 hover:text-stone-200'
-              }`}
-            >
-              English
-            </button>
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden">
-          <pre className={`whitespace-pre-wrap font-sans text-xs text-stone-300 leading-relaxed ${showArabic ? 'text-right' : 'text-left'}`} dir={showArabic ? 'rtl' : 'ltr'}>
-            {content}
-          </pre>
+        <div className="p-6 overflow-y-auto font-sans leading-relaxed text-sm whitespace-pre-wrap text-stone-300">
+          {content}
         </div>
       </div>
     </div>

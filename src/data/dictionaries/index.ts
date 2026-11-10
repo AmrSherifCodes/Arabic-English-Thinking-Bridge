@@ -26,6 +26,7 @@ export const DICTIONARY_LOADERS: Record<string, () => Promise<DictWordEntry[]>> 
   it: async () => (await import('./italianDictionary')).ITALIAN_DICTIONARY,
   el: async () => (await import('./greekDictionary')).GREEK_DICTIONARY,
   tr: async () => (await import('./trDictionary')).trDictionary,
+  en: async () => (await import('./arabicDictionary')).ARABIC_DICTIONARY,
   ar: async () => (await import('./arabicDictionary')).ARABIC_DICTIONARY,
   arz: async () => (await import('./egyptianArabicDictionary')).EGYPTIANARABIC_DICTIONARY,
   apc: async () => (await import('./levantineArabicDictionary')).LEVANTINEARABIC_DICTIONARY,
@@ -60,6 +61,19 @@ export async function preloadDictionaries(langs: string[]): Promise<void> {
   await Promise.all(langs.map((l) => getTargetDictionaryAsync(l)));
 }
 
+function extractEntryWord(entry: any): string {
+  return entry.word || entry.term || entry.germanWord || entry.kanji || entry.romaji || '';
+}
+
+function extractEntryTranslation(entry: any, sourceLang: string): string {
+  return (
+    entry.translation ||
+    entry.englishTranslation ||
+    entry.arabicTranslation ||
+    (entry.sourceMeanings?.[sourceLang] ?? '')
+  );
+}
+
 export async function searchTargetDictionaryAsync(
   query: string,
   targetLang: TargetLanguage,
@@ -70,8 +84,8 @@ export async function searchTargetDictionaryAsync(
   const clean = query.trim().toLowerCase();
 
   return dict.filter((entry) => {
-    const word = entry.word || entry.term || '';
-    const translation = entry.translation || (entry.sourceMeanings?.[sourceLang] ?? '');
+    const word = extractEntryWord(entry);
+    const translation = extractEntryTranslation(entry, sourceLang);
     if (word.toLowerCase().includes(clean)) return true;
     if (translation.toLowerCase().includes(clean)) return true;
     return false;
@@ -88,8 +102,8 @@ export function searchTargetDictionary(
   const dict = getTargetDictionary(targetLang);
 
   return dict.filter((entry) => {
-    const word = entry.word || entry.term || '';
-    const translation = entry.translation || (entry.sourceMeanings?.[sourceLang] ?? '');
+    const word = extractEntryWord(entry);
+    const translation = extractEntryTranslation(entry, sourceLang);
     if (word.toLowerCase().includes(clean)) return true;
     if (translation.toLowerCase().includes(clean)) return true;
     return false;
@@ -106,7 +120,7 @@ export function lookupTargetTerm(
 
   return (
     dict.find((e) => {
-      const w = (e.word || e.term || '').toLowerCase();
+      const w = extractEntryWord(e).toLowerCase();
       const t = (e.translation || '').toLowerCase();
       if (w === clean || t === clean) return true;
       const parts = t.split(/[;,]/).map((p) => p.replace(/^to\s+/, '').trim());

@@ -118,7 +118,7 @@ test('5a. language profiles build unlockable A0-A2 curricula for German, Spanish
       assert.deepEqual(JSON.parse(entries.get('tb.activeProfileConfig') || '{}'), profile);
 
       const course = buildCourseStructure(language);
-      assert.deepEqual(course.map((stage) => stage.stage), ['Pre-A0', 'A0', 'A1']);
+      assert.deepEqual(course.map((stage) => stage.stage), ['Pre-A0', 'A0', 'A1', 'A1+', 'A2', 'B1', 'B1+', 'B2', 'C1', 'C1+']);
       const localizedTargets = course[0].units.flatMap((unit) =>
         unit.lessons.flatMap((lesson) => lesson.exercises.map((exercise) => exercise.targetSentence))
       );

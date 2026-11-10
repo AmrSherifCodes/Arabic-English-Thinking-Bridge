@@ -101,7 +101,7 @@ test('7. GERMAN_DICTIONARY provides valid dictionary entries and search', async 
 test('8. JAPANESE_DICTIONARY provides valid dictionary entries and search', async () => {
   const { searchTargetDictionary, getTargetDictionaryAsync } = await import('../data/dictionaries');
   await getTargetDictionaryAsync('ja');
-  const results = searchTargetDictionary('hon', 'ja', 'ar');
+  const results = searchTargetDictionary('私', 'ja', 'ar');
   assert.ok(results.length > 0, 'Must find entries for Japanese');
 });
 

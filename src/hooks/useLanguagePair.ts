@@ -20,7 +20,7 @@ function isArabicSource(code: string): boolean {
 }
 
 function getInitialPair(): LanguagePair {
-  let source: SourceLanguage = 'ar';
+  let source: SourceLanguage = 'arz';
   let target: TargetLanguage = 'en';
 
   if (typeof window !== 'undefined') {
