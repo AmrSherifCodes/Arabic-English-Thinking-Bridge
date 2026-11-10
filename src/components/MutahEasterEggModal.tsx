@@ -5,9 +5,11 @@ import { soundFX } from '../utils/soundFX';
 interface Props {
   isOpen: boolean;
   onClose: () => void;
+  clickCount?: number;
+  onIncrementClick?: () => void;
 }
 
-export function MutahEasterEggModal({ isOpen, onClose }: Props) {
+export function MutahEasterEggModal({ isOpen, onClose, clickCount = 8, onIncrementClick }: Props) {
   useEffect(() => {
     if (isOpen) {
       soundFX.playMutahChime();
@@ -112,14 +114,27 @@ export function MutahEasterEggModal({ isOpen, onClose }: Props) {
           </div>
         </div>
 
-        <div className="mt-8 pt-6 border-t border-rose-950/50 flex flex-col items-center gap-2">
+        <div className="mt-8 pt-6 border-t border-rose-950/50 flex flex-col items-center gap-3">
+          {onIncrementClick && (
+            <button
+              onClick={onIncrementClick}
+              type="button"
+              className="rounded-full bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 px-6 py-3 text-xs sm:text-sm font-black text-black shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center gap-2 animate-pulse"
+            >
+              <span>⚡ واصل الضغط للوصول إلى السر التالي 99!</span>
+              <span className="bg-black/40 text-white px-2.5 py-0.5 rounded-full text-xs font-mono font-bold">
+                {clickCount}/99
+              </span>
+            </button>
+          )}
+
           <p className="text-xs sm:text-sm text-rose-300/60 font-arabic" dir="rtl">
             سِرٌّ تاريخي محفوظ في جسر التفكير · ٨ نقرات تخليداً لسنة ٨ هـ
           </p>
           <button
             onClick={onClose}
             type="button"
-            className="mt-2 rounded-xl bg-rose-900/40 hover:bg-rose-800/60 border border-rose-600/40 px-6 py-2.5 text-sm font-semibold text-rose-100 transition-all duration-200"
+            className="rounded-xl bg-rose-900/40 hover:bg-rose-800/60 border border-rose-600/40 px-6 py-2 text-xs font-semibold text-rose-100 transition-all"
           >
             إغلاق
           </button>

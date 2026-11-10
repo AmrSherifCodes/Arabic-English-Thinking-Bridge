@@ -7,11 +7,9 @@ export function CreatorCard() {
 
   const handlePhotoClick = () => {
     const nextCount = tapCount + 1;
-    if (nextCount >= 8) {
-      setTapCount(0);
+    setTapCount(nextCount);
+    if (nextCount === 8) {
       setIsPoemOpen(true);
-    } else {
-      setTapCount(nextCount);
     }
   };
 
@@ -37,8 +35,8 @@ export function CreatorCard() {
                 className="relative h-24 w-24 sm:h-28 sm:w-28 rounded-full object-cover border-2 border-emerald-400 shadow-md select-none active:scale-95 transition-transform"
                 title="عمرو شريف · اضغط للتعرف على المزيد"
               />
-              {tapCount > 0 && tapCount < 8 && (
-                <span className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500 text-[11px] font-bold text-black shadow-lg animate-pulse">
+              {tapCount > 0 && (
+                <span className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-amber-400 font-extrabold text-[11px] text-black shadow-lg animate-pulse">
                   {tapCount}
                 </span>
               )}

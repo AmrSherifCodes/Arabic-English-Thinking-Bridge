@@ -19,6 +19,7 @@ import { ReviewPrompt } from './components/ReviewPrompt';
 import { API_QUOTA_LIMIT_EVENT } from './hooks/useApiKeyGate';
 import { ErwinChargeModal } from './components/ErwinChargeModal';
 import { AlexandrianEasterEggModal } from './components/AlexandrianEasterEggModal';
+import { MutahEasterEggModal } from './components/MutahEasterEggModal';
 import { useAmrClickEasterEgg } from './utils/easterEgg';
 
 import { CefrStage, ProgressionState, LessonNode } from './progression/types';
@@ -117,6 +118,8 @@ export default function App() {
   const {
     clickCount,
     registerClick,
+    showPoemModal,
+    closePoemModal,
     showErwinModal,
     closeErwinModal,
     showAlexandrianModal,
@@ -558,6 +561,14 @@ export default function App() {
         isOpen={privacyOpen}
         onClose={() => setPrivacyOpen(false)}
         isArabic={isArabic}
+      />
+
+      {/* 8-Click Poem Easter Egg Modal */}
+      <MutahEasterEggModal
+        isOpen={showPoemModal}
+        onClose={closePoemModal}
+        clickCount={clickCount}
+        onIncrementClick={registerClick}
       />
 
       {/* 99-Click Captain Erwin Charge Easter Egg Modal */}
