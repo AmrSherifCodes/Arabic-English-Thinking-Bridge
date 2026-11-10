@@ -29,6 +29,7 @@ export function CreatorCard() {
               <div className="absolute -inset-1 rounded-full bg-gradient-to-tr from-emerald-500 via-teal-400 to-amber-400 opacity-75 blur-sm group-hover:opacity-100 transition duration-300" />
               <img
                 src="/amr.jpg"
+                data-amr-avatar="true"
                 onError={(e) => {
                   e.currentTarget.src = '/amr-avatar.png';
                 }}

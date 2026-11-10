@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 
 const SESSION_CLICK_KEY = 'tb.amrSessionClickCount';
-const INACTIVITY_RESET_MS = 5000;
+const INACTIVITY_RESET_MS = 6000;
 
 export function useAmrClickEasterEgg() {
   const [clickCount, setClickCount] = useState<number>(() => {
@@ -61,28 +61,42 @@ export function useAmrClickEasterEgg() {
     });
   }, [resetInactivityTimer]);
 
-  // Global listener for photo clicks
+  // Global listener for photo clicks and mobile touch taps
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const handleGlobalClick = (e: MouseEvent) => {
-      const target = e.target as HTMLElement | null;
-      if (!target) return;
+    let lastTapTime = 0;
+
+    const isAmrTarget = (target: HTMLElement | null): boolean => {
+      if (!target) return false;
       const src = (target as HTMLImageElement).src || '';
       const alt = (target as HTMLImageElement).alt || '';
-      if (
+      return (
         src.includes('amr') ||
         src.includes('pose') ||
         alt.toLowerCase().includes('amr') ||
-        target.closest('[data-amr-avatar="true"]')
-      ) {
-        registerClick();
+        Boolean(target.closest('[data-amr-avatar="true"]'))
+      );
+    };
+
+    const handlePointerDown = (e: Event) => {
+      const target = e.target as HTMLElement | null;
+      if (isAmrTarget(target)) {
+        const now = Date.now();
+        // Avoid duplicate event triggers within 40ms on mobile touchscreens
+        if (now - lastTapTime > 40) {
+          lastTapTime = now;
+          registerClick();
+        }
       }
     };
 
-    window.addEventListener('click', handleGlobalClick);
+    window.addEventListener('pointerdown', handlePointerDown, { passive: true });
+    window.addEventListener('click', handlePointerDown, { passive: true });
+
     return () => {
-      window.removeEventListener('click', handleGlobalClick);
+      window.removeEventListener('pointerdown', handlePointerDown);
+      window.removeEventListener('click', handlePointerDown);
       if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
     };
   }, [registerClick]);
