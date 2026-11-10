@@ -238,10 +238,10 @@ export function OnboardingModal({
     if (step === 0) {
       return {
         pose: AMR_POSES.welcome,
-        coachTag: isSourceArabic ? 'عمرو شريف · مدربك اللغوي 🇪🇬' : 'Amr Sherif · Cognitive Coach',
-        title: isSourceArabic ? 'أهلاً بيك يا بطل! أنا عمرو 👋' : "Welcome! I'm Amr 👋",
+        coachTag: isSourceArabic ? 'عمرو شريف · مدربك اللغوي من الإسكندرية 🌊' : 'Amr Sherif · Cognitive Coach',
+        title: isSourceArabic ? 'أهلاً بيك يا بطل! من إسكندرية لجميع أهل مصر 👋' : "Welcome! I'm Amr 👋",
         dialogue: isSourceArabic
-          ? 'وهكون معاك خطوة بخطوة عشان نبني التفكير باللغة مش الترجمة الحرفية. قولي.. إنت بتفكر حالياً بالعربي ولا بالإنجليزي؟'
+          ? 'أنا عمرو شريف، وهكون معاك خطوة بخطوة عشان نفك عقدة الإنجليزي ونفكر بالبلدي وبدون ترجمة عصبية في سرك! جاهز ننطلق؟'
           : "I'll guide you step by step to rewire your brain to think directly in your target language. First, what language do you currently think in?"
       };
     }

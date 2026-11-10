@@ -80,6 +80,20 @@ export function PathView({
 
   return (
     <div className="relative space-y-6 max-w-[480px] mx-auto pb-32 sm:pb-36" dir={isArabic ? 'rtl' : 'ltr'}>
+      {/* Alexandrian & Egyptian Friendly Welcome Banner */}
+      <div className="p-3.5 rounded-2xl bg-gradient-to-r from-teal-950/60 via-emerald-950/40 to-amber-950/30 border border-teal-500/40 text-start flex items-center justify-between gap-3 shadow-md">
+        <div className="space-y-0.5 min-w-0">
+          <div className="flex items-center gap-1.5 text-xs font-black text-teal-300">
+            <span>🌊</span>
+            <span>{isArabic ? 'من إسكندرية لكل أهل مصر · سهولة وطلاقة' : 'Alexandrian Warmth & Ease'}</span>
+          </div>
+          <p className="text-[11px] text-stone-300 font-bold leading-snug truncate">
+            {isArabic ? 'اتكلم وفكّر إنجليزي عالماشي ومن غير عقد!' : 'Think directly in English without internal translation!'}
+          </p>
+        </div>
+        <span className="text-xl shrink-0">⚓</span>
+      </div>
+
       {/* Top Progress Bar */}
       <div className="bg-surface border border-border p-3 rounded-2xl shadow-md">
         <div className="flex justify-between items-center mb-2">

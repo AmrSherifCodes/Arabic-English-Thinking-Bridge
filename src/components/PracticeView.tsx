@@ -643,9 +643,12 @@ export const PracticeView = React.memo(function PracticeView({
             </div>
           ) : (
             <div className="flex flex-col items-center animate-in zoom-in duration-500 py-6">
-              <div className="text-6xl mb-4 animate-bounce">🔥</div>
-              <h3 className="text-3xl font-black text-stone-800 dark:text-white mb-2">Combo Streak x3!</h3>
-              <p className="text-stone-500 font-bold mb-8 text-center">You matched all the structural blocks perfectly.</p>
+              <div className="text-6xl mb-4 animate-bounce">🌊🔥</div>
+              <h3 className="text-3xl font-black text-teal-400 mb-1">الله ينور يا جدع! 🔥</h3>
+              <p className="text-amber-400 font-extrabold text-sm mb-2">Combo Streak x3!</p>
+              <p className="text-stone-300 font-bold mb-8 text-center text-xs sm:text-sm">
+                عاش يا بطل! وصّلت الأفكار بالظبط ورتبت العقل بدون ترجمة حرفية.
+              </p>
 
               <div className="w-full space-y-3">
                 <button
