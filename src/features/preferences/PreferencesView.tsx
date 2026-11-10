@@ -164,6 +164,73 @@ export function PreferencesView({
     }
   };
 
+  const [discordWebhookUrl, setDiscordWebhookUrl] = useState<string>(() => {
+    try {
+      return localStorage.getItem('tb.discordWebhook') || '';
+    } catch {
+      return '';
+    }
+  });
+  const [isTestingWebhook, setIsTestingWebhook] = useState(false);
+  const [webhookResult, setWebhookResult] = useState<{ status: 'success' | 'error'; msg: string } | null>(null);
+
+  const handleSaveWebhook = (url: string) => {
+    try {
+      localStorage.setItem('tb.discordWebhook', url.trim());
+      setWebhookResult({
+        status: 'success',
+        msg: isArabic ? '🟢 تم حفظ رابط Discord Webhook بنجاح!' : '🟢 Discord Webhook URL saved successfully!',
+      });
+    } catch {
+      setWebhookResult({
+        status: 'error',
+        msg: isArabic ? '🔴 تعذر الحفظ محلياً' : '🔴 Failed to save locally',
+      });
+    }
+  };
+
+  const handleTestWebhook = async () => {
+    const url = discordWebhookUrl.trim();
+    if (!url) {
+      setWebhookResult({
+        status: 'error',
+        msg: isArabic ? 'يرجى إدخال رابط Discord Webhook أولاً' : 'Please enter a Discord Webhook URL first',
+      });
+      return;
+    }
+    setIsTestingWebhook(true);
+    setWebhookResult(null);
+
+    try {
+      const resp = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: `🧪 **Thinking Bridge Discord Webhook Test!**\n> Live connection established successfully from ${profile?.name || 'Learner'} 🟢`,
+        }),
+      });
+
+      if (resp.ok || resp.status === 204) {
+        setWebhookResult({
+          status: 'success',
+          msg: isArabic ? '🟢 وصل الاختبار لسيرفر Discord بنجاح!' : '🟢 Test payload delivered to Discord successfully!',
+        });
+      } else {
+        setWebhookResult({
+          status: 'error',
+          msg: isArabic ? `🔴 فشل الاتصال بـ Discord (رمز الخطأ: ${resp.status})` : `🔴 Connection failed (HTTP ${resp.status})`,
+        });
+      }
+    } catch (err: any) {
+      setWebhookResult({
+        status: 'error',
+        msg: isArabic ? `🔴 خطأ في الاتصال: ${err.message}` : `🔴 Network error: ${err.message}`,
+      });
+    } finally {
+      setIsTestingWebhook(false);
+    }
+  };
+
   const grouped = useMemo(() => {
     const m = new Map<PreferenceCategory, typeof schema>();
     for (const f of schema) {
@@ -398,6 +465,67 @@ export function PreferencesView({
                     <XCircle size={16} className="shrink-0" />
                   )}
                   <span>{testResult.msg}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Discord Webhook Live Integration Card */}
+            <div className="p-4 rounded-2xl bg-surface-2 border border-border space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-sm text-text flex items-center gap-1.5">
+                  <span>💬</span>
+                  <span>{isArabic ? 'رابط Discord Webhook المباشر' : 'Discord Webhook Integration'}</span>
+                </span>
+                <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-success/20 text-success">
+                  {discordWebhookUrl.trim() ? (isArabic ? '🟢 متصل' : '🟢 Linked') : (isArabic ? 'غير متصل' : 'Unlinked')}
+                </span>
+              </div>
+              <p className="text-xs text-muted leading-relaxed">
+                {isArabic
+                  ? 'اربط سيرفر Discord الخاص بك لاستلام ملاحظات المستخدمين، الاشتراكات الجديدة، والمراجعات مباشرة على قناتك.'
+                  : 'Link your Discord server to receive user feedback notes, subscriptions, and reviews live in your channel.'}
+              </p>
+              <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 pt-1">
+                <input
+                  type="url"
+                  value={discordWebhookUrl}
+                  onChange={(e) => {
+                    setDiscordWebhookUrl(e.target.value);
+                    handleSaveWebhook(e.target.value);
+                  }}
+                  placeholder="https://discord.com/api/webhooks/..."
+                  className="flex-1 p-2.5 rounded-xl bg-surface border border-border text-text text-sm font-mono focus:outline-none focus:border-success w-full"
+                />
+                <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
+                  <button
+                    type="button"
+                    disabled={isTestingWebhook || !discordWebhookUrl.trim()}
+                    onClick={handleTestWebhook}
+                    className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-primary text-on-primary font-black text-xs transition active:scale-95 disabled:opacity-40 flex items-center justify-center gap-1.5 shadow-md"
+                  >
+                    {isTestingWebhook ? (
+                      <Loader2 size={14} className="animate-spin text-white" />
+                    ) : (
+                      <span>{isArabic ? 'اختبار الربط 💬' : 'Test Webhook 💬'}</span>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {webhookResult && (
+                <div
+                  className={`p-3 rounded-xl border text-xs font-bold flex items-center gap-2 ${
+                    webhookResult.status === 'success'
+                      ? 'bg-success/20 border-success text-success'
+                      : 'bg-danger/20 border-danger text-danger'
+                  }`}
+                >
+                  {webhookResult.status === 'success' ? (
+                    <CheckCircle2 size={16} className="shrink-0" />
+                  ) : (
+                    <XCircle size={16} className="shrink-0" />
+                  )}
+                  <span>{webhookResult.msg}</span>
                 </div>
               )}
             </div>
