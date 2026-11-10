@@ -64,6 +64,17 @@ export function selectBestArabicVoice(
 
 export const CLOUD_AI_VOICE_ID = 'cloud-ai';
 
+if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+  try {
+    window.speechSynthesis.getVoices();
+    window.speechSynthesis.onvoiceschanged = () => {
+      try {
+        window.speechSynthesis.getVoices();
+      } catch {}
+    };
+  } catch {}
+}
+
 /**
  * Prime and unlock audio playback on mobile browsers, WebView and iOS Safari.
  * Call this on any initial user touch/click.
@@ -181,19 +192,13 @@ export function speakWithNativeSpeechSynthesis(
       utterance.onerror = () => onEnd();
     }
 
-    // Workaround Chromium speech cancellation bug by canceling and deferring speak 15ms
+    // Synchronously resume and speak immediately to preserve mobile user gesture stack (iOS & Android)
     try {
-      window.speechSynthesis.cancel();
-    } catch {}
-
-    setTimeout(() => {
-      try {
-        window.speechSynthesis.resume();
-        window.speechSynthesis.speak(utterance);
-      } catch (err) {
-        console.warn('[speechSynthesis] speak invocation error:', err);
-      }
-    }, 15);
+      window.speechSynthesis.resume();
+      window.speechSynthesis.speak(utterance);
+    } catch (err) {
+      console.warn('[speechSynthesis] speak invocation error:', err);
+    }
 
     return true;
   } catch (err) {
@@ -214,7 +219,10 @@ export function speakWithRate(
   activeSpeakAbortController?.abort();
 
   const isOffline = typeof navigator !== 'undefined' && !navigator.onLine;
-  if (isOffline) {
+  const isNativeMobile = typeof window !== 'undefined' && Boolean((window as any)?.Capacitor?.isNativePlatform?.());
+
+  // On mobile native apps, when offline, or when native voice is preferred, speak synchronously immediately
+  if (isOffline || isNativeMobile) {
     return speakWithNativeSpeechSynthesis(clean, requestedRate, preferredVoiceName);
   }
 
