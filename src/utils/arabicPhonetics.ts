@@ -14,7 +14,7 @@
 // 1. Curated Dictionary of Frequent Conversational English Words -> Authentic Arabic Spelling
 export const ENGLISH_TO_ARABIC_PHONETICS: Record<string, string> = {
   // Pronouns & Contractions
-  hello: 'هَالُّو',
+  hello: 'هيلو',
   happy: 'هَابِي',
   // Multilingual Top 5 Overrides (German, French, Spanish, Turkish)
   guten: 'جُوتِن',

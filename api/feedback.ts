@@ -55,27 +55,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const { type, email, rating, category, message, isAnonymous, userName, profileGoal, dialect, createdAt } = req.body || {};
 
-    let discordPayload;
+    let discordPayload = null;
     if (type === 'subscribe' || email) {
       discordPayload = {
-        content: `🎉 **New Thinking Bridge Newsletter Subscription!**\n**Email:** \`${email || 'N/A'}\`\n**Date:** ${createdAt || new Date().toISOString()}`
+        content: `🎉 **New Subscriber!**\n**Email:** \`${email || 'N/A'}\`\n**Date:** ${createdAt || new Date().toISOString()}`
       };
-    } else {
+    } else if (message && message.trim().length > 0 && message !== 'N/A') {
+      // Send ONLY actual notes/messages from users (ignoring rating-only feedback)
       discordPayload = {
-        content: `📩 **New Thinking Bridge Feedback!**
-**Rating:** ${rating || 5}/5 ⭐
-**Category:** ${category || 'general'}
-**Message:** ${message || 'N/A'}
-**User:** ${isAnonymous ? 'Anonymous' : (userName || 'Learner')}
-**Goal:** ${profileGoal || 'N/A'} | **Dialect:** ${dialect || 'N/A'}
-**Date:** ${createdAt || new Date().toISOString()}`
+        content: `💬 **New User Note!**\n> ${message.trim()}\n— *From: ${isAnonymous ? 'Anonymous' : (userName || 'Learner')}*`
       };
     }
 
     let webhookFailed = false;
     let webhookStatus: number | null = null;
 
-    if (webhookUrl) {
+    if (webhookUrl && discordPayload) {
       const discordResponse = await fetch(webhookUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

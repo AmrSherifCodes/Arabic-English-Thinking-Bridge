@@ -17,6 +17,9 @@ import { LanguagePairBanner } from './components/LanguagePairBanner';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { ReviewPrompt } from './components/ReviewPrompt';
 import { API_QUOTA_LIMIT_EVENT } from './hooks/useApiKeyGate';
+import { ErwinChargeModal } from './components/ErwinChargeModal';
+import { AlexandrianEasterEggModal } from './components/AlexandrianEasterEggModal';
+import { useAmrClickEasterEgg } from './utils/easterEgg';
 
 import { CefrStage, ProgressionState, LessonNode } from './progression/types';
 import { migrateLegacyStorageToProgression } from './progression/migration';
@@ -110,6 +113,15 @@ export default function App() {
     } catch {}
     setView({ name: 'shell' });
   };
+
+  const {
+    clickCount,
+    registerClick,
+    showErwinModal,
+    closeErwinModal,
+    showAlexandrianModal,
+    closeAlexandrianModal,
+  } = useAmrClickEasterEgg();
 
   const [activeTab, setActiveTab] = useState<AppTab>('path');
   const [progression, setProgression] = useState<ProgressionState>(() => {
@@ -546,6 +558,19 @@ export default function App() {
         isOpen={privacyOpen}
         onClose={() => setPrivacyOpen(false)}
         isArabic={isArabic}
+      />
+
+      {/* 99-Click Captain Erwin Charge Easter Egg Modal */}
+      <ErwinChargeModal
+        isOpen={showErwinModal}
+        onClose={closeErwinModal}
+        clickCount={clickCount}
+      />
+
+      {/* Alexandrian Sea Breeze Easter Egg Modal */}
+      <AlexandrianEasterEggModal
+        isOpen={showAlexandrianModal}
+        onClose={closeAlexandrianModal}
       />
 
 
