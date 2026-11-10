@@ -325,34 +325,34 @@ export const TARGET_LANGUAGE_META: Record<TargetLanguage, LanguageMeta> = {
     code: 'ja',
     nameEn: 'Japanese',
     nameNative: '日本語',
-    nameAr: 'اليابانية (🚧 جاري البناء)',
+    nameAr: 'اليابانية',
     flag: '🇯🇵',
     direction: 'ltr',
     descriptionEn: 'Think in SOV structure, particles (は, を, に), and natural context',
     descriptionAr: 'فكر بمنطق (الفاعل - المفعول - الفعل)، أدوات الجملة، وسياق الحديث الطبيعي',
-    badge: '人気'
+    badge: '★ مفضلة'
   },
   es: {
     code: 'es',
     nameEn: 'Spanish',
     nameNative: 'Español',
-    nameAr: 'الإسبانية (🚧 جاري البناء)',
+    nameAr: 'الإسبانية',
     flag: '🇪🇸',
     direction: 'ltr',
     descriptionEn: 'Master Spanish grammar and vocabulary',
     descriptionAr: 'أتقن قواعد ومفردات اللغة الإسبانية',
-    badge: 'Global'
+    badge: 'جديد'
   },
   fr: {
     code: 'fr',
     nameEn: 'French',
     nameNative: 'Français',
-    nameAr: 'الفرنسية (🚧 جاري البناء)',
+    nameAr: 'الفرنسية',
     flag: '🇫🇷',
     direction: 'ltr',
     descriptionEn: 'Learn French pronunciation and phrasing',
     descriptionAr: 'تعلم النطق والتراكيب الفرنسية',
-    badge: 'Global'
+    badge: 'جديد'
   },
   zh: {
     code: 'zh',
@@ -402,12 +402,12 @@ export const TARGET_LANGUAGE_META: Record<TargetLanguage, LanguageMeta> = {
     code: 'it',
     nameEn: 'Italian',
     nameNative: 'Italiano',
-    nameAr: 'الإيطالية (🚧 جاري البناء)',
+    nameAr: 'الإيطالية',
     flag: '🇮🇹',
     direction: 'ltr',
     descriptionEn: 'Think natively in Italian',
     descriptionAr: 'فكر مباشرة باللغة الإيطالية',
-    badge: 'Global'
+    badge: 'جديد'
   },
   el: {
     code: 'el',
@@ -434,18 +434,18 @@ export const TARGET_LANGUAGE_META: Record<TargetLanguage, LanguageMeta> = {
 };
 
 export const TARGET_LANGUAGES: LanguageConfig[] = [
-  { code: 'ar', nameEn: 'Arabic', nameAr: 'العربية', flag: '🇸🇦', defaultVoice: 'ar-SA-HamedNeural' },
   { code: 'en', nameEn: 'English', nameAr: 'الإنجليزية', flag: '🇬🇧', defaultVoice: 'en-US-AvaNeural' },
+  { code: 'ja', nameEn: 'Japanese', nameAr: 'اليابانية', flag: '🇯🇵', defaultVoice: 'ja-JP-NanamiNeural' },
   { code: 'de', nameEn: 'German', nameAr: 'الألمانية', flag: '🇩🇪', defaultVoice: 'de-DE-KatjaNeural' },
+  { code: 'es', nameEn: 'Spanish', nameAr: 'الإسبانية', flag: '🇪🇸', defaultVoice: 'es-ES-ElviraNeural' },
+  { code: 'fr', nameEn: 'French', nameAr: 'الفرنسية', flag: '🇫🇷', defaultVoice: 'fr-FR-DeniseNeural' },
   { code: 'tr', nameEn: 'Turkish', nameAr: 'التركية', flag: '🇹🇷', defaultVoice: 'tr-TR-AhmetNeural' },
-  { code: 'ja', nameEn: 'Japanese', nameAr: 'اليابانية (🚧 جاري البناء)', flag: '🇯🇵', defaultVoice: 'ja-JP-NanamiNeural' },
-  { code: 'es', nameEn: 'Spanish', nameAr: 'الإسبانية (🚧 جاري البناء)', flag: '🇪🇸', defaultVoice: 'es-ES-ElviraNeural' },
-  { code: 'fr', nameEn: 'French', nameAr: 'الفرنسية (🚧 جاري البناء)', flag: '🇫🇷', defaultVoice: 'fr-FR-DeniseNeural' },
-  { code: 'zh', nameEn: 'Chinese', nameAr: 'الصينية (الماندرين)', flag: '🇨🇳', defaultVoice: 'zh-CN-XiaoxiaoNeural' },
+  { code: 'ar', nameEn: 'Arabic', nameAr: 'العربية', flag: '🇸🇦', defaultVoice: 'ar-SA-HamedNeural' },
+  { code: 'zh', nameEn: 'Chinese', nameAr: 'الصينية', flag: '🇨🇳', defaultVoice: 'zh-CN-XiaoxiaoNeural' },
   { code: 'hi', nameEn: 'Hindi', nameAr: 'الهندية', flag: '🇮🇳', defaultVoice: 'hi-IN-SwaraNeural' },
   { code: 'ru', nameEn: 'Russian', nameAr: 'الروسية', flag: '🇷🇺', defaultVoice: 'ru-RU-SvetlanaNeural' },
   { code: 'pt', nameEn: 'Portuguese', nameAr: 'البرتغالية', flag: '🇧🇷', defaultVoice: 'pt-BR-FranciscaNeural' },
-  { code: 'it', nameEn: 'Italian', nameAr: 'الإيطالية (🚧 جاري البناء)', flag: '🇮🇹', defaultVoice: 'it-IT-IsabellaNeural' },
+  { code: 'it', nameEn: 'Italian', nameAr: 'الإيطالية', flag: '🇮🇹', defaultVoice: 'it-IT-IsabellaNeural' },
   { code: 'el', nameEn: 'Greek', nameAr: 'اليونانية', flag: '🇬🇷', defaultVoice: 'el-GR-NestorasNeural' },
 ];
 

@@ -99,7 +99,7 @@ test('5a. language profiles build unlockable A0-A2 curricula for German, Spanish
 
   try {
     assert.deepEqual(TARGET_LANGUAGES.map((language) => language.code), [
-      'ar', 'en', 'de', 'tr', 'ja', 'es', 'fr', 'zh', 'hi', 'ru', 'pt', 'it', 'el',
+      'en', 'ja', 'de', 'es', 'fr', 'tr', 'ar', 'zh', 'hi', 'ru', 'pt', 'it', 'el',
     ]);
     assert.ok(TARGET_LANGUAGES.every((language) => language.defaultVoice.length > 0));
 

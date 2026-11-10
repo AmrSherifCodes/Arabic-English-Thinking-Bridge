@@ -14,10 +14,11 @@ export function scoreEnglishVoice(v: { name: string; lang: string }): number {
 }
 
 export function scoreArabicVoice(v: { name: string; lang: string }): number {
+  const normLang = (v.lang || '').toLowerCase().replace('_', '-');
   return (
-    (/natural|neural|online/i.test(v.name) ? 50 : 0) +
-    (/salma|shakir|hamed|zariyah|maged|tarik|laila|google/i.test(v.name) ? 25 : 0) +
-    (/ar-EG/i.test(v.lang) ? 15 : /^ar/i.test(v.lang) ? 8 : 0)
+    (/natural|neural|online|google|samsung|android/i.test(v.name) ? 50 : 0) +
+    (/salma|shakir|hamed|zariyah|maged|tarik|laila|naayf/i.test(v.name) ? 25 : 0) +
+    (normLang.startsWith('ar-eg') ? 20 : normLang.startsWith('ar-sa') ? 15 : normLang.startsWith('ar') ? 10 : 0)
   );
 }
 
@@ -33,7 +34,10 @@ export function getEnglishVoices(): SpeechSynthesisVoice[] {
 export function getArabicVoices(): SpeechSynthesisVoice[] {
   if (typeof window === 'undefined' || !('speechSynthesis' in window)) return [];
   try {
-    return window.speechSynthesis.getVoices().filter(v => /^ar/i.test(v.lang));
+    return window.speechSynthesis.getVoices().filter(v => {
+      const normLang = (v.lang || '').toLowerCase().replace('_', '-');
+      return normLang.startsWith('ar') || /arabic/i.test(v.name);
+    });
   } catch {
     return [];
   }
@@ -151,7 +155,7 @@ export function speakWithNativeSpeechSynthesis(
         utterance.voice = chosenAr;
         utterance.lang = chosenAr.lang;
       } else {
-        utterance.lang = 'ar-EG';
+        utterance.lang = 'ar-SA';
       }
     } else {
       const enVoices = getEnglishVoices();
@@ -208,6 +212,11 @@ export function speakWithRate(
 
   unlockAudio();
   activeSpeakAbortController?.abort();
+
+  const isOffline = typeof navigator !== 'undefined' && !navigator.onLine;
+  if (isOffline) {
+    return speakWithNativeSpeechSynthesis(clean, requestedRate, preferredVoiceName);
+  }
 
   const isArabic = /[\u0600-\u06FF]/.test(clean);
   const enVoices = !isArabic ? getEnglishVoices() : [];

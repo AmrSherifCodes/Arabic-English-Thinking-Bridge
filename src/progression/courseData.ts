@@ -1531,6 +1531,40 @@ export function buildCourseStructure(
   }
 
   switch (targetLang) {
+    case 'ar': {
+      // Functional English -> Arabic path: flip prompt and target context
+      const canonicalLessons = PHASES_DATA.flatMap((phase) => phase.lessons);
+      const arabicLessons: Lesson[] = canonicalLessons.map((lesson) => ({
+        ...lesson,
+        id: `ar-flipped-${lesson.id}`,
+        title: lesson.titleAr || lesson.title,
+        titleAr: lesson.title || lesson.titleAr,
+        exercises: lesson.exercises.map((ex) => ({
+          ...ex,
+          id: `ar-flipped-${ex.id}`,
+          arabicThought: ex.englishTarget,
+          englishTarget: ex.arabicThought,
+          acceptableAlternatives: [ex.arabicThought],
+          wordChips: ex.arabicThought.split(/\s+/),
+          breakdownChunks: ex.breakdownChunks.map((bc) => ({
+            ...bc,
+            arabicText: bc.englishText,
+            englishText: bc.arabicText,
+            sourceText: bc.targetText || bc.englishText,
+            targetText: bc.sourceText || bc.arabicText,
+          })),
+        })),
+      }));
+
+      return STAGE_DEFINITIONS.map((definition, index) => {
+        const start = (index * LESSONS_PER_STAGE) % Math.max(1, arabicLessons.length);
+        let slice = arabicLessons.slice(start, start + LESSONS_PER_STAGE);
+        if (slice.length < LESSONS_PER_STAGE && arabicLessons.length > 0) {
+          slice = [...slice, ...arabicLessons.slice(0, LESSONS_PER_STAGE - slice.length)];
+        }
+        return createStageNode(definition, slice);
+      });
+    }
     case 'de':
     case 'ja':
     case 'es':

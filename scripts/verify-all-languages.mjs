@@ -24,7 +24,7 @@ import { trDictionary } from '../src/data/dictionaries/trDictionary.ts';
 test('PHASE 3: Programmatic Language Matrix Verification (13 targets)', async () => {
   assert.equal(TARGET_LANGUAGES.length, 13, 'TARGET_LANGUAGES must have 13 entries');
 
-  const unfinishedLangs = new Set(['ja', 'es', 'fr', 'it']);
+  const unfinishedLangs = new Set([]);
 
   for (const targetObj of TARGET_LANGUAGES) {
     const T = targetObj.code;
