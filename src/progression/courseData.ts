@@ -10,26 +10,75 @@ const LESSONS_PER_STAGE = 9;
 
 const STAGE_DEFINITIONS: Omit<StageNode, 'units' | 'stageExam'>[] = [
   {
+    stage: 'Pre-A0',
+    titleAr: 'المستوى 1: مصنع الاسم وأصوات الحروف',
+    titleEn: 'Level 1: Name Factory & Sounds',
+    descriptionAr: 'كتابة الاسم بالإنجليزي، نطق الحروف، وأصوات P/B, V/F',
+    descriptionEn: 'Spell your name and master core phonics',
+  },
+  {
     stage: 'A0',
-    titleAr: 'المرحلة A0 · الانطلاقة والأساسات',
-    titleEn: 'Stage A0 · Absolute Starter Foundations',
-    descriptionAr: 'بناء الجمل الأساسية وفهم الهيكل الإنجليزي الأولي',
-    descriptionEn: 'Build essential sentence patterns and core English structure',
+    titleAr: 'المستوى 2: إنجليزي في شوارع مصر',
+    titleEn: 'Level 2: English in Egyptian Streets',
+    descriptionAr: 'تكوين جمل كاملة من 35+ كلمة يومية مستعارة',
+    descriptionEn: 'Turn loanwords into full sentences',
   },
   {
     stage: 'A1',
-    titleAr: 'المرحلة A1 · التفكير اليومي والتعبير',
-    titleEn: 'Stage A1 · Everyday Thinking & Expression',
-    descriptionAr: 'التعبير عن الأحداث والروابط والمواقف اليومية',
-    descriptionEn: 'Express everyday events, relationships, and situations',
+    titleAr: 'المستوى 3: سر الكوبري الخفي am / is / are',
+    titleEn: 'Level 3: The Hidden Bridge',
+    descriptionAr: 'الفرق بين "أنا جاهز" و "I am ready"',
+    descriptionEn: 'Mastering the copula and basic states',
+  },
+  {
+    stage: 'A1+',
+    titleAr: 'المستوى 4: حركتك في اليوم I do vs I am doing',
+    titleEn: 'Level 4: Daily Action vs Right Now',
+    descriptionAr: 'أفعال العادة مقابل أفعال اللحظة',
+    descriptionEn: 'Present Simple vs Present Continuous',
   },
   {
     stage: 'A2',
-    titleAr: 'المرحلة A2 · الجمل المركبة والربط',
-    titleEn: 'Stage A2 · Complex Sentences & Connectors',
-    descriptionAr: 'ربط الأفكار والتعبير بدقة في سياقات متنوعة',
-    descriptionEn: 'Connect ideas and communicate precisely in varied contexts',
+    titleAr: 'المستوى 5: احكي اللي حصل واسأل صح',
+    titleEn: 'Level 5: Tell the Story & Ask Right',
+    descriptionAr: 'سرد الماضي وفخاخ حروف الجر',
+    descriptionEn: 'Past events and preposition traps',
   },
+  {
+    stage: 'B1',
+    titleAr: 'المستوى 6: جسر الزمن I ate vs I have eaten',
+    titleEn: 'Level 6: The Time Bridge',
+    descriptionAr: 'حدث في الماضي مقابل تأثيره الحاضر',
+    descriptionEn: 'Past Simple vs Present Perfect',
+  },
+  {
+    stage: 'B1+',
+    titleAr: 'المستوى 7: هندسة الأفكار والروابط',
+    titleEn: 'Level 7: Idea Engineering & Links',
+    descriptionAr: 'ربط الأفكار المعقدة although, however',
+    descriptionEn: 'Complex connectors and flow',
+  },
+  {
+    stage: 'B2',
+    titleAr: 'المستوى 8: التفكير الشرطي والمناقشة',
+    titleEn: 'Level 8: Conditional Thinking',
+    descriptionAr: 'سيناريوهات لو، والتفكير التكنولوجي',
+    descriptionEn: 'If scenarios, tech & debate',
+  },
+  {
+    stage: 'C1',
+    titleAr: 'المستوى 9: طلاقة المحترفين والعلماء',
+    titleEn: 'Level 9: Pro & Scientist Fluency',
+    descriptionAr: 'سرعة البديهة والتفكير بدون ترجمة عقلية',
+    descriptionEn: 'Native-speed thinking without mental translation',
+  },
+  {
+    stage: 'C1+',
+    titleAr: 'المستوى 10: قمة الإتقان حكيم جسر التفكير',
+    titleEn: 'Level 10: Thinking Bridge Mastery',
+    descriptionAr: 'تحدي إتقان اللغة الشامل',
+    descriptionEn: 'Final Boss mastery challenge',
+  }
 ];
 
 export type LocalizedTarget = 'de' | 'es' | 'ja' | 'fr' | 'zh' | 'hi' | 'ru' | 'pt' | 'it' | 'el';
@@ -1487,7 +1536,8 @@ export function buildCourseStructure(
     case 'es':
     case 'fr':
     case 'it':
-    case 'pt': {
+    case 'pt':
+    case 'tr': {
       const phases = getCurriculum('ar', targetLang);
       return phases.map((phase, index) =>
         createStageNode(
@@ -1525,7 +1575,7 @@ export function buildCourseStructure(
       );
     }
     default: {
-      const unexpectedTarget: never = targetLang;
+      const unexpectedTarget: any = targetLang;
       throw new Error(`No curriculum is configured for target language: ${unexpectedTarget}`);
     }
   }

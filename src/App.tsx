@@ -66,6 +66,7 @@ const LanguageSelectorModal = lazy(() => import('./components/LanguageSelectorMo
 const AdminFeedbackView = lazy(() => import('./components/AdminFeedbackView').then((m) => ({ default: m.AdminFeedbackView })));
 const MaintenanceGuide = lazy(() => import('./features/maintenance/MaintenanceGuide').then((m) => ({ default: m.MaintenanceGuide })));
 const PronunciationRecorder = lazy(() => import('./features/voice/PronunciationRecorder').then((m) => ({ default: m.PronunciationRecorder })));
+const StudioDashboard = lazy(() => import('./features/studio/StudioDashboard').then((m) => ({ default: m.StudioDashboard })));
 
 type View =
   | { name: 'shell' }
@@ -77,7 +78,8 @@ type View =
   | { name: 'preferences' }
   | { name: 'admin' }
   | { name: 'maintenance' }
-  | { name: 'pronunciation' };
+  | { name: 'pronunciation' }
+  | { name: 'studio' };
 
 export default function App() {
   const [view, setView] = useState<View>(() => {
@@ -87,7 +89,7 @@ export default function App() {
         const urlParams = new URLSearchParams(window.location.search);
 
         if (path === '/android') return { name: 'android' };
-        if (urlParams.get('admin') === 'true') return { name: 'admin' };
+        if (urlParams.get('admin') === 'true') return { name: 'studio' };
         if (urlParams.get('app') === 'true' || path === '/app') {
           return { name: 'shell' };
         }
@@ -121,6 +123,9 @@ export default function App() {
 
   const [activeLessonNode, setActiveLessonNode] = useState<LessonNode | null>(null);
   const [onboardingOpen, setOnboardingOpen] = useState<boolean>(() => {
+    if (typeof window !== 'undefined' && window.location.search.includes('admin=true')) {
+      return false;
+    }
     try {
       const stored = localStorage.getItem('tb.progressionState');
       return stored === null;
@@ -456,6 +461,13 @@ export default function App() {
           sourceLang={sourceLang}
           targetLang={targetLang}
           onOpenLanguageSelector={() => setLangSelectorOpen(true)}
+        />
+      )}
+
+      {view.name === 'studio' && (
+        <StudioDashboard
+          onBack={goHome}
+          isArabic={isArabic}
         />
       )}
 

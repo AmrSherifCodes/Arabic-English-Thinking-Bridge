@@ -212,7 +212,7 @@ export function OnboardingModal({
     initialTargetLang || (initialProfile?.targetLanguage || 'en')
   );
   const [dialect, setDialect] = useState<'egyptian' | 'msa'>(initialProfile?.dialect || 'egyptian');
-  const [level, setLevel] = useState<'beginner' | 'intermediate' | 'advanced'>(initialProfile?.level || 'beginner');
+  const [level, setLevel] = useState<'beginner' | 'intermediate' | 'advanced'>((initialProfile?.level as 'beginner' | 'intermediate' | 'advanced') || 'beginner');
   const [goal, setGoal] = useState<LearningGoal>(initialProfile?.goal || 'general');
   const [name, setName] = useState<string>(initialProfile?.name || '');
 

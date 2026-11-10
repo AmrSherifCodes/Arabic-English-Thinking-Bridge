@@ -26,6 +26,9 @@ export function getCurriculum(source: SourceLanguage = 'ar', target: TargetLangu
   if (target === 'pt') {
     return getPortuguesePhases(source);
   }
+  if (target === 'tr') {
+    return PHASES_DATA;
+  }
   if (source === 'en' && target === 'en') {
     // English-to-English advanced immersion: adapt PHASES_DATA
     return PHASES_DATA.map(p => ({

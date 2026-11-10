@@ -23,9 +23,10 @@ export type SourceLanguage =
   | 'ru'
   | 'pt'
   | 'it'
-  | 'el';
+  | 'el'
+  | 'tr';
 
-export type TargetLanguage = 'ar' | 'en' | 'de' | 'ja' | 'es' | 'fr' | 'zh' | 'hi' | 'ru' | 'pt' | 'it' | 'el';
+export type TargetLanguage = 'ar' | 'en' | 'de' | 'ja' | 'es' | 'fr' | 'zh' | 'hi' | 'ru' | 'pt' | 'it' | 'el' | 'tr';
 
 export interface LanguagePair {
   source: SourceLanguage;
@@ -123,7 +124,15 @@ export interface UserProfile {
   focusArea?: FocusArea;
   language: 'english' | 'arabic';
   dialect: 'egyptian' | 'msa';
-  level: 'beginner' | 'intermediate' | 'advanced';
+  level:
+    | 'beginner'
+    | 'intermediate'
+    | 'advanced'
+    | 'zero' // 🌱 من تحت الصفر
+    | 'kids' // 🎒 كي جي وابتدائي
+    | 'middle' // 📘 إعدادي
+    | 'high' // 🎓 ثانوي عام
+    | 'career'; // 🚀 جامعة، شغل، وسفر
   sourceLanguage?: SourceLanguage;
   targetLanguage?: TargetLanguage;
 }

@@ -36,10 +36,11 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
     initialProfile?.goal || 'business'
   );
   const [diagnosticLevel, setDiagnosticLevel] = useState<'beginner' | 'intermediate' | 'advanced'>(
-    initialProfile?.level || 'beginner'
+    (initialProfile?.level as 'beginner' | 'intermediate' | 'advanced') || 'beginner'
   );
   const [companion, setCompanion] = useState<'strict' | 'chill' | 'analyst'>('chill');
   const [diagnosticSelected, setDiagnosticSelected] = useState<string | null>(null);
+  const [selectedTrack, setSelectedTrack] = useState<string>('zero');
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -94,8 +95,8 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
     const updatedProfile: UserProfile = {
       language: 'arabic', // Arabic UI
       dialect: 'egyptian',
-      level: diagnosticLevel,
-      goal: selectedMission,
+      level: (diagnosticLevel as any),
+      goal: 'general',
       sourceLanguage: 'arz',
       targetLanguage: 'en',
     };
@@ -103,11 +104,12 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
     // Save companion preference locally
     try {
       localStorage.setItem('tb.aiCompanion', companion);
+      localStorage.setItem('tb.learnerTrack', selectedTrack);
     } catch {
       /* noop */
     }
 
-    onComplete(updatedProfile, { companion, diagnosticLevel });
+    onComplete(updatedProfile, { companion, diagnosticLevel, track: selectedTrack } as any);
   };
 
   const slideVariants = {
@@ -158,18 +160,17 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
                 جسر التفكير · Thinking Bridge
               </p>
               <p className="text-[11px] text-stone-400 font-medium">
-                {step === 0 && 'اتجاه التعلم · الخطوة ١ من ٥'}
-                {step === 1 && 'المهمة الأولى · الخطوة ٢ من ٥'}
-                {step === 2 && 'اختبار التفكير · الخطوة ٣ من ٥'}
-                {step === 3 && 'رفيق الرحلة · الخطوة ٤ من ٥'}
-                {step === 4 && 'انطلاق اللعبة · جاهز'}
+                {step === 0 && 'اختيار المسار · الخطوة ١ من ٤'}
+                {step === 1 && 'تحديد المستوى · الخطوة ٢ من ٤'}
+                {step === 2 && 'رفيق الرحلة · الخطوة ٣ من ٤'}
+                {step === 3 && 'انطلاق اللعبة · جاهز'}
               </p>
             </div>
           </div>
 
           {/* Game Dots Progress */}
-          <div className="flex items-center gap-1.5" aria-label={`الخطوة ${step + 1} من 5`}>
-            {[0, 1, 2, 3, 4].map((idx) => (
+          <div className="flex items-center gap-1.5" aria-label={`الخطوة ${step + 1} من 4`}>
+            {[0, 1, 2, 3].map((idx) => (
               <span
                 key={idx}
                 className={`h-2 rounded-full transition-all duration-300 ${

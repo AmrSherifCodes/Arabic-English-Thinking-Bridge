@@ -34,7 +34,7 @@ export function filterDictionaryForProfile(
   const goal = profile?.goal || 'general';
   const dialect = profile?.dialect || 'egyptian';
 
-  const levelLimit = LEVEL_RANK[level] || 1;
+  const levelLimit = LEVEL_RANK[level as keyof typeof LEVEL_RANK] || 1;
   const situation = getSituationForGoal(goal);
 
   const sameDialectEntries = entries.filter(

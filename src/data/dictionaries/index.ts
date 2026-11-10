@@ -25,6 +25,7 @@ export const DICTIONARY_LOADERS: Record<string, () => Promise<DictWordEntry[]>> 
   pt: async () => (await import('./portugueseDictionary')).PORTUGUESE_DICTIONARY,
   it: async () => (await import('./italianDictionary')).ITALIAN_DICTIONARY,
   el: async () => (await import('./greekDictionary')).GREEK_DICTIONARY,
+  tr: async () => (await import('./trDictionary')).trDictionary,
   ar: async () => (await import('./arabicDictionary')).ARABIC_DICTIONARY,
   arz: async () => (await import('./egyptianArabicDictionary')).EGYPTIANARABIC_DICTIONARY,
   apc: async () => (await import('./levantineArabicDictionary')).LEVANTINEARABIC_DICTIONARY,

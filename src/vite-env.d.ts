@@ -1,1 +1,11 @@
-declare module '*.md?raw' {\n  const content: string;\n  export default content;\n}
+/// <reference types="vite/client" />
+
+declare module '*.md?raw' {
+  const content: string;
+  export default content;
+}
+
+declare module '*.css' {
+  const classes: { [key: string]: string };
+  export default classes;
+}

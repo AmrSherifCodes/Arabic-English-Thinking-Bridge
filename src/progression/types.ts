@@ -1,6 +1,6 @@
 import { ChunkMapping, SourceLanguage, TargetLanguage } from '../types';
 
-export type CefrStage = 'A0' | 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
+export type CefrStage = 'Pre-A0' | 'A0' | 'A1' | 'A1+' | 'A2' | 'B1' | 'B1+' | 'B2' | 'C1' | 'C1+';
 
 export type SkillAxis = 'structure' | 'vocabulary' | 'listening' | 'speaking' | 'writing';
 

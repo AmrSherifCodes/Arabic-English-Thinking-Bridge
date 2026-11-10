@@ -101,6 +101,10 @@ export const PracticeView = React.memo(function PracticeView({
   const [isAvatarSpeaking, setIsAvatarSpeaking] = useState(false);
   const speechTimerRef = useRef<any>(null);
 
+  // Stages: 1 = Flashcard, 2 = Builder, 3 = Matcher
+  const [internalStage, setInternalStage] = useState<1 | 2 | 3>(1);
+  const [isFlipped, setIsFlipped] = useState(false);
+
   const triggerAvatarSpeech = (text: string, rate: number = 1) => {
     if (speechTimerRef.current) clearTimeout(speechTimerRef.current);
     setIsAvatarSpeaking(true);
@@ -131,7 +135,18 @@ export const PracticeView = React.memo(function PracticeView({
 
   useEffect(() => {
     setAiErrorExplanation(null);
+    // Reset stages when a new exercise loads
+    if (exState === 'ask') {
+      setInternalStage(1);
+      setIsFlipped(false);
+    }
   }, [exercise?.id, exState]);
+
+  useEffect(() => {
+    if ((exState === 'ok' || exState === 'rev') && internalStage === 2) {
+      setInternalStage(3);
+    }
+  }, [exState, internalStage]);
 
   const handleAskWhyWrong = async () => {
     if (!exercise) return;
@@ -156,8 +171,8 @@ export const PracticeView = React.memo(function PracticeView({
   };
 
   const [showTutorial, setShowTutorial] = useState(false);
-  // Native Haptic Vibrations on answer & lesson complete
   const prevExStateRef = useRef(exState);
+
   useEffect(() => {
     if (prevExStateRef.current === 'ask') {
       if (exState === 'ok' || exState === 'rev') {
@@ -193,19 +208,18 @@ export const PracticeView = React.memo(function PracticeView({
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
+
   const [showLostPrompt, setShowLostPrompt] = useState(false);
   const [lostDismissedFor, setLostDismissedFor] = useState<string | null>(null);
-
   const exerciseId = exercise?.id ?? null;
   const isAskState = exState === 'ask';
 
-  // Proactive tutor: after 15s with no block tapped on the current sentence, offer help.
   useEffect(() => {
     setShowLostPrompt(false);
-    if (!exerciseId || !isAskState || !onAskTutor || lostDismissedFor === exerciseId) return;
+    if (!exerciseId || !isAskState || internalStage !== 2 || !onAskTutor || lostDismissedFor === exerciseId) return;
     const timer = window.setTimeout(() => setShowLostPrompt(true), IDLE_HELP_MS);
     return () => window.clearTimeout(timer);
-  }, [exerciseId, isAskState, userAnswer, lostDismissedFor, onAskTutor]);
+  }, [exerciseId, isAskState, internalStage, userAnswer, lostDismissedFor, onAskTutor]);
 
   useEffect(() => {
     if (!showTutorial) return;
@@ -215,6 +229,64 @@ export const PracticeView = React.memo(function PracticeView({
     window.addEventListener('keydown', closeOnEscape);
     return () => window.removeEventListener('keydown', closeOnEscape);
   }, [showTutorial]);
+
+  // Stage 3 Matching State
+  const [matchingPairs, setMatchingPairs] = useState<{ar: string, en: string, id: number}[]>([]);
+  const [shuffledAr, setShuffledAr] = useState<{text: string, id: number, matched: boolean}[]>([]);
+  const [shuffledEn, setShuffledEn] = useState<{text: string, id: number, matched: boolean}[]>([]);
+  const [selectedAr, setSelectedAr] = useState<number | null>(null);
+  const [selectedEn, setSelectedEn] = useState<number | null>(null);
+  const [matchedCount, setMatchedCount] = useState(0);
+  const [shakeIds, setShakeIds] = useState<number[]>([]);
+
+  useEffect(() => {
+    if (internalStage === 3 && exercise) {
+      const pairs = exercise.breakdownChunks.map((ch, i) => ({
+        ar: ch.arabicText,
+        en: ch.englishText,
+        id: i
+      }));
+      setMatchingPairs(pairs);
+
+      const shuffle = <T,>(arr: T[]) => [...arr].sort(() => Math.random() - 0.5);
+
+      setShuffledAr(shuffle(pairs).map(p => ({text: p.ar, id: p.id, matched: false})));
+      setShuffledEn(shuffle(pairs).map(p => ({text: p.en, id: p.id, matched: false})));
+      setMatchedCount(0);
+      setSelectedAr(null);
+      setSelectedEn(null);
+    }
+  }, [internalStage, exercise]);
+
+  const handleSelectAr = (id: number) => {
+    if (selectedAr === id) { setSelectedAr(null); return; }
+    setSelectedAr(id);
+    if (selectedEn !== null) checkMatch(id, selectedEn);
+  };
+  const handleSelectEn = (id: number) => {
+    if (selectedEn === id) { setSelectedEn(null); return; }
+    setSelectedEn(id);
+    if (selectedAr !== null) checkMatch(selectedAr, id);
+  };
+
+  const checkMatch = (arId: number, enId: number) => {
+    if (arId === enId) {
+      if (Capacitor.isNativePlatform()) Haptics.impact({ style: ImpactStyle.Light }).catch(() => {});
+      setShuffledAr(prev => prev.map(p => p.id === arId ? { ...p, matched: true } : p));
+      setShuffledEn(prev => prev.map(p => p.id === enId ? { ...p, matched: true } : p));
+      setMatchedCount(prev => prev + 1);
+      setSelectedAr(null);
+      setSelectedEn(null);
+    } else {
+      if (Capacitor.isNativePlatform()) Haptics.notification({ type: NotificationType.Error }).catch(() => {});
+      setShakeIds([arId, enId]);
+      setTimeout(() => {
+        setShakeIds([]);
+        setSelectedAr(null);
+        setSelectedEn(null);
+      }, 500);
+    }
+  };
 
   if (lessonEngine.isDailyLimitReached) {
     return (
@@ -254,8 +326,415 @@ export const PracticeView = React.memo(function PracticeView({
   const combo = (progress.comboCount ?? 0) % MYSTERY_CHEST_THRESHOLD;
   const winsLeftForChest = MYSTERY_CHEST_THRESHOLD - combo;
 
+  const renderStage1 = () => (
+    <div className="w-full flex flex-col items-center animate-in fade-in zoom-in duration-300">
+      <div className="mb-6 text-center">
+        <h2 className="text-2xl font-black text-stone-800 dark:text-stone-100 uppercase tracking-widest ar">🃏 ١. البطاقات الذكية</h2>
+        <p className="text-sm font-bold text-stone-500 mt-1">Memorize the thought pattern</p>
+      </div>
+      <div className="relative w-full max-w-md h-80 sm:h-96 [perspective:1000px]">
+        <div className={`w-full h-full transition-transform duration-700 [transform-style:preserve-3d] ${isFlipped ? '[transform:rotateY(180deg)]' : ''}`}>
+          {/* Front */}
+          <div
+            onClick={() => setIsFlipped(true)}
+            className="absolute inset-0 [backface-visibility:hidden] bg-gradient-to-br from-white to-stone-50 dark:from-stone-800 dark:to-stone-900 border-2 border-stone-200 dark:border-stone-700 shadow-xl rounded-[2rem] p-6 flex flex-col items-center justify-center cursor-pointer hover:-translate-y-1 transition-transform"
+          >
+            <div className="text-5xl mb-6">💡</div>
+            <h3 className="text-3xl sm:text-4xl font-black ar text-center leading-relaxed text-stone-800 dark:text-white" dir="rtl">{exercise.arabicThought}</h3>
+            {exercise.arabicContext && (
+              <p className="mt-4 text-sm font-bold text-teal-600 dark:text-teal-400 ar text-center" dir="rtl">{exercise.arabicContext}</p>
+            )}
+            <div className="absolute bottom-6 flex flex-col items-center animate-bounce opacity-70">
+              <span className="text-xs font-black uppercase tracking-wider text-stone-500">Tap to flip</span>
+              <span className="text-xl mt-1">👇</span>
+            </div>
+          </div>
+          {/* Back */}
+          <div className="absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)] bg-gradient-to-br from-teal-50 to-emerald-50 dark:from-teal-900/40 dark:to-emerald-900/40 border-2 border-teal-500/50 shadow-xl rounded-[2rem] p-6 flex flex-col items-center">
+            <div className="flex-1 flex flex-col items-center justify-center w-full">
+              <h3 className="text-3xl sm:text-4xl font-black text-center text-stone-800 dark:text-white mb-4">{exercise.englishTarget}</h3>
+              <p className="text-base font-bold text-teal-800 dark:text-teal-200 text-center px-4 leading-relaxed ar" dir="rtl">{exercise.habitHint || lesson.transferConceptAr}</p>
+            </div>
+            <div className="w-full space-y-5">
+              <div className="flex justify-center gap-4">
+                <button type="button" onClick={(e) => { e.stopPropagation(); triggerAvatarSpeech(exercise.englishTarget, 1); }} className="w-14 h-14 rounded-full bg-white dark:bg-stone-800 shadow-md flex items-center justify-center text-2xl hover:scale-110 transition-transform">🔊</button>
+                <button type="button" onClick={(e) => { e.stopPropagation(); triggerAvatarSpeech(exercise.englishTarget, 0.75); }} className="w-14 h-14 rounded-full bg-white dark:bg-stone-800 shadow-md flex items-center justify-center text-2xl hover:scale-110 transition-transform">🐢</button>
+              </div>
+              <div className="grid grid-cols-3 gap-2 sm:gap-3 w-full">
+                <button type="button" onClick={() => setInternalStage(2)} className="py-3 rounded-2xl bg-rose-100 text-rose-800 dark:bg-rose-900/50 dark:text-rose-200 font-black hover:bg-rose-200 ar text-base shadow-sm">صعب 🔴</button>
+                <button type="button" onClick={() => setInternalStage(2)} className="py-3 rounded-2xl bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-200 font-black hover:bg-amber-200 ar text-base shadow-sm">معقول 🟡</button>
+                <button type="button" onClick={() => setInternalStage(2)} className="py-3 rounded-2xl bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-200 font-black hover:bg-emerald-200 ar text-base shadow-sm">سهل 🟢</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderStage2 = () => (
+    <div className="w-full flex flex-col gap-4 animate-in slide-in-from-right duration-300">
+      <div className="text-center mb-2">
+        <h2 className="text-2xl font-black text-stone-800 dark:text-stone-100 uppercase tracking-widest ar">🧩 ٢. رتّب الفكرة</h2>
+        <p className="text-sm font-bold text-stone-500 mt-1">Build the English sentence</p>
+      </div>
+
+      {/* Arabic Prompt Card */}
+      <div key={`prompt-${exercise.id}`} className={`${CARD_CLASS} practice-card-enter !mb-0 !p-6 sm:!p-8`}>
+        <div className="mb-2 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+          <span className="text-xs font-semibold uppercase tracking-wide text-stone-700 dark:text-stone-300 font-bold">
+            Say this thought in English
+          </span>
+          <button
+            type="button"
+            onClick={onToggleBlueprintPeek}
+            className="self-start text-xs font-semibold text-teal-700 underline decoration-teal-500/50 underline-offset-2 dark:text-teal-300 sm:self-auto"
+          >
+            {showBlueprintPeek ? 'Hide Structure Peek' : '🔍 Structure Peek'}
+          </button>
+        </div>
+
+        <InteractiveArabicSentence
+          sentence={exercise.arabicThought}
+          exercise={exercise}
+          preferredVoice={progress.preferredVoice}
+          className="ar text-2xl leading-relaxed font-semibold sm:text-3xl"
+          showCaption={true}
+          resetKey={exercise.id}
+        />
+
+        {exercise.arabicContext && (
+          <div dir="rtl" className="ar text-xs font-medium text-stone-700 dark:text-stone-300 mt-1">
+            {exercise.arabicContext}
+          </div>
+        )}
+
+        {(showBlueprintPeek || beginnerOn) && (
+          <div className="mt-3 pt-2.5 border-t border-stone-300 dark:border-stone-700 flex flex-wrap gap-1.5 items-center text-xs">
+            <span className="font-medium text-stone-700 dark:text-stone-300 mr-1"> Step-by-Step Blocks:</span>
+            {exercise.breakdownChunks.map((ch, idx) => (
+              <span
+                key={idx}
+                className={`px-2.5 py-1 rounded-lg font-medium ${CHUNK_COLORS[ch.role]}`}
+              >
+                {CHUNK_LABELS[ch.role]} ({ch.arabicText})
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Builder Area */}
+      <div className={`${CARD_CLASS} practice-card-enter !mb-0 !p-6 sm:!p-8`}>
+        {beginnerOn && nextWord && (
+          <div className="mb-2.5 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 px-3 py-2 text-xs">
+            <span>
+              🐣 <strong>Beginner Assist:</strong> Tap the highlighted green word block{' '}
+              <strong translate="no" className="text-emerald-700 dark:text-emerald-300">
+                “{nextWord}”
+              </strong>{' '}
+              next, or click <strong>🪄 Next Word Hint</strong>!
+            </span>
+            <span className="text-[11px] opacity-75">
+              🎁 {winsLeftForChest} win{winsLeftForChest === 1 ? '' : 's'} to Mystery Chest
+            </span>
+          </div>
+        )}
+
+        {currentWords.length > 0 && (
+          <div
+            role="group"
+            aria-label="Your sentence so far; tap a word to remove it"
+            className="mb-3 flex flex-wrap gap-2 rounded-xl bg-stone-100/80 p-3 dark:bg-stone-900/50"
+          >
+            {currentWords.map((w, idx) => (
+              <button
+                key={`${w}-${idx}`}
+                type="button"
+                translate="no"
+                onClick={() => onRemoveWordAt(idx)}
+                title="Tap to remove word"
+                className="chip-btn rounded-full bg-teal-700/15 px-3 py-1 text-sm font-medium text-teal-900 hover:bg-rose-500/20 dark:bg-teal-400/20 dark:text-teal-200"
+              >
+                {w} ×
+              </button>
+            ))}
+          </div>
+        )}
+
+        <label
+          htmlFor="ans"
+          className="mb-1.5 block text-xs font-semibold text-stone-600 dark:text-stone-300"
+        >
+          Build your English sentence
+        </label>
+        <input
+          ref={answerInputRef}
+          id="ans"
+          type="text"
+          translate="no"
+          value={userAnswer}
+          onChange={e => onChangeAnswer(e.target.value)}
+          onKeyDown={e => {
+            if (e.key === 'Enter') handleCheckWithEngine();
+          }}
+          placeholder="Tap the words below or type here…"
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="none"
+          spellCheck={false}
+          className="min-h-[52px] w-full rounded-xl border border-stone-300 bg-white/70 p-3 shadow-inner outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 dark:border-stone-600 dark:bg-stone-900/50"
+        />
+
+        <div
+          role="group"
+          aria-label="Available English words"
+          className="mt-4 flex flex-wrap gap-3"
+        >
+          {shuffledChips.map((chip, idx) => {
+            const isSuggestedNext =
+              beginnerOn && normNextWord.length > 0 && normalizeSentence(chip) === normNextWord;
+            return (
+              <button
+                key={`${chip}-${idx}`}
+                type="button"
+                translate="no"
+                onClick={() => onAddChip(chip)}
+                className={`chip-btn ${BTN_GHOST} min-h-[52px] !px-5 !py-3 text-lg transition-all ${
+                  isSuggestedNext
+                    ? '!border-emerald-500 bg-emerald-500/15 text-emerald-900 dark:text-emerald-200 font-bold ring-2 ring-emerald-500/30'
+                    : ''
+                }`}
+              >
+                {isSuggestedNext ? `✨ ${chip}` : chip}
+              </button>
+            );
+          })}
+        </div>
+
+        {feedbackHtml && (
+          <div
+            id="fb"
+            role="status"
+            aria-live="polite"
+            className="mt-5 rounded-xl bg-rose-50 p-4 text-sm text-rose-700 dark:bg-rose-950/30 dark:text-rose-300 font-medium leading-relaxed"
+          >
+            <div className="flex items-start gap-3">
+              <span className="text-2xl mt-1">🇪🇬</span>
+              <div className="flex-1">
+                <div className="font-black mb-1 text-rose-800 dark:text-rose-200 ar" dir="rtl">يا بطل، ركز هنا:</div>
+                <div>🧭 {feedbackHtml}</div>
+              </div>
+            </div>
+            <div className="mt-3">
+              <button
+                type="button"
+                onClick={handleAskWhyWrong}
+                disabled={isExplainingError}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-rose-300 dark:border-rose-800 bg-white dark:bg-rose-900/40 hover:bg-rose-100 dark:hover:bg-rose-900 text-xs font-bold text-rose-800 dark:text-rose-200 transition shadow-xs cursor-pointer"
+              >
+                <span>🤔</span>
+                <span>{isExplainingError ? 'Analyzing error with Gemini...' : 'Why did I get this wrong? (ليه إجابتي غلط؟)'}</span>
+              </button>
+
+              {aiErrorExplanation && (
+                <div className="mt-2.5 p-3 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-700/60 text-xs sm:text-sm font-semibold text-amber-900 dark:text-amber-200 leading-relaxed">
+                  <div className="flex items-center gap-1 font-bold mb-1 text-amber-800 dark:text-amber-300">
+                    <span>💡 Structural Diagnosis (التحليل الهيكلي):</span>
+                  </div>
+                  <p>{aiErrorExplanation}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        <div className="mt-5 grid grid-cols-2 gap-3 sm:flex sm:flex-wrap">
+          <button
+            type="button"
+            id="check-answer-btn"
+            className={`${BTN_PRIMARY} col-span-2 min-h-[48px] w-full sm:col-span-1 sm:w-auto sm:flex-1`}
+            onClick={handleCheckWithEngine}
+          >
+            ✅ Check Answer
+          </button>
+          <button
+            type="button"
+            id="next-word-hint-btn"
+            disabled={!nextWord}
+            onClick={onGiveNextWordHint}
+            title="Fill in the exact next English word for me"
+            className={`${BTN_GHOST} col-span-2 min-h-[48px] whitespace-normal border-emerald-500/50 text-emerald-800 dark:text-emerald-300 sm:col-span-1`}
+          >
+            🪄 Next Word (كلمة مساعدة)
+          </button>
+          <button
+            type="button"
+            title="Clear and reshuffle word blocks"
+            className={`${BTN_GHOST} min-h-[48px]`}
+            onClick={onClearAnswer}
+          >
+            ↺ Reset
+          </button>
+          <button type="button" className={`${BTN_GHOST} min-h-[48px]`} onClick={onRevealAnswer}>
+            Reveal
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderStage3 = () => {
+    const isComplete = matchedCount === matchingPairs.length && matchingPairs.length > 0;
+
+    return (
+      <div className="w-full flex flex-col gap-4 animate-in slide-in-from-right duration-300">
+        <div className="text-center mb-2">
+          <h2 className="text-2xl font-black text-stone-800 dark:text-stone-100 uppercase tracking-widest ar">⚡ ٣. وصّل الأفكار</h2>
+          <p className="text-sm font-bold text-stone-500 mt-1">Match the structural blocks</p>
+        </div>
+
+        <div className={`${CARD_CLASS} !p-6 sm:!p-8`}>
+          {!isComplete ? (
+            <div className="flex gap-4">
+              {/* English Column (Left) */}
+              <div className="flex-1 flex flex-col gap-3">
+                {shuffledEn.map((item) => (
+                  <button
+                    key={`en-${item.id}`}
+                    onClick={() => !item.matched && handleSelectEn(item.id)}
+                    disabled={item.matched}
+                    className={`p-4 rounded-xl border-2 font-bold text-center transition-all min-h-[80px] flex items-center justify-center ${
+                      item.matched
+                        ? 'bg-stone-100 border-stone-200 text-transparent dark:bg-stone-800 dark:border-stone-700 select-none opacity-50'
+                        : selectedEn === item.id
+                          ? 'bg-teal-100 border-teal-500 text-teal-900 dark:bg-teal-900/50 dark:text-teal-100 scale-[1.02] shadow-md'
+                          : shakeIds.includes(item.id)
+                            ? 'animate-[shake_0.5s_ease-in-out] bg-rose-100 border-rose-500 text-rose-900 dark:bg-rose-900/50 dark:text-rose-100'
+                            : 'bg-white border-stone-300 hover:border-teal-400 dark:bg-stone-800 dark:border-stone-600 hover:bg-stone-50 dark:hover:bg-stone-700'
+                    }`}
+                  >
+                    {item.text}
+                  </button>
+                ))}
+              </div>
+              {/* Arabic Column (Right) */}
+              <div className="flex-1 flex flex-col gap-3">
+                {shuffledAr.map((item) => (
+                  <button
+                    key={`ar-${item.id}`}
+                    onClick={() => !item.matched && handleSelectAr(item.id)}
+                    disabled={item.matched}
+                    dir="rtl"
+                    className={`p-4 rounded-xl border-2 font-bold text-center ar transition-all min-h-[80px] flex items-center justify-center ${
+                      item.matched
+                        ? 'bg-stone-100 border-stone-200 text-transparent dark:bg-stone-800 dark:border-stone-700 select-none opacity-50'
+                        : selectedAr === item.id
+                          ? 'bg-amber-100 border-amber-500 text-amber-900 dark:bg-amber-900/50 dark:text-amber-100 scale-[1.02] shadow-md'
+                          : shakeIds.includes(item.id)
+                            ? 'animate-[shake_0.5s_ease-in-out] bg-rose-100 border-rose-500 text-rose-900 dark:bg-rose-900/50 dark:text-rose-100'
+                            : 'bg-white border-stone-300 hover:border-amber-400 dark:bg-stone-800 dark:border-stone-600 hover:bg-stone-50 dark:hover:bg-stone-700'
+                    }`}
+                  >
+                    {item.text}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center animate-in zoom-in duration-500 py-6">
+              <div className="text-6xl mb-4 animate-bounce">🔥</div>
+              <h3 className="text-3xl font-black text-stone-800 dark:text-white mb-2">Combo Streak x3!</h3>
+              <p className="text-stone-500 font-bold mb-8 text-center">You matched all the structural blocks perfectly.</p>
+
+              <div className="w-full space-y-3">
+                <button
+                  type="button"
+                  className="w-full min-h-[64px] rounded-2xl bg-teal-600 hover:bg-teal-700 active:scale-[0.98] text-white font-black text-lg shadow-lg transition-all flex items-center justify-center gap-2 ar"
+                  onClick={() => {
+                    const ok = triggerAvatarSpeech(exercise.englishTarget, 1);
+                    if (!ok) onToast('Speech not supported here');
+                  }}
+                >
+                  <span>🔊 اسمع النطق الصح</span>
+                  <span className="text-sm font-semibold opacity-90">(Hear English)</span>
+                </button>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    className={`${BTN_GHOST} min-h-[56px] text-base font-bold`}
+                    onClick={() => {
+                      const ok = triggerAvatarSpeech(exercise.englishTarget, 0.75);
+                      if (!ok) onToast('Speech not supported here');
+                    }}
+                  >
+                    🐢 بالراحه (Slow)
+                  </button>
+                  <button
+                    type="button"
+                    id="rb"
+                    className={`${BTN_GHOST} min-h-[56px] text-base font-bold`}
+                    onClick={onPronunciationPractice}
+                  >
+                    {isRecordingPron ? '⏹ وقف التسجيل' : '🎙 سجل صوتك'}
+                  </button>
+                </div>
+
+                {(pronAudioUrl || pronResultText || pronWordMatches.length > 0) && (
+                  <div id="pr" aria-live="polite" className="mt-4 space-y-2 text-sm p-4 bg-stone-100 dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-700">
+                    {pronAudioUrl && (
+                      <div>
+                        <audio controls src={pronAudioUrl} className="inline-block align-middle h-8 w-full" />
+                      </div>
+                    )}
+                    {pronResultText && <div className="font-bold text-lg text-center">{pronResultText}</div>}
+                    {pronWordMatches.length > 0 && (
+                      <div className="flex flex-wrap justify-center gap-1.5 pt-2">
+                        {pronWordMatches.map((item, idx) => (
+                          <span
+                            key={`${item.word}-${idx}`}
+                            translate="no"
+                            className={`px-3 py-1 rounded-lg text-sm font-black ${
+                              item.ok
+                                ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
+                                : 'bg-rose-500/20 text-rose-700 dark:text-rose-300'
+                            }`}
+                          >
+                            {item.word}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  id="next-exercise-btn"
+                  className={`${BTN_PRIMARY} mt-6 min-h-[64px] w-full text-lg`}
+                  onClick={isAiPractice ? onGenerateNextAiExercise : onNextExercise}
+                >
+                  {isAiPractice
+                    ? '🎲 Next AI Sentence →'
+                    : `Next Level (${winsLeftForChest} more win${winsLeftForChest === 1 ? '' : 's'} to 🎁 Mystery Chest) →`}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 relative">
+      <style>{`
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          20%, 60% { transform: translateX(-5px); }
+          40%, 80% { transform: translateX(5px); }
+        }
+      `}</style>
       <div className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
         {isAiPractice ? (
           <div className="flex items-center gap-2">
@@ -374,7 +853,7 @@ export const PracticeView = React.memo(function PracticeView({
         <TutorAvatar
           isSpeaking={isAvatarSpeaking}
           expression={
-            exState === 'ok'
+            internalStage === 3 && matchedCount === matchingPairs.length && matchingPairs.length > 0
               ? 'celebrating'
               : exState === 'rev' || Boolean(feedbackHtml)
               ? 'thinking'
@@ -384,8 +863,8 @@ export const PracticeView = React.memo(function PracticeView({
           }
           size="md"
           speechText={
-            exState === 'ok'
-              ? '🎉 برافو عليك! إجابة ممتازة وفكرت بالتركيب الصح!'
+            internalStage === 3 && matchedCount === matchingPairs.length && matchingPairs.length > 0
+              ? '🎉 برافو عليك! قدرت توصل الأفكار ببعضها بامتياز!'
               : exState === 'rev' || Boolean(feedbackHtml)
               ? `💡 ركز في الفارق التركيبي: ${lessonEngine.concept?.contrast_note || lesson.transferConcept}`
               : `💡 السر الذهني: ${lessonEngine.concept?.contrast_note || lesson.transferConcept}`
@@ -420,356 +899,10 @@ export const PracticeView = React.memo(function PracticeView({
         </div>
       </details>
 
-      {/* Arabic Prompt Card with Double-Tap Word Auto-Translator */}
-      <div key={exercise.id} className={`${CARD_CLASS} practice-card-enter !mb-0 !p-6 sm:!p-8`}>
-        <div className="mb-2 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-          <span className="text-xs font-semibold uppercase tracking-wide text-stone-700 dark:text-stone-300 font-bold">
-            Say this thought in English
-          </span>
-          <button
-            type="button"
-            onClick={onToggleBlueprintPeek}
-            className="self-start text-xs font-semibold text-teal-700 underline decoration-teal-500/50 underline-offset-2 dark:text-teal-300 sm:self-auto"
-          >
-            {showBlueprintPeek ? 'Hide Structure Peek' : '🔍 Structure Peek'}
-          </button>
-        </div>
-
-        <InteractiveArabicSentence
-          sentence={exercise.arabicThought}
-          exercise={exercise}
-          preferredVoice={progress.preferredVoice}
-          className="ar text-2xl leading-relaxed font-semibold sm:text-3xl"
-          showCaption={true}
-          resetKey={exercise.id}
-        />
-
-        {exercise.arabicContext && (
-          <div dir="rtl" className="ar text-xs font-medium text-stone-700 dark:text-stone-300 mt-1">
-            {exercise.arabicContext}
-          </div>
-        )}
-
-        {(showBlueprintPeek || beginnerOn) && (
-          <div className="mt-3 pt-2.5 border-t border-stone-300 dark:border-stone-700 flex flex-wrap gap-1.5 items-center text-xs">
-            <span className="font-medium text-stone-700 dark:text-stone-300 mr-1"> Step-by-Step Blocks:</span>
-            {exercise.breakdownChunks.map((ch, idx) => (
-              <span
-                key={idx}
-                className={`px-2.5 py-1 rounded-lg font-medium ${CHUNK_COLORS[ch.role]}`}
-              >
-                {CHUNK_LABELS[ch.role]} ({ch.arabicText})
-              </span>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {isAsk ? (
-        <div className={`${CARD_CLASS} practice-card-enter !mb-0 !p-6 sm:!p-8`}>
-          {/* Beginner Scaffolding Banner */}
-          {beginnerOn && nextWord && (
-            <div className="mb-2.5 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 px-3 py-2 text-xs">
-              <span>
-                🐣 <strong>Beginner Assist:</strong> Tap the highlighted green word block{' '}
-                <strong translate="no" className="text-emerald-700 dark:text-emerald-300">
-                  “{nextWord}”
-                </strong>{' '}
-                next, or click <strong>🪄 Next Word Hint</strong>!
-              </span>
-              <span className="text-[11px] opacity-75">
-                🎁 {winsLeftForChest} win{winsLeftForChest === 1 ? '' : 's'} to Mystery Chest
-              </span>
-            </div>
-          )}
-
-          {currentWords.length > 0 && (
-            <div
-              role="group"
-              aria-label="Your sentence so far; tap a word to remove it"
-              className="mb-3 flex flex-wrap gap-2 rounded-xl bg-stone-100/80 p-3 dark:bg-stone-900/50"
-            >
-              {currentWords.map((w, idx) => (
-                <button
-                  key={`${w}-${idx}`}
-                  type="button"
-                  translate="no"
-                  onClick={() => onRemoveWordAt(idx)}
-                  title="Tap to remove word"
-                  className="chip-btn rounded-full bg-teal-700/15 px-3 py-1 text-sm font-medium text-teal-900 hover:bg-rose-500/20 dark:bg-teal-400/20 dark:text-teal-200"
-                >
-                  {w} ×
-                </button>
-              ))}
-            </div>
-          )}
-
-          <label
-            htmlFor="ans"
-            className="mb-1.5 block text-xs font-semibold text-stone-600 dark:text-stone-300"
-          >
-            Build your English sentence
-          </label>
-          <input
-            ref={answerInputRef}
-            id="ans"
-            type="text"
-            translate="no"
-            value={userAnswer}
-            onChange={e => onChangeAnswer(e.target.value)}
-            onKeyDown={e => {
-              if (e.key === 'Enter') handleCheckWithEngine();
-            }}
-            placeholder="Tap the words below or type here…"
-            autoComplete="off"
-            autoCorrect="off"
-            autoCapitalize="none"
-            spellCheck={false}
-            className="min-h-[52px] w-full rounded-xl border border-stone-300 bg-white/70 p-3 shadow-inner outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 dark:border-stone-600 dark:bg-stone-900/50"
-          />
-
-          <div
-            role="group"
-            aria-label="Available English words"
-            className="mt-4 flex flex-wrap gap-3"
-          >
-            {shuffledChips.map((chip, idx) => {
-              const isSuggestedNext =
-                beginnerOn && normNextWord.length > 0 && normalizeSentence(chip) === normNextWord;
-              return (
-                <button
-                  key={`${chip}-${idx}`}
-                  type="button"
-                  translate="no"
-                  onClick={() => onAddChip(chip)}
-                  className={`chip-btn ${BTN_GHOST} min-h-[52px] !px-5 !py-3 text-lg transition-all ${
-                    isSuggestedNext
-                      ? '!border-emerald-500 bg-emerald-500/15 text-emerald-900 dark:text-emerald-200 font-bold ring-2 ring-emerald-500/30'
-                      : ''
-                  }`}
-                >
-                  {isSuggestedNext ? `✨ ${chip}` : chip}
-                </button>
-              );
-            })}
-          </div>
-
-          {feedbackHtml && (
-            <div
-              id="fb"
-              role="status"
-              aria-live="polite"
-              className="mt-5 rounded-xl bg-rose-50 p-4 text-sm text-rose-700 dark:bg-rose-950/30 dark:text-rose-300 font-medium leading-relaxed"
-            >
-              <div>🧭 {feedbackHtml}</div>
-              <div className="mt-3">
-                <button
-                  type="button"
-                  onClick={handleAskWhyWrong}
-                  disabled={isExplainingError}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-rose-300 dark:border-rose-800 bg-white dark:bg-rose-900/40 hover:bg-rose-100 dark:hover:bg-rose-900 text-xs font-bold text-rose-800 dark:text-rose-200 transition shadow-xs cursor-pointer"
-                >
-                  <span>🤔</span>
-                  <span>{isExplainingError ? 'Analyzing error with Gemini...' : 'Why did I get this wrong? (ليه إجابتي غلط؟)'}</span>
-                </button>
-
-                {aiErrorExplanation && (
-                  <div className="mt-2.5 p-3 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-700/60 text-xs sm:text-sm font-semibold text-amber-900 dark:text-amber-200 leading-relaxed">
-                    <div className="flex items-center gap-1 font-bold mb-1 text-amber-800 dark:text-amber-300">
-                      <span>💡 Structural Diagnosis (التحليل الهيكلي):</span>
-                    </div>
-                    <p>{aiErrorExplanation}</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          <div className="mt-5 grid grid-cols-2 gap-3 sm:flex sm:flex-wrap">
-            <button
-              type="button"
-              id="check-answer-btn"
-              className={`${BTN_PRIMARY} col-span-2 min-h-[48px] w-full sm:col-span-1 sm:w-auto sm:flex-1`}
-              onClick={handleCheckWithEngine}
-            >
-              ✅ Check Answer
-            </button>
-            <button
-              type="button"
-              id="next-word-hint-btn"
-              disabled={!nextWord}
-              onClick={onGiveNextWordHint}
-              title="Fill in the exact next English word for me"
-              className={`${BTN_GHOST} col-span-2 min-h-[48px] whitespace-normal border-emerald-500/50 text-emerald-800 dark:text-emerald-300 sm:col-span-1`}
-            >
-              🪄 Next Word (كلمة مساعدة)
-            </button>
-            <button
-              type="button"
-              title="Clear and reshuffle word blocks"
-              className={`${BTN_GHOST} min-h-[48px]`}
-              onClick={onClearAnswer}
-            >
-              ↺ Reset
-            </button>
-            <button type="button" className={`${BTN_GHOST} min-h-[48px]`} onClick={onRevealAnswer}>
-              Reveal
-            </button>
-          </div>
-        </div>
-      ) : (
-        <div className={`${CARD_CLASS} practice-card-enter !mb-0 !p-6 sm:!p-8`}>
-          <div translate="no" className="text-lg font-semibold mb-3">
-            {exercise.englishTarget}
-            {exState === 'ok' ? ' ✅' : ''}
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            {exercise.breakdownChunks.map((chunk, idx) => (
-              <div
-                key={idx}
-                className={`flex-1 min-w-[130px] rounded-xl p-2.5 text-center ${CHUNK_COLORS[chunk.role]}`}
-              >
-                <div className="text-[10px] tracking-wider font-bold text-stone-700 dark:text-stone-300">
-                  {CHUNK_LABELS[chunk.role]}
-                </div>
-                <div dir="rtl" className="ar text-base font-semibold mt-0.5">
-                  {chunk.arabicText}
-                </div>
-                <div translate="no" className="font-semibold text-sm mt-0.5">
-                  {chunk.englishText}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <p className="text-sm mt-3 leading-relaxed">💡 {lesson.transferConcept}</p>
-          <p dir="rtl" className="ar text-sm mt-1.5 opacity-85 leading-relaxed text-right">
-            {lesson.transferConceptAr}
-          </p>
-          {exercise.habitHint && (
-            <p className="text-sm mt-2 opacity-80">{tries < 2 ? exercise.habitHint : null}</p>
-          )}
-
-          {exState === 'rev' && (
-            <div className="mt-3">
-              <button
-                type="button"
-                onClick={handleAskWhyWrong}
-                disabled={isExplainingError}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-rose-300 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/50 hover:bg-rose-100 dark:hover:bg-rose-900 text-xs font-bold text-rose-800 dark:text-rose-200 transition shadow-xs cursor-pointer"
-              >
-                <span>🤔</span>
-                <span>{isExplainingError ? 'Analyzing error with Gemini...' : 'Why did I get this wrong? (ليه إجابتي غلط؟)'}</span>
-              </button>
-
-              {aiErrorExplanation && (
-                <div className="mt-2.5 p-3 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-700/60 text-xs sm:text-sm font-semibold text-amber-900 dark:text-amber-200 leading-relaxed">
-                  <div className="flex items-center gap-1 font-bold mb-1 text-amber-800 dark:text-amber-300">
-                    <span>💡 Structural Diagnosis (التحليل الهيكلي):</span>
-                  </div>
-                  <p>{aiErrorExplanation}</p>
-                </div>
-              )}
-            </div>
-          )}
-
-          <div className="mt-5 space-y-2.5">
-            <button
-              type="button"
-              className="w-full min-h-[56px] rounded-2xl bg-teal-700 hover:bg-teal-800 active:scale-[0.98] text-white font-black text-base sm:text-lg shadow-md transition-all flex items-center justify-center gap-2 ar"
-              onClick={() => {
-                const ok = triggerAvatarSpeech(exercise.englishTarget, 1);
-                if (!ok) onToast('Speech not supported here');
-              }}
-            >
-              <span>🔊 اسمع النطق الصح</span>
-              <span className="text-xs font-semibold opacity-90">(Hear English)</span>
-            </button>
-            <div className="grid grid-cols-2 gap-2.5">
-              <button
-                type="button"
-                className={`${BTN_GHOST} min-h-[48px] text-sm font-bold`}
-                onClick={() => {
-                  const ok = triggerAvatarSpeech(exercise.englishTarget, 0.75);
-                  if (!ok) onToast('Speech not supported here');
-                }}
-              >
-                🐢 بالراحه (Slow)
-              </button>
-              <button
-                type="button"
-                id="rb"
-                className={`${BTN_GHOST} min-h-[48px] text-sm font-bold`}
-                onClick={onPronunciationPractice}
-              >
-                {isRecordingPron ? '⏹ وقف التسجيل' : '🎙 سجل صوتك'}
-              </button>
-            </div>
-          </div>
-
-          {(pronAudioUrl || pronResultText || pronWordMatches.length > 0) && (
-            <div id="pr" aria-live="polite" className="mt-3 space-y-1.5 text-sm">
-              {pronAudioUrl && (
-                <div>
-                  Yours:{' '}
-                  <audio
-                    controls
-                    src={pronAudioUrl}
-                    className="inline-block align-middle h-8"
-                  />
-                </div>
-              )}
-              {pronResultText && <div>{pronResultText}</div>}
-              {pronWordMatches.length > 0 && (
-                <div className="flex flex-wrap gap-1 pt-1">
-                  {pronWordMatches.map((item, idx) => (
-                    <span
-                      key={`${item.word}-${idx}`}
-                      translate="no"
-                      className={`px-2 py-0.5 rounded-lg text-xs font-bold ${
-                        item.ok
-                          ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
-                          : 'bg-rose-500/20 text-rose-700 dark:text-rose-300'
-                      }`}
-                    >
-                      {item.word}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* XP Progress & Quick AI Win */}
-          <div className="mb-4 mt-5 text-center">
-            <div className="mb-2 text-sm font-bold text-teal-700 dark:text-teal-300">
-              ⭐ You are only <span className="text-orange-600 text-xl font-black">{Math.max(0, 60 - ((progress.score || 0) % 60))} XP</span> away from Level {Math.floor((progress.score || 0) / 60) + 2}!
-            </div>
-            {onStartAiPractice && (
-              <button
-                type="button"
-                onClick={onStartAiPractice}
-                className="w-full rounded-full bg-gradient-to-r from-teal-600 to-emerald-600 text-white py-3 font-black text-sm shadow-lg animate-pulse mb-3"
-              >
-                🚀 Continue Learning (Quick AI Win)
-              </button>
-            )}
-          </div>
-
-          {/* Zeigarnik Effect Nudge on the Next Button */}
-          <button
-            type="button"
-            id="next-exercise-btn"
-            className={`${BTN_PRIMARY} mt-2 min-h-[52px] w-full`}
-            onClick={isAiPractice ? onGenerateNextAiExercise : onNextExercise}
-          >
-            {isAiPractice
-              ? '🎲 Next AI Sentence →'
-              : `Next Sentence (${winsLeftForChest} more win${winsLeftForChest === 1 ? '' : 's'} to 🎁 Mystery Chest) →`}
-          </button>
-        </div>
-      )}
+      {/* Stage Logic */}
+      {internalStage === 1 && renderStage1()}
+      {internalStage === 2 && renderStage2()}
+      {internalStage === 3 && renderStage3()}
 
       {/* Proactive "Are you lost?" tutor nudge */}
       {showLostPrompt && isAsk && onAskTutor && (
@@ -848,9 +981,10 @@ export const PracticeView = React.memo(function PracticeView({
             </h2>
             <ol className="mt-5 space-y-4">
               {[
-                'Read the Arabic sentence.',
-                'Tap the blocks to build the English.',
-                'Hit Check and listen to the audio.'
+                'Read the Arabic sentence on the Smart Card, flip to hear the English.',
+                'Rate your confidence to unlock the Builder.',
+                'Tap the blocks to build the English sentence.',
+                'Match the structural chunks to unlock the next level.'
               ].map((text, index) => (
                 <li key={text} className="flex items-start gap-3">
                   <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-orange-600 text-sm font-extrabold text-white">

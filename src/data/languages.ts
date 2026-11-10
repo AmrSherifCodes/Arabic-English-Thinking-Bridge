@@ -273,6 +273,17 @@ export const SOURCE_LANGUAGES: Record<SourceLanguage, LanguageMeta> = {
     descriptionEn: 'I currently think in Greek',
     descriptionAr: 'أفكر حالياً باليونانية',
     badge: 'Native'
+  },
+  tr: {
+    code: 'tr',
+    nameEn: 'Turkish',
+    nameNative: 'Türkçe',
+    nameAr: 'التركية',
+    flag: '🇹🇷',
+    direction: 'ltr',
+    descriptionEn: 'Learn thinking from Turkish to English',
+    descriptionAr: 'من التركية إلى الإنجليزية',
+    badge: 'Beta'
   }
 };
 
@@ -391,7 +402,7 @@ export const TARGET_LANGUAGE_META: Record<TargetLanguage, LanguageMeta> = {
     code: 'it',
     nameEn: 'Italian',
     nameNative: 'Italiano',
-    nameAr: 'الإيطالية',
+    nameAr: 'الإيطالية (🚧 جاري البناء)',
     flag: '🇮🇹',
     direction: 'ltr',
     descriptionEn: 'Think natively in Italian',
@@ -408,6 +419,17 @@ export const TARGET_LANGUAGE_META: Record<TargetLanguage, LanguageMeta> = {
     descriptionEn: 'Learn Greek grammar and phrasing',
     descriptionAr: 'تعلم قواعد وتراكيب اللغة اليونانية',
     badge: 'Global'
+  },
+  tr: {
+    code: 'tr',
+    nameEn: 'Turkish',
+    nameNative: 'Türkçe',
+    nameAr: 'التركية',
+    flag: '🇹🇷',
+    direction: 'ltr',
+    descriptionEn: 'Shared Egyptian-Turkish words bridge',
+    descriptionAr: 'جسر الكلمات المشتركة بين المصرية والتركية',
+    badge: 'جديد'
   }
 };
 
@@ -415,14 +437,15 @@ export const TARGET_LANGUAGES: LanguageConfig[] = [
   { code: 'ar', nameEn: 'Arabic', nameAr: 'العربية', flag: '🇸🇦', defaultVoice: 'ar-SA-HamedNeural' },
   { code: 'en', nameEn: 'English', nameAr: 'الإنجليزية', flag: '🇬🇧', defaultVoice: 'en-US-AvaNeural' },
   { code: 'de', nameEn: 'German', nameAr: 'الألمانية', flag: '🇩🇪', defaultVoice: 'de-DE-KatjaNeural' },
-  { code: 'ja', nameEn: 'Japanese', nameAr: 'اليابانية', flag: '🇯🇵', defaultVoice: 'ja-JP-NanamiNeural' },
-  { code: 'es', nameEn: 'Spanish', nameAr: 'الإسبانية', flag: '🇪🇸', defaultVoice: 'es-ES-ElviraNeural' },
-  { code: 'fr', nameEn: 'French', nameAr: 'الفرنسية', flag: '🇫🇷', defaultVoice: 'fr-FR-DeniseNeural' },
+  { code: 'tr', nameEn: 'Turkish', nameAr: 'التركية', flag: '🇹🇷', defaultVoice: 'tr-TR-AhmetNeural' },
+  { code: 'ja', nameEn: 'Japanese', nameAr: 'اليابانية (🚧 جاري البناء)', flag: '🇯🇵', defaultVoice: 'ja-JP-NanamiNeural' },
+  { code: 'es', nameEn: 'Spanish', nameAr: 'الإسبانية (🚧 جاري البناء)', flag: '🇪🇸', defaultVoice: 'es-ES-ElviraNeural' },
+  { code: 'fr', nameEn: 'French', nameAr: 'الفرنسية (🚧 جاري البناء)', flag: '🇫🇷', defaultVoice: 'fr-FR-DeniseNeural' },
   { code: 'zh', nameEn: 'Chinese', nameAr: 'الصينية (الماندرين)', flag: '🇨🇳', defaultVoice: 'zh-CN-XiaoxiaoNeural' },
   { code: 'hi', nameEn: 'Hindi', nameAr: 'الهندية', flag: '🇮🇳', defaultVoice: 'hi-IN-SwaraNeural' },
   { code: 'ru', nameEn: 'Russian', nameAr: 'الروسية', flag: '🇷🇺', defaultVoice: 'ru-RU-SvetlanaNeural' },
   { code: 'pt', nameEn: 'Portuguese', nameAr: 'البرتغالية', flag: '🇧🇷', defaultVoice: 'pt-BR-FranciscaNeural' },
-  { code: 'it', nameEn: 'Italian', nameAr: 'الإيطالية', flag: '🇮🇹', defaultVoice: 'it-IT-IsabellaNeural' },
+  { code: 'it', nameEn: 'Italian', nameAr: 'الإيطالية (🚧 جاري البناء)', flag: '🇮🇹', defaultVoice: 'it-IT-IsabellaNeural' },
   { code: 'el', nameEn: 'Greek', nameAr: 'اليونانية', flag: '🇬🇷', defaultVoice: 'el-GR-NestorasNeural' },
 ];
 
@@ -439,6 +462,7 @@ export const TARGET_LANGUAGE_LOCALES: Record<TargetLanguage, string> = {
   pt: 'pt-BR',
   it: 'it-IT',
   el: 'el-GR',
+  tr: 'tr-TR',
 };
 
 export const ARABIC_DIALECT_VOICES: Record<string, string> = {
