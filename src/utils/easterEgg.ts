@@ -1,38 +1,67 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 
-const EASTER_EGG_KEY = 'tb.amrClickCount';
+const SESSION_CLICK_KEY = 'tb.amrSessionClickCount';
+const INACTIVITY_RESET_MS = 5000;
 
 export function useAmrClickEasterEgg() {
   const [clickCount, setClickCount] = useState<number>(() => {
     try {
-      const stored = localStorage.getItem(EASTER_EGG_KEY);
-      return stored ? parseInt(stored, 10) : 0;
+      if (typeof window !== 'undefined' && window.sessionStorage) {
+        const stored = sessionStorage.getItem(SESSION_CLICK_KEY);
+        return stored ? parseInt(stored, 10) : 0;
+      }
+      return 0;
     } catch {
       return 0;
     }
   });
 
+  const [showPoemModal, setShowPoemModal] = useState(false);
   const [showErwinModal, setShowErwinModal] = useState(false);
   const [showAlexandrianModal, setShowAlexandrianModal] = useState(false);
 
+  const inactivityTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const resetInactivityTimer = useCallback(() => {
+    if (inactivityTimerRef.current) {
+      clearTimeout(inactivityTimerRef.current);
+    }
+    inactivityTimerRef.current = setTimeout(() => {
+      setClickCount(0);
+      try {
+        if (typeof window !== 'undefined' && window.sessionStorage) {
+          sessionStorage.setItem(SESSION_CLICK_KEY, '0');
+        }
+      } catch {}
+    }, INACTIVITY_RESET_MS);
+  }, []);
+
   const registerClick = useCallback(() => {
+    resetInactivityTimer();
     setClickCount((prev) => {
       const next = prev + 1;
       try {
-        localStorage.setItem(EASTER_EGG_KEY, next.toString());
-      } catch {
-        /* noop */
-      }
-      if (next === 99 || (next > 0 && next % 99 === 0)) {
+        if (typeof window !== 'undefined' && window.sessionStorage) {
+          sessionStorage.setItem(SESSION_CLICK_KEY, next.toString());
+        }
+      } catch {}
+
+      if (next === 8) {
+        // 8-click poem checkpoint
+        setShowPoemModal(true);
+      } else if (next === 99 || (next > 99 && next % 99 === 0)) {
+        // 99-click Captain Erwin video checkpoint
         setShowErwinModal(true);
       } else if (next === 7 || next === 21) {
+        // Coastal Alexandrian sea breeze easter egg
         setShowAlexandrianModal(true);
       }
+
       return next;
     });
-  }, []);
+  }, [resetInactivityTimer]);
 
-  // Global event listener on any image of Amr (e.g. amr.jpg, amr-avatar.png, pose1.png)
+  // Global listener for photo clicks
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
@@ -52,20 +81,21 @@ export function useAmrClickEasterEgg() {
     };
 
     window.addEventListener('click', handleGlobalClick);
-    return () => window.removeEventListener('click', handleGlobalClick);
+    return () => {
+      window.removeEventListener('click', handleGlobalClick);
+      if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
+    };
   }, [registerClick]);
 
-  const closeErwinModal = useCallback(() => {
-    setShowErwinModal(false);
-  }, []);
-
-  const closeAlexandrianModal = useCallback(() => {
-    setShowAlexandrianModal(false);
-  }, []);
+  const closePoemModal = useCallback(() => setShowPoemModal(false), []);
+  const closeErwinModal = useCallback(() => setShowErwinModal(false), []);
+  const closeAlexandrianModal = useCallback(() => setShowAlexandrianModal(false), []);
 
   return {
     clickCount,
     registerClick,
+    showPoemModal,
+    closePoemModal,
     showErwinModal,
     closeErwinModal,
     showAlexandrianModal,
