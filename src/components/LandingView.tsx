@@ -21,6 +21,7 @@ import {
 import { usePwaInstall } from '../hooks/usePWAInstall';
 import { getPlatformInfo, storageAdapter } from '../platform/adapter';
 import { API_BASE_URL } from '../utils/api';
+import { CreatorCard } from './CreatorCard';
 
 interface LandingViewProps {
   onStartWebApp: () => void;
@@ -567,6 +568,9 @@ export function LandingView({ onStartWebApp, isArabic = true }: LandingViewProps
           </div>
         </div>
       </section>
+
+      {/* Creator Card with 8-tap Easter Egg */}
+      <CreatorCard />
 
       {/* 8. FOOTER */}
       <footer className="px-4 py-8 bg-[var(--landing-surface)] border-t border-[var(--landing-border)] text-center text-xs text-[var(--landing-muted)] space-y-3">

@@ -154,7 +154,19 @@ export function LessonRunner({
       );
 
     setIsCorrect(isMatch);
-    if (isMatch) soundFX.playCorrect(); else soundFX.playError();
+    if (isMatch) {
+      soundFX.playComboChord(correctAnswersCount + 1);
+      if ((correctAnswersCount + 1) % 5 === 0) {
+        soundFX.playFanfare();
+      }
+    } else {
+      soundFX.playError();
+    }
+    try {
+      if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+        navigator.vibrate(isMatch ? [30, 40, 50] : [70]);
+      }
+    } catch {}
     setAutoHintPill(null); // Clear any active hint
     setIsAnswered(true);
 

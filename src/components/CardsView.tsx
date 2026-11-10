@@ -14,6 +14,8 @@ import { JapaneseFuriganaText } from './JapaneseFuriganaText';
 import { Flashcard } from './Flashcard';
 import { OliveBranchIcon } from './CulturalToast';
 import { BouncyButton } from './BouncyButton';
+import { soundFX } from '../utils/soundFX';
+import { BubbleArcadeGame } from './BubbleArcadeGame';
 import {
   BTN_GHOST,
   BTN_PRIMARY,
@@ -418,6 +420,26 @@ export interface ReviewViewProps {
   onAskAIAboutCard: () => void;
 }
 
+function getCardEmoji(text: string): string {
+  const lower = (text || '').toLowerCase();
+  if (lower.includes('cat') || lower.includes('قط')) return '🐱';
+  if (lower.includes('dog') || lower.includes('كلب')) return '🐶';
+  if (lower.includes('lion') || lower.includes('أسد')) return '🦁';
+  if (lower.includes('apple') || lower.includes('تفاح')) return '🍎';
+  if (lower.includes('rocket') || lower.includes('صاروخ') || lower.includes('سهلة') || lower.includes('فجّر')) return '🚀';
+  if (lower.includes('hand') || lower.includes('شكرا') || lower.includes('thank') || lower.includes('gracias') || lower.includes('danke') || lower.includes('merci')) return '🤝';
+  if (lower.includes('love') || lower.includes('حب')) return '❤️';
+  if (lower.includes('happy') || lower.includes('فرح') || lower.includes('سعيد')) return '😄';
+  if (lower.includes('water') || lower.includes('ماء') || lower.includes('مية') || lower.includes('دوش') || lower.includes('douche')) return '💧';
+  if (lower.includes('coffee') || lower.includes('قهوة') || lower.includes('taze') || lower.includes('طاز')) return '☕';
+  if (lower.includes('food') || lower.includes('أكل') || lower.includes('طعام') || lower.includes('أوردر') || lower.includes('order')) return '🍔';
+  if (lower.includes('book') || lower.includes('كتاب') || lower.includes('درس')) return '📚';
+  if (lower.includes('car') || lower.includes('عربية') || lower.includes('سيارة')) return '🚗';
+  if (lower.includes('home') || lower.includes('بيت') || lower.includes('منزل') || lower.includes('أوضة') || lower.includes('oda')) return '🏠';
+  if (lower.includes('bridge') || lower.includes('كوبري') || lower.includes('جسر') || lower.includes('köprü')) return '🌉';
+  return '⭐';
+}
+
 /**
  * Anki-Style Review Experience (Noob-Friendly + Addictive Dopamine Feedback)
  */
@@ -442,6 +464,7 @@ export function ReviewView({
   onUndoLastGrade,
   onAskAIAboutCard
 }: ReviewViewProps) {
+  const [isBubbleMode, setIsBubbleMode] = useState(false);
   const currentKey = activeQueue[0];
   const winsToChest = 3 - (comboCount % 3);
   const rtl = isArabicUI(profile?.language);
@@ -454,6 +477,18 @@ export function ReviewView({
 
   const sourceFont = getLanguageFontFamily(sourceMeta.code);
   const targetFont = getLanguageFontFamily(targetMeta.code);
+
+  const cardEmoji = currentCardData ? getCardEmoji(currentCardData.en + ' ' + currentCardData.ar) : '⭐';
+
+  const handleRevealAnswer = () => {
+    soundFX.playFlipCoin();
+    onShowAnswer();
+    if (currentCardData?.en) {
+      try {
+        speakWithRate(currentCardData.en, 1.0, preferredVoice);
+      } catch {}
+    }
+  };
 
   return (
     <div id="anki-review-view" dir={rtl ? 'rtl' : 'ltr'} className="mx-auto w-full">
@@ -497,21 +532,39 @@ export function ReviewView({
           </div>
         </div>
 
-        <button
-          type="button"
-          id="anki-undo-btn"
-          disabled={!canUndo}
-          onClick={onUndoLastGrade}
-          title={t('Undo last card grade', 'التراجع عن آخر تقييم')}
-          aria-label={t('Undo last card grade', 'التراجع عن آخر تقييم')}
-          className={BTN_GHOST + ' !px-3 !py-1.5 text-xs shrink-0'}
-          style={{ minHeight: 48 }}
-        >
-          {t('↩️ Undo', '↩️ تراجع')}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setIsBubbleMode(prev => !prev)}
+            className="px-3 py-1.5 rounded-xl border border-teal-500/50 bg-teal-950/60 text-teal-300 font-bold text-xs flex items-center gap-1 active:scale-95 transition shadow-sm"
+          >
+            {isBubbleMode ? '🎴 بطاقات أنكي' : '🎮 فرقع الفقاعة'}
+          </button>
+
+          <button
+            type="button"
+            id="anki-undo-btn"
+            disabled={!canUndo}
+            onClick={onUndoLastGrade}
+            title={t('Undo last card grade', 'التراجع عن آخر تقييم')}
+            aria-label={t('Undo last card grade', 'التراجع عن آخر تقييم')}
+            className={BTN_GHOST + ' !px-3 !py-1.5 text-xs shrink-0'}
+            style={{ minHeight: 48 }}
+          >
+            {t('↩️ Undo', '↩️ تراجع')}
+          </button>
+        </div>
       </div>
 
-      {activeQueue.length === 0 || !currentCardData ? (
+      {isBubbleMode && currentCardData ? (
+        <BubbleArcadeGame
+          cards={[currentCardData]}
+          onFinish={() => setIsBubbleMode(false)}
+          onGradeCard={onGradeCard}
+          preferredVoice={preferredVoice}
+          isArabic={rtl}
+        />
+      ) : activeQueue.length === 0 || !currentCardData ? (
         <div
           id="review-empty-state"
           className={`${CARD_CLASS} kuffiyeh-card-watermark text-center py-8 border-stone-300 dark:border-stone-700`}
@@ -584,9 +637,12 @@ export function ReviewView({
           )}
           <Flashcard
             isFlipped={cardAnswerShown}
-            onFlip={cardAnswerShown ? onHideAnswer : onShowAnswer}
+            onFlip={cardAnswerShown ? onHideAnswer : handleRevealAnswer}
             front={
-              <div dir={sourceMeta.direction} style={{ fontFamily: sourceFont }} className={`${CARD_CLASS} text-center py-5`}>
+              <div dir={sourceMeta.direction} style={{ fontFamily: sourceFont }} className={`${CARD_CLASS} text-center py-6`}>
+                <div className="text-5xl sm:text-6xl mb-3 drop-shadow-md select-none animate-pulse">
+                  {cardEmoji}
+                </div>
                 {sourceMeta.direction === 'rtl' ? (
                   <InteractiveArabicSentence
                     sentence={currentCardData.ar}
@@ -604,7 +660,7 @@ export function ReviewView({
                 <div className="mt-3 flex justify-center">
                   <button
                     type="button"
-                    className={`${BTN_GHOST} text-xs`}
+                    className={`${BTN_GHOST} text-xs font-bold active:translate-y-1`}
                     style={{ minHeight: 48 }}
                     onClick={e => {
                       e.stopPropagation();
@@ -617,39 +673,41 @@ export function ReviewView({
               </div>
             }
             back={
-              <div className={`${CARD_CLASS} text-center py-5`}>
-                <div dir={sourceMeta.direction} style={{ fontFamily: sourceFont }} className="text-3xl sm:text-4xl leading-relaxed font-semibold">
+              <div className={`${CARD_CLASS} text-center py-6`}>
+                <div className="text-5xl sm:text-6xl mb-3 drop-shadow-md select-none animate-bounce">
+                  {cardEmoji}
+                </div>
+                <div dir={sourceMeta.direction} style={{ fontFamily: sourceFont }} className="text-2xl sm:text-3xl leading-relaxed font-semibold text-slate-300">
                   {currentCardData.ar}
                 </div>
-                <hr className="my-4 border-slate-300 dark:border-slate-700" />
-                <div dir={targetMeta.direction} style={{ fontFamily: targetFont }} translate="no" className="text-2xl sm:text-3xl font-bold mb-1">
-                  {targetLang === 'ja' && currentCardData.exercise?.furiganaTarget ? (
-                    <JapaneseFuriganaText
-                      kanjiText={currentCardData.en}
-                      furiganaHtml={currentCardData.exercise.furiganaTarget}
-                      romajiText={currentCardData.exercise.romajiTarget}
-                    />
-                  ) : (
-                    currentCardData.en
-                  )}
+                <hr className="my-3 border-slate-700/60" />
+                
+                {/* Foreign sentence with interactive tap-to-hear word chips */}
+                <div dir={targetMeta.direction} style={{ fontFamily: targetFont }} translate="no" className="text-2xl sm:text-3xl font-black mb-2 flex flex-wrap items-center justify-center gap-1.5">
+                  {currentCardData.en.split(/\s+/).map((w, wIdx) => (
+                    <button
+                      key={wIdx}
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        speakWithRate(w, 0.9, preferredVoice);
+                      }}
+                      className="px-2.5 py-1 rounded-xl bg-teal-500/15 hover:bg-teal-500/30 text-teal-300 font-extrabold active:scale-110 active:-translate-y-1 transition-all cursor-pointer shadow-sm border border-teal-500/20"
+                      title="اضغط لسماع الكلمة لوحدها"
+                    >
+                      {w}
+                    </button>
+                  ))}
                 </div>
-                {targetLang === 'ja' && currentCardData.exercise?.romajiTarget && (
-                  <div className="text-xs font-semibold text-teal-600 dark:text-teal-400 mb-2">
-                    {currentCardData.exercise.romajiTarget}
-                  </div>
-                )}
-                {targetLang === 'en' && sourceMeta.direction === 'rtl' && (
-                  <div dir="rtl" className="text-sm font-bold text-amber-600 dark:text-amber-400 mb-3 flex items-center justify-center gap-1.5 flex-wrap">
-                    <span className="text-xs opacity-75 font-normal text-stone-500 dark:text-stone-400">
-                      {t('Pronounced:', 'النطق بالعربي:')}
-                    </span>
-                    <span className="bg-amber-500/10 dark:bg-amber-400/15 text-amber-700 dark:text-amber-300 px-2.5 py-0.5 rounded-lg border border-amber-500/30 font-semibold tracking-wide">
-                      {getArabicPhoneticSpelling(currentCardData.en)}
-                    </span>
-                  </div>
-                )}
+
+                {/* Arabic Phonetic Guide */}
+                <div dir="rtl" className="my-2 inline-flex items-center gap-2 rounded-xl border border-amber-500/40 bg-amber-950/40 px-3 py-1 text-sm font-bold text-amber-300 shadow-sm">
+                  <span className="text-xs text-amber-400/80 font-normal">نطقها بحروف عربي:</span>
+                  <span>{getArabicPhoneticSpelling(currentCardData.en)}</span>
+                </div>
+
                 {currentCardData.breakdownChunks && (
-                  <div className="grid grid-cols-2 gap-2 text-left">
+                  <div className="grid grid-cols-2 gap-2 text-left my-2">
                     {currentCardData.breakdownChunks.map((chunk, idx) => (
                       <div key={idx} className={`rounded-xl p-2 ${CHUNK_COLORS[chunk.role]}`}>
                         <div dir={sourceMeta.direction} style={{ fontFamily: sourceFont }} className="font-semibold">
@@ -662,28 +720,30 @@ export function ReviewView({
                     ))}
                   </div>
                 )}
+
+                {/* Dual Speed Audio */}
                 <div className="mt-3 flex flex-wrap justify-center gap-2">
                   <button
                     type="button"
-                    className={BTN_GHOST}
-                    style={{ minHeight: 48 }}
-                    onClick={e => {
-                      e.stopPropagation();
-                      speakWithRate(currentCardData.ar, 1, preferredVoice);
-                    }}
-                  >
-                    {t(`🔊 Hear ${sourceMeta.nameEn}`, `🔊 استمع لـ ${sourceMeta.nameAr}`)}
-                  </button>
-                  <button
-                    type="button"
-                    className={BTN_GHOST}
-                    style={{ minHeight: 48 }}
+                    className={`${BTN_GHOST} text-xs font-bold active:translate-y-1`}
+                    style={{ minHeight: 44 }}
                     onClick={e => {
                       e.stopPropagation();
                       speakWithRate(currentCardData.en, 1, preferredVoice);
                     }}
                   >
-                    {t(`🔊 Hear ${targetMeta.nameEn}`, `🔊 استمع لـ ${targetMeta.nameAr}`)}
+                    🔊 اسمع عادي
+                  </button>
+                  <button
+                    type="button"
+                    className={`${BTN_GHOST} text-xs font-bold text-amber-400 active:translate-y-1`}
+                    style={{ minHeight: 44 }}
+                    onClick={e => {
+                      e.stopPropagation();
+                      speakWithRate(currentCardData.en, 0.65, preferredVoice);
+                    }}
+                  >
+                    🐢 اسمع بالبطيء حرف حرف
                   </button>
                 </div>
               </div>
@@ -694,56 +754,64 @@ export function ReviewView({
             <button
               type="button"
               id="show-answer-btn"
-              className={`${BTN_PRIMARY} mt-4 w-full`}
+              className={`${BTN_PRIMARY} mt-4 w-full active:scale-98`}
               style={{ minHeight: 52 }}
-              onClick={onShowAnswer}
+              onClick={handleRevealAnswer}
             >
               {t('👀 Tap to reveal answer', '👀 اضغط لإظهار الإجابة')}
             </button>
           ) : (
             <>
-              <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
-                {(
-                  [
-                    ['Again', t('🔄 Forgot', '🔄 نسيتها'), 'bg-red-600 hover:bg-red-700'],
-                    ['Hard', t('😅 Tricky', '😅 صعبة'), 'bg-amber-600 hover:bg-amber-700'],
-                    ['Good', t('👍 Got It!', '👍 عرفتها'), 'bg-emerald-600 hover:bg-emerald-700'],
-                    ['Easy', t('⚡ Easy!', '⚡ سهلة'), 'bg-sky-600 hover:bg-sky-700']
-                  ] as const
-                ).map(([idKey, friendlyLabel, bgClass], g) => {
-                  const grade = g as 0 | 1 | 2 | 3;
-                  const intervalText = intervalPreviews[grade];
-                  return (
-                    <BouncyButton
-                      key={idKey}
-                      type="button"
-                      id={`grade-btn-${idKey.toLowerCase()}`}
-                      onClick={() => {
-                        onGradeCard(grade);
-                        if (grade >= 2) {
-                          void confetti({
-                            particleCount: grade === 3 ? 90 : 55,
-                            spread: grade === 3 ? 78 : 62,
-                            origin: { y: 0.72 }
-                          });
-                        }
-                      }}
-                      className={`${bgClass} text-white rounded-xl py-2.5 px-2 text-xs font-semibold min-h-[56px] transition-colors flex flex-col items-center justify-center cursor-pointer`}
-                    >
-                      <div className="text-xs sm:text-sm font-bold whitespace-nowrap">
-                        {friendlyLabel}
-                      </div>
-                      <div className="opacity-90 font-medium text-[11px] mt-0.5 tabular-nums">
-                        {idKey} · {intervalText}
-                      </div>
-                    </BouncyButton>
-                  );
-                })}
+              {/* 3 Giant Bouncy Game Buttons */}
+              <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <button
+                  type="button"
+                  id="grade-btn-slow"
+                  onClick={() => {
+                    try { speakWithRate(currentCardData.en, 0.65, preferredVoice); } catch {}
+                    onGradeCard(0);
+                  }}
+                  className="w-full py-4 px-4 rounded-2xl bg-gradient-to-r from-amber-700/80 to-amber-600/90 hover:from-amber-600 hover:to-amber-500 text-white font-black text-sm sm:text-base border-2 border-amber-400/40 shadow-lg active:scale-95 active:translate-y-1 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <span className="text-xl">🐣</span>
+                  <span>قولها تاني بالراحة</span>
+                </button>
+
+                <button
+                  type="button"
+                  id="grade-btn-gotit"
+                  onClick={() => {
+                    soundFX.playComboChord(comboCount + 1);
+                    if ((comboCount + 1) % 5 === 0) soundFX.playFanfare();
+                    void confetti({ particleCount: 55, spread: 65, origin: { y: 0.7 } });
+                    onGradeCard(2);
+                  }}
+                  className="w-full py-4 px-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-black text-sm sm:text-base border-2 border-emerald-300/40 shadow-[0_0_20px_rgba(16,185,129,0.3)] active:scale-95 active:translate-y-1 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <span className="text-xl">⭐</span>
+                  <span>لقطتها يا بطل! (+15 XP)</span>
+                  <span>🔥</span>
+                </button>
+
+                <button
+                  type="button"
+                  id="grade-btn-easy"
+                  onClick={() => {
+                    soundFX.playExplosion();
+                    void confetti({ particleCount: 110, spread: 85, origin: { y: 0.6 } });
+                    onGradeCard(3);
+                  }}
+                  className="w-full py-4 px-4 rounded-2xl bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 hover:brightness-110 text-white font-black text-sm sm:text-base border-2 border-pink-300/40 shadow-[0_0_25px_rgba(236,72,153,0.35)] active:scale-95 active:translate-y-1 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <span className="text-xl">🚀</span>
+                  <span>سهلة! فجّر البطاقة (+25 XP)</span>
+                </button>
               </div>
-              <p className="mt-4 block rounded-xl p-3 text-center text-xs font-medium text-stone-700 dark:text-stone-300">
+
+              <p className="mt-4 block rounded-xl p-3 text-center text-xs font-bold text-stone-300">
                 {t(
-                  'No stress! Tap Forgot if you want to see this card again in a minute, or Got It! to earn XP toward your 🎁 Mystery Chest.',
-                  'بدون توتر! اضغط «نسيتها» لرؤية البطاقة مجدداً بعد دقيقة، أو «عرفتها» لكسب نقاط الخبرة نحو 🎁 صندوق المكافآت.'
+                  'No stress! Tap to listen slow, or blast ahead to earn XP toward your 🎁 Mystery Chest.',
+                  'بدون توتر! اسمع بالبطيء أو فجّر البطاقة لكسب نقاط الخبرة نحو 🎁 صندوق المكافآت!'
                 )}
               </p>
             </>

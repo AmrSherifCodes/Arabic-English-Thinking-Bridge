@@ -17,17 +17,46 @@ export interface MultiLangDictionaryEntry {
   normalizedTerm: string;
   targetLang: TargetLanguage; // 'en' | 'de' | 'ja'
   sourceMeanings: Record<string, string>;
-  partOfSpeech: 'noun' | 'verb' | 'adjective' | 'adverb' | 'phrase' | 'particle' | 'pronoun' | 'conjunction' | 'preposition';
+  partOfSpeech: string;
   // German-specific:
-  gender?: 'der' | 'die' | 'das';
+  gender?: string;
   plural?: string;
   separablePrefix?: string;
   // Japanese-specific:
   reading?: string;   // Kana (e.g. "がくせい")
   romaji?: string;    // Romaji (e.g. "gakusei")
   furigana?: string;  // HTML ruby markup (e.g. "<ruby>学生<rt>がくせい</rt></ruby>")
+  kanji?: string;
   // Contextual Immersion Sentences (Tatoeba / Pedagogical):
   examples: ContextualExample[];
   frequencyRank?: number;
-  category?: 'core' | 'daily' | 'work' | 'travel' | 'academic';
+  category?: string;
+  [key: string]: any;
+}
+
+export interface GermanDictionaryEntry {
+  id: string;
+  germanWord?: string;
+  englishTranslation?: string;
+  arabicTranslation?: string;
+  partOfSpeech?: string;
+  gender?: string;
+  exampleSentenceGerman?: string;
+  exampleSentenceEnglish?: string;
+  cefrLevel?: string;
+  [key: string]: any;
+}
+
+export interface JapaneseDictionaryEntry {
+  id: string;
+  kanji?: string;
+  readingFurigana?: string;
+  romaji?: string;
+  englishTranslation?: string;
+  arabicTranslation?: string;
+  partOfSpeech?: string;
+  exampleSentenceJapanese?: string;
+  exampleSentenceEnglish?: string;
+  cefrLevel?: string;
+  [key: string]: any;
 }

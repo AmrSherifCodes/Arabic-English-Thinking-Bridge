@@ -14,6 +14,31 @@
 // 1. Curated Dictionary of Frequent Conversational English Words -> Authentic Arabic Spelling
 export const ENGLISH_TO_ARABIC_PHONETICS: Record<string, string> = {
   // Pronouns & Contractions
+  hello: 'هَالُّو',
+  happy: 'هَابِي',
+  // Multilingual Top 5 Overrides (German, French, Spanish, Turkish)
+  guten: 'جُوتِن',
+  tag: 'تَاك',
+  morgen: 'مُورجِن',
+  danke: 'دَانْكِه',
+  bonjour: 'بُونْجُور',
+  merci: 'مِيرْسِي',
+  salut: 'سَالُو',
+  hola: 'أُولَا',
+  gracias: 'جْرَاثِيَاس',
+  merhaba: 'مَرْحَبَا',
+  nasilsin: 'نَاصِلسِين',
+  nasılsın: 'نَاصِلسِين',
+  köprü: 'كُوبْرِي',
+  kopru: 'كُوبْرِي',
+  oda: 'أُوضَا',
+  çanta: 'شَانْطَا',
+  canta: 'شَانْطَا',
+  taze: 'تَازَه',
+  doğru: 'دُوغْرِي',
+  dogru: 'دُوغْرِي',
+  hesap: 'هِيسَابْ',
+  cadde: 'جَادَّه',
   i: 'آي',
   im: 'آي آم',
   "i'm": 'آي آم',
@@ -204,7 +229,6 @@ export const ENGLISH_TO_ARABIC_PHONETICS: Record<string, string> = {
   down: 'داون',
 
   // Greetings, Social & Common Vocab
-  hello: 'هيلو',
   hi: 'هاي',
   hey: 'هاي',
   bye: 'باي',

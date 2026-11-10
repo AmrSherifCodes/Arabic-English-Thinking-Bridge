@@ -6,6 +6,8 @@ import { SOURCE_LANGUAGES, TARGET_LANGUAGE_META } from '../../data/languages';
 import { LanguageFlag } from '../LanguageFlag';
 import { generateSmartProfile, ProfileCefrLevel } from '../../services/profileEngine';
 import type { FocusArea } from '../../progression/profileMatcherEngine';
+import { RoleAgeConfigurator } from '../RoleAgeConfigurator';
+import type { HighSchoolTrack } from '../../features/preferences/usePreferences';
 
 interface OnboardingPlacementModalProps {
   isOpen: boolean;
@@ -34,6 +36,9 @@ export function OnboardingPlacementModal({
   const [selectedTarget, setSelectedTarget] = useState<TargetLanguage>(initialTarget || 'en');
   const [selectedGoal, setSelectedGoal] = useState<FocusArea>('corporate');
   const [profileCreated, setProfileCreated] = useState(false);
+  const [age, setAge] = useState<number>(22);
+  const [isStudent, setIsStudent] = useState<boolean>(false);
+  const [highSchoolTrack, setHighSchoolTrack] = useState<HighSchoolTrack>('thanawiya');
 
   const availableTargets = (Object.keys(TARGET_LANGUAGE_META) as TargetLanguage[])
     .filter((code) => code !== selectedSource);
@@ -102,6 +107,14 @@ export function OnboardingPlacementModal({
   ];
 
   const handleFinish = () => {
+    try {
+      const stored = localStorage.getItem('tb.preferences.v1');
+      const parsed = stored ? JSON.parse(stored) : {};
+      parsed.age = age;
+      parsed.isStudent = isStudent;
+      parsed.highSchoolTrack = highSchoolTrack;
+      localStorage.setItem('tb.preferences.v1', JSON.stringify(parsed));
+    } catch {}
     setProfileCreated(true);
   };
 
@@ -276,8 +289,28 @@ export function OnboardingPlacementModal({
         {step === 2 && (
           <div className="space-y-4 flex-1 min-h-0 flex flex-col">
             <div className="space-y-4 flex-1 min-h-0 overflow-y-auto scrollbar-hide pb-2">
-              <div className="space-y-1">
-                <h3 className="text-lg font-black text-text">
+              <RoleAgeConfigurator
+                age={age}
+                isStudent={isStudent}
+                highSchoolTrack={highSchoolTrack}
+                onAgeChange={setAge}
+                onStudentChange={setIsStudent}
+                onHighSchoolTrackChange={setHighSchoolTrack}
+                onStartFromZero={() => {
+                  try {
+                    const stored = localStorage.getItem('tb.preferences.v1');
+                    const parsed = stored ? JSON.parse(stored) : {};
+                    parsed.age = age;
+                    parsed.isStudent = isStudent;
+                    parsed.currentStage = 'A0';
+                    localStorage.setItem('tb.preferences.v1', JSON.stringify(parsed));
+                  } catch {}
+                  handleFinish();
+                }}
+              />
+
+              <div className="space-y-1 pt-2 border-t border-border/60">
+                <h3 className="text-base font-black text-text">
                   {isArabic ? '٣. ما هو مجالك وهدفك الأساسي؟' : '3. What is your primary focus & goal?'}
                 </h3>
                 <p className="text-xs text-stone-300 leading-relaxed font-medium">

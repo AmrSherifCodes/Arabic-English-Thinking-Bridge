@@ -154,37 +154,92 @@ export function LanguageSelectorModal({
 
           {/* STEP 2: Target / Learning Goal (L2) */}
           {step === 2 && (
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {(Object.keys(TARGET_LANGUAGE_META) as TargetLanguage[])
-                  .filter((code) => code !== selectedSource)
-                  .map((code) => {
-                    const meta = TARGET_LANGUAGE_META[code];
-                    const isSelected = selectedTarget === code;
-                    return (
-                      <button
-                        key={code}
-                        type="button"
-                        onClick={() => setSelectedTarget(code)}
-                        className={`flex flex-col items-start p-3 rounded-2xl border text-start transition-all ${
-                          isSelected
-                            ? 'border-amber-500 bg-amber-500/20 text-amber-300 shadow-md ring-1 ring-amber-500/40'
-                            : 'border-border bg-surface-2 hover:border-amber-500/50 text-text'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between w-full mb-1">
-                          <LanguageFlag code={code} size={20} />
-                          {isSelected && <Check className="w-4 h-4 text-amber-400 shrink-0" />}
-                        </div>
-                        <span className="font-extrabold text-text text-xs block truncate w-full">
-                          {meta.nameNative}
-                        </span>
-                        <span className="text-[10px] text-muted font-semibold block truncate w-full">
-                          {isAr ? meta.nameAr : meta.nameEn}
-                        </span>
-                      </button>
-                    );
-                  })}
+            <div className="space-y-4">
+              {/* Group 1: Arab Top 5 */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-amber-300">
+                  <Sparkles size={14} className="text-amber-400" />
+                  <span>
+                    {isAr
+                      ? '🌟 اللغات الـ ٥ الأكثر طلباً في الوطن العربي (مدعومة بالكامل بالعربي وبالصوت)'
+                      : '🌟 Top 5 Most Requested Languages in Arab World (Full Arabic Bridges & Audio)'}
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {(['en', 'de', 'fr', 'es', 'tr'] as TargetLanguage[])
+                    .filter((code) => code !== selectedSource && TARGET_LANGUAGE_META[code])
+                    .map((code) => {
+                      const meta = TARGET_LANGUAGE_META[code];
+                      const isSelected = selectedTarget === code;
+                      return (
+                        <button
+                          key={code}
+                          type="button"
+                          onClick={() => setSelectedTarget(code)}
+                          className={`flex flex-col items-start p-3 rounded-2xl border text-start transition-all ${
+                            isSelected
+                              ? 'border-emerald-500 bg-emerald-500/20 text-emerald-300 shadow-md ring-1 ring-emerald-500/40'
+                              : 'border-emerald-500/30 bg-emerald-950/20 hover:border-emerald-500/60 text-text'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between w-full mb-1">
+                            <LanguageFlag code={code} size={20} />
+                            {isSelected ? (
+                              <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                            ) : (
+                              <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300">
+                                100% عربي
+                              </span>
+                            )}
+                          </div>
+                          <span className="font-extrabold text-text text-xs block truncate w-full">
+                            {meta.nameNative}
+                          </span>
+                          <span className="text-[10px] text-muted font-semibold block truncate w-full">
+                            {isAr ? meta.nameAr : meta.nameEn}
+                          </span>
+                        </button>
+                      );
+                    })}
+                </div>
+              </div>
+
+              {/* Group 2: Additional Languages Under Development */}
+              <div className="space-y-2 pt-2 border-t border-border">
+                <div className="text-xs font-bold text-slate-400">
+                  <span>{isAr ? '🚧 لغات إضافية (تحت التطوير)' : '🚧 Additional Languages (In Progress)'}</span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {(Object.keys(TARGET_LANGUAGE_META) as TargetLanguage[])
+                    .filter((code) => code !== selectedSource && !['en', 'de', 'fr', 'es', 'tr'].includes(code))
+                    .map((code) => {
+                      const meta = TARGET_LANGUAGE_META[code];
+                      const isSelected = selectedTarget === code;
+                      return (
+                        <button
+                          key={code}
+                          type="button"
+                          onClick={() => setSelectedTarget(code)}
+                          className={`flex flex-col items-start p-3 rounded-2xl border text-start transition-all opacity-85 hover:opacity-100 ${
+                            isSelected
+                              ? 'border-amber-500 bg-amber-500/20 text-amber-300 shadow-md ring-1 ring-amber-500/40'
+                              : 'border-border bg-surface-2 hover:border-amber-500/50 text-text'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between w-full mb-1">
+                            <LanguageFlag code={code} size={20} />
+                            {isSelected && <Check className="w-4 h-4 text-amber-400 shrink-0" />}
+                          </div>
+                          <span className="font-extrabold text-text text-xs block truncate w-full">
+                            {meta.nameNative}
+                          </span>
+                          <span className="text-[10px] text-muted font-semibold block truncate w-full">
+                            {isAr ? meta.nameAr : meta.nameEn}
+                          </span>
+                        </button>
+                      );
+                    })}
+                </div>
               </div>
 
               {/* Active Bridge Preview Card */}

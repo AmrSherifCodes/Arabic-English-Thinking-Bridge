@@ -39,6 +39,7 @@ import { Capacitor } from '@capacitor/core';
 import { getPlatformInfo, storageAdapter } from '../platform/adapter';
 import { API_BASE_URL } from '../utils/api';
 import { usePwaInstall } from '../hooks/usePWAInstall';
+import { CreatorCard } from './CreatorCard';
 
 interface LandingPageProps {
   onLaunchApp: () => void;
@@ -659,6 +660,9 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
           </div>
         </div>
       </section>
+
+      {/* Creator Card with 8-tap Easter Egg */}
+      <CreatorCard />
 
       {/* 8. FOOTER */}
       <footer className="px-4 py-8 bg-[var(--surface)] border-t border-[var(--border)] text-center text-xs text-[var(--muted)] space-y-3">

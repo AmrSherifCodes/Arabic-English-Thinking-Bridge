@@ -135,6 +135,10 @@ export interface UserProfile {
     | 'career'; // 🚀 جامعة، شغل، وسفر
   sourceLanguage?: SourceLanguage;
   targetLanguage?: TargetLanguage;
+  age?: number;
+  isStudent?: boolean;
+  computedStage?: string;
+  highSchoolTrack?: string;
 }
 
 export interface UserProgress {

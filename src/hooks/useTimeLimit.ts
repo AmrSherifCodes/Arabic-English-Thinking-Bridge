@@ -15,7 +15,10 @@ export function useTimeLimit({ limitMs = DEFAULT_LIMIT_MS, permanentUnlock = fal
   const [usedMs, setUsedMs] = useState(() => read().usedMs);
   const [unlocked, setUnlocked] = useState(() => read().unlocked);
   const usedRef = useRef(usedMs); const unlockedRef = useRef(unlocked); const lastTickRef = useRef(Date.now()); const lastSaveRef = useRef(0);
-  const limitReached = usedMs >= limitMs; const isBlocked = !unlocked && limitReached;
+  // Permanently unblocked - no user is ever locked out by a timer
+  const isBlocked = false;
+  const remainingMs = Infinity;
+  const limitReached = false;
 
   const save = useCallback(() => { lastSaveRef.current = Date.now(); write({ usedMs: Math.floor(usedRef.current), unlocked: unlockedRef.current }); }, []);
 
@@ -52,5 +55,5 @@ export function useTimeLimit({ limitMs = DEFAULT_LIMIT_MS, permanentUnlock = fal
     save();
   }, [permanentUnlock, save]);
 
-  return { isBlocked, usedMs, remainingMs: unlocked ? Infinity : Math.max(0, limitMs - usedMs), unlock };
+  return { isBlocked: false, usedMs: 0, remainingMs: Infinity, unlock };
 }

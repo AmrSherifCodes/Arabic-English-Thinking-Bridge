@@ -1562,19 +1562,25 @@ export function buildCourseStructure(
       const a2 = generateProceduralStageLessons(targetLang as any, 'A2', seedA2, focusArea, 20, sourceLang);
       const allProcedural = [...a0, ...a1, ...a2];
 
-      const convertedLessons: Lesson[] = allProcedural.map(loc => ({
+      const convertedLessons: Lesson[] = allProcedural.map((loc, idx) => ({
         id: loc.id,
+        phaseId: 1,
+        phaseTitle: 'Phase 1',
+        phaseLevel: 'A1',
+        number: idx + 1,
+        title: loc.titleEn,
         titleAr: loc.titleAr,
-        titleEn: loc.titleEn,
-        descriptionAr: loc.descriptionAr,
-        descriptionEn: loc.descriptionEn,
+        transferConcept: loc.descriptionEn,
+        transferConceptAr: loc.descriptionAr,
+        weakSpotTag: 'grammar',
         exercises: [{
           id: `${loc.id}-main`,
           arabicThought: loc.promptAr,
           englishTarget: loc.targetSentence,
           acceptableAlternatives: [loc.targetSentence],
           wordChips: loc.wordChips || loc.targetSentence.split(/\s+/),
-          breakdownChunks: loc.breakdownChunks || []
+          breakdownChunks: loc.breakdownChunks || [],
+          habitHint: loc.explanationAr || 'ركّز على بنية الجملة وبناء المعنى مباشرة.',
         }]
       }));
 

@@ -3,6 +3,25 @@ import { SETTINGS_SCHEMA, PreferenceField } from './settingsSchema';
 import type { LanguageCode, FocusArea, LearningStyle } from '../../progression/profileMatcherEngine';
 import type { CEFRLevel } from '../../progression/cefrSorter';
 
+export type PedagogicalStage =
+  | 'kg_kids'
+  | 'elementary'
+  | 'prep_school'
+  | 'high_school'
+  | 'university'
+  | 'everyday_street';
+
+export type HighSchoolTrack = 'thanawiya' | 'igcse' | 'american';
+
+export function computePedagogicalStage(age: number, isStudent: boolean): PedagogicalStage {
+  if (age <= 6) return 'kg_kids';
+  if (age <= 11) return 'elementary';
+  if (age <= 14) return 'prep_school';
+  if (age <= 18) return 'high_school';
+  if (isStudent) return 'university';
+  return 'everyday_street';
+}
+
 const STORAGE_KEY = 'tb.preferences.v1';
 type Value = boolean | string | number | object;
 export type PreferenceMap = Record<string, Value>;
@@ -16,6 +35,10 @@ export interface ExtendedPreferences {
   preferredStyle: LearningStyle;
   focusArea: FocusArea;
   currentStage: CEFRLevel;
+  isStudent: boolean;
+  age: number;
+  computedStage: PedagogicalStage;
+  highSchoolTrack?: HighSchoolTrack;
 }
 
 const DEFAULT_EXTENDED_PREFS: ExtendedPreferences = {
@@ -27,6 +50,10 @@ const DEFAULT_EXTENDED_PREFS: ExtendedPreferences = {
   preferredStyle: 'thinking-bridge',
   focusArea: 'general',
   currentStage: 'A1',
+  isStudent: false,
+  age: 22,
+  computedStage: 'everyday_street',
+  highSchoolTrack: 'thanawiya',
 };
 
 function defaults(): PreferenceMap {
@@ -52,6 +79,14 @@ function load(): PreferenceMap {
     if (typeof parsed.preferredStyle === 'string') d.preferredStyle = parsed.preferredStyle;
     if (typeof parsed.focusArea === 'string') d.focusArea = parsed.focusArea;
     if (typeof parsed.currentStage === 'string') d.currentStage = parsed.currentStage;
+    if (typeof parsed.isStudent === 'boolean') d.isStudent = parsed.isStudent;
+    if (typeof parsed.age === 'number') d.age = parsed.age;
+    if (typeof parsed.highSchoolTrack === 'string') d.highSchoolTrack = parsed.highSchoolTrack;
+    const computed = computePedagogicalStage(
+      typeof d.age === 'number' ? d.age : 22,
+      d.isStudent === true
+    );
+    d.computedStage = computed;
     if (parsed.knownLanguages && typeof parsed.knownLanguages === 'object') {
       d.knownLanguages = parsed.knownLanguages as Value;
     }

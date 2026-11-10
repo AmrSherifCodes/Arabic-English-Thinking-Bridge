@@ -151,7 +151,7 @@ export function PathView({
             const buttonContent = (
               <div className="relative w-full flex flex-col items-center">
                 {isCurrent && (
-                  <div className="absolute -top-12 animate-bounce bg-emerald-600 border border-emerald-400 text-white px-3 py-1.5 rounded-xl shadow-lg shadow-emerald-500/50 z-20 text-[11px] font-black pointer-events-none whitespace-nowrap after:content-[''] after:absolute after:top-full after:left-1/2 after:-translate-x-1/2 after:border-4 after:border-transparent after:border-t-emerald-600">
+                  <div className="mb-2 animate-bounce bg-emerald-600 border border-emerald-400 text-white px-3 py-1 rounded-xl shadow-lg shadow-emerald-500/40 z-20 text-[11px] font-black pointer-events-none whitespace-nowrap">
                     📍 مكانك دلوقتي (المستوى {idx + 1} من 10)
                   </div>
                 )}
@@ -167,20 +167,25 @@ export function PathView({
                   type="button"
                   disabled={!unlocked}
                   aria-label={`${isArabic ? stage.titleAr : stage.titleEn}${unlocked ? '' : isArabic ? ' — مقفول، أكمل الدرس السابق لفتحه' : ' — locked, complete the previous lesson to unlock'}`}
-                  className={`btn-shiny group relative flex flex-col items-center justify-center transition transform ${
+                  className={`group relative flex flex-col items-center justify-center transition-transform rounded-full ${
                     unlocked ? 'active:scale-95' : 'cursor-not-allowed opacity-55'
                   }`}
+                  style={{ borderRadius: '9999px', overflow: 'visible' }}
                 >
                   <div
-                    className={`w-24 h-24 rounded-full border-b-[6px] flex items-center justify-center shadow-lg transition-all overflow-visible ${
+                    className={`w-24 h-24 rounded-full flex items-center justify-center transition-all overflow-visible ${
                       isCompleted
-                        ? 'bg-success text-on-primary border-success/80'
+                        ? 'bg-emerald-500 text-slate-950 shadow-[0_0_20px_rgba(16,185,129,0.35)]'
                         : isCurrent
-                        ? 'bg-primary text-on-primary border-primary-dark ring-4 ring-primary/40 shadow-[0_0_25px_rgba(45,212,191,0.6)]'
+                        ? 'bg-emerald-500 text-slate-950 ring-4 ring-emerald-400/40'
                         : unlocked
-                        ? 'bg-surface border-border text-text hover:bg-surface-2'
-                        : 'bg-surface-2 border-border/50 text-muted grayscale'
+                        ? 'bg-surface border-2 border-border text-text hover:bg-surface-2'
+                        : 'bg-surface-2 border-2 border-border/50 text-muted grayscale'
                     }`}
+                    style={{
+                      borderRadius: '9999px',
+                      boxShadow: isCurrent ? '0 0 28px rgba(16, 185, 129, 0.45)' : undefined,
+                    }}
                   >
                     {isCompleted ? (
                       <Star fill="currentColor" className="w-10 h-10 drop-shadow-md" />
@@ -191,12 +196,19 @@ export function PathView({
                     )}
                   </div>
                 </button>
+
                 {unlocked && (
-                  <div className="absolute -left-36 top-1/2 -translate-y-1/2 w-32 text-end flex flex-col items-end gap-1">
-                      <span className={`block mt-2 text-[11px] font-bold px-3 py-1.5 rounded-lg shadow-sm text-center leading-tight whitespace-normal ${
-                      isCompleted ? 'bg-success/10 text-success border border-success/30' : 'bg-surface border border-border text-text'
-                    }`}>
-                      {isArabic ? stage.titleAr : stage.titleEn}
+                  <div className="mt-2.5 max-w-[220px] text-center flex flex-col items-center gap-1 z-10 px-1">
+                    <span
+                      className={`block text-[11px] sm:text-xs font-bold px-3 py-1 rounded-xl shadow-sm text-center leading-tight whitespace-normal ${
+                        isCompleted
+                          ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30'
+                          : isCurrent
+                          ? 'bg-emerald-950/90 text-emerald-200 border-2 border-emerald-400/60 shadow-[0_0_12px_rgba(16,185,129,0.25)]'
+                          : 'bg-surface border border-border text-text'
+                      }`}
+                    >
+                      {isArabic ? `المستوى ${idx + 1}: ${stage.titleAr}` : `Level ${idx + 1}: ${stage.titleEn}`}
                     </span>
                   </div>
                 )}

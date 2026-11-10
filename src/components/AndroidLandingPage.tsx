@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ArrowDownToLine, AudioLines, BookOpen, Github, KeyRound, LockKeyhole, Mic2, WifiOff } from 'lucide-react';
+import { CreatorCard } from './CreatorCard';
 import './android-landing-page.css';
 
 const APK_URL =
@@ -104,6 +105,8 @@ export function AndroidLandingPage() {
           </div>
         </div>
       </section>
+
+      <CreatorCard />
 
       <section className="android-features" aria-labelledby="android-features-title">
         <div className="android-section-heading">

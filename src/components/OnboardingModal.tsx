@@ -4,6 +4,8 @@ import { Sparkles, Check, ArrowRight, ArrowLeft, Globe, Compass, Briefcase, Plan
 import type { LearningGoal, UserProfile, SourceLanguage, TargetLanguage } from '../types';
 import { SOURCE_LANGUAGES, TARGET_LANGUAGE_META } from '../data/languages';
 import { LanguageFlag } from './LanguageFlag';
+import { RoleAgeConfigurator } from './RoleAgeConfigurator';
+import type { HighSchoolTrack } from '../features/preferences/usePreferences';
 
 export interface OnboardingModalProps {
   isOpen: boolean;
@@ -215,6 +217,11 @@ export function OnboardingModal({
   const [level, setLevel] = useState<'beginner' | 'intermediate' | 'advanced'>((initialProfile?.level as 'beginner' | 'intermediate' | 'advanced') || 'beginner');
   const [goal, setGoal] = useState<LearningGoal>(initialProfile?.goal || 'general');
   const [name, setName] = useState<string>(initialProfile?.name || '');
+  const [isStudent, setIsStudent] = useState<boolean>(initialProfile?.isStudent || false);
+  const [age, setAge] = useState<number>(initialProfile?.age || 22);
+  const [highSchoolTrack, setHighSchoolTrack] = useState<HighSchoolTrack>(
+    (initialProfile?.highSchoolTrack as HighSchoolTrack) || 'thanawiya'
+  );
 
   const isSourceArabic = sourceLang === 'ar';
   const isRtl = isSourceArabic;
@@ -289,8 +296,20 @@ export function OnboardingModal({
       learningStyle: 'visual',
       language: isSourceArabic ? 'arabic' : 'english',
       sourceLanguage: sourceLang,
-      targetLanguage: targetLang
+      targetLanguage: targetLang,
+      age,
+      isStudent,
+      highSchoolTrack,
     };
+
+    try {
+      const stored = localStorage.getItem('tb.preferences.v1');
+      const parsed = stored ? JSON.parse(stored) : {};
+      parsed.age = age;
+      parsed.isStudent = isStudent;
+      parsed.highSchoolTrack = highSchoolTrack;
+      localStorage.setItem('tb.preferences.v1', JSON.stringify(parsed));
+    } catch {}
 
     onComplete(profile, sourceLang, targetLang);
   };
@@ -584,6 +603,22 @@ export function OnboardingModal({
               transition={{ duration: 0.18 }}
               className="space-y-3"
             >
+              {/* Level Selector */}
+              <div>
+                <RoleAgeConfigurator
+                  age={age}
+                  isStudent={isStudent}
+                  highSchoolTrack={highSchoolTrack}
+                  onAgeChange={setAge}
+                  onStudentChange={setIsStudent}
+                  onHighSchoolTrackChange={setHighSchoolTrack}
+                  onStartFromZero={() => {
+                    setLevel('beginner');
+                    setStep(3);
+                  }}
+                />
+              </div>
+
               {/* Level Selector */}
               <div>
                 <label className="block text-xs font-bold text-teal-400 mb-1.5 text-start">

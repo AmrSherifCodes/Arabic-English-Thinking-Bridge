@@ -15,8 +15,8 @@ export interface DictWordEntry {
 const loadedDictionaryCache: Record<string, DictWordEntry[]> = {};
 
 export const DICTIONARY_LOADERS: Record<string, () => Promise<DictWordEntry[]>> = {
-  de: async () => (await import('./germanDictionary')).GERMAN_DICTIONARY,
-  ja: async () => (await import('./japaneseDictionary')).JAPANESE_DICTIONARY,
+  de: async () => (await import('./germanDictionary')).GERMAN_DICTIONARY as unknown as DictWordEntry[],
+  ja: async () => (await import('./japaneseDictionary')).JAPANESE_DICTIONARY as unknown as DictWordEntry[],
   es: async () => (await import('./spanishDictionary')).SPANISH_DICTIONARY,
   fr: async () => (await import('./frenchDictionary')).FRENCH_DICTIONARY,
   zh: async () => (await import('./chineseDictionary')).CHINESE_DICTIONARY,
