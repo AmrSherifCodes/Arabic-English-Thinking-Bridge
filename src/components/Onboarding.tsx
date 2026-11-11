@@ -15,6 +15,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { UserProfile, LearningGoal } from '../types';
+import { AgeTrackSlider } from './AgeTrackSlider';
 
 interface OnboardingProps {
   initialProfile?: UserProfile | null;
@@ -40,7 +41,9 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
   );
   const [companion, setCompanion] = useState<'strict' | 'chill' | 'analyst'>('chill');
   const [diagnosticSelected, setDiagnosticSelected] = useState<string | null>(null);
-  const [selectedTrack, setSelectedTrack] = useState<string>('zero');
+
+  const [selectedTrack, setSelectedTrack] = useState<NonNullable<UserProfile['learnerTrack']>>('street_starter');
+  const [selectedAgeBand, setSelectedAgeBand] = useState<NonNullable<UserProfile['ageBand']> | null>(null);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -52,12 +55,20 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
   const goToNextStep = (nextDir = 1) => {
     setDirection(nextDir);
     setStep((prev) => {
-      const next = prev + 1;
-      if (next === 3) {
-        setCompanion('chill');
-        return 4;
+      let next = prev + 1;
+
+      // Step 0 -> 1 (Mission)
+      // Step 1 -> 2 (Age Slider)
+      // Step 2 -> 3 (Diagnostic) or 4 (Companion) if kg_primary
+      if (prev === 2 && selectedTrack === 'kg_primary') {
+        next = 4; // Skip diagnostic (step 3) for kg_primary
       }
-      return Math.min(next, 4);
+
+      if (next >= 5) {
+        setCompanion('chill');
+        return 5; // Launch step is now 5
+      }
+      return next;
     });
   };
 
@@ -68,8 +79,10 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
     }
     setDirection(-1);
     setStep((prev) => {
-      const next = prev - 1;
-      if (next === 3) return 2;
+      let next = prev - 1;
+      if (prev === 4 && selectedTrack === 'kg_primary') {
+        next = 2; // Go back from Companion to Age Slider
+      }
       return Math.max(next, 0);
     });
   };
@@ -88,7 +101,6 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
     } catch {}
     showToast('🚧 المسار العكسي قادم قريباً · Reverse path coming soon');
     setShowArabicSubChoice(false);
-    // Stay on step 0 (do not advance), forcing user to select Card A for Arabic-first path
   };
 
   const handleFinish = () => {
@@ -99,15 +111,13 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
       goal: 'general',
       sourceLanguage: 'arz',
       targetLanguage: 'en',
+      learnerTrack: selectedTrack,
+      ageBand: selectedAgeBand || undefined,
     };
 
-    // Save companion preference locally
     try {
       localStorage.setItem('tb.aiCompanion', companion);
-      localStorage.setItem('tb.learnerTrack', selectedTrack);
-    } catch {
-      /* noop */
-    }
+    } catch {}
 
     onComplete(updatedProfile, { companion, diagnosticLevel, track: selectedTrack } as any);
   };
@@ -160,29 +170,31 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
                 جسر التفكير · Thinking Bridge
               </p>
               <p className="text-[11px] text-stone-400 font-medium">
-                {step === 0 && 'اختيار المسار · الخطوة ١ من ٤'}
-                {step === 1 && 'تحديد المستوى · الخطوة ٢ من ٤'}
-                {step === 2 && 'رفيق الرحلة · الخطوة ٣ من ٤'}
-                {step === 3 && 'انطلاق اللعبة · جاهز'}
-              </p>
+                  {step === 0 && 'اختيار المسار · الخطوة ١ من ٥'}
+                  {step === 1 && 'تحديد المهمة · الخطوة ٢ من ٥'}
+                  {step === 2 && 'الفئة العمرية · الخطوة ٣ من ٥'}
+                  {step === 3 && 'تحديد المستوى · الخطوة ٤ من ٥'}
+                  {step === 4 && 'رفيق الرحلة · الخطوة ٥ من ٥'}
+                  {step === 5 && 'انطلاق اللعبة · جاهز'}
+                </p>
+              </div>
             </div>
-          </div>
 
-          {/* Game Dots Progress */}
-          <div className="flex items-center gap-1.5" aria-label={`الخطوة ${step + 1} من 4`}>
-            {[0, 1, 2, 3].map((idx) => (
-              <span
-                key={idx}
-                className={`h-2 rounded-full transition-all duration-300 ${
-                  idx === step
-                    ? 'w-7 bg-teal-400 shadow-lg shadow-teal-500/50'
-                    : idx < step
-                    ? 'w-2 bg-emerald-500'
-                    : 'w-2 bg-stone-700'
-                }`}
-              />
-            ))}
-          </div>
+            {/* Game Dots Progress */}
+            <div className="flex items-center gap-1.5" aria-label={`الخطوة ${step + 1} من 5`}>
+              {[0, 1, 2, 3, 4].map((idx) => (
+                <span
+                  key={idx}
+                  className={`h-2 rounded-full transition-all duration-300 ${
+                    idx === step
+                      ? 'w-7 bg-teal-400 shadow-lg shadow-teal-500/50'
+                      : idx < step
+                      ? 'w-2 bg-emerald-500'
+                      : 'w-2 bg-stone-700'
+                  }`}
+                />
+              ))}
+            </div>
         </div>
 
         {/* Animated Card Body */}
@@ -413,8 +425,51 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
               </motion.div>
             )}
 
-            {/* SCREEN 2: DIAGNOSTIC THINKING TEST */}
+            {/* SCREEN 2: AGE TRACK SLIDER */}
             {step === 2 && (
+              <motion.div
+                key="step2-age"
+                custom={direction}
+                variants={slideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ duration: 0.3, ease: 'easeOut' }}
+                className="space-y-4 text-start"
+              >
+                <div>
+                  <h1 className="text-xl sm:text-2xl font-black text-white leading-snug">
+                    تخصيص <span className="text-amber-400">الفئة العمرية</span> 🎯
+                  </h1>
+                  <p className="text-xs text-stone-300 mt-1 mb-6">
+                    نخصص المفردات، القواعد وحجم الخط حسب الفئة العمرية ليناسبك تماماً:
+                  </p>
+                </div>
+
+                <AgeTrackSlider
+                  value={selectedTrack}
+                  ageBand={selectedAgeBand}
+                  onChange={(track, band) => {
+                    setSelectedTrack(track);
+                    setSelectedAgeBand(band);
+                  }}
+                  isArabic={true}
+                />
+
+                <div className="pt-6 flex justify-end">
+                  <button
+                    onClick={() => goToNextStep(1)}
+                    disabled={!selectedAgeBand && selectedTrack !== 'street_starter'}
+                    className="px-6 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-stone-950 font-bold text-sm transition-colors disabled:opacity-50"
+                  >
+                    التالي
+                  </button>
+                </div>
+              </motion.div>
+            )}
+
+            {/* SCREEN 3: DIAGNOSTIC THINKING TEST */}
+            {step === 3 && (
               <motion.div
                 key="step2-diag"
                 custom={direction}
@@ -493,10 +548,10 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
               </motion.div>
             )}
 
-            {/* SCREEN 3: AI COMPANION SELECTION */}
-            {step === 3 && (
+            {/* SCREEN 4: AI COMPANION SELECTION */}
+            {step === 4 && (
               <motion.div
-                key="step3-comp"
+                key="step4-comp"
                 custom={direction}
                 variants={slideVariants}
                 initial="enter"
@@ -587,10 +642,10 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
               </motion.div>
             )}
 
-            {/* SCREEN 4: GAME READY & LAUNCH */}
-            {step === 4 && (
+            {/* SCREEN 5: GAME READY & LAUNCH */}
+            {step === 5 && (
               <motion.div
-                key="step4-launch"
+                key="step5-launch"
                 custom={direction}
                 variants={slideVariants}
                 initial="enter"

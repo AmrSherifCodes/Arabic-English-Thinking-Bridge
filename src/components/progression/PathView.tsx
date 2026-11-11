@@ -166,7 +166,7 @@ export function PathView({
               <div className="relative w-full flex flex-col items-center">
                 {isCurrent && (
                   <div className="mb-2 animate-bounce bg-emerald-600 border border-emerald-400 text-white px-3 py-1 rounded-xl shadow-lg shadow-emerald-500/40 z-20 text-[11px] font-black pointer-events-none whitespace-nowrap">
-                    📍 مكانك دلوقتي (المستوى {idx + 1} من 10)
+                    📍 أنت هنا الآن (المستوى {idx + 1} من 10)
                   </div>
                 )}
                 <button

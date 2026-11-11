@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { MutahEasterEggModal } from './MutahEasterEggModal';
+import { CVModal } from './CVModal';
 
 export function CreatorCard() {
   const [tapCount, setTapCount] = useState(0);
   const [isPoemOpen, setIsPoemOpen] = useState(false);
+  const [isCVOpen, setIsCVOpen] = useState(false);
 
   const handlePhotoClick = () => {
+    setIsCVOpen(true);
     const nextCount = tapCount + 1;
     setTapCount(nextCount);
     if (nextCount === 8) {
@@ -24,6 +27,12 @@ export function CreatorCard() {
           <div className="flex flex-col sm:flex-row items-center gap-5 text-center sm:text-right">
             {/* Interactive Portrait with 8-tap Battle of Mu'tah Easter Egg */}
             <div className="relative group cursor-pointer flex-shrink-0" onClick={handlePhotoClick}>
+              {/* Bouncing Arrow + Label for CV Access */}
+              <div className="absolute -top-12 left-1/2 -translate-x-1/2 flex flex-col items-center animate-bounce z-10 w-max">
+                <span className="text-xs font-black text-amber-400 bg-amber-950/80 px-2 py-1 rounded-full shadow-lg border border-amber-500/30 font-arabic whitespace-nowrap">
+                  👇 اضغط على صورتي لرؤية السيرة الذاتية
+                </span>
+              </div>
               <div className="absolute -inset-1 rounded-full bg-gradient-to-tr from-emerald-500 via-teal-400 to-amber-400 opacity-75 blur-sm group-hover:opacity-100 transition duration-300" />
               <img
                 src="/amr.jpg"
@@ -67,6 +76,8 @@ export function CreatorCard() {
           setTapCount(0);
         }}
       />
+
+      <CVModal isOpen={isCVOpen} onClose={() => setIsCVOpen(false)} />
     </>
   );
 }

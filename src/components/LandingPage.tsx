@@ -65,7 +65,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
     }
   }, []);
 
-  const [videoModalOpen, setVideoModalOpen] = useState(false);
+
   const [byokModalOpen, setByokModalOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [subscribing, setSubscribing] = useState(false);
@@ -566,10 +566,12 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
               <Smartphone className="mx-auto text-[var(--accent-teal)]" size={28} />
               <div>
                 <span className="font-bold text-sm text-[var(--text)] block">Android</span>
-                <span className="text-[10px] text-[var(--muted)] block">v4.0.2 · APK</span>
+                <span className="text-[10px] text-[var(--muted)] block">v4.0.3 · APK</span>
               </div>
               <a
-                href={isNativeAndroid ? '/app' : 'https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v4.0.2/ThinkingBridge-v4.0.2.apk'}
+                href={isNativeAndroid ? '/app' : 'https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v4.0.3/thinking-english-v4.0.3.apk'}
+                target={isNativeAndroid ? undefined : "_blank"}
+                rel={isNativeAndroid ? undefined : "noopener noreferrer"}
                 onClick={isNativeAndroid ? (event) => {
                   event.preventDefault();
                   onLaunchApp();
@@ -583,6 +585,12 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
                     : (tUI('Download APK', 'تحميل APK'))}
                 </span>
               </a>
+              {!isNativeAndroid && (
+                <div className="text-[9px] text-[var(--muted)] font-mono text-center opacity-70">
+                  <span className="block mb-0.5">SHA-256 Checksum:</span>
+                  <span>f3aa9c89928bf539f83bd567a25255654ed30d345d0dd38780025d4d6b3dc357</span>
+                </div>
+              )}
               {isInstallable && (
                 <button type="button" onClick={() => void triggerInstall()} className="text-[10px] font-bold text-[var(--muted)] underline underline-offset-2">
                   {tUI('Install web app', 'تثبيت نسخة الويب')}
@@ -695,54 +703,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
         </div>
       </footer>
 
-      {/* YOUTUBE VIDEO MODAL */}
-      <AnimatePresence>
-        {videoModalOpen && (
-          <div className="fixed inset-0 z-50 bg-stone-950/90 backdrop-blur-xl flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-3xl rounded-3xl bg-stone-900 border border-stone-800 p-4 relative space-y-4 shadow-2xl"
-            >
-              <div className="flex items-center justify-between pb-2 border-b border-stone-800">
-                <span className="font-bold text-sm text-white flex items-center gap-2">
-                  <Youtube size={18} className="text-red-500" />
-                  <span>{tUI('Thinking Bridge Documentary', 'وثائقي بناء جسر التفكير')}</span>
-                </span>
-                <button
-                  onClick={() => setVideoModalOpen(false)}
-                  className="p-1.5 rounded-xl bg-stone-800 text-stone-400 hover:text-white"
-                >
-                  <X size={18} />
-                </button>
-              </div>
 
-              <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-black">
-                {/* TODO: REPLACE_WITH_VIDEO_ID with the actual YouTube video ID upon launch. */}
-                <iframe
-                  src="https://www.youtube-nocookie.com/embed/REPLACE_WITH_VIDEO_ID"
-                  title="Thinking Bridge YouTube Video"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  className="w-full h-full border-0"
-                />
-              </div>
-
-              <div className="flex justify-center pt-2">
-                <a
-                  href="https://www.youtube.com/@SciAmrSherif?sub_confirmation=1"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-6 py-2.5 rounded-xl bg-red-600 text-white font-bold text-xs hover:bg-red-500 transition shadow-md"
-                >
-                  {tUI('Subscribe to @SciAmrSherif 🚀', 'اشترك في القناة لمتابعة الشروحات 🚀')}
-                </a>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
 
       {/* BYOK TUTORIAL MODAL */}
       <AnimatePresence>

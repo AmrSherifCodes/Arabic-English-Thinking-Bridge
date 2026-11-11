@@ -115,7 +115,7 @@ test('5. production build emits non-empty dictionary chunks in dist/assets', () 
     return;
   }
   const files = fs.readdirSync(distAssetsPath);
-  const dictChunks = files.filter(f => f.includes('dict-') || f.includes('curriculum-'));
+  const dictChunks = files.filter(f => f.includes('dict-') || f.includes('curriculumRegistry'));
   assert.ok(dictChunks.length >= 5, `Expected >= 5 dict/curriculum chunks in dist/assets, found ${dictChunks.length}: ${dictChunks.join(', ')}`);
   const totalBytes = dictChunks.reduce((sum, f) => sum + fs.statSync(path.join(distAssetsPath, f)).size, 0);
   assert.ok(totalBytes > 20 * 1024 * 1024, `Expected > 20 MB of dict chunks, got ${(totalBytes / 1024 / 1024).toFixed(1)} MB`);
