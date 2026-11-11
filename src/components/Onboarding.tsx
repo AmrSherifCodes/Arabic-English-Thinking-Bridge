@@ -744,7 +744,7 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
             </button>
 
             <span className="text-[11px] text-stone-500 font-mono">
-              Thinking Bridge v4.0
+              Thinking Bridge v4.1.0
             </span>
           </div>
         )}

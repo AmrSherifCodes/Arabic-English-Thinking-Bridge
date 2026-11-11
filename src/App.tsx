@@ -305,22 +305,24 @@ export default function App() {
 
     const stageCompleted = Boolean(nextStage);
 
-    updateProgression((prev) => ({
-      ...prev,
-      xp: prev.xp + earnedXp,
-      streak: prev.streak === 0 ? 1 : prev.streak,
-      currentStage: nextStage || prev.currentStage,
-      currentUnitId: nextStage ? `${nextStage.toLowerCase()}-unit-1` : prev.currentUnitId,
-      completedLessonIds: activeLessonNode
-        ? Array.from(new Set([...prev.completedLessonIds, activeLessonNode.id]))
-        : prev.completedLessonIds,
-      lessonCrowns: activeLessonNode
-        ? {
-            ...prev.lessonCrowns,
-            [activeLessonNode.id]: Math.min(5, (prev.lessonCrowns[activeLessonNode.id] || 0) + 1),
-          }
-        : prev.lessonCrowns,
-    }));
+    updateProgression((prev) => {
+      const stateWithStreak = updateStreakAndShields(prev);
+      return {
+        ...stateWithStreak,
+        xp: stateWithStreak.xp + earnedXp,
+        currentStage: nextStage || stateWithStreak.currentStage,
+        currentUnitId: nextStage ? `${nextStage.toLowerCase()}-unit-1` : stateWithStreak.currentUnitId,
+        completedLessonIds: activeLessonNode
+          ? Array.from(new Set([...stateWithStreak.completedLessonIds, activeLessonNode.id]))
+          : stateWithStreak.completedLessonIds,
+        lessonCrowns: activeLessonNode
+          ? {
+              ...stateWithStreak.lessonCrowns,
+              [activeLessonNode.id]: Math.min(5, (stateWithStreak.lessonCrowns[activeLessonNode.id] || 0) + 1),
+            }
+          : stateWithStreak.lessonCrowns,
+      };
+    });
     showToast(stageCompleted && nextStage
       ? T(`🔓 فتحت المرحلة ${nextStage}! +${earnedXp} XP`, `🔓 ${nextStage} unlocked! +${earnedXp} XP`)
       : T(`🎉 +${earnedXp} XP! درس مكتمل بنجاح`, `🎉 +${earnedXp} XP! Lesson Mastered!`));

@@ -7,8 +7,15 @@ let modelFailed = false;
 
 export async function loadModel(): Promise<boolean> {
   try {
+    let isNative = false;
+    try {
+      isNative = typeof Capacitor !== 'undefined' && Capacitor.isNativePlatform();
+    } catch {
+      isNative = false;
+    }
+
     // Web constraint: NEVER load transformers.js or ONNX on Web (0 MB on web)
-    if (!Capacitor.isNativePlatform()) {
+    if (!isNative) {
       return false;
     }
 

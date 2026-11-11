@@ -8,6 +8,22 @@ interface QuestsViewProps {
 }
 
 export function QuestsView({ state, isArabic = true }: QuestsViewProps) {
+  const dailySrsQuest = {
+    id: 'q-srs-10',
+    titleAr: 'مراجعة 10 كلمات اليوم (50 XP)',
+    titleEn: 'Review 10 words to earn 50 XP',
+    targetCount: 10,
+    currentCount: 0,
+    xpReward: 50,
+    isCompleted: false,
+    type: 'daily' as const,
+  };
+
+  const questsList = [...(state.quests || [])];
+  if (!questsList.some(q => q.id === 'q-srs-10' || (q.titleEn && q.titleEn.includes('Review 10 words')))) {
+    questsList.unshift(dailySrsQuest);
+  }
+
   return (
     <div className="space-y-6 max-w-md md:max-w-2xl lg:max-w-3xl mx-auto pb-32 sm:pb-36" dir={isArabic ? 'rtl' : 'ltr'}>
       {/* Daily Quests Header */}
@@ -25,7 +41,7 @@ export function QuestsView({ state, isArabic = true }: QuestsViewProps) {
 
       {/* Quests List */}
       <div className="space-y-3">
-        {state.quests.map((quest) => {
+        {questsList.map((quest) => {
           const progressPercent = Math.min(100, Math.round((quest.currentCount / quest.targetCount) * 100));
           return (
             <div
@@ -78,7 +94,7 @@ export function QuestsView({ state, isArabic = true }: QuestsViewProps) {
         </h3>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {state.achievements.map((ach) => {
+          {(state.achievements || []).map((ach) => {
             const isUnlocked = ach.unlockedAt !== null;
             return (
               <div

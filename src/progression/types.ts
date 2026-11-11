@@ -78,6 +78,7 @@ export interface SrsItemRecord {
   reviews: number;
   lastReviewedAt: number; // timestamp
   dueAt: number; // timestamp
+  level?: string;
 }
 
 export interface SkillLevels {

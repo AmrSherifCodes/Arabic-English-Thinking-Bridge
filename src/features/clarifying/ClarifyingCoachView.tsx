@@ -31,6 +31,17 @@ export const ClarifyingCoachView: React.FC<Props> = ({ onClose }) => {
                 timestamp: Date.now()
             };
             localStorage.setItem('tb.lastDiagnosis', JSON.stringify(lastDiag));
+
+            // Persist estimated_level into tb.activeProfileConfig for level-based SRS
+            try {
+                const profileRaw = localStorage.getItem('tb.activeProfileConfig');
+                const profile = profileRaw ? JSON.parse(profileRaw) : {};
+                profile.cefrLevel = diagnosis.estimated_level;
+                profile.estimated_level = diagnosis.estimated_level;
+                localStorage.setItem('tb.activeProfileConfig', JSON.stringify(profile));
+            } catch (e) {
+                console.warn('Failed to update activeProfileConfig:', e);
+            }
         }
     }, [diagnosis, selectedSkill]);
 
@@ -93,7 +104,7 @@ export const ClarifyingCoachView: React.FC<Props> = ({ onClose }) => {
             ) : (
                 <>
                     <div className="text-center my-2 text-xs font-bold text-muted">
-                        السؤال {turnCount + 1} من 4 · Turn {turnCount + 1} of 4
+                        السؤال {turnCount + 1} من 3 · Turn {turnCount + 1} of 3
                     </div>
                     {messages.map((m, idx) => {
                         if (m.role === 'system') return null;

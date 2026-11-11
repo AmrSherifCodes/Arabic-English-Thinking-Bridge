@@ -1,7 +1,24 @@
 import { LearnerState, ErrorType } from './types';
+export { selectNext } from './selectNext';
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 const MIN_EASE = 1.3;
+
+export function getUserCefrLevel(): string {
+  if (typeof localStorage === 'undefined') return 'A1';
+  try {
+    const raw = localStorage.getItem('tb.activeProfileConfig');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && (parsed.cefrLevel || parsed.estimated_level)) {
+        return String(parsed.cefrLevel || parsed.estimated_level).toUpperCase();
+      }
+    }
+  } catch {
+    // Fallback
+  }
+  return 'A1';
+}
 
 export function createInitialLearnerState(conceptId: string): LearnerState {
   return {

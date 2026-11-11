@@ -1,5 +1,6 @@
 import { SrsItemRecord } from './types';
 import { TargetLanguage } from '../types';
+import { getUserCefrLevel } from '../brain/srs';
 
 export type SrsRating = 1 | 2 | 3 | 4; // 1: Again, 2: Hard, 3: Good, 4: Easy
 
@@ -60,18 +61,21 @@ export function calculateNextSrsState(
 }
 
 /**
- * Filter and cap daily SRS reviews so "4000+ cards due" becomes a manageable daily limit (e.g. 30).
+ * Filter and cap daily SRS reviews by user CEFR level so reviews match their proficiency level.
  */
 export function getDueSrsQueue(
   items: Record<string, SrsItemRecord>,
   dailyCap: number = 30,
   targetLang?: TargetLanguage,
-  nowTimestamp: number = Date.now()
+  nowTimestamp: number = Date.now(),
+  userLevel?: string
 ): SrsItemRecord[] {
   const allList = Object.values(items);
+  const activeLevel = (userLevel || getUserCefrLevel()).toUpperCase();
 
   const dueList = allList.filter((item) => {
     if (targetLang && item.targetLang !== targetLang) return false;
+    if (item.level && item.level.toUpperCase() !== activeLevel) return false;
     return item.dueAt <= nowTimestamp;
   });
 

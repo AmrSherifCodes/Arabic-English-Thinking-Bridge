@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { CardSchedule, UserProgress, UserProfile, SourceLanguage, TargetLanguage } from '../../types';
 import { calculateSM2 } from '../../utils/sm2';
 import { applyHabitWin } from '../../utils/habitPsychology';
+import { updateStreakAndShields } from '../../progression/engine';
 import { mixRetentionIntoDueQueue } from '../../utils/adaptiveCurriculum';
 import { LexiconEntry } from '../../services/geminiLexicon';
 import { DeckStats, FlashcardItemData } from '../../components/uiConstants';
@@ -131,6 +132,33 @@ export function useDeckEngine(
         }
       };
     });
+
+    try {
+      const raw = localStorage.getItem('tb.progressionState');
+      if (raw) {
+        let pState = JSON.parse(raw);
+        pState = updateStreakAndShields(pState, todayKey);
+        pState.xp += g > 0 ? 5 : 1;
+        pState.quests = (pState.quests || []).map((q: any) => {
+          if (q.id === 'q-srs-10' || (q.titleEn && q.titleEn.includes('Review 10 words'))) {
+            const nextCount = (q.currentCount || 0) + 1;
+            const isJustCompleted = nextCount >= q.targetCount && !q.isCompleted;
+            if (isJustCompleted) {
+              pState.xp += q.xpReward || 50;
+            }
+            return {
+              ...q,
+              currentCount: nextCount,
+              isCompleted: q.isCompleted || nextCount >= q.targetCount,
+            };
+          }
+          return q;
+        });
+        localStorage.setItem('tb.progressionState', JSON.stringify(pState));
+      }
+    } catch {
+      // Ignore storage errors
+    }
 
     setReviewQueue(updatedQueue);
     setCardAnswerShown(false);

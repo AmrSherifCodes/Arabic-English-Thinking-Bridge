@@ -59,19 +59,19 @@ export function useLocalModel(skill: ClarifyingSkill, topic: string) {
         const currentTurn = turnCount + 1;
         setTurnCount(currentTurn);
 
-        if (currentTurn >= 4) {
-            // Generate diagnosis
+        if (currentTurn >= 3) {
+            // Generate diagnosis after at least 3 question turns
             if (modelAvailable) {
                 try {
-                    const prompt = [...newMessages, { role: 'user', content: "Generate the JSON diagnosis schema based on the last 4 turns." } as Message];
+                    const prompt = [...newMessages, { role: 'user', content: "Generate the JSON diagnosis schema based on the last turns." } as Message];
                     const response = await generateResponse(prompt);
                     try {
                         const jsonStr = response.substring(response.indexOf('{'), response.lastIndexOf('}') + 1);
                         setDiagnosis(JSON.parse(jsonStr));
-                    } catch (e) {
+                    } catch {
                         setDiagnosis(generateFallbackDiagnosis(skill, newMessages));
                     }
-                } catch (e) {
+                } catch {
                     setDiagnosis(generateFallbackDiagnosis(skill, newMessages));
                 }
             } else {
