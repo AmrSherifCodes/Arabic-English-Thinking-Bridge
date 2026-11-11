@@ -61,7 +61,7 @@ export function ReviewModal({ isOpen, onClose, onToast, isArabic = true }: Revie
       }
 
       if (webhookDelivered) {
-        onToast(isArabic ? '🌟 شكراً لتقييمك! تم إرسال مراجعتك بنجاح (Discord Live)' : '🌟 Thank you! Your review was submitted to live team.');
+        onToast(isArabic ? '🌟 شكراً لتقييمك! تم إرسال مراجعتك بنجاح' : '🌟 Thank you! Your review was submitted to live team.');
       } else {
         onToast(isArabic ? '📡 تم حفظ التقييم محلياً بنجاح وستتم المزامنة لاحقاً 💾' : '📡 Saved locally. Will sync when online 💾');
       }

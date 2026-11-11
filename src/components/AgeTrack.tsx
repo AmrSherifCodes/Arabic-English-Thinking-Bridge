@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import type { UserProfile } from '../types';
+import { applyAgePreset, AgePresetKey } from '../features/age/presets';
+
+export { AGE_PRESETS, applyAgePreset } from '../features/age/presets';
+export type { AgePresetKey, AgePreset } from '../features/age/presets';
 
 type LearnerTrack = NonNullable<UserProfile['learnerTrack']>;
 type AgeBand = NonNullable<UserProfile['ageBand']>;
@@ -11,9 +15,17 @@ export interface AgeTrackSliderProps {
   isArabic: boolean;
 }
 
+function getPresetKeyForStop(index: number): AgePresetKey {
+  if (index === 1) return 'kids';
+  if (index === 2 || index === 3) return 'teens';
+  if (index === 4) return 'adults';
+  return 'seniors';
+}
+
 const STOPS = [
   {
     index: 1,
+    presetKey: 'kids' as AgePresetKey,
     track: 'kg_primary' as LearnerTrack,
     ageBand: '4-11' as AgeBand,
     emoji: '🧒',
@@ -27,6 +39,7 @@ const STOPS = [
   },
   {
     index: 2,
+    presetKey: 'teens' as AgePresetKey,
     track: 'prep_stage' as LearnerTrack,
     ageBand: '12-14' as AgeBand,
     emoji: '🎒',
@@ -40,6 +53,7 @@ const STOPS = [
   },
   {
     index: 3,
+    presetKey: 'teens' as AgePresetKey,
     track: 'thanawiya_igcse' as LearnerTrack,
     ageBand: '15-18' as AgeBand,
     emoji: '🎓',
@@ -53,6 +67,7 @@ const STOPS = [
   },
   {
     index: 4,
+    presetKey: 'adults' as AgePresetKey,
     track: 'uni_career' as LearnerTrack,
     ageBand: '18-30' as AgeBand,
     emoji: '🚀',
@@ -66,6 +81,7 @@ const STOPS = [
   },
   {
     index: 5,
+    presetKey: 'seniors' as AgePresetKey,
     track: 'uni_career' as LearnerTrack,
     ageBand: '30+' as AgeBand,
     emoji: '🏛',
@@ -86,13 +102,23 @@ export function AgeTrackSlider({ value, ageBand, onChange, isArabic }: AgeTrackS
   useEffect(() => {
     if (ageBand) {
       const stop = STOPS.find(s => s.ageBand === ageBand);
-      if (stop) setSliderValue(stop.index);
+      if (stop) {
+        setSliderValue(stop.index);
+        applyAgePreset(stop.presetKey);
+      }
     }
   }, [ageBand]);
 
   const selectedStop = STOPS[sliderValue - 1];
 
+  const selectStop = (index: number) => {
+    setSliderValue(index);
+    const stop = STOPS[index - 1];
+    applyAgePreset(stop.presetKey);
+  };
+
   const handlePointerUp = () => {
+    applyAgePreset(selectedStop.presetKey);
     onChange(selectedStop.track, selectedStop.ageBand);
   };
 
@@ -115,7 +141,7 @@ export function AgeTrackSlider({ value, ageBand, onChange, isArabic }: AgeTrackS
               <div
                 key={stop.index}
                 onClick={() => {
-                  setSliderValue(stop.index);
+                  selectStop(stop.index);
                   onChange(stop.track, stop.ageBand);
                 }}
                 className={`flex flex-col items-center justify-end cursor-pointer group min-w-[48px] transition-all
@@ -143,7 +169,7 @@ export function AgeTrackSlider({ value, ageBand, onChange, isArabic }: AgeTrackS
             max="5"
             step="1"
             value={sliderValue}
-            onChange={(e) => setSliderValue(parseInt(e.target.value, 10))}
+            onChange={(e) => selectStop(parseInt(e.target.value, 10))}
             onPointerUp={handlePointerUp}
             onTouchEnd={handlePointerUp}
             className="absolute inset-0 w-full h-full opacity-0 cursor-grab active:cursor-grabbing"

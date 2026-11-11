@@ -133,8 +133,8 @@ export function FeedbackModal({
       if (webhookDelivered) {
         onToast(
           isArabic
-            ? '🎉 شكراً لرأيك! تم الإرسال للفريق مباشرة (Discord Live) وتم الحفظ محلياً 🟢'
-            : '🎉 Thank you! Sent to the live team (Discord Live) and saved locally 🟢'
+            ? '🎉 شكراً لرأيك! تم الإرسال للفريق مباشرة وتم الحفظ محلياً 🟢'
+            : '🎉 Thank you! Sent to the team and saved locally 🟢'
         );
       } else {
         onToast(
@@ -179,10 +179,6 @@ export function FeedbackModal({
             <div>
               <h3 className="text-sm sm:text-base font-extrabold text-white flex items-center gap-2">
                 <span>{isArabic ? 'تقييم وتطوير التطبيق بدون هوية' : 'Anonymous Review & Feedback'}</span>
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-[10px] font-bold text-emerald-400">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                  <span>Discord Live 🟢</span>
-                </span>
               </h3>
               <p className="text-[11px] font-semibold text-stone-400">
                 {isArabic ? 'صوتك هو الأساس لتطوير جسر التفكير' : 'Your honest review directly shapes the platform'}
