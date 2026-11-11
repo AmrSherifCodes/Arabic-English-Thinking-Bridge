@@ -19,7 +19,13 @@ export function useLocalModel(skill: ClarifyingSkill, topic: string) {
     useEffect(() => {
         let isMounted = true;
         const init = async () => {
-            const available = await loadModel();
+            let available = false;
+            try {
+                available = await loadModel();
+            } catch (e) {
+                console.warn('loadModel error caught in useLocalModel:', e);
+                available = false;
+            }
             if (!isMounted) return;
             setModelAvailable(available);
 

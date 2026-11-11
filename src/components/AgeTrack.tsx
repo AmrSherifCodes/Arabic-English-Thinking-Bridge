@@ -109,17 +109,22 @@ export function AgeTrackSlider({ value, ageBand, onChange, isArabic }: AgeTrackS
     }
   }, [ageBand]);
 
-  const selectedStop = STOPS[sliderValue - 1];
+  const selectedStop = STOPS[Math.max(0, Math.min(STOPS.length - 1, (sliderValue || 3) - 1))] || STOPS[2];
 
   const selectStop = (index: number) => {
-    setSliderValue(index);
-    const stop = STOPS[index - 1];
-    applyAgePreset(stop.presetKey);
+    const validIndex = Math.max(1, Math.min(STOPS.length, Number.isFinite(index) ? index : 3));
+    setSliderValue(validIndex);
+    const stop = STOPS[validIndex - 1];
+    if (stop) {
+      applyAgePreset(stop.presetKey);
+    }
   };
 
   const handlePointerUp = () => {
-    applyAgePreset(selectedStop.presetKey);
-    onChange(selectedStop.track, selectedStop.ageBand);
+    if (selectedStop) {
+      applyAgePreset(selectedStop.presetKey);
+      onChange(selectedStop.track, selectedStop.ageBand);
+    }
   };
 
   const handleSkip = () => {

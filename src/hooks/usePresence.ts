@@ -12,7 +12,7 @@ export function usePresence() {
   useEffect(() => {
     // Generate an ephemeral, privacy-friendly UUID for this session (never stored on disk)
     if (!clientIdRef.current) {
-      clientIdRef.current = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2);
+      clientIdRef.current = typeof crypto !== 'undefined' && crypto?.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2);
     }
 
     let isMounted = true;
