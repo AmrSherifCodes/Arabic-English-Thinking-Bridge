@@ -100,7 +100,7 @@ export function AppShell({
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top Header HUD Bar */}
         <header className="sticky top-0 z-30 backdrop-blur-md bg-surface/90 border-b border-border px-4 py-2.5">
-          <div className="max-w-[480px] mx-auto flex items-center justify-between">
+          <div className="max-w-4xl mx-auto flex items-center justify-between">
             {/* Left HUD: Landing Page Button 🏠 + Target Language Flag */}
             <div className="flex items-center gap-2">
               {onOpenLanding && (
@@ -136,8 +136,8 @@ export function AppShell({
           </div>
         </header>
 
-        {/* Dynamic Tab Body - Centered Mobile-First Container (Max-Width 480px) */}
-        <main className="flex-1 min-w-0 p-4 sm:p-6 pb-[calc(80px+env(safe-area-inset-bottom))] md:pb-6 overflow-y-auto max-w-[480px] mx-auto w-full flex flex-col">
+        {/* Dynamic Tab Body - Responsive Desktop / Laptop Container */}
+        <main className="flex-1 min-w-0 p-4 sm:p-6 pb-[calc(80px+env(safe-area-inset-bottom))] md:pb-8 overflow-y-auto max-w-4xl mx-auto w-full flex flex-col">
           <div className="flex-1">
             {children}
           </div>

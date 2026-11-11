@@ -79,7 +79,7 @@ export function PathView({
   const overallProgressPercent = Math.min(100, Math.round(((safeStageIndex + 1) / courseStructure.length) * 100));
 
   return (
-    <div className="relative space-y-6 max-w-[480px] mx-auto pb-32 sm:pb-36" dir={isArabic ? 'rtl' : 'ltr'}>
+    <div className="relative space-y-6 max-w-md md:max-w-2xl lg:max-w-3xl mx-auto pb-32 sm:pb-36" dir={isArabic ? 'rtl' : 'ltr'}>
       {/* Alexandrian & Egyptian Friendly Welcome Banner */}
       <div className="p-3.5 rounded-2xl bg-gradient-to-r from-teal-950/60 via-emerald-950/40 to-amber-950/30 border border-teal-500/40 text-start flex items-center justify-between gap-3 shadow-md">
         <div className="space-y-0.5 min-w-0">

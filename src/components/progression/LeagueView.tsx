@@ -11,7 +11,7 @@ interface LeagueViewProps {
 export function LeagueView({ state, onToggleOptOut, isArabic = true }: LeagueViewProps) {
   if (state.leagueOptOut || state.isUnder13) {
     return (
-      <div className="space-y-4 max-w-md mx-auto p-6 rounded-3xl bg-stone-900 border border-stone-800 text-center pb-24" dir={isArabic ? 'rtl' : 'ltr'}>
+      <div className="space-y-4 max-w-md md:max-w-2xl lg:max-w-3xl mx-auto p-6 rounded-3xl bg-stone-900 border border-stone-800 text-center pb-24" dir={isArabic ? 'rtl' : 'ltr'}>
         <EyeOff className="mx-auto text-amber-400" size={32} />
         <h3 className="text-sm font-black text-white">
           {isArabic ? 'الدوري الأسبوعي معطل' : 'Weekly League Disabled'}
@@ -45,7 +45,7 @@ export function LeagueView({ state, onToggleOptOut, isArabic = true }: LeagueVie
   ].sort((a, b) => b.weeklyXp - a.weeklyXp);
 
   return (
-    <div className="space-y-4 max-w-md mx-auto pb-32 sm:pb-36" dir={isArabic ? 'rtl' : 'ltr'}>
+    <div className="space-y-6 max-w-md md:max-w-2xl lg:max-w-3xl mx-auto pb-32 sm:pb-36" dir={isArabic ? 'rtl' : 'ltr'}>
       {/* Tier Header */}
       <div className="p-4 rounded-3xl bg-gradient-to-r from-amber-950 to-stone-900 border border-amber-500/40 text-start shadow-xl flex items-center justify-between">
         <div className="space-y-0.5">

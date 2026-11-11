@@ -149,7 +149,7 @@ export function ProfileView({
   };
 
   return (
-    <div className="space-y-6 max-w-md mx-auto pb-36 sm:pb-32" dir={isArabic ? 'rtl' : 'ltr'}>
+    <div className="space-y-6 max-w-md md:max-w-2xl lg:max-w-3xl mx-auto pb-36 sm:pb-32" dir={isArabic ? 'rtl' : 'ltr'}>
       {/* 1. Header Profile & Overall Level Card */}
       <div className="p-5 rounded-3xl bg-stone-900 border border-stone-800 space-y-4 shadow-xl text-start">
         <div className="flex items-center justify-between">

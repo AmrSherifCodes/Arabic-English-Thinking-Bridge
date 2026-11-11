@@ -29,7 +29,7 @@ export function PracticeHubView({
   const isNative = Capacitor.isNativePlatform();
 
   return (
-    <div className="space-y-4 max-w-md mx-auto pb-32 sm:pb-36" dir={isArabic ? 'rtl' : 'ltr'}>
+    <div className="space-y-6 max-w-md md:max-w-2xl lg:max-w-3xl mx-auto pb-32 sm:pb-36" dir={isArabic ? 'rtl' : 'ltr'}>
       <div className="text-start space-y-1">
         <h2 className="text-xl font-black text-white">
           {isArabic ? 'مركز التدريب التفاعلي 🎯' : 'Interactive Practice Hub 🎯'}
@@ -39,7 +39,7 @@ export function PracticeHubView({
         </p>
       </div>
 
-      <div className="grid gap-3">
+      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2">
         {/* Mode 1: AI Voice Conversation Practice */}
         <button
           onClick={onOpenVoice}

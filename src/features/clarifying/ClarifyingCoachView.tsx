@@ -36,7 +36,7 @@ export const ClarifyingCoachView: React.FC<Props> = ({ onClose }) => {
 
     if (!selectedSkill) {
         return (
-            <div className="max-w-xl mx-auto space-y-3">
+            <div className="max-w-xl md:max-w-3xl lg:max-w-4xl mx-auto space-y-3">
                 {!isNative && (
                     <div className="mx-4 p-3 rounded-xl bg-teal-500/10 border border-teal-500/20 text-xs font-bold text-teal-300 flex items-center justify-between">
                         <span>🤖 المدرب الذكي متاح على تطبيق الأندرويد فقط</span>
@@ -54,7 +54,7 @@ export const ClarifyingCoachView: React.FC<Props> = ({ onClose }) => {
     const lastAssistantMsg = messages.filter(m => m.role === 'assistant').pop()?.content || '';
 
     return (
-        <div className="max-w-xl mx-auto p-4">
+        <div className="max-w-xl md:max-w-3xl lg:max-w-4xl mx-auto p-4 md:p-6">
             <div className="flex justify-between items-center mb-4">
                 <button onClick={() => setSelectedSkill(null)} className="text-muted hover:text-text text-sm font-bold">
                     ← {isNative ? 'اختر مهارة أخرى' : 'Back to Skills'}
