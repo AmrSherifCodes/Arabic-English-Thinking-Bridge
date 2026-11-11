@@ -113,11 +113,11 @@ test('7. PWA & Static Assets: Manifest, sitemap, og-image, and download page fil
   assert.ok(ogStat.size < 500000, `og-image.jpg size (${ogStat.size} bytes) must be compressed under 500 KB`);
 });
 
-test('8. Live Deployment Health: fetches live https://tb-eg.vercel.app/api/health and verifies version v4.0.0', { skip: !process.env.LIVE_AUDIT }, async () => {
+test('8. Live Deployment Health: fetches live https://tb-eg.vercel.app/api/health and verifies version v4.1.0', { skip: !process.env.LIVE_AUDIT }, async () => {
   const resp = await fetch('https://tb-eg.vercel.app/api/health');
   assert.equal(resp.status, 200);
   const data = await resp.json();
-  assert.equal(data.version, 'v4.0.0');
+  assert.equal(data.version, 'v4.1.0');
 });
 
 test('9. Live Webhook Delivery: POSTs live subscription to https://tb-eg.vercel.app/api/feedback and verifies webhook succeeds', { skip: !process.env.LIVE_WEBHOOK_AUDIT }, async () => {

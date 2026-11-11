@@ -4,7 +4,7 @@ import { CreatorCard } from './CreatorCard';
 import './android-landing-page.css';
 
 const APK_URL =
-  'https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v4.0.3/ThinkingBridge-v4.0.3.apk';
+  'https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v4.1.0/Thinking-Bridge-v4.1.0.apk';
 const RELEASES_URL = 'https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases';
 const GITHUB_URL = 'https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge';
 const X_URL = 'https://x.com/SciAmrSherif';
@@ -71,7 +71,7 @@ export function AndroidLandingPage() {
             <ArrowDownToLine size={23} aria-hidden="true" />
             <span>Download APK <span aria-hidden="true">🚀</span></span>
           </a>
-          <span className="android-version">Version 4.0.2 · Android · Free</span>
+          <span className="android-version">Version 4.1.0 · Android · Free</span>
           <p className="android-device-hint" role="status">
             {isAndroid
               ? 'Your Android download is ready. Allow installs from this source if prompted.'

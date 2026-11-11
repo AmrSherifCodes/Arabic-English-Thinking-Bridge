@@ -36,7 +36,7 @@ Thinking Bridge v4.1.0 is a major feature and refinement release bringing expand
 
 ## 📦 Downloads & Artifacts
 
-- **Android APK**: `https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v4.1.0/app-release.apk`
+- **Android APK**: `https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v4.1.0/Thinking-Bridge-v4.1.0.apk`
 - **Web App**: [https://tb-eg.vercel.app](https://tb-eg.vercel.app)
 - **Source Code**: Available on GitHub (`v4.1.0`)
 

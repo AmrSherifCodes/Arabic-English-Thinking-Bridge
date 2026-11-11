@@ -6,7 +6,7 @@ test('Android landing page shows the APK download and mobile sticky CTA', async 
   await expect(page.getByRole('heading', { name: 'The Ultimate Offline Arabic-English AI Coach.' })).toBeVisible();
   await expect(page.getByRole('link', { name: /Download APK/ }).first()).toHaveAttribute(
     'href',
-    'https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v3.1.0/Thinking-Bridge-v3.1.0.apk'
+    'https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v4.1.0/Thinking-Bridge-v4.1.0.apk'
   );
   await expect(page.getByRole('heading', { name: 'Focused learning. No clutter.' })).toBeVisible();
   await expect(page.locator('.android-sticky-download')).not.toHaveClass(/is-visible/);

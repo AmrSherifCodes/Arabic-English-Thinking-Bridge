@@ -577,10 +577,10 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
               <Smartphone className="mx-auto text-[var(--accent-teal)]" size={28} />
               <div>
                 <span className="font-bold text-sm text-[var(--text)] block">Android</span>
-                <span className="text-[10px] text-[var(--muted)] block">v4.0.3 · APK</span>
+                <span className="text-[10px] text-[var(--muted)] block">v4.1.0 · APK</span>
               </div>
               <a
-                href={isNativeAndroid ? '/app' : 'https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v4.0.3/thinking-english-v4.0.3.apk'}
+                href={isNativeAndroid ? '/app' : 'https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v4.1.0/Thinking-Bridge-v4.1.0.apk'}
                 target={isNativeAndroid ? undefined : "_blank"}
                 rel={isNativeAndroid ? undefined : "noopener noreferrer"}
                 onClick={isNativeAndroid ? (event) => {
