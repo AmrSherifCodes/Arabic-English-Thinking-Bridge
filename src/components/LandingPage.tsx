@@ -599,7 +599,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
               {!isNativeAndroid && (
                 <div className="text-[9px] text-[var(--muted)] font-mono text-center opacity-70">
                   <span className="block mb-0.5">SHA-256 Checksum:</span>
-                  <span>f3aa9c89928bf539f83bd567a25255654ed30d345d0dd38780025d4d6b3dc357</span>
+                  <span>f5eed85dccbbed8b9367e9cd8b1a8dca79081b0738e80c2c699c0c29c956f6d8</span>
                 </div>
               )}
               {isInstallable && (

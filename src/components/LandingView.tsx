@@ -489,6 +489,12 @@ export function LandingView({ onStartWebApp, isArabic = true }: LandingViewProps
                     : (isAr ? 'تحميل APK' : 'Download APK')}
                 </span>
               </a>
+              {!isNativeAndroid && (
+                <div className="text-[9px] text-[var(--landing-muted)] font-mono text-center opacity-70">
+                  <span className="block mb-0.5">SHA-256 Checksum:</span>
+                  <span>f5eed85dccbbed8b9367e9cd8b1a8dca79081b0738e80c2c699c0c29c956f6d8</span>
+                </div>
+              )}
               {isInstallable && (
                 <button type="button" onClick={() => void triggerInstall()} className="text-[10px] font-bold text-[var(--landing-muted)] underline underline-offset-2">
                   {isAr ? 'تثبيت نسخة الويب' : 'Install web app'}
