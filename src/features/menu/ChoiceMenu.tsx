@@ -371,7 +371,7 @@ export function ChoiceMenu({
             <a href="https://www.patreon.com/c/SciAmrSherif" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent, #14b8a6)', textDecoration: 'none' }}>Patreon</a>
             <a href="https://www.youtube.com/@SciAmrSherif" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent, #14b8a6)', textDecoration: 'none' }}>YouTube</a>
             <a href="https://x.com/SciAmrSherif" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent, #14b8a6)', textDecoration: 'none' }}>X</a>
-            <a href="mailto:amrsherifbusiness@gmail.com" style={{ color: 'var(--accent, #14b8a6)', textDecoration: 'none' }}>Email</a>
+            <a href="mailto:amrsherifwork@gmail.com" style={{ color: 'var(--accent, #14b8a6)', textDecoration: 'none' }}>Email</a>
           </div>
         </footer>
 

@@ -200,11 +200,11 @@ export function CVModal({ isOpen, onClose }: CVModalProps) {
               Alexandria, Egypt 🇪🇬
             </span>
             <a
-              href="mailto:amrsherifbusiness@gmail.com"
+              href="mailto:amrsherifwork@gmail.com"
               className="inline-flex items-center gap-1.5 text-teal-400 hover:underline font-medium"
             >
               <Mail className="w-3.5 h-3.5" />
-              amrsherifbusiness@gmail.com
+              amrsherifwork@gmail.com
             </a>
           </div>
 

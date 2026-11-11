@@ -708,7 +708,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
           <a href="https://linkedin.com/in/sciamrsherif-abdelaal" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn profile" className="hover:text-[var(--accent-teal)] transition">
             LinkedIn
           </a>
-          <a href="mailto:amrsherifbusiness@gmail.com" aria-label="Email Amr Sherif" className="hover:text-[var(--accent-teal)] transition">
+          <a href="mailto:amrsherifwork@gmail.com" aria-label="Email Amr Sherif" className="hover:text-[var(--accent-teal)] transition">
             Email
           </a>
         </div>
