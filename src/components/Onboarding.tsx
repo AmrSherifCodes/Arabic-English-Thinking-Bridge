@@ -42,7 +42,13 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
   const [companion, setCompanion] = useState<'strict' | 'chill' | 'analyst'>('chill');
   const [diagnosticSelected, setDiagnosticSelected] = useState<string | null>(null);
 
-  const [selectedTrack, setSelectedTrack] = useState<NonNullable<UserProfile['learnerTrack']>>('street_starter');
+  const [selectedTrack, setSelectedTrack] = useState<NonNullable<UserProfile['learnerTrack']>>(() => {
+    try {
+      const saved = localStorage.getItem('tb.ageTrack');
+      if (saved) return saved as NonNullable<UserProfile['learnerTrack']>;
+    } catch {}
+    return initialProfile?.learnerTrack || 'street_starter';
+  });
   const [selectedAgeBand, setSelectedAgeBand] = useState<NonNullable<UserProfile['ageBand']> | null>(null);
 
   const showToast = (msg: string) => {
@@ -116,6 +122,7 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
     };
 
     try {
+      localStorage.setItem('tb.ageTrack', selectedTrack);
       localStorage.setItem('tb.aiCompanion', companion);
     } catch {}
 
@@ -452,6 +459,9 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
                   onChange={(track, band) => {
                     setSelectedTrack(track);
                     setSelectedAgeBand(band);
+                    try {
+                      localStorage.setItem('tb.ageTrack', track);
+                    } catch {}
                   }}
                   isArabic={true}
                 />
