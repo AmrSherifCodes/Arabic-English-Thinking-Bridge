@@ -33,7 +33,8 @@ export async function loadModel(): Promise<boolean> {
 
     let transformersModule: any = null;
     try {
-      transformersModule = await import('@huggingface/transformers');
+      const moduleName = '@huggingface/transformers';
+      transformersModule = await import(/* @vite-ignore */ moduleName);
     } catch (importErr) {
       console.warn('Failed to dynamically import @huggingface/transformers:', importErr);
       modelFailed = true;
