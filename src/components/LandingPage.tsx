@@ -287,6 +287,17 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
                 <Globe size={16} className="text-[var(--accent-teal)]" />
                 <span>{tUI('Try on Web', 'تجربة على الويب')}</span>
               </button>
+
+              <a
+                href="https://youtube.com/@SciAmrSherif"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="YouTube Video Tutorial"
+                className="px-6 py-3.5 rounded-[var(--radius-md)] bg-red-600/10 hover:bg-red-600/20 border border-red-500/30 font-bold text-sm text-red-400 transition flex items-center gap-2"
+              >
+                <Youtube size={16} className="text-red-500 fill-red-500" />
+                <span>{tUI('Watch YouTube Tutorial 🎬', 'شاهد الشرح على يوتيوب 🎬')}</span>
+              </a>
             </motion.div>
 
             {/* Meta Stats */}
