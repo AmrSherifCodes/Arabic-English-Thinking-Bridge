@@ -18,4 +18,4 @@ community include:
 
 ## Enforcement
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported to the project maintainers at amrsherifbusiness@gmail.com.
+reported to the project maintainers at amrsherifwork@gmail.com.

@@ -605,7 +605,7 @@ export function LandingView({ onStartWebApp, isArabic = true }: LandingViewProps
           <a href="https://linkedin.com/in/sciamrsherif-abdelaal" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn profile" className="hover:text-[var(--landing-accent-teal)] transition">
             LinkedIn
           </a>
-          <a href="mailto:amrsherifbusiness@gmail.com" aria-label="Email Amr Sherif" className="hover:text-[var(--landing-accent-teal)] transition">
+          <a href="mailto:amrsherifwork@gmail.com" aria-label="Email Amr Sherif" className="hover:text-[var(--landing-accent-teal)] transition">
             Email
           </a>
         </div>

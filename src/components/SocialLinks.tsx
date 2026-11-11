@@ -33,7 +33,7 @@ const SOCIAL_LINKS = [
   },
   {
     label: 'Email',
-    href: 'mailto:amrsherifbusiness@gmail.com',
+    href: 'mailto:amrsherifwork@gmail.com',
     Icon: Mail,
     className: 'hover:border-teal-300 hover:text-teal-700 dark:hover:border-teal-800 dark:hover:text-teal-400'
   }

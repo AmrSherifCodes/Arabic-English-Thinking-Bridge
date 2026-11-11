@@ -257,7 +257,7 @@ export function LessonsView({
         <a href="https://www.patreon.com/c/SciAmrSherif" target="_blank" rel="noopener noreferrer">Patreon</a>
         <a href="https://www.youtube.com/@SciAmrSherif" target="_blank" rel="noopener noreferrer">YouTube</a>
         <a href="https://x.com/SciAmrSherif" target="_blank" rel="noopener noreferrer">X</a>
-        <a href="mailto:amrsherifbusiness@gmail.com">Email</a>
+        <a href="mailto:amrsherifwork@gmail.com">Email</a>
       </div>
     </div>
   );

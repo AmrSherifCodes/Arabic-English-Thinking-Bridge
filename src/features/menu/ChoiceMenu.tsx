@@ -326,10 +326,10 @@ export function ChoiceMenu({
 
         {/* 6. Download App Button */}
         <a
-          href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v4.1.0/ThinkingBridge-v4.1.0.apk"
+          href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v4.1.0/Thinking-Bridge-v4.1.0.apk"
           target="_blank"
           rel="noopener noreferrer"
-          download="ThinkingBridge-v4.1.0.apk"
+          download="Thinking-Bridge-v4.1.0.apk"
           className="menu__download-btn"
           aria-label={isArabic ? 'تحميل تطبيق الأندرويد v4.1.0' : 'Download Android APK v4.1.0'}
         >
@@ -371,7 +371,7 @@ export function ChoiceMenu({
             <a href="https://www.patreon.com/c/SciAmrSherif" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent, #14b8a6)', textDecoration: 'none' }}>Patreon</a>
             <a href="https://www.youtube.com/@SciAmrSherif" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent, #14b8a6)', textDecoration: 'none' }}>YouTube</a>
             <a href="https://x.com/SciAmrSherif" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent, #14b8a6)', textDecoration: 'none' }}>X</a>
-            <a href="mailto:amrsherifbusiness@gmail.com" style={{ color: 'var(--accent, #14b8a6)', textDecoration: 'none' }}>Email</a>
+            <a href="mailto:amrsherifwork@gmail.com" style={{ color: 'var(--accent, #14b8a6)', textDecoration: 'none' }}>Email</a>
           </div>
         </footer>
 
