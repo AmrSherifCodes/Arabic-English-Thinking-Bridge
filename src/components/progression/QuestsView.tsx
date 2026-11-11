@@ -9,7 +9,7 @@ interface QuestsViewProps {
 
 export function QuestsView({ state, isArabic = true }: QuestsViewProps) {
   return (
-    <div className="space-y-6 max-w-md mx-auto pb-32 sm:pb-36" dir={isArabic ? 'rtl' : 'ltr'}>
+    <div className="space-y-6 max-w-md md:max-w-2xl lg:max-w-3xl mx-auto pb-32 sm:pb-36" dir={isArabic ? 'rtl' : 'ltr'}>
       {/* Daily Quests Header */}
       <div className="text-start space-y-1">
         <h2 className="text-xl font-black text-white flex items-center gap-2">
@@ -77,7 +77,7 @@ export function QuestsView({ state, isArabic = true }: QuestsViewProps) {
           <span>{isArabic ? '🏆 الأوسمة والإنجازات' : '🏆 Badges & Achievements'}</span>
         </h3>
 
-        <div className="grid grid-cols-1 gap-2.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {state.achievements.map((ach) => {
             const isUnlocked = ach.unlockedAt !== null;
             return (

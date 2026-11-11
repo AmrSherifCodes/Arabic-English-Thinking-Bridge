@@ -139,6 +139,20 @@ export interface UserProfile {
   isStudent?: boolean;
   computedStage?: string;
   highSchoolTrack?: string;
+  learnerTrack?: 'street_starter' | 'kg_primary' | 'prep_stage' | 'thanawiya_igcse' | 'uni_career';
+  ageBand?: '4-11' | '12-14' | '15-18' | '18-30' | '30+';
+  skillLevels?: {
+    writing: 'A0' | 'A1' | 'A2' | 'B1' | 'B2' | 'C1';
+    speaking: 'A0' | 'A1' | 'A2' | 'B1' | 'B2' | 'C1';
+    listening: 'A0' | 'A1' | 'A2' | 'B1' | 'B2' | 'C1';
+    reading: 'A0' | 'A1' | 'A2' | 'B1' | 'B2' | 'C1';
+  };
+  lastDiagnosis?: {
+    skill: 'writing' | 'speaking' | 'listening' | 'reading';
+    level: string;
+    gaps: string[];
+    timestamp: number;
+  } | null;
 }
 
 export interface UserProgress {

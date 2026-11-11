@@ -9,7 +9,7 @@ import { downloadProgressBackup, importUserProgressJson, getVaultAuditSnapshot }
 import { API_BASE_URL } from '../../utils/api';
 import { consumeDailyApiQuota } from '../../utils/apiQuota';
 import { getUserGeminiKey, setUserGeminiKey } from '../../services/geminiLexicon';
-import { RoleAgeConfigurator } from '../../components/RoleAgeConfigurator';
+import { AgeTrackSlider } from '../../components/AgeTrack';
 import type { HighSchoolTrack } from './usePreferences';
 import './preferences.css';
 
@@ -338,18 +338,14 @@ export function PreferencesView({
             {isArabic ? '👤 الملف العمري والمسار الدراسي' : '👤 Learner Profile & Stage'}
           </h2>
           <div className="pref-section__fields">
-            <RoleAgeConfigurator
-              age={typeof values.age === 'number' ? values.age : 22}
-              isStudent={values.isStudent === true}
-              highSchoolTrack={(values.highSchoolTrack as HighSchoolTrack) || 'thanawiya'}
-              onAgeChange={(newAge) => set('age', newAge)}
-              onStudentChange={(isStud) => set('isStudent', isStud)}
-              onHighSchoolTrackChange={(tr) => set('highSchoolTrack', tr)}
-              onStartFromZero={() => {
-                set('level', 'beginner');
-                set('currentStage', 'A0');
-                onToast?.(isArabic ? '🌱 تم ضبط مسارك لتبدأ من تحت الصفر (المستوى A0)' : '🌱 Reset to Level 0 (A0) - Absolute Beginner!');
+            <AgeTrackSlider
+              value={(values.learnerTrack as any) || 'street_starter'}
+              ageBand={(values.ageBand as any) || null}
+              onChange={(track, band) => {
+                set('learnerTrack', track);
+                if (band) set('ageBand', band);
               }}
+              isArabic={isArabic}
             />
           </div>
         </section>

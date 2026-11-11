@@ -1,0 +1,78 @@
+import { Capacitor } from '@capacitor/core';
+
+// @ts-ignore
+let smolPipeline: any = null;
+let isLoading = false;
+let modelFailed = false;
+
+export async function loadModel(): Promise<boolean> {
+  // Web constraint: NEVER load transformers.js or ONNX on Web (0 MB on web)
+  if (!Capacitor.isNativePlatform()) {
+    return false;
+  }
+
+  if (smolPipeline) return true;
+  if (modelFailed) return false;
+
+  if (isLoading) {
+    return new Promise((resolve) => {
+      const check = setInterval(() => {
+        if (smolPipeline) {
+          clearInterval(check);
+          resolve(true);
+        } else if (modelFailed) {
+          clearInterval(check);
+          resolve(false);
+        }
+      }, 100);
+    });
+  }
+
+  isLoading = true;
+  try {
+    const { pipeline, env } = await import('@huggingface/transformers');
+
+    env.allowRemoteModels = false;
+    env.localModelPath = 'models/';
+
+    smolPipeline = await pipeline('text-generation', 'smollm2-135m', {
+      dtype: 'q4',
+    });
+    return true;
+  } catch (err) {
+    console.warn('Failed to load local Android model smollm2-135m, falling back to rule-based bank:', err);
+    modelFailed = true;
+    return false;
+  } finally {
+    isLoading = false;
+  }
+}
+
+export async function generateResponse(
+  messages: { role: 'user' | 'assistant' | 'system'; content: string }[],
+): Promise<string> {
+  if (!smolPipeline) {
+    throw new Error('Model not loaded');
+  }
+
+  const out = await smolPipeline(messages, {
+    max_new_tokens: 100,
+    temperature: 0.6,
+    do_sample: true,
+  });
+
+  // Output format depends on Transformers.js version.
+  if (Array.isArray(out) && out[0] && Array.isArray(out[0].generated_text)) {
+    const generatedMessages = out[0].generated_text;
+    return generatedMessages[generatedMessages.length - 1].content;
+  } else if (Array.isArray(out) && out[0] && out[0].generated_text) {
+    return out[0].generated_text;
+  }
+
+  return '';
+}
+
+export function isModelLoaded() {
+  return !!smolPipeline;
+}
+

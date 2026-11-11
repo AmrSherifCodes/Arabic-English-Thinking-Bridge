@@ -6,6 +6,9 @@ coverage/
 .DS_Store
 *.log
 .cache/
+public/models/
+android/app/src/main/assets/models/
+!android/app/src/main/assets/models/README.md
 public/*.backup.json
 .env
 .env.*

@@ -348,7 +348,7 @@ export function saveUserProgress(progress: UserProgress): boolean {
   }
 }
 
-export const APP_STORAGE_VERSION = '3.1.0';
+export const APP_STORAGE_VERSION = '4.1.0';
 
 export interface ProgressBackupPayload {
   app: 'Arabic-English-Thinking-Bridge';

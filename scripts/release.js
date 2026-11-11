@@ -19,7 +19,7 @@ const ROOT_DIR = path.resolve(__dirname, '..');
 // 1. Determine Target Version
 const pkgPath = path.join(ROOT_DIR, 'package.json');
 const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
-const targetVersion = process.argv[2] || pkg.version || '3.0.1';
+const targetVersion = (process.argv[2] || pkg.version || '3.0.1').replace(/^v/, '');
 const tag = `v${targetVersion}`;
 
 console.log(`\n======================================================`);

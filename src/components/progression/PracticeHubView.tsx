@@ -1,13 +1,15 @@
 import React from 'react';
+import { Capacitor } from '@capacitor/core';
 import { ProgressionState } from '../../progression/types';
 import { getDueSrsQueue } from '../../progression/srs';
-import { MessageSquare, Layers, Briefcase, Zap } from 'lucide-react';
+import { MessageSquare, Layers, Briefcase, Zap, HelpCircle } from 'lucide-react';
 
 interface PracticeHubViewProps {
   state: ProgressionState;
   onOpenVoice: () => void;
   onOpenFlashcards: () => void;
   onOpenCorporate: () => void;
+  onOpenClarifying?: () => void;
   onOpenMaintenance?: () => void;
   onOpenPronunciation?: () => void;
   isArabic?: boolean;
@@ -18,14 +20,16 @@ export function PracticeHubView({
   onOpenVoice,
   onOpenFlashcards,
   onOpenCorporate,
+  onOpenClarifying,
   onOpenMaintenance,
   onOpenPronunciation,
   isArabic = true,
 }: PracticeHubViewProps) {
   const dueItems = getDueSrsQueue(state.srsItems, state.dailyCardsCap);
+  const isNative = Capacitor.isNativePlatform();
 
   return (
-    <div className="space-y-4 max-w-md mx-auto pb-32 sm:pb-36" dir={isArabic ? 'rtl' : 'ltr'}>
+    <div className="space-y-6 max-w-md md:max-w-2xl lg:max-w-3xl mx-auto pb-32 sm:pb-36" dir={isArabic ? 'rtl' : 'ltr'}>
       <div className="text-start space-y-1">
         <h2 className="text-xl font-black text-white">
           {isArabic ? 'مركز التدريب التفاعلي 🎯' : 'Interactive Practice Hub 🎯'}
@@ -35,7 +39,7 @@ export function PracticeHubView({
         </p>
       </div>
 
-      <div className="grid gap-3">
+      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2">
         {/* Mode 1: AI Voice Conversation Practice */}
         <button
           onClick={onOpenVoice}
@@ -99,6 +103,36 @@ export function PracticeHubView({
           </div>
           <Briefcase className="text-blue-400 shrink-0" size={28} />
         </button>
+
+        {/* Mode 4: Socratic CQE AI Coach */}
+        {onOpenClarifying && (
+          <button
+            onClick={onOpenClarifying}
+            className="p-4 rounded-3xl bg-stone-900 border border-emerald-500/40 hover:border-emerald-400 transition text-start shadow-md flex items-center justify-between"
+          >
+            <div className="space-y-1">
+              <div className="flex items-center gap-1.5 text-emerald-400 font-bold text-xs">
+                <HelpCircle size={14} />
+                <span>
+                  {isNative
+                    ? (isArabic ? 'ذكاء اصطناعي محلي · Local AI' : 'Socratic Coach')
+                    : (isArabic ? 'أسئلة جاهزة · Guided Practice' : 'Guided Questions')}
+                </span>
+              </div>
+              <h3 className="font-black text-sm text-white">
+                {isNative
+                  ? (isArabic ? 'اسألني أسئلة (المدرب الذكي)' : 'Socratic AI Coach')
+                  : (isArabic ? 'أسئلة تدريبية' : 'Guided Clarifying Questions')}
+              </h3>
+              <p className="text-xs text-stone-400">
+                {isNative
+                  ? (isArabic ? 'مدرب سقراطي محلي لتشخيص نقاط القوة والضعف' : 'Local AI coach to diagnose your level')
+                  : (isArabic ? 'أسئلة تفاعلية لتنشيط فكرك وتحسين أسلوبك' : 'Interactive Socratic questions for reflection')}
+              </p>
+            </div>
+            <HelpCircle className="text-emerald-400 shrink-0" size={28} />
+          </button>
+        )}
 
         {/* Mode 4: Local Pronunciation Recorder */}
         {onOpenPronunciation && (

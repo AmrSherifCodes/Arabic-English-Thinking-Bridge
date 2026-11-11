@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Capacitor } from '@capacitor/core';
 import { ActionTile } from './ActionTile';
 import { UserRound, ScrollText, Zap, Shield, BookMarked, Download, ExternalLink, HelpCircle, Star, Globe, Users } from 'lucide-react';
 import { UserProfile, UserProgress, SourceLanguage, TargetLanguage } from '../../types';
@@ -9,7 +10,7 @@ import { LanguageSelectorModal } from '../../components/LanguageSelectorModal';
 import { usePresence } from '../../hooks/usePresence';
 import './menu.css';
 
-export type MenuRoute = 'voice' | 'lesson' | 'flashcards' | 'preferences' | 'corporate';
+export type MenuRoute = 'voice' | 'lesson' | 'flashcards' | 'preferences' | 'corporate' | 'clarifying';
 
 export interface ChoiceMenuProps {
   dueCards: number;
@@ -289,6 +290,20 @@ export function ChoiceMenu({
             onClick={() => onSelect('voice')}
           />
           <ActionTile
+            icon="🗣️"
+            label={
+              Capacitor.isNativePlatform()
+                ? (isArabic ? 'اسألني أسئلة' : 'Ask Me Questions')
+                : (isArabic ? 'أسئلة تدريبية' : 'Guided Questions')
+            }
+            hint={
+              Capacitor.isNativePlatform()
+                ? (isArabic ? 'مدرب سقراطي لتشخيص مستواك' : 'Socratic coach to diagnose your level')
+                : (isArabic ? 'أسئلة تفاعلية لتنشيط فكرك' : 'Interactive guided questions')
+            }
+            onClick={() => onSelect('clarifying')}
+          />
+          <ActionTile
             icon="📖"
             label={isArabic ? 'متابعة الدرس' : 'Continue Lesson'}
             hint={isArabic ? 'تابع مسارك التعليمي التفاعلي' : 'Resume your adaptive track'}
@@ -311,12 +326,12 @@ export function ChoiceMenu({
 
         {/* 6. Download App Button */}
         <a
-          href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v4.0.2/ThinkingBridge-v4.0.2.apk"
+          href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v4.1.0/Thinking-Bridge-v4.1.0.apk"
           target="_blank"
           rel="noopener noreferrer"
-          download="ThinkingBridge-v4.0.2.apk"
+          download="Thinking-Bridge-v4.1.0.apk"
           className="menu__download-btn"
-          aria-label={isArabic ? 'تحميل تطبيق الأندرويد v4.0.2' : 'Download Android APK v4.0.2'}
+          aria-label={isArabic ? 'تحميل تطبيق الأندرويد v4.1.0' : 'Download Android APK v4.1.0'}
         >
           <div className="menu__download-info">
             <Download className="menu__download-icon" />
@@ -331,13 +346,13 @@ export function ChoiceMenu({
               </span>
             </div>
           </div>
-          <span className="menu__download-badge">v4.0.2 · APK</span>
+          <span className="menu__download-badge">v4.1.0 · APK</span>
         </a>
 
         {/* 7. Two-line Footer + Socials */}
         <footer className="menu__footer" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <p className="menu__footer-line1">
-            {isArabic ? 'صُنع في الإسكندرية، مصر 🇪🇬 · v4.0.2' : 'Crafted in Alexandria, Egypt 🇪🇬 · v4.0.2'}
+            {isArabic ? 'صُنع في الإسكندرية، مصر 🇪🇬 · v4.1.0' : 'Crafted in Alexandria, Egypt 🇪🇬 · v4.1.0'}
           </p>
           <p className="menu__footer-line2">
             {isArabic ? 'مستوحى من ميهاليس إلفثيريو · CC0 1.0' : 'Inspired by Mihalis Eleftheriou · CC0 1.0'}
@@ -356,7 +371,7 @@ export function ChoiceMenu({
             <a href="https://www.patreon.com/c/SciAmrSherif" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent, #14b8a6)', textDecoration: 'none' }}>Patreon</a>
             <a href="https://www.youtube.com/@SciAmrSherif" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent, #14b8a6)', textDecoration: 'none' }}>YouTube</a>
             <a href="https://x.com/SciAmrSherif" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent, #14b8a6)', textDecoration: 'none' }}>X</a>
-            <a href="mailto:amrsherifbusiness@gmail.com" style={{ color: 'var(--accent, #14b8a6)', textDecoration: 'none' }}>Email</a>
+            <a href="mailto:amrsherifwork@gmail.com" style={{ color: 'var(--accent, #14b8a6)', textDecoration: 'none' }}>Email</a>
           </div>
         </footer>
 
