@@ -43,6 +43,7 @@
     "@capacitor/share": "^8.0.3",
     "@capacitor/status-bar": "^8.0.4",
     "@google/genai": "^2.32.0",
+    "@huggingface/transformers": "^4.3.2",
     "@libsql/client": "^0.18.0",
     "@mintplex-labs/piper-tts-web": "^1.0.5",
     "@neondatabase/serverless": "^1.2.0",

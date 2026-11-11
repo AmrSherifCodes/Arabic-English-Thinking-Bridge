@@ -50,6 +50,32 @@ function hasSavedProgression(): boolean {
   }
 }
 
+function AudioUnlocker({ onUnlock }: { onUnlock: () => void }) {
+  return (
+    <div
+      className="fixed inset-0 z-[100000] bg-black/80 flex items-center justify-center cursor-pointer backdrop-blur-sm"
+      onClick={() => {
+        try {
+          const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+          if (AudioContextClass) {
+            const ctx = new AudioContextClass();
+            ctx.resume();
+          }
+        } catch {}
+        onUnlock();
+      }}
+    >
+      <div className="flex flex-col items-center animate-bounce text-white">
+        <span className="text-5xl mb-3">🔊</span>
+        <h2 className="text-xl font-bold font-arabic text-center px-4 tracking-wide text-teal-400">
+          اضغط في أي مكان لتفعيل الصوت
+        </h2>
+        <p className="text-sm text-stone-400 mt-2 font-mono">Tap anywhere to enable sound</p>
+      </div>
+    </div>
+  );
+}
+
 // Lazy loading heavy view components for instant Landing Page loading & code-splitting
 const AppShell = lazy(() => import('./components/navigation/AppShell').then((m) => ({ default: m.AppShell })));
 const AndroidLandingPage = lazy(() => import('./components/AndroidLandingPage').then((m) => ({ default: m.AndroidLandingPage })));
@@ -71,6 +97,7 @@ const AdminFeedbackView = lazy(() => import('./components/AdminFeedbackView').th
 const MaintenanceGuide = lazy(() => import('./features/maintenance/MaintenanceGuide').then((m) => ({ default: m.MaintenanceGuide })));
 const PronunciationRecorder = lazy(() => import('./features/voice/PronunciationRecorder').then((m) => ({ default: m.PronunciationRecorder })));
 const StudioDashboard = lazy(() => import('./features/studio/StudioDashboard').then((m) => ({ default: m.StudioDashboard })));
+const ClarifyingCoachView = lazy(() => import('./features/clarifying/ClarifyingCoachView').then((m) => ({ default: m.ClarifyingCoachView })));
 
 type View =
   | { name: 'shell' }
@@ -79,6 +106,7 @@ type View =
   | { name: 'voice' }
   | { name: 'flashcards'; deckId?: string }
   | { name: 'corporate' }
+  | { name: 'clarifying' }
   | { name: 'preferences' }
   | { name: 'admin' }
   | { name: 'maintenance' }
@@ -86,6 +114,14 @@ type View =
   | { name: 'studio' };
 
 export default function App() {
+  const [audioUnlocked, setAudioUnlocked] = useState(() => {
+    try {
+      return sessionStorage.getItem('tb.audioUnlocked') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
   const [view, setView] = useState<View>(() => {
     try {
       if (typeof window !== 'undefined') {
@@ -367,6 +403,7 @@ export default function App() {
               onOpenVoice={() => setView({ name: 'voice' })}
               onOpenFlashcards={() => setView({ name: 'flashcards' })}
               onOpenCorporate={() => setView({ name: 'corporate' })}
+              onOpenClarifying={() => setView({ name: 'clarifying' })}
               onOpenMaintenance={() => setView({ name: 'maintenance' })}
               onOpenPronunciation={() => setView({ name: 'pronunciation' })}
               isArabic={isArabic}
@@ -442,6 +479,15 @@ export default function App() {
           preferredVoice={progress.preferredVoice}
           targetLang={targetLang}
         />
+      )}
+
+      {view.name === 'clarifying' && (
+        <div className="min-h-screen bg-[#0A0E13] text-[#EEF2F5] p-4 flex flex-col" dir={isArabic ? 'rtl' : 'ltr'}>
+          <button onClick={goHome} className="mb-4 px-4 py-2 bg-stone-800 rounded-xl text-sm font-bold self-start">
+            {isArabic ? '← العودة' : '← Back'}
+          </button>
+          <ClarifyingCoachView onClose={goHome} />
+        </div>
       )}
 
       {view.name === 'admin' && (
@@ -641,6 +687,16 @@ export default function App() {
             </button>
           </div>
         </div>
+      )}
+
+      {/* Audio Unlocker overlay for browsers */}
+      {!audioUnlocked && (
+        <AudioUnlocker onUnlock={() => {
+          setAudioUnlocked(true);
+          try {
+            sessionStorage.setItem('tb.audioUnlocked', 'true');
+          } catch {}
+        }} />
       )}
         </Suspense>
     </ErrorBoundary>

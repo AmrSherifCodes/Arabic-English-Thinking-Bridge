@@ -15,7 +15,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { UserProfile, LearningGoal } from '../types';
-import { AgeTrackSlider } from './AgeTrackSlider';
+import { AgeTrackSlider } from './AgeTrack';
 
 interface OnboardingProps {
   initialProfile?: UserProfile | null;

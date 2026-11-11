@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Capacitor } from '@capacitor/core';
 import { ActionTile } from './ActionTile';
 import { UserRound, ScrollText, Zap, Shield, BookMarked, Download, ExternalLink, HelpCircle, Star, Globe, Users } from 'lucide-react';
 import { UserProfile, UserProgress, SourceLanguage, TargetLanguage } from '../../types';
@@ -9,7 +10,7 @@ import { LanguageSelectorModal } from '../../components/LanguageSelectorModal';
 import { usePresence } from '../../hooks/usePresence';
 import './menu.css';
 
-export type MenuRoute = 'voice' | 'lesson' | 'flashcards' | 'preferences' | 'corporate';
+export type MenuRoute = 'voice' | 'lesson' | 'flashcards' | 'preferences' | 'corporate' | 'clarifying';
 
 export interface ChoiceMenuProps {
   dueCards: number;
@@ -287,6 +288,20 @@ export function ChoiceMenu({
             label={isArabic ? 'تدريب المحادثة' : 'Voice Practice'}
             hint={isArabic ? 'اضغط للتحدث مع شريكك اللغوي' : 'Tap to speak with your partner'}
             onClick={() => onSelect('voice')}
+          />
+          <ActionTile
+            icon="🗣️"
+            label={
+              Capacitor.isNativePlatform()
+                ? (isArabic ? 'اسألني أسئلة' : 'Ask Me Questions')
+                : (isArabic ? 'أسئلة تدريبية' : 'Guided Questions')
+            }
+            hint={
+              Capacitor.isNativePlatform()
+                ? (isArabic ? 'مدرب سقراطي لتشخيص مستواك' : 'Socratic coach to diagnose your level')
+                : (isArabic ? 'أسئلة تفاعلية لتنشيط فكرك' : 'Interactive guided questions')
+            }
+            onClick={() => onSelect('clarifying')}
           />
           <ActionTile
             icon="📖"
