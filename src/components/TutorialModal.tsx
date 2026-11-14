@@ -215,7 +215,7 @@ export function TutorialModal({ isOpen, onClose, language }: TutorialModalProps)
   };
 
   const handleSubscribeClick = () => {
-    window.open('https://www.youtube.com/@SciAmrSherif?sub_confirmation=1', '_blank', 'noopener,noreferrer');
+    window.open('https://www.youtube.com/watch?v=ZJwNhBbCED8', '_blank', 'noopener,noreferrer');
     setIsSubscribed(true);
     setMode('aot');
     setCurrentStep(0);

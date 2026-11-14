@@ -47,7 +47,7 @@ interface LandingPageProps {
 }
 
 export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps) {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const lang = i18n.language || 'ar';
   const isAr = lang.startsWith('ar');
 
@@ -297,11 +297,11 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
               </button>
 
               <a
-                href="https://youtube.com/@SciAmrSherif"
+                href="https://www.youtube.com/watch?v=ZJwNhBbCED8"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="YouTube Video Tutorial"
-                className="px-6 py-3.5 rounded-[var(--radius-md)] bg-red-600/10 hover:bg-red-600/20 border border-red-500/30 font-bold text-sm text-red-400 transition flex items-center gap-2"
+                className="w-full sm:w-auto px-4 py-2 rounded-[var(--radius-md)] bg-red-600/10 hover:bg-red-600/20 border border-red-500/30 font-bold text-sm text-red-400 transition flex items-center justify-center gap-2"
               >
                 <Youtube size={16} className="text-red-500 fill-red-500" />
                 <span>{t('landing2.watch_youtube_tutorial___')}</span>

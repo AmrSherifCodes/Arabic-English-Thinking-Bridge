@@ -58,7 +58,7 @@ export interface PracticeViewProps {
   onToast: (msg: string) => void;
 }
 
-export const YOUTUBE_CHANNEL_URL = 'https://youtube.com/@SciAmrSherif';
+export const YOUTUBE_CHANNEL_URL = 'https://www.youtube.com/watch?v=ZJwNhBbCED8';
 const IDLE_HELP_MS = 15_000;
 
 export const PracticeView = React.memo(function PracticeView({
