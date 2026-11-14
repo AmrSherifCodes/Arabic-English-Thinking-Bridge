@@ -4,9 +4,18 @@
     <loc>https://tb-eg.vercel.app/</loc>
     <lastmod>2026-11-05</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
-    <xhtml:link rel="alternate" hreflang="ar" href="https://tb-eg.vercel.app/"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://tb-eg.vercel.app/?lang=en"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://tb-eg.vercel.app/"/>
+      <priority>1.0</priority>
+      <xhtml:link href="https://tb-eg.vercel.app/" hreflang="ar" rel="alternate" />
+      <xhtml:link href="https://tb-eg.vercel.app/?lang=en" hreflang="en" rel="alternate" />
+      <xhtml:link href="https://tb-eg.vercel.app/" hreflang="x-default" rel="alternate" />
+  </url>
+    <url>
+        <loc>https://tb-eg.vercel.app/?lang=en</loc>
+        <lastmod>2026-11-05</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>1.0</priority>
+        <xhtml:link href="https://tb-eg.vercel.app/" hreflang="ar" rel="alternate" />
+        <xhtml:link href="https://tb-eg.vercel.app/?lang=en" hreflang="en" rel="alternate" />
+        <xhtml:link href="https://tb-eg.vercel.app/" hreflang="x-default" rel="alternate" />
   </url>
 </urlset>

@@ -167,8 +167,8 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
 
   return (
     <div
-      className={`landing-shell min-h-screen text-[var(--text)] bg-[var(--bg)] transition-colors duration-300 ${tUI('font-sans-en', 'font-arabic')}`}
-      dir={tUI('ltr', 'rtl')}
+      className={`landing-shell min-h-screen text-[var(--text)] bg-[var(--bg)] transition-colors duration-300 ${t('landing2.font_sans_en')}`}
+      dir={t('landing2.ltr')}
       lang={lang}
       style={{ scrollBehavior: 'smooth', fontFamily: 'var(--font)' }}
     >
@@ -191,24 +191,24 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
             </div>
             <div>
               <span className="font-extrabold text-base tracking-tight text-white block">
-                {tUI('Thinking Bridge', 'جسر التفكير')}
+                {t('landing2.thinking_bridge')}
               </span>
               <span className="text-[10px] text-[var(--accent-teal)] font-bold uppercase tracking-wider block">
-                {tUI('Cognitive Transfer Engine', 'جسر التحول الذهني')}
+                {t('landing2.cognitive_transfer_engine')}
               </span>
             </div>
           </div>
 
           {/* Nav Links */}
-          <nav aria-label={tUI('Main navigation', 'التنقل الرئيسي')} className="order-3 flex w-full items-center justify-center gap-4 text-[10px] font-bold text-[var(--muted)] sm:order-none sm:w-auto sm:gap-6 sm:text-xs">
+          <nav aria-label={t('landing2.main_navigation')} className="order-3 flex w-full items-center justify-center gap-4 text-[10px] font-bold text-[var(--muted)] sm:order-none sm:w-auto sm:gap-6 sm:text-xs">
             <a href="#subscribe-section" className="hover:text-[var(--accent-teal)] transition">
-              {tUI('Subscribe', 'اشترك')}
+              {t('landing2.subscribe')}
             </a>
             <a href="#how-it-works" className="hover:text-[var(--accent-teal)] transition">
-              {tUI('How it works', 'كيف يعمل')}
+              {t('landing2.how_it_works')}
             </a>
             <a href="#download-section" className="hover:text-[var(--accent-teal)] transition">
-              {tUI('Download', 'التحميل')}
+              {t('landing2.download')}
             </a>
           </nav>
 
@@ -217,17 +217,17 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
             <button
               onClick={() => i18n.changeLanguage(lang.startsWith('ar') ? 'en' : 'ar')}
               className="px-2.5 py-1 rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface)] text-xs font-bold hover:border-[var(--accent-teal)] transition flex items-center gap-1.5"
-              aria-label={tUI('Switch to Arabic', 'التبديل إلى الإنجليزية')}
+              aria-label={t('landing2.switch_to_arabic')}
             >
               <Globe size={13} className="text-[var(--accent-teal)]" />
-              <span>{tUI('العربية', 'English')}</span>
+              <span>{t('landing2._______')}</span>
             </button>
 
             <button
               onClick={handleLaunchApp}
               className="btn-shiny px-5 py-2 rounded-[var(--radius-md)] bg-gradient-to-r from-[var(--accent-teal)] to-emerald-500 hover:from-teal-300 hover:to-emerald-400 text-stone-950 font-black text-xs transition shadow-lg shadow-[var(--accent-teal)]/20 active:scale-95 flex items-center gap-1.5"
             >
-              <span>{tUI('Start Free 🚀', 'ابدأ مجاناً 🚀')}</span>
+              <span>{t('landing2.start_free___')}</span>
             </button>
           </div>
         </div>
@@ -238,10 +238,18 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
         <div className="grid grid-cols-1 min-[820px]:grid-cols-12 gap-10 items-center">
           {/* Left Text Column */}
           <div className="min-[820px]:col-span-7 space-y-6 text-start">
+
+            {/* CESI Special Welcome */}
+            <motion.div initial="hidden" animate="visible" variants={fadeIn} className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-blue-500/20 via-white/10 to-red-500/20 border border-blue-500/30 text-blue-200 text-sm font-black shadow-lg shadow-blue-900/20 mb-2">
+              <span className="text-xl">🇫🇷🎓</span>
+              <span>{isAr ? 'أهلاً بطلاب وعمران CESI! مهندسو المستقبل، مستعدون للتفكير بالإنجليزي؟' : 'Welcome CESI Engineering! Future engineers, ready to think in English?'}</span>
+            </motion.div>
+            <br />
+
             {/* Pill */}
             <motion.div initial="hidden" animate="visible" variants={fadeIn} className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--accent-teal)]/10 border border-[var(--accent-teal)]/30 text-[var(--accent-teal)] text-xs font-bold">
               <Zap size={13} />
-              <span>{tUI('100% Free · Works Offline (First load ~28 MB)', 'مجاني 100% · يعمل بدون إنترنت (التحميل الأول ~28 ميجا)')}</span>
+              <span>{t('landing2.100__free___works_offline__fir')}</span>
             </motion.div>
 
             {/* Main H1 */}
@@ -274,18 +282,18 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
             <motion.div initial="hidden" animate="visible" variants={fadeIn} className="flex flex-wrap gap-3 pt-2">
               <a
                 href="#download-section"
-                className="btn-shiny px-6 py-3.5 rounded-[var(--radius-md)] bg-gradient-to-r from-[var(--accent-teal)] via-emerald-400 to-[var(--accent-teal)] hover:opacity-90 active:scale-95 text-stone-950 font-black text-sm transition shadow-2xl shadow-[var(--accent-teal)]/30 flex items-center gap-2"
+                className="btn-shiny px-8 py-4 rounded-[var(--radius-md)] bg-gradient-to-r from-[var(--accent-teal)] via-emerald-400 to-[var(--accent-teal)] hover:opacity-90 active:scale-95 text-stone-950 font-black text-lg transition shadow-2xl shadow-[var(--accent-teal)]/30 flex items-center justify-center gap-3 w-full sm:w-auto"
               >
-                <Download size={16} />
-                <span>{tUI('Download App', 'تحميل التطبيق')}</span>
+                <Download size={18} />
+                <span>{t('landing2.download_app')}</span>
               </a>
 
               <button
                 onClick={handleLaunchApp}
-                className="px-6 py-3.5 rounded-[var(--radius-md)] bg-[var(--surface)] hover:bg-[var(--border)] border border-[var(--border)] font-bold text-sm text-[var(--text)] transition flex items-center gap-2"
+                className="px-4 py-2 text-[var(--muted)] font-medium text-sm hover:text-[var(--foreground)] underline flex items-center justify-center gap-2 transition-colors w-full sm:w-auto"
               >
-                <Globe size={16} className="text-[var(--accent-teal)]" />
-                <span>{tUI('Try on Web', 'تجربة على الويب')}</span>
+                <Globe size={16} />
+                <span>{t('landing2.try_on_web')}</span>
               </button>
 
               <a
@@ -296,7 +304,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
                 className="px-6 py-3.5 rounded-[var(--radius-md)] bg-red-600/10 hover:bg-red-600/20 border border-red-500/30 font-bold text-sm text-red-400 transition flex items-center gap-2"
               >
                 <Youtube size={16} className="text-red-500 fill-red-500" />
-                <span>{tUI('Watch YouTube Tutorial 🎬', 'شاهد الشرح على يوتيوب 🎬')}</span>
+                <span>{t('landing2.watch_youtube_tutorial___')}</span>
               </a>
             </motion.div>
 
@@ -304,15 +312,15 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
             <motion.div initial="hidden" animate="visible" variants={fadeIn} className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-4 text-xs font-bold text-[var(--muted)] border-t border-[var(--border)]/50">
               <div className="flex items-center gap-1.5">
                 <CheckCircle2 size={14} className="text-[var(--accent-teal)]" />
-                <span>{tUI('27 Interactive Lessons', '27 درس تفاعلي')}</span>
+                <span>{t('landing2.27_interactive_lessons')}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <CheckCircle2 size={14} className="text-[var(--accent-teal)]" />
-                <span>{tUI('10,000+ Words & Phrases', '10,000+ كلمة وجملة')}</span>
+                <span>{t('landing2.10_000__words___phrases')}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <CheckCircle2 size={14} className="text-[var(--accent-teal)]" />
-                <span>{tUI('100% Free', 'مجاني 100%')}</span>
+                <span>{t('landing2.100__free')}</span>
               </div>
             </motion.div>
           </div>
@@ -325,25 +333,25 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
               {/* Sample AR to EN Chat Mockup */}
               <div className="space-y-3 text-xs font-medium">
                 <div className="bg-stone-900/90 border border-stone-800 p-3 rounded-2xl text-start">
-                  <span className="text-[10px] text-[var(--muted)] block mb-1">{tUI('User:', 'المستخدم:')}</span>
+                  <span className="text-[10px] text-[var(--muted)] block mb-1">{t('landing2.user_')}</span>
                   <p className="text-white font-bold" dir="rtl">"ازيك يا عمرو؟ عامل ايه اليوم؟"</p>
                 </div>
 
                 <div className="bg-[var(--surface)] border border-[var(--accent-teal)]/30 p-3 rounded-2xl text-start relative">
                   <div className="flex items-center gap-1.5 text-[10px] font-bold text-[var(--accent-teal)] mb-1">
                     <Sparkles size={11} />
-                    <span>{tUI('Amr Sherif (AI Coach)', 'عمرو شريف (المدرب الذكي)')}</span>
+                    <span>{t('landing2.amr_sherif__ai_coach_')}</span>
                   </div>
                   <p className="text-stone-200 font-bold mb-1">
                     "Hello! I am doing fantastic today. How is your day going?"
                   </p>
                   <p className="text-[10px] text-[var(--secondary-amber)] bg-stone-950/60 p-2 rounded-xl mt-2 leading-relaxed">
-                    💡 <strong>{tUI('Thinking Bridge:', 'جسر التفكير:')}</strong> {tUI('"عامل ايه" ➔ In English we ask about the current action/state: <strong>"How are you doing?"</strong>', '"عامل ايه" ➔ في الإنجليزية نسأل عن الفعل/الحالة الحالية: <strong>"How are you doing?"</strong>')}
+                    💡 <strong>{t('landing2.thinking_bridge_')}</strong> {t('landing2._____________in_english_we_ask')}
                   </p>
                 </div>
 
                 <div className="bg-stone-900/90 border border-stone-800 p-2.5 rounded-xl text-center text-[11px] text-[var(--muted)] font-bold">
-                  ⚡ {tUI('Spaced Repetition Flashcards Due:', 'بطاقات الاستذكار المتباعد المستحقة:')} <strong>4,090</strong>
+                  ⚡ {t('landing2.spaced_repetition_flashcards_d')} <strong>4,090</strong>
                 </div>
               </div>
             </div>
@@ -356,10 +364,10 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
         <div className="max-w-[var(--max-width)] mx-auto space-y-10 text-center">
           <div>
             <h2 className="text-2xl sm:text-4xl font-black tracking-tight mb-2">
-              {tUI('How the Cognitive Bridge Works', 'كيف يعمل جسر التحول الذهني؟')}
+              {t('landing2.how_the_cognitive_bridge_works')}
             </h2>
             <p className="text-xs sm:text-sm text-[var(--muted)]">
-              {tUI('3 science-backed steps to stop word-for-word translation', '3 خطوات علمية للتخلص التام من الترجمة الحرفية')}
+              {t('landing2.3_science_backed_steps_to_stop')}
             </p>
           </div>
 
@@ -370,7 +378,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
                 <BookOpen size={24} aria-hidden="true" />
               </div>
               <h3 className="font-bold text-base text-[var(--text)]">
-                {tUI('Understand Structure', 'فهم البناء وتفكيك العقد')}
+                {t('landing2.understand_structure')}
               </h3>
               <p className="text-xs text-[var(--muted)] leading-relaxed">
                 {isAr
@@ -385,7 +393,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
                 <Mic size={24} aria-hidden="true" />
               </div>
               <h3 className="font-bold text-base text-[var(--text)]">
-                {tUI('Practice Speaking', 'ممارسة محادثة تفاعلية')}
+                {t('landing2.practice_speaking')}
               </h3>
               <p className="text-xs text-[var(--muted)] leading-relaxed">
                 {isAr
@@ -400,7 +408,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
                 <RefreshCw size={24} aria-hidden="true" />
               </div>
               <h3 className="font-bold text-base text-[var(--text)]">
-                {tUI('Review Daily (SM-2)', 'مراجعة ذكية يومية (SM-2)')}
+                {t('landing2.review_daily__sm_2_')}
               </h3>
               <p className="text-xs text-[var(--muted)] leading-relaxed">
                 {isAr
@@ -415,7 +423,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
               onClick={handleLaunchApp}
               className="btn-shiny px-8 py-4 rounded-[var(--radius-md)] bg-gradient-to-r from-[var(--accent-teal)] via-emerald-400 to-[var(--accent-teal)] text-stone-950 font-black text-base transition shadow-xl active:scale-95 flex items-center gap-2"
             >
-              <span>{tUI('Begin Level Test 🚀', 'ابدأ تحديد المستوى الآن 🚀')}</span>
+              <span>{t('landing2.begin_level_test___')}</span>
               <ArrowRight size={18} className={isAr ? 'rotate-180' : ''} />
             </button>
           </div>
@@ -427,19 +435,19 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
         <div className="grid grid-cols-1 min-[820px]:grid-cols-4 gap-4 text-center">
           <div className="p-4 rounded-[var(--radius-sm)] bg-[var(--surface)] border border-[var(--border)]">
             <span className="text-2xl sm:text-3xl font-black text-[var(--accent-teal)] block mb-1">27</span>
-            <span className="text-xs text-[var(--muted)] font-bold">{tUI('Interactive Lessons', 'درس تفاعلي')}</span>
+            <span className="text-xs text-[var(--muted)] font-bold">{t('landing2.interactive_lessons')}</span>
           </div>
           <div className="p-4 rounded-[var(--radius-sm)] bg-[var(--surface)] border border-[var(--border)]">
             <span className="text-2xl sm:text-3xl font-black text-[var(--secondary-amber)] block mb-1">4090</span>
-            <span className="text-xs text-[var(--muted)] font-bold">{tUI('Spaced Flashcards', 'بطاقة استذكار')}</span>
+            <span className="text-xs text-[var(--muted)] font-bold">{t('landing2.spaced_flashcards')}</span>
           </div>
           <div className="p-4 rounded-[var(--radius-sm)] bg-[var(--surface)] border border-[var(--border)]">
             <span className="text-2xl sm:text-3xl font-black text-[var(--accent-teal)] block mb-1">10,000+</span>
-            <span className="text-xs text-[var(--muted)] font-bold">{tUI('Words & Sentences', 'مفردة وجملة')}</span>
+            <span className="text-xs text-[var(--muted)] font-bold">{t('landing2.words___sentences')}</span>
           </div>
           <div className="p-4 rounded-[var(--radius-sm)] bg-[var(--surface)] border border-[var(--border)]">
             <span className="text-2xl sm:text-3xl font-black text-[var(--text)] block mb-1">0</span>
-            <span className="text-xs text-[var(--muted)] font-bold">{tUI('Cost', 'التكلفة')}</span>
+            <span className="text-xs text-[var(--muted)] font-bold">{t('landing2.cost')}</span>
           </div>
         </div>
       </section>
@@ -449,15 +457,15 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
         <div className="max-w-xl mx-auto text-center space-y-6">
           <div className="inline-flex items-center gap-1.5 text-xs font-bold text-[var(--secondary-amber)] px-3 py-1 rounded-full bg-[var(--secondary-amber)]/10 border border-[var(--secondary-amber)]/20">
             <Star size={13} />
-            <span>{tUI('Unlock Exclusive Features', 'احصل على الميزات المتقدمة')}</span>
+            <span>{t('landing2.unlock_exclusive_features')}</span>
           </div>
 
           <h2 className="text-2xl sm:text-3xl font-black tracking-tight">
-            {tUI('Subscribe for updates & secret features', 'اشترك لمتابعة التحديثات وفتح المميزات الخاصة')}
+            {t('landing2.subscribe_for_updates___secret')}
           </h2>
 
           <form onSubmit={handleSubscribe} className="flex flex-col min-[820px]:flex-row gap-2 max-w-md mx-auto">
-            <label className="sr-only" htmlFor="subscription-email">{tUI('Email address', 'البريد الإلكتروني')}</label>
+            <label className="sr-only" htmlFor="subscription-email">{t('landing2.email_address')}</label>
             <input
               id="subscription-email"
               type="email"
@@ -467,7 +475,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
               maxLength={254}
               value={email}
               onChange={e => setEmail(e.target.value)}
-              placeholder={tUI('Enter your email...', 'أدخل بريدك الإلكتروني...')}
+              placeholder={t('landing2.enter_your_email___')}
               className="flex-1 px-4 py-3 rounded-[var(--radius-sm)] bg-[var(--bg)] border border-[var(--border)] text-sm text-[var(--text)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-teal)]"
               required
             />
@@ -476,12 +484,12 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
               disabled={subscribing}
               className="px-6 py-3 rounded-[var(--radius-sm)] bg-[var(--accent-teal)] hover:opacity-90 active:scale-95 text-stone-950 font-black text-sm transition"
             >
-              {subscribing ? (tUI('Submitting...', 'جاري الإرسال...')) : (tUI('Subscribe', 'اشترك الآن'))}
+              {subscribing ? (t('landing2.submitting___')) : (t('landing2.subscribe'))}
             </button>
           </form>
 
           <p className="text-[11px] leading-relaxed text-[var(--muted)]">
-            {tUI('Your email is used only for product updates. We do not use tracking or analytics.', 'يُستخدم بريدك لإرسال تحديثات المنتج فقط. لا نستخدم أدوات تتبع أو تحليلات.')}
+            {t('landing2.your_email_is_used_only_for_pr')}
           </p>
 
           {subMessage && (
@@ -498,11 +506,11 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
           <div className="max-w-[var(--max-width)] mx-auto space-y-8 text-center">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--accent-teal)]/10 text-[var(--accent-teal)] border border-[var(--accent-teal)]/30 text-xs font-black">
               <Sparkles size={14} />
-              <span>{tUI('🎉 Subscriber Exclusive Features Unlocked!', '🎉 تم فتح الميزات الخاصة للمشتركين!')}</span>
+              <span>{t('landing2.___subscriber_exclusive_featur')}</span>
             </div>
 
             <h2 className="text-2xl sm:text-4xl font-black text-[var(--text)]">
-              {tUI('Advanced Cognitive Tools', 'أدوات التحول الذهني المتقدمة')}
+              {t('landing2.advanced_cognitive_tools')}
             </h2>
 
             {/* 2x2 Features Grid */}
@@ -510,40 +518,40 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
               <div className="p-6 rounded-[var(--radius-md)] bg-[var(--surface)] border border-[var(--accent-teal)]/40 space-y-2">
                 <MessageSquare className="text-[var(--accent-teal)]" size={24} />
                 <h3 className="font-bold text-base text-[var(--text)]">
-                  {tUI('1. AI Conversation Practice', '1. تدريب المحادثة مع عمرو شريف')}
+                  {t('landing2.1__ai_conversation_practice')}
                 </h3>
                 <p className="text-xs text-[var(--muted)]">
-                  {tUI('Speak directly with AI coach Amr Sherif with live feedback.', 'تحدث بصوتك مباشرة مع مدربك الذكي واحصل على تصحيحات وتغذية راجعة حية.')}
+                  {t('landing2.speak_directly_with_ai_coach_a')}
                 </p>
               </div>
 
               <div className="p-6 rounded-[var(--radius-md)] bg-[var(--surface)] border border-[var(--accent-teal)]/40 space-y-2">
                 <BookOpen className="text-[var(--secondary-amber)]" size={24} />
                 <h3 className="font-bold text-base text-[var(--text)]">
-                  {tUI('2. 27 Interactive Lessons', '2. 27 درساً تفاعلياً متكاملاً')}
+                  {t('landing2.2__27_interactive_lessons')}
                 </h3>
                 <p className="text-xs text-[var(--muted)]">
-                  {tUI('Step-by-step curriculum scaling from basics to executive phrasing.', 'مسار تعليمي يتدرج من الأساسيات إلى الاحتراف في صياغة الأفكار.')}
+                  {t('landing2.step_by_step_curriculum_scalin')}
                 </p>
               </div>
 
               <div className="p-6 rounded-[var(--radius-md)] bg-[var(--surface)] border border-[var(--accent-teal)]/40 space-y-2">
                 <Zap className="text-[var(--accent-teal)]" size={24} />
                 <h3 className="font-bold text-base text-[var(--text)]">
-                  {tUI('3. "Baladi to Corporate" Bridge', '3. مترجم «من البلدي إلى Corporate»')}
+                  {t('landing2.3___baladi_to_corporate__bridg')}
                 </h3>
                 <p className="text-xs text-[var(--muted)]">
-                  {tUI('Convert raw colloquial thoughts into polished corporate English.', 'تحويل أفكارك بالعامية المصرية إلى صياغات شركات احترافية بثوانٍ.')}
+                  {t('landing2.convert_raw_colloquial_thought')}
                 </p>
               </div>
 
               <div className="p-6 rounded-[var(--radius-md)] bg-[var(--surface)] border border-[var(--accent-teal)]/40 space-y-2">
                 <Layers className="text-[var(--secondary-amber)]" size={24} />
                 <h3 className="font-bold text-base text-[var(--text)]">
-                  {tUI('4. 4,090 Spaced Flashcards', '4. 4090 بطاقات استذكار متباعد')}
+                  {t('landing2.4__4_090_spaced_flashcards')}
                 </h3>
                 <p className="text-xs text-[var(--muted)]">
-                  {tUI('Retain your vocabulary effortlessly using the SM-2 algorithm.', 'حافظ على حصيلتك اللغوية بدون نسيان عبر خوارزمية SM-2.')}
+                  {t('landing2.retain_your_vocabulary_effortl')}
                 </p>
               </div>
             </div>
@@ -552,7 +560,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
               onClick={handleLaunchApp}
               className="btn-shiny px-8 py-3.5 rounded-[var(--radius-md)] bg-[var(--accent-teal)] hover:opacity-90 active:scale-95 text-stone-950 font-black text-sm transition shadow-lg"
             >
-              {tUI('Start Practice Now 🚀', 'الدخول للتمارين الآن 🚀')}
+              {t('landing2.start_practice_now___')}
             </button>
           </div>
         </section>
@@ -563,10 +571,10 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
         <div className="text-center space-y-8">
           <div>
             <h2 className="text-2xl sm:text-4xl font-black tracking-tight mb-2">
-              {tUI('Download for Your Device', 'حمل التطبيق على جهازك')}
+              {t('landing2.download_for_your_device')}
             </h2>
             <p className="text-xs sm:text-sm text-[var(--muted)]">
-              {tUI('Works natively across all platforms with full offline support', 'يعمل على جميع المنصات والهواتف بدون إنترنت')}
+              {t('landing2.works_natively_across_all_plat')}
             </p>
           </div>
 
@@ -592,8 +600,8 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
                 {isNativeAndroid ? <ArrowRight size={13} aria-hidden="true" /> : <Download size={13} aria-hidden="true" />}
                 <span>
                   {isNativeAndroid
-                    ? (tUI('Launch App 🚀', 'تشغيل التطبيق 🚀'))
-                    : (tUI('Download APK', 'تحميل APK'))}
+                    ? (t('landing2.launch_app___'))
+                    : (t('landing2.download_apk'))}
                 </span>
               </a>
               {!isNativeAndroid && (
@@ -604,7 +612,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
               )}
               {isInstallable && (
                 <button type="button" onClick={() => void triggerInstall()} className="text-[10px] font-bold text-[var(--muted)] underline underline-offset-2">
-                  {tUI('Install web app', 'تثبيت نسخة الويب')}
+                  {t('landing2.install_web_app')}
                 </button>
               )}
             </div>
@@ -625,16 +633,16 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
                 className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-[var(--surface)] border border-[var(--border)] text-[var(--text)] font-bold text-xs w-full hover:border-[var(--accent-teal)] transition"
               >
                 <ExternalLink size={13} />
-                <span>{showIosHint ? (tUI('Install guide', 'طريقة التثبيت')) : isInstallable ? (tUI('Install app', 'تثبيت التطبيق')) : (tUI('Open Web App', 'تشغيل على الويب'))}</span>
+                <span>{showIosHint ? (t('landing2.install_guide')) : isInstallable ? (t('landing2.install_app')) : (t('landing2.open_web_app'))}</span>
               </button>
               {showIosGuide && showIosHint && (
                 <p role="status" className="text-[11px] leading-relaxed text-[var(--muted)]">
-                  {tUI('In Safari, tap Share, then choose "Add to Home Screen".', 'في Safari اضغط مشاركة، ثم اختر «إضافة إلى الشاشة الرئيسية».')}
+                  {t('landing2.in_safari__tap_share__then_cho')}
                 </p>
               )}
               {showIosHint && (
                 <button onClick={onLaunchApp} className="text-xs font-bold text-[var(--accent-teal)] underline underline-offset-2">
-                  {tUI('Open web app', 'فتح تطبيق الويب')}
+                  {t('landing2.open_web_app_')}
                 </button>
               )}
             </div>
@@ -651,10 +659,10 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
                 className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-[var(--surface)] border border-[var(--border)] text-[var(--text)] font-bold text-xs w-full hover:border-[var(--accent-teal)] transition"
               >
                 <Globe size={13} />
-                <span>{isInstallable ? (tUI('Install PWA', 'تثبيت التطبيق')) : (tUI('Open Web App', 'تشغيل على الويب'))}</span>
+                <span>{isInstallable ? (t('landing2.install_pwa')) : (t('landing2.open_web_app'))}</span>
               </button>
               <a href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/latest" className="block text-[10px] font-bold text-[var(--muted)] underline underline-offset-2">
-                {tUI('Desktop releases', 'إصدارات سطح المكتب')}
+                {t('landing2.desktop_releases')}
               </a>
             </div>
 
@@ -670,10 +678,10 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
                 className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-[var(--surface)] border border-[var(--border)] text-[var(--text)] font-bold text-xs w-full hover:border-[var(--accent-teal)] transition"
               >
                 <Globe size={13} />
-                <span>{isInstallable ? (tUI('Install PWA', 'تثبيت التطبيق')) : (tUI('Open Web App', 'تشغيل على الويب'))}</span>
+                <span>{isInstallable ? (t('landing2.install_pwa')) : (t('landing2.open_web_app'))}</span>
               </button>
               <a href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/latest" className="block text-[10px] font-bold text-[var(--muted)] underline underline-offset-2">
-                {tUI('Desktop releases', 'إصدارات سطح المكتب')}
+                {t('landing2.desktop_releases')}
               </a>
             </div>
           </div>
@@ -686,11 +694,11 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
       {/* 8. FOOTER */}
       <footer className="px-4 py-8 bg-[var(--surface)] border-t border-[var(--border)] text-center text-xs text-[var(--muted)] space-y-3">
         <p className="font-bold text-[var(--text)]">
-          {tUI('Made in Alexandria, Egypt', 'صُنع في الإسكندرية، مصر')}
+          {t('landing2.made_in_alexandria__egypt')}
         </p>
 
         <p>
-          {tUI('With gratitude to ', 'إهداء وتقدير إلى ')}
+          {t('landing2.with_gratitude_to_')}
           <a href="https://www.languagetransfer.org/" target="_blank" rel="noopener noreferrer" aria-label="Mihalis Eleftheriou and Language Transfer" className="underline underline-offset-2 hover:text-[var(--accent-teal)] transition">
             Mihalis Eleftheriou & Language Transfer
           </a>
@@ -730,7 +738,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
                 <div className="flex items-center gap-2">
                   <Key size={20} className="text-emerald-400" />
                   <h3 className="font-black text-base text-white">
-                    {tUI('How to get a free Gemini Key', 'كيف تحصل على مفتاح Gemini مجاناً؟')}
+                    {t('landing2.how_to_get_a_free_gemini_key')}
                   </h3>
                 </div>
                 <button
@@ -745,7 +753,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
                 {/* Step 1 */}
                 <div className="p-3.5 rounded-2xl bg-stone-950/80 border border-stone-800 space-y-2">
                   <span className="font-black text-emerald-400 block">
-                    {tUI('Step 1: Open Google AI Studio', 'الخطوة ١: افتح Google AI Studio')}
+                    {t('landing2.step_1__open_google_ai_studio')}
                   </span>
                   <p className="text-stone-400">
                     {isAr
@@ -766,7 +774,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
                 {/* Step 2 */}
                 <div className="p-3.5 rounded-2xl bg-stone-950/80 border border-stone-800 space-y-1.5">
                   <span className="font-black text-emerald-400 block">
-                    {tUI('Step 2: Paste key into Settings', 'الخطوة ٢: انسخ المفتاح في إعدادات التطبيق')}
+                    {t('landing2.step_2__paste_key_into_setting')}
                   </span>
                   <p className="text-stone-400">
                     {isAr
@@ -793,7 +801,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
                 }}
                 className="w-full py-3.5 rounded-2xl bg-emerald-400 hover:bg-emerald-300 text-stone-950 font-black text-xs transition active:scale-95 shadow-lg"
               >
-                {tUI('Launch App & Enter Key 🚀', 'الانتقال للتطبيق وإدخال المفتاح 🚀')}
+                {t('landing2.launch_app___enter_key___')}
               </button>
             </motion.div>
           </div>

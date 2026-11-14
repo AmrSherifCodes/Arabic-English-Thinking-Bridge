@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Sparkles,
   Download,
@@ -29,13 +30,9 @@ interface LandingViewProps {
 }
 
 export function LandingView({ onStartWebApp, isArabic = true }: LandingViewProps) {
-  const [lang, setLang] = useState<'ar' | 'en'>(() => {
-    if (typeof window !== 'undefined') {
-      const requestedLang = new URLSearchParams(window.location.search).get('lang');
-      if (requestedLang === 'ar' || requestedLang === 'en') return requestedLang;
-    }
-    return isArabic ? 'ar' : 'en';
-  });
+  const { t, i18n } = useTranslation();
+  const lang = (i18n.language || 'ar').startsWith('ar') ? 'ar' : 'en';
+
   const [email, setEmail] = useState('');
   const [subscribing, setSubscribing] = useState(false);
   const [showIosGuide, setShowIosGuide] = useState(false);
@@ -52,6 +49,8 @@ export function LandingView({ onStartWebApp, isArabic = true }: LandingViewProps
 
   const easterEggRef = useRef<HTMLDivElement>(null);
   const isAr = lang === 'ar';
+
+  const setLang = (newLang: 'ar' | 'en') => i18n.changeLanguage(newLang);
 
   // Smart OS Detection
   useEffect(() => {
@@ -70,7 +69,7 @@ export function LandingView({ onStartWebApp, isArabic = true }: LandingViewProps
     e.preventDefault();
     const normalizedEmail = email.trim().toLowerCase();
     if (normalizedEmail.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
-      setSubMessage(isAr ? 'يرجى إدخال بريد إلكتروني صحيح' : 'Please enter a valid email');
+      setSubMessage(t('landing2.please_enter_a_valid_email'));
       return;
     }
 
@@ -90,13 +89,13 @@ export function LandingView({ onStartWebApp, isArabic = true }: LandingViewProps
       storageAdapter.setItem('tb.subscribed', 'true');
       setSubscribed(true);
       setEmail('');
-      setSubMessage(isAr ? 'تم الاشتراك بنجاح! تم فتح الميزات الخاصة 🎉' : 'Subscribed successfully! Secret features unlocked 🎉');
+      setSubMessage(t('landing2.subscribed_successfully__secre'));
 
       window.setTimeout(() => {
         easterEggRef.current?.scrollIntoView({ behavior: 'smooth' });
       }, 100);
     } catch {
-      setSubMessage(isAr ? 'تعذر إكمال الاشتراك. حاول مرة أخرى لاحقاً.' : 'Subscription failed. Please try again later.');
+      setSubMessage(t('landing2.subscription_failed__please_tr'));
     } finally {
       setSubscribing(false);
     }
@@ -117,24 +116,24 @@ export function LandingView({ onStartWebApp, isArabic = true }: LandingViewProps
             <span className="text-2xl">🧠</span>
             <div className="flex flex-col">
               <span className="font-black text-sm tracking-tight text-[var(--landing-text)]">
-                {isAr ? 'فكّر إنجليزي' : 'Thinking English'}
+                {t('landing2.thinking_english')}
               </span>
               <span className="text-[10px] text-[var(--landing-muted)] font-medium">
-                {isAr ? 'جسر التحول الذهني' : 'Cognitive Bridge'}
+                {t('landing2.cognitive_bridge')}
               </span>
             </div>
           </div>
 
           {/* Nav Links */}
-          <nav aria-label={isAr ? 'التنقل الرئيسي' : 'Main navigation'} className="order-3 flex w-full items-center justify-center gap-4 text-[10px] font-bold text-[var(--landing-muted)] sm:order-none sm:w-auto sm:gap-6 sm:text-xs">
+          <nav aria-label={t('landing2.main_navigation')} className="order-3 flex w-full items-center justify-center gap-4 text-[10px] font-bold text-[var(--landing-muted)] sm:order-none sm:w-auto sm:gap-6 sm:text-xs">
             <a href="#subscribe-section" className="hover:text-[var(--landing-accent-teal)] transition">
-              {isAr ? 'اشترك' : 'Subscribe'}
+              {t('landing2.subscribe')}
             </a>
             <a href="#how-it-works" className="hover:text-[var(--landing-accent-teal)] transition">
-              {isAr ? 'كيف يعمل' : 'How it works'}
+              {t('landing2.how_it_works')}
             </a>
             <a href="#download-section" className="hover:text-[var(--landing-accent-teal)] transition">
-              {isAr ? 'التحميل' : 'Download'}
+              {t('landing2.download')}
             </a>
           </nav>
 
@@ -143,10 +142,10 @@ export function LandingView({ onStartWebApp, isArabic = true }: LandingViewProps
             <button
               onClick={() => setLang(prev => (prev === 'ar' ? 'en' : 'ar'))}
               className="px-2.5 py-1 rounded-[var(--landing-radius-sm)] border border-[var(--landing-border)] bg-[var(--landing-surface)] text-xs font-bold hover:border-[var(--landing-accent-teal)] transition flex items-center gap-1.5"
-              aria-label={isAr ? 'Switch to English' : 'التبديل إلى العربية'}
+              aria-label={t('landing2.misc_9')}
             >
               <Globe size={13} className="text-[var(--landing-accent-teal)]" />
-              <span>{isAr ? 'English' : 'العربية'}</span>
+              <span>{t('landing2.misc_10')}</span>
             </button>
 
           </div>
@@ -158,10 +157,18 @@ export function LandingView({ onStartWebApp, isArabic = true }: LandingViewProps
         <div className="grid grid-cols-1 min-[820px]:grid-cols-12 gap-10 items-center">
           {/* Left Text Column */}
           <div className="min-[820px]:col-span-7 space-y-6 text-start">
+
+            {/* CESI Special Welcome */}
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-blue-500/20 via-white/10 to-red-500/20 border border-blue-500/30 text-blue-200 text-sm font-black shadow-lg shadow-blue-900/20 mb-2">
+              <span className="text-xl">🇫🇷🎓</span>
+              <span>{isAr ? 'أهلاً بطلاب CESI! مهندسو المستقبل، مستعدون للتفكير بالإنجليزي؟' : 'Welcome CESI Engineering! Future engineers, ready to think in English?'}</span>
+            </div>
+            <br />
+
             {/* Pill */}
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--landing-accent-teal)]/10 border border-[var(--landing-accent-teal)]/30 text-[var(--landing-accent-teal)] text-xs font-bold">
               <Zap size={13} />
-              <span>{isAr ? 'مجاني 100% · يعمل بدون إنترنت (التحميل الأول يحتاج واي فاي ~28 ميجا)' : '100% Free · Works Offline (First load requires WiFi ~28 MB)'}</span>
+              <span>{t('landing2.100__free___works_offline__fir_1')}</span>
             </div>
 
             {/* Main H1 */}
@@ -185,27 +192,25 @@ export function LandingView({ onStartWebApp, isArabic = true }: LandingViewProps
             </p>
 
             <p className="text-sm sm:text-base text-[var(--landing-muted)] leading-relaxed max-w-xl">
-              {isAr
-                ? 'جسر إدراكي يربط طريقة تفكيرك بالعربي مع التراكيب الإنجليزية الحقيقية. بطل ترجمة حرفية في دماغك وابدأ اتكلم ببديهة وطلاقة.'
-                : 'A cognitive bridge that maps your native thoughts directly into natural English structures. Stop translating word-for-word and gain natural spoken reflexes.'}
+              {t('landing2.a_cognitive_bridge_that_maps_y')}
             </p>
 
             {/* CTAs */}
-            <div className="flex flex-wrap gap-3 pt-2">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 pt-4">
               <a
                 href="#download-section"
-                className="px-6 py-3.5 rounded-[var(--landing-radius-md)] bg-[var(--landing-accent-teal)] hover:opacity-90 active:scale-95 text-stone-950 font-black text-sm transition shadow-lg shadow-[var(--landing-accent-teal)]/20 flex items-center gap-2"
+                className="w-full sm:w-auto px-8 py-4 rounded-[var(--landing-radius-md)] bg-[var(--landing-accent-teal)] hover:opacity-90 active:scale-95 text-stone-950 font-black text-lg transition shadow-lg shadow-[var(--landing-accent-teal)]/20 flex items-center justify-center gap-3"
               >
-                <Download size={16} />
-                <span>{isAr ? 'تحميل التطبيق' : 'Download App'}</span>
+                <Download size={18} />
+                <span>{t('landing2.download_app')}</span>
               </a>
 
               <button
                 onClick={onStartWebApp}
-                className="px-6 py-3.5 rounded-[var(--landing-radius-md)] bg-[var(--landing-surface)] hover:bg-[var(--landing-border)] border border-[var(--landing-border)] font-bold text-sm text-[var(--landing-text)] transition flex items-center gap-2"
+                className="px-4 py-2 text-[var(--landing-muted)] font-medium text-sm hover:text-[var(--landing-text)] underline flex items-center justify-center gap-2 transition-colors w-full sm:w-auto"
               >
-                <Globe size={16} className="text-[var(--landing-accent-teal)]" />
-                <span>{isAr ? 'تجربة على الويب مباشرة' : 'Try on Web'}</span>
+                <Globe size={16} />
+                <span>{t('landing2.try_on_web')}</span>
               </button>
             </div>
 
@@ -213,15 +218,15 @@ export function LandingView({ onStartWebApp, isArabic = true }: LandingViewProps
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-4 text-xs font-bold text-[var(--landing-muted)] border-t border-[var(--landing-border)]/50">
               <div className="flex items-center gap-1.5">
                 <CheckCircle2 size={14} className="text-[var(--landing-accent-teal)]" />
-                <span>27 {isAr ? 'درس تفاعلي' : 'Interactive Lessons'}</span>
+                <span>27 {t('landing2.interactive_lessons')}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <CheckCircle2 size={14} className="text-[var(--landing-accent-teal)]" />
-                <span>10,000+ {isAr ? 'كلمة وجملة' : 'Words & Phrases'}</span>
+                <span>10,000+ {t('landing2.words___phrases')}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <CheckCircle2 size={14} className="text-[var(--landing-accent-teal)]" />
-                <span>{isAr ? 'مجاني 100%' : '100% Free'}</span>
+                <span>{t('landing2.100__free')}</span>
               </div>
             </div>
           </div>
@@ -265,10 +270,10 @@ export function LandingView({ onStartWebApp, isArabic = true }: LandingViewProps
         <div className="max-w-[var(--landing-max-w)] mx-auto space-y-10 text-center">
           <div>
             <h2 className="text-2xl sm:text-4xl font-black tracking-tight mb-2">
-              {isAr ? 'كيف يعمل جسر التحول الذهني؟' : 'How the Cognitive Bridge Works'}
+              {t('landing2.how_the_cognitive_bridge_works')}
             </h2>
             <p className="text-xs sm:text-sm text-[var(--landing-muted)]">
-              {isAr ? '3 خطوات علمية للتخلص التام من الترجمة الحرفية' : '3 science-backed steps to stop word-for-word translation'}
+              {t('landing2.3_science_backed_steps_to_stop')}
             </p>
           </div>
 
@@ -277,12 +282,10 @@ export function LandingView({ onStartWebApp, isArabic = true }: LandingViewProps
             <article className="p-6 rounded-[var(--landing-radius-md)] bg-[var(--landing-bg)] border border-[var(--landing-border)] space-y-3">
               <BookOpen className="text-[var(--landing-accent-teal)]" size={24} aria-hidden="true" />
               <h3 className="font-bold text-base text-[var(--landing-text)]">
-                {isAr ? 'فهم البناء وتفكيك العقد' : 'Understand Structure'}
+                {t('landing2.understand_structure')}
               </h3>
               <p className="text-xs text-[var(--landing-muted)] leading-relaxed">
-                {isAr
-                  ? 'التعرف على الفروق الجوهرية بين التفكير بالعربي والإنجليزي (مثل الأفعال المخفية وحروف الجر).'
-                  : 'Identify structural shifts between native Arabic thinking and natural English reflexes.'}
+                {t('landing2.identify_structural_shifts_bet')}
               </p>
             </article>
 
@@ -290,12 +293,10 @@ export function LandingView({ onStartWebApp, isArabic = true }: LandingViewProps
             <article className="p-6 rounded-[var(--landing-radius-md)] bg-[var(--landing-bg)] border border-[var(--landing-border)] space-y-3">
               <Mic className="text-[var(--landing-secondary-amber)]" size={24} aria-hidden="true" />
               <h3 className="font-bold text-base text-[var(--landing-text)]">
-                {isAr ? 'ممارسة محادثة تفاعلية' : 'Practice Speaking'}
+                {t('landing2.practice_speaking')}
               </h3>
               <p className="text-xs text-[var(--landing-muted)] leading-relaxed">
-                {isAr
-                  ? 'التحدث مع المدرب الذكي عمرو شريف وتلقي تصحيحات فورية بلباقة دون خوف من الخطأ.'
-                  : 'Practice real-time speaking with AI coach Amr Sherif with instant, polite feedback.'}
+                {t('landing2.practice_real_time_speaking_wi')}
               </p>
             </article>
 
@@ -303,12 +304,10 @@ export function LandingView({ onStartWebApp, isArabic = true }: LandingViewProps
             <article className="p-6 rounded-[var(--landing-radius-md)] bg-[var(--landing-bg)] border border-[var(--landing-border)] space-y-3">
               <RefreshCw className="text-[var(--landing-accent-teal)]" size={24} aria-hidden="true" />
               <h3 className="font-bold text-base text-[var(--landing-text)]">
-                {isAr ? 'مراجعة ذكية يومية (SM-2)' : 'Review Daily (SM-2)'}
+                {t('landing2.review_daily__sm_2')}
               </h3>
               <p className="text-xs text-[var(--landing-muted)] leading-relaxed">
-                {isAr
-                  ? 'نظام تكرار متباعد يحسب التوقيت الأمثل لمراجعة الكلمات والبطاقات قبل أن تنساها.'
-                  : 'Spaced repetition system calculating the exact interval before you forget a phrase.'}
+                {t('landing2.spaced_repetition_system_calcu')}
               </p>
             </article>
           </div>
@@ -320,19 +319,19 @@ export function LandingView({ onStartWebApp, isArabic = true }: LandingViewProps
         <div className="grid grid-cols-1 min-[820px]:grid-cols-4 gap-4 text-center">
           <div className="p-4 rounded-[var(--landing-radius-sm)] bg-[var(--landing-surface)] border border-[var(--landing-border)]">
             <span className="text-2xl sm:text-3xl font-black text-[var(--landing-accent-teal)] block mb-1">27</span>
-            <span className="text-xs text-[var(--landing-muted)] font-bold">{isAr ? 'درس تفاعلي' : 'Interactive Lessons'}</span>
+            <span className="text-xs text-[var(--landing-muted)] font-bold">{t('landing2.interactive_lessons')}</span>
           </div>
           <div className="p-4 rounded-[var(--landing-radius-sm)] bg-[var(--landing-surface)] border border-[var(--landing-border)]">
             <span className="text-2xl sm:text-3xl font-black text-[var(--landing-secondary-amber)] block mb-1">4090</span>
-            <span className="text-xs text-[var(--landing-muted)] font-bold">{isAr ? 'بطاقة استذكار' : 'Spaced Flashcards'}</span>
+            <span className="text-xs text-[var(--landing-muted)] font-bold">{t('landing2.spaced_flashcards')}</span>
           </div>
           <div className="p-4 rounded-[var(--landing-radius-sm)] bg-[var(--landing-surface)] border border-[var(--landing-border)]">
             <span className="text-2xl sm:text-3xl font-black text-[var(--landing-accent-teal)] block mb-1">10,000+</span>
-            <span className="text-xs text-[var(--landing-muted)] font-bold">{isAr ? 'مفردة وجملة' : 'Words & Sentences'}</span>
+            <span className="text-xs text-[var(--landing-muted)] font-bold">{t('landing2.words___sentences')}</span>
           </div>
           <div className="p-4 rounded-[var(--landing-radius-sm)] bg-[var(--landing-surface)] border border-[var(--landing-border)]">
             <span className="text-2xl sm:text-3xl font-black text-[var(--landing-text)] block mb-1">0</span>
-            <span className="text-xs text-[var(--landing-muted)] font-bold">{isAr ? 'التكلفة' : 'Cost'}</span>
+            <span className="text-xs text-[var(--landing-muted)] font-bold">{t('landing2.cost')}</span>
           </div>
         </div>
       </section>
@@ -342,15 +341,15 @@ export function LandingView({ onStartWebApp, isArabic = true }: LandingViewProps
         <div className="max-w-xl mx-auto text-center space-y-6">
           <div className="inline-flex items-center gap-1.5 text-xs font-bold text-[var(--landing-secondary-amber)] px-3 py-1 rounded-full bg-[var(--landing-secondary-amber)]/10 border border-[var(--landing-secondary-amber)]/20">
             <Star size={13} />
-            <span>{isAr ? 'احصل على الميزات المتقدمة' : 'Unlock Exclusive Features'}</span>
+            <span>{t('landing2.unlock_exclusive_features')}</span>
           </div>
 
           <h2 className="text-2xl sm:text-3xl font-black tracking-tight">
-            {isAr ? 'اشترك لمتابعة التحديثات وفتح المميزات الخاصة' : 'Subscribe for updates & secret features'}
+            {t('landing2.subscribe_for_updates___secret')}
           </h2>
 
           <form onSubmit={handleSubscribe} className="flex flex-col min-[820px]:flex-row gap-2 max-w-md mx-auto">
-            <label className="sr-only" htmlFor="subscription-email">{isAr ? 'البريد الإلكتروني' : 'Email address'}</label>
+            <label className="sr-only" htmlFor="subscription-email">{t('landing2.email_address')}</label>
             <input
               id="subscription-email"
               type="email"
@@ -360,7 +359,7 @@ export function LandingView({ onStartWebApp, isArabic = true }: LandingViewProps
               maxLength={254}
               value={email}
               onChange={e => setEmail(e.target.value)}
-              placeholder={isAr ? 'أدخل بريدك الإلكتروني...' : 'Enter your email...'}
+              placeholder={t('landing2.enter_your_email')}
               className="flex-1 px-4 py-3 rounded-[var(--landing-radius-sm)] bg-[var(--landing-bg)] border border-[var(--landing-border)] text-sm text-[var(--landing-text)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--landing-accent-teal)]"
               required
             />
@@ -369,14 +368,12 @@ export function LandingView({ onStartWebApp, isArabic = true }: LandingViewProps
               disabled={subscribing}
               className="px-6 py-3 rounded-[var(--landing-radius-sm)] bg-[var(--landing-accent-teal)] hover:opacity-90 active:scale-95 text-stone-950 font-black text-sm transition"
             >
-              {subscribing ? (isAr ? 'جاري الإرسال...' : 'Submitting...') : (isAr ? 'اشترك الآن' : 'Subscribe')}
+              {subscribing ? (t('landing2.submitting')) : (t('landing2.subscribe'))}
             </button>
           </form>
 
           <p className="text-[11px] leading-relaxed text-[var(--landing-muted)]">
-            {isAr
-              ? 'يُستخدم بريدك لإرسال تحديثات المنتج فقط. لا نستخدم أدوات تتبع أو تحليلات.'
-              : 'Your email is used only for product updates. We do not use tracking or analytics.'}
+            {t('landing2.your_email_is_used_only_for_pr')}
           </p>
 
           {subMessage && (
@@ -393,11 +390,11 @@ export function LandingView({ onStartWebApp, isArabic = true }: LandingViewProps
           <div className="max-w-[var(--landing-max-w)] mx-auto space-y-8 text-center">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--landing-accent-teal)]/10 text-[var(--landing-accent-teal)] border border-[var(--landing-accent-teal)]/30 text-xs font-black">
               <Sparkles size={14} />
-              <span>{isAr ? '🎉 تم فتح الميزات الخاصة للمشتركين!' : '🎉 Subscriber Exclusive Features Unlocked!'}</span>
+              <span>{t('landing2.___subscriber_exclusive_featur')}</span>
             </div>
 
             <h2 className="text-2xl sm:text-4xl font-black text-[var(--landing-text)]">
-              {isAr ? 'أدوات التحول الذهني المتقدمة' : 'Advanced Cognitive Tools'}
+              {t('landing2.advanced_cognitive_tools')}
             </h2>
 
             {/* 2x2 Features Grid */}
@@ -405,40 +402,40 @@ export function LandingView({ onStartWebApp, isArabic = true }: LandingViewProps
               <div className="p-6 rounded-[var(--landing-radius-md)] bg-[var(--landing-surface)] border border-[var(--landing-accent-teal)]/40 space-y-2">
                 <MessageSquare className="text-[var(--landing-accent-teal)]" size={24} />
                 <h3 className="font-bold text-base text-[var(--landing-text)]">
-                  {isAr ? '1. تدريب المحادثة مع عمرو شريف' : '1. AI Conversation Practice'}
+                  {t('landing2.1__ai_conversation_practice')}
                 </h3>
                 <p className="text-xs text-[var(--landing-muted)]">
-                  {isAr ? 'تحدث بصوتك مباشرة مع مدربك الذكي واحصل على تصحيحات وتغذية راجعة حية.' : 'Speak directly with AI coach Amr Sherif with live feedback.'}
+                  {t('landing2.speak_directly_with_ai_coach_a')}
                 </p>
               </div>
 
               <div className="p-6 rounded-[var(--landing-radius-md)] bg-[var(--landing-surface)] border border-[var(--landing-accent-teal)]/40 space-y-2">
                 <BookOpen className="text-[var(--landing-secondary-amber)]" size={24} />
                 <h3 className="font-bold text-base text-[var(--landing-text)]">
-                  {isAr ? '2. 27 درساً تفاعلياً متكاملاً' : '2. 27 Interactive Lessons'}
+                  {t('landing2.2__27_interactive_lessons')}
                 </h3>
                 <p className="text-xs text-[var(--landing-muted)]">
-                  {isAr ? 'مسار تعليمي يتدرج من الأساسيات إلى الاحتراف في صياغة الأفكار.' : 'Step-by-step curriculum scaling from basics to executive phrasing.'}
+                  {t('landing2.step_by_step_curriculum_scalin')}
                 </p>
               </div>
 
               <div className="p-6 rounded-[var(--landing-radius-md)] bg-[var(--landing-surface)] border border-[var(--landing-accent-teal)]/40 space-y-2">
                 <Zap className="text-[var(--landing-accent-teal)]" size={24} />
                 <h3 className="font-bold text-base text-[var(--landing-text)]">
-                  {isAr ? '3. مترجم «من البلدي إلى Corporate»' : '3. “Baladi to Corporate” Bridge'}
+                  {t('landing2.3___baladi_to_corporate__bridg_1')}
                 </h3>
                 <p className="text-xs text-[var(--landing-muted)]">
-                  {isAr ? 'تحويل أفكارك بالعامية المصرية إلى صياغات شركات احترافية بثوانٍ.' : 'Convert raw colloquial thoughts into polished corporate English.'}
+                  {t('landing2.convert_raw_colloquial_thought')}
                 </p>
               </div>
 
               <div className="p-6 rounded-[var(--landing-radius-md)] bg-[var(--landing-surface)] border border-[var(--landing-accent-teal)]/40 space-y-2">
                 <Layers className="text-[var(--landing-secondary-amber)]" size={24} />
                 <h3 className="font-bold text-base text-[var(--landing-text)]">
-                  {isAr ? '4. 4090 بطاقات استذكار متباعد' : '4. 4,090 Spaced Flashcards'}
+                  {t('landing2.4__4_090_spaced_flashcards')}
                 </h3>
                 <p className="text-xs text-[var(--landing-muted)]">
-                  {isAr ? 'حافظ على حصيلتك اللغوية بدون نسيان عبر خوارزمية SM-2.' : 'Retain your vocabulary effortlessly using the SM-2 algorithm.'}
+                  {t('landing2.retain_your_vocabulary_effortl')}
                 </p>
               </div>
             </div>
@@ -447,7 +444,7 @@ export function LandingView({ onStartWebApp, isArabic = true }: LandingViewProps
               onClick={onStartWebApp}
               className="px-8 py-3.5 rounded-[var(--landing-radius-md)] bg-[var(--landing-accent-teal)] hover:opacity-90 active:scale-95 text-stone-950 font-black text-sm transition shadow-lg"
             >
-              {isAr ? 'الدخول للتمارين الآن 🚀' : 'Start Practice Now 🚀'}
+              {t('landing2.start_practice_now')}
             </button>
           </div>
         </section>
@@ -458,10 +455,10 @@ export function LandingView({ onStartWebApp, isArabic = true }: LandingViewProps
         <div className="text-center space-y-8">
           <div>
             <h2 className="text-2xl sm:text-4xl font-black tracking-tight mb-2">
-              {isAr ? 'حمل التطبيق على جهازك' : 'Download for Your Device'}
+              {t('landing2.download_for_your_device')}
             </h2>
             <p className="text-xs sm:text-sm text-[var(--landing-muted)]">
-              {isAr ? 'يعمل على جميع المنصات والهواتف بدون إنترنت' : 'Works natively across all platforms with full offline support'}
+              {t('landing2.works_natively_across_all_plat')}
             </p>
           </div>
 
@@ -485,8 +482,8 @@ export function LandingView({ onStartWebApp, isArabic = true }: LandingViewProps
                 {isNativeAndroid ? <ArrowDown size={13} aria-hidden="true" /> : <Download size={13} aria-hidden="true" />}
                 <span>
                   {isNativeAndroid
-                    ? (isAr ? 'تشغيل التطبيق 🚀' : 'Launch App 🚀')
-                    : (isAr ? 'تحميل APK' : 'Download APK')}
+                    ? (t('landing2.launch_app'))
+                    : (t('landing2.download_apk'))}
                 </span>
               </a>
               {!isNativeAndroid && (
@@ -497,7 +494,7 @@ export function LandingView({ onStartWebApp, isArabic = true }: LandingViewProps
               )}
               {isInstallable && (
                 <button type="button" onClick={() => void triggerInstall()} className="text-[10px] font-bold text-[var(--landing-muted)] underline underline-offset-2">
-                  {isAr ? 'تثبيت نسخة الويب' : 'Install web app'}
+                  {t('landing2.install_web_app')}
                 </button>
               )}
             </div>
@@ -518,18 +515,16 @@ export function LandingView({ onStartWebApp, isArabic = true }: LandingViewProps
                 className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-[var(--landing-surface)] border border-[var(--landing-border)] text-[var(--landing-text)] font-bold text-xs w-full hover:border-[var(--landing-accent-teal)] transition"
               >
                 <ExternalLink size={13} />
-                <span>{showIosHint ? (isAr ? 'طريقة التثبيت' : 'Install guide') : isInstallable ? (isAr ? 'تثبيت التطبيق' : 'Install app') : (isAr ? 'تشغيل على الويب' : 'Open Web App')}</span>
+                <span>{showIosHint ? (t('landing2.install_guide')) : isInstallable ? (t('landing2.install_app')) : (t('landing2.open_web_app'))}</span>
               </button>
               {showIosGuide && showIosHint && (
                 <p role="status" className="text-[11px] leading-relaxed text-[var(--landing-muted)]">
-                  {isAr
-                    ? 'في Safari اضغط مشاركة، ثم اختر «إضافة إلى الشاشة الرئيسية».'
-                    : 'In Safari, tap Share, then choose “Add to Home Screen”.'}
+                  {t('landing2.in_safari__tap_share__then_cho_1')}
                 </p>
               )}
               {showIosHint && (
                 <button onClick={onStartWebApp} className="text-xs font-bold text-[var(--landing-accent-teal)] underline underline-offset-2">
-                  {isAr ? 'فتح تطبيق الويب' : 'Open web app'}
+                  {t('landing2.open_web_app_1')}
                 </button>
               )}
             </div>
@@ -546,10 +541,10 @@ export function LandingView({ onStartWebApp, isArabic = true }: LandingViewProps
                 className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-[var(--landing-surface)] border border-[var(--landing-border)] text-[var(--landing-text)] font-bold text-xs w-full hover:border-[var(--landing-accent-teal)] transition"
               >
                 <Globe size={13} />
-                <span>{isInstallable ? (isAr ? 'تثبيت التطبيق' : 'Install PWA') : (isAr ? 'تشغيل على الويب' : 'Open Web App')}</span>
+                <span>{isInstallable ? (t('landing2.install_pwa')) : (t('landing2.open_web_app'))}</span>
               </button>
               <a href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/latest" className="block text-[10px] font-bold text-[var(--landing-muted)] underline underline-offset-2">
-                {isAr ? 'إصدارات سطح المكتب' : 'Desktop releases'}
+                {t('landing2.desktop_releases')}
               </a>
             </div>
 
@@ -565,10 +560,10 @@ export function LandingView({ onStartWebApp, isArabic = true }: LandingViewProps
                 className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-[var(--landing-surface)] border border-[var(--landing-border)] text-[var(--landing-text)] font-bold text-xs w-full hover:border-[var(--landing-accent-teal)] transition"
               >
                 <Globe size={13} />
-                <span>{isInstallable ? (isAr ? 'تثبيت التطبيق' : 'Install PWA') : (isAr ? 'تشغيل على الويب' : 'Open Web App')}</span>
+                <span>{isInstallable ? (t('landing2.install_pwa')) : (t('landing2.open_web_app'))}</span>
               </button>
               <a href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/latest" className="block text-[10px] font-bold text-[var(--landing-muted)] underline underline-offset-2">
-                {isAr ? 'إصدارات سطح المكتب' : 'Desktop releases'}
+                {t('landing2.desktop_releases')}
               </a>
             </div>
           </div>
@@ -581,11 +576,11 @@ export function LandingView({ onStartWebApp, isArabic = true }: LandingViewProps
       {/* 8. FOOTER */}
       <footer className="px-4 py-8 bg-[var(--landing-surface)] border-t border-[var(--landing-border)] text-center text-xs text-[var(--landing-muted)] space-y-3">
         <p className="font-bold text-[var(--landing-text)]">
-          {isAr ? 'صُنع في الإسكندرية، مصر' : 'Made in Alexandria, Egypt'}
+          {t('landing2.made_in_alexandria__egypt')}
         </p>
 
         <p>
-          {isAr ? 'إهداء وتقدير إلى ' : 'With gratitude to '}
+          {t('landing2.with_gratitude_to')}
           <a href="https://www.languagetransfer.org/" target="_blank" rel="noopener noreferrer" aria-label="Mihalis Eleftheriou and Language Transfer" className="underline underline-offset-2">
             Mihalis Eleftheriou &amp; Language Transfer
           </a>
