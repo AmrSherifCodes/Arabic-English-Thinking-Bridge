@@ -69,3 +69,9 @@ dist/*.aab
 __pycache__/
 *.pyc
 
+# Agent run artifacts — must be tracked for crash recovery
+!MIRACLE_PROGRESS.log
+!MIRACLE_PLAN.md
+!DECISIONS.md
+!MIRACLE_REPORT.md
+
