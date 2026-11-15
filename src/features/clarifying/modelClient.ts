@@ -1,6 +1,6 @@
 import { Capacitor } from '@capacitor/core';
 
-// @ts-ignore
+// @ts-expect-error Dynamic pipeline reference lazily populated by native Transformers.js bundle
 let smolPipeline: any = null;
 let isLoading = false;
 let modelFailed = false;
