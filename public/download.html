@@ -3,73 +3,166 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>تحميل تطبيق فكّر إنجليزي · v4.1.0 "الجسر"</title>
+  <title>تحميل تطبيق فكّر إنجليزي · v1.1.0-unofficial.1</title>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet" />
   <style>
     body {
       font-family: 'Cairo', sans-serif;
-      background-color: #090D16;
-      color: #F9FAFB;
+      background-color: #0A0E13;
+      color: #EEF2F5;
       text-align: center;
       padding: 2rem 1rem;
       margin: 0;
     }
     .container {
-      max-width: 550px;
+      max-width: 580px;
       margin: 0 auto;
       display: flex;
       flex-direction: column;
       gap: 1.5rem;
     }
-    .btn {
+    .badge {
       display: inline-block;
-      padding: 1rem 1.5rem;
+      background: rgba(16, 185, 129, 0.2);
+      color: #10B981;
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      padding: 0.35rem 1rem;
+      border-radius: 9999px;
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      padding: 1.25rem 1.5rem;
       background-color: #10B981;
-      color: #090D16;
+      color: #0A0E13;
       font-weight: 900;
       text-decoration: none;
-      border-radius: 12px;
-      font-size: 1.1rem;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      border-radius: 16px;
+      font-size: 1.3rem;
+      box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.4);
+      transition: all 0.2s ease;
+    }
+    .btn:hover {
+      background-color: #34D399;
+      transform: translateY(-2px);
     }
     .btn-secondary {
-      background-color: #1F2937;
-      color: #10B981;
-      border: 1px solid #10B981;
+      background-color: #1A222C;
+      color: #38BDF8;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      font-size: 1rem;
+      box-shadow: none;
     }
-    .guide-step {
-      background: #111827;
-      padding: 1rem;
-      border-radius: 12px;
-      border: 1px solid #1F2937;
+    .instructions-card {
+      background: #141A22;
+      padding: 1.5rem;
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
       text-align: right;
     }
+    .step-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+    .step-item:last-child {
+      margin-bottom: 0;
+    }
+    .step-num {
+      background: #10B981;
+      color: #0A0E13;
+      font-weight: 900;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .step-text {
+      line-height: 1.6;
+    }
+    .security-note {
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      color: #FCD34D;
+      padding: 1rem;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      text-align: right;
+      line-height: 1.5;
+    }
     .footer {
-      margin-top: 2rem;
-      font-size: 0.8rem;
-      color: #9CA3AF;
+      margin-top: 1rem;
+      font-size: 0.85rem;
+      color: #6B7280;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2>فكّر إنجليزي · إصدار أندرويد v4.1.0 "الجسر"</h2>
-    <p>تطبيق موحّد وخفيف يعمل على جميع أجهزة أندرويد وبدون إنترنت.</p>
-
-    <a href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v4.1.0/Thinking-Bridge-v4.1.0.apk" target="_blank" rel="noopener noreferrer" class="btn">حمّل تطبيق أندرويد v4.1.0 (APK موحّد)</a>
-    <a href="/" class="btn btn-secondary">أو افتح التطبيق على الويب مباشرة (PWA)</a>
-
-    <div class="guide-step">
-      <strong>١.</strong> اضغط على زر التحميل، وسيبدأ تنزيل حزمة APK الموحّدة مباشرة.
-    </div>
-    <div class="guide-step">
-      <strong>٢.</strong> التحميل الأول للبيانات يتطلب اتصال واي فاي لمرة واحدة فقط لضمان العمل بدون إنترنت كلياً.
-    </div>
-    <div class="guide-step">
-      <strong>٣.</strong> يمكنك في أي وقت اختيار نمط المظهر المفضل لديك (داكن، زيتوني، ياقوتي، أو فاتح) من صفحة الإعدادات.
+    <div>
+      <span class="badge">إصدار أندرويد الرسمي · v1.1.0-unofficial.1</span>
+      <h1 style="font-size: 2rem; margin-top: 0.75rem; margin-bottom: 0.5rem; font-weight: 900;">
+        فكّر إنجليزي (Thinking Bridge)
+      </h1>
+      <p style="color: #9CA3AF; margin: 0; font-size: 1.05rem;">
+        تطبيق تعليمي موحّد خفيف يعمل بدون إنترنت كلياً.
+      </p>
     </div>
 
-    <div class="footer">صُنع في الإسكندرية — ١٠٠٪ مجاني ومفتوح المصدر (CC0)</div>
+    <!-- MAIN DIRECT DOWNLOAD BUTTON -->
+    <a href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v1.1.0-unofficial.1/Thinking-Bridge-v1.1.0-unofficial.1.apk" target="_blank" rel="noopener noreferrer" class="btn">
+      <span>📱</span>
+      <span>تحميل تطبيق الأندرويد مباشرة (APK)</span>
+    </a>
+
+    <a href="/app" class="btn btn-secondary">
+      <span>🌐</span>
+      <span>أو التشغيل المباشر عبر المتصفح (PWA)</span>
+    </a>
+
+    <!-- 3-STEP NON-TECH GUIDE -->
+    <div class="instructions-card">
+      <h3 style="margin-top:0; color: #10B981; font-size: 1.2rem; margin-bottom: 1rem;">
+        💡 كيف تقوم بالتثبيت في ٣ خطوات سهلة؟
+      </h3>
+
+      <div class="step-item">
+        <div class="step-num">١</div>
+        <div class="step-text">
+          <strong>اضغط زر "تحميل تطبيق الأندرويد" الأخضر أعلاه</strong> لتبدأ عملية التنزيل على هاتفك.
+        </div>
+      </div>
+
+      <div class="step-item">
+        <div class="step-num">٢</div>
+        <div class="step-text">
+          <strong>افتح الملف المُحمل</strong> من الإشعارات أعلى الشاشة أو من مجلد "التنزيلات" (Downloads).
+        </div>
+      </div>
+
+      <div class="step-item">
+        <div class="step-num">٣</div>
+        <div class="step-text">
+          <strong>اضغط "تثبيت" (Install)</strong> وافتح التطبيق للبدء فوراً وبدون الحاجة لإنترنت!
+        </div>
+      </div>
+    </div>
+
+    <div class="security-note">
+      <strong>🔒 ملاحظة أمان:</strong> إذا ظهرت لك رسالة "تثبيت تطبيق من مصدر غير معروف"، اضغط على "الإعدادات" ثم فعّل "السماح من هذا المصدر". التطبيق آمن 100% ومجاني بدون أي إعلانات.
+    </div>
+
+    <div class="footer">
+      صُنع في الإسكندرية، مصر 🇪🇬 — حقوق الطبع والنشر © عمرو شريف عبد العال
+    </div>
   </div>
 </body>
 </html>
