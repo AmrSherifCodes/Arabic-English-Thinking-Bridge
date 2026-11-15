@@ -1,0 +1,34 @@
+[
+  {
+    "id": "wa3i_coder",
+    "icon": "🧠",
+    "name": "Wa3i Coder",
+    "desc": "مساعدك المصري للبرمجة — أوفلاين",
+    "entry": "Wa3iCoder/run_wa3i_coder.py",
+    "type": "python"
+  },
+  {
+    "id": "pasmagology",
+    "icon": "🎮",
+    "name": "Pasmagology",
+    "desc": "حوّل أي PDF إلى لعبة تفاعلية",
+    "entry": "Pasmagology/run_pasmagology.py",
+    "type": "python"
+  },
+  {
+    "id": "envchem",
+    "icon": "⚗️",
+    "name": "EnvChem Blitz",
+    "desc": "لعبة كيمياء بيئية ثنائية اللغة",
+    "entry": "EnvChem Blitz_ 90-Min Exam & Colleague Battle Arena.html",
+    "type": "html"
+  },
+  {
+    "id": "wa3i_cinema",
+    "icon": "🎬",
+    "name": "Wa3i Cinema",
+    "desc": "استوديو السينما الإسكندرية",
+    "entry": "Wa3iCinema.py",
+    "type": "python"
+  }
+]

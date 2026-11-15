@@ -23,8 +23,6 @@ export default defineConfig(async ({ command, mode }) => {
     const { default: geminiHandler } = await import('./api/gemini.js');
     const { default: ttsHandler } = await import('./api/tts.js');
     const { default: agentHandler } = await import('./api/agent.js');
-    const { default: feedbackHandler } = await import('./api/feedback.js');
-    const { default: reviewHandler } = await import('./api/review.js');
     devPlugins.push(
       basicSsl(),
       {
@@ -33,8 +31,6 @@ export default defineConfig(async ({ command, mode }) => {
           server.middlewares.use('/api/gemini', geminiHandler);
           server.middlewares.use('/api/tts', ttsHandler);
           server.middlewares.use('/api/agent', agentHandler);
-          server.middlewares.use('/api/feedback', feedbackHandler);
-          server.middlewares.use('/api/review', reviewHandler);
         },
       }
     );

@@ -84,43 +84,21 @@ export function FeedbackModal({
     };
 
     try {
-      // 1. Save locally (keep last 50)
+      // 1. Save locally (keep last 50 entries)
       const existingRaw = localStorage.getItem(FEEDBACK_STORAGE_KEY);
       const existingList: UserFeedbackData[] = existingRaw ? JSON.parse(existingRaw) : [];
       existingList.push(feedbackData);
       localStorage.setItem(FEEDBACK_STORAGE_KEY, JSON.stringify(existingList.slice(-50)));
 
-      let webhookDelivered = false;
+      // 2. Format feedback message for user-initiated sharing
+      const formattedText = `📩 Thinking Bridge Feedback:\nRating: ${rating}/5 ⭐\nCategory: ${category}\nMessage: ${message.trim()}\nUser: ${isAnonymous ? 'Anonymous' : (profile?.name || 'Learner')}`;
 
-      // 2. Dispatch to Serverless API
-      try {
-        const resp = await fetch(`${API_BASE_URL}/api/feedback`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(feedbackData),
-        });
-        const resData = (await resp.json().catch(() => ({}))) as { success?: boolean; webhookFailed?: boolean };
-        if (resp.ok && resData.success && !resData.webhookFailed) {
-          webhookDelivered = true;
-        }
-      } catch {
-        /* fallback to local storage */
-      }
-
-      // 3. Fallback direct client webhook dispatch if configured
-      const clientWebhook = (import.meta as any)?.env?.VITE_DISCORD_WEBHOOK_URL;
-      if (clientWebhook && !webhookDelivered) {
+      // 3. Copy formatted message to clipboard
+      if (typeof navigator !== 'undefined' && navigator.clipboard) {
         try {
-          const directResp = await fetch(clientWebhook, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              content: `📩 **New Thinking Bridge Feedback!**\n**Rating:** ${rating}/5 ⭐\n**Category:** ${category}\n**Message:** ${message.trim()}\n**User:** ${isAnonymous ? 'Anonymous' : (profile?.name || 'Learner')}`,
-            }),
-          });
-          if (directResp.ok) webhookDelivered = true;
+          await navigator.clipboard.writeText(formattedText);
         } catch {
-          /* noop */
+          /* clipboard access optional */
         }
       }
 
@@ -130,27 +108,19 @@ export function FeedbackModal({
         } catch { }
       }
 
-      if (webhookDelivered) {
-        onToast(
-          isArabic
-            ? '🎉 شكراً لرأيك! تم الإرسال للفريق مباشرة وتم الحفظ محلياً 🟢'
-            : '🎉 Thank you! Sent to the team and saved locally 🟢'
-        );
-      } else {
-        onToast(
-          isArabic
-            ? '📡 تم حفظ التقييم محلياً بنجاح وستتم المزامنة تلقائياً عند إتاحة الخادم 💾'
-            : '📡 Feedback saved locally. Will sync automatically when connected 💾'
-        );
-      }
+      onToast(
+        isArabic
+          ? '📋 تم نسخ الملاحظات للحافظة! يرجى إرسالها إلى @sciamrsherif أو البريد (حُفظت محلياً 💾)'
+          : '📋 Feedback copied! Please paste it to @sciamrsherif on socials or email it to me. (Saved locally 💾)'
+      );
 
       onSubmit(feedbackData);
       onClose();
     } catch {
       onToast(
         isArabic
-          ? '🎉 شكراً لرأيك الصريح! تم الحفظ بنجاح +100 XP 🛡️'
-          : '🎉 Thank you! Saved successfully +100 XP 🛡️'
+          ? '🎉 تم حفظ الملاحظات محلياً بنجاح 💾'
+          : '🎉 Feedback saved locally successfully 💾'
       );
       onSubmit(feedbackData);
       onClose();

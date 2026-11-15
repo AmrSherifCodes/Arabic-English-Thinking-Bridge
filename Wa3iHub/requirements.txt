@@ -1,0 +1,4 @@
+customtkinter>=5.2.2
+numpy>=1.26.0
+requests>=2.31.0
+pillow>=10.2.0

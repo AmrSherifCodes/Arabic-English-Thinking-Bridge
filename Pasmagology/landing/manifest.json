@@ -1,0 +1,32 @@
+{
+  "name": "Pasmagology — PDF to Game",
+  "short_name": "Pasmagology",
+  "description": "Turn any PDF into an interactive game. Offline. Arabic + English.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0B132B",
+  "theme_color": "#FFD700",
+  "lang": "ar",
+  "dir": "rtl",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": [
+    "education",
+    "games",
+    "productivity"
+  ]
+}

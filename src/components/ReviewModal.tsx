@@ -42,31 +42,24 @@ export function ReviewModal({ isOpen, onClose, onToast, isArabic = true }: Revie
       list.unshift(reviewData);
       localStorage.setItem('tb.reviews.local', JSON.stringify(list.slice(0, 50)));
 
-      // 2. Post to Vercel API
-      let webhookDelivered = false;
-      const resp = await fetch(`${API_BASE}/api/review`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(reviewData),
-      });
-      const resData = (await resp.json().catch(() => ({}))) as { ok?: boolean; error?: string; webhookFailed?: boolean };
+      // 2. Format review for user-initiated sharing
+      const formattedText = `🌟 Thinking Bridge Review:\nRating: ${rating}/5 ⭐\nReview: ${text.trim()}\nAuthor: ${name.trim() || 'Learner'}`;
 
-      if (resp.status === 400) {
-        onToast(isArabic ? '❌ لم يتم قبول المراجعة: يرجى كتابة نص بين 3 و 500 حرف.' : `❌ Review rejected: ${resData.error || 'Please enter 3-500 characters'}`);
-        return;
+      if (typeof navigator !== 'undefined' && navigator.clipboard) {
+        try {
+          await navigator.clipboard.writeText(formattedText);
+        } catch {
+          /* clipboard access optional */
+        }
       }
 
-      if (resp.ok && resData.ok && !resData.webhookFailed) {
-        webhookDelivered = true;
-      }
-
-      if (webhookDelivered) {
-        onToast(isArabic ? '🌟 شكراً لتقييمك! تم إرسال مراجعتك بنجاح' : '🌟 Thank you! Your review was submitted to live team.');
-      } else {
-        onToast(isArabic ? '📡 تم حفظ التقييم محلياً بنجاح وستتم المزامنة لاحقاً 💾' : '📡 Saved locally. Will sync when online 💾');
-      }
+      onToast(
+        isArabic
+          ? '📋 تم نسخ التقييم للحافظة! يمكنك مشاركته مع @sciamrsherif أو عبر البريد (حُفظ محلياً 💾)'
+          : '📋 Review copied! Please paste it to @sciamrsherif on socials or email it to me. (Saved locally 💾)'
+      );
     } catch {
-      onToast(isArabic ? 'تم حفظ التقييم محلياً وسيتم المزامنة لاحقاً 📡' : 'Saved locally. Will sync when online.');
+      onToast(isArabic ? '🎉 تم حفظ التقييم محلياً بنجاح 💾' : '🎉 Saved locally successfully 💾');
     } finally {
       setIsSubmitting(false);
       onClose();

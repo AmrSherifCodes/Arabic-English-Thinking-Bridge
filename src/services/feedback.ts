@@ -29,7 +29,7 @@ export async function saveFeedback(data: FeedbackData): Promise<boolean> {
 
     if (!payload.message) return false;
 
-    // 1. Local backup log
+    // 1. Offline local persistence
     try {
       if (typeof window !== 'undefined' && window.localStorage) {
         const stored = window.localStorage.getItem('thinking_english_anonymous_reviews_v1');
@@ -41,18 +41,9 @@ export async function saveFeedback(data: FeedbackData): Promise<boolean> {
       // ignore
     }
 
-    // 2. Submit to PostgreSQL backend via Vercel Serverless
-    const endpoint = `${API_BASE_URL}/api/feedback`;
-    const res = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    });
-    return res.ok;
+    return true;
   } catch (error) {
-    console.error('Failed to save feedback:', error);
+    console.error('Failed to save feedback locally:', error);
     return false;
   }
 }

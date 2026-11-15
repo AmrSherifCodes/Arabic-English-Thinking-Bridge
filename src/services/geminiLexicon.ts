@@ -4,6 +4,8 @@ import { API_BASE_URL } from '../utils/api';
 import { consumeDailyApiQuota } from '../utils/apiQuota';
 import { SOURCE_LANGUAGES, TARGET_LANGUAGE_META } from '../data/languages';
 import { fetchAIContext, getAICompanionPrompt } from './aiContextFetcher';
+import { translateArabicToEnglish, lookupOfflineWord } from './offlineTranslator';
+import { ALL_LESSONS } from '../data/lessons';
 
 export const USER_GEMINI_KEY_STORAGE = 'tb.userGeminiKey';
 export const LEGACY_GEMINI_KEY_STORAGE = 'user_gemini_key';
@@ -416,88 +418,125 @@ function toLexiconError(err: unknown): LexiconError {
   return new LexiconError('unknown', msg || 'Error.');
 }
 
+function getOfflineFallback<T>(
+  operation: 'entry' | 'deck' | 'tutor' | 'generate-exercise' | 'conversation' | 'explain-error',
+  payload: Record<string, unknown>
+): T {
+  if (operation === 'entry') {
+    const word = String(payload.word || '');
+    const dialect = (payload.dialect || 'egyptian') as ArabicDialect;
+    const result = translateArabicToEnglish(word);
+    const lookup = lookupOfflineWord(word, 'ar') || result.text || word;
+    return {
+      arabicWord: word,
+      englishTranslation: lookup,
+      dialect,
+      partOfSpeech: 'phrase',
+      situations: ['student'],
+      exampleSentenceArabic: `كيف نستخدم "${word}" في الجملة؟`,
+      exampleSentenceEnglish: `How do we use "${lookup}" in a sentence?`,
+      level: 'intermediate',
+    } as unknown as T;
+  }
+  if (operation === 'deck') {
+    const lesson = ALL_LESSONS[Math.floor(Math.random() * ALL_LESSONS.length)] || ALL_LESSONS[0];
+    const exercises = lesson?.exercises || [];
+    if (exercises.length > 0) {
+      return exercises.slice(0, 8).map((ex) => ({
+        arabicWord: ex.arabicThought,
+        englishTranslation: ex.englishTarget,
+      })) as unknown as T;
+    }
+    return [
+      { arabicWord: 'أنا جاهز', englishTranslation: 'I am ready' },
+      { arabicWord: 'من فضلك', englishTranslation: 'Please' },
+      { arabicWord: 'شكراً جزيلاً', englishTranslation: 'Thank you very much' },
+    ] as unknown as T;
+  }
+  if (operation === 'tutor') {
+    const prompt = String(payload.prompt || '');
+    const translation = translateArabicToEnglish(prompt);
+    return `In English, we express this thought as: "${translation.text}". Notice how English places the subject before the verb and uses copula verbs ("is/are") which are implied in Arabic.` as unknown as T;
+  }
+  if (operation === 'generate-exercise') {
+    const randomLesson = ALL_LESSONS[Math.floor(Math.random() * ALL_LESSONS.length)] || ALL_LESSONS[0];
+    const ex = randomLesson.exercises[Math.floor(Math.random() * randomLesson.exercises.length)] || randomLesson.exercises[0];
+    return {
+      id: `ex-off-${Date.now()}`,
+      arabicThought: ex.arabicThought,
+      englishTarget: ex.englishTarget,
+      acceptableAlternatives: ex.acceptableAlternatives || [ex.englishTarget],
+      wordChips: ex.wordChips || ex.englishTarget.split(' ').sort(() => Math.random() - 0.5),
+      breakdownChunks: ex.breakdownChunks || [
+        {
+          arabicText: ex.arabicThought,
+          englishText: ex.englishTarget,
+          role: 'subject',
+          explanation: 'Direct structural translation.',
+        },
+      ],
+      habitHint: ex.habitHint || 'Think directly in English sentence structure without translating word by word.',
+    } as unknown as T;
+  }
+  if (operation === 'conversation') {
+    const prompt = String(payload.prompt || '');
+    const result = translateArabicToEnglish(prompt);
+    return `Great practice! In English structure, build your sentence step-by-step: "${result.text}". Keep practicing this thinking pattern!` as unknown as T;
+  }
+  if (operation === 'explain-error') {
+    const submitted = String(payload.submitted || '');
+    const target = String(payload.target || '');
+    return `In Arabic, copula verbs or articles are often implied, leading to "${submitted}". In English, sentence structure requires explicit agreement: "${target}".` as unknown as T;
+  }
+  throw new Error(`Unsupported operation: ${operation}`);
+}
+
 async function requestGemini<T>(
   operation: 'entry' | 'deck' | 'tutor' | 'generate-exercise' | 'conversation' | 'explain-error',
   payload: Record<string, unknown>,
   signal?: AbortSignal
 ): Promise<T> {
   const userKey = getUserGeminiKey();
-  if (!userKey) {
-    throw new LexiconError('missing-key', 'Add your Gemini API key in Settings to use AI features.');
-  }
-  if (!consumeDailyApiQuota()) {
-    throw new LexiconError('rate-limited', 'Daily AI limit reached. Resets tomorrow.');
-  }
-
-  try {
-    return await requestGeminiWithUserKey<T>(userKey, operation, payload);
-  } catch (err) {
-    console.warn('Direct user key request failed, falling back to the BYOK server route:', err);
-  }
-  if (!consumeDailyApiQuota()) {
-    throw new LexiconError('rate-limited', 'Daily AI limit reached. Resets tomorrow.');
-  }
-
-  const controller = new AbortController();
-  const timeout = window.setTimeout(() => controller.abort(), TIMEOUT_MS);
-  const abortRequest = () => controller.abort();
-  signal?.addEventListener('abort', abortRequest, { once: true });
-  if (signal?.aborted) controller.abort();
-
-  const reqHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
-  reqHeaders['x-user-api-key'] = userKey;
-  reqHeaders['X-User-Gemini-Key'] = userKey;
-
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/gemini`, {
-      method: 'POST',
-      headers: reqHeaders,
-      body: JSON.stringify({ ...payload, operation }),
-      signal: controller.signal
-    });
-    const result: unknown = await response.json();
-    if (!result || typeof result !== 'object') {
-      throw new LexiconError('bad-output', 'The AI service returned an invalid response.');
-    }
-
-    const body = result as Record<string, unknown>;
-    if (!response.ok) {
-      let code: LexiconErrorCode = response.status === 429 ? 'rate-limited' : 'unknown';
-      let rawMessage = 'The AI service could not complete the request.';
-
-      if (typeof body.error === 'string') {
-        rawMessage = body.error;
-      } else if (body.error && typeof body.error === 'object') {
-        const errObj = body.error as Record<string, unknown>;
-        if (
-          typeof errObj.code === 'string' &&
-          ['missing-key', 'empty-input', 'timeout', 'rate-limited', 'network', 'bad-output', 'unknown'].includes(errObj.code)
-        ) {
-          code = errObj.code as LexiconErrorCode;
-        }
-        if (typeof errObj.message === 'string') {
-          rawMessage = errObj.message;
-        }
+  if (userKey) {
+    try {
+      if (consumeDailyApiQuota()) {
+        return await requestGeminiWithUserKey<T>(userKey, operation, payload);
       }
-
-      throw new LexiconError(code, rawMessage);
+    } catch (err) {
+      console.warn('Direct user key request failed, falling back to server route or offline engine:', err);
     }
 
-    if (!('data' in body)) {
-      throw new LexiconError('bad-output', 'The AI service response was missing data.');
-    }
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), TIMEOUT_MS);
+    const abortRequest = () => controller.abort();
+    signal?.addEventListener('abort', abortRequest, { once: true });
+    if (signal?.aborted) controller.abort();
 
-    return body.data as T;
-  } catch (err) {
-    if (err instanceof LexiconError) throw err;
-    if (err && typeof err === 'object' && (err as Error).name === 'AbortError') {
-      throw new LexiconError('timeout', 'The AI service timed out.');
+    const reqHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
+    reqHeaders['x-user-api-key'] = userKey;
+    reqHeaders['X-User-Gemini-Key'] = userKey;
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/gemini`, {
+        method: 'POST',
+        headers: reqHeaders,
+        body: JSON.stringify({ ...payload, operation }),
+        signal: controller.signal
+      });
+      const result: unknown = await response.json();
+      if (result && typeof result === 'object' && response.ok && 'data' in result) {
+        return (result as Record<string, unknown>).data as T;
+      }
+    } catch (err) {
+      console.warn('Network request failed, falling back to offline engine:', err);
+    } finally {
+      window.clearTimeout(timeout);
+      signal?.removeEventListener('abort', abortRequest);
     }
-    throw toLexiconError(err);
-  } finally {
-    window.clearTimeout(timeout);
-    signal?.removeEventListener('abort', abortRequest);
   }
+
+  // Pure Offline Sovereign Engine
+  return getOfflineFallback<T>(operation, payload);
 }
 
 export function fetchArabicEntry(word: string, dialect: ArabicDialect = 'egyptian'): Promise<LexiconEntry> {

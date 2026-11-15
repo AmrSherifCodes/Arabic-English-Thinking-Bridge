@@ -77,25 +77,26 @@ export function LandingView({ onStartWebApp, isArabic = true }: LandingViewProps
     setSubMessage(null);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/feedback`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'subscribe', email: normalizedEmail }),
-      });
-      const result = await response.json() as { success?: boolean };
-      if (!response.ok || result.success !== true) {
-        throw new Error('Subscription request failed');
-      }
       storageAdapter.setItem('tb.subscribed', 'true');
       setSubscribed(true);
+
+      const mailtoUrl = `mailto:amrsherifwork@gmail.com?subject=${encodeURIComponent('Thinking Bridge Subscription')}&body=${encodeURIComponent(`Please subscribe my email to Thinking Bridge updates: ${normalizedEmail}`)}`;
+      if (typeof window !== 'undefined') {
+        window.location.href = mailtoUrl;
+      }
+
       setEmail('');
-      setSubMessage(t('landing2.subscribed_successfully__secre'));
+      setSubMessage(
+        isArabic
+          ? '📧 جاري فتح تطبيق البريد لإرسال طلب الاشتراك إلى amrsherifwork@gmail.com 🎉'
+          : '📧 Opening mail app to send subscription request to amrsherifwork@gmail.com 🎉'
+      );
 
       window.setTimeout(() => {
         easterEggRef.current?.scrollIntoView({ behavior: 'smooth' });
       }, 100);
     } catch {
-      setSubMessage(t('landing2.subscription_failed__please_tr'));
+      setSubMessage(isArabic ? 'تعذر فتح تطبيق البريد. يمكنك مراسلتنا على amrsherifwork@gmail.com' : 'Could not open mail app. You can email amrsherifwork@gmail.com directly.');
     } finally {
       setSubscribing(false);
     }
@@ -140,7 +141,7 @@ export function LandingView({ onStartWebApp, isArabic = true }: LandingViewProps
           {/* Controls: AR/EN Toggle + Theme */}
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setLang(prev => (prev === 'ar' ? 'en' : 'ar'))}
+              onClick={() => setLang(lang === 'ar' ? 'en' : 'ar')}
               className="px-2.5 py-1 rounded-[var(--landing-radius-sm)] border border-[var(--landing-border)] bg-[var(--landing-surface)] text-xs font-bold hover:border-[var(--landing-accent-teal)] transition flex items-center gap-1.5"
               aria-label={t('landing2.misc_9')}
             >
@@ -157,13 +158,6 @@ export function LandingView({ onStartWebApp, isArabic = true }: LandingViewProps
         <div className="grid grid-cols-1 min-[820px]:grid-cols-12 gap-10 items-center">
           {/* Left Text Column */}
           <div className="min-[820px]:col-span-7 space-y-6 text-start">
-
-            {/* CESI Special Welcome */}
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-blue-500/20 via-white/10 to-red-500/20 border border-blue-500/30 text-blue-200 text-sm font-black shadow-lg shadow-blue-900/20 mb-2">
-              <span className="text-xl">🇫🇷🎓</span>
-              <span>{isAr ? 'أهلاً بطلاب CESI! مهندسو المستقبل، مستعدون للتفكير بالإنجليزي؟' : 'Welcome CESI Engineering! Future engineers, ready to think in English?'}</span>
-            </div>
-            <br />
 
             {/* Pill */}
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--landing-accent-teal)]/10 border border-[var(--landing-accent-teal)]/30 text-[var(--landing-accent-teal)] text-xs font-bold">

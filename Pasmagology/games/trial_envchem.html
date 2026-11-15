@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta content="#0B132B" name="theme-color">
+    <meta content="yes" name="apple-mobile-web-app-capable">
+    <meta content="black-translucent" name="apple-mobile-web-app-status-bar-style">
+    <meta content="Pasmagology" name="apple-mobile-web-app-title">
+    <link href="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%230B132B'/%3E%3Cpath d='M20 20h60v60H20z' fill='none' stroke='%23FFD700' stroke-width='4'/%3E%3Cpath d='M30 40h40M30 60h40' stroke='%23FFD700' stroke-width='4'/%3E%3C/svg%3E"
+          rel="icon">
+    <link href="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%230B132B'/%3E%3Cpath d='M20 20h60v60H20z' fill='none' stroke='%23FFD700' stroke-width='4'/%3E%3Cpath d='M30 40h40M30 60h40' stroke='%23FFD700' stroke-width='4'/%3E%3C/svg%3E"
+          rel="apple-touch-icon">
+    <title>Pasmagology Game</title>
+    <style>
+        :root {
+            --bg-main: #0B132B;
+            --bg-panel: #111C3D;
+            --accent-gold: #FFD700;
+            --text-main: #FFFFFF;
+            --text-muted: #A0B0D0;
+            --correct: #4CAF50;
+            --wrong: #F44336;
+        }
+        * { box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; }
+        body { margin: 0; background: var(--bg-main); color: var(--text-main); line-height: 1.6; }
+        header { background: var(--bg-panel); padding: 1rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--accent-gold); }
+        h1 { margin: 0; font-size: 1.5rem; color: var(--accent-gold); }
+        button { cursor: pointer; border: none; border-radius: 8px; font-size: 1rem; padding: 0.8rem 1.2rem; min-height: 44px; min-width: 44px; }
+        .btn-primary { background: var(--accent-gold); color: var(--bg-main); font-weight: bold; }
+        .btn-panel { background: var(--bg-panel); color: var(--text-main); border: 1px solid var(--accent-gold); }
+
+        .tabs { display: flex; overflow-x: auto; padding: 0.5rem; gap: 0.5rem; background: var(--bg-panel); scrollbar-width: none; }
+        .tab-btn { flex: 0 0 auto; background: transparent; color: var(--text-muted); border: 1px solid transparent; }
+        .tab-btn.active { color: var(--accent-gold); border-bottom: 2px solid var(--accent-gold); }
+
+        .tab-content { display: none; padding: 1rem; max-width: 800px; margin: 0 auto; }
+        .tab-content.active { display: block; }
+
+        /* Study Vault (Cards) */
+        .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
+        .flip-card { background: transparent; height: 250px; perspective: 1000px; cursor: pointer; }
+        .flip-card-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.6s; transform-style: preserve-3d; pointer-events: none; }
+        .flip-card.flipped .flip-card-inner { transform: rotateY(180deg); }
+        .flip-card-front, .flip-card-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 1rem; background: var(--bg-panel); border-radius: 12px; border: 1px solid #2A3B6D; overflow-y: auto; pointer-events: auto; }
+        .flip-card-back { transform: rotateY(180deg); background: #1A284D; }
+        .card-icon { font-size: 3rem; margin-bottom: 0.5rem; }
+
+        /* Formulas */
+        .formula-card { background: var(--bg-panel); padding: 1rem; margin-bottom: 1rem; border-radius: 8px; border-left: 4px solid var(--accent-gold); }
+        .formula-latex { font-family: monospace; font-size: 1.2rem; direction: ltr; text-align: left; background: #080D1F; padding: 0.5rem; border-radius: 4px; overflow-x: auto; color: #76E0FF; margin: 0.5rem 0; }
+
+        /* Battle Arena */
+        .battle-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem; }
+        .battle-cell { background: var(--bg-panel); aspect-ratio: 1; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; font-weight: bold; color: var(--accent-gold); border-radius: 8px; cursor: pointer; text-align: center; padding: 0.2rem; word-break: break-word; }
+        .battle-cell.used { background: #080D1F; color: var(--text-muted); cursor: not-allowed; }
+        .battle-modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(11,19,43,0.95); z-index: 100; padding: 1rem; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+        .battle-modal.active { display: flex; }
+        .battle-options { display: grid; grid-template-columns: 1fr; gap: 0.5rem; width: 100%; max-width: 400px; margin-top: 1rem; }
+        .battle-opt-btn { background: var(--bg-panel); border: 2px solid #2A3B6D; }
+        .battle-opt-btn.correct { background: var(--correct) !important; color: white !important; }
+        .battle-opt-btn.wrong { background: var(--wrong) !important; color: white !important; }
+
+        /* Exam */
+        .exam-q { background: var(--bg-panel); padding: 1rem; margin-bottom: 1.5rem; border-radius: 8px; }
+        .exam-options { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 1rem; }
+        .exam-opt { display: flex; align-items: center; gap: 0.5rem; background: #1A284D; padding: 0.8rem; border-radius: 8px; cursor: pointer; }
+        .exam-opt input { transform: scale(1.5); margin-left: 0.5rem; cursor: pointer; }
+        .exam-feedback { margin-top: 0.5rem; font-weight: bold; display: none; padding: 0.5rem; border-radius: 4px; }
+
+        @media print {
+            body { background: white; color: black; }
+            .tabs, header button { display: none; }
+            .tab-content { display: block !important; page-break-after: always; }
+            .flip-card { height: auto; page-break-inside: avoid; border: 1px solid #ccc; margin-bottom: 1rem; }
+            .flip-card-inner { transform: none !important; transition: none; display: block; pointer-events: auto; }
+            .flip-card-front, .flip-card-back { position: relative; transform: none; background: white; color: black; border: none; padding: 0.5rem; }
+            .formula-card, .exam-q { background: white; border: 1px solid #ccc; color: black; page-break-inside: avoid; }
+        }
+        @media (max-width: 500px) {
+            .battle-cell { font-size: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1 id="app-title">Pasmagology</h1>
+    <div>
+        <button class="btn-primary" id="install-btn" onclick="installApp()" style="display:none">📲
+            تثبيت التطبيق
+        </button>
+        <span id="score-display"
+              style="margin-left: 1rem; color: var(--accent-gold); font-weight: bold;">0</span>
+        <button class="btn-primary" onclick="window.print()">طباعة</button>
+    </div>
+</header>
+
+<div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('study')">Study Vault</button>
+    <button class="tab-btn" onclick="switchTab('formulas')">Formulas</button>
+    <button class="tab-btn" onclick="switchTab('graphs')">Graphs/Flows</button>
+    <button class="tab-btn" onclick="switchTab('battle')">Battle Arena</button>
+    <button class="tab-btn" onclick="switchTab('exam')">Exam</button>
+</div>
+
+<div class="tab-content active" id="study">
+    <div class="cards-grid" id="cards-container"></div>
+    <section id="glossary-section" style="display:none; margin-top:2rem;">
+        <h3 style="color:var(--accent-gold); border-bottom:1px solid var(--accent-gold); padding-bottom:0.5rem;">
+            المصطلحات الأساسية</h3>
+        <table style="width:100%; border-collapse:collapse; background:var(--bg-panel); border-radius:8px; overflow:hidden;">
+            <thead>
+            <tr style="background:#1A284D; text-align:right;">
+                <th style="padding:1rem; border-bottom:1px solid #2A3B6D;">المصطلح بالإنجليزي</th>
+                <th style="padding:1rem; border-bottom:1px solid #2A3B6D;">المصطلح بالعربي</th>
+            </tr>
+            </thead>
+            <tbody id="glossary-tbody"></tbody>
+        </table>
+    </section>
+</div>
+<div class="tab-content" id="formulas">
+    <div id="formulas-container"></div>
+</div>
+<div class="tab-content" id="graphs">
+    <div id="graphs-container" style="text-align:center; padding: 2rem;">لا توجد بيانات</div>
+</div>
+
+<div class="tab-content" id="battle">
+    <div style="display:flex; justify-content:space-between; margin-bottom:1rem;">
+        <h3>ساحة المعركة</h3>
+        <button class="btn-panel" onclick="resetBattle()">إعادة التعيين</button>
+    </div>
+    <div class="battle-grid" id="battle-grid"></div>
+</div>
+
+<div class="tab-content" id="exam">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+        <label><input checked id="instant-feedback" type="checkbox"> تقييم فوري</label>
+        <button class="btn-primary" onclick="scoreExam()">إنهاء وتسليم</button>
+    </div>
+    <div class="exam-result" id="exam-result-banner"
+         style="display:none; background:var(--bg-panel); padding:1rem; border-radius:8px; border:2px solid var(--accent-gold); margin-bottom:1rem; text-align:center; font-size:1.2rem; font-weight:bold;"></div>
+    <div id="exam-container"></div>
+</div>
+
+<!-- Battle Modal -->
+<div class="battle-modal" id="battle-modal">
+    <h2 id="battle-q-text" style="margin-bottom:1rem;"></h2>
+    <div class="battle-options" id="battle-options"></div>
+    <p id="battle-explanation" style="margin-top:1rem; display:none; color:var(--accent-gold);"></p>
+    <button class="btn-primary" onclick="closeBattleModal()" style="margin-top:2rem;">إغلاق</button>
+</div>
+
+<script>
+    try {
+        const svgIcon = "data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%230B132B'/%3E%3Cpath d='M20 20h60v60H20z' fill='none' stroke='%23FFD700' stroke-width='4'/%3E%3Cpath d='M30 40h40M30 60h40' stroke='%23FFD700' stroke-width='4'/%3E%3C/svg%3E";
+        const manifest = {name:"Pasmagology", short_name:"Pasmagology", theme_color:"#0B132B", background_color:"#0B132B", display:"standalone", start_url:".", icons:[{src:svgIcon, sizes:"512x512", type:"image/svg+xml"}]};
+        const blob = new Blob([JSON.stringify(manifest)], {type:'application/json'});
+        const url = URL.createObjectURL(blob);
+        document.head.appendChild(Object.assign(document.createElement('link'), {rel:'manifest', href:url}));
+
+        if ('serviceWorker' in navigator) {
+            const swCode = `self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('fetch',e=>{});`;
+            const swUrl = URL.createObjectURL(new Blob([swCode], {type:'text/javascript'}));
+            navigator.serviceWorker.register(swUrl).catch(()=>{});
+        }
+
+        let deferredPrompt = null;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('install-btn').style.display = 'inline-block';
+        });
+
+        window.installApp = function() {
+            if (!deferredPrompt) return;
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then(() => {
+                deferredPrompt = null;
+                document.getElementById('install-btn').style.display = 'none';
+            });
+        }
+
+        if (window.matchMedia('(display-mode: standalone)').matches) {
+            document.getElementById('install-btn').style.display = 'none';
+        }
+    } catch(e) {}
+
+    const GAME_DATA = {"meta": {"title": "Air Pollution", "source_pages": 2, "generated_at": "2026-11-15T11:22:51.493196Z", "age_band": "10-12", "language": "ar"}, "glossary": [{"en": "Glossary", "ar": "قائمة المصطلحات", "category": "علم"}], "cards": [{"icon": "🏆", "title_en": "The Atmosphere", "title_ar": "العوامل الجوية", "body_ar": "الجاذبية والغلاف الجوي، الطقس، التغير المناخي، الأمطار، الرياح، الهواء النقي والمسموم.", "body_en": "Atmospheric factors, weather and climate change, precipitation, winds, clean air and polluted air", "source_page": 1, "exam_hack": ""}, {"icon": "⚡", "title_en": "Water Pollution", "title_ar": "النفايات المائية", "body_ar": "مسببات النفايات، التلوث الجوي، الأمراض البيولوجية، تأثير المياه على الصحة.", "body_en": "Pollution sources, air pollution, biological diseases, impact of water on health", "source_page": 2, "exam_hack": ""}], "formulas": [{"latex": "\\text{NAAQS standards: CO }8\\text{-hour}=9 \\, ppm", "plain": "نطاقات الأجراء السوسيولوجية للغاز الكربون 8 ساعة = 9 مللي جرام في المتر مكعب.", "meaning_ar": "المعنى", "source_page": 1}, {"latex": "\\text{Water Pollution ? Lecture }2\\rightarrow \\text{Eutrophication is caused by excess phosphorus and nitrogen from detergents and fertilizers. Phosphorus is the limiting nutrient in most freshwater}", "plain": "\text{النفايات} \rightarrow \text{إذا كانت النفايات من المطهرات والكيميائيات الزراعية، فإن الدهون هي العامل الأصلي في معظم المياه الجوفية. }", "meaning_ar": "المعنى", "source_page": 2}, {"latex": "\\text{Water Pollution ? Lecture }2\\rightarrow \\text{BOD (Biochemical Oxygen Demand) measures oxygen consumed by microorganisms over 5 days}", "plain": "\text{بود} \rightarrow \text{ي mesure الكمية من الأكسجين التي يتم استهلاكها بواسطة البكتيريا في خمسة أيام. }", "meaning_ar": "المعنى", "source_page": 2}, {"latex": "\\text{Water Pollution ? Lecture }2\\rightarrow \\text{Lead is a heavy metal that causes brain damage in children}", "plain": "\text{نفايات} \rightarrow \text{هذا هو مادة كثيفة الوزن التي تسبب ضرراً في الدماغ لدى الأطفال. }", "meaning_ar": "المعنى", "source_page": 2}, {"latex": "\\text{Water Pollution ? Lecture }2\\rightarrow \\text{Mercury in water is methylated by bacteria to methylmercury, which bioaccumulates 1000x or more in fish tissue}", "plain": "\text{نفايات} \rightarrow \text{في الماء، يتحول ماربيرون إلى ماربيرون في البكتيريا، ثم تbioaccumulate 1000 مرة أو أكثر في عضلات الأسماك. }", "meaning_ar": "المعنى", "source_page": 2}, {"latex": "\\text{Water Pollution ? Lecture }2\\rightarrow \\text{The oxygen sag curve has 4 zones: Clean, Decomposition, Septic, Recovery}", "plain": "\text{نفايات} \rightarrow \text{السكة الماء الجليدي تتألف من أربعة زوايا: صافية، التحلل، الستيئوسية، والتعافي. }", "meaning_ar": "المعنى", "source_page": 2}], "battle": [{"category": ["Atmospheric Pollution"], "points": 100, "question_ar": "سؤال في ['Atmospheric Pollution']", "options": ["خيار 1", "خيار 2", "خيار 3", "خيار 4"], "correct": 0, "explanation_ar": "شرح تلقائي"}, {"category": ["Atmospheric Pollution"], "points": 200, "question_ar": "سؤال في ['Atmospheric Pollution']", "options": ["خيار 1", "خيار 2", "خيار 3", "خيار 4"], "correct": 0, "explanation_ar": "شرح تلقائي"}, {"category": ["Atmospheric Pollution"], "points": 300, "question_ar": "سؤال في ['Atmospheric Pollution']", "options": ["خيار 1", "خيار 2", "خيار 3", "خيار 4"], "correct": 0, "explanation_ar": "شرح تلقائي"}, {"category": ["Atmospheric Pollution"], "points": 400, "question_ar": "سؤال في ['Atmospheric Pollution']", "options": ["خيار 1", "خيار 2", "خيار 3", "خيار 4"], "correct": 0, "explanation_ar": "شرح تلقائي"}, {"category": ["Atmospheric Pollution"], "points": 500, "question_ar": "سؤال في ['Atmospheric Pollution']", "options": ["خيار 1", "خيار 2", "خيار 3", "خيار 4"], "correct": 0, "explanation_ar": "شرح تلقائي"}, {"category": ["Water Pollution"], "points": 100, "question_en": "What is the main cause of eutrophication in freshwater ecosystems?", "options": ["A. Nitrogen and phosphorus from fertilizers", "B. Heavy metals like lead, mercury", "C. Air pollution due to smokestacks"], "correct": 1, "explanation_en": "Eutrophication is primarily caused by excess nutrients such as nitrogen (N) and phosphorus (P), which are often introduced through detergents and fertilizers into freshwater systems."}, {"category": ["Water Pollution"], "points": 200, "question_ar": "السؤال؟", "options": ["أ", "ب", "ج", "د"], "correct": 2, "explanation_ar": "الشرح"}], "exam": [{"question_en": "What is the question?", "options": ["A", "B", "C", "D"], "correct": 0, "explanation_ar": "The explanation in Arabic", "difficulty": "easy", "source_page": 1}]};
+    let score = 0;
+
+    // Audio Context
+    let audioCtx = null;
+    function playBeep(isCorrect) {
+        try {
+            if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.type = isCorrect ? 'sine' : 'sawtooth';
+            osc.frequency.setValueAtTime(isCorrect ? 800 : 300, audioCtx.currentTime);
+            if(isCorrect) osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+            else osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.2);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.2);
+        } catch(e) { console.error("Audio error", e); }
+    }
+
+    // Tabs
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        // fallback for event when missing
+        if(window.event && window.event.currentTarget) {
+            window.event.currentTarget.classList.add('active');
+        } else {
+            const btn = document.querySelector(`button[onclick="switchTab('${tabId}')"]`);
+            if (btn) btn.classList.add('active');
+        }
+    }
+
+    // Save/Load Progress
+    function saveProgress() {
+        try {
+            const progress = {
+                score,
+                usedBattle: Array.from(document.querySelectorAll('.battle-cell.used')).map(el => el.dataset.idx)
+            };
+            if(window.examScore !== undefined && window.examTotal !== undefined) {
+                progress.examScore = window.examScore;
+                progress.examTotal = window.examTotal;
+            }
+            if(GAME_DATA.exam) {
+                GAME_DATA.exam.forEach((q, qIdx) => {
+                    const selected = document.querySelector(`input[name="exam_${qIdx}"]:checked`);
+                    if(selected) progress[`exam_sel_${qIdx}`] = parseInt(selected.value);
+                });
+            }
+            localStorage.setItem('pasmagology_progress_' + (GAME_DATA.meta?.title || 'game'), JSON.stringify(progress));
+        } catch(e) {}
+    }
+
+    function loadProgress() {
+        try {
+            const saved = localStorage.getItem('pasmagology_progress_' + (GAME_DATA.meta?.title || 'game'));
+            if(saved) {
+                const progress = JSON.parse(saved);
+                score = progress.score || 0;
+                document.getElementById('score-display').innerText = score;
+                if(progress.usedBattle) {
+                    progress.usedBattle.forEach(idx => {
+                        const cell = document.querySelector(`.battle-cell[data-idx="${idx}"]`);
+                        if(cell) cell.classList.add('used');
+                    });
+                }
+                if(progress.examScore !== undefined) {
+                    window.examScore = progress.examScore;
+                    window.examTotal = progress.examTotal;
+                    const banner = document.getElementById('exam-result-banner');
+                    banner.innerHTML = `نتيجتك: ${window.examScore} من ${window.examTotal} ⭐`;
+                    banner.style.display = 'block';
+                }
+                if(GAME_DATA.exam) {
+                    GAME_DATA.exam.forEach((q, qIdx) => {
+                        const sel = progress[`exam_sel_${qIdx}`];
+                        if(sel !== undefined) {
+                            const radio = document.querySelector(`input[name="exam_${qIdx}"][value="${sel}"]`);
+                            if(radio) radio.checked = true;
+                        }
+                    });
+                }
+            }
+        } catch(e) {}
+    }
+
+    // Render Data
+    function renderApp() {
+        if(GAME_DATA.meta && GAME_DATA.meta.title) {
+            document.getElementById('app-title').innerText = GAME_DATA.meta.title;
+            document.title = GAME_DATA.meta.title;
+        }
+
+        // Cards
+        const cardsCont = document.getElementById('cards-container');
+        if(GAME_DATA.cards) {
+            GAME_DATA.cards.forEach(card => {
+                const el = document.createElement('div');
+                el.className = 'flip-card';
+                // Also support touchstart for mobile flipping
+                el.onclick = () => el.classList.toggle('flipped');
+                el.ontouchstart = (e) => { el.classList.toggle('flipped'); };
+                el.innerHTML = `
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <div class="card-icon">${card.icon || '📚'}</div>
+                            <h3>${card.title_ar || ''}</h3>
+                            <small>${card.title_en || ''}</small>
+                        </div>
+                        <div class="flip-card-back">
+                            <p>${card.body_ar || ''}</p>
+                            <p dir="ltr" style="color:var(--accent-gold)">${card.body_en || ''}</p>
+                            ${card.exam_hack ? `<small style="background:#080D1F;padding:0.2rem;border-radius:4px;">Hack: ${card.exam_hack}</small>` : ''}
+                        </div>
+                    </div>`;
+                cardsCont.appendChild(el);
+            });
+        }
+
+        // Glossary
+        if(GAME_DATA.glossary && GAME_DATA.glossary.length > 0) {
+            const glosSection = document.getElementById('glossary-section');
+            const glosTbody = document.getElementById('glossary-tbody');
+            glosSection.style.display = 'block';
+            GAME_DATA.glossary.forEach(g => {
+                const tr = document.createElement('tr');
+                tr.style.borderBottom = '1px solid #2A3B6D';
+                tr.innerHTML = `
+                    <td style="padding:1rem; direction:ltr; text-align:left;">
+                        <strong>${g.en || ''}</strong>
+                        ${g.category ? `<br><small style="background:var(--accent-gold); color:var(--bg-main); padding:0.1rem 0.4rem; border-radius:4px; font-size:0.75rem; font-weight:bold;">${g.category}</small>` : ''}
+                    </td>
+                    <td style="padding:1rem;">${g.ar || ''}</td>
+                `;
+                glosTbody.appendChild(tr);
+            });
+        }
+
+        // Formulas
+        const formCont = document.getElementById('formulas-container');
+        if(GAME_DATA.formulas) {
+            GAME_DATA.formulas.forEach(form => {
+                const el = document.createElement('div');
+                el.className = 'formula-card';
+                el.innerHTML = `
+                    <div class="formula-latex">${form.latex || form.plain || ''}</div>
+                    <p>${form.meaning_ar || ''}</p>
+                `;
+                formCont.appendChild(el);
+            });
+        }
+
+        // Graphs
+        if(GAME_DATA.graphs && GAME_DATA.graphs.length > 0) {
+            document.getElementById('graphs-container').innerHTML = GAME_DATA.graphs.map(g => `<p>${JSON.stringify(g)}</p>`).join('');
+        }
+
+        // Battle Arena - Pad to 25 cells if fewer exist
+        const battleCont = document.getElementById('battle-grid');
+        if(GAME_DATA.battle) {
+            for(let idx = 0; idx < 25; idx++) {
+                const b = GAME_DATA.battle[idx];
+                const cell = document.createElement('div');
+                cell.className = 'battle-cell';
+                cell.dataset.idx = idx;
+
+                if (b) {
+                    cell.innerText = b.points || 100;
+                    cell.onclick = () => openBattle(idx, cell);
+                } else {
+                    cell.classList.add('used');
+                    cell.innerText = '-';
+                }
+                battleCont.appendChild(cell);
+            }
+        }
+
+        // Exam
+        const examCont = document.getElementById('exam-container');
+        if(GAME_DATA.exam) {
+            GAME_DATA.exam.forEach((q, qIdx) => {
+                const el = document.createElement('div');
+                el.className = 'exam-q';
+                let optsHtml = (q.options || []).map((opt, oIdx) => `
+                    <label class="exam-opt">
+                        <input type="radio" name="exam_${qIdx}" value="${oIdx}">
+                        ${opt}
+                    </label>
+                `).join('');
+                el.innerHTML = `
+                    <h4>${q.question_ar || ''}</h4>
+                    <div class="exam-options">${optsHtml}</div>
+                    <div class="exam-feedback" id="exam-feedback-${qIdx}"></div>
+                `;
+                examCont.appendChild(el);
+            });
+        }
+
+        loadProgress();
+
+        // Attach Instant Feedback Exam Listener
+        document.getElementById('exam-container').addEventListener('change', (e) => {
+            saveProgress();
+            if(document.getElementById('instant-feedback').checked && e.target.type === 'radio') {
+                const qIdx = parseInt(e.target.name.split('_')[1]);
+                const oIdx = parseInt(e.target.value);
+                const q = GAME_DATA.exam[qIdx];
+                const isCorrect = oIdx === q.correct;
+                playBeep(isCorrect);
+                const feedbackEl = document.getElementById(`exam-feedback-${qIdx}`);
+                feedbackEl.style.display = 'block';
+                if(isCorrect) {
+                    feedbackEl.style.background = 'var(--correct)';
+                    feedbackEl.innerText = "إجابة صحيحة! " + (q.explanation_ar || '');
+                } else {
+                    feedbackEl.style.background = 'var(--wrong)';
+                    feedbackEl.innerText = "خطأ! " + (q.explanation_ar || '');
+                }
+            }
+        });
+    }
+
+    // Battle Logic
+    let currentBattleCell = null;
+    function openBattle(idx, cellEl) {
+        if(cellEl.classList.contains('used')) return;
+        const b = GAME_DATA.battle[idx];
+        if(!b) return;
+        currentBattleCell = cellEl;
+        document.getElementById('battle-q-text').innerText = b.question_ar || '';
+        document.getElementById('battle-explanation').style.display = 'none';
+
+        const optsCont = document.getElementById('battle-options');
+        optsCont.innerHTML = '';
+        (b.options || []).forEach((opt, oIdx) => {
+            const btn = document.createElement('button');
+            btn.className = 'battle-opt-btn btn-panel';
+            btn.innerText = opt;
+            btn.onclick = () => handleBattleAnswer(idx, oIdx, btn);
+            optsCont.appendChild(btn);
+        });
+        document.getElementById('battle-modal').classList.add('active');
+    }
+
+    function handleBattleAnswer(qIdx, oIdx, btnEl) {
+        const b = GAME_DATA.battle[qIdx];
+        const isCorrect = oIdx === b.correct;
+        playBeep(isCorrect);
+
+        // Reveal all
+        const btns = document.getElementById('battle-options').children;
+        for(let i=0; i<btns.length; i++) {
+            btns[i].disabled = true;
+            if(i === b.correct) btns[i].classList.add('correct');
+            else if(i === oIdx && !isCorrect) btns[i].classList.add('wrong');
+        }
+
+        if(isCorrect) {
+            score += (b.points || 100);
+            document.getElementById('score-display').innerText = score;
+        }
+
+        const exp = document.getElementById('battle-explanation');
+        exp.style.display = 'block';
+        exp.innerText = (isCorrect ? "صحيح! " : "خطأ! ") + (b.explanation_ar || '');
+
+        if(currentBattleCell) currentBattleCell.classList.add('used');
+        saveProgress();
+    }
+
+    function closeBattleModal() {
+        document.getElementById('battle-modal').classList.remove('active');
+    }
+
+    function resetBattle() {
+        if(confirm('هل أنت متأكد من إعادة تعيين ساحة المعركة؟')) {
+            score = 0;
+            document.getElementById('score-display').innerText = score;
+            document.querySelectorAll('.battle-cell').forEach(el => el.classList.remove('used'));
+            localStorage.removeItem('pasmagology_progress_' + (GAME_DATA.meta?.title || 'game'));
+
+            // Re-hide padded unused cells
+            if(GAME_DATA.battle) {
+                for(let idx = GAME_DATA.battle.length; idx < 25; idx++) {
+                    const cell = document.querySelector(`.battle-cell[data-idx="${idx}"]`);
+                    if(cell) cell.classList.add('used');
+                }
+            }
+        }
+    }
+
+    // Exam Score
+    function scoreExam() {
+        if(!GAME_DATA.exam) return;
+        let total = GAME_DATA.exam.length;
+        let correctCount = 0;
+        GAME_DATA.exam.forEach((q, qIdx) => {
+            const selected = document.querySelector(`input[name="exam_${qIdx}"]:checked`);
+            const feedbackEl = document.getElementById(`exam-feedback-${qIdx}`);
+            feedbackEl.style.display = 'block';
+            if(selected && parseInt(selected.value) === q.correct) {
+                correctCount++;
+                feedbackEl.style.background = 'var(--correct)';
+                feedbackEl.innerText = "صحيح. " + (q.explanation_ar || '');
+            } else {
+                feedbackEl.style.background = 'var(--wrong)';
+                feedbackEl.innerText = "خطأ. الإجابة الصحيحة هي: " + (q.options[q.correct] || '') + " - " + (q.explanation_ar || '');
+            }
+        });
+
+        window.examScore = correctCount;
+        window.examTotal = total;
+        const banner = document.getElementById('exam-result-banner');
+        banner.innerHTML = `نتيجتك: ${window.examScore} من ${window.examTotal} ⭐`;
+        banner.style.display = 'block';
+
+        saveProgress();
+        playBeep(correctCount > total/2);
+    }
+
+    window.onload = renderApp;
+</script>
+</body>
+</html>

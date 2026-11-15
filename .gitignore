@@ -47,6 +47,10 @@ src-tauri/gen/
 .aider*
 
 # Debug artifacts & scripts
+_trial_*
+test_render_*.html
+_trial_*.pdf
+Pasmagology/games/_trial_*
 artifacts/
 .artifacts/
 audit/

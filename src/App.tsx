@@ -98,6 +98,7 @@ const MaintenanceGuide = lazy(() => import('./features/maintenance/MaintenanceGu
 const PronunciationRecorder = lazy(() => import('./features/voice/PronunciationRecorder').then((m) => ({ default: m.PronunciationRecorder })));
 const StudioDashboard = lazy(() => import('./features/studio/StudioDashboard').then((m) => ({ default: m.StudioDashboard })));
 const ClarifyingCoachView = lazy(() => import('./features/clarifying/ClarifyingCoachView').then((m) => ({ default: m.ClarifyingCoachView })));
+const LanguageGame = lazy(() => import('./pages/LanguageGame').then((m) => ({ default: m.LanguageGame })));
 
 type View =
   | { name: 'shell' }
@@ -111,7 +112,8 @@ type View =
   | { name: 'admin' }
   | { name: 'maintenance' }
   | { name: 'pronunciation' }
-  | { name: 'studio' };
+  | { name: 'studio' }
+  | { name: 'language-game' };
 
 export default function App() {
   const [audioUnlocked, setAudioUnlocked] = useState(() => {
@@ -129,6 +131,7 @@ export default function App() {
         const urlParams = new URLSearchParams(window.location.search);
 
         if (path === '/android') return { name: 'android' };
+        if (path === '/language-game') return { name: 'language-game' };
         if (urlParams.get('admin') === 'true') return { name: 'studio' };
         if (urlParams.get('app') === 'true' || path === '/app') {
           return { name: 'shell' };
@@ -532,6 +535,17 @@ export default function App() {
           onBack={goHome}
           isArabic={isArabic}
         />
+      )}
+
+      {view.name === 'language-game' && (
+        <Suspense fallback={<div className="min-h-screen bg-[#0A1E3F] text-[#F5F0E6] flex items-center justify-center font-arabic">جاري التحميل...</div>}>
+          <LanguageGame onBack={() => {
+            if (typeof window !== 'undefined' && window.history) {
+              window.history.pushState({}, '', '/');
+            }
+            setView({ name: 'landing' });
+          }} />
+        </Suspense>
       )}
 
       {/* Interactive Lesson Session Modal */}

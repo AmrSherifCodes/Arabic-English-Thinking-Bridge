@@ -3,8 +3,6 @@ import assert from 'node:assert/strict';
 import fs from 'fs';
 import path from 'path';
 import healthHandler from './health.js';
-import feedbackHandler, { getCorsOrigin } from './feedback.ts';
-import reviewHandler from './review.ts';
 import { agentTools } from './agent.js';
 
 test('1. SEO & Canonical URLs: index.html and public files do not reference amrsherif.localhost.cc', () => {
@@ -48,45 +46,6 @@ test('3. API Health: /api/health handler returns dynamic package version', async
   assert.equal(jsonBody.version, `v${pkg.version}`);
 });
 
-test('4. CORS Allowlist: feedback and review endpoints resolve specific origins, avoiding wildcard with credentials', () => {
-  assert.equal(getCorsOrigin('https://tb-eg.vercel.app'), 'https://tb-eg.vercel.app');
-  assert.equal(getCorsOrigin('http://localhost:5173'), 'http://localhost:5173');
-  assert.equal(getCorsOrigin('https://malicious-site.com'), 'https://tb-eg.vercel.app');
-});
-
-test('5. Webhook Error Metadata: feedback and review handlers format responses with webhook status metadata', async () => {
-  let feedbackBody = null;
-  const reqFeedback = {
-    method: 'POST',
-    body: { rating: 5, message: 'Testing webhook status metadata' }
-  };
-  const resFeedback = {
-    setHeader() {},
-    status() { return this; },
-    json(body) { feedbackBody = body; return this; }
-  };
-
-  await feedbackHandler(reqFeedback, resFeedback);
-  assert.equal(feedbackBody?.success, true);
-  assert.equal(typeof feedbackBody?.webhookFailed, 'boolean');
-
-  let reviewBody = null;
-  const reqReview = {
-    method: 'POST',
-    headers: { 'x-forwarded-for': '127.0.0.12' },
-    body: { text: 'Testing review webhook status metadata', rating: 5 }
-  };
-  const resReview = {
-    setHeader() {},
-    status() { return this; },
-    json(body) { reviewBody = body; return this; }
-  };
-
-  await reviewHandler(reqReview, resReview);
-  assert.equal(reviewBody?.ok, true);
-  assert.equal(typeof reviewBody?.webhookFailed, 'boolean');
-});
-
 test('6. Agent Tool Reliability: agentTools.knowledge_retriever returns non-null results for all calls', async () => {
   const resultDefault = await agentTools.knowledge_retriever.execute({});
   assert.ok(resultDefault, 'result must not be null');
@@ -118,16 +77,4 @@ test('8. Live Deployment Health: fetches live https://tb-eg.vercel.app/api/healt
   assert.equal(resp.status, 200);
   const data = await resp.json();
   assert.equal(data.version, 'v4.1.0');
-});
-
-test('9. Live Webhook Delivery: POSTs live subscription to https://tb-eg.vercel.app/api/feedback and verifies webhook succeeds', { skip: !process.env.LIVE_WEBHOOK_AUDIT }, async () => {
-  const resp = await fetch('https://tb-eg.vercel.app/api/feedback', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ type: 'subscribe', email: 'audit-live-check@example.com' })
-  });
-  assert.equal(resp.status, 200);
-  const data = await resp.json();
-  assert.equal(data.success, true);
-  assert.equal(data.webhookFailed, false, 'Live webhook execution must succeed when env vars are configured');
 });

@@ -1,0 +1,52 @@
+[
+  {
+    "name": "Stage 0: files exist & compile",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "name": "Stage 1: XP / level math",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "name": "Stage 2: profile save/load/streak",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "name": "Stage 3: daily challenge determinism",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "name": "Stage 4: extract_code",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "name": "Stage 5: sandbox execution",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "name": "Stage 6: auto-heal with fake LLM",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "name": "Stage 7: challenge evaluator",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "name": "Stage 8: hub registry",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "name": "Stage 9: UI smoke",
+    "status": "PASS",
+    "detail": ""
+  }
+]
