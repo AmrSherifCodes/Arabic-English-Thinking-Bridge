@@ -1,25 +1,33 @@
 <div align="center">
-  <h1>🌉 Thinking Bridge (v3.2.0 Masterpiece Release)</h1>
-  <p><strong>Construct sentences directly in the target language. Think in it. Don't translate it.</strong></p>
-  <p>100% Free. 100% Private. Offline-Capable Universal Language App.</p>
+  <h1>🌉 Thinking Bridge & Thinking English™</h1>
+  <p><strong>Construct sentences directly in the target language. Think in it. Don't translate word-by-word.</strong></p>
+  <p>🏛️ <strong>Sovereign Educational Platform · 100% Offline-First · Zero Foreign Cloud Dependencies</strong></p>
+  <p><i>Built in Alexandria, Egypt with love for learners worldwide.</i></p>
 
   <!-- Badges -->
+  <img src="https://img.shields.io/badge/Architecture-100%25%20Offline--First-emerald?style=flat-square" alt="Offline First" />
+  <img src="https://img.shields.io/badge/Privacy-Zero%20Telemetry-blue?style=flat-square" alt="Zero Telemetry" />
   <img src="https://img.shields.io/badge/React-19-blue?style=flat-square&logo=react" alt="React" />
   <img src="https://img.shields.io/badge/Vite-8-purple?style=flat-square&logo=vite" alt="Vite" />
-  <img src="https://img.shields.io/badge/Storage-Local--first-teal?style=flat-square" alt="Local-first storage" />
-  <img src="https://img.shields.io/badge/Languages-16%20Codes-orange?style=flat-square" alt="16 Languages" />
-  <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="License" />
+  <img src="https://img.shields.io/badge/License-CC0--1.0%20%2F%20MIT-green?style=flat-square" alt="License" />
 </div>
 
 ---
 
-## 🚀 What's New in v3.2.0 (Masterpiece Release)
+## 🏛️ Digital Sovereignty & Privacy Principles
+
+- **100% Offline Autonomy**: Every core pedagogical feature—from 27 interactive structural bridge lessons, 4,090 flashcards, SRS SM-2 scheduling, phonetic transliteration, to offline voice recognition—operates 100% offline without requiring active internet connectivity.
+- **Zero Foreign Cloud Dependencies**: No third-party tracking, analytics, or telemetry scripts are ever introduced. All user progression, custom flashcards, and settings remain strictly local on the user's device.
+- **Bring Your Own Key (BYOK) AI Architecture**: Optional AI companion features connect directly using the user's own free Google Gemini API key. Keys are obfuscated and stored exclusively in the device's local vault.
+- **Channel & Media Constitution**: Governed by the [Thinking Bridge Constitution](CONSTITUTION.md) enforcing radical openness, CC0 1.0 public domain pedagogy, and cultural neutrality.
+
+---
+
+## 🚀 Key Features
 
 - **Universal N-by-N Pivot Dictionary Bridge**: Bridges any of the 16 supported languages/dialects (`en`, `ar`, `arz`, `apc`, `afb`, `ary`, `de`, `ja`, `es`, `fr`, `it`, `pt`, `ru`, `zh`, `hi`, `el`) via normalized English pivot glosses ($16 \times 15 = 240$ directional language pairs $\times 6$ focus areas = **1,440 Learning Profiles**).
-- **The Profile Matcher Equation**: Multi-factor profile ranking engine ($S(p,u) = 0.35\Phi + 0.25\Psi + 0.15\Omega + 0.15\Gamma + 0.10\Delta$) matching linguistic typology distance, script transferability, and daily study pace.
-- **Bulk Dictionary Pipeline**: Clean Node.js ingestion pipeline (`scripts/ingest-dictionaries.mjs`) streaming Kaikki Wiktionary exports into versioned, typed dictionary modules.
-- **CEFR Progression Sorter**: Automated CEFR level assigner (`cefrSorter.ts`) mapping frequency ranks (`A0`–`C2`) with survival word overrides and cognate promotion (Levenshtein similarity $\ge 0.72$).
-- **Vercel Serverless Proxies**: Rate-limited, sanitized `/api/feedback` and `/api/review` serverless proxy endpoints.
+- **SM-2 Spaced Repetition System (SRS)**: Canonical SM-2 memory retention engine calculating interval progressions $I(1)=1$, $I(2)=6$, $I(n)=\text{round}(I(n-1) \cdot EF)$ with automaticity response timing.
+- **Wa3i Desktop Hub**: Desktop launcher suite (`Wa3iHub` & `Wa3iCoder`) running standalone local Python applications alongside the web/PWA platform.
 
 ---
 
@@ -34,70 +42,23 @@ graph TD
     D -->|scoreAndSortProfiles| F[Profile Recommendation Engine]
     E --> G[lessonGenerator.ts]
     G --> H[Procedural 100-Lesson Engine]
-    H --> I[React 19 / Capacitor Android App]
+    H --> I[React 19 / Capacitor Android App / PWA]
 ```
 
 ---
 
-## 📖 Wiktionary & Kaikki.org Attribution
+## 💻 Tech Stack
 
-Lexical dataset data derives from **Wiktionary** via **Kaikki.org** machine-readable extracts generated using Wiktextract, licensed under Creative Commons Attribution-ShareAlike 4.0 International ([CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)) and GNU Free Documentation License ([GFDL](https://www.gnu.org/licenses/fdl-1.3.html)).
-
----
-
-## 🚀 Quick Start & Local Setup
-
-```bash
-# 1. Install dependencies
-npm install
-
-# 2. Run bulk dictionary ingestion pipeline
-node scripts/ingest-dictionaries.mjs
-
-# 3. Run development server
-npm run dev
-
-# 4. Run test suite
-npm test
-
-# 5. Build production PWA & web bundle
-npm run build
-
-# 6. Synchronize with Capacitor Android
-npx cap sync android
-```
+- **Frontend**: React 19, Vite 8, TypeScript, Tailwind CSS, Framer Motion, Readex Pro typography.
+- **Mobile Native**: Capacitor Android (`com.amrsherif.thinkingenglish`) & iOS PWA.
+- **Desktop Hub**: Python 3.12, CustomTkinter, Procedural Audio, Wa3i Coder suite.
+- **Local Persistence**: IndexedDB / localStorage abstraction (`storageAdapter`).
 
 ---
 
-## 📱 Android Native Build Steps
+## 📜 Constitution & Attribution
 
-```bash
-# 1. Build Android production web assets
-npm run build:android
-
-# 2. Sync to Capacitor Android native project
-npx cap sync android
-
-# 3. Assemble Debug APK
-cd android
-./gradlew assembleDebug
-```
-
----
-
-## ⚙️ Environment Variables
-
-Create `.env` (refer to `.env.example`):
-
-```env
-DISCORD_FEEDBACK_WEBHOOK=https://discord.com/api/webhooks/YOUR_FEEDBACK_WEBHOOK_ID
-DISCORD_REVIEWS_WEBHOOK=https://discord.com/api/webhooks/YOUR_REVIEWS_WEBHOOK_ID
-VITE_API_BASE=https://tb-eg.vercel.app
-```
-
----
-
-## 📜 License
-
-- **Codebase**: MIT License (Amr Sherif Abdelaal, 2024-Present).
-- **Lexical Data**: CC BY-SA 4.0 / GFDL (Wiktionary / Kaikki.org).
+- **Project Constitution**: See [CONSTITUTION.md](CONSTITUTION.md) for full governance details.
+- **Pedagogical Inspiration**: Mihalis Eleftheriou and [Language Transfer](https://www.languagetransfer.org/) — for the *Thinking Method* that makes this pedagogy possible.
+- **Lexical Data**: Wiktionary via Kaikki.org extracts ([CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)).
+- **Author & Maintainer**: Amr Sherif Abdelaal (Alexandria, Egypt).

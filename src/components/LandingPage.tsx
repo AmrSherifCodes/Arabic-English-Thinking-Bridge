@@ -357,9 +357,43 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
               {subscribing ? (t('landing2.submitting___')) : (t('landing2.subscribe'))}
             </button>
           </form>
+          <p className="text-xs text-[var(--ink-soft)] mt-3 opacity-90 max-w-lg mx-auto">
+            {isAr
+              ? '🔒 لا نستخدم سيرفرات خارجية لتخزين بريدك. النقر على "اشتراك" يفتح تطبيق البريد لإرسال رسالة مباشرة للحفاظ على خصوصيتك بنسبة 100%.'
+              : '🔒 We do not use third-party servers to store your email. Clicking Subscribe opens your email client directly, guaranteeing 100% privacy.'}
+          </p>
           {subMessage && (
             <p className="mt-4 font-bold text-[var(--nile)]">{subMessage}</p>
           )}
+        </div>
+      </section>
+
+      {/* ================= TRUST & PRIVACY SECTION ================= */}
+      <section className="py-12 bg-[var(--papyrus)] border-t border-[var(--line)]">
+        <div className="el-container max-w-4xl mx-auto text-center space-y-6">
+          <h3 className="text-xl font-bold text-[var(--navy)]">
+            {isAr ? '🛡️ معيار السيادة الرقمية والخصوصية المطلقة' : '🛡️ Digital Sovereignty & Absolute Privacy Standard'}
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-start">
+            <div className="p-5 rounded-2xl bg-white/80 border border-[var(--line)] space-y-2">
+              <span className="text-lg block font-bold text-[var(--navy)]">⚡ {isAr ? 'عملية 100% بدون إنترنت' : '100% Offline Architecture'}</span>
+              <p className="text-xs text-[var(--ink-soft)] leading-relaxed">
+                {isAr ? 'يعمل التطبيق بالكامل بدون حاجة لاتصال بالإنترنت، وبدون سيرفرات خارجية تتبع بياناتك.' : 'Zero foreign cloud servers or telemetry trackers required. Designed for complete offline autonomy.'}
+              </p>
+            </div>
+            <div className="p-5 rounded-2xl bg-white/80 border border-[var(--line)] space-y-2">
+              <span className="text-lg block font-bold text-[var(--navy)]">🔐 {isAr ? 'بياناتك ملكك على جهازك' : 'Local Device Vault'}</span>
+              <p className="text-xs text-[var(--ink-soft)] leading-relaxed">
+                {isAr ? 'تُحفظ جميع إنجازاتك وتقدمك التعليمي محلياً على هاتفك في الخزنة المحلية.' : 'All progression, flashcards, and SRS metrics remain securely in local browser IndexedDB storage.'}
+              </p>
+            </div>
+            <div className="p-5 rounded-2xl bg-white/80 border border-[var(--line)] space-y-2">
+              <span className="text-lg block font-bold text-[var(--navy)]">🔑 {isAr ? 'مفتاحك الخاص (BYOK)' : 'Bring Your Own Key (BYOK)'}</span>
+              <p className="text-xs text-[var(--ink-soft)] leading-relaxed">
+                {isAr ? 'ميزات الذكاء الاصطناعي اختيارية ومجانية عبر مفتاحك الخاص بدون أي تكاليف أو تتبع.' : 'Optional AI capabilities use your private Gemini key, stored locally without proxy retention.'}
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 
