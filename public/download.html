@@ -50,12 +50,14 @@
       background-color: #34D399;
       transform: translateY(-2px);
     }
-    .btn-secondary {
-      background-color: #1A222C;
-      color: #38BDF8;
-      border: 1px solid rgba(56, 189, 248, 0.3);
-      font-size: 1rem;
-      box-shadow: none;
+    .notice-card {
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      color: #FCD34D;
+      padding: 1rem;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      line-height: 1.5;
     }
     .instructions-card {
       background: #141A22;
@@ -88,16 +90,6 @@
     .step-text {
       line-height: 1.6;
     }
-    .security-note {
-      background: rgba(245, 158, 11, 0.1);
-      border: 1px solid rgba(245, 158, 11, 0.3);
-      color: #FCD34D;
-      padding: 1rem;
-      border-radius: 12px;
-      font-size: 0.9rem;
-      text-align: right;
-      line-height: 1.5;
-    }
     .footer {
       margin-top: 1rem;
       font-size: 0.85rem;
@@ -108,26 +100,25 @@
 <body>
   <div class="container">
     <div>
-      <span class="badge">تطبيق الويب التقدمي الرسمي (PWA) والإصدارات</span>
+      <span class="badge">تطبيق الويب التقدمي (PWA)</span>
       <h1 style="font-size: 2rem; margin-top: 0.75rem; margin-bottom: 0.5rem; font-weight: 900;">
         فكّر إنجليزي (Thinking Bridge)
       </h1>
       <p style="color: #9CA3AF; margin: 0; font-size: 1.05rem;">
-        التطبيق الأقوى للتعلم دون إنترنت. اختر الطريقة المفضلة لديك للتشغيل.
+        التطبيق الأقوى للتعلم دون إنترنت.
       </p>
     </div>
 
     <!-- MAIN PWA / WEB CTA -->
     <a href="/app" class="btn">
       <span>🌐</span>
-      <span>التشغيل الفوري عبر المتصفح (PWA - الخيار الأساسي)</span>
+      <span>التشغيل الفوري عبر المتصفح (PWA)</span>
     </a>
 
-    <!-- DEVELOPER BUILD APK -->
-    <a href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v1.1.0-unofficial.1/Thinking-Bridge-v1.1.0-unofficial.1.apk" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
-      <span>🛠️</span>
-      <span>تحميل نسخة المطورين (Developer Build APK - تجريبي)</span>
-    </a>
+    <!-- APK UNAVAILABLE NOTICE -->
+    <div class="notice-card">
+      Android APK is temporarily unavailable while we fix the build pipeline. Use the PWA below.
+    </div>
 
     <!-- 3-STEP GUIDE -->
     <div class="instructions-card">
@@ -138,7 +129,7 @@
       <div class="step-item">
         <div class="step-num">١</div>
         <div class="step-text">
-          <strong>اضغط على زر "التشغيل الفوري عبر المتصفح"</strong> لفتح التطبيق فوراً والعمل بلا إنترنت مع دعم PWA كامل.
+          <strong>اضغط على زر "التشغيل الفوري عبر المتصفح"</strong> لفتح التطبيق فوراً والعمل بلا إنترنت.
         </div>
       </div>
 
@@ -148,17 +139,6 @@
           <strong>اضغط "تثبيت التطبيق"</strong> من متصفحك (Add to Home Screen) للحصول على تجربة تطبيق مستقل تماماً.
         </div>
       </div>
-
-      <div class="step-item">
-        <div class="step-num">٣</div>
-        <div class="step-text">
-          <strong>أو استخدم نسخة المطورين (APK)</strong> إذا كنت ترغب في التثبيت اليدوي المباشر كملف APK.
-        </div>
-      </div>
-    </div>
-
-    <div class="security-note">
-      <strong>🔒 ملاحظة أمان:</strong> نسخة الويب (PWA) هي الخيار الموصى به والأسرع تحديثاً. ملفات APK هي نسخ مطورين تجريبية.
     </div>
 
     <div class="footer">

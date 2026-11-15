@@ -1,0 +1,13 @@
+[RESUME @ 2026-11-15T23:26:00.279Z] Phase 1 step ~15/1000. Security test fixed and committed.
+[3a & 3b & 3c Verification]
+gh run list --limit 2 output:
+STATUS  TITLE                                           WORKFLOW                BRANCH               EVENT  ID           ELAPSED  AGE
+X       fix(workflow): grant contents: write permis...  CI and Android Release  v1.1.0-unofficial.1  push   43773325691  1m9s     about 16 minutes ago
+X       fix(workflow): grant contents: write permis...  CI/CD Pipeline          v1.1.0-unofficial.1  push   43773325607  56s      about 16 minutes ago
+
+curl.exe -sI APK URL output:
+HTTP/1.1 404 Not Found
+Date: Sun, 15 Nov 2026 23:26:44 GMT
+Content-Type: text/plain; charset=utf-8
+Server: github.com
+(404 expected since APK was missing/demoted to developer build)

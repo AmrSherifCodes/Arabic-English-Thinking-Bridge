@@ -51,7 +51,7 @@ export async function getTargetDictionaryAsync(targetLang: string): Promise<Dict
 }
 
 export function getTargetDictionary(targetLang: string): DictWordEntry[] {
-  if (import.meta.env.DEV && typeof window !== 'undefined' && !(window as any)._dictProbe) {
+  if (typeof import.meta !== 'undefined' && (import.meta as any).env?.DEV && typeof window !== 'undefined' && !(window as any)._dictProbe) {
     (window as any)._dictProbe = true;
     console.log('[DICT-PROBE] getTargetDictionary called:', targetLang);
   }

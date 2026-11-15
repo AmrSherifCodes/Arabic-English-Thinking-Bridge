@@ -1,10 +1,8 @@
 import { useEffect, useState } from 'react';
-import { ArrowDownToLine, AudioLines, BookOpen, Github, KeyRound, LockKeyhole, Mic2, WifiOff, Globe } from 'lucide-react';
+import { AudioLines, BookOpen, Github, KeyRound, LockKeyhole, Mic2, WifiOff, Globe } from 'lucide-react';
 import { CreatorCard } from './CreatorCard';
 import './android-landing-page.css';
 
-const APK_URL =
-  'https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v1.1.0-unofficial.1/Thinking-Bridge-v1.1.0-unofficial.1.apk';
 const WEB_APP_URL = '/app';
 const RELEASES_URL = 'https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases';
 const GITHUB_URL = 'https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge';
@@ -35,11 +33,8 @@ const FEATURES = [
 
 export function AndroidLandingPage() {
   const [showStickyDownload, setShowStickyDownload] = useState(false);
-  const [isAndroid, setIsAndroid] = useState(false);
 
   useEffect(() => {
-    setIsAndroid(/android/i.test(navigator.userAgent));
-
     const updateScrollState = () => setShowStickyDownload(window.scrollY > 300);
     updateScrollState();
     window.addEventListener('scroll', updateScrollState, { passive: true });
@@ -60,7 +55,7 @@ export function AndroidLandingPage() {
 
       <section className="android-hero">
         <div className="android-hero-copy">
-          <span className="android-eyebrow">FREE AND OPEN SOURCE · PWA & APK</span>
+          <span className="android-eyebrow">FREE AND OPEN SOURCE · PWA</span>
           <h1 id="android-hero-title">The Ultimate Offline Arabic-English AI Coach.</h1>
           <p className="android-subtitle">
             Rewire your brain to think in 10+ languages. Practice offline with lessons, dictionaries, and local speech.
@@ -73,15 +68,11 @@ export function AndroidLandingPage() {
               <Globe size={23} aria-hidden="true" />
               <span>Launch Web App / PWA <span aria-hidden="true">⚡</span></span>
             </a>
-            <a href={APK_URL} download style={{ background: '#1A222C', color: '#38BDF8', border: '1px solid rgba(56, 189, 248, 0.3)', textDecoration: 'none', padding: '0.85rem 1.25rem', borderRadius: '12px', fontWeight: 600, fontSize: '0.95rem', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-              <ArrowDownToLine size={19} aria-hidden="true" />
-              <span>Download Developer Build (APK Unstable)</span>
-            </a>
+            <p style={{ background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.3)', color: '#FCD34D', padding: '0.75rem 1rem', borderRadius: '10px', fontSize: '0.9rem', margin: 0 }}>
+              Android APK is temporarily unavailable while we fix the build pipeline. Use the PWA below.
+            </p>
           </div>
-          <span className="android-version">Version 4.1.0 · Web PWA & Android · Free</span>
-          <p className="android-device-hint" role="status">
-            Use the PWA for the best instant experience. APK is available for developer testing.
-          </p>
+          <span className="android-version">Version 4.1.0 · Web PWA · Free</span>
         </div>
 
         <div className="android-device-wrap" aria-label="Preview of voice practice in Thinking Bridge">
