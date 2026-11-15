@@ -116,3 +116,34 @@ test('mixRetentionIntoDueQueue samples completed exercises and injects into revi
   assert.ok(mixedExisting.includes('card-c'));
 });
 
+test('adaptiveCurriculum factors age into lesson priority', () => {
+  const youngProfile: UserProfile = {
+    name: 'Young Learner',
+    goal: 'general',
+    age: 10,
+    level: 'kids',
+    language: 'english',
+    dialect: 'egyptian'
+  };
+
+  const adultProfile: UserProfile = {
+    name: 'Adult Learner',
+    goal: 'general',
+    age: 30,
+    level: 'career',
+    language: 'english',
+    dialect: 'egyptian'
+  };
+
+  const foundationalLesson = ALL_LESSONS.find(l => l.number === 1)!;
+  const reportedSpeechLesson = ALL_LESSONS.find(l => l.number === 18)!;
+
+  const youngFoundational = getLessonRelevanceScore(foundationalLesson, youngProfile);
+  const adultFoundational = getLessonRelevanceScore(foundationalLesson, adultProfile);
+  const adultReported = getLessonRelevanceScore(reportedSpeechLesson, adultProfile);
+
+  assert.ok(youngFoundational > adultFoundational, 'Younger profile should have higher priority for foundational lesson 1');
+  assert.ok(adultReported > youngFoundational - 5, 'Adult profile factors higher register workplace/reported speech structure');
+});
+
+

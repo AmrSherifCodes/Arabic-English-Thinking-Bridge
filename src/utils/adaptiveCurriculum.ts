@@ -92,6 +92,25 @@ export function getLessonRelevanceScore(lesson: Lesson, profile?: UserProfile | 
     if (lesson.id === 'l-flow-2' || lesson.number === 10) score += 3;
   }
 
+  // 5. Age & Demographics Adaptive Factors
+  const userAge = profile?.age ?? (profile?.ageBand === '4-11' ? 8 : profile?.ageBand === '12-14' ? 13 : profile?.ageBand === '15-18' ? 16 : 22);
+  const isKidOrMiddle = userAge <= 14 || profile?.level === 'kids' || profile?.level === 'middle' || profile?.learnerTrack === 'kg_primary' || profile?.learnerTrack === 'prep_stage';
+  const isAdultOrCareer = userAge >= 18 || profile?.level === 'career' || profile?.level === 'high' || profile?.learnerTrack === 'uni_career' || profile?.learnerTrack === 'thanawiya_igcse';
+
+  if (isKidOrMiddle) {
+    // Younger learners: boost core building blocks, visual patterns & foundational sentence structures
+    if (lesson.id === 'l-found-1' || lesson.number === 1) score += 4;
+    if (lesson.id === 'l-found-2' || lesson.number === 2) score += 4;
+    if (lesson.id === 'l-found-7' || lesson.number === 7) score += 4;
+    if (lesson.id === 'l-found-8' || lesson.number === 8) score += 3;
+    if (lesson.id === 'l-found-5' || lesson.number === 5) score += 3;
+  } else if (isAdultOrCareer && goal !== 'travel') {
+    // Adult learners: boost high-register business, reported speech & analytical structures
+    if (lesson.id === 'l-mas-2' || lesson.number === 18) score += 3;
+    if (lesson.id === 'p3-l10' || lesson.number === 26) score += 3;
+    if (lesson.id === 'l-mas-6' || lesson.number === 22) score += 3;
+  }
+
   return score;
 }
 

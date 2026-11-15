@@ -25,3 +25,10 @@ tests/
 __tests__/
 **/*.test.*
 **/*.spec.*
+
+# Exclude offline Python desktop utilities and generator scripts from Vercel deployment scanner
+*.py
+Pasmagology/
+Wa3iCoder/
+Wa3iHub/
+
