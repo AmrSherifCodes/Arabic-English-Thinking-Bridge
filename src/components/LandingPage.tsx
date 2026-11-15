@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ArrowRight, Download, Globe, BookOpen, Smartphone, RefreshCw, Apple, Laptop, ExternalLink, Brain } from 'lucide-react';
+import { ArrowRight, Download, Globe, BookOpen, Smartphone, RefreshCw, Apple, Laptop, ExternalLink, Brain, Sparkles, Terminal, Tv, Briefcase, Cpu, ShieldCheck } from 'lucide-react';
 import { getPlatformInfo, storageAdapter } from '../platform/adapter';
 import { API_BASE_URL } from '../utils/api';
 import { usePwaInstall } from '../hooks/usePWAInstall';
 import { CreatorCard } from './CreatorCard';
+import { LandingPhoneMockup } from './LandingPhoneMockup';
 import './LandingPage.css';
 
 interface LandingPageProps {
