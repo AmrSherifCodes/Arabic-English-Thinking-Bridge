@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { ArrowDownToLine, AudioLines, BookOpen, Github, KeyRound, LockKeyhole, Mic2, WifiOff } from 'lucide-react';
+import { ArrowDownToLine, AudioLines, BookOpen, Github, KeyRound, LockKeyhole, Mic2, WifiOff, Globe } from 'lucide-react';
 import { CreatorCard } from './CreatorCard';
 import './android-landing-page.css';
 
 const APK_URL =
   'https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v1.1.0-unofficial.1/Thinking-Bridge-v1.1.0-unofficial.1.apk';
+const WEB_APP_URL = '/app';
 const RELEASES_URL = 'https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases';
 const GITHUB_URL = 'https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge';
 const X_URL = 'https://x.com/SciAmrSherif';
@@ -59,7 +60,7 @@ export function AndroidLandingPage() {
 
       <section className="android-hero">
         <div className="android-hero-copy">
-          <span className="android-eyebrow">FREE AND OPEN SOURCE · ANDROID APK</span>
+          <span className="android-eyebrow">FREE AND OPEN SOURCE · PWA & APK</span>
           <h1 id="android-hero-title">The Ultimate Offline Arabic-English AI Coach.</h1>
           <p className="android-subtitle">
             Rewire your brain to think in 10+ languages. Practice offline with lessons, dictionaries, and local speech.
@@ -67,15 +68,19 @@ export function AndroidLandingPage() {
           <p className="android-clarifier">
             Core learning works offline. AI coaching requires internet access; bring your own Gemini key for extended use.
           </p>
-          <a className="android-download-button" href={APK_URL} download>
-            <ArrowDownToLine size={23} aria-hidden="true" />
-            <span>Download APK <span aria-hidden="true">🚀</span></span>
-          </a>
-          <span className="android-version">Version 4.1.0 · Android · Free</span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', margin: '1rem 0' }}>
+            <a className="android-download-button" href={WEB_APP_URL} style={{ background: '#10B981', color: '#0A0E13', textDecoration: 'none', padding: '1rem 1.5rem', borderRadius: '14px', fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+              <Globe size={23} aria-hidden="true" />
+              <span>Launch Web App / PWA <span aria-hidden="true">⚡</span></span>
+            </a>
+            <a href={APK_URL} download style={{ background: '#1A222C', color: '#38BDF8', border: '1px solid rgba(56, 189, 248, 0.3)', textDecoration: 'none', padding: '0.85rem 1.25rem', borderRadius: '12px', fontWeight: 600, fontSize: '0.95rem', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+              <ArrowDownToLine size={19} aria-hidden="true" />
+              <span>Download Developer Build (APK Unstable)</span>
+            </a>
+          </div>
+          <span className="android-version">Version 4.1.0 · Web PWA & Android · Free</span>
           <p className="android-device-hint" role="status">
-            {isAndroid
-              ? 'Your Android download is ready. Allow installs from this source if prompted.'
-              : 'Download the APK and open it on your Android device to install.'}
+            Use the PWA for the best instant experience. APK is available for developer testing.
           </p>
         </div>
 
@@ -133,9 +138,9 @@ export function AndroidLandingPage() {
       </footer>
 
       <div className={`android-sticky-download${showStickyDownload ? ' is-visible' : ''}`} aria-hidden={!showStickyDownload}>
-        <a href={APK_URL} download tabIndex={showStickyDownload ? 0 : -1}>
-          <ArrowDownToLine size={19} aria-hidden="true" />
-          Download APK
+        <a href={WEB_APP_URL} tabIndex={showStickyDownload ? 0 : -1}>
+          <Globe size={19} aria-hidden="true" />
+          Launch PWA
         </a>
       </div>
     </main>
