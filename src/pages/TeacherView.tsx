@@ -3,6 +3,7 @@ import { chapter1 } from '../data/storyData';
 import { TeacherQRCode } from '../components/story/TeacherQRCode';
 import { useAgeSliderStore } from '../store/useAgeSliderStore';
 import { useLanguagePair } from '../hooks/useLanguagePair';
+import { LanguageCode } from '../types/story';
 
 export const TeacherView: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   const { ageGroup } = useAgeSliderStore();
@@ -73,7 +74,7 @@ export const TeacherView: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         <section className="space-y-4 flex flex-col">
           <div className="inline-block mb-2">
             <span className="px-6 py-2 bg-gradient-to-r from-teal-600 to-teal-800 text-white text-lg font-bold rounded-t-xl shadow-lg border-t border-x border-teal-500/50">
-              {currentScene.characterName[targetLang] || currentScene.characterName['en']}
+              {currentScene.characterName[targetLang as LanguageCode] || currentScene.characterName['en']}
             </span>
           </div>
 
@@ -89,7 +90,7 @@ export const TeacherView: React.FC<{ onBack: () => void }> = ({ onBack }) => {
           >
             {revealed ? (
               <p className="text-3xl md:text-5xl font-bold leading-relaxed relative z-10 text-center drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)]">
-                {currentScene.text[targetLang] || currentScene.text['en']}
+                {currentScene.text[targetLang as LanguageCode] || currentScene.text['en']}
               </p>
             ) : (
               <p className="text-2xl text-stone-500 italic text-center relative z-10 bg-black/60 px-6 py-3 rounded-full backdrop-blur-md">
