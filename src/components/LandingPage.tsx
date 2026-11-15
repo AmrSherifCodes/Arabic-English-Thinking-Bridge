@@ -20,7 +20,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
 
   const [email, setEmail] = useState('');
   const [subscribing, setSubscribing] = useState(false);
-  const [, setSubscribed] = useState<boolean>(() => {
+  const [subscribed, setSubscribed] = useState<boolean>(() => {
     return storageAdapter.getItem('tb.subscribed') === 'true';
   });
   const [subMessage, setSubMessage] = useState<string | null>(null);
@@ -104,6 +104,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
               <li><a href="#how">{isAr ? 'إزاي بنشتغل' : 'How it works'}</a></li>
               <li><a href="#stats">{isAr ? 'الأرقام' : 'Stats'}</a></li>
               <li><a href="#download-section">{isAr ? 'التنزيل' : 'Download'}</a></li>
+              <li><a href="#subscribe-section" className="text-[var(--gold)] font-bold">{isAr ? 'الاشتراك' : 'Subscribe'}</a></li>
             </ul>
           </nav>
 
