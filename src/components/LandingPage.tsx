@@ -128,33 +128,47 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
       <section className="hero">
         <div className="hero-bg" aria-hidden="true"></div>
         <div className="el-container hero-inner">
-          <div className="hero-badge">
-            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z"/>
-            </svg>
-            <span>{isAr ? 'منصة إسكندرانية — بتكلمك بجدعنة' : 'Alexandrian Platform — Straight to the point'}</span>
-          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+            {/* Hero Left Column: Main Headlines & Call To Action */}
+            <div className="lg:col-span-7 text-start space-y-6">
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="hero-badge m-0">
+                  <ShieldCheck size={16} className="text-[#2DD4BF]" />
+                  <span>{isAr ? 'مجاني · يعمل بدون إنترنت' : 'Free · 100% Offline'}</span>
+                </div>
+                <div className="hero-badge m-0 bg-amber-500/10 border-amber-500/30 text-amber-300">
+                  <Sparkles size={16} />
+                  <span>{isAr ? 'فكّر بالإنجليزي، مش تترجم.' : 'Think in English, don\'t translate.'}</span>
+                </div>
+              </div>
 
-          <h1>
-            {isAr ? 'اتعلم إنجليزي' : 'Learn English'}<br/>
-            <span className="accent">{isAr ? 'بعقلك المصري' : 'with your native mind'}</span><br/>
-            {isAr ? '— مش بترجمة حرفية' : '— no literal translation'}
-          </h1>
+              <h1 className="leading-tight">
+                {isAr ? 'اتعلم إنجليزي' : 'Learn English'}<br/>
+                <span className="accent">{isAr ? 'بعقلك المصري' : 'with your native mind'}</span><br/>
+                {isAr ? '— مش بترجمة حرفية' : '— no literal translation'}
+              </h1>
 
-          <p>
-            {isAr
-              ? 'بطل تترجم الكلمة بكلمتها فدماغك. هنا هنفهمك تركيب الجملة بالإنجليزي بطريقة منطقية عشان تتكلم بطلاقة وعلى طبيعتك، من قلب إسكندرية للمصريين كلهم.'
-              : 'Stop translating word-for-word in your head. Grasp the logical structure of English to speak fluently and naturally, straight from Alexandria to the world.'}
-          </p>
+              <p className="text-stone-200">
+                {isAr
+                  ? 'بطل تترجم الكلمة بكلمتها فدماغك. هنا هنفهمك تركيب الجملة بالإنجليزي بطريقة منطقية عشان تتكلم بطلاقة وعلى طبيعتك، من قلب إسكندرية للمصريين كلهم.'
+                  : 'Stop translating word-for-word in your head. Grasp the logical structure of English to speak fluently and naturally, straight from Alexandria to the world.'}
+              </p>
 
-          <div className="hero-cta">
-            <button onClick={handleLaunchApp} className="btn btn-gold">
-              {isAr ? 'ابدأ رحلتك مجاناً' : 'Start your journey for free'}
-              <ArrowRight size={18} className={isAr ? 'rotate-180' : ''} />
-            </button>
-            <a href="#how" className="btn btn-ghost" style={{ color: 'var(--sand-light)', borderColor: 'var(--sand-light)' }}>
-              {isAr ? 'شوف إزاي بنشتغل' : 'See how it works'}
-            </a>
+              <div className="hero-cta">
+                <button onClick={handleLaunchApp} className="btn btn-gold">
+                  {isAr ? 'ابدأ رحلتك مجاناً' : 'Start your journey for free'}
+                  <ArrowRight size={18} className={isAr ? 'rotate-180' : ''} />
+                </button>
+                <a href="#how" className="btn btn-ghost" style={{ color: 'var(--sand-light)', borderColor: 'var(--sand-light)' }}>
+                  {isAr ? 'شوف إزاي بنشتغل' : 'See how it works'}
+                </a>
+              </div>
+            </div>
+
+            {/* Hero Right Column: Interactive Phone Mockup */}
+            <div className="lg:col-span-5 flex justify-center py-4">
+              <LandingPhoneMockup isArabic={isAr} />
+            </div>
           </div>
         </div>
       </section>

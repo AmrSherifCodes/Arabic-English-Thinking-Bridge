@@ -54,3 +54,5 @@ Server: github.com
 [2026-11-15T23:39:26Z] ADVANCE -> 07-size-guard (commit dbc7a1f)
 [2026-11-15T23:39:28Z] COMMIT 4d6716a : perf(bundle): verify chunk splitting and service worker precache size
 [2026-11-15T23:39:31Z] ADVANCE -> 08-first-run (commit 4d6716a)
+[2026-11-15T23:39:34Z] COMMIT f61959c : qa(first-run): verify 60-second onboarding and immediate lesson start
+[2026-11-15T23:39:37Z] ADVANCE -> 09-docs (commit f61959c)
