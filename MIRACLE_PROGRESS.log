@@ -56,3 +56,11 @@ Server: github.com
 [2026-11-15T23:39:31Z] ADVANCE -> 08-first-run (commit 4d6716a)
 [2026-11-15T23:39:34Z] COMMIT f61959c : qa(first-run): verify 60-second onboarding and immediate lesson start
 [2026-11-15T23:39:37Z] ADVANCE -> 09-docs (commit f61959c)
+[2026-11-15T23:39:39Z] COMMIT 8e24541 : docs(readme): update state, installation guide, and CC0 provenance
+[2026-11-15T23:39:43Z] ADVANCE -> 10-audit (commit 8e24541)
+[2026-11-15T23:39:46Z] LINT: FAIL
+[2026-11-15T23:39:46Z] TEST: PASS
+[2026-11-15T23:39:46Z] BUILD: PASS
+[2026-11-15T23:41:02Z] LINT: PASS
+[2026-11-15T23:41:02Z] TEST: PASS
+[2026-11-15T23:41:02Z] BUILD: PASS

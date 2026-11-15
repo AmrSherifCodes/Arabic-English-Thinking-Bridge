@@ -43,7 +43,7 @@ export function LandingPhoneMockup({ isArabic = true }: { isArabic?: boolean }) 
   const [isSuccess, setIsSuccess] = useState(false);
 
   const handleChipClick = (chip: string, index: number) => {
-    soundFX.playChipTap();
+    soundFX.playChipSelect();
     const newSelected = [...selectedChips, chip];
     const newAvailable = availableChips.filter((_, i) => i !== index);
 
@@ -52,13 +52,13 @@ export function LandingPhoneMockup({ isArabic = true }: { isArabic?: boolean }) 
 
     const formedSentence = newSelected.join(' ');
     if (formedSentence === currentDrill.en) {
-      soundFX.playSuccess();
+      soundFX.playCorrect();
       setIsSuccess(true);
     }
   };
 
   const handleRemoveChip = (chip: string, index: number) => {
-    soundFX.playChipTap();
+    soundFX.playChipSelect();
     const newSelected = selectedChips.filter((_, i) => i !== index);
     setSelectedChips(newSelected);
     setAvailableChips([...availableChips, chip]);
@@ -66,14 +66,14 @@ export function LandingPhoneMockup({ isArabic = true }: { isArabic?: boolean }) 
   };
 
   const handleReset = () => {
-    soundFX.playChipTap();
+    soundFX.playChipSelect();
     setSelectedChips([]);
     setAvailableChips([...currentDrill.chips].sort(() => Math.random() - 0.5));
     setIsSuccess(false);
   };
 
   const handleNextDrill = () => {
-    soundFX.playChipTap();
+    soundFX.playChipSelect();
     const nextIdx = (drillIndex + 1) % DEMO_DRILLS.length;
     setDrillIndex(nextIdx);
     setSelectedChips([]);
@@ -109,7 +109,7 @@ export function LandingPhoneMockup({ isArabic = true }: { isArabic?: boolean }) 
           <div className="flex items-center justify-center gap-2 text-xl font-black text-amber-300" dir="rtl">
             <span>"{currentDrill.ar}"</span>
             <button
-              onClick={() => soundFX.playTone(440, 'sine', 0.15)}
+              onClick={() => soundFX.playChipSelect()}
               className="p-1 rounded-full bg-amber-500/10 text-amber-300 hover:bg-amber-500/20"
               aria-label="استمع"
             >

@@ -359,7 +359,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
       <section className="subscribe-section" id="subscribe-section" ref={easterEggRef}>
         <div className="el-container">
           <h2 className="h2">{t('landing2.subscribe_for_updates___secret')}</h2>
-          <p className="lede mx-auto">{isAr ? 'سجل دلوقتي وفعّل حسابك في دقيقة واحدة. أول درس مجاني بالكامل.' : 'Sign up now and activate your account in a minute. Your first lesson is completely free.'}</p>
+          <p className="lede mx-auto">{isAr ? 'سجل دلوقتي وفعّل حسابك في دقيقة واحدة. فتح الخزنة السرية للميزات المتقدمة!' : 'Sign up now and activate your account. Unlocks secret power tools!'}</p>
           <form onSubmit={handleSubscribe}>
             <input
               type="email"
@@ -380,6 +380,87 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
           </p>
           {subMessage && (
             <p className="mt-4 font-bold text-[var(--nile)]">{subMessage}</p>
+          )}
+
+          {/* Secret Feature Vault (Revealed when Subscribed) */}
+          {subscribed && (
+            <div className="mt-10 p-6 sm:p-8 rounded-3xl bg-[#0F172A] border-2 border-amber-500/60 shadow-2xl text-start text-white space-y-6 animate-in fade-in duration-300">
+              <div className="flex items-center justify-between border-b border-stone-800 pb-4">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="text-amber-400" size={24} />
+                  <h3 className="font-black text-lg sm:text-xl text-amber-300">
+                    {isAr ? '🔓 تم فتح الخزنة السرية للميزات المتقدمة!' : '🔓 Secret Feature Vault Unlocked!'}
+                  </h3>
+                </div>
+                <span className="text-xs font-mono px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                  SUBSCRIBER VIP PASS
+                </span>
+              </div>
+
+              <p className="text-xs sm:text-sm text-stone-300 leading-relaxed">
+                {isAr
+                  ? 'شكراً لاشتراكك! بصفتك عضواً في مجتمع جسر التفكير، لديك وصول فوري ومستمر لجميع الأدوات السرية:'
+                  : 'Thank you for subscribing! As a member, you have instant access to these advanced power features:'}
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="p-4 rounded-2xl bg-stone-900 border border-stone-800 space-y-3 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center gap-2 text-green-400 font-bold text-xs mb-1">
+                      <Terminal size={16} />
+                      <span>{isAr ? 'بيئة الطرفية' : 'Hacker Terminal'}</span>
+                    </div>
+                    <h4 className="font-bold text-sm text-white">{isAr ? 'الطرفية التفاعلية' : 'Terminal Mode'}</h4>
+                    <p className="text-[11px] text-stone-400 mt-1">{isAr ? 'تدريب الجسور بأوامر سطر الأوامر' : 'CLI structural bridge practice'}</p>
+                  </div>
+                  <button onClick={onLaunchApp} className="w-full py-2 rounded-xl bg-green-500 text-stone-950 font-bold text-xs hover:bg-green-400 transition">
+                    {isAr ? 'تشغيل الطرفية ⚡' : 'Launch Terminal ⚡'}
+                  </button>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-stone-900 border border-stone-800 space-y-3 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center gap-2 text-indigo-400 font-bold text-xs mb-1">
+                      <Tv size={16} />
+                      <span>{isAr ? 'الفصل الدراسي' : 'Teacher View'}</span>
+                    </div>
+                    <h4 className="font-bold text-sm text-white">{isAr ? 'وضع البروجيكتور' : 'Classroom Mode'}</h4>
+                    <p className="text-[11px] text-stone-400 mt-1">{isAr ? 'رمز QR للطلاب وعرض مكبر للمدرس' : 'Student QR + Big Projector Display'}</p>
+                  </div>
+                  <a href="/teacher" className="w-full py-2 rounded-xl bg-indigo-500 text-stone-950 font-bold text-xs text-center block hover:bg-indigo-400 transition">
+                    {isAr ? 'فتح وضع المعلم 🏫' : 'Open Teacher Mode 🏫'}
+                  </a>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-stone-900 border border-stone-800 space-y-3 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center gap-2 text-blue-400 font-bold text-xs mb-1">
+                      <Briefcase size={16} />
+                      <span>{isAr ? 'الصياغة الراقية' : 'Corporate Bridge'}</span>
+                    </div>
+                    <h4 className="font-bold text-sm text-white">{isAr ? 'مترجم الشركات' : 'Executive Tone'}</h4>
+                    <p className="text-[11px] text-stone-400 mt-1">{isAr ? 'تحويل العامية إلى إنجليزي الشركات' : 'Egyptian to Corporate English'}</p>
+                  </div>
+                  <button onClick={onLaunchApp} className="w-full py-2 rounded-xl bg-blue-500 text-stone-950 font-bold text-xs hover:bg-blue-400 transition">
+                    {isAr ? 'فتح المترجم 💼' : 'Launch Corporate 💼'}
+                  </button>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-stone-900 border border-stone-800 space-y-3 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center gap-2 text-teal-400 font-bold text-xs mb-1">
+                      <Cpu size={16} />
+                      <span>{isAr ? 'الذكاء الاصطناعي' : 'AI Agent'}</span>
+                    </div>
+                    <h4 className="font-bold text-sm text-white">{isAr ? 'معمل العميل المستقل' : 'Autonomous Agent'}</h4>
+                    <p className="text-[11px] text-stone-400 mt-1">{isAr ? 'مستكشف التحليل اللغوي المتقدم' : 'Linguistic Tool-Loop Agent'}</p>
+                  </div>
+                  <a href="/api/agent" target="_blank" rel="noopener noreferrer" className="w-full py-2 rounded-xl bg-teal-500 text-stone-950 font-bold text-xs text-center block hover:bg-teal-400 transition">
+                    {isAr ? 'معاينة العميل 🤖' : 'View AI Agent 🤖'}
+                  </a>
+                </div>
+              </div>
+            </div>
           )}
         </div>
       </section>
@@ -467,7 +548,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
           </div>
 
           <div className="footer-bottom">
-            © {new Date().getFullYear()} {isAr ? 'جسر التفكير' : 'Thinking Bridge'}. {t('landing2.made_in_alexandria__egypt')} 🇪🇬
+            © {new Date().getFullYear()} Amr Sherif Abdelaal — {isAr ? 'جسر التفكير' : 'Thinking Bridge'}. {t('landing2.made_in_alexandria__egypt')} 🇪🇬
           </div>
         </div>
       </footer>

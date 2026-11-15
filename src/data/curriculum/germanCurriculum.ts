@@ -1,8 +1,8 @@
 import { Phase, SourceLanguage } from '../../types';
 
 function sourceThought(source: SourceLanguage, ar: string, en: string): string {
-  if (source === 'ar') return ar;
-  return en; // TODO: add es/fr/zh/... when available
+  if (source === 'ar' || source === 'arz' || source === 'apc' || source === 'afb' || source === 'ary') return ar;
+  return en;
 }
 
 export function getGermanPhases(source: SourceLanguage): Phase[] {
