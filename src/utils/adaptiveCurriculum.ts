@@ -10,6 +10,116 @@ export interface AdaptiveRecommendation {
   tag: string;
 }
 
+export interface StageComplexityRules {
+  maxSentenceLength: number;
+  grammarFocusEn: string;
+  grammarFocusAr: string;
+  hasConjunctions: boolean;
+  hasComplexClauses: boolean;
+}
+
+/**
+ * Dynamic Level Complexity Tree (A0-B1 Tiers)
+ */
+export function getStageComplexityRules(stage: string): StageComplexityRules {
+  const normStage = (stage || 'A0').toUpperCase();
+  if (normStage === 'A0' || normStage === 'PRE-A0') {
+    return {
+      maxSentenceLength: 5,
+      grammarFocusEn: 'Pure Vocabulary & Basic Copula (am/is/are)',
+      grammarFocusAr: 'المفردات الأساسية وكوبري الكينونة البسيط',
+      hasConjunctions: false,
+      hasComplexClauses: false,
+    };
+  }
+  if (normStage === 'A1' || normStage === 'A1+') {
+    return {
+      maxSentenceLength: 8,
+      grammarFocusEn: 'Compound Sentences & Conjunctions (and, but, because)',
+      grammarFocusAr: 'الجمل المركبة وأدوات الربط الأولى',
+      hasConjunctions: true,
+      hasComplexClauses: false,
+    };
+  }
+  return {
+    maxSentenceLength: 14,
+    grammarFocusEn: 'Complex Clauses, Figurative Idioms & Abstract Register',
+    grammarFocusAr: 'الجمل المعقدة، التعبيرات الاصطلاحية والسياق الرفيع',
+    hasConjunctions: true,
+    hasComplexClauses: true,
+  };
+}
+
+/**
+ * Dynamically adjusts exercise word chips and time limits based on the user's difficulty knob.
+ */
+export function getDynamicExerciseOptions(
+  options: string[],
+  targetSentence: string,
+  difficultyLevel: 'Easy' | 'Medium' | 'Hard'
+): { wordChips: string[]; timerLimitSec?: number } {
+  const targetWords = targetSentence.trim().split(/\s+/);
+
+  if (difficultyLevel === 'Hard') {
+    const distractors = options.filter(
+      (opt) => !targetWords.some((w) => w.toLowerCase() === opt.toLowerCase())
+    );
+    if (distractors.length > 2) {
+      const distractorsToRemove = new Set(distractors.slice(0, 2));
+      const filteredOptions = options.filter((opt) => !distractorsToRemove.has(opt));
+      return { wordChips: filteredOptions, timerLimitSec: 15 };
+    }
+    return { wordChips: options, timerLimitSec: 15 };
+  }
+
+  if (difficultyLevel === 'Easy') {
+    return { wordChips: options, timerLimitSec: 35 };
+  }
+
+  return { wordChips: options, timerLimitSec: 25 };
+}
+
+/**
+ * Safely extracts user age group ('child' | 'teen' | 'adult') from profile.
+ * Defaults to 'adult' if profile is null, missing, or invalid.
+ */
+export function getUserAgeGroup(profile?: UserProfile | null): 'child' | 'teen' | 'adult' {
+  if (!profile) return 'adult';
+
+  try {
+    let numericAge: number | null = null;
+
+    if (typeof profile.age === 'number' && !Number.isNaN(profile.age)) {
+      numericAge = profile.age;
+    } else if (typeof profile.age === 'string') {
+      const parsed = parseInt(profile.age, 10);
+      if (!Number.isNaN(parsed)) {
+        numericAge = parsed;
+      }
+    }
+
+    if (numericAge !== null) {
+      if (numericAge < 13) return 'child';
+      if (numericAge < 18) return 'teen';
+      return 'adult';
+    }
+
+    const ageBand = (profile.ageBand || '') as string;
+    if (ageBand === '4-11' || ageBand === 'kids' || ageBand === 'child') return 'child';
+    if (ageBand === '12-14' || ageBand === '15-18' || ageBand === 'teen') return 'teen';
+    if (ageBand === '18-30' || ageBand === '30+' || ageBand === '19-24' || ageBand === '25+' || ageBand === 'adult') return 'adult';
+
+    const level = (profile.level || '') as string;
+    const track = (profile.learnerTrack || '') as string;
+    if (level === 'kids' || level === 'middle' || track === 'kg_primary') return 'child';
+    if (track === 'prep_stage' || track === 'thanawiya_igcse') return 'teen';
+  } catch (err) {
+    console.warn('Error parsing user age group, defaulting to adult:', err);
+  }
+
+  return 'adult';
+}
+
 /**
  * Returns relevance weight (1 to 10) for a given lesson based on user's goal and focus area.
  */
@@ -93,9 +203,9 @@ export function getLessonRelevanceScore(lesson: Lesson, profile?: UserProfile | 
   }
 
   // 5. Age & Demographics Adaptive Factors
-  const userAge = profile?.age ?? (profile?.ageBand === '4-11' ? 8 : profile?.ageBand === '12-14' ? 13 : profile?.ageBand === '15-18' ? 16 : 22);
-  const isKidOrMiddle = userAge <= 14 || profile?.level === 'kids' || profile?.level === 'middle' || profile?.learnerTrack === 'kg_primary' || profile?.learnerTrack === 'prep_stage';
-  const isAdultOrCareer = userAge >= 18 || profile?.level === 'career' || profile?.level === 'high' || profile?.learnerTrack === 'uni_career' || profile?.learnerTrack === 'thanawiya_igcse';
+  const ageGroup = getUserAgeGroup(profile);
+  const isKidOrMiddle = ageGroup === 'child' || profile?.level === 'kids' || profile?.level === 'middle' || profile?.learnerTrack === 'kg_primary' || profile?.learnerTrack === 'prep_stage';
+  const isAdultOrCareer = ageGroup === 'adult' || profile?.level === 'career' || profile?.level === 'high' || profile?.learnerTrack === 'uni_career' || profile?.learnerTrack === 'thanawiya_igcse';
 
   if (isKidOrMiddle) {
     // Younger learners: boost core building blocks, visual patterns & foundational sentence structures

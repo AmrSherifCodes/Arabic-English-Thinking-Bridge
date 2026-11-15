@@ -1,9 +1,36 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
+import confetti from 'canvas-confetti';
 import { LessonNode, ExerciseItem } from '../../progression/types';
-import { CheckCircle2, XCircle, ArrowRight, Zap, Timer, Sparkles } from 'lucide-react';
+import { CheckCircle2, XCircle, ArrowRight, Zap, Timer, Sparkles, Brain } from 'lucide-react';
 import { computeNextHintWord } from '../../utils/habitPsychology';
 import { soundFX } from '../../utils/soundFX';
+import { updateCognitiveProfile, runLocalTrainingStep, getDifficultyKnob } from '../../utils/OnlineLearningEngine';
+import { getDynamicExerciseOptions } from '../../utils/adaptiveCurriculum';
+
+function getSocraticHint(exercise: ExerciseItem, isArabic: boolean): string {
+  const target = (exercise.targetSentence || '').toLowerCase();
+  const arExplanation = exercise.explanationAr || '';
+
+  if (arExplanation.includes('كينونة') || arExplanation.includes('am') || arExplanation.includes('is') || arExplanation.includes('are') || target.includes(' am ') || target.includes(' is ') || target.includes(' are ')) {
+    return isArabic
+      ? '💡 تلميح سقراطي: في العربية نقول (أنا طالب)، لكن الإنجليزية تحتاج كوبري كينونة مثل (I am a student).'
+      : '💡 Socratic Hint: Arabic omits present copula (أنا طالب), but English demands the copula bridge "am/is/are".';
+  }
+  if (arExplanation.includes('حرف') || arExplanation.includes('جر') || arExplanation.includes('in') || arExplanation.includes('on') || arExplanation.includes('at')) {
+    return isArabic
+      ? '💡 تلميح سقراطي: حروف الجر المكانية تتحدد بالسياق الإدراكي (in للمساحة المغلقة، on للسطح، at للنقطة المحدد).'
+      : '💡 Socratic Hint: Spatial prepositions reflect spatial containers (in = volume, on = surface, at = point).';
+  }
+  if (target.includes('do') || target.includes('does') || target.includes('did')) {
+    return isArabic
+      ? '💡 تلميح سقراطي: في الاستفهام والنفـي نحتاج الفعل المساعد do/does لبناء الهيكل الصحيح.'
+      : '💡 Socratic Hint: Questions and negatives in English require auxiliary do/does verbs to anchor tense.';
+  }
+  return isArabic
+    ? '💡 تلميح سقراطي: ركز على ترتيب الفكر: الفاعل ➔ الفعل ➔ المفعول دون ترجمة حرفية لكل كلمة.'
+    : '💡 Socratic Hint: Order your thoughts natively: Subject ➔ Verb ➔ Object without literal word swapping.';
+}
 
 interface LessonRunnerProps {
   lesson: LessonNode;
@@ -29,6 +56,12 @@ export function LessonRunner({
   const [showSummary, setShowSummary] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
 
+  // Variable-Ratio Rewards & Streak Micro-Celebrations State
+  const [sessionStreak, setSessionStreak] = useState(0);
+  const [sessionXpEarned, setSessionXpEarned] = useState(0);
+  const [lastExerciseXp, setLastExerciseXp] = useState(10);
+  const [isCriticalHit, setIsCriticalHit] = useState(false);
+
   // Automaticity Timer Tracking (Reflex Speed in Seconds)
   const exerciseStartTimeRef = useRef<number>(Date.now());
   const [responseTimesMs, setResponseTimesMs] = useState<number[]>([]);
@@ -45,7 +78,14 @@ export function LessonRunner({
       ? currentExercise.wordChips
       : currentExercise.targetSentence ? currentExercise.targetSentence.split(/\s+/) : [];
 
-    const options = [...rawOptions];
+    const difficulty = getDifficultyKnob();
+    const { wordChips: dynamicChips } = getDynamicExerciseOptions(
+      rawOptions,
+      currentExercise.targetSentence,
+      difficulty
+    );
+
+    const options = [...dynamicChips];
     for (let index = options.length - 1; index > 0; index -= 1) {
       const swapIndex = Math.floor(Math.random() * (index + 1));
       [options[index], options[swapIndex]] = [options[swapIndex], options[index]];
@@ -57,7 +97,7 @@ export function LessonRunner({
     exerciseStartTimeRef.current = Date.now();
   }, [currentIndex]);
 
-  const triggerAutoHelper = useCallback(() => {
+  const triggerAutoHelper = useCallback((customPillMessage?: string) => {
     if (isAnswered || showSummary) return;
 
     const targetSentence = currentExercise.targetSentence || '';
@@ -97,9 +137,11 @@ export function LessonRunner({
       if (candidateOption) {
         setSelectedChips((prev) => [...prev, candidateOption!]);
         setAutoHintPill(
-          isArabic
-            ? `💡 تلميح: أضفنا "${candidateOption}" إلى إجابتك`
-            : `💡 Hint: Added "${candidateOption}" to your answer`
+          customPillMessage ?? (
+            isArabic
+              ? `💡 تلميح: أضفنا "${candidateOption}" إلى إجابتك`
+              : `💡 Hint: Added "${candidateOption}" to your answer`
+          )
         );
       }
     } else {
@@ -109,13 +151,27 @@ export function LessonRunner({
         const updatedInput = prefixToKeep ? `${prefixToKeep} ${nextWord}` : nextWord;
         setUserInput(updatedInput);
         setAutoHintPill(
-          isArabic
-            ? `💡 تلميح: أضفنا "${nextWord}" إلى إجابتك`
-            : `💡 Hint: Added "${nextWord}" to your answer`
+          customPillMessage ?? (
+            isArabic
+              ? `💡 تلميح: أضفنا "${nextWord}" إلى إجابتك`
+              : `💡 Hint: Added "${nextWord}" to your answer`
+          )
         );
       }
     }
   }, [isAnswered, showSummary, currentExercise, selectedChips, userInput, isArabic]);
+
+  // Automatic 30-second Idle Guard: Trigger hint automatically if user stays >30s on an exercise
+  useEffect(() => {
+    if (isAnswered || showSummary) return;
+    const timer = window.setTimeout(() => {
+      const msg = isArabic
+        ? '💡 تجاوزت 30 ثانية — إليك تلميح تلقائي'
+        : '💡 Over 30s — auto hint triggered';
+      triggerAutoHelper(msg);
+    }, 30000);
+    return () => window.clearTimeout(timer);
+  }, [currentIndex, isAnswered, showSummary, triggerAutoHelper, isArabic]);
 
   // Dismiss the manual-hint confirmation after 2.5s.
   useEffect(() => {
@@ -128,7 +184,9 @@ export function LessonRunner({
   const handleCheckAnswer = () => {
     if (isAnswered) return;
 
-    const timeSpentMs = Math.max(1000, Date.now() - exerciseStartTimeRef.current);
+    // Hole 1 Fix: Cap timeSpentMs at 30,000ms (30 seconds) to prevent ruined cognitive metrics on idle tabs
+    const rawTimeSpentMs = Math.max(1000, Date.now() - exerciseStartTimeRef.current);
+    const timeSpentMs = Math.min(30000, rawTimeSpentMs);
     setResponseTimesMs((prev) => [...prev, timeSpentMs]);
 
     let userSentence = '';
@@ -153,15 +211,56 @@ export function LessonRunner({
         (alt) => normalizeAnswer(alt) === normUser
       );
 
+    // Online Learning Engine PyTorch-Style Model Weight Update
+    const category = currentExercise.weakSpotTag || 'general';
+    updateCognitiveProfile(timeSpentMs, isMatch, category);
+    runLocalTrainingStep('answer_exercise', isMatch, category, timeSpentMs);
+
     setIsCorrect(isMatch);
+
     if (isMatch) {
+      // Hole 3 Fix: Variable-Ratio Reward Algorithm (Dopamine Loop)
+      // 10% chance Critical Hit (+50 XP), 10% chance Normal (+10 XP), 80% chance Standard (+15 XP)
+      const rand = Math.random();
+      let awardedXp = 15;
+      let critical = false;
+      if (rand < 0.10) {
+        awardedXp = 50; // Critical Hit! (10%)
+        critical = true;
+      } else if (rand < 0.20) {
+        awardedXp = 10; // Normal (10%)
+      } else {
+        awardedXp = 15; // Standard (80%)
+      }
+
+      setLastExerciseXp(awardedXp);
+      setIsCriticalHit(critical);
+      setSessionXpEarned((prev) => prev + awardedXp);
+
+      const nextStreak = sessionStreak + 1;
+      setSessionStreak(nextStreak);
+
       soundFX.playComboChord(correctAnswersCount + 1);
       if ((correctAnswersCount + 1) % 5 === 0) {
         soundFX.playFanfare();
       }
+
+      // Micro-Celebration: Trigger Confetti on 3-Streak or Critical Hit!
+      if (nextStreak % 3 === 0 || critical) {
+        confetti({
+          particleCount: critical ? 120 : 60,
+          spread: critical ? 100 : 70,
+          origin: { y: 0.6 },
+          colors: critical ? ['#FFD700', '#FF4500', '#00E676'] : undefined,
+        });
+      }
     } else {
       soundFX.playError();
+      setSessionStreak(0);
+      setIsCriticalHit(false);
+      setLastExerciseXp(0);
     }
+
     try {
       if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
         navigator.vibrate(isMatch ? [30, 40, 50] : [70]);
@@ -203,7 +302,7 @@ export function LessonRunner({
       automaticityTierEn = '💡 Good speed, keep practicing!';
     }
 
-    const earnedXp = Math.round((correctAnswersCount * 10) + (accuracy > 80 ? 20 : 0));
+    const earnedXp = sessionXpEarned + (accuracy > 80 ? 20 : 0);
 
     return (
       <div className="fixed inset-0 z-50 bg-bg/90 backdrop-blur-xl flex items-center justify-center p-0 sm:p-4" dir={isArabic ? 'rtl' : 'ltr'}>
@@ -313,10 +412,22 @@ export function LessonRunner({
               animate={{ y: -50, opacity: 0 }}
               transition={{ duration: 0.9, ease: 'easeOut' }}
               aria-live="polite"
-              className="pointer-events-none absolute end-5 top-6 z-10 rounded-full border border-success/40 bg-success/20 px-3 py-1 text-sm font-black text-success"
+              className={`pointer-events-none absolute end-5 top-6 z-10 rounded-full border px-3 py-1 text-sm font-black shadow-lg ${
+                isCriticalHit
+                  ? 'bg-amber-500/30 border-amber-400 text-amber-300 animate-bounce'
+                  : 'bg-success/20 border-success/40 text-success'
+              }`}
             >
-              +10 XP
+              {isCriticalHit ? '💥 +50 XP CRITICAL HIT!' : `+${lastExerciseXp} XP`}
             </motion.div>
+          )}
+
+          {/* Socratic Mnemonic Hint */}
+          {!isAnswered && (
+            <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-200 text-xs font-medium flex items-start gap-2.5 shadow-sm">
+              <Brain size={18} className="shrink-0 text-amber-400 mt-0.5" />
+              <span className="leading-relaxed">{getSocraticHint(currentExercise, isArabic)}</span>
+            </div>
           )}
 
           {/* Manual hint confirmation */}
@@ -339,7 +450,7 @@ export function LessonRunner({
 
               <button
                 type="button"
-                onClick={triggerAutoHelper}
+                onClick={() => triggerAutoHelper()}
                 className="px-3 py-2 rounded-xl bg-primary/20 border border-primary/40 text-primary hover:bg-primary hover:text-on-primary font-bold text-xs transition active:scale-95 shrink-0"
               >
                 {isArabic ? '💡 تلميح الآن' : '💡 Hint Now'}

@@ -250,6 +250,23 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
 
                       <button
                         type="button"
+                        onClick={handleFinish}
+                        className="w-full p-3.5 rounded-2xl border border-amber-500/50 bg-amber-500/10 hover:border-amber-400 hover:bg-amber-500/20 text-start transition-all flex items-center justify-between shadow-md"
+                      >
+                        <div className="space-y-0.5">
+                          <h2 className="text-xs sm:text-sm font-black text-amber-300 flex items-center gap-2">
+                            <span>⚡</span>
+                            <span>البدء بالمستوى التشخيصي التفاعلي فوراً</span>
+                          </h2>
+                          <p className="text-[11px] text-amber-200/70 font-medium dir-ltr text-start">
+                            Instant Level 1 Diagnostic (Skip Setup)
+                          </p>
+                        </div>
+                        <Zap size={18} className="text-amber-400 shrink-0 ms-2" />
+                      </button>
+
+                      <button
+                        type="button"
                         onClick={() => setShowArabicSubChoice(true)}
                         className="w-full p-4 rounded-2xl border border-stone-700 bg-stone-800/80 hover:border-amber-400/60 hover:bg-stone-800 text-start transition-all flex items-center justify-between shadow-md"
                       >

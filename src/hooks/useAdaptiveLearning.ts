@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { GlobalTutorBrain } from '../utils/OnlineLearningEngine';
 
 export interface LearningStats {
   totalAnswers: number;
@@ -61,22 +62,29 @@ export function useAdaptiveLearning() {
     }
   }, [stats]);
 
-  const recordAnswer = useCallback((isCorrect: boolean) => {
-    setStats(previous => {
-      const totalAnswers = previous.totalAnswers + 1;
-      const correctAnswers = previous.correctAnswers + Number(isCorrect);
-      return {
-        totalAnswers,
-        correctAnswers,
-        accuracyRate: correctAnswers / totalAnswers,
-        consecutiveErrors: isCorrect ? 0 : previous.consecutiveErrors + 1
-      };
-    });
-  }, []);
+  const recordAnswer = useCallback(
+    (isCorrect: boolean, reactionTimeMs: number = 3000, category: string = 'general') => {
+      // Record answer in GlobalTutorBrain (updates EMA, errorWeights, and dynamic difficulty level)
+      GlobalTutorBrain.getInstance().recordResult(isCorrect, reactionTimeMs, category);
+
+      setStats((previous) => {
+        const totalAnswers = previous.totalAnswers + 1;
+        const correctAnswers = previous.correctAnswers + Number(isCorrect);
+        return {
+          totalAnswers,
+          correctAnswers,
+          accuracyRate: correctAnswers / totalAnswers,
+          consecutiveErrors: isCorrect ? 0 : previous.consecutiveErrors + 1,
+        };
+      });
+    },
+    []
+  );
 
   return {
     ...stats,
     isStruggling: stats.consecutiveErrors >= 3,
-    recordAnswer
+    recordAnswer,
   };
 }
+

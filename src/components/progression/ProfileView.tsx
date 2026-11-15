@@ -3,7 +3,119 @@ import { ProgressionState } from '../../progression/types';
 import { SkillRadar } from './SkillRadar';
 import { UserProfile } from '../../types';
 import { TARGET_LANGUAGE_META } from '../../data/languages';
-import { Shield, Download, Upload, Trash2, Settings, HelpCircle, Moon, Sun, Lock, Share2, CheckCircle2 } from 'lucide-react';
+import { Shield, Download, Upload, Trash2, Settings, HelpCircle, Moon, Sun, Lock, Share2, CheckCircle2, Brain } from 'lucide-react';
+import { GlobalTutorBrain } from '../../utils/OnlineLearningEngine';
+
+export function BrainActivityMatrixCard({ isArabic = true }: { isArabic?: boolean }) {
+  const brain = GlobalTutorBrain.getInstance();
+  const profile = brain.getProfile();
+  const nodes = brain.getBrainMatrixNodes();
+
+  return (
+    <div className="p-5 rounded-3xl bg-stone-900 border border-stone-800 space-y-4 shadow-xl text-start">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
+          <div className="p-2 rounded-xl bg-teal-500/20 text-teal-400 border border-teal-500/30">
+            <Brain size={20} />
+          </div>
+          <div>
+            <h4 className="text-sm font-black text-white flex items-center gap-1.5">
+              <span>{isArabic ? 'شبكة الوعي الإدراكي (Neural Matrix)' : 'Neural Matrix Brain Activity'}</span>
+            </h4>
+            <p className="text-[10px] text-stone-400 font-medium">
+              {isArabic ? 'مصفوفة إدراكية حية تتتبع نقاط القوة والضعف عصبياً' : 'On-device neural matrix tracking cognitive strengths'}
+            </p>
+          </div>
+        </div>
+
+        <span className={`px-2.5 py-1 rounded-full text-[10px] font-black border ${
+          profile.difficultyLevel === 'Hard'
+            ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+            : profile.difficultyLevel === 'Medium'
+            ? 'bg-teal-500/20 text-teal-300 border-teal-500/40'
+            : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+        }`}>
+          {isArabic ? `المستوى: ${profile.difficultyLevel}` : `Level: ${profile.difficultyLevel}`}
+        </span>
+      </div>
+
+      {/* Hole 4: Neural Matrix Grid (Colored Squares: Green = Strong concept, Red = Weak concept) */}
+      <div className="space-y-2">
+        <span className="text-[11px] font-bold text-stone-300 block">
+          {isArabic ? 'مصفوفة المفاهيم الإدراكية:' : 'Cognitive Concept Matrix:'}
+        </span>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          {Object.entries(profile.errorWeights).map(([category, errWeight]) => {
+            const isStrong = errWeight <= 0.4;
+            const isWeak = errWeight >= 0.6;
+            const colorClass = isStrong
+              ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'
+              : isWeak
+              ? 'bg-red-500/20 border-red-500/40 text-red-300'
+              : 'bg-amber-500/20 border-amber-500/40 text-amber-300';
+            const dotColor = isStrong ? 'bg-emerald-400' : isWeak ? 'bg-red-400' : 'bg-amber-400';
+
+            return (
+              <div
+                key={category}
+                className={`p-2.5 rounded-2xl border flex flex-col items-center justify-center text-center gap-1 ${colorClass}`}
+              >
+                <div className="flex items-center gap-1.5">
+                  <span className={`w-2 h-2 rounded-full ${dotColor} animate-pulse`} />
+                  <span className="text-xs font-black capitalize">{category.replace('_', ' ')}</span>
+                </div>
+                <span className="text-[10px] font-mono font-bold opacity-90">
+                  {isStrong
+                    ? (isArabic ? 'مفهوم قوي 🟢' : 'Strong 🟢')
+                    : isWeak
+                    ? (isArabic ? 'مفهوم ضعيف 🔴' : 'Weak 🔴')
+                    : (isArabic ? 'متوسط 🟡' : 'Medium 🟡')}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Model Hyperparameters & Loss Strip */}
+      <div className="grid grid-cols-3 gap-2 text-center p-3 rounded-2xl bg-stone-950 border border-stone-800/80">
+        <div>
+          <span className="text-[10px] text-stone-500 block uppercase font-mono">Epochs</span>
+          <span className="text-xs font-black text-teal-400">{profile.epoch}</span>
+        </div>
+        <div>
+          <span className="text-[10px] text-stone-500 block uppercase font-mono">MSE Loss</span>
+          <span className="text-xs font-black text-amber-400">{profile.loss.toFixed(4)}</span>
+        </div>
+        <div>
+          <span className="text-[10px] text-stone-500 block uppercase font-mono">Avg Speed</span>
+          <span className="text-xs font-black text-emerald-400">{(profile.avgReactionTime / 1000).toFixed(1)}s</span>
+        </div>
+      </div>
+
+      {/* Neural Weight Nodes */}
+      <div className="space-y-3 pt-1">
+        {nodes.map((node) => {
+          const percent = Math.round(node.weight * 100);
+          return (
+            <div key={node.id} className="space-y-1">
+              <div className="flex items-center justify-between text-xs font-bold">
+                <span className="text-stone-300">{isArabic ? node.labelAr : node.labelEn}</span>
+                <span className="text-teal-400 font-mono text-[11px]">{percent}%</span>
+              </div>
+              <div className="w-full h-2 rounded-full bg-stone-950 overflow-hidden border border-stone-800">
+                <div
+                  className="h-full bg-gradient-to-r from-teal-500 to-emerald-400 transition-all duration-500 rounded-full"
+                  style={{ width: `${percent}%` }}
+                />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 interface ProfileViewProps {
   state: ProgressionState;
@@ -232,7 +344,10 @@ export function ProfileView({
         </div>
       </div>
 
-      {/* 2. 5-Skill Radar Chart */}
+      {/* 2. PyTorch-Style Local Neural Matrix */}
+      <BrainActivityMatrixCard isArabic={isArabic} />
+
+      {/* 3. 5-Skill Radar Chart */}
       <SkillRadar skills={state.skills} isArabic={isArabic} />
 
       {/* 3. Settings & Controls */}

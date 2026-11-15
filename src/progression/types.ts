@@ -29,6 +29,7 @@ export interface ExerciseItem {
   explanationAr: string;
   explanationEn: string;
   skillAxes: SkillAxis[];
+  weakSpotTag?: string;
 }
 
 export interface LessonNode {

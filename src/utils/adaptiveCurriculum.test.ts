@@ -146,4 +146,17 @@ test('adaptiveCurriculum factors age into lesson priority', () => {
   assert.ok(adultReported > youngFoundational - 5, 'Adult profile factors higher register workplace/reported speech structure');
 });
 
+test('getUserAgeGroup safely handles null, string, number, and missing age inputs', async () => {
+  const { getUserAgeGroup } = await import('./adaptiveCurriculum');
+
+  assert.equal(getUserAgeGroup(null), 'adult');
+  assert.equal(getUserAgeGroup(undefined), 'adult');
+  assert.equal(getUserAgeGroup({ age: 10 } as any), 'child');
+  assert.equal(getUserAgeGroup({ age: '15' } as any), 'teen');
+  assert.equal(getUserAgeGroup({ age: '25' } as any), 'adult');
+  assert.equal(getUserAgeGroup({ age: 'invalid' as any, ageBand: '4-11' } as any), 'child');
+});
+
+
+
 
