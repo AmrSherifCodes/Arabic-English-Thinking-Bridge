@@ -11,3 +11,8 @@ Date: Sun, 15 Nov 2026 23:26:44 GMT
 Content-Type: text/plain; charset=utf-8
 Server: github.com
 (404 expected since APK was missing/demoted to developer build)
+[2026-11-15T23:28:33Z] COMMIT 18f63e6 : fix(apk): remove broken link, PWA is sole install path
+[2026-11-15T23:28:36Z] LINT: PASS
+[2026-11-15T23:28:36Z] TEST: FAIL (8 lines)
+[2026-11-15T23:28:36Z] BUILD: PASS
+[PHASE 1 CLOSED] APK link removed or rebuilt. PWA is primary CTA.
