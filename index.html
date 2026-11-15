@@ -14,6 +14,8 @@
     <meta name="apple-mobile-web-app-title" content="فكّر إنجليزي" />
     <meta name="application-name" content="فكّر إنجليزي" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' capacitor: http://localhost https://localhost; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https://flagcdn.com; media-src 'self' data: blob:; connect-src 'self' capacitor: http://localhost https://localhost https://tb-eg.vercel.app https://arabicenglishthinkingbridge.vercel.app https://generativelanguage.googleapis.com https://api.mymemory.translated.net; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';" />
+    <script src="/theme-init.js"></script>
 
     <!-- SEO & Hreflang Tags -->
     <title>فكّر إنجليزي · Thinking English | جسر التفكير المعرفي</title>
@@ -28,12 +30,12 @@
     <meta property="og:description" content="تطبيق مجاني 100% بدون إنترنت للتفكير بالإنجليزي وتجاوز الترجمة الحرفية بعقلك المصري." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://tb-eg.vercel.app" />
-    <meta property="og:image" content="https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=1200&q=80" />
+    <meta property="og:image" content="https://tb-eg.vercel.app/og-image.jpg" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@sciamrsherif" />
     <meta name="twitter:title" content="فكّر إنجليزي · Thinking English" />
     <meta name="twitter:description" content="تطبيق إسكندراني مجاني يعمل بدون إنترنت للتعلم المعرفي السريع." />
-    <meta name="twitter:image" content="https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=1200&q=80" />
+    <meta name="twitter:image" content="https://tb-eg.vercel.app/og-image.jpg" />
 
     <!-- Structured Data (JSON-LD) -->
     <script type="application/ld+json">
@@ -1438,49 +1440,7 @@
     </div>
 
     <!-- Script for Dynamic Interactions -->
-    <script>
-      // Copyright Year
-      document.getElementById('cr-year').textContent = new Date().getFullYear();
-
-      // Check existing subscription status
-      if (localStorage.getItem('tb.subscribed') === 'true') {
-        const ee = document.getElementById('easter-egg');
-        if (ee) ee.classList.add('active');
-      }
-
-      // Handle Subscription Form
-      function handleSubscription(e) {
-        e.preventDefault();
-        const email = document.getElementById('sub-email').value.trim();
-        if (!email) return;
-
-        localStorage.setItem('tb.subscribed', 'true');
-        const ee = document.getElementById('easter-egg');
-        if (ee) ee.classList.add('active');
-
-        // Mailto trigger for privacy-first email dispatch
-        const mailtoUrl = 'mailto:amrsherifwork@gmail.com?subject=' + encodeURIComponent('Thinking Bridge Subscription') + '&body=' + encodeURIComponent('Please subscribe: ' + email);
-        window.location.href = mailtoUrl;
-      }
-
-      // Toggle iOS Guide Modal
-      function toggleIosGuide() {
-        const modal = document.getElementById('ios-modal');
-        if (modal) modal.classList.toggle('active');
-      }
-
-      // Language Switcher placeholder
-      function toggleLanguage() {
-        const currentLang = document.documentElement.lang;
-        if (currentLang === 'ar') {
-          document.documentElement.lang = 'en';
-          document.documentElement.dir = 'ltr';
-        } else {
-          document.documentElement.lang = 'ar';
-          document.documentElement.dir = 'rtl';
-        }
-      }
-    </script>
+    <script src="/landing-init.js"></script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

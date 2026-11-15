@@ -295,7 +295,9 @@ export default async function ttsHandler(req, res) {
     res.setHeader('Cache-Control', 'public, s-maxage=31536000, immutable');
     res.end(audio.data);
   } catch (error) {
-    console.error('TTS error:', error);
+    if (process.env.NODE_ENV !== 'test') {
+      console.error('TTS synthesis exception:', error);
+    }
     res.statusCode = 502;
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     res.end(

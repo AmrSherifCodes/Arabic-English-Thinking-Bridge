@@ -312,7 +312,9 @@ You must autonomously use at least one tool (such as knowledge_retriever, lingui
           };
         }
       } catch (err) {
-        console.warn('Live AI SDK execution failed, falling back to deterministic agent loop:', err.message || err);
+        if (process.env.NODE_ENV !== 'test') {
+          console.warn('Live AI SDK execution failed, falling back to deterministic agent loop:', err.message || err);
+        }
         agentResult = await runDeterministicAgentLoop(prompt);
       }
     } else {
