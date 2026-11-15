@@ -64,3 +64,8 @@ capture_screenshots.mjs
 nitron.keystore.json
 *.apk
 dist/*.aab
+
+# Python cache
+__pycache__/
+*.pyc
+
