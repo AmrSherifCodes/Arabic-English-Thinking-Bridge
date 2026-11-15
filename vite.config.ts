@@ -3,6 +3,7 @@ import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
+import { viteStaticCopy } from 'vite-plugin-static-copy';
 
 const BASE = process.env.CAPACITOR_BUILD === 'true' ? './' : (process.env.VITE_BASE ?? '/');
 
@@ -42,6 +43,14 @@ export default defineConfig(async ({ command, mode }) => {
       react(),
       ...devPlugins,
       tailwindcss(),
+      viteStaticCopy({
+        targets: [
+          {
+            src: 'node_modules/pyodide/*.{js,mjs,wasm,json,zip,whl}',
+            dest: 'pyodide',
+          },
+        ],
+      }),
       VitePWA({
         registerType: 'autoUpdate',
         injectRegister: false,
@@ -85,14 +94,38 @@ export default defineConfig(async ({ command, mode }) => {
               return { manifest, warnings: [] };
             },
           ],
-          globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,json}'],
-          globIgnores: ['**/dict-*.js', '**/curriculum-core-*.js', '**/app-data-*.js', '**/*.wasm'],
+          globPatterns: ['**/*.{js,css,html,woff2}'],
+          globIgnores: ['**/pyodide/**', '**/*.wasm', '**/assets/dict-*.js', '**/curriculum-core-*.js', '**/app-data-*.js'],
           navigateFallback: `${BASE}index.html`,
           navigateFallbackDenylist: [/^\/apk/, /^\/download/, /^\/api/],
           cleanupOutdatedCaches: true,
           runtimeCaching: [
             {
-              urlPattern: ({ url }) => url.pathname.includes('assets/dict-') || url.pathname.includes('assets/curriculum-data-') || url.pathname.includes('assets/app-data-'),
+              urlPattern: /\/pyodide\/.*/,
+              handler: 'CacheFirst',
+              options: {
+                cacheName: 'pyodide-runtime',
+                expiration: { maxEntries: 50, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              },
+            },
+            {
+              urlPattern: /\.wasm$/,
+              handler: 'CacheFirst',
+              options: {
+                cacheName: 'wasm-runtime',
+                expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              },
+            },
+            {
+              urlPattern: /\/assets\/dict-.*\.js$/,
+              handler: 'CacheFirst',
+              options: {
+                cacheName: 'dictionaries',
+                expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              },
+            },
+            {
+              urlPattern: ({ url }) => url.pathname.includes('assets/curriculum-data-') || url.pathname.includes('assets/app-data-'),
               handler: 'StaleWhileRevalidate',
               options: {
                 cacheName: 'dictionary-runtime-cache',

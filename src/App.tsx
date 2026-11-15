@@ -99,11 +99,15 @@ const PronunciationRecorder = lazy(() => import('./features/voice/PronunciationR
 const StudioDashboard = lazy(() => import('./features/studio/StudioDashboard').then((m) => ({ default: m.StudioDashboard })));
 const ClarifyingCoachView = lazy(() => import('./features/clarifying/ClarifyingCoachView').then((m) => ({ default: m.ClarifyingCoachView })));
 const LanguageGame = lazy(() => import('./pages/LanguageGame').then((m) => ({ default: m.LanguageGame })));
+const HackerTerminal = lazy(() => import('./components/story/HackerTerminal').then((m) => ({ default: m.HackerTerminal })));
+const StoryEngineLoader = lazy(() => import('./components/story/StoryEngineLoader').then((m) => ({ default: m.StoryEngineLoader })));
+const TeacherView = lazy(() => import('./pages/TeacherView').then((m) => ({ default: m.TeacherView })));
 
 type View =
   | { name: 'shell' }
   | { name: 'landing' }
   | { name: 'android' }
+  | { name: 'teacher' }
   | { name: 'voice' }
   | { name: 'flashcards'; deckId?: string }
   | { name: 'corporate' }
@@ -113,7 +117,9 @@ type View =
   | { name: 'maintenance' }
   | { name: 'pronunciation' }
   | { name: 'studio' }
-  | { name: 'language-game' };
+  | { name: 'language-game' }
+  | { name: 'story'; chapterId: string }
+  | { name: 'hacker-terminal' };
 
 export default function App() {
   const [audioUnlocked, setAudioUnlocked] = useState(() => {
@@ -132,6 +138,7 @@ export default function App() {
 
         if (path === '/android') return { name: 'android' };
         if (path === '/language-game') return { name: 'language-game' };
+        if (path === '/teacher') return { name: 'teacher' };
         if (urlParams.get('admin') === 'true') return { name: 'studio' };
         if (urlParams.get('app') === 'true' || path === '/app') {
           return { name: 'shell' };
@@ -253,6 +260,8 @@ export default function App() {
       return () => window.clearTimeout(t);
     }
   }, []);
+
+
 
   const T = (ar: string, en: string) => (
     <>
@@ -411,6 +420,9 @@ export default function App() {
               onOpenClarifying={() => setView({ name: 'clarifying' })}
               onOpenMaintenance={() => setView({ name: 'maintenance' })}
               onOpenPronunciation={() => setView({ name: 'pronunciation' })}
+              onOpenStory={() => setView({ name: 'story', chapterId: 'chapter-1-cairo-airport' })}
+              onOpenHackerTerminal={() => setView({ name: 'hacker-terminal' })}
+              onOpenTeacherMode={() => setView({ name: 'teacher' })}
               isArabic={isArabic}
             />
           )}
@@ -545,6 +557,32 @@ export default function App() {
             }
             setView({ name: 'landing' });
           }} />
+        </Suspense>
+      )}
+
+      {view.name === 'story' && (
+        <Suspense fallback={<div className="min-h-screen bg-[#0A0E13] text-[#EEF2F5] flex items-center justify-center font-arabic">جاري تحميل القصة...</div>}>
+          <StoryEngineLoader
+            sourceLang={sourceLang as import('./types/story').LanguageCode}
+            targetLang={targetLang as import('./types/story').LanguageCode}
+            onComplete={() => {
+              showToast(T('🎉 أكملت الفصل الأول!', '🎉 Chapter 1 completed!'));
+              setView({ name: 'shell' });
+            }}
+            onBack={() => setView({ name: 'shell' })}
+          />
+        </Suspense>
+      )}
+
+      {view.name === 'hacker-terminal' && (
+        <Suspense fallback={<div className="min-h-screen bg-black text-green-500 font-mono flex items-center justify-center">INITIALIZING TERMINAL...</div>}>
+          <HackerTerminal onComplete={() => setView({ name: 'shell' })} />
+        </Suspense>
+      )}
+
+      {view.name === 'teacher' && (
+        <Suspense fallback={<div className="min-h-screen bg-black text-teal-500 flex items-center justify-center">Loading Teacher Mode...</div>}>
+          <TeacherView onBack={() => setView({ name: 'shell' })} />
         </Suspense>
       )}
 

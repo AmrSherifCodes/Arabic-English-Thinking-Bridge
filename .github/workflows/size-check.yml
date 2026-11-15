@@ -1,0 +1,19 @@
+name: Size Guard
+on: [push, pull_request]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: npm }
+      - run: npm ci
+      - run: npm run build
+      - run: |
+          SIZE=$(du -sb dist | cut -f1)
+          LIMIT=$((100 * 1024 * 1024))
+          echo "dist size: $SIZE bytes / limit: $LIMIT bytes"
+          if [ "$SIZE" -gt "$LIMIT" ]; then
+            echo "::error::Build exceeds 100 MB constitutional limit"
+            exit 1
+          fi

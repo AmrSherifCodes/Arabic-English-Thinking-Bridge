@@ -12,6 +12,9 @@ interface PracticeHubViewProps {
   onOpenClarifying?: () => void;
   onOpenMaintenance?: () => void;
   onOpenPronunciation?: () => void;
+  onOpenStory?: () => void;
+  onOpenHackerTerminal?: () => void;
+  onOpenTeacherMode?: () => void;
   isArabic?: boolean;
 }
 
@@ -23,6 +26,9 @@ export function PracticeHubView({
   onOpenClarifying,
   onOpenMaintenance,
   onOpenPronunciation,
+  onOpenStory,
+  onOpenHackerTerminal,
+  onOpenTeacherMode,
   isArabic = true,
 }: PracticeHubViewProps) {
   const dueItems = getDueSrsQueue(state.srsItems, state.dailyCardsCap);
@@ -38,6 +44,38 @@ export function PracticeHubView({
           {isArabic ? 'اختر النمط المناسب لتثبيت التفكير والطلاقة' : 'Select a practice mode to build instant reflexes'}
         </p>
       </div>
+
+      {/* Story Engine Quick Launch */}
+      <div className="flex gap-4">
+          <button
+            type="button"
+            onClick={onOpenStory}
+            className="flex-1 bg-gradient-to-br from-amber-500/20 to-orange-500/20 hover:from-amber-500/30 hover:to-orange-500/30 border border-amber-500/30 rounded-3xl p-4 flex flex-col items-center justify-center gap-2 transition-all active:scale-95 shadow-md"
+          >
+            <span className="text-3xl filter drop-shadow-md">📖</span>
+            <span className="font-bold text-amber-200 text-sm">{isArabic ? 'القصة التفاعلية' : 'Story Engine'}</span>
+          </button>
+          <button
+            type="button"
+            onClick={onOpenHackerTerminal}
+            className="flex-1 bg-gradient-to-br from-green-500/20 to-emerald-500/20 hover:from-green-500/30 hover:to-emerald-500/30 border border-green-500/30 rounded-3xl p-4 flex flex-col items-center justify-center gap-2 transition-all active:scale-95 shadow-md"
+          >
+            <span className="text-3xl filter drop-shadow-md">💻</span>
+            <span className="font-bold text-green-300 text-sm">{isArabic ? 'الطرفية (Pyodide)' : 'Hacker Terminal'}</span>
+          </button>
+      </div>
+
+      <button onClick={onOpenTeacherMode} className="w-full mt-4 p-4 rounded-3xl bg-stone-900 border border-indigo-500/40 hover:border-indigo-400 transition text-start shadow-md flex items-center justify-between">
+        <div className="space-y-1">
+          <div className="flex items-center gap-1.5 text-indigo-400 font-bold text-xs">
+            <span>🏫</span>
+            <span>وضع المعلّم · Offline-Ready</span>
+          </div>
+          <h3 className="font-black text-sm text-white">{isArabic ? 'وضع الفصل الدراسي' : 'Classroom Mode'}</h3>
+          <p className="text-xs text-stone-400">{isArabic ? 'QR للطلاب + عرض تكبير للبروجيكتور' : 'Student QR + Projector Mode'}</p>
+        </div>
+        <span className="text-3xl">🏫</span>
+      </button>
 
       <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2">
         {/* Mode 1: AI Voice Conversation Practice */}
