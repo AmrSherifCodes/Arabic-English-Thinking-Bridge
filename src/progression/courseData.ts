@@ -336,7 +336,7 @@ export const LOCALIZED_A0_LESSONS: Record<LocalizedTarget, LocalizedLessonDefini
     {
       id: 'fr-a0-student',
       titleEn: 'First-Person Subject Pronoun & Verb',
-      titleAr: 'ضمير المتكلم وفعل الكينونة',
+      titleAr: 'ضمير المتكلم وفعل الربط (am/suis)',
       descriptionEn: 'Express identity with Je suis.',
       descriptionAr: 'التعبير عن الهوية والمهنة مع Je suis.',
       promptAr: 'أنا طالب.',
@@ -354,7 +354,7 @@ export const LOCALIZED_A0_LESSONS: Record<LocalizedTarget, LocalizedLessonDefini
     {
       id: 'fr-a0-engineer',
       titleEn: 'Third-Person Singular Copula',
-      titleAr: 'ضمير الغائب مع فعل الكينونة',
+      titleAr: 'ضمير الغائب وفعل الربط (is/est)',
       descriptionEn: 'Express third-person singular identity with Il est.',
       descriptionAr: 'التعبير عن الغائب المذكر مع Il est.',
       promptAr: 'هو مهندس.',

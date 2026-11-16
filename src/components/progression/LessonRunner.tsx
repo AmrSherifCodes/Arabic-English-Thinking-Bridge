@@ -12,24 +12,24 @@ function getSocraticHint(exercise: ExerciseItem, isArabic: boolean): string {
   const target = (exercise.targetSentence || '').toLowerCase();
   const arExplanation = exercise.explanationAr || '';
 
-  if (arExplanation.includes('كينونة') || arExplanation.includes('am') || arExplanation.includes('is') || arExplanation.includes('are') || target.includes(' am ') || target.includes(' is ') || target.includes(' are ')) {
+  if (arExplanation.includes('كينونة') || arExplanation.includes('ربط') || arExplanation.includes('am') || arExplanation.includes('is') || arExplanation.includes('are') || target.includes(' am ') || target.includes(' is ') || target.includes(' are ')) {
     return isArabic
-      ? '💡 تلميح سقراطي: في العربية نقول (أنا طالب)، لكن الإنجليزية تحتاج كوبري كينونة مثل (I am a student).'
-      : '💡 Socratic Hint: Arabic omits present copula (أنا طالب), but English demands the copula bridge "am/is/are".';
+      ? '💡 سر التركيب بالبلدي: في العربي بنقول (أنا طالب) على طول، لكن الإنجليزي ميعرفش يعيش من غير فعل ربط يسند الجملة زي (I am a student).'
+      : '💡 Native Tip: Arabic omits present linking verbs (أنا طالب), but English requires the linking verb "am/is/are".';
   }
   if (arExplanation.includes('حرف') || arExplanation.includes('جر') || arExplanation.includes('in') || arExplanation.includes('on') || arExplanation.includes('at')) {
     return isArabic
-      ? '💡 تلميح سقراطي: حروف الجر المكانية تتحدد بالسياق الإدراكي (in للمساحة المغلقة، on للسطح، at للنقطة المحدد).'
-      : '💡 Socratic Hint: Spatial prepositions reflect spatial containers (in = volume, on = surface, at = point).';
+      ? '💡 سر التركيب بالبلدي: حروف الجر أصلها المفهوم الذهني (in للمكان المقفول، on للسطح المستوي، at لنقطة معينة).'
+      : '💡 Native Tip: Spatial prepositions reflect spatial containers (in = enclosed space, on = surface, at = specific point).';
   }
   if (target.includes('do') || target.includes('does') || target.includes('did')) {
     return isArabic
-      ? '💡 تلميح سقراطي: في الاستفهام والنفـي نحتاج الفعل المساعد do/does لبناء الهيكل الصحيح.'
-      : '💡 Socratic Hint: Questions and negatives in English require auxiliary do/does verbs to anchor tense.';
+      ? '💡 سر التركيب بالبلدي: في السؤال والنفي لازم نحط الفعل المساعد (do/does) عشان الجملة تظبط صح.'
+      : '💡 Native Tip: Questions and negatives in English require auxiliary do/does verbs to anchor tense.';
   }
   return isArabic
-    ? '💡 تلميح سقراطي: ركز على ترتيب الفكر: الفاعل ➔ الفعل ➔ المفعول دون ترجمة حرفية لكل كلمة.'
-    : '💡 Socratic Hint: Order your thoughts natively: Subject ➔ Verb ➔ Object without literal word swapping.';
+    ? '💡 سر التركيب بالبلدي: فكّر بالترتيب الإنجليزي المباشر (مين بيعمل إيه) من غير ما تترجم كلمة بكلمة فدماغك.'
+    : '💡 Native Tip: Order your thoughts natively: Subject ➔ Verb ➔ Object without literal word swapping.';
 }
 
 interface LessonRunnerProps {
