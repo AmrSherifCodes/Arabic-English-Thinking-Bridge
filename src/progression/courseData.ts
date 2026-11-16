@@ -1716,9 +1716,10 @@ export function isStageUnlocked(
 
 export function getNextStageAfterLessonCompletion(
   state: ProgressionState,
-  completedLessonId: string
+  completedLessonId: string,
+  targetLang?: TargetLanguage
 ): StageNode['stage'] | undefined {
-  const stages = buildCourseStructure();
+  const stages = buildCourseStructure(targetLang);
   const currentStageIndex = stages.findIndex((item) => item.stage === state.currentStage);
   if (currentStageIndex < 0) return undefined;
 
