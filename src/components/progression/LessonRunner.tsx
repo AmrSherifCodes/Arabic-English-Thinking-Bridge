@@ -305,8 +305,8 @@ export function LessonRunner({
     const earnedXp = sessionXpEarned + (accuracy > 80 ? 20 : 0);
 
     return (
-      <div className="fixed inset-0 z-50 bg-bg/90 backdrop-blur-xl flex items-center justify-center p-0 sm:p-4" dir={isArabic ? 'rtl' : 'ltr'}>
-        <div className="w-full h-full sm:h-[88vh] sm:max-w-[480px] sm:rounded-3xl bg-bg border border-border shadow-2xl flex flex-col items-center justify-center p-6 text-center">
+      <div className="fixed inset-0 z-50 bg-bg/90 backdrop-blur-xl flex items-center justify-center p-2 sm:p-6" dir={isArabic ? 'rtl' : 'ltr'}>
+        <div className="w-full h-full sm:h-auto sm:max-h-[88vh] sm:max-w-[520px] md:max-w-xl sm:rounded-3xl bg-bg border border-border shadow-2xl flex flex-col items-center justify-center p-6 text-center">
           <div className="space-y-6 w-full max-w-sm">
             <div className="w-20 h-20 rounded-3xl bg-primary/20 border border-primary/40 text-primary flex items-center justify-center text-4xl mx-auto shadow-2xl">
               🏆
@@ -371,8 +371,8 @@ export function LessonRunner({
   const progressPercent = Math.round(((currentIndex + 1) / exercises.length) * 100);
 
   return (
-    <div className="fixed inset-0 z-50 bg-bg/90 backdrop-blur-xl flex items-center justify-center p-0 sm:p-4" dir={isArabic ? 'rtl' : 'ltr'}>
-      <div className="w-full h-[100dvh] flex flex-col sm:h-auto sm:max-h-[90vh] sm:max-w-[480px] sm:rounded-3xl bg-bg border border-border shadow-2xl overflow-hidden relative">
+    <div className="fixed inset-0 z-50 bg-bg/90 backdrop-blur-xl flex items-center justify-center p-0 sm:p-4 md:p-6" dir={isArabic ? 'rtl' : 'ltr'}>
+      <div className="w-full h-[100dvh] flex flex-col sm:h-auto sm:max-h-[88vh] sm:max-w-xl md:max-w-2xl lg:max-w-4xl sm:rounded-3xl bg-bg border border-border shadow-2xl overflow-hidden relative">
         {/* Top Header Progress Bar */}
         <div className="p-4 border-b border-border flex items-center gap-3 bg-surface/50">
           <button
