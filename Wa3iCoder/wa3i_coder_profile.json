@@ -1,0 +1,30 @@
+{
+  "xp": 70,
+  "coins": 4,
+  "streak": 1,
+  "last_active": "2026-11-16",
+  "total_success": 3,
+  "total_heals": 0,
+  "heal_wins": 2,
+  "best_combo": 1,
+  "copies": 0,
+  "runs": 0,
+  "challenges_done": [
+    "hello"
+  ],
+  "daily_done": {
+    "date": "",
+    "id": ""
+  },
+  "badges": [
+    "first_code",
+    "night_owl",
+    "speed_demon",
+    "arabic_coder",
+    "challenge_1",
+    "first_heal"
+  ],
+  "sound": true,
+  "created": "2026-11-16",
+  "_arabic_seen": true
+}

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { X, Check, ArrowLeft, ArrowRight, Share2, Globe, Sparkles } from 'lucide-react';
 import { SourceLanguage, TargetLanguage } from '../types';
-import { SOURCE_LANGUAGES, TARGET_LANGUAGES, TARGET_LANGUAGE_META, SUPPORTED_PAIRS, getPairConfig } from '../data/languages';
+import { SOURCE_LANGUAGES, TARGET_LANGUAGES, TARGET_LANGUAGE_META, getPairConfig } from '../data/languages';
 import { LanguageFlag } from './LanguageFlag';
 
 interface LanguageSelectorModalProps {
@@ -13,15 +13,27 @@ interface LanguageSelectorModalProps {
   onToast?: (msg: string) => void;
 }
 
-// Legacy ISO aliases that duplicate the canonical dialect codes below.
-// They stay supported in storage/URLs, but showing them twice in the picker
-// confuses learners ("عامية مصرية" appeared as both arz and ar-EG).
-const DUPLICATE_ARABIC_ALIASES = new Set<SourceLanguage>([
-  'ar-EG',
-  'ar-MA',
-  'ar-SA',
-  'ar-SY',
-]);
+// Canonical source dialect/language options for a clean, uncluttered list.
+const CANONICAL_SOURCE_OPTIONS: SourceLanguage[] = [
+  'arz',  // عامية مصرية
+  'ar',   // العربية (الفصحى)
+  'apc',  // لهجة شامية
+  'afb',  // لهجة خليجية
+  'ary',  // دارجة مغربية
+  'en',   // English
+];
+
+// Fully supported target languages.
+const SUPPORTED_TARGET_OPTIONS: TargetLanguage[] = [
+  'en',
+  'de',
+  'es',
+  'fr',
+  'tr',
+  'ja',
+  'ar',
+  'zh',
+];
 
 export function LanguageSelectorModal({
   isOpen,
@@ -46,17 +58,14 @@ export function LanguageSelectorModal({
 
   const isAr = selectedSource.startsWith('ar');
   const activePairConfig = getPairConfig(selectedSource, selectedTarget);
-  const sourceOptions = (Object.keys(SOURCE_LANGUAGES) as SourceLanguage[]).filter(
-    (code) => !DUPLICATE_ARABIC_ALIASES.has(code) || code === currentSource
-  );
 
   const handleApply = () => {
     onSelectPair(selectedSource, selectedTarget);
     onClose();
     onToast?.(
       isAr
-        ? `🚀 تم تفعيل مسار: ${TARGET_LANGUAGE_META[selectedTarget].nameAr} بنجاح!`
-        : `🚀 Switched to: ${TARGET_LANGUAGE_META[selectedTarget].nameEn} track!`
+        ? `🚀 تم تفعيل مسار: ${TARGET_LANGUAGE_META[selectedTarget]?.nameAr || selectedTarget} بنجاح!`
+        : `🚀 Switched to: ${TARGET_LANGUAGE_META[selectedTarget]?.nameEn || selectedTarget} track!`
     );
   };
 
@@ -72,26 +81,26 @@ export function LanguageSelectorModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-xs transition-opacity animate-in fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-sm transition-opacity animate-in fade-in"
       dir={isAr ? 'rtl' : 'ltr'}
       role="dialog"
       aria-modal="true"
       aria-labelledby="lang-modal-title"
     >
-      <div className="relative w-full max-w-lg overflow-hidden rounded-3xl bg-surface border border-border shadow-2xl text-text">
+      <div className="relative w-full max-w-xl md:max-w-2xl lg:max-w-3xl overflow-hidden rounded-3xl bg-surface border border-border shadow-2xl text-text">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-border px-5 py-4">
-          <div className="flex items-center gap-2.5">
-            <span className="p-2 rounded-xl bg-amber-500/15 text-amber-400 border border-amber-500/30">
+        <div className="flex items-center justify-between border-b border-border px-6 py-5">
+          <div className="flex items-center gap-3">
+            <span className="p-2.5 rounded-2xl bg-amber-500/15 text-amber-400 border border-amber-500/30">
               <Globe className="w-5 h-5" />
             </span>
-            <div>
-              <h2 id="lang-modal-title" className="text-sm sm:text-base font-black text-text">
+            <div className="text-start">
+              <h2 id="lang-modal-title" className="text-base sm:text-lg font-black text-text">
                 {step === 1
                   ? (isAr ? '١. اختر لغتك الأم / لهجتك (L1)' : '1. Select your native language / dialect (L1)')
                   : (isAr ? '٢. اختر اللغة التي تريد التفكير بها (L2)' : '2. Select target learning language (L2)')}
               </h2>
-              <p className="text-[11px] text-muted font-bold">
+              <p className="text-xs text-muted font-bold">
                 {step === 1
                   ? (isAr ? 'ما لغتك الحالية أو لهجتك التي تفكر بها تلقائياً؟' : 'Which language or dialect do you think in naturally?')
                   : (isAr ? 'أي لغة تريد بناء بديهتها والتوقف عن ترجمتها؟' : 'Which language do you want to build direct reflexes in?')}
@@ -101,7 +110,7 @@ export function LanguageSelectorModal({
           <button
             type="button"
             onClick={onClose}
-            className="p-2 rounded-xl text-muted hover:text-text hover:bg-surface-2 transition-colors"
+            className="p-2.5 rounded-2xl text-muted hover:text-text hover:bg-surface-2 transition-colors"
             aria-label="Close"
           >
             <X className="w-5 h-5" />
@@ -109,13 +118,14 @@ export function LanguageSelectorModal({
         </div>
 
         {/* Modal Body */}
-        <div className="p-4 sm:p-5 space-y-4 max-h-[70vh] overflow-y-auto">
+        <div className="p-5 sm:p-6 space-y-5">
           {/* STEP 1: Source / Native Language (L1) */}
           {step === 1 && (
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {sourceOptions.map((langKey) => {
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {CANONICAL_SOURCE_OPTIONS.map((langKey) => {
                   const meta = SOURCE_LANGUAGES[langKey];
+                  if (!meta) return null;
                   const isSelected = selectedSource === langKey;
                   return (
                     <button
@@ -124,22 +134,22 @@ export function LanguageSelectorModal({
                       onClick={() => {
                         setSelectedSource(langKey);
                         if (selectedTarget === langKey) {
-                          const nextTarget = (Object.keys(TARGET_LANGUAGE_META) as TargetLanguage[]).find((t) => t !== langKey);
-                          if (nextTarget) setSelectedTarget(nextTarget);
+                          const nextTarget = SUPPORTED_TARGET_OPTIONS.find((t) => t !== langKey) || 'en';
+                          setSelectedTarget(nextTarget);
                         }
                         setStep(2);
                       }}
-                      className={`flex flex-col items-start p-3 rounded-2xl border text-start transition-all ${
+                      className={`flex flex-col items-start p-3.5 rounded-2xl border text-start transition-all ${
                         isSelected
                           ? 'border-primary bg-primary/20 text-primary shadow-md ring-1 ring-primary/40'
-                          : 'border-border bg-surface-2 hover:border-primary/50 text-text'
+                          : 'border-border bg-surface-2 hover:border-primary/50 hover:bg-surface-2/80 text-text'
                       }`}
                     >
-                      <div className="flex items-center justify-between w-full mb-1">
-                        <LanguageFlag code={langKey} size={20} />
+                      <div className="flex items-center justify-between w-full mb-1.5">
+                        <LanguageFlag code={langKey} size={22} />
                         {isSelected && <Check className="w-4 h-4 text-primary shrink-0" />}
                       </div>
-                      <span className="font-extrabold text-text text-xs block truncate w-full">
+                      <span className="font-black text-text text-xs sm:text-sm block truncate w-full">
                         {isAr ? meta.nameAr : meta.nameEn}
                       </span>
                       <span className="text-[10px] text-muted font-semibold block truncate w-full">
@@ -154,125 +164,64 @@ export function LanguageSelectorModal({
 
           {/* STEP 2: Target / Learning Goal (L2) */}
           {step === 2 && (
-            <div className="space-y-4">
-              {/* Group 1: Arab Top 5 */}
-              <div className="space-y-2">
-                <div className="flex items-center gap-1.5 text-xs font-bold text-amber-300">
-                  <Sparkles size={14} className="text-amber-400" />
-                  <span>
-                    {isAr
-                      ? '🌟 اللغات الـ ٥ الأكثر طلباً في الوطن العربي (مدعومة بالكامل بالعربي وبالصوت)'
-                      : '🌟 Top 5 Most Requested Languages in Arab World (Full Arabic Bridges & Audio)'}
-                  </span>
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {(['en', 'de', 'fr', 'es', 'tr'] as TargetLanguage[])
-                    .filter((code) => code !== selectedSource && TARGET_LANGUAGE_META[code])
-                    .map((code) => {
-                      const meta = TARGET_LANGUAGE_META[code];
-                      const isSelected = selectedTarget === code;
-                      return (
-                        <button
-                          key={code}
-                          type="button"
-                          onClick={() => setSelectedTarget(code)}
-                          className={`flex flex-col items-start p-3 rounded-2xl border text-start transition-all ${
-                            isSelected
-                              ? 'border-emerald-500 bg-emerald-500/20 text-emerald-300 shadow-md ring-1 ring-emerald-500/40'
-                              : 'border-emerald-500/30 bg-emerald-950/20 hover:border-emerald-500/60 text-text'
-                          }`}
-                        >
-                          <div className="flex items-center justify-between w-full mb-1">
-                            <LanguageFlag code={code} size={20} />
-                            {isSelected ? (
-                              <Check className="w-4 h-4 text-emerald-400 shrink-0" />
-                            ) : (
-                              <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300">
-                                100% عربي
-                              </span>
-                            )}
-                          </div>
-                          <span className="font-extrabold text-text text-xs block truncate w-full">
-                            {meta.nameNative}
-                          </span>
-                          <span className="text-[10px] text-muted font-semibold block truncate w-full">
-                            {isAr ? meta.nameAr : meta.nameEn}
-                          </span>
-                        </button>
-                      );
-                    })}
-                </div>
-              </div>
-
-              {/* Group 2: Additional Languages Under Development */}
-              <div className="space-y-2 pt-2 border-t border-border">
-                <div className="text-xs font-bold text-slate-400">
-                  <span>{isAr ? '🚧 لغات إضافية (تحت التطوير)' : '🚧 Additional Languages (In Progress)'}</span>
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {(Object.keys(TARGET_LANGUAGE_META) as TargetLanguage[])
-                    .filter((code) => code !== selectedSource && !['en', 'de', 'fr', 'es', 'tr'].includes(code))
-                    .map((code) => {
-                      const meta = TARGET_LANGUAGE_META[code];
-                      const isSelected = selectedTarget === code;
-                      return (
-                        <button
-                          key={code}
-                          type="button"
-                          onClick={() => setSelectedTarget(code)}
-                          className={`flex flex-col items-start p-3 rounded-2xl border text-start transition-all opacity-85 hover:opacity-100 ${
-                            isSelected
-                              ? 'border-amber-500 bg-amber-500/20 text-amber-300 shadow-md ring-1 ring-amber-500/40'
-                              : 'border-border bg-surface-2 hover:border-amber-500/50 text-text'
-                          }`}
-                        >
-                          <div className="flex items-center justify-between w-full mb-1">
-                            <LanguageFlag code={code} size={20} />
-                            {isSelected && <Check className="w-4 h-4 text-amber-400 shrink-0" />}
-                          </div>
-                          <span className="font-extrabold text-text text-xs block truncate w-full">
-                            {meta.nameNative}
-                          </span>
-                          <span className="text-[10px] text-muted font-semibold block truncate w-full">
-                            {isAr ? meta.nameAr : meta.nameEn}
-                          </span>
-                        </button>
-                      );
-                    })}
-                </div>
+            <div className="space-y-5">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                {SUPPORTED_TARGET_OPTIONS
+                  .filter((code) => code !== selectedSource && TARGET_LANGUAGE_META[code])
+                  .map((code) => {
+                    const meta = TARGET_LANGUAGE_META[code];
+                    const isSelected = selectedTarget === code;
+                    return (
+                      <button
+                        key={code}
+                        type="button"
+                        onClick={() => setSelectedTarget(code)}
+                        className={`flex flex-col items-start p-3.5 rounded-2xl border text-start transition-all ${
+                          isSelected
+                            ? 'border-emerald-500 bg-emerald-500/20 text-emerald-300 shadow-md ring-1 ring-emerald-500/40'
+                            : 'border-border bg-surface-2 hover:border-emerald-500/50 text-text'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between w-full mb-1.5">
+                          <LanguageFlag code={code} size={22} />
+                          {isSelected && <Check className="w-4 h-4 text-emerald-400 shrink-0" />}
+                        </div>
+                        <span className="font-black text-text text-xs sm:text-sm block truncate w-full">
+                          {meta.nameNative}
+                        </span>
+                        <span className="text-[10px] text-muted font-semibold block truncate w-full">
+                          {isAr ? meta.nameAr : meta.nameEn}
+                        </span>
+                      </button>
+                    );
+                  })}
               </div>
 
               {/* Active Bridge Preview Card */}
-              <div className="p-3.5 rounded-2xl bg-surface-2 border border-border space-y-1.5 text-start">
+              <div className="p-4 rounded-2xl bg-surface-2 border border-border space-y-2 text-start">
                 <div className="flex items-center justify-between">
-                  <span className="flex items-center gap-1.5 text-[11px] font-black text-amber-400">
-                    <Sparkles className="w-3.5 h-3.5" />
+                  <span className="flex items-center gap-1.5 text-xs font-black text-amber-400">
+                    <Sparkles className="w-4 h-4" />
                     {isAr ? 'المسار المحدد:' : 'Active Cognitive Bridge:'}
                   </span>
                   <button
                     type="button"
                     onClick={handleCopyShareLink}
-                    className="inline-flex items-center gap-1 text-[11px] text-muted hover:text-text underline"
+                    className="inline-flex items-center gap-1 text-xs text-muted hover:text-text underline"
                     title="Share this link"
                   >
-                    <Share2 className="w-3 h-3" />
-                    {isAr ? 'رابط مباشر' : 'Share link'}
+                    <Share2 className="w-3.5 h-3.5" />
+                    {isAr ? 'رابط مشاركة المبادرة' : 'Share link'}
                   </button>
                 </div>
-                <div className="text-xs font-black text-text flex items-center gap-1.5 flex-wrap">
-                  <LanguageFlag code={selectedSource} size={16} />
+                <div className="text-xs font-black text-text flex items-center gap-2 flex-wrap">
+                  <LanguageFlag code={selectedSource} size={18} />
                   <span>{SOURCE_LANGUAGES[selectedSource]?.nameNative || selectedSource}</span>
                   <span className="text-amber-400 font-bold">➔</span>
-                  <LanguageFlag code={selectedTarget} size={16} />
-                  <span>{TARGET_LANGUAGE_META[selectedTarget].nameNative} ({isAr ? TARGET_LANGUAGE_META[selectedTarget].nameAr : TARGET_LANGUAGE_META[selectedTarget].nameEn})</span>
-
-                  {['arz', 'apc', 'afb', 'ary'].includes(selectedSource) && (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                      Beta: Shared vocabulary with MSA
-                    </span>
-                  )}
+                  <LanguageFlag code={selectedTarget} size={18} />
+                  <span>{TARGET_LANGUAGE_META[selectedTarget]?.nameNative} ({isAr ? TARGET_LANGUAGE_META[selectedTarget]?.nameAr : TARGET_LANGUAGE_META[selectedTarget]?.nameEn})</span>
                 </div>
-                <p className="text-[11px] text-muted leading-relaxed">
+                <p className="text-xs text-muted leading-relaxed">
                   {isAr ? activePairConfig.bridgeConceptAr : activePairConfig.bridgeConceptEn}
                 </p>
               </div>
@@ -281,12 +230,12 @@ export function LanguageSelectorModal({
         </div>
 
         {/* Footer Actions */}
-        <div className="flex items-center justify-between border-t border-border p-4 bg-surface-2/50">
+        <div className="flex items-center justify-between border-t border-border p-5 bg-surface-2/50">
           {step === 2 ? (
             <button
               type="button"
               onClick={() => setStep(1)}
-              className="px-4 py-2.5 rounded-xl text-xs font-bold bg-surface border border-border text-text hover:bg-surface-2 transition-colors flex items-center gap-1.5"
+              className="px-4 py-2.5 rounded-xl text-xs font-bold bg-surface border border-border text-text hover:bg-surface-2 transition-colors flex items-center gap-1.5 min-h-[44px]"
             >
               {isAr ? <ArrowRight size={14} /> : <ArrowLeft size={14} />}
               <span>{isAr ? 'رجوع للخطوة ١' : 'Back to Step 1'}</span>
@@ -299,7 +248,7 @@ export function LanguageSelectorModal({
             <button
               type="button"
               onClick={() => setStep(2)}
-              className="px-5 py-2.5 rounded-xl text-xs font-black bg-primary text-on-primary shadow-md hover:opacity-90 transition-all flex items-center gap-1.5"
+              className="px-5 py-2.5 rounded-xl text-xs font-black bg-primary text-on-primary shadow-md hover:opacity-90 transition-all flex items-center gap-1.5 min-h-[44px]"
             >
               <span>{isArabicLanguage(selectedSource) ? 'التالي: اختر اللغة الهدف ←' : 'Next: Select Target Language →'}</span>
             </button>
@@ -307,7 +256,7 @@ export function LanguageSelectorModal({
             <button
               type="button"
               onClick={handleApply}
-              className="px-6 py-2.5 rounded-xl text-xs font-black bg-amber-500 hover:bg-amber-400 text-stone-950 shadow-md hover:shadow-lg transition-all flex items-center gap-1.5 active:scale-95"
+              className="px-6 py-2.5 rounded-xl text-xs font-black bg-amber-500 hover:bg-amber-400 text-stone-950 shadow-md hover:shadow-lg transition-all flex items-center gap-1.5 active:scale-95 min-h-[44px]"
             >
               <span>{isArabicLanguage(selectedSource) ? 'تأكيد وبدء التعلّم 🚀' : 'Confirm & Start 🚀'}</span>
             </button>
