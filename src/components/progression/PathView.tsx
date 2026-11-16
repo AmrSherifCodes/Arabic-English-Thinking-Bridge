@@ -2,10 +2,17 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { ProgressionState, StageNode, LessonNode } from '../../progression/types';
 import { buildCourseStructure, isLessonUnlocked, isStageUnlocked } from '../../progression/courseData';
 import { getTargetDictionary, getTargetDictionaryAsync } from '../../data/dictionaries';
-import { Play, Crown, LockKeyhole, Star, Mic, Layers } from 'lucide-react';
+import { Play, Crown, LockKeyhole, Star, Mic, Layers, Sparkles } from 'lucide-react';
 import { TargetLanguage, UserProgress } from '../../types';
 import confetti from 'canvas-confetti';
 import { motion } from 'framer-motion';
+import {
+  FEATURE_UNLOCKS,
+  FeatureUnlockDefinition,
+  getUnlocksForStage,
+  isFeatureUnlocked,
+} from '../../progression/featureUnlocks';
+import { FeatureUnlockModal } from './FeatureUnlockModal';
 
 interface PathViewProps {
   state: ProgressionState;
@@ -14,6 +21,13 @@ interface PathViewProps {
   onSelectUnitCheckpoint: (unitId: string) => void;
   onOpenVoice?: () => void;
   onOpenFlashcards?: (deckId?: string) => void;
+  onOpenCorporate?: () => void;
+  onOpenClarifying?: () => void;
+  onOpenMaintenance?: () => void;
+  onOpenPronunciation?: () => void;
+  onOpenStory?: () => void;
+  onOpenHackerTerminal?: () => void;
+  onOpenTeacherMode?: () => void;
   isArabic?: boolean;
   progress?: UserProgress;
   flashcardDeckIds?: string[];
@@ -26,12 +40,20 @@ export function PathView({
   onSelectUnitCheckpoint,
   onOpenVoice,
   onOpenFlashcards,
+  onOpenCorporate,
+  onOpenClarifying,
+  onOpenMaintenance,
+  onOpenPronunciation,
+  onOpenStory,
+  onOpenHackerTerminal,
+  onOpenTeacherMode,
   isArabic = true,
   progress,
   flashcardDeckIds,
 }: PathViewProps) {
   const [dictionaryVersion, setDictionaryVersion] = useState(0);
   const [isIdle, setIsIdle] = useState(false);
+  const [selectedLockedFeature, setSelectedLockedFeature] = useState<FeatureUnlockDefinition | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -75,8 +97,41 @@ export function PathView({
   const currentStageIndex = courseStructure.findIndex((s) => s.stage === state.currentStage);
   const safeStageIndex = currentStageIndex >= 0 ? currentStageIndex : 0;
   const continueStageNode = courseStructure[safeStageIndex] || courseStructure[0];
+  const currentLevelNumber = safeStageIndex + 1;
 
   const overallProgressPercent = Math.min(100, Math.round(((safeStageIndex + 1) / courseStructure.length) * 100));
+
+  const launchFeature = (featId: string) => {
+    switch (featId) {
+      case 'srs_flashcards':
+        if (onOpenFlashcards) onOpenFlashcards();
+        break;
+      case 'guided_questions':
+        if (onOpenClarifying) onOpenClarifying();
+        break;
+      case 'pronunciation':
+        if (onOpenPronunciation) onOpenPronunciation();
+        break;
+      case 'ai_voice':
+        if (onOpenVoice) onOpenVoice();
+        break;
+      case 'corporate':
+        if (onOpenCorporate) onOpenCorporate();
+        break;
+      case 'story':
+        if (onOpenStory) onOpenStory();
+        break;
+      case 'teacher_mode':
+        if (onOpenTeacherMode) onOpenTeacherMode();
+        break;
+      case 'maintenance':
+        if (onOpenMaintenance) onOpenMaintenance();
+        break;
+      case 'hacker_terminal':
+        if (onOpenHackerTerminal) onOpenHackerTerminal();
+        break;
+    }
+  };
 
   return (
     <div className="relative space-y-6 max-w-md md:max-w-2xl lg:max-w-3xl mx-auto pb-32 sm:pb-36" dir={isArabic ? 'rtl' : 'ltr'}>
@@ -160,6 +215,12 @@ export function PathView({
             const unlocked = idx <= safeStageIndex;
             const isCurrent = idx === safeStageIndex;
 
+            const stageLessons = stage.units.flatMap(u => u.lessons);
+            const completedInStage = stageLessons.filter(l => state.completedLessonIds.includes(l.id)).length;
+            const totalInStage = Math.max(1, stageLessons.length);
+
+            const stageUnlocks = getUnlocksForStage(stage.stage);
+
             const alignClass = alignFor(nodeIndex++);
 
             const buttonContent = (
@@ -222,8 +283,58 @@ export function PathView({
                           : 'bg-surface border border-border text-text'
                       }`}
                     >
-                      {isArabic ? `المستوى ${idx + 1}: ${stage.titleAr}` : `Level ${idx + 1}: ${stage.titleEn}`}
+                      {isCompleted
+                        ? (isArabic ? `المستوى ${idx + 1}: ${stage.titleAr} (مكتمل ⭐)` : `Level ${idx + 1}: ${stage.titleEn} (Mastered)`)
+                        : isCurrent
+                        ? (isArabic ? `المستوى ${idx + 1}: ${stage.titleAr} (${completedInStage}/${totalInStage} دروس)` : `Level ${idx + 1}: ${stage.titleEn} (${completedInStage}/${totalInStage} lessons)`)
+                        : (isArabic ? `المستوى ${idx + 1}: ${stage.titleAr}` : `Level ${idx + 1}: ${stage.titleEn}`)}
                     </span>
+                  </div>
+                )}
+
+                {/* Checkpoint Feature Unlock Badge for this stage */}
+                {stageUnlocks.length > 0 && (
+                  <div className="mt-2.5 max-w-[240px] text-center flex flex-col items-center gap-1.5 z-10 px-1">
+                    {stageUnlocks.map((feat) => {
+                      const featUnlocked = unlocked;
+                      return (
+                        <button
+                          key={feat.id}
+                          type="button"
+                          onClick={() => {
+                            if (featUnlocked) {
+                              launchFeature(feat.id);
+                            } else {
+                              setSelectedLockedFeature(feat);
+                            }
+                          }}
+                          className={`w-full p-2 rounded-2xl border text-start transition active:scale-95 flex items-center gap-2 shadow-sm ${
+                            featUnlocked
+                              ? 'bg-stone-900/90 border-emerald-500/40 text-emerald-300 hover:border-emerald-400'
+                              : 'bg-stone-950/80 border-stone-800 text-stone-400 opacity-70 hover:opacity-100'
+                          }`}
+                        >
+                          <span className="text-xl shrink-0">{feat.icon}</span>
+                          <div className="min-w-0 flex-1 space-y-0.5">
+                            <div className="flex items-center justify-between gap-1">
+                              <span className="text-[10px] font-black tracking-wide truncate">
+                                {isArabic ? feat.titleAr : feat.titleEn}
+                              </span>
+                              {featUnlocked ? (
+                                <Sparkles size={12} className="text-emerald-400 shrink-0" />
+                              ) : (
+                                <LockKeyhole size={12} className="text-amber-400 shrink-0" />
+                              )}
+                            </div>
+                            <span className="text-[9px] block text-stone-400 truncate">
+                              {featUnlocked
+                                ? (isArabic ? '✨ ميزة مفتوحة — اضغط للتشغيل' : '✨ Unlocked feature — tap to launch')
+                                : (isArabic ? `🔒 ينفتح في المستوى ${feat.requiredLevelNumber}` : `🔒 Requires Level ${feat.requiredLevelNumber}`)}
+                            </span>
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -256,6 +367,25 @@ export function PathView({
           );
         })()}
       </div>
+
+      {/* Feature Unlock Modal */}
+      {selectedLockedFeature && (
+        <FeatureUnlockModal
+          feature={selectedLockedFeature}
+          currentLevelNumber={currentLevelNumber}
+          currentStageTitleAr={continueStageNode?.titleAr || state.currentStage}
+          currentStageTitleEn={continueStageNode?.titleEn || state.currentStage}
+          isArabic={isArabic}
+          onClose={() => setSelectedLockedFeature(null)}
+          onContinueCourse={() => {
+            setSelectedLockedFeature(null);
+            const firstUnfinished =
+              continueStageNode?.units.flatMap((u) => u.lessons).find((l) => !state.completedLessonIds.includes(l.id)) ||
+              continueStageNode?.units.flatMap((u) => u.lessons)[0];
+            if (firstUnfinished) onSelectLesson(firstUnfinished);
+          }}
+        />
+      )}
     </div>
   );
 }

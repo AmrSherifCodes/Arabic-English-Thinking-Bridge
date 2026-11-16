@@ -6,7 +6,7 @@ import { getTargetDictionary } from '../data/dictionaries';
 import { assignCEFRLevels } from './cefrSorter';
 import type { ChunkRole, Exercise, Lesson, TargetLanguage } from '../types';
 
-const LESSONS_PER_STAGE = 9;
+const LESSONS_PER_STAGE = 5;
 
 const STAGE_DEFINITIONS: Omit<StageNode, 'units' | 'stageExam'>[] = [
   {

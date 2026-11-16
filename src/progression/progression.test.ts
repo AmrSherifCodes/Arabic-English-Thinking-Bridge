@@ -263,7 +263,8 @@ test('6. progression unlocks lessons sequentially and stages after completing th
 
   state.completedLessonIds = a0Lessons.slice(0, -1).map((lesson) => lesson.id);
   assert.equal(isStageUnlocked(state, 'A1'), false);
-  assert.equal(getNextStageAfterLessonCompletion(state, a0Lessons[7].id), undefined);
+  const secondToLast = a0Lessons[Math.max(0, a0Lessons.length - 2)];
+  assert.equal(getNextStageAfterLessonCompletion(state, secondToLast.id), undefined);
   const nextStage = getNextStageAfterLessonCompletion(
     state,
     a0Lessons[a0Lessons.length - 1].id
