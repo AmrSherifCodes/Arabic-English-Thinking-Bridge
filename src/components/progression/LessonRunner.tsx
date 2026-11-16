@@ -7,6 +7,7 @@ import { computeNextHintWord } from '../../utils/habitPsychology';
 import { soundFX } from '../../utils/soundFX';
 import { updateCognitiveProfile, runLocalTrainingStep, getDifficultyKnob } from '../../utils/OnlineLearningEngine';
 import { getDynamicExerciseOptions } from '../../utils/adaptiveCurriculum';
+import { LevelVisualIllustration } from './LevelVisualIllustration';
 
 function getSocraticHint(exercise: ExerciseItem, isArabic: boolean): string {
   const target = (exercise.targetSentence || '').toLowerCase();
@@ -457,6 +458,15 @@ export function LessonRunner({
               </button>
             </div>
           )}
+
+          {/* Locally Generated Python Visual Illustration */}
+          <LevelVisualIllustration
+            stage={lesson.stage || 'A0'}
+            levelNumber={currentIndex + 1}
+            promptAr={currentExercise.promptAr}
+            englishTarget={currentExercise.targetSentence}
+            className="w-full h-auto max-h-[150px] sm:max-h-[180px]"
+          />
 
           {/* Source Thought Prompt */}
           <div className="p-4 rounded-3xl bg-surface border border-border space-y-2">
