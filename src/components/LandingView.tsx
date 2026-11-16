@@ -463,29 +463,19 @@ export function LandingView({ onStartWebApp, isArabic = true }: LandingViewProps
               <Smartphone className="mx-auto text-[var(--landing-accent-teal)]" size={28} />
               <div>
                 <span className="font-bold text-sm text-[var(--landing-text)] block">Android</span>
-                <span className="text-[10px] text-[var(--landing-muted)] block">v1.1.0-unofficial.1 · APK</span>
+                <span className="text-[10px] text-[var(--landing-muted)] block">v1.0.0 Stable · PWA</span>
               </div>
               <a
-                href={isNativeAndroid ? '/app' : 'https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v1.1.0-unofficial.1/Thinking-Bridge-v1.1.0-unofficial.1.apk'}
-                onClick={isNativeAndroid ? (event) => {
+                href="/app"
+                onClick={(event) => {
                   event.preventDefault();
                   onStartWebApp();
-                } : undefined}
+                }}
                 className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-[var(--landing-accent-teal)] text-stone-950 font-bold text-xs w-full hover:opacity-90 transition"
               >
-                {isNativeAndroid ? <ArrowDown size={13} aria-hidden="true" /> : <Download size={13} aria-hidden="true" />}
-                <span>
-                  {isNativeAndroid
-                    ? (t('landing2.launch_app'))
-                    : (t('landing2.download_apk'))}
-                </span>
+                <ArrowDown size={13} aria-hidden="true" />
+                <span>{t('landing2.launch_app')}</span>
               </a>
-              {!isNativeAndroid && (
-                <div className="text-[9px] text-[var(--landing-muted)] font-mono text-center opacity-70">
-                  <span className="block mb-0.5">SHA-256 Checksum:</span>
-                  <span>f5eed85dccbbed8b9367e9cd8b1a8dca79081b0738e80c2c699c0c29c956f6d8</span>
-                </div>
-              )}
               {isInstallable && (
                 <button type="button" onClick={() => void triggerInstall()} className="text-[10px] font-bold text-[var(--landing-muted)] underline underline-offset-2">
                   {t('landing2.install_web_app')}

@@ -275,17 +275,15 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
               <Smartphone size={32} />
               <div className="mb-4 text-center">
                 <span className="font-bold text-lg block text-[var(--navy)]">Android</span>
-                <span className="text-sm text-[var(--ink-soft)] block">v1.1.0-unofficial.1 · APK</span>
+                <span className="text-sm text-[var(--ink-soft)] block">v1.0.0 Stable · PWA</span>
               </div>
               <a
-                href={isNativeAndroid ? '/app' : 'https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v1.1.0-unofficial.1/Thinking-Bridge-v1.1.0-unofficial.1.apk'}
-                target={isNativeAndroid ? undefined : "_blank"}
-                rel={isNativeAndroid ? undefined : "noopener noreferrer"}
-                onClick={isNativeAndroid ? (event) => { event.preventDefault(); onLaunchApp(); } : undefined}
+                href="/app"
+                onClick={(event) => { event.preventDefault(); onLaunchApp(); }}
                 className="btn btn-primary btn-sm w-full mb-2"
               >
-                {isNativeAndroid ? <ArrowRight size={16} /> : <Download size={16} />}
-                <span>{isNativeAndroid ? (t('landing2.launch_app___')) : (t('landing2.download_apk'))}</span>
+                <ArrowRight size={16} />
+                <span>{t('landing2.launch_app___')}</span>
               </a>
               {isInstallable && (
                 <button type="button" onClick={() => void triggerInstall()} className="text-xs font-bold text-[var(--nile)] underline text-center w-full block">

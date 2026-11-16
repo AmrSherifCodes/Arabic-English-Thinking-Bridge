@@ -2,7 +2,7 @@
 
 - **Date / Timestamp**: 2026-11-04 02:30 UTC+2
 - **Current Branch**: `main`
-- **App Version**: v1.1.0-unofficial.1 (`tb-eg.vercel.app`)
+- **App Version**: v1.0.0 Stable (`tb-eg.vercel.app`)
 - **Test Status**: 283/283 passing (`npm test`), TypeScript clean (`npm run lint`), build clean (`npx vite build`).
 
 ### What Was Just Changed & Perfected for Presentation:

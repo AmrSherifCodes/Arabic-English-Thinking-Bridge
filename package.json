@@ -2,7 +2,7 @@
   "name": "arabic-english-thinking-bridge",
   "private": true,
   "license": "MIT",
-  "version": "1.1.0-unofficial.1",
+  "version": "1.0.0",
   "type": "module",
   "trustedDependencies": [
     "esbuild",

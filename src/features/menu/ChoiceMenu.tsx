@@ -326,33 +326,30 @@ export function ChoiceMenu({
 
         {/* 6. Download App Button */}
         <a
-          href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v1.1.0-unofficial.1/Thinking-Bridge-v1.1.0-unofficial.1.apk"
-          target="_blank"
-          rel="noopener noreferrer"
-          download="Thinking-Bridge-v1.1.0-unofficial.1.apk"
+          href="/app"
           className="menu__download-btn"
-          aria-label={isArabic ? 'تحميل تطبيق الأندرويد v1.1.0-unofficial.1' : 'Download Android APK v1.1.0-unofficial.1'}
+          aria-label={isArabic ? 'تشغيل التطبيق v1.0.0' : 'Launch Web App v1.0.0'}
         >
           <div className="menu__download-info">
             <Download className="menu__download-icon" />
             <div className="menu__download-text">
               <span className="menu__download-title">
-                {isArabic ? '📱 تحميل تطبيق الأندرويد' : '📱 Download Android APK'}
+                {isArabic ? '📱 تشغيل تطبيق الويب (PWA)' : '📱 Launch PWA App'}
               </span>
               <span className="menu__download-sub">
                 {isArabic
                   ? 'تثبيت مباشر وتجربة بدون إنترنت'
-                  : 'Direct APK install · Full offline access'}
+                  : 'Direct PWA install · Full offline access'}
               </span>
             </div>
           </div>
-          <span className="menu__download-badge">v1.1.0-unofficial.1 · APK</span>
+          <span className="menu__download-badge">v1.0.0 Stable</span>
         </a>
 
         {/* 7. Two-line Footer + Socials */}
         <footer className="menu__footer" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <p className="menu__footer-line1">
-            {isArabic ? 'صُنع في الإسكندرية، مصر 🇪🇬 · v1.1.0-unofficial.1' : 'Crafted in Alexandria, Egypt 🇪🇬 · v1.1.0-unofficial.1'}
+            {isArabic ? 'صُنع في الإسكندرية، مصر 🇪🇬 · v1.0.0 Stable' : 'Crafted in Alexandria, Egypt 🇪🇬 · v1.0.0 Stable'}
           </p>
           <p className="menu__footer-line2">
             {isArabic ? 'مستوحى من ميهاليس إلفثيريو · CC0 1.0' : 'Inspired by Mihalis Eleftheriou · CC0 1.0'}
