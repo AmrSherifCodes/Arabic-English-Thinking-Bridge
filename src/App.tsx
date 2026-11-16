@@ -404,6 +404,13 @@ export default function App() {
                 onSelectUnitCheckpoint={() => {}}
                 onOpenVoice={() => setView({ name: 'voice' })}
                 onOpenFlashcards={(deckId) => setView({ name: 'flashcards', deckId })}
+                onOpenCorporate={() => setView({ name: 'corporate' })}
+                onOpenClarifying={() => setView({ name: 'clarifying' })}
+                onOpenMaintenance={() => setView({ name: 'maintenance' })}
+                onOpenPronunciation={() => setView({ name: 'pronunciation' })}
+                onOpenStory={() => setView({ name: 'story', chapterId: 'chapter-1-cairo-airport' })}
+                onOpenHackerTerminal={() => setView({ name: 'hacker-terminal' })}
+                onOpenTeacherMode={() => setView({ name: 'teacher' })}
                 isArabic={isArabic}
                 progress={progress}
                 flashcardDeckIds={stageFlashcardDecks}
@@ -423,6 +430,8 @@ export default function App() {
               onOpenStory={() => setView({ name: 'story', chapterId: 'chapter-1-cairo-airport' })}
               onOpenHackerTerminal={() => setView({ name: 'hacker-terminal' })}
               onOpenTeacherMode={() => setView({ name: 'teacher' })}
+              onNavigateToCoursePath={() => setActiveTab('path')}
+              targetLang={targetLang}
               isArabic={isArabic}
             />
           )}
