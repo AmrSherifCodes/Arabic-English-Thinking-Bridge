@@ -155,6 +155,11 @@ test('3. Android origin (capacitor://localhost) receives exact matched CORS head
 });
 
 test('POST requests without a user API key are rejected with BYOK_REQUIRED', async () => {
+  const originalKey = process.env.GEMINI_API_KEY;
+  const originalGoogleKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+  delete process.env.GEMINI_API_KEY;
+  delete process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+
   const req = createMockReq({
     method: 'POST',
     body: {
@@ -174,6 +179,9 @@ test('POST requests without a user API key are rejected with BYOK_REQUIRED', asy
     error: 'BYOK_REQUIRED',
     message: 'You must provide your own Gemini API key.',
   });
+
+  if (originalKey !== undefined) process.env.GEMINI_API_KEY = originalKey;
+  if (originalGoogleKey !== undefined) process.env.GOOGLE_GENERATIVE_AI_API_KEY = originalGoogleKey;
 });
 
 test('4. explain-error rejects oversized submitted text (>500 chars) with 400 Bad Request', async () => {

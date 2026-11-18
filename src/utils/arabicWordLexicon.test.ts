@@ -68,24 +68,24 @@ test('cardSched computes SM-2 spaced repetition intervals for Again, Hard, Good,
   assert.equal(gEasy.reps, 1);
 });
 
-test('PREBUILT_DECKS and EXPANDED_DECKS are 100% Copyright-Free (CC0 1.0 Public Domain) and include Ultra-Beginner starter deck', async () => {
+test('PREBUILT_DECKS and EXPANDED_DECKS are open educational content and include Ultra-Beginner starter deck', async () => {
   const starter = PREBUILT_DECKS.find(d => d.id === 'beginner-starter-a0');
   assert.ok(starter);
   assert.equal(starter.license, 'CC0 1.0 Public Domain');
   assert.equal(starter.cards.length, 15);
-  assert.ok(PUBLIC_DOMAIN_DISCLAIMER.includes('100% Copyright-Free'));
+  assert.ok(PUBLIC_DOMAIN_DISCLAIMER.includes('100% Free Open Educational Content'));
 
   const lexicore = PREBUILT_DECKS.find(d => d.name === 'LexiCore Daily English');
   assert.ok(lexicore);
   assert.equal(lexicore.license, 'CC0 1.0 Public Domain');
   assert.equal(lexicore.cards.length, 10);
-  assert.ok(LEXICORE_DISCLAIMER.includes('100% Copyright-Free'));
+  assert.ok(LEXICORE_DISCLAIMER.includes('100% Free Open Educational Content'));
 
   const tatoeba = PREBUILT_DECKS.find(d => d.name === 'Tatoeba Structural Bridges');
   assert.ok(tatoeba);
   assert.equal(tatoeba.license, 'CC0 1.0 Public Domain');
   assert.equal(tatoeba.cards.length, 10);
-  assert.ok(TATOEBA_DISCLAIMER.includes('100% Copyright-Free'));
+  assert.ok(TATOEBA_DISCLAIMER.includes('100% Free Open Educational Content'));
 
   const sanitized = sanitizeUserProgress({
     importedDecks: ['lexicore-daily', 'tatoeba-bridging'],
@@ -109,7 +109,7 @@ test('PREBUILT_DECKS and EXPANDED_DECKS are 100% Copyright-Free (CC0 1.0 Public 
   assert.equal(resolved, 'data:audio/webm;base64,AAAA');
 });
 
-test('EXPANDED_DECKS contains 4 thematic decks with 40 + 40 + 40 + 30 = 150 total cards under CC0 1.0 Public Domain', () => {
+test('EXPANDED_DECKS contains 4 thematic decks with 40 + 40 + 40 + 30 = 150 total cards under CC BY-NC-SA 4.0', () => {
   assert.equal(EXPANDED_DECKS.length, 4);
   const counts = EXPANDED_DECKS.map(d => ({
     name: d.name,
@@ -117,10 +117,10 @@ test('EXPANDED_DECKS contains 4 thematic decks with 40 + 40 + 40 + 30 = 150 tota
     license: d.license
   }));
   assert.deepEqual(counts, [
-    { name: 'Daily Life & Routines', count: 40, license: 'CC0 1.0 Public Domain' },
-    { name: 'Work & Business', count: 40, license: 'CC0 1.0 Public Domain' },
-    { name: 'Travel & Social', count: 40, license: 'CC0 1.0 Public Domain' },
-    { name: 'Opinions & Connectors', count: 30, license: 'CC0 1.0 Public Domain' }
+    { name: 'Daily Life & Routines', count: 40, license: 'CC BY-NC-SA 4.0' },
+    { name: 'Work & Business', count: 40, license: 'CC BY-NC-SA 4.0' },
+    { name: 'Travel & Social', count: 40, license: 'CC BY-NC-SA 4.0' },
+    { name: 'Opinions & Connectors', count: 30, license: 'CC BY-NC-SA 4.0' }
   ]);
   const total = EXPANDED_DECKS.reduce((sum, d) => sum + d.cards.length, 0);
   assert.equal(total, 150);

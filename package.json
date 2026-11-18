@@ -20,7 +20,7 @@
     "test": "tsx --test src/**/*.test.ts src/**/*.test.tsx api/*.test.js",
     "test:languages": "node scripts/verify-all-languages.mjs",
     "test:progression": "npx tsx --test src/progression/progression.test.ts src/progression/multiLanguagePairs.test.ts src/progression/modernization.test.ts src/progression/freeForever.test.ts src/progression/cefrSorter.test.ts src/progression/cefrHierarchy.test.ts src/progression/profileMatcherEngine.test.ts",
-    "test:exam": "vitest run src/features/exam/__tests__/examEngine.test.ts",
+    "test:exam": "vitest run src/features/exam/__tests__/examEngine.spec.ts",
     "verify:progression": "tsx scripts/verify-progression.mjs",
     "verify:progression:types": "npx tsc --noEmit",
     "verify:progression:full": "npm run verify:progression:types && npm run verify:progression && npm run build",
