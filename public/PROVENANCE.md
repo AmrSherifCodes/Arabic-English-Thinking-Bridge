@@ -1,53 +1,44 @@
 # Provenance & Authorship Record
 
-This file records the authorship and creation timeline of the
-Thinking English™ project.
+This file records the authorship, cryptographic commit timeline, and legal provenance of the
+Thinking Bridge & Thinking English™ project.
 
-## Author
+## Author & Founder
 
-**Amr Sherif** — Alexandria, Egypt
-GitHub: https://github.com/AmrSherifCodes
-LinkedIn: https://www.linkedin.com/in/sciamrsherif-abdelaal/
+**Amr Sherif Abdelaal** — Alexandria, Egypt  
+GitHub: https://github.com/AmrSherifCodes  
+LinkedIn: https://www.linkedin.com/in/amrsherif-abdelaal-08a287349/
 
-## Statement
+## Sole Original Authorship Statement
 
-I, Amr Sherif, am the original author of this repository and all of its
-contents, including:
+I, **Amr Sherif Abdelaal**, am the sole original author and architect of this repository and all of its constituent works, including:
 
-- `Thinking-English.html` — the interactive Arabic-to-English learning app
-- `CONSTITUTION.md` — the channel and project constitution (https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/blob/main/CONSTITUTION.md#comment-policy)
-- All lesson content, exercise data, and pedagogical structure
-- All scripts, translations, and source materials
+- `Thinking-English.html` and the full React 19 / Vite / Capacitor platform engine
+- `CONSTITUTION.md` and `CONSTITUTION.ar.md` — the project and channel constitution
+- All 27 interactive structural bridge lessons, 4,090+ flashcards, and pedagogical curricula
+- All custom scripts, data pipelines, phonetic transliterators, dictionary bridge matchers, and local engine logic
 
-The commit history of this repository constitutes a chronological,
-timestamped record of authorship. Every commit is permanently recorded
-by GitHub and cryptographically linked to its parent commits.
+The commit history of this repository constitutes an immutable, chronological, timestamped record of original authorship. Every commit is permanently anchored on GitHub and cryptographically linked to parent commits.
 
-## Privacy & Auditability
+## Privacy & Sovereign Integrity
 
-No accounts. No analytics. Translation requests go to MyMemory.net only.
+No accounts. No analytics. No remote cloud dependencies. Zero telemetry.
 
-## Timeline
+## Anti-Theft Open Source Licensing Framework
 
-- **First commit:** see the repository's commit history
-- **Constitution added:** commit `b824f249efc369b5788005df6fb7be7a9c563feb` (`blob/main/CONSTITUTION.md#comment-policy`)
-- **This file added:** the commit that introduced `PROVENANCE.md`
+To guarantee the project remains 100% open source forever while preventing commercial theft, closed-source forks, paywalled wrappers, or brand hijacking:
 
-## License
-
-The lesson content and source code are released under **CC0 1.0
-Universal Public Domain Dedication** (see `CONSTITUTION.md`).
-
-The name "Thinking English" and any associated branding are claimed
-as trademarks of the author (™).
+1. **Software Source Code**: Licensed under **GNU Affero General Public License v3 (AGPL-3.0-or-later)**. Any modified or hosted forks must publish 100% of their source code under AGPLv3.
+2. **Pedagogical Content & Curricula**: Licensed under **Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)**. Free for non-commercial educational use; commercial monetization or selling the curriculum is strictly prohibited.
+3. **Trademarks & Identity**: The names **"Thinking Bridge™"**, **"Thinking English™"**, **"فكّر إنجليزي™"**, the logo, and `tb-eg.vercel.app` are protected trademarks owned by **Amr Sherif Abdelaal**. Rebranding is strictly required for any fork.
 
 ## Verification
 
-Anyone can independently verify authorship by:
+Anyone can independently verify original authorship and legal provenance by:
 
-1. Opening the repository's commit history
-2. Confirming the commits and their timestamps
-3. Comparing the file contents at any point in history
+1. Inspecting the repository's git commit history and PGP signatures.
+2. Cross-referencing timestamps of initial releases and constitution commits.
+3. Checking official domain records for `tb-eg.vercel.app`.
 
 ---
 

@@ -87,9 +87,9 @@ export function LanguageSelectorModal({
       aria-modal="true"
       aria-labelledby="lang-modal-title"
     >
-      <div className="relative w-full max-w-xl md:max-w-2xl lg:max-w-3xl overflow-hidden rounded-3xl bg-surface border border-border shadow-2xl text-text">
+      <div className="relative flex max-h-[90vh] w-full max-w-xl flex-col overflow-hidden rounded-3xl border border-border bg-surface text-text shadow-2xl md:max-w-2xl lg:max-w-3xl">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-border px-6 py-5">
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-surface/95 px-6 py-5 backdrop-blur">
           <div className="flex items-center gap-3">
             <span className="p-2.5 rounded-2xl bg-amber-500/15 text-amber-400 border border-amber-500/30">
               <Globe className="w-5 h-5" />
@@ -118,7 +118,7 @@ export function LanguageSelectorModal({
         </div>
 
         {/* Modal Body */}
-        <div className="p-5 sm:p-6 space-y-5">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-6 space-y-5">
           {/* STEP 1: Source / Native Language (L1) */}
           {step === 1 && (
             <div className="space-y-4">
@@ -230,7 +230,7 @@ export function LanguageSelectorModal({
         </div>
 
         {/* Footer Actions */}
-        <div className="flex items-center justify-between border-t border-border p-5 bg-surface-2/50">
+        <div className="flex items-center justify-between border-t border-border p-5 bg-surface-2/50 shrink-0">
           {step === 2 ? (
             <button
               type="button"

@@ -568,7 +568,7 @@ export function LandingView({ onStartWebApp, isArabic = true }: LandingViewProps
           <a href="https://www.languagetransfer.org/" target="_blank" rel="noopener noreferrer" aria-label="Mihalis Eleftheriou and Language Transfer" className="underline underline-offset-2">
             Mihalis Eleftheriou &amp; Language Transfer
           </a>
-          {' · CC0 1.0'}
+          {' · AGPLv3 / CC BY-NC-SA 4.0'}
         </p>
         <p>Copyright (c) 2024-Present Amr Sherif Abdelaal</p>
 

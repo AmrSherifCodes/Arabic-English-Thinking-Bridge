@@ -21,7 +21,7 @@ const FEATURES = [
   {
     icon: Sparkles,
     title: 'مجاني 100% بدون إعلانات · 100% Free & No Ads',
-    description: 'مشروع مفتوح المصدر للجميع بدون اشتراكات أو رسوم خفية. Free and open source (CC0) with zero ads or paywalls.',
+    description: 'مشروع مفتوح المصدر محمي ضد الاستغلال التجاري وبدون اشتراكات. Free and open source (AGPLv3 / CC BY-NC-SA 4.0) with zero ads or paywalls.',
   },
   {
     icon: Mic2,
@@ -61,7 +61,7 @@ export function AndroidLandingPage() {
 
       <section className="android-hero">
         <div className="android-hero-copy">
-          <span className="android-eyebrow">100% FREE · OPEN SOURCE (CC0) · PWA</span>
+          <span className="android-eyebrow">100% FREE · OPEN SOURCE (AGPLv3) · PWA</span>
           <h1 id="android-hero-title">فكّر بالإنجليزي، مش تترجم.</h1>
           <p className="android-subtitle">
             المنصة المعرفية الأقوى لمساعدة العقل العربي على البدء في التفكير باللغة الإنجليزية مباشرة وتجاوز الترجمة الحرفية.

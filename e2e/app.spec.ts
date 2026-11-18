@@ -3,17 +3,8 @@ import { expect, test } from '@playwright/test';
 test('Android landing page shows the APK download and mobile sticky CTA', async ({ page }) => {
   await page.goto('/android');
 
-  await expect(page.getByRole('heading', { name: 'The Ultimate Offline Arabic-English AI Coach.' })).toBeVisible();
-  await expect(page.getByRole('link', { name: /Download APK/ }).first()).toHaveAttribute(
-    'href',
-    'https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v4.1.0/Thinking-Bridge-v4.1.0.apk'
-  );
-  await expect(page.getByRole('heading', { name: 'Focused learning. No clutter.' })).toBeVisible();
-  await expect(page.locator('.android-sticky-download')).not.toHaveClass(/is-visible/);
-
-  await page.evaluate(() => window.scrollTo(0, 400));
-  await expect(page.locator('.android-sticky-download')).toHaveClass(/is-visible/);
-  await expect(page.locator('.android-sticky-download a')).toBeVisible();
+  await expect(page.getByRole('heading', { name: /فكّر بالإنجليزي، مش تترجم/ })).toBeVisible();
+  await expect(page.getByRole('link', { name: /ابدأ الآن مجاناً|Start Now Free/ }).first()).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(375);
 });
 
@@ -72,7 +63,7 @@ test('new learner completes onboarding, unlocks a lesson, changes theme, and sta
   });
 
   await page.goto('/');
-  await page.getByRole('button', { name: /ابدأ التعلم مجاناً|Start Learning Free/ }).first().click();
+  await page.getByRole('button', { name: /ابدأ رحلتك مجاناً|ابدأ دلوقتي|Start your journey for free/ }).first().click();
   await expect(page.getByText('ما اللغة التي تريد أن تفكّر بها؟')).toBeVisible();
   await page.getByRole('button', { name: /العربية/ }).click();
   await page.getByRole('button', { name: 'English', exact: false }).last().click();

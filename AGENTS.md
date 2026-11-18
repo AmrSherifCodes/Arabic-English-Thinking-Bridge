@@ -63,4 +63,4 @@
    `Flashcard`, `ReviewCard`, `TrainerMessage`, `UserProgress`).
 4. **No Unrequested Dependencies**: Do not introduce external libraries or network calls unless
    explicitly specified in the prompt.
-5. **Copyright**: All rights reserved by Amr Sherif Abdelaal.
+5. **Copyright & Anti-Theft Licensing**: All rights reserved by Amr Sherif Abdelaal. Enforce the 3-Tier Anti-Theft Open Source Architecture: software code licensed under GNU AGPLv3 (AGPL-3.0-or-later), educational content under CC BY-NC-SA 4.0, and brand names/logos reserved under trademark protection.

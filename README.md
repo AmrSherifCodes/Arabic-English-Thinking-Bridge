@@ -9,7 +9,7 @@
   <img src="https://img.shields.io/badge/Privacy-Zero%20Telemetry-blue?style=flat-square" alt="Zero Telemetry" />
   <img src="https://img.shields.io/badge/React-19-blue?style=flat-square&logo=react" alt="React" />
   <img src="https://img.shields.io/badge/Vite-8-purple?style=flat-square&logo=vite" alt="Vite" />
-  <img src="https://img.shields.io/badge/License-CC0--1.0%20%2F%20MIT-green?style=flat-square" alt="License" />
+  <img src="https://img.shields.io/badge/License-AGPL--3.0%20%2F%20CC%20BY--NC--SA%204.0-emerald?style=flat-square" alt="License" />
 </div>
 
 ---
@@ -19,7 +19,7 @@
 - **100% Offline Autonomy**: Every core pedagogical feature—from 27 interactive structural bridge lessons, 4,090 flashcards, SRS SM-2 scheduling, phonetic transliteration, to offline voice recognition—operates 100% offline without requiring active internet connectivity.
 - **Zero Foreign Cloud Dependencies**: No third-party tracking, analytics, or telemetry scripts are ever introduced. All user progression, custom flashcards, and settings remain strictly local on the user's device.
 - **Bring Your Own Key (BYOK) AI Architecture**: Optional AI companion features connect directly using the user's own free Google Gemini API key. Keys are obfuscated and stored exclusively in the device's local vault.
-- **Channel & Media Constitution**: Governed by the [Thinking Bridge Constitution](CONSTITUTION.md) enforcing radical openness, CC0 1.0 public domain pedagogy, and cultural neutrality.
+- **Channel & Media Constitution**: Governed by the [Thinking Bridge Constitution](CONSTITUTION.md) enforcing radical openness, AGPLv3 open-source copyleft protection, CC BY-NC-SA 4.0 open pedagogy, and cultural neutrality.
 
 ---
 
@@ -56,9 +56,14 @@ graph TD
 
 ---
 
-## 📜 Constitution & Attribution
+## 📜 Constitution, Attribution & License
 
 - **Project Constitution**: See [CONSTITUTION.md](CONSTITUTION.md) for full governance details.
 - **Pedagogical Inspiration**: Mihalis Eleftheriou and [Language Transfer](https://www.languagetransfer.org/) — for the *Thinking Method* that makes this pedagogy possible.
 - **Lexical Data**: Wiktionary via Kaikki.org extracts ([CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)).
-- **Author & Maintainer**: Amr Sherif Abdelaal (Alexandria, Egypt).
+- **Author & Founder**: Amr Sherif Abdelaal (Alexandria, Egypt).
+
+### 🛡️ 3-Tier Anti-Theft Open Source Architecture
+- **Software Code**: Licensed under **GNU Affero General Public License v3 (AGPL-3.0-or-later)**. Any hosted or redistributed forks must remain 100% open source under AGPLv3.
+- **Pedagogical Content**: Educational lessons, curricula, and flashcards are licensed under **Creative Commons CC BY-NC-SA 4.0**. Free for non-commercial educational use; commercial monetization or paywalling is strictly prohibited.
+- **Brand Protection**: "Thinking Bridge™", "Thinking English™", "فكّر إنجليزي™", and logos are protected trademarks of **Amr Sherif Abdelaal**. Rebranding is mandatory for any third-party fork.

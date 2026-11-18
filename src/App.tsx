@@ -7,6 +7,7 @@ import { Download } from 'lucide-react';
 
 import { AppTab } from './components/navigation/AppShell';
 import { LandingPage } from './components/LandingPage';
+import { OnboardingFlow } from './components/Onboarding/OnboardingFlow';
 import { Onboarding } from './components/Onboarding';
 import { PwaInstallBanner } from './components/PwaInstallBanner';
 import { useUserProfile } from './hooks/useUserProfile';
@@ -186,6 +187,13 @@ export default function App() {
   });
 
   const [activeLessonNode, setActiveLessonNode] = useState<LessonNode | null>(null);
+  const [newOnboardingOpen, setNewOnboardingOpen] = useState<boolean>(() => {
+    if (typeof window !== 'undefined' && window.location.search.includes('admin=true')) {
+      return false;
+    }
+    return localStorage.getItem('tb.onboardingComplete') !== 'true';
+  });
+
   const [onboardingOpen, setOnboardingOpen] = useState<boolean>(() => {
     if (typeof window !== 'undefined' && window.location.search.includes('admin=true')) {
       return false;
@@ -346,7 +354,9 @@ export default function App() {
   if (view.name === 'landing') {
     return (
       <ErrorBoundary>
-        <LandingPage onLaunchApp={launchApp} isArabic={isArabic} />
+        <div className="landing-shell">
+          <LandingPage onLaunchApp={launchApp} isArabic={isArabic} />
+        </div>
       </ErrorBoundary>
     );
   }
@@ -405,6 +415,7 @@ export default function App() {
                   if (isLessonUnlocked(progression, lesson, targetLang)) setActiveLessonNode(lesson);
                 }}
                 onSelectUnitCheckpoint={() => {}}
+                onUpdateState={updateProgression}
                 onOpenVoice={() => setView({ name: 'voice' })}
                 onOpenFlashcards={(deckId) => setView({ name: 'flashcards', deckId })}
                 onOpenCorporate={() => setView({ name: 'corporate' })}
@@ -617,6 +628,10 @@ export default function App() {
       )}
 
       {/* Game-Style Diagnostic Onboarding Modal */}
+      {newOnboardingOpen && (
+        <OnboardingFlow onComplete={() => setNewOnboardingOpen(false)} />
+      )}
+
       {onboardingOpen && (
         <Onboarding
           initialProfile={profile}

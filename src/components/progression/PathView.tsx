@@ -1,8 +1,24 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ProgressionState, StageNode, LessonNode } from '../../progression/types';
-import { buildCourseStructure, isLessonUnlocked, isStageUnlocked } from '../../progression/courseData';
+import {
+  ProgressionState,
+  StageNode,
+  LessonNode,
+  CefrLevelId,
+  PhaseId,
+  ModuleId,
+} from '../../progression/types';
+import {
+  buildCourseStructure,
+  getCefrLevelHierarchy,
+  isHierarchicalLessonUnlocked,
+  isHierarchicalUnitUnlocked,
+  isHierarchicalModuleUnlocked,
+  isHierarchicalPhaseUnlocked,
+  isHierarchicalLevelUnlocked,
+  calculateLevelSkillNodes,
+} from '../../progression/courseData';
 import { getTargetDictionary, getTargetDictionaryAsync } from '../../data/dictionaries';
-import { Play, Crown, LockKeyhole, Star, Mic, Layers, Sparkles } from 'lucide-react';
+import { Play, Crown, LockKeyhole, Star, Mic, Layers, Sparkles, Compass, Award, Map, ChevronDown, ChevronUp, CheckCircle } from 'lucide-react';
 import { TargetLanguage, UserProgress } from '../../types';
 import confetti from 'canvas-confetti';
 import { motion } from 'framer-motion';
@@ -13,12 +29,18 @@ import {
   isFeatureUnlocked,
 } from '../../progression/featureUnlocks';
 import { FeatureUnlockModal } from './FeatureUnlockModal';
+import { SkillRadar } from './SkillRadar';
+import { CanDoPanelModal } from './CanDoPanelModal';
+import { LevelMapViewModal } from './LevelMapViewModal';
+import { PlacementTestModal } from './PlacementTestModal';
+import { CapstoneRunnerModal } from './CapstoneRunnerModal';
 
 interface PathViewProps {
   state: ProgressionState;
   targetLang: TargetLanguage;
   onSelectLesson: (lesson: LessonNode) => void;
   onSelectUnitCheckpoint: (unitId: string) => void;
+  onUpdateState?: (updater: (prev: ProgressionState) => ProgressionState) => void;
   onOpenVoice?: () => void;
   onOpenFlashcards?: (deckId?: string) => void;
   onOpenCorporate?: () => void;
@@ -39,6 +61,7 @@ export function PathView({
   targetLang,
   onSelectLesson,
   onSelectUnitCheckpoint,
+  onUpdateState,
   onOpenVoice,
   onOpenFlashcards,
   onOpenCorporate,
@@ -53,8 +76,17 @@ export function PathView({
   flashcardDeckIds,
 }: PathViewProps) {
   const [dictionaryVersion, setDictionaryVersion] = useState(0);
-  const [isIdle, setIsIdle] = useState(false);
   const [selectedLockedFeature, setSelectedLockedFeature] = useState<FeatureUnlockDefinition | null>(null);
+
+  // Modal Visibility States
+  const [canDoOpen, setCanDoOpen] = useState(false);
+  const [levelMapOpen, setLevelMapOpen] = useState(false);
+  const [placementOpen, setPlacementOpen] = useState(false);
+  const [capstoneModalTarget, setCapstoneModalTarget] = useState<{ levelId?: CefrLevelId; phaseId?: PhaseId } | null>(null);
+
+  // Active CEFR Level and Phase selection state
+  const activeLevelId: CefrLevelId = state.currentLevelId || 'A1';
+  const [selectedPhaseId, setSelectedPhaseId] = useState<PhaseId>(state.currentPhaseId || 'A1.1');
 
   useEffect(() => {
     let cancelled = false;
@@ -67,352 +99,403 @@ export function PathView({
     };
   }, [targetLang]);
 
-  const courseStructure: StageNode[] = useMemo(
-    () => buildCourseStructure(targetLang),
-    [targetLang, dictionaryVersion]
+  const hierarchy = useMemo(() => getCefrLevelHierarchy(targetLang), [targetLang, dictionaryVersion]);
+
+  const currentLevelNode = useMemo(
+    () => hierarchy.find((l) => l.level === activeLevelId) || hierarchy[0],
+    [hierarchy, activeLevelId]
   );
 
+  // Synchronize active phase if level changes
   useEffect(() => {
-    let timeout: ReturnType<typeof setTimeout>;
-    const resetIdle = () => {
-      setIsIdle(false);
-      clearTimeout(timeout);
-      timeout = setTimeout(() => setIsIdle(true), 5000);
-    };
+    if (!currentLevelNode.phases.some((p) => p.id === selectedPhaseId)) {
+      setSelectedPhaseId(currentLevelNode.phases[0]?.id || 'A1.1');
+    }
+  }, [currentLevelNode, selectedPhaseId]);
 
-    resetIdle();
-    window.addEventListener('touchstart', resetIdle, { passive: true });
-    window.addEventListener('mousemove', resetIdle, { passive: true });
-    window.addEventListener('keydown', resetIdle, { passive: true });
-    window.addEventListener('scroll', resetIdle, { passive: true });
+  const activePhaseNode = useMemo(
+    () => currentLevelNode.phases.find((p) => p.id === selectedPhaseId) || currentLevelNode.phases[0],
+    [currentLevelNode, selectedPhaseId]
+  );
 
-    return () => {
-      clearTimeout(timeout);
-      window.removeEventListener('touchstart', resetIdle);
-      window.removeEventListener('mousemove', resetIdle);
-      window.removeEventListener('keydown', resetIdle);
-      window.removeEventListener('scroll', resetIdle);
-    };
-  }, []);
+  // Calculate Level Skills
+  const levelSkillNodes = useMemo(
+    () => calculateLevelSkillNodes(state, activeLevelId),
+    [state, activeLevelId]
+  );
 
-  const currentStageIndex = courseStructure.findIndex((s) => s.stage === state.currentStage);
-  const safeStageIndex = currentStageIndex >= 0 ? currentStageIndex : 0;
-  const continueStageNode = courseStructure[safeStageIndex] || courseStructure[0];
-  const currentLevelNumber = safeStageIndex + 1;
+  // Calculate Overall Level Completion Ratio
+  const allLevelLessons = useMemo(
+    () => currentLevelNode.phases.flatMap((p) => p.modules.flatMap((m) => m.units.flatMap((u) => u.lessons))),
+    [currentLevelNode]
+  );
+  const completedLevelCount = useMemo(
+    () => allLevelLessons.filter((l) => state.completedLessonIds.includes(l.id)).length,
+    [allLevelLessons, state.completedLessonIds]
+  );
+  const levelProgressPct = allLevelLessons.length > 0 ? Math.round((completedLevelCount / allLevelLessons.length) * 100) : 0;
 
-  const overallProgressPercent = Math.min(100, Math.round(((safeStageIndex + 1) / courseStructure.length) * 100));
+  // Find Next Unfinished Lesson in Current Level
+  const nextLessonToPlay = useMemo(
+    () => allLevelLessons.find((l) => !state.completedLessonIds.includes(l.id)) || allLevelLessons[0],
+    [allLevelLessons, state.completedLessonIds]
+  );
 
-  const launchFeature = (featId: string) => {
-    switch (featId) {
-      case 'srs_flashcards':
-        if (onOpenFlashcards) onOpenFlashcards();
-        break;
-      case 'guided_questions':
-        if (onOpenClarifying) onOpenClarifying();
-        break;
-      case 'pronunciation':
-        if (onOpenPronunciation) onOpenPronunciation();
-        break;
-      case 'ai_voice':
-        if (onOpenVoice) onOpenVoice();
-        break;
-      case 'corporate':
-        if (onOpenCorporate) onOpenCorporate();
-        break;
-      case 'story':
-        if (onOpenStory) onOpenStory();
-        break;
-      case 'teacher_mode':
-        if (onOpenTeacherMode) onOpenTeacherMode();
-        break;
-      case 'maintenance':
-        if (onOpenMaintenance) onOpenMaintenance();
-        break;
-      case 'hacker_terminal':
-        if (onOpenHackerTerminal) onOpenHackerTerminal();
-        break;
+  const handleToggleCanDo = (canDoId: string) => {
+    if (onUpdateState) {
+      onUpdateState((prev) => ({
+        ...prev,
+        canDoProgress: {
+          ...prev.canDoProgress,
+          [canDoId]: !prev.canDoProgress?.[canDoId],
+        },
+      }));
+    }
+  };
+
+  const handleCompletePlacement = (levelId: CefrLevelId, phaseId: PhaseId, score: number) => {
+    if (onUpdateState) {
+      // Find all lessons up to this phase and auto-complete them
+      const allLessons = hierarchy.flatMap((l) => l.phases.flatMap((p) => p.modules.flatMap((m) => m.units.flatMap((u) => u.lessons))));
+      const levelsOrder: CefrLevelId[] = ['A1', 'A2', 'B1', 'B2', 'C1'];
+      const targetLevelIndex = levelsOrder.indexOf(levelId);
+
+      const autoCompletedIds = allLessons
+        .filter((l) => {
+          const lLevelIndex = levelsOrder.indexOf((l.levelId || 'A1') as CefrLevelId);
+          return lLevelIndex < targetLevelIndex;
+        })
+        .map((l) => l.id);
+
+      onUpdateState((prev) => ({
+        ...prev,
+        currentLevelId: levelId,
+        currentPhaseId: phaseId,
+        placementResult: { levelId, phaseId, score, dateISO: new Date().toISOString() },
+        completedLessonIds: Array.from(new Set([...prev.completedLessonIds, ...autoCompletedIds])),
+      }));
+    }
+  };
+
+  const handleCompleteCapstone = (targetId: string, passed: boolean, score: number) => {
+    if (onUpdateState) {
+      onUpdateState((prev) => ({
+        ...prev,
+        capstoneResults: {
+          ...prev.capstoneResults,
+          [targetId]: { passed, score, dateISO: new Date().toISOString() },
+        },
+      }));
     }
   };
 
   return (
     <div className="relative space-y-6 max-w-md md:max-w-2xl lg:max-w-3xl mx-auto pb-32 sm:pb-36" dir={isArabic ? 'rtl' : 'ltr'}>
-      {/* Alexandrian & Egyptian Friendly Welcome Banner */}
-      <div className="p-3.5 rounded-2xl bg-gradient-to-r from-teal-950/60 via-emerald-950/40 to-amber-950/30 border border-teal-500/40 text-start flex items-center justify-between gap-3 shadow-md">
+      {/* Alexandrian Welcome Banner */}
+      <div className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-950/40 via-teal-950/40 to-stone-900 border border-amber-500/30 text-start flex items-center justify-between gap-3 shadow-md">
         <div className="space-y-0.5 min-w-0">
-          <div className="flex items-center gap-1.5 text-xs font-black text-teal-300">
-            <span>🌊</span>
-            <span>{isArabic ? 'من إسكندرية لكل أهل مصر · سهولة وطلاقة' : 'Alexandrian Warmth & Ease'}</span>
+          <div className="flex items-center gap-1.5 text-xs font-black text-amber-400">
+            <span>⚓</span>
+            <span>{isArabic ? 'نظام التفكير التراكمي CEFR A1 → C1' : '5-Tier CEFR Cognitive Bridge'}</span>
           </div>
           <p className="text-[11px] text-stone-300 font-bold leading-snug truncate">
-            {isArabic ? 'اتكلم وفكّر إنجليزي عالماشي ومن غير عقد!' : 'Think directly in English without internal translation!'}
+            {isArabic ? 'فكّر بالإنجليزي مباشرة، دون ترجمة حرفية أو عقد' : 'Think directly in English without mental translation'}
           </p>
         </div>
-        <span className="text-xl shrink-0">⚓</span>
+        <button
+          onClick={() => setLevelMapOpen(true)}
+          className="px-3 py-1.5 text-xs font-bold text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 rounded-xl transition-all flex items-center gap-1 shrink-0"
+        >
+          <Map className="w-3.5 h-3.5" />
+          <span>{isArabic ? 'خريطة المستويات' : 'Level Map'}</span>
+        </button>
       </div>
 
-      {/* Top Progress Bar */}
-      <div className="bg-surface border border-border p-3 rounded-2xl shadow-md">
-        <div className="flex justify-between items-center mb-2">
-          <span className="text-xs font-bold text-muted">{isArabic ? '0% نحو C1' : '0% towards C1'}</span>
-          <span className="text-xs font-bold text-primary">{overallProgressPercent}%</span>
-          <span className="text-xs font-bold text-muted">{isArabic ? '100% القمة' : '100% Mastery'}</span>
+      {/* Level Header Card */}
+      <div className="p-5 sm:p-6 rounded-3xl bg-stone-900/90 border border-stone-800 shadow-xl space-y-5">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-stone-950 font-black text-xl shadow-lg shadow-amber-500/20">
+              {currentLevelNode.level}
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg font-black text-white">
+                  {isArabic ? currentLevelNode.titleAr : currentLevelNode.titleEn}
+                </h2>
+                <span className="px-2.5 py-0.5 text-[10px] font-black text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded-full">
+                  {levelProgressPct}% {isArabic ? 'مكتمل' : 'Done'}
+                </span>
+              </div>
+              <p className="text-xs text-stone-400 mt-1 max-w-md">
+                {isArabic ? currentLevelNode.descriptionAr : currentLevelNode.descriptionEn}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 self-stretch sm:self-auto justify-end">
+            <button
+              onClick={() => setCanDoOpen(true)}
+              className="px-3 py-2 text-xs font-bold text-amber-300 bg-stone-800/80 hover:bg-stone-800 border border-stone-700 rounded-xl transition-all flex items-center gap-1.5"
+            >
+              <Award className="w-4 h-4 text-amber-400" />
+              <span>{isArabic ? 'Can-Do (5/5)' : 'Can-Do Statements'}</span>
+            </button>
+            <button
+              onClick={() => setPlacementOpen(true)}
+              className="px-3 py-2 text-xs font-bold text-teal-300 bg-stone-800/80 hover:bg-stone-800 border border-stone-700 rounded-xl transition-all flex items-center gap-1.5"
+            >
+              <Compass className="w-4 h-4 text-teal-400" />
+              <span>{isArabic ? 'اختبار تحديد المستوى' : 'Placement Test'}</span>
+            </button>
+          </div>
         </div>
-        <div className="h-3 rounded-full bg-surface-2 overflow-hidden border border-border relative">
-          <div className="h-full bg-gradient-to-r from-teal-500 to-emerald-400 transition-all duration-1000" style={{ width: `${overallProgressPercent}%` }} />
+
+        {/* Skill Radar & Level Metadata Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center border-t border-stone-800/80 pt-4">
+          <SkillRadar branchData={levelSkillNodes} isArabic={isArabic} />
+
+          <div className="space-y-3 bg-stone-950/60 p-4 rounded-2xl border border-stone-800/80">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-stone-400">{isArabic ? 'الوقت التقديري للمستوى:' : 'Estimated Level Time:'}</span>
+              <span className="font-bold text-white">~{currentLevelNode.estimatedMinutes} {isArabic ? 'دقيقة' : 'mins'}</span>
+            </div>
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-stone-400">{isArabic ? 'المرحلة النشطة:' : 'Active Phase:'}</span>
+              <span className="font-bold text-amber-400">{selectedPhaseId}</span>
+            </div>
+            <div className="w-full h-2 bg-stone-800 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-amber-500 to-yellow-400 transition-all duration-500"
+                style={{ width: `${levelProgressPct}%` }}
+              />
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Sticky Primary CTA: Extra-Large Start Lesson Button */}
+      {/* Sticky Primary CTA */}
       <div className="sticky top-14 z-20 p-4 rounded-3xl bg-stone-900/98 border-2 border-amber-500/60 shadow-2xl backdrop-blur-xl flex items-center justify-between gap-3">
         <div className="space-y-1 text-start min-w-0">
           <span className="text-xs font-black text-amber-400 block">
-            {isArabic
-              ? `المرحلة الحالية: ${continueStageNode?.stage || 'A0'}`
-              : `Current Stage: ${continueStageNode?.stage || 'A0'}`}
+            {isArabic ? `المستوى الحالي: ${currentLevelNode.level} · المرحلة ${selectedPhaseId}` : `Level: ${currentLevelNode.level} · Phase ${selectedPhaseId}`}
           </span>
           <h3 className="text-base font-black text-white truncate">
-            {isArabic ? continueStageNode?.titleAr : continueStageNode?.titleEn}
+            {isArabic ? nextLessonToPlay?.titleAr || 'متابعة التعلم' : nextLessonToPlay?.titleEn || 'Continue Learning'}
           </h3>
           <p className="text-xs text-stone-300">
-            {isArabic ? 'اضغط الزر الذهبي لبدء الدرس مباشرة' : 'Tap the gold button to start lesson immediately'}
+            {isArabic ? 'اضغط الزر الذهبي لبدء الدرس مباشرة' : 'Tap the gold button to launch lesson'}
           </p>
         </div>
 
         <button
           onClick={() => {
-            if (!continueStageNode) return;
-            const firstUnfinished =
-              continueStageNode.units.flatMap(u => u.lessons).find((l) => !state.completedLessonIds.includes(l.id)) || continueStageNode.units.flatMap(u => u.lessons)[0];
-            if (firstUnfinished) onSelectLesson(firstUnfinished);
+            if (nextLessonToPlay) onSelectLesson(nextLessonToPlay);
           }}
-          aria-label="اضغط هنا لبدء الدرس الحالي · Start Current Lesson"
-          className="min-h-[60px] px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 hover:from-amber-300 hover:to-amber-500 text-stone-950 font-black text-base shadow-2xl transition active:scale-95 flex items-center justify-center gap-2 shrink-0 border-2 border-amber-300 focus-visible:ring-4 focus-visible:ring-amber-300 cursor-pointer"
+          aria-label="ابدأ الدرس الحالي"
+          className="min-h-[56px] px-5 py-3 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 hover:from-amber-300 hover:to-amber-500 text-stone-950 font-black text-sm shadow-2xl transition active:scale-95 flex items-center justify-center gap-2 shrink-0 border-2 border-amber-300 cursor-pointer"
         >
-          <Play size={20} fill="currentColor" />
+          <Play size={18} fill="currentColor" />
           <div className="flex flex-col items-center">
-            <span>ابدأ الدرس الحالي 🚀</span>
-            <span className="text-[10px] font-sans font-bold opacity-90">Start Lesson</span>
+            <span>ابدأ الدرس 🚀</span>
+            <span className="text-[9px] font-sans font-bold opacity-90">Start Lesson</span>
           </div>
         </button>
       </div>
 
-      {/* Candy-Crush Style True Zig-Zag Path */}
-      <div className="flex flex-col items-center gap-4 relative py-8 w-full">
-        {(() => {
-          let nodeIndex = 0;
-          // Creates a distinct S-curve zig-zag that sweeps across the screen more dramatically
-          const alignFor = (index: number) => {
-            const pattern = [
-              '-translate-x-12', // Center-left
-              '-translate-x-24', // Far left
-              '-translate-x-32', // Extreme left
-              '-translate-x-24', // Far left (curving back)
-              '-translate-x-8',  // Center-left
-              'translate-x-8',   // Center-right
-              'translate-x-24',  // Far right
-              'translate-x-32',  // Extreme right
-              'translate-x-24',  // Far right (curving back)
-              'translate-x-12',  // Center-right
-            ];
-            return pattern[index % pattern.length];
-          };
-
-          const nodes: React.ReactNode[] = [];
-
-          courseStructure.forEach((stage, idx) => {
-            const isCompleted = idx < safeStageIndex;
-            const unlocked = idx <= safeStageIndex;
-            const isCurrent = idx === safeStageIndex;
-
-            const stageLessons = stage.units.flatMap(u => u.lessons);
-            const completedInStage = stageLessons.filter(l => state.completedLessonIds.includes(l.id)).length;
-            const totalInStage = Math.max(1, stageLessons.length);
-
-            const stageUnlocks = getUnlocksForStage(stage.stage);
-
-            const alignClass = alignFor(nodeIndex++);
-
-            const buttonContent = (
-              <div className="relative w-full flex flex-col items-center">
-                {isCurrent && (
-                  <div className="mb-2 animate-bounce bg-emerald-600 border border-emerald-400 text-white px-3 py-1 rounded-xl shadow-lg shadow-emerald-500/40 z-20 text-[11px] font-black pointer-events-none whitespace-nowrap">
-                    📍 أنت هنا الآن (المستوى {idx + 1} من 10)
-                  </div>
-                )}
-                <button
-                  onClick={() => {
-                    if (!isCompleted && unlocked) {
-                      confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-                    }
-                    const firstUnfinished =
-                      stage.units.flatMap(u => u.lessons).find((l) => !state.completedLessonIds.includes(l.id)) || stage.units.flatMap(u => u.lessons)[0];
-                    if (firstUnfinished) onSelectLesson(firstUnfinished);
-                  }}
-                  type="button"
-                  disabled={!unlocked}
-                  aria-label={`${isArabic ? stage.titleAr : stage.titleEn}${unlocked ? '' : isArabic ? ' — مقفول، أكمل الدرس السابق لفتحه' : ' — locked, complete the previous lesson to unlock'}`}
-                  className={`group relative flex flex-col items-center justify-center transition-transform rounded-full ${
-                    unlocked ? 'active:scale-95' : 'cursor-not-allowed opacity-55'
-                  }`}
-                  style={{ borderRadius: '9999px', overflow: 'visible' }}
-                >
-                  <div
-                    className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center transition-all overflow-visible shadow-[0_8px_0_0_rgba(0,0,0,0.2)] active:translate-y-2 active:shadow-none ${
-                      isCompleted
-                        ? 'bg-gradient-to-br from-emerald-400 to-teal-600 text-white shadow-[0_8px_0_0_rgba(6,95,70,1)]'
-                        : isCurrent
-                        ? 'bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-[0_8px_0_0_rgba(153,27,27,1)] ring-4 ring-amber-400/40'
-                        : unlocked
-                        ? 'bg-gradient-to-br from-stone-100 to-stone-300 border-2 border-stone-400 text-stone-700 shadow-[0_8px_0_0_rgba(120,113,108,1)] hover:brightness-110'
-                        : 'bg-surface-2 border-2 border-border/50 text-muted grayscale shadow-[0_8px_0_0_rgba(0,0,0,0.1)]'
-                    }`}
-                    style={{
-                      borderRadius: '9999px',
-                      boxShadow: isCurrent ? '0 8px 0 0 rgba(153,27,27,1), 0 0 28px rgba(251, 191, 36, 0.45)' : undefined,
-                    }}
-                  >
-                    {isCompleted ? (
-                      <Star fill="currentColor" className="w-10 h-10 drop-shadow-md" />
-                    ) : !unlocked ? (
-                      <LockKeyhole className="w-8 h-8 opacity-50" />
-                    ) : (
-                      <span className="text-3xl font-black">{idx + 1}</span>
-                    )}
-                  </div>
-                </button>
-
-                {unlocked && (
-                  <div className="mt-2.5 max-w-[220px] text-center flex flex-col items-center gap-1 z-10 px-1">
-                    <span
-                      className={`block text-[11px] sm:text-xs font-bold px-3 py-1 rounded-xl shadow-sm text-center leading-tight whitespace-normal ${
-                        isCompleted
-                          ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30'
-                          : isCurrent
-                          ? 'bg-emerald-950/90 text-emerald-200 border-2 border-emerald-400/60 shadow-[0_0_12px_rgba(16,185,129,0.25)]'
-                          : 'bg-surface border border-border text-text'
-                      }`}
-                    >
-                      {isCompleted
-                        ? (isArabic ? `المستوى ${idx + 1}: ${stage.titleAr} (مكتمل ⭐)` : `Level ${idx + 1}: ${stage.titleEn} (Mastered)`)
-                        : isCurrent
-                        ? (isArabic ? `المستوى ${idx + 1}: ${stage.titleAr} (${completedInStage}/${totalInStage} دروس)` : `Level ${idx + 1}: ${stage.titleEn} (${completedInStage}/${totalInStage} lessons)`)
-                        : (isArabic ? `المستوى ${idx + 1}: ${stage.titleAr}` : `Level ${idx + 1}: ${stage.titleEn}`)}
-                    </span>
-                  </div>
-                )}
-
-                {/* Checkpoint Feature Unlock Badge for this stage */}
-                {stageUnlocks.length > 0 && (
-                  <div className="mt-2.5 max-w-[240px] text-center flex flex-col items-center gap-1.5 z-10 px-1">
-                    {stageUnlocks.map((feat) => {
-                      const featUnlocked = unlocked;
-                      return (
-                        <button
-                          key={feat.id}
-                          type="button"
-                          onClick={() => {
-                            if (featUnlocked) {
-                              launchFeature(feat.id);
-                            } else {
-                              setSelectedLockedFeature(feat);
-                            }
-                          }}
-                          className={`w-full p-2 rounded-2xl border text-start transition active:scale-95 flex items-center gap-2 shadow-sm ${
-                            featUnlocked
-                              ? 'bg-stone-900/90 border-emerald-500/40 text-emerald-300 hover:border-emerald-400'
-                              : 'bg-stone-950/80 border-stone-800 text-stone-400 opacity-70 hover:opacity-100'
-                          }`}
-                        >
-                          <span className="text-xl shrink-0">{feat.icon}</span>
-                          <div className="min-w-0 flex-1 space-y-0.5">
-                            <div className="flex items-center justify-between gap-1">
-                              <span className="text-[10px] font-black tracking-wide truncate">
-                                {isArabic ? feat.titleAr : feat.titleEn}
-                              </span>
-                              {featUnlocked ? (
-                                <Sparkles size={12} className="text-emerald-400 shrink-0" />
-                              ) : (
-                                <LockKeyhole size={12} className="text-amber-400 shrink-0" />
-                              )}
-                            </div>
-                            <span className="text-[9px] block text-stone-400 truncate">
-                              {featUnlocked
-                                ? (isArabic ? '✨ ميزة مفتوحة — اضغط للتشغيل' : '✨ Unlocked feature — tap to launch')
-                                : (isArabic ? `🔒 ينفتح في المستوى ${feat.requiredLevelNumber}` : `🔒 Requires Level ${feat.requiredLevelNumber}`)}
-                            </span>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            );
-
-            nodes.push(
-              isCurrent ? (
-                <motion.div
-                  key={stage.stage}
-                  animate={{ scale: [1, 1.05, 1], y: [0, -5, 0] }}
-                  transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-                  className={`relative flex justify-center w-full transform ${alignClass} z-10`}
-                >
-                  {buttonContent}
-                </motion.div>
-              ) : (
-                <div key={stage.stage} className={`relative flex justify-center w-full transform ${alignClass} ${isCompleted ? 'z-0' : 'z-0'}`}>
-                  {buttonContent}
-                </div>
-              )
-            );
-          });
+      {/* Phase Selector Tabs */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+        {currentLevelNode.phases.map((phase) => {
+          const isSelected = phase.id === selectedPhaseId;
+          const isPhaseUnlocked = isHierarchicalPhaseUnlocked(state, phase.id);
 
           return (
-            <>
-              {/* SVG path connector */}
-              <svg className="absolute inset-0 w-full h-full pointer-events-none -z-10" style={{ filter: 'drop-shadow(0px 4px 0px rgba(0,0,0,0.15))' }}>
-                <path
-                  d="M 50% 0 Q 30% 100 20% 200 T 50% 400 T 80% 600 T 50% 800 T 20% 1000 T 50% 1200 T 80% 1400 T 50% 1600 T 20% 1800 T 50% 2000"
-                  fill="none"
-                  stroke="currentColor"
-                  className="text-stone-300 dark:text-stone-800"
-                  strokeWidth="24"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M 50% 0 Q 30% 100 20% 200 T 50% 400 T 80% 600 T 50% 800 T 20% 1000 T 50% 1200 T 80% 1400 T 50% 1600 T 20% 1800 T 50% 2000"
-                  fill="none"
-                  stroke="currentColor"
-                  className="text-stone-400 dark:text-stone-700"
-                  strokeWidth="24"
-                  strokeDasharray="24 32"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              {nodes}
-            </>
+            <button
+              key={phase.id}
+              onClick={() => {
+                if (isPhaseUnlocked) setSelectedPhaseId(phase.id);
+              }}
+              className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all shrink-0 flex items-center gap-2 border ${
+                isSelected
+                  ? 'bg-amber-500 text-stone-950 border-amber-400 font-black shadow-lg shadow-amber-500/20'
+                  : isPhaseUnlocked
+                  ? 'bg-stone-900 text-stone-300 border-stone-800 hover:border-stone-700'
+                  : 'bg-stone-950/60 text-stone-600 border-stone-900 cursor-not-allowed opacity-50'
+              }`}
+            >
+              <span>{phase.id}</span>
+              <span className="truncate max-w-[120px]">{isArabic ? phase.titleAr : phase.titleEn}</span>
+              {!isPhaseUnlocked && <LockKeyhole className="w-3.5 h-3.5 text-stone-600" />}
+            </button>
           );
-        })()}
+        })}
       </div>
 
-      {/* Feature Unlock Modal */}
-      {selectedLockedFeature && (
-        <FeatureUnlockModal
-          feature={selectedLockedFeature}
-          currentLevelNumber={currentLevelNumber}
-          currentStageTitleAr={continueStageNode?.titleAr || state.currentStage}
-          currentStageTitleEn={continueStageNode?.titleEn || state.currentStage}
+      {/* Modules & Units Tree inside Active Phase */}
+      <div className="space-y-6">
+        {activePhaseNode.modules.map((mod) => {
+          const isModUnlocked = isHierarchicalModuleUnlocked(state, mod.id, activePhaseNode.id);
+
+          return (
+            <div key={mod.id} className="space-y-3">
+              {/* Module Header */}
+              <div className="flex items-center justify-between p-3 px-4 rounded-2xl bg-stone-900/60 border border-stone-800/80">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-2.5 h-2.5 rounded-full bg-amber-400" />
+                  <h3 className="text-sm font-bold text-white">
+                    {isArabic ? mod.titleAr : mod.titleEn}
+                  </h3>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  {mod.skills.map((s) => (
+                    <span key={s} className="px-2 py-0.5 text-[9px] font-bold text-stone-400 bg-stone-800 rounded-md">
+                      {s}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Units List */}
+              <div className="grid grid-cols-1 gap-4">
+                {mod.units.map((unit) => {
+                  const isUnitUnlocked = isHierarchicalUnitUnlocked(state, unit.id, mod.id, activePhaseNode.id);
+
+                  return (
+                    <div
+                      key={unit.id}
+                      className={`p-4 sm:p-5 rounded-3xl border transition-all ${
+                        isUnitUnlocked
+                          ? 'bg-stone-900/80 border-stone-800'
+                          : 'bg-stone-950/40 border-stone-900 opacity-60'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-4">
+                        <div>
+                          <h4 className="text-base font-bold text-white">
+                            {isArabic ? unit.titleAr : unit.titleEn}
+                          </h4>
+                          <p className="text-xs text-stone-400 mt-0.5">
+                            {isArabic ? unit.descriptionAr : unit.descriptionEn}
+                          </p>
+                        </div>
+                        {!isUnitUnlocked && (
+                          <span className="px-2.5 py-1 text-[10px] font-bold text-stone-400 bg-stone-800/80 rounded-xl flex items-center gap-1">
+                            <LockKeyhole className="w-3.5 h-3.5" />
+                            <span>{isArabic ? 'يتطلب إكمال الوحدة السابقة' : 'Complete previous unit'}</span>
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Lessons Grid */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {unit.lessons.map((lesson) => {
+                          const isUnlocked = isHierarchicalLessonUnlocked(state, lesson);
+                          const isCompleted = state.completedLessonIds.includes(lesson.id);
+                          const isNext = nextLessonToPlay?.id === lesson.id;
+
+                          return (
+                            <div
+                              key={lesson.id}
+                              onClick={() => {
+                                if (isUnlocked) onSelectLesson(lesson);
+                              }}
+                              className={`p-3.5 rounded-2xl border transition-all relative overflow-hidden ${
+                                isNext
+                                  ? 'bg-gradient-to-r from-amber-500/20 via-stone-900 to-stone-900 border-amber-500/60 shadow-lg shadow-amber-500/10 cursor-pointer ring-1 ring-amber-500/40'
+                                  : isCompleted
+                                  ? 'bg-stone-900/90 border-emerald-500/30 cursor-pointer'
+                                  : isUnlocked
+                                  ? 'bg-stone-900/60 border-stone-800 hover:border-stone-700 cursor-pointer'
+                                  : 'bg-stone-950/40 border-stone-900 opacity-50 cursor-not-allowed'
+                              }`}
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                  <div
+                                    className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs ${
+                                      isNext
+                                        ? 'bg-amber-500 text-stone-950 shadow-md animate-pulse'
+                                        : isCompleted
+                                        ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                        : isUnlocked
+                                        ? 'bg-stone-800 text-stone-200'
+                                        : 'bg-stone-950 text-stone-600'
+                                    }`}
+                                  >
+                                    {isCompleted ? <CheckCircle className="w-4 h-4" /> : isUnlocked ? <Crown className="w-4 h-4" /> : <LockKeyhole className="w-4 h-4" />}
+                                  </div>
+                                  <div>
+                                    <h5 className="text-xs font-bold text-white truncate max-w-[160px]">
+                                      {isArabic ? lesson.titleAr : lesson.titleEn}
+                                    </h5>
+                                    <span className="text-[10px] text-stone-400">
+                                      ~{lesson.estimatedMinutes || 5} {isArabic ? 'دقيقة' : 'mins'}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                {isUnlocked && (
+                                  <button className="p-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 transition-colors">
+                                    <Play className="w-3.5 h-3.5 fill-current" />
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Modals */}
+      <CanDoPanelModal
+        isOpen={canDoOpen}
+        onClose={() => setCanDoOpen(false)}
+        levelId={activeLevelId}
+        state={state}
+        onToggleCanDo={handleToggleCanDo}
+        isArabic={isArabic}
+      />
+
+      <LevelMapViewModal
+        isOpen={levelMapOpen}
+        onClose={() => setLevelMapOpen(false)}
+        state={state}
+        onSelectPhase={(phaseId) => setSelectedPhaseId(phaseId)}
+        onOpenPlacementTest={() => {
+          setLevelMapOpen(false);
+          setPlacementOpen(true);
+        }}
+        onOpenCapstone={(lvl) => {
+          setLevelMapOpen(false);
+          setCapstoneModalTarget({ levelId: lvl });
+        }}
+        isArabic={isArabic}
+      />
+
+      <PlacementTestModal
+        isOpen={placementOpen}
+        onClose={() => setPlacementOpen(false)}
+        state={state}
+        onCompletePlacement={handleCompletePlacement}
+        isArabic={isArabic}
+      />
+
+      {capstoneModalTarget && (
+        <CapstoneRunnerModal
+          isOpen={!!capstoneModalTarget}
+          onClose={() => setCapstoneModalTarget(null)}
+          levelId={capstoneModalTarget.levelId}
+          phaseId={capstoneModalTarget.phaseId}
+          state={state}
+          onCompleteCapstone={handleCompleteCapstone}
           isArabic={isArabic}
-          onClose={() => setSelectedLockedFeature(null)}
-          onContinueCourse={() => {
-            setSelectedLockedFeature(null);
-            const firstUnfinished =
-              continueStageNode?.units.flatMap((u) => u.lessons).find((l) => !state.completedLessonIds.includes(l.id)) ||
-              continueStageNode?.units.flatMap((u) => u.lessons)[0];
-            if (firstUnfinished) onSelectLesson(firstUnfinished);
-          }}
         />
       )}
     </div>

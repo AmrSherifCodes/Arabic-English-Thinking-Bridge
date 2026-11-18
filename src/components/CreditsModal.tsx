@@ -68,7 +68,7 @@ export function CreditsModal({ isOpen, onClose }: CreditsModalProps) {
               <span>المحتوى والتراخيص مفتوحة المصدر</span>
             </p>
             <p className="text-stone-600 dark:text-stone-300">
-              📚 جميع الدروس والمناهج الأصلية منشورة ومخصصة للملكية العامة <strong>CC0 1.0 Public Domain</strong>.
+              🛡️ كود البرمجيات محمي بترخيص <strong>GNU AGPLv3</strong> (مفتوح المصدر وحافظ لحقوق النسب النسخي)، والدروس والمناهج الأصلية مرخصة تحت <strong>CC BY-NC-SA 4.0</strong> (متاحة مجاناً للتعليم ويُحظر استغلالها تجارياً). العلامات التجارية مملوكة لـ <strong>عمرو شريف</strong>.
             </p>
             <p className="text-stone-600 dark:text-stone-300">
               📖 بيانات القواميس والمفردات تتضمن مساهمات من ويكيبيديا وقاموس <strong>Wiktionary</strong> (عبر Kaikki.org) مرخصة تحت CC BY-SA 4.0، ومجموعة بيانات oddadmix/egyptian-arabic-english-50k على Hugging Face (ترخيص Apache-2.0).

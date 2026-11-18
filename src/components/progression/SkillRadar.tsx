@@ -1,52 +1,156 @@
 import React from 'react';
-import { SkillLevels } from '../../progression/types';
+import { SkillLevels, SkillBranch } from '../../progression/types';
+import { SKILL_BRANCH_META } from '../../progression/cefrHierarchy';
 
 interface SkillRadarProps {
-  skills: SkillLevels;
+  skills?: SkillLevels;
+  branchData?: Record<SkillBranch, { xp: number; mastery: number }>;
   isArabic?: boolean;
 }
 
-export function SkillRadar({ skills, isArabic = true }: SkillRadarProps) {
+export function SkillRadar({ skills, branchData, isArabic = true }: SkillRadarProps) {
+  if (branchData) {
+    const branches: SkillBranch[] = ['grammar', 'vocabulary', 'pronunciation', 'listening'];
+    const size = 180;
+    const center = size / 2;
+    const radius = 60;
+    const angleStep = (2 * Math.PI) / branches.length;
+
+    const points = branches
+      .map((branch, i) => {
+        const mastery = Math.max(0.05, Math.min(1.0, branchData[branch]?.mastery || 0.05));
+        const angle = i * angleStep - Math.PI / 2;
+        const x = center + radius * mastery * Math.cos(angle);
+        const y = center + radius * mastery * Math.sin(angle);
+        return `${x},${y}`;
+      })
+      .join(' ');
+
+    const webs = [0.25, 0.5, 0.75, 1.0].map((level) => {
+      return branches
+        .map((_, i) => {
+          const angle = i * angleStep - Math.PI / 2;
+          const x = center + radius * level * Math.cos(angle);
+          const y = center + radius * level * Math.sin(angle);
+          return `${x},${y}`;
+        })
+        .join(' ');
+    });
+
+    return (
+      <div className="flex flex-col items-center justify-center p-3 rounded-2xl bg-stone-900/90 border border-stone-800 backdrop-blur-sm">
+        <h4 className="text-xs font-bold text-amber-400 mb-1 flex items-center gap-1">
+          <span>🎯</span>
+          <span>{isArabic ? 'خريطة المهارات الأربعة' : '4-Axis Skill Radar'}</span>
+        </h4>
+        <svg width={size} height={size} className="overflow-visible">
+          {webs.map((webPoints, idx) => (
+            <polygon
+              key={idx}
+              points={webPoints}
+              fill="none"
+              stroke="#27272a"
+              strokeWidth="1"
+              strokeDasharray={idx < 3 ? '2 2' : 'none'}
+            />
+          ))}
+
+          {branches.map((_, i) => {
+            const angle = i * angleStep - Math.PI / 2;
+            const x = center + radius * Math.cos(angle);
+            const y = center + radius * Math.sin(angle);
+            return (
+              <line
+                key={i}
+                x1={center}
+                y1={center}
+                x2={x}
+                y2={y}
+                stroke="#3f3f46"
+                strokeWidth="1"
+              />
+            );
+          })}
+
+          <polygon
+            points={points}
+            fill="rgba(245, 158, 11, 0.25)"
+            stroke="#f59e0b"
+            strokeWidth="2"
+          />
+
+          {branches.map((branch, i) => {
+            const meta = SKILL_BRANCH_META[branch];
+            const data = branchData[branch];
+            const pct = Math.round((data?.mastery || 0) * 100);
+            const angle = i * angleStep - Math.PI / 2;
+            const labelRadius = radius + 20;
+            const lx = center + labelRadius * Math.cos(angle);
+            const ly = center + labelRadius * Math.sin(angle);
+
+            return (
+              <text
+                key={branch}
+                x={lx}
+                y={ly}
+                fill="#e4e4e7"
+                fontSize="9"
+                fontWeight="bold"
+                textAnchor="middle"
+                dominantBaseline="middle"
+              >
+                {isArabic ? meta.labelAr : meta.labelEn} ({pct}%)
+              </text>
+            );
+          })}
+        </svg>
+      </div>
+    );
+  }
+
+  // Fallback to classic 5-skill matrix if branchData is not provided
   const axes = [
-    { key: 'structure', label: isArabic ? 'البناء والنحو' : 'Structure' },
+    { key: 'structure', label: isArabic ? 'البناء' : 'Structure' },
     { key: 'vocabulary', label: isArabic ? 'المفردات' : 'Vocabulary' },
     { key: 'listening', label: isArabic ? 'الاستماع' : 'Listening' },
     { key: 'speaking', label: isArabic ? 'التحدث' : 'Speaking' },
     { key: 'writing', label: isArabic ? 'الكتابة' : 'Writing' },
   ];
 
-  const size = 200;
+  const size = 180;
   const center = size / 2;
-  const radius = 70;
+  const radius = 60;
   const angleStep = (2 * Math.PI) / axes.length;
+  const currentSkills = skills || { structure: 1, vocabulary: 1, listening: 1, speaking: 1, writing: 1 };
 
-  // Calculate polygon points (max skill level 50)
-  const points = axes.map((axis, i) => {
-    const val = Math.min(50, Math.max(1, skills[axis.key as keyof SkillLevels] || 1));
-    const normalized = val / 50;
-    const angle = i * angleStep - Math.PI / 2;
-    const x = center + radius * normalized * Math.cos(angle);
-    const y = center + radius * normalized * Math.sin(angle);
-    return `${x},${y}`;
-  }).join(' ');
-
-  // Grid background webs
-  const webs = [0.25, 0.5, 0.75, 1.0].map((level) => {
-    return axes.map((_, i) => {
+  const points = axes
+    .map((axis, i) => {
+      const val = Math.min(50, Math.max(1, currentSkills[axis.key as keyof SkillLevels] || 1));
+      const normalized = val / 50;
       const angle = i * angleStep - Math.PI / 2;
-      const x = center + radius * level * Math.cos(angle);
-      const y = center + radius * level * Math.sin(angle);
+      const x = center + radius * normalized * Math.cos(angle);
+      const y = center + radius * normalized * Math.sin(angle);
       return `${x},${y}`;
-    }).join(' ');
+    })
+    .join(' ');
+
+  const webs = [0.25, 0.5, 0.75, 1.0].map((level) => {
+    return axes
+      .map((_, i) => {
+        const angle = i * angleStep - Math.PI / 2;
+        const x = center + radius * level * Math.cos(angle);
+        const y = center + radius * level * Math.sin(angle);
+        return `${x},${y}`;
+      })
+      .join(' ');
   });
 
   return (
-    <div className="flex flex-col items-center justify-center p-4 rounded-2xl bg-stone-900 border border-stone-800">
-      <h4 className="text-xs font-bold text-teal-400 mb-2">
-        {isArabic ? '📊 خريطة المهارات الخماسية (1-50)' : '📊 5-Skill Radar Matrix (1-50)'}
+    <div className="flex flex-col items-center justify-center p-3 rounded-2xl bg-stone-900 border border-stone-800">
+      <h4 className="text-xs font-bold text-teal-400 mb-1">
+        {isArabic ? '📊 خريطة المهارات (1-50)' : '📊 5-Skill Matrix (1-50)'}
       </h4>
       <svg width={size} height={size} className="overflow-visible">
-        {/* Background Grid Webs */}
         {webs.map((webPoints, idx) => (
           <polygon
             key={idx}
@@ -58,37 +162,21 @@ export function SkillRadar({ skills, isArabic = true }: SkillRadarProps) {
           />
         ))}
 
-        {/* Axis Lines */}
         {axes.map((_, i) => {
           const angle = i * angleStep - Math.PI / 2;
           const x = center + radius * Math.cos(angle);
           const y = center + radius * Math.sin(angle);
           return (
-            <line
-              key={i}
-              x1={center}
-              y1={center}
-              x2={x}
-              y2={y}
-              stroke="#3f3f46"
-              strokeWidth="1"
-            />
+            <line key={i} x1={center} y1={center} x2={x} y2={y} stroke="#3f3f46" strokeWidth="1" />
           );
         })}
 
-        {/* Skill Value Polygon */}
-        <polygon
-          points={points}
-          fill="rgba(45, 212, 191, 0.3)"
-          stroke="#2dd4bf"
-          strokeWidth="2.5"
-        />
+        <polygon points={points} fill="rgba(45, 212, 191, 0.3)" stroke="#2dd4bf" strokeWidth="2" />
 
-        {/* Labels & Data Points */}
         {axes.map((axis, i) => {
-          const val = skills[axis.key as keyof SkillLevels] || 1;
+          const val = currentSkills[axis.key as keyof SkillLevels] || 1;
           const angle = i * angleStep - Math.PI / 2;
-          const labelRadius = radius + 22;
+          const labelRadius = radius + 18;
           const lx = center + labelRadius * Math.cos(angle);
           const ly = center + labelRadius * Math.sin(angle);
 

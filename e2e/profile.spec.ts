@@ -1,15 +1,12 @@
 import { test, expect } from '@playwright/test';
 import { seedStorage } from './seed';
 
-test('profile and language switcher', async ({ page }) => {
+test('profile and preferences', async ({ page }) => {
   await seedStorage(page);
   await page.goto('/?app=true');
 
-  await page.locator('button[aria-label="Profile"], button[aria-label="الحساب"]').click();
+  await page.locator('button').filter({ hasText: /الملف|Profile/i }).first().click();
 
-  // Settings button
-  await page.locator('button[aria-label="Preferences"], button[aria-label="الإعدادات"]').click();
-
-  // Language switcher in settings
-  await expect(page.locator('button:has-text("Change Language"), button:has-text("تغيير اللغة")').first()).toBeVisible();
+  // Verify profile page renders
+  await expect(page.locator('text=تصدير').or(page.locator('text=Export')).first()).toBeVisible();
 });

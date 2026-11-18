@@ -53,6 +53,45 @@ export function createInitialProgressionState(): ProgressionState {
     testedOutUnitIds: [],
     testedOutStageIds: [],
 
+    // Hierarchical CEFR A1-C1 defaults
+    currentLevelId: 'A1',
+    currentPhaseId: 'A1.1',
+    currentModuleId: 'a1.1-m1',
+    skillTree: {
+      A1: [
+        { branch: 'grammar', xp: 0, mastery: 0 },
+        { branch: 'vocabulary', xp: 0, mastery: 0 },
+        { branch: 'pronunciation', xp: 0, mastery: 0 },
+        { branch: 'listening', xp: 0, mastery: 0 },
+      ],
+      A2: [
+        { branch: 'grammar', xp: 0, mastery: 0 },
+        { branch: 'vocabulary', xp: 0, mastery: 0 },
+        { branch: 'pronunciation', xp: 0, mastery: 0 },
+        { branch: 'listening', xp: 0, mastery: 0 },
+      ],
+      B1: [
+        { branch: 'grammar', xp: 0, mastery: 0 },
+        { branch: 'vocabulary', xp: 0, mastery: 0 },
+        { branch: 'pronunciation', xp: 0, mastery: 0 },
+        { branch: 'listening', xp: 0, mastery: 0 },
+      ],
+      B2: [
+        { branch: 'grammar', xp: 0, mastery: 0 },
+        { branch: 'vocabulary', xp: 0, mastery: 0 },
+        { branch: 'pronunciation', xp: 0, mastery: 0 },
+        { branch: 'listening', xp: 0, mastery: 0 },
+      ],
+      C1: [
+        { branch: 'grammar', xp: 0, mastery: 0 },
+        { branch: 'vocabulary', xp: 0, mastery: 0 },
+        { branch: 'pronunciation', xp: 0, mastery: 0 },
+        { branch: 'listening', xp: 0, mastery: 0 },
+      ],
+    },
+    canDoProgress: {},
+    capstoneResults: {},
+
     skills: {
       structure: 1,
       vocabulary: 1,

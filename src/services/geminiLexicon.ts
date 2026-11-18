@@ -498,6 +498,7 @@ async function requestGemini<T>(
   signal?: AbortSignal
 ): Promise<T> {
   const userKey = getUserGeminiKey();
+
   if (userKey) {
     try {
       if (consumeDailyApiQuota()) {
@@ -506,34 +507,110 @@ async function requestGemini<T>(
     } catch (err) {
       console.warn('Direct user key request failed, falling back to server route or offline engine:', err);
     }
+  }
 
-    const controller = new AbortController();
-    const timeout = window.setTimeout(() => controller.abort(), TIMEOUT_MS);
-    const abortRequest = () => controller.abort();
-    signal?.addEventListener('abort', abortRequest, { once: true });
-    if (signal?.aborted) controller.abort();
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), TIMEOUT_MS);
+  const abortRequest = () => controller.abort();
+  signal?.addEventListener('abort', abortRequest, { once: true });
+  if (signal?.aborted) controller.abort();
 
-    const reqHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
+  const reqHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (userKey) {
     reqHeaders['x-user-api-key'] = userKey;
     reqHeaders['X-User-Gemini-Key'] = userKey;
+  }
 
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/gemini`, {
-        method: 'POST',
-        headers: reqHeaders,
-        body: JSON.stringify({ ...payload, operation }),
-        signal: controller.signal
-      });
+  const isStream = operation === 'conversation' || operation === 'tutor';
+  if (isStream) {
+    reqHeaders['Accept'] = 'text/event-stream';
+  }
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/gemini`, {
+      method: 'POST',
+      headers: reqHeaders,
+      body: JSON.stringify({ ...payload, operation, stream: isStream }),
+      signal: controller.signal
+    });
+
+    if (!response.ok) {
+      let errorMsg = `Server error: ${response.status}`;
+      try {
+        const errJson = await response.json();
+        if (errJson.error === 'BYOK_REQUIRED') {
+          console.error("Developer Error: Backend requires a personal Gemini API Key, but none was provided.");
+          throw new LexiconError('missing-key', "Missing API key");
+        }
+        if (errJson.error === 'FREE_LIMIT_REACHED' || errJson.code === 'rate-limited') {
+          throw new LexiconError('rate-limited', "Daily limit reached");
+        }
+        errorMsg = errJson.message || errorMsg;
+      } catch (e) {
+        if (e instanceof LexiconError) throw e;
+      }
+      throw new Error(errorMsg);
+    }
+
+    if (isStream) {
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error('Response body is not readable');
+      const decoder = new TextDecoder();
+      let fullText = '';
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        let boundary = buffer.indexOf('\n\n');
+        while (boundary !== -1) {
+          const chunk = buffer.slice(0, boundary).trim();
+          buffer = buffer.slice(boundary + 2);
+
+          if (chunk.startsWith('data: ')) {
+            const dataStr = chunk.slice(6);
+            if (dataStr === '[DONE]') break;
+
+            try {
+              const data = JSON.parse(dataStr);
+              if (data.text) fullText += data.text;
+              if (data.error) throw new Error(data.error);
+            } catch (e) {
+              if (e instanceof SyntaxError) {
+                // Robust parsing for raw text or markdown sent directly
+                fullText += dataStr;
+              } else {
+                throw e;
+              }
+            }
+          }
+          boundary = buffer.indexOf('\n\n');
+        }
+      }
+      if (!fullText.trim()) throw new Error('Empty response received from AI');
+      return fullText as unknown as T;
+    } else {
       const result: unknown = await response.json();
       if (result && typeof result === 'object' && response.ok && 'data' in result) {
         return (result as Record<string, unknown>).data as T;
       }
-    } catch (err) {
-      console.warn('Network request failed, falling back to offline engine:', err);
-    } finally {
-      window.clearTimeout(timeout);
-      signal?.removeEventListener('abort', abortRequest);
+      throw new Error('Invalid JSON structure from server');
     }
+  } catch (err) {
+    console.error('Developer Error: AI request failed.', err);
+    if (err instanceof LexiconError) {
+      if (err.code === 'missing-key') {
+         const fallback = getOfflineFallback<T>(operation, payload);
+         if (typeof fallback === 'string') {
+             return (fallback + "\n\n⚠️ (ملاحظة: للاستفادة من الذكاء الاصطناعي السحابي המتقدم، أضف مفتاح Gemini API في الإعدادات.)") as unknown as T;
+         }
+      }
+    }
+  } finally {
+    window.clearTimeout(timeout);
+    signal?.removeEventListener('abort', abortRequest);
   }
 
   // Pure Offline Sovereign Engine

@@ -36,6 +36,46 @@
     -webkit-font-smoothing: antialiased;
   }
 
+  /* Defensive override: landing must never inherit the app dark shell */
+  .egyptian-landing {
+    min-height: 100vh;
+    min-height: 100dvh;
+    width: 100%;
+    color-scheme: light;
+    background: #F7F0E0 !important;
+    color: #1A1A2E !important;
+  }
+
+  /* Make the browser controls/inputs light while landing is mounted */
+  html:has(.egyptian-landing) {
+    color-scheme: light;
+  }
+
+  body:has(.egyptian-landing) {
+    background: #F7F0E0 !important;
+  }
+
+  .egyptian-landing .hero-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2.5rem;
+    align-items: center;
+  }
+
+  @media (min-width: 1024px) {
+    .egyptian-landing .hero-grid {
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+    }
+
+    .egyptian-landing .hero-copy {
+      grid-column: span 7;
+    }
+
+    .egyptian-landing .hero-mockup {
+      grid-column: span 5;
+    }
+  }
+
   .egyptian-landing a { color: inherit; text-decoration: none; }
   .egyptian-landing img { max-width: 100%; display: block; }
   .egyptian-landing button { font-family: inherit; cursor: pointer; border: none; }

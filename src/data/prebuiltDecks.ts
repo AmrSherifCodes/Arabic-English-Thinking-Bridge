@@ -9,20 +9,20 @@ export interface PrebuiltDeck {
   name: string;
   description: string;
   author: string;
-  license: 'CC0 1.0 Public Domain' | 'CC BY 4.0' | 'CC BY-SA 4.0';
+  license: 'CC BY-NC-SA 4.0' | 'CC0 1.0 Public Domain' | 'CC BY 4.0' | 'CC BY-SA 4.0';
   disclaimer: string;
   level?: string;
   cards: PrebuiltDeckCard[];
 }
 
 export const PUBLIC_DOMAIN_DISCLAIMER =
-  '100% Copyright-Free (CC0 1.0 Universal Public Domain Dedication). You can copy, modify, distribute, and study this deck freely without any copyright restrictions.';
+  '100% Free Open Educational Content (CC BY-NC-SA 4.0). Free for non-commercial study and education with attribution to Amr Sherif Abdelaal. Commercial monetization prohibited.';
 
 export const LEXICORE_DISCLAIMER =
-  '100% Copyright-Free (CC0 1.0 Public Domain / Creative Commons Attribution 4.0 Compatible). Original pedagogical sentences dedicated to the public domain for unrestricted learning.';
+  '100% Free Open Educational Content (CC BY-NC-SA 4.0 / Creative Commons Compatible). Original pedagogical sentences licensed for open non-commercial learning.';
 
 export const TATOEBA_DISCLAIMER =
-  '100% Copyright-Free (CC0 1.0 Public Domain / Creative Commons Attribution-ShareAlike 4.0 Compatible). Structural Arabic–English bridging sentences dedicated to the public domain.';
+  '100% Free Open Educational Content (CC BY-NC-SA 4.0 / Creative Commons Attribution-ShareAlike Compatible). Structural Arabic–English bridging sentences for open study.';
 
 export const PREBUILT_DECKS: PrebuiltDeck[] = [
   {

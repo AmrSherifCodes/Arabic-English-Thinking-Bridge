@@ -1,7 +1,7 @@
 import { PrebuiltDeck } from './prebuiltDecks';
 
 export const EXPANDED_DECKS_DISCLAIMER =
-  '100% Copyright-Free (CC0 1.0 Universal Public Domain Dedication). Original sentences crafted for Thinking English to bridge Arabic-to-English structural habits across CEFR A1–B2.';
+  '100% Free Open Educational Content (CC BY-NC-SA 4.0). Original sentences crafted for Thinking English to bridge Arabic-to-English structural habits across CEFR A1–B2. Commercial reproduction prohibited.';
 
 export const EXPANDED_DECKS: PrebuiltDeck[] = [
   {
@@ -9,8 +9,8 @@ export const EXPANDED_DECKS: PrebuiltDeck[] = [
     name: 'Daily Life & Routines',
     description:
       '40 essential everyday sentences covering morning habits, household chores, health, shopping, and time expressions where Arabic and English structures diverge.',
-    author: 'Thinking English Public Domain',
-    license: 'CC0 1.0 Public Domain',
+    author: 'Amr Sherif / Thinking English',
+    license: 'CC BY-NC-SA 4.0',
     disclaimer: EXPANDED_DECKS_DISCLAIMER,
     cards: [
       {
@@ -180,8 +180,8 @@ export const EXPANDED_DECKS: PrebuiltDeck[] = [
     name: 'Work & Business',
     description:
       '40 professional sentences for meetings, emails, deadlines, negotiations, and workplace communication with natural English collocations.',
-    author: 'Thinking English Public Domain',
-    license: 'CC0 1.0 Public Domain',
+    author: 'Amr Sherif / Thinking English',
+    license: 'CC BY-NC-SA 4.0',
     disclaimer: EXPANDED_DECKS_DISCLAIMER,
     cards: [
       {
@@ -351,8 +351,8 @@ export const EXPANDED_DECKS: PrebuiltDeck[] = [
     name: 'Travel & Social',
     description:
       '40 practical sentences for airports, hotels, restaurants, directions, making friends, and polite social interactions.',
-    author: 'Thinking English Public Domain',
-    license: 'CC0 1.0 Public Domain',
+    author: 'Amr Sherif / Thinking English',
+    license: 'CC BY-NC-SA 4.0',
     disclaimer: EXPANDED_DECKS_DISCLAIMER,
     cards: [
       {
@@ -522,8 +522,8 @@ export const EXPANDED_DECKS: PrebuiltDeck[] = [
     name: 'Opinions & Connectors',
     description:
       '30 high-leverage B1–B2 sentences mastering contrast, cause-and-effect, conditionals, and expressing nuanced opinions without Arabic-style double connectors.',
-    author: 'Thinking English Public Domain',
-    license: 'CC0 1.0 Public Domain',
+    author: 'Amr Sherif / Thinking English',
+    license: 'CC BY-NC-SA 4.0',
     disclaimer: EXPANDED_DECKS_DISCLAIMER,
     cards: [
       {

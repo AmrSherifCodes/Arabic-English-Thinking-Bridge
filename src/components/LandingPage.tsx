@@ -142,13 +142,13 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
       <section className="hero">
         <div className="hero-bg" aria-hidden="true"></div>
         <div className="el-container hero-inner">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+          <div className="hero-grid">
             {/* Hero Left Column: Main Headlines & Call To Action */}
             <motion.div
               initial={{ opacity: 0, x: isAr ? 30 : -30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, ease: 'easeOut' }}
-              className="lg:col-span-7 text-start space-y-6"
+              className="hero-copy text-start space-y-6"
             >
               <div className="flex flex-wrap items-center gap-2">
                 <div className="hero-badge m-0">
@@ -209,7 +209,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.6, delay: 0.2, ease: 'easeOut' }}
-              className="lg:col-span-5 flex justify-center py-4"
+              className="hero-mockup flex justify-center py-4"
             >
               <LandingPhoneMockup isArabic={isAr} />
             </motion.div>
@@ -552,7 +552,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
         </div>
       </section>
 
-      {/* ================= FOOTER (Constitution Compliant: Clean, Minimal, CC0 1.0) ================= */}
+      {/* ================= FOOTER (Constitution Compliant: AGPLv3 / CC BY-NC-SA 4.0 Protected) ================= */}
       <footer className="footer py-8 border-t border-[var(--line)] bg-[#070A0E] text-stone-400">
         <div className="el-container flex flex-col md:flex-row items-center justify-between gap-4 text-xs font-medium">
           <div className="flex items-center gap-3 flex-wrap">
@@ -560,7 +560,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
               © {new Date().getFullYear()} Amr Sherif Abdelaal — {isAr ? 'فكّر إنجليزي' : 'Thinking Bridge'}
             </span>
             <span className="text-stone-600">|</span>
-            <span className="text-emerald-400 font-semibold">CC0 1.0 Universal (Public Domain)</span>
+            <span className="text-emerald-400 font-semibold">GNU AGPLv3 / CC BY-NC-SA 4.0</span>
           </div>
 
           <div className="flex items-center gap-4 flex-wrap">

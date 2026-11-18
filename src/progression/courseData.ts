@@ -1,4 +1,5 @@
-import { StageNode, UnitNode, LessonNode, ExerciseItem, ExerciseType, ProgressionState, CefrStage } from './types';
+import { StageNode, UnitNode, LessonNode, ExerciseItem, ExerciseType, ProgressionState, CefrStage, LevelNode } from './types';
+import { getCefrLevelHierarchy, convertHierarchyToStageNodes } from './cefrHierarchy';
 import { PHASES_DATA } from '../data/lessons';
 import { getCurriculum } from '../data/curriculumRegistry';
 import { TARGET_LANGUAGES, TARGET_LANGUAGE_META } from '../data/languages';
@@ -1515,6 +1516,20 @@ export function generateProceduralStageLessons(
   return result;
 }
 
+/**
+ * New source of truth: full A1–C1 hierarchy (5 levels × 3 phases × N modules × M units)
+ * for a given target language. Delegates to the master tree in cefrHierarchy.ts.
+ *
+ * The legacy buildCourseStructure() continues to return StageNode[] for now.
+ */
+export function buildCefrHierarchy(
+  targetLang?: TargetLanguage,
+  _sourceLang?: string,
+  _focusArea?: string
+): LevelNode[] {
+  return getCefrLevelHierarchy(targetLang ?? 'en');
+}
+
 export function buildCourseStructure(
   requestedTarget?: TargetLanguage,
   requestedSource?: string,
@@ -1703,6 +1718,29 @@ function readActiveProfile(): { targetLang: TargetLanguage; focusArea?: string; 
   return null;
 }
 
+export {
+  CEFR_LEVELS_MASTER,
+  SKILL_BRANCH_META,
+  getCefrLevelHierarchy,
+  getAllHierarchicalLessons,
+  isHierarchicalLevelUnlocked,
+  isHierarchicalPhaseUnlocked,
+  isHierarchicalModuleUnlocked,
+  isHierarchicalUnitUnlocked,
+  isHierarchicalLessonUnlocked,
+  isHierarchicalLevelUnlocked as isLevelUnlocked,
+  isHierarchicalPhaseUnlocked as isPhaseUnlocked,
+  isHierarchicalModuleUnlocked as isModuleUnlocked,
+  isHierarchicalUnitUnlocked as isUnitUnlocked,
+  calculateLevelSkillNodes,
+  generateCapstoneLesson,
+  generatePhaseMasteryCheck,
+  generatePlacementTest,
+  convertHierarchyToStageNodes,
+} from './cefrHierarchy';
+
+import { isHierarchicalLessonUnlocked } from './cefrHierarchy';
+
 export function isStageUnlocked(
   state: ProgressionState,
   stage: StageNode['stage'],
@@ -1735,6 +1773,9 @@ export function isLessonUnlocked(
   lesson: LessonNode,
   targetLang?: TargetLanguage
 ): boolean {
+  if (lesson.levelId && lesson.phaseId && lesson.moduleId) {
+    return isHierarchicalLessonUnlocked(state, lesson);
+  }
   if (!isStageUnlocked(state, lesson.stage, targetLang)) return false;
   if (state.completedLessonIds.includes(lesson.id)) return true;
   if (lesson.stage !== state.currentStage) return true;

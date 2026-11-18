@@ -47,6 +47,14 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+.landing-shell {
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: #F7F0E0;
+  color: #1A1A2E;
+  color-scheme: light;
+}
+
 .landing-shell > header {
   padding-top: max(0.75rem, env(safe-area-inset-top, 0px));
 }

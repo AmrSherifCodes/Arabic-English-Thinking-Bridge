@@ -65,7 +65,7 @@ Everything is open: the app, the lesson data, the scripts, the transcripts, the 
 build commands. Repo link in every description, every pinned comment, every video.
 
 - **Promise:** What you see in a video, you can run yourself in under 60 seconds.
-- **License:** CC0 1.0 Universal — content stays free, forever.
+- **License:** AGPL-3.0-or-later (code) & CC BY-NC-SA 4.0 (content) — 100% open source & copyleft protected.
 
 #### 2. One Idea Per Video
 
@@ -192,14 +192,13 @@ This project, app, and channel would not exist without:
 
 ---
 
-## License
+## License & Anti-Theft Open Source Architecture
 
-All lesson content, code, scripts, transcripts, and thumbnails published under the **CC0 1.0
-Universal Public Domain Dedication** — free to copy, modify, distribute, and study, with no
-copyright restrictions.
+All software source code and engine logic are licensed under **GNU AGPLv3 (AGPL-3.0-or-later)**.
+All educational lesson content, curricula, flashcards, and transcripts are licensed under **Creative Commons CC BY-NC-SA 4.0**.
+All branding, logos, and app names ("Thinking Bridge™", "Thinking English™", "فكّر إنجليزي™") are protected trademarks of **Amr Sherif Abdelaal**.
 
-*Commercial use is not restricted under CC0. The promise here is not legal — it is personal: the
-content stays free.*
+*Commercial theft, paywalled closed-source forks, and brand hijacking are strictly prohibited while keeping the project 100% free and open source forever.*
 
 ---
 

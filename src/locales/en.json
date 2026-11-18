@@ -230,5 +230,33 @@
     "in_safari__tap_share__then_cho_1": "In Safari, tap Share, then choose “Add to Home Screen”.",
     "open_web_app_1": "Open web app",
     "with_gratitude_to": "With gratitude to "
+  },
+  "levels": {
+    "title": "CEFR Level Roadmap",
+    "a1": "Level A1: Beginner Foundations",
+    "a2": "Level A2: Elementary Stories",
+    "b1": "Level B1: Intermediate Fluency",
+    "b2": "Level B2: Upper-Intermediate Abstract Thinking",
+    "c1": "Level C1: Advanced Professional Fluency"
+  },
+  "phases": {
+    "title": "Phases",
+    "masteryCheck": "Phase Mastery Check"
+  },
+  "canDo": {
+    "title": "Can-Do Competencies",
+    "sub": "Official CEFR performance standards"
+  },
+  "placement": {
+    "title": "Adaptive Placement Test",
+    "start": "Take 10-Minute Placement Test"
+  },
+  "capstone": {
+    "title": "Level Capstone Assessment",
+    "start": "Start Level Capstone Exam"
+  },
+  "unlock": {
+    "lockedReason": "Locked until previous requirements are completed",
+    "requiresPrevious": "Requires completion of previous unit"
   }
 }

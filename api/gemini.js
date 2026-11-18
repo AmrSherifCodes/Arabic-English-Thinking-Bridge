@@ -329,10 +329,11 @@ async function setCachedResponse(cacheKey, data) {
 }
 
 function getClient(customKey = '') {
-  if (!customKey) {
-    throw new Error('A user-provided Gemini API key is required.');
+  const key = customKey || process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+  if (!key) {
+    throw new Error('A Gemini API key is required.');
   }
-  return new GoogleGenAI({ apiKey: customKey });
+  return new GoogleGenAI({ apiKey: key });
 }
 
 async function generateContentWithFallback(activeClient, params) {
@@ -790,7 +791,9 @@ export default async function handler(req, res) {
   }
 
   const customUserKey = getProvidedUserKey(req);
-  if (!customUserKey) {
+  const serverKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+
+  if (!customUserKey && !serverKey) {
     return sendJson(res, 403, {
       error: 'BYOK_REQUIRED',
       message: 'You must provide your own Gemini API key.',
