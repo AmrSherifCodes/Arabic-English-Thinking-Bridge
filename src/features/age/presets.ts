@@ -73,6 +73,7 @@ export function applyAgePreset(presetKey: AgePresetKey): void {
   const preset = AGE_PRESETS[presetKey];
   if (!preset || typeof document === 'undefined') return;
   const root = document.documentElement;
+  root.style.setProperty('--font-scale', preset.fontScale.toString());
   Object.entries(preset.cssVars).forEach(([key, val]) => {
     root.style.setProperty(key, val);
   });

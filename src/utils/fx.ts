@@ -1,3 +1,5 @@
+import confettiFromCanvas from 'canvas-confetti';
+import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
 import { UserProgress } from '../types';
 import { calculateSM2, SM2Grade } from './sm2';
 
@@ -130,7 +132,38 @@ export function buildFriendShareMessage(customAppUrl?: string): string {
 export const mailLink = (msg: string) =>
   `mailto:?subject=${encodeURIComponent('Thinking English™ feedback')}&body=${encodeURIComponent(msg)}`;
 
+export async function triggerHapticImpact(style: ImpactStyle = ImpactStyle.Light) {
+  try {
+    await Haptics.impact({ style });
+  } catch {
+    try {
+      if (typeof navigator !== 'undefined' && navigator.vibrate) {
+        navigator.vibrate(style === ImpactStyle.Heavy ? 40 : 15);
+      }
+    } catch {}
+  }
+}
+
+export async function triggerHapticNotification(type: NotificationType = NotificationType.Success) {
+  try {
+    await Haptics.notification({ type });
+  } catch {
+    try {
+      if (typeof navigator !== 'undefined' && navigator.vibrate) {
+        navigator.vibrate(type === NotificationType.Success ? [20, 40, 20] : [50, 50, 50]);
+      }
+    } catch {}
+  }
+}
+
 export function beep(ok: boolean, soundOn: boolean) {
+  // Trigger haptic feedback alongside audio beep
+  if (ok) {
+    triggerHapticNotification(NotificationType.Success);
+  } else {
+    triggerHapticNotification(NotificationType.Error);
+  }
+
   if (soundOn && typeof window !== 'undefined') {
     try {
       const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
@@ -152,25 +185,30 @@ export function beep(ok: boolean, soundOn: boolean) {
       }
     } catch {}
   }
-  try {
-    if (typeof navigator !== 'undefined') {
-      navigator.vibrate?.(ok ? [20, 40, 20] : 80);
-    }
-  } catch {}
 }
 
 export function confetti() {
   if (typeof window === 'undefined') return;
   if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  const E = ['🎉', '⭐', '✨', '🔥', '💚'];
-  for (let i = 0; i < 26; i++) {
-    const s = document.createElement('span');
-    s.className = 'conf';
-    s.textContent = E[i % 5];
-    s.style.left = Math.random() * 95 + '%';
-    s.style.animationDelay = Math.random() * 0.4 + 's';
-    document.body.appendChild(s);
-    setTimeout(() => s.remove(), 2200);
+
+  try {
+    confettiFromCanvas({
+      particleCount: 80,
+      spread: 70,
+      origin: { y: 0.6 }
+    });
+  } catch {
+    // Fallback HTML confetti if canvas-confetti fails
+    const E = ['🎉', '⭐', '✨', '🔥', '💚'];
+    for (let i = 0; i < 26; i++) {
+      const s = document.createElement('span');
+      s.className = 'conf';
+      s.textContent = E[i % 5];
+      s.style.left = Math.random() * 95 + '%';
+      s.style.animationDelay = Math.random() * 0.4 + 's';
+      document.body.appendChild(s);
+      setTimeout(() => s.remove(), 2200);
+    }
   }
 }
 

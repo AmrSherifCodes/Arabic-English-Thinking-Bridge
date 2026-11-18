@@ -19,6 +19,7 @@ interface PracticeHubViewProps {
   onOpenStory?: () => void;
   onOpenHackerTerminal?: () => void;
   onOpenTeacherMode?: () => void;
+  onOpenExam?: () => void;
   onNavigateToCoursePath?: () => void;
   targetLang?: TargetLanguage;
   isArabic?: boolean;
@@ -35,6 +36,7 @@ export function PracticeHubView({
   onOpenStory,
   onOpenHackerTerminal,
   onOpenTeacherMode,
+  onOpenExam,
   onNavigateToCoursePath,
   targetLang = 'en',
   isArabic = true,
@@ -175,6 +177,28 @@ export function PracticeHubView({
           </button>
         );
       })()}
+
+      {/* Gamified CEFR Exam: اختبار يا باشا */}
+      {onOpenExam && (
+        <button
+          onClick={onOpenExam}
+          className="w-full p-4 rounded-3xl bg-gradient-to-r from-amber-950/70 via-stone-900 to-stone-900 border border-amber-500/50 hover:border-amber-400 transition text-start shadow-xl flex items-center justify-between group"
+        >
+          <div className="space-y-1">
+            <div className="flex items-center gap-1.5 text-amber-400 font-bold text-xs">
+              <Sparkles size={14} />
+              <span>{isArabic ? 'اختبار تكيّفي · CEFR Assessment' : 'Adaptive CEFR Check'}</span>
+            </div>
+            <h3 className="font-black text-sm text-white group-hover:text-amber-300 transition-colors">
+              {isArabic ? 'اختبار يا باشا — اعرف مستواك' : 'Ya Basha Check — CEFR Exam'}
+            </h3>
+            <p className="text-xs text-stone-300">
+              {isArabic ? '٢٠ سؤال، خط مترو الإسكندرية، ونتيجة فورية وبدون حسابات' : '20 adaptive questions, Alexandria metro progress, 100% local'}
+            </p>
+          </div>
+          <span className="text-3xl shrink-0 group-hover:scale-110 transition-transform">☕</span>
+        </button>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2">
         {/* Mode 1: AI Voice Conversation Practice */}

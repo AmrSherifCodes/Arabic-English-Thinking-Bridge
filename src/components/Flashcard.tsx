@@ -1,4 +1,6 @@
 import React from 'react';
+import { motion } from 'framer-motion';
+import { triggerHapticImpact } from '../utils/fx';
 
 export interface FlashcardProps {
   front: React.ReactNode;
@@ -18,6 +20,7 @@ export function Flashcard({ front, back, isFlipped, onFlip }: FlashcardProps) {
       return;
     }
 
+    triggerHapticImpact();
     onFlip();
   };
 
@@ -27,6 +30,7 @@ export function Flashcard({ front, back, isFlipped, onFlip }: FlashcardProps) {
     }
 
     event.preventDefault();
+    triggerHapticImpact();
     onFlip();
   };
 
@@ -35,7 +39,7 @@ export function Flashcard({ front, back, isFlipped, onFlip }: FlashcardProps) {
       className="flashcard-perspective relative mx-auto w-full max-w-2xl"
       style={{ perspective: '1200px' }}
     >
-      <div
+      <motion.div
         className="flashcard-inner grid w-full grid-cols-1 [grid-template-areas:'card'] cursor-pointer select-none"
         role="button"
         tabIndex={0}
@@ -47,11 +51,13 @@ export function Flashcard({ front, back, isFlipped, onFlip }: FlashcardProps) {
         }
         onClick={handleClick}
         onKeyDown={handleKeyDown}
+        animate={{ rotateY: isFlipped ? 180 : 0 }}
+        transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+        whileHover={{ scale: 1.01 }}
+        whileTap={{ scale: 0.98 }}
         style={{
           transformStyle: 'preserve-3d',
-          WebkitTransformStyle: 'preserve-3d',
-          transition: 'transform 500ms cubic-bezier(0.22, 1, 0.36, 1)',
-          transform: `rotateY(${isFlipped ? 180 : 0}deg)`
+          WebkitTransformStyle: 'preserve-3d'
         }}
       >
         <div
@@ -80,7 +86,7 @@ export function Flashcard({ front, back, isFlipped, onFlip }: FlashcardProps) {
         >
           {back}
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

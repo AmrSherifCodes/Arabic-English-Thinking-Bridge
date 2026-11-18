@@ -4,6 +4,7 @@ html {
   color-scheme: dark;
   width: 100%;
   overflow-x: hidden;
+  font-size: calc(100% * var(--font-scale, 1));
 }
 
 html.light {
@@ -29,6 +30,7 @@ body {
   width: 100%;
   max-width: 100%;
   overflow-x: hidden;
+  overscroll-behavior-y: none; /* Prevents pull-to-refresh on mobile */
   font-family: var(--font), 'Cairo', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   user-select: none;
   -webkit-user-select: none;

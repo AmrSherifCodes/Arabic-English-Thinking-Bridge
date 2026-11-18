@@ -148,6 +148,30 @@ export function ProfileView({
   const [isExporting, setIsExporting] = useState(false);
   const [exportSuccess, setExportSuccess] = useState(false);
 
+  const [isExportingMaster, setIsExportingMaster] = useState(false);
+  const [exportMasterSuccess, setExportMasterSuccess] = useState(false);
+
+  const handleExportMasterToAnki = async () => {
+    setIsExportingMaster(true);
+    setExportMasterSuccess(false);
+    try {
+      const { exportMasterDictionaryToAnki } = await import('../../utils/ankiExport');
+      const count = await exportMasterDictionaryToAnki();
+      setExportMasterSuccess(true);
+      setTimeout(() => setExportMasterSuccess(false), 3000);
+      onToast?.(isArabic
+        ? `📥 تم تصدير ${count} بطاقة شاملة إلى Anki`
+        : `📥 Exported ${count} master cards to Anki`);
+    } catch (error: unknown) {
+      console.error('Unable to export the Master Anki deck.', error);
+      onToast?.(isArabic
+        ? 'حدث خطأ أثناء تصدير القاموس'
+        : 'Unable to export the master deck');
+    } finally {
+      setIsExportingMaster(false);
+    }
+  };
+
   const handleExportToAnki = async () => {
     setIsExporting(true);
     setExportSuccess(false);
@@ -419,7 +443,7 @@ export function ProfileView({
             <span>
               {isExporting ? (isArabic ? 'جاري التصدير...' : 'Exporting...')
                 : exportSuccess ? (isArabic ? 'تم التصدير بنجاح' : 'Exported Successfully')
-                : (isArabic ? 'تصدير بطاقات الاستذكار إلى Anki (CSV)' : 'Export SRS Deck to Anki (CSV)')}
+                : (isArabic ? 'تصدير بطاقات تقدمك إلى Anki (CSV)' : 'Export My Progress to Anki (CSV)')}
             </span>
             {isExporting ? (
               <span className="w-3.5 h-3.5 border-2 border-amber-400/30 border-t-amber-400 rounded-full animate-spin" />
@@ -427,6 +451,25 @@ export function ProfileView({
               <CheckCircle2 size={14} className="text-emerald-400" />
             ) : (
               <Download size={14} className="text-amber-400" />
+            )}
+          </button>
+
+          <button
+            onClick={handleExportMasterToAnki}
+            disabled={isExportingMaster || exportMasterSuccess}
+            className="w-full p-2.5 rounded-xl bg-teal-500/10 border border-teal-500/30 text-teal-300 font-bold text-xs hover:bg-teal-500/20 disabled:opacity-50 transition flex items-center justify-between"
+          >
+            <span>
+              {isExportingMaster ? (isArabic ? 'جاري تحضير القاموس...' : 'Exporting Dictionary...')
+                : exportMasterSuccess ? (isArabic ? 'تم التحميل بنجاح' : 'Downloaded Successfully')
+                : (isArabic ? 'تحميل القاموس الشامل (10,000 بطاقة Anki)' : 'Download Full Master Deck (10k Anki Cards)')}
+            </span>
+            {isExportingMaster ? (
+              <span className="w-3.5 h-3.5 border-2 border-teal-400/30 border-t-teal-400 rounded-full animate-spin" />
+            ) : exportMasterSuccess ? (
+              <CheckCircle2 size={14} className="text-emerald-400" />
+            ) : (
+              <Download size={14} className="text-teal-400" />
             )}
           </button>
 

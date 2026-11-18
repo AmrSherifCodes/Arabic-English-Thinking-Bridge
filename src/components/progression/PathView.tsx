@@ -28,6 +28,7 @@ interface PathViewProps {
   onOpenStory?: () => void;
   onOpenHackerTerminal?: () => void;
   onOpenTeacherMode?: () => void;
+  onOpenExam?: () => void;
   isArabic?: boolean;
   progress?: UserProgress;
   flashcardDeckIds?: string[];
@@ -161,19 +162,19 @@ export function PathView({
         </div>
       </div>
 
-      {/* Top Big Continue CTA */}
-      <div className="p-4.5 rounded-3xl bg-surface border border-border shadow-xl flex items-center justify-between">
-        <div className="space-y-1 text-start">
-          <span className="text-[10px] font-black uppercase tracking-wider text-success block">
+      {/* Sticky Primary CTA: Extra-Large Start Lesson Button */}
+      <div className="sticky top-14 z-20 p-4 rounded-3xl bg-stone-900/98 border-2 border-amber-500/60 shadow-2xl backdrop-blur-xl flex items-center justify-between gap-3">
+        <div className="space-y-1 text-start min-w-0">
+          <span className="text-xs font-black text-amber-400 block">
             {isArabic
-              ? `المرحلة الحالية: ${continueStageNode?.stage === 'A2' ? 'A2 (جسر B1)' : continueStageNode?.stage || 'Unknown'}`
-              : `Current Stage: ${continueStageNode?.stage === 'A2' ? 'A2 (B1 Bridge)' : continueStageNode?.stage || 'Unknown'}`}
+              ? `المرحلة الحالية: ${continueStageNode?.stage || 'A0'}`
+              : `Current Stage: ${continueStageNode?.stage || 'A0'}`}
           </span>
-          <h3 className="text-sm font-black text-text">
+          <h3 className="text-base font-black text-white truncate">
             {isArabic ? continueStageNode?.titleAr : continueStageNode?.titleEn}
           </h3>
-          <p className="text-xs text-muted">
-            {isArabic ? 'تابع مسار التفكير دون تردد' : 'Resume your cognitive path'}
+          <p className="text-xs text-stone-300">
+            {isArabic ? 'اضغط الزر الذهبي لبدء الدرس مباشرة' : 'Tap the gold button to start lesson immediately'}
           </p>
         </div>
 
@@ -184,29 +185,37 @@ export function PathView({
               continueStageNode.units.flatMap(u => u.lessons).find((l) => !state.completedLessonIds.includes(l.id)) || continueStageNode.units.flatMap(u => u.lessons)[0];
             if (firstUnfinished) onSelectLesson(firstUnfinished);
           }}
-          className={`px-5 py-3 min-h-[48px] rounded-2xl bg-primary text-on-primary font-black text-xs shadow-lg transition active:scale-95 flex items-center gap-2 shrink-0 relative ${
-            isIdle ? 'ring-4 ring-primary ring-offset-2 ring-offset-surface animate-pulse' : ''
-          }`}
+          aria-label="اضغط هنا لبدء الدرس الحالي · Start Current Lesson"
+          className="min-h-[60px] px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 hover:from-amber-300 hover:to-amber-500 text-stone-950 font-black text-base shadow-2xl transition active:scale-95 flex items-center justify-center gap-2 shrink-0 border-2 border-amber-300 focus-visible:ring-4 focus-visible:ring-amber-300 cursor-pointer"
         >
-          {isIdle && (
-            <span className="absolute -top-8 left-1/2 -translate-x-1/2 text-2xl animate-bounce">
-              👇
-            </span>
-          )}
-          <Play size={16} fill="currentColor" />
-          <span>{isArabic ? 'متابعة' : 'Continue'}</span>
+          <Play size={20} fill="currentColor" />
+          <div className="flex flex-col items-center">
+            <span>ابدأ الدرس الحالي 🚀</span>
+            <span className="text-[10px] font-sans font-bold opacity-90">Start Lesson</span>
+          </div>
         </button>
       </div>
 
       {/* Candy-Crush Style True Zig-Zag Path */}
-      <div className="flex flex-col items-center gap-8 relative py-4 w-full">
+      <div className="flex flex-col items-center gap-4 relative py-8 w-full">
         {(() => {
           let nodeIndex = 0;
-          const alignFor = (index: number) =>
-            index % 4 === 0 ? 'ml-16' :
-            index % 4 === 1 ? 'mr-8' :
-            index % 4 === 2 ? 'mr-16' :
-            'ml-8';
+          // Creates a distinct S-curve zig-zag that sweeps across the screen more dramatically
+          const alignFor = (index: number) => {
+            const pattern = [
+              '-translate-x-12', // Center-left
+              '-translate-x-24', // Far left
+              '-translate-x-32', // Extreme left
+              '-translate-x-24', // Far left (curving back)
+              '-translate-x-8',  // Center-left
+              'translate-x-8',   // Center-right
+              'translate-x-24',  // Far right
+              'translate-x-32',  // Extreme right
+              'translate-x-24',  // Far right (curving back)
+              'translate-x-12',  // Center-right
+            ];
+            return pattern[index % pattern.length];
+          };
 
           const nodes: React.ReactNode[] = [];
 
@@ -248,18 +257,18 @@ export function PathView({
                   style={{ borderRadius: '9999px', overflow: 'visible' }}
                 >
                   <div
-                    className={`w-24 h-24 rounded-full flex items-center justify-center transition-all overflow-visible ${
+                    className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center transition-all overflow-visible shadow-[0_8px_0_0_rgba(0,0,0,0.2)] active:translate-y-2 active:shadow-none ${
                       isCompleted
-                        ? 'bg-emerald-500 text-slate-950 shadow-[0_0_20px_rgba(16,185,129,0.35)]'
+                        ? 'bg-gradient-to-br from-emerald-400 to-teal-600 text-white shadow-[0_8px_0_0_rgba(6,95,70,1)]'
                         : isCurrent
-                        ? 'bg-emerald-500 text-slate-950 ring-4 ring-emerald-400/40'
+                        ? 'bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-[0_8px_0_0_rgba(153,27,27,1)] ring-4 ring-amber-400/40'
                         : unlocked
-                        ? 'bg-surface border-2 border-border text-text hover:bg-surface-2'
-                        : 'bg-surface-2 border-2 border-border/50 text-muted grayscale'
+                        ? 'bg-gradient-to-br from-stone-100 to-stone-300 border-2 border-stone-400 text-stone-700 shadow-[0_8px_0_0_rgba(120,113,108,1)] hover:brightness-110'
+                        : 'bg-surface-2 border-2 border-border/50 text-muted grayscale shadow-[0_8px_0_0_rgba(0,0,0,0.1)]'
                     }`}
                     style={{
                       borderRadius: '9999px',
-                      boxShadow: isCurrent ? '0 0 28px rgba(16, 185, 129, 0.45)' : undefined,
+                      boxShadow: isCurrent ? '0 8px 0 0 rgba(153,27,27,1), 0 0 28px rgba(251, 191, 36, 0.45)' : undefined,
                     }}
                   >
                     {isCompleted ? (
@@ -344,14 +353,14 @@ export function PathView({
               isCurrent ? (
                 <motion.div
                   key={stage.stage}
-                  animate={{ scale: [1, 1.05, 1] }}
-                  transition={{ repeat: Infinity, duration: 2 }}
-                  className={`relative flex justify-center w-full ${alignClass}`}
+                  animate={{ scale: [1, 1.05, 1], y: [0, -5, 0] }}
+                  transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+                  className={`relative flex justify-center w-full transform ${alignClass} z-10`}
                 >
                   {buttonContent}
                 </motion.div>
               ) : (
-                <div key={stage.stage} className={`relative flex justify-center w-full ${alignClass}`}>
+                <div key={stage.stage} className={`relative flex justify-center w-full transform ${alignClass} ${isCompleted ? 'z-0' : 'z-0'}`}>
                   {buttonContent}
                 </div>
               )
@@ -361,7 +370,27 @@ export function PathView({
           return (
             <>
               {/* SVG path connector */}
-              <div className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-2 bg-surface-2 -z-10 rounded-full border-x border-border/30"></div>
+              <svg className="absolute inset-0 w-full h-full pointer-events-none -z-10" style={{ filter: 'drop-shadow(0px 4px 0px rgba(0,0,0,0.15))' }}>
+                <path
+                  d="M 50% 0 Q 30% 100 20% 200 T 50% 400 T 80% 600 T 50% 800 T 20% 1000 T 50% 1200 T 80% 1400 T 50% 1600 T 20% 1800 T 50% 2000"
+                  fill="none"
+                  stroke="currentColor"
+                  className="text-stone-300 dark:text-stone-800"
+                  strokeWidth="24"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M 50% 0 Q 30% 100 20% 200 T 50% 400 T 80% 600 T 50% 800 T 20% 1000 T 50% 1200 T 80% 1400 T 50% 1600 T 20% 1800 T 50% 2000"
+                  fill="none"
+                  stroke="currentColor"
+                  className="text-stone-400 dark:text-stone-700"
+                  strokeWidth="24"
+                  strokeDasharray="24 32"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
               {nodes}
             </>
           );

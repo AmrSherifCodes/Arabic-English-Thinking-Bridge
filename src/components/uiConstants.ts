@@ -23,6 +23,10 @@ export interface DeckStats {
 export interface FlashcardItemData {
   ar: string;
   en: string;
+  german?: string;
+  spanish?: string;
+  french?: string;
+  arabicFallback?: string;
   breakdownChunks: ChunkMapping[] | null;
   nextReviewDate: number;
   exercise?: Exercise;

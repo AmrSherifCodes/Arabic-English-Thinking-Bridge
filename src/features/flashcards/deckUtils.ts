@@ -11,6 +11,31 @@ import { PORTUGUESE_PREBUILT_DECKS } from '../../data/curriculum/portugueseDecks
 import { getCurriculum } from '../../data/curriculumRegistry';
 import { LexiconEntry } from '../../services/geminiLexicon';
 import { DeckStats, FlashcardItemData } from '../../components/uiConstants';
+import { getTargetDictionary } from '../../data/dictionaries';
+import { detectDynamicCefrLevel } from '../../brain/dynamicCefrDetector';
+
+function findTranslation(targetLang: TargetLanguage, englishWord: string): string {
+  const dict = getTargetDictionary(targetLang);
+  if (!englishWord || !dict || dict.length === 0) return '';
+  const cleanEng = englishWord.toLowerCase().trim();
+  const match = dict.find(entry => {
+    const en = (entry.englishTranslation || entry.translation || '').toLowerCase();
+    return en === cleanEng || en.split(/[;,]/).map((s: string) => s.trim()).includes(cleanEng);
+  });
+  if (match) {
+    return match.word || match.term || match.germanWord || match.spanishWord || match.frenchWord || match.arabicWord || match.translation || '';
+  }
+  return '';
+}
+
+function enrichCardData(card: FlashcardItemData, targetLang: TargetLanguage): FlashcardItemData {
+  const engWord = targetLang === 'en' ? card.en : card.ar; // Simplistic approach
+  card.arabicFallback = findTranslation('ar', engWord);
+  card.german = findTranslation('de', engWord);
+  card.spanish = findTranslation('es', engWord);
+  card.french = findTranslation('fr', engWord);
+  return card;
+}
 
 const ALL_LESSONS = PHASES_DATA.flatMap(p => p.lessons);
 const ALL_PREBUILT_DECKS = [...EXPANDED_DECKS, ...PREBUILT_DECKS, ...GERMAN_PREBUILT_DECKS, ...JAPANESE_PREBUILT_DECKS, ...SPANISH_PREBUILT_DECKS, ...FRENCH_PREBUILT_DECKS, ...ITALIAN_PREBUILT_DECKS, ...PORTUGUESE_PREBUILT_DECKS];
@@ -45,7 +70,37 @@ export const getDeckCardKeys = (
   const sortSolvedFirst = (ids: string[]) =>
     [...ids].sort((a, b) => (solvedSet.has(b) ? 1 : 0) - (solvedSet.has(a) ? 1 : 0));
 
-  if (deckId === 'master-dictionary') return dictionaryEntries.map(getMasterDictionaryCardKey);
+  if (deckId === 'master-dictionary') {
+    // Dynamically detect user's CEFR level
+    const userDynamicCefr = detectDynamicCefrLevel(currentProgress);
+
+    // Sort dictionary entries dynamically:
+    // 1. Unsolved / Due cards first
+    // 2. CEFR level matching the user's current detected level
+    // 3. Fallback to frequency
+    const sortedDictionary = [...dictionaryEntries].sort((a, b) => {
+      const keyA = getMasterDictionaryCardKey(a);
+      const keyB = getMasterDictionaryCardKey(b);
+
+      const isDueA = currentProgress.cards?.[keyA]?.due && currentProgress.cards[keyA].due <= Date.now();
+      const isDueB = currentProgress.cards?.[keyB]?.due && currentProgress.cards[keyB].due <= Date.now();
+
+      if (isDueA && !isDueB) return -1;
+      if (!isDueA && isDueB) return 1;
+
+      // CEFR matching
+      const aMatchesCefr = a.cefrLevel === userDynamicCefr;
+      const bMatchesCefr = b.cefrLevel === userDynamicCefr;
+
+      if (aMatchesCefr && !bMatchesCefr) return -1;
+      if (!aMatchesCefr && bMatchesCefr) return 1;
+
+      // Sort by length/frequency implicitly or random if equal
+      return (a.arabicWord?.length || 0) - (b.arabicWord?.length || 0);
+    });
+
+    return sortedDictionary.map(getMasterDictionaryCardKey);
+  }
   if (deckId === 'custom') {
     return (currentProgress.customCards || [])
       .filter(c => !c.deckId || c.deckId === 'custom')
@@ -54,7 +109,9 @@ export const getDeckCardKeys = (
 
   if (profile?.dialect === 'egyptian') {
     if (deckId === 'all' || deckId === null) {
-      const masterDictionaryIds = dictionaryEntries.map(getMasterDictionaryCardKey);
+      const masterDictionaryIds = [...dictionaryEntries]
+        .sort((a, b) => (a.cefrLevel === detectDynamicCefrLevel(currentProgress) ? -1 : 1))
+        .map(getMasterDictionaryCardKey);
       const userCustomIds = (currentProgress.customCards || [])
         .filter(c => !c.deckId || c.deckId === 'custom')
         .map(c => 'c:' + c.id);
@@ -83,7 +140,10 @@ export const getDeckCardKeys = (
     ...(byPhase['phase-2'] ?? []),
     ...(byPhase['phase-3'] ?? [])
   ]);
-  const masterDictionaryIds = dictionaryEntries.map(getMasterDictionaryCardKey);
+  const userDynamicCefr = detectDynamicCefrLevel(currentProgress);
+  const masterDictionaryIds = [...dictionaryEntries]
+    .sort((a, b) => (a.cefrLevel === userDynamicCefr ? -1 : 1))
+    .map(getMasterDictionaryCardKey);
   const expandedIds = EXPANDED_DECKS.flatMap(d => d.cards.map((_, idx) => `c:${d.id}-${idx}`));
   const customIds = (currentProgress.customCards || []).map(c => 'c:' + c.id);
   return Array.from(new Set([...masterDictionaryIds, ...customIds, ...allPhaseIds, ...expandedIds]));
@@ -118,36 +178,36 @@ export const getCardData = (
         candidate.dialect === dialect
     );
     if (!entry || (profile && entry.dialect !== profile.dialect)) return null;
-    return {
+    return enrichCardData({
       ar: entry.arabicWord,
       en: entry.englishTranslation,
       breakdownChunks: null,
       nextReviewDate: currentProgress.cards?.[k]?.nextReviewDate ?? Date.now()
-    };
+    }, targetLang);
   }
 
   if (k.startsWith('c:')) {
     const custom = (currentProgress.customCards || []).find(x => 'c:' + x.id === k);
     if (custom) {
       if (profile?.dialect === 'egyptian' && custom.deckId && custom.deckId !== 'custom') return null;
-      return {
+      return enrichCardData({
         ar: custom.ar,
         en: custom.en,
         breakdownChunks: null,
         nextReviewDate: currentProgress.cards?.[k]?.nextReviewDate ?? Date.now()
-      };
+      }, targetLang);
     }
     if (profile?.dialect === 'egyptian') return null;
     for (const deck of ALL_PREBUILT_DECKS) {
       const idxMatch = k.replace(`c:${deck.id}-`, '');
       const idx = Number(idxMatch);
       if (Number.isInteger(idx) && deck.cards[idx]) {
-        return {
+        return enrichCardData({
           ar: deck.cards[idx].ar,
           en: deck.cards[idx].en,
           breakdownChunks: null,
           nextReviewDate: currentProgress.cards?.[k]?.nextReviewDate ?? Date.now()
-        };
+        }, targetLang);
       }
     }
     return null;
@@ -158,25 +218,25 @@ export const getCardData = (
   const { allExercises, phases } = getExerciseIndex(sourceLang, targetLang);
   const exById = allExercises.find(x => x.id === k);
   if (exById) {
-    return {
+    return enrichCardData({
       ar: exById.arabicThought,
       en: exById.englishTarget,
       breakdownChunks: exById.breakdownChunks,
       nextReviewDate: currentProgress.cards?.[k]?.nextReviewDate ?? Date.now(),
       exercise: exById
-    };
+    }, targetLang);
   }
   const allLessons = phases.flatMap(p => p.lessons);
   const [li, ei] = k.split('-').map(Number);
   const exByIdx = allLessons[li]?.exercises[ei];
   if (exByIdx) {
-    return {
+    return enrichCardData({
       ar: exByIdx.arabicThought,
       en: exByIdx.englishTarget,
       breakdownChunks: exByIdx.breakdownChunks,
       nextReviewDate: currentProgress.cards?.[k]?.nextReviewDate ?? Date.now(),
       exercise: exByIdx
-    };
+    }, targetLang);
   }
   return null;
 };

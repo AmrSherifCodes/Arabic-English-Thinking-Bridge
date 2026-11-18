@@ -102,6 +102,7 @@ const LanguageGame = lazy(() => import('./pages/LanguageGame').then((m) => ({ de
 const HackerTerminal = lazy(() => import('./components/story/HackerTerminal').then((m) => ({ default: m.HackerTerminal })));
 const StoryEngineLoader = lazy(() => import('./components/story/StoryEngineLoader').then((m) => ({ default: m.StoryEngineLoader })));
 const TeacherView = lazy(() => import('./pages/TeacherView').then((m) => ({ default: m.TeacherView })));
+const ExamPage = lazy(() => import('./features/exam/ExamPage').then((m) => ({ default: m.ExamPage })));
 
 type View =
   | { name: 'shell' }
@@ -119,7 +120,8 @@ type View =
   | { name: 'studio' }
   | { name: 'language-game' }
   | { name: 'story'; chapterId: string }
-  | { name: 'hacker-terminal' };
+  | { name: 'hacker-terminal' }
+  | { name: 'exam' };
 
 export default function App() {
   const [audioUnlocked, setAudioUnlocked] = useState(() => {
@@ -136,6 +138,7 @@ export default function App() {
         const path = window.location.pathname.toLowerCase();
         const urlParams = new URLSearchParams(window.location.search);
 
+        if (path === '/exam') return { name: 'exam' };
         if (path === '/android') return { name: 'android' };
         if (path === '/language-game') return { name: 'language-game' };
         if (path === '/teacher') return { name: 'teacher' };
@@ -411,6 +414,7 @@ export default function App() {
                 onOpenStory={() => setView({ name: 'story', chapterId: 'chapter-1-cairo-airport' })}
                 onOpenHackerTerminal={() => setView({ name: 'hacker-terminal' })}
                 onOpenTeacherMode={() => setView({ name: 'teacher' })}
+                onOpenExam={() => setView({ name: 'exam' })}
                 isArabic={isArabic}
                 progress={progress}
                 flashcardDeckIds={stageFlashcardDecks}
@@ -430,6 +434,7 @@ export default function App() {
               onOpenStory={() => setView({ name: 'story', chapterId: 'chapter-1-cairo-airport' })}
               onOpenHackerTerminal={() => setView({ name: 'hacker-terminal' })}
               onOpenTeacherMode={() => setView({ name: 'teacher' })}
+              onOpenExam={() => setView({ name: 'exam' })}
               onNavigateToCoursePath={() => setActiveTab('path')}
               targetLang={targetLang}
               isArabic={isArabic}
@@ -592,6 +597,12 @@ export default function App() {
       {view.name === 'teacher' && (
         <Suspense fallback={<div className="min-h-screen bg-black text-teal-500 flex items-center justify-center">Loading Teacher Mode...</div>}>
           <TeacherView onBack={() => setView({ name: 'shell' })} />
+        </Suspense>
+      )}
+
+      {view.name === 'exam' && (
+        <Suspense fallback={<div className="min-h-screen bg-[#0A0E13] text-amber-400 flex items-center justify-center font-arabic">جاري تحميل اختبار يا باشا...</div>}>
+          <ExamPage onBack={() => setView({ name: 'shell' })} />
         </Suspense>
       )}
 

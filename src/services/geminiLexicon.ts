@@ -81,6 +81,7 @@ export interface LexiconEntry {
   exampleSentenceArabic: string;
   exampleSentenceEnglish: string;
   level?: DifficultyLevel;
+  cefrLevel?: string;
   arabicPronunciation?: string;
 }
 

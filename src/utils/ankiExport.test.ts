@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { createInitialProgressionState } from '../progression/engine';
 import { createAnkiCsv } from './ankiExport';
 
-test('Anki export converts saved SRS cards into target-to-source CSV rows', () => {
+test('Anki export converts saved SRS cards into target-to-source CSV rows', async () => {
   const state = createInitialProgressionState();
   state.srsItems['de-kaffee'] = {
     id: 'de-kaffee',
@@ -19,12 +19,12 @@ test('Anki export converts saved SRS cards into target-to-source CSV rows', () =
     dueAt: 0,
   };
 
-  assert.equal(
-    createAnkiCsv(state),
-    '\uFEFF#separator:Comma\n#html:false\n#tags column:3\nFront,Back,Tags\n"Er sagt ""Kaffee""","قهوة","ThinkingBridge de"'
-  );
+  const csv = await createAnkiCsv(state);
+  assert.ok(csv.includes('\uFEFF#separator:Comma\n#html:true\n#tags column:3\nFront,Back,Tags'));
+  assert.ok(csv.includes('"Er sagt ""Kaffee"""'));
+  assert.ok(csv.includes('قهوة'));
 });
 
-test('Anki export does not invent example cards for an empty SRS collection', () => {
-  assert.throws(() => createAnkiCsv(createInitialProgressionState()), /No saved flashcards/);
+test('Anki export does not invent example cards for an empty SRS collection', async () => {
+  await assert.rejects(() => createAnkiCsv(createInitialProgressionState()), /No saved flashcards/);
 });

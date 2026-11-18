@@ -1,11 +1,14 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ArrowRight, Download, Globe, BookOpen, Smartphone, RefreshCw, Apple, Laptop, ExternalLink, Brain, Sparkles, Terminal, Tv, Briefcase, Cpu, ShieldCheck } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { ArrowRight, Download, Globe, BookOpen, Smartphone, RefreshCw, Apple, Laptop, ExternalLink, Brain, Sparkles, Terminal, Tv, Briefcase, Cpu, ShieldCheck, Zap } from 'lucide-react';
 import { getPlatformInfo, storageAdapter } from '../platform/adapter';
 import { API_BASE_URL } from '../utils/api';
 import { usePwaInstall } from '../hooks/usePWAInstall';
 import { CreatorCard } from './CreatorCard';
 import { LandingPhoneMockup } from './LandingPhoneMockup';
+import { StreetDemoModal } from './StreetDemoModal';
+import { triggerHapticImpact } from '../utils/fx';
 import './LandingPage.css';
 
 interface LandingPageProps {
@@ -26,6 +29,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
   const [subMessage, setSubMessage] = useState<string | null>(null);
   const [showIosGuide, setShowIosGuide] = useState(false);
   const [detectedOs, setDetectedOs] = useState<'android' | 'ios' | 'windows' | 'mac' | 'other'>('other');
+  const [streetDemoOpen, setStreetDemoOpen] = useState(false);
 
   const [isNativeAndroid] = useState(() => {
     const platform = getPlatformInfo();
@@ -109,7 +113,17 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
           </nav>
 
           <div className="flex items-center gap-3">
-             <button
+            <button
+              onClick={() => {
+                triggerHapticImpact();
+                setStreetDemoOpen(true);
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-xs font-bold hover:bg-emerald-500/30 transition cursor-pointer"
+            >
+              <Zap size={14} className="text-emerald-400" />
+              <span>{isAr ? 'عرض الشارع 🚶‍♂️' : 'Street Mode 🚶‍♂️'}</span>
+            </button>
+            <button
               onClick={() => i18n.changeLanguage(isAr ? 'en' : 'ar')}
               className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[var(--nile)] text-[var(--nile)] text-xs font-bold hover:bg-[var(--nile)] hover:text-white transition"
               aria-label={t('landing2.switch_to_arabic')}
@@ -130,7 +144,12 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
         <div className="el-container hero-inner">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
             {/* Hero Left Column: Main Headlines & Call To Action */}
-            <div className="lg:col-span-7 text-start space-y-6">
+            <motion.div
+              initial={{ opacity: 0, x: isAr ? 30 : -30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, ease: 'easeOut' }}
+              className="lg:col-span-7 text-start space-y-6"
+            >
               <div className="flex flex-wrap items-center gap-2">
                 <div className="hero-badge m-0">
                   <ShieldCheck size={16} className="text-[#2DD4BF]" />
@@ -154,21 +173,46 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
                   : 'Stop translating word-for-word in your head. Grasp the logical structure of English to speak fluently and naturally, straight from Alexandria to the world.'}
               </p>
 
-              <div className="hero-cta">
+              <div className="hero-cta flex-wrap">
                 <button onClick={handleLaunchApp} className="btn btn-gold">
                   {isAr ? 'ابدأ رحلتك مجاناً' : 'Start your journey for free'}
                   <ArrowRight size={18} className={isAr ? 'rotate-180' : ''} />
                 </button>
-                <a href="#how" className="btn btn-ghost" style={{ color: 'var(--sand-light)', borderColor: 'var(--sand-light)' }}>
-                  {isAr ? 'شوف إزاي بنشتغل' : 'See how it works'}
+                <a
+                  href="/exam"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (typeof window !== 'undefined' && window.history) {
+                      window.history.pushState({}, '', '/exam');
+                      window.dispatchEvent(new PopStateEvent('popstate'));
+                    }
+                  }}
+                  className="btn bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30 transition flex items-center gap-2 cursor-pointer font-bold"
+                >
+                  <span>☕ {isAr ? 'اختبار يا باشا (اعرف مستواك)' : 'Ya Basha CEFR Exam'}</span>
                 </a>
+                <button
+                  onClick={() => {
+                    triggerHapticImpact();
+                    setStreetDemoOpen(true);
+                  }}
+                  className="btn bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30 transition flex items-center gap-2 cursor-pointer font-bold"
+                >
+                  <Zap size={18} className="text-emerald-400" />
+                  <span>{isAr ? 'جرب عرض الشارع 🚶‍♂️⚡' : 'Street Presentation 🚶‍♂️⚡'}</span>
+                </button>
               </div>
-            </div>
+            </motion.div>
 
             {/* Hero Right Column: Interactive Phone Mockup */}
-            <div className="lg:col-span-5 flex justify-center py-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, delay: 0.2, ease: 'easeOut' }}
+              className="lg:col-span-5 flex justify-center py-4"
+            >
               <LandingPhoneMockup isArabic={isAr} />
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
@@ -508,48 +552,48 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
         </div>
       </section>
 
-      {/* ================= FOOTER ================= */}
-      <footer className="footer">
-        <div className="el-container">
-          <div className="footer-grid">
-            <div className="footer-brand">
-              <a href="#" className="brand">
-                <span className="brand-mark" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M3 17h18M5 17V9l7-5 7 5v8"/>
-                    <path d="M9 17v-4a3 3 0 0 1 6 0v4"/>
-                  </svg>
-                </span>
-                <span>{isAr ? 'جسر التفكير' : 'Thinking Bridge'}</span>
-              </a>
-              <p>{isAr ? 'منصة تعليمية مصرية بتحترم عقلك ولغتك. عربي أولاً، إنجليزي تاني. من إسكندرية، بحب.' : 'An Egyptian educational platform that respects your mind and native tongue. From Alexandria, with love.'}</p>
-            </div>
-
-            <div>
-              <h4>{isAr ? 'المنصة' : 'Platform'}</h4>
-              <ul>
-                <li><a href="#why">{isAr ? 'المميزات' : 'Features'}</a></li>
-                <li><a href="#how">{isAr ? 'إزاي بنشتغل' : 'How it works'}</a></li>
-                <li><a href="#stats">{isAr ? 'الأرقام' : 'Stats'}</a></li>
-              </ul>
-            </div>
-
-            <div>
-              <h4>{isAr ? 'تواصل' : 'Connect'}</h4>
-              <ul>
-                <li><a href="mailto:amrsherifwork@gmail.com">amrsherifwork@gmail.com</a></li>
-                <li><a href="https://linkedin.com/in/sciamrsherif-abdelaal" target="_blank" rel="noopener noreferrer">LinkedIn</a></li>
-                <li><a href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge" target="_blank" rel="noopener noreferrer">GitHub</a></li>
-                <li><a href="https://youtube.com/@SciAmrSherif" target="_blank" rel="noopener noreferrer">YouTube</a></li>
-              </ul>
-            </div>
+      {/* ================= FOOTER (Constitution Compliant: Clean, Minimal, CC0 1.0) ================= */}
+      <footer className="footer py-8 border-t border-[var(--line)] bg-[#070A0E] text-stone-400">
+        <div className="el-container flex flex-col md:flex-row items-center justify-between gap-4 text-xs font-medium">
+          <div className="flex items-center gap-3 flex-wrap">
+            <span className="font-bold text-stone-200">
+              © {new Date().getFullYear()} Amr Sherif Abdelaal — {isAr ? 'فكّر إنجليزي' : 'Thinking Bridge'}
+            </span>
+            <span className="text-stone-600">|</span>
+            <span className="text-emerald-400 font-semibold">CC0 1.0 Universal (Public Domain)</span>
           </div>
 
-          <div className="footer-bottom">
-            © {new Date().getFullYear()} Amr Sherif Abdelaal — {isAr ? 'جسر التفكير' : 'Thinking Bridge'}. {t('landing2.made_in_alexandria__egypt')} 🇪🇬
+          <div className="flex items-center gap-4 flex-wrap">
+            <a
+              href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/blob/main/CONSTITUTION.md"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-emerald-400 transition"
+            >
+              📜 {isAr ? 'دستور القناة' : 'Constitution'}
+            </a>
+            <a
+              href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-emerald-400 transition"
+            >
+              💻 {isAr ? 'الكود المصدري (GitHub)' : 'Source Code'}
+            </a>
           </div>
         </div>
       </footer>
+
+      {/* Street Demo Modal */}
+      <StreetDemoModal
+        isOpen={streetDemoOpen}
+        onClose={() => setStreetDemoOpen(false)}
+        onLaunchFullApp={() => {
+          setStreetDemoOpen(false);
+          onLaunchApp();
+        }}
+        isArabic={isAr}
+      />
     </div>
   );
 }

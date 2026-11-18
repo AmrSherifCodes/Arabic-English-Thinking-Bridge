@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ProgressionState } from '../../progression/types';
 import { TargetLanguage } from '../../types';
 import { LanguageFlag } from '../LanguageFlag';
 import { Map, Zap, Award, Trophy, User, Home } from 'lucide-react';
 import { PrivacyPolicyModal } from '../progression/PrivacyPolicyModal';
+import { StreetDemoModal } from '../StreetDemoModal';
+import { triggerHapticImpact } from '../../utils/fx';
 
 export type AppTab = 'path' | 'practice' | 'quests' | 'league' | 'profile';
 
@@ -27,6 +30,7 @@ export function AppShell({
   onOpenLanding,
 }: AppShellProps) {
   const [privacyOpen, setPrivacyOpen] = useState(false);
+  const [streetDemoOpen, setStreetDemoOpen] = useState(false);
 
   const tabs = [
     { id: 'path' as AppTab, labelAr: 'المسار', labelEn: 'Path', icon: Map },
@@ -70,7 +74,10 @@ export function AppShell({
               return (
                 <button
                   key={tab.id}
-                  onClick={() => onTabChange(tab.id)}
+                  onClick={() => {
+                    triggerHapticImpact();
+                    onTabChange(tab.id);
+                  }}
                   className={`w-full flex items-center gap-3 px-3.5 py-3 min-h-[48px] rounded-2xl font-bold text-xs transition text-start ${
                     isActive
                       ? 'bg-success/20 text-success border border-success/30 shadow-md'
@@ -114,6 +121,27 @@ export function AppShell({
                   <span>{isArabic ? 'الرئيسية 🏠' : 'Home 🏠'}</span>
                 </button>
               )}
+              <button
+                type="button"
+                onClick={() => {
+                  triggerHapticImpact();
+                  setStreetDemoOpen(true);
+                }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/40 text-xs font-black transition active:scale-95 shrink-0 shadow-md"
+                title={isArabic ? 'عرض الشارع' : 'Street Mode'}
+              >
+                <Zap size={14} className="text-emerald-400 shrink-0" />
+                <span className="hidden sm:inline">{isArabic ? 'عرض الشارع 🚶‍♂️' : 'Street Mode 🚶‍♂️'}</span>
+              </button>
+              <a
+                href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-black transition active:scale-95 shrink-0 shadow-md"
+                title="الكود مفتوح · Open Source Repository"
+              >
+                <span>الكود مفتوح · Open Source ↗</span>
+              </a>
               <LanguageFlag code={targetLang} size={20} />
               <span className="text-xs font-black text-text uppercase hidden sm:inline">{targetLang}</span>
             </div>
@@ -139,7 +167,18 @@ export function AppShell({
         {/* Dynamic Tab Body - Responsive Desktop / Laptop Container */}
         <main className="flex-1 min-w-0 p-4 sm:p-6 pb-[calc(80px+env(safe-area-inset-bottom))] md:pb-8 overflow-y-auto max-w-4xl mx-auto w-full flex flex-col">
           <div className="flex-1">
-            {children}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeTab}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.18, ease: 'easeOut' }}
+                className="h-full"
+              >
+                {children}
+              </motion.div>
+            </AnimatePresence>
           </div>
           <footer className="mt-8 text-center pb-4">
             <button onClick={() => setPrivacyOpen(true)} className="text-xs text-muted hover:text-text transition-colors">Privacy</button>
@@ -147,31 +186,48 @@ export function AppShell({
         </main>
       </div>
 
-      {/* Mobile Bottom Navigation Bar with Safe Area Insets */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface/95 backdrop-blur-lg border-t border-border px-2 pt-2 pb-[env(safe-area-inset-bottom)] flex items-center justify-around shadow-2xl">
+      {/* Mobile Bottom Navigation Bar with Safe Area Insets (60px Touch Targets) */}
+      <nav
+        aria-label="التنقل الرئيسي · Main navigation"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface/98 backdrop-blur-xl border-t border-border px-2 pt-2 pb-[env(safe-area-inset-bottom)] flex items-center justify-around shadow-2xl"
+      >
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
-          const label = isArabic ? tab.labelAr : tab.labelEn;
+          const label = `${tab.labelAr} · ${tab.labelEn}`;
           return (
             <button
               key={tab.id}
               type="button"
               aria-label={label}
               aria-current={isActive ? 'page' : undefined}
-              onClick={() => onTabChange(tab.id)}
-              className={`flex flex-1 min-w-0 flex-col items-center justify-center py-1 px-1 min-h-[48px] rounded-xl transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-success ${
-                isActive ? 'text-success font-black bg-success/10' : 'text-muted font-semibold hover:text-text hover:bg-surface-2'
+              onClick={() => {
+                triggerHapticImpact();
+                onTabChange(tab.id);
+              }}
+              className={`flex flex-1 min-w-0 flex-col items-center justify-center py-2 px-1 min-h-[60px] rounded-2xl transition focus-visible:ring-2 focus-visible:ring-amber-400 ${
+                isActive
+                  ? 'text-success font-black bg-success/20 ring-1 ring-success/40'
+                  : 'text-muted font-bold hover:text-text hover:bg-surface-2'
               }`}
             >
-              <Icon size={20} className={isActive ? 'scale-110 transition-transform' : ''} />
-              <span className="text-[10px] mt-0.5">{label}</span>
+              <Icon size={22} className={isActive ? 'scale-110 transition-transform' : ''} />
+              <span className="text-[10px] mt-1 font-bold">{tab.labelAr}</span>
             </button>
           );
         })}
       </nav>
 
       <PrivacyPolicyModal isOpen={privacyOpen} onClose={() => setPrivacyOpen(false)} />
+      <StreetDemoModal
+        isOpen={streetDemoOpen}
+        onClose={() => setStreetDemoOpen(false)}
+        onLaunchFullApp={() => {
+          setStreetDemoOpen(false);
+          onTabChange('path');
+        }}
+        isArabic={isArabic}
+      />
     </div>
   );
 }

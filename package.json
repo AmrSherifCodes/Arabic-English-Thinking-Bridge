@@ -18,6 +18,7 @@
     "build:android:win": "set CAPACITOR_BUILD=true && vite build",
     "preview": "vite preview",
     "test": "tsx --test src/**/*.test.ts src/**/*.test.tsx scripts/verify-all-languages.mjs api/*.test.js",
+    "test:exam": "vitest run src/features/exam/__tests__/examEngine.test.ts",
     "release": "node scripts/release.js",
     "generate:dictionary": "node generate-dictionary.js",
     "build:dictionary": "node build-dictionary-from-sources.js",

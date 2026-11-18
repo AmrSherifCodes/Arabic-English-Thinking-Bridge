@@ -1,3 +1,5 @@
+import { getEmojiForWord } from './emojiMapper';
+
 /**
  * On-Device Python & Procedural Visual Generator for Level Illustrations
  * Runs 100% locally on WebAssembly / Python (Pyodide) or local Canvas graphics engine.
@@ -34,37 +36,40 @@ export function generatePythonLevelSvg({
   const secondaryHue = (seed + 120) % 360;
 
   // Determine central icon / thematic element
-  let centralEmoji = '🧠';
+  let baseEmoji = '🧠';
   let categoryTitle = 'جسر التفكير المعرفي';
 
   if (levelNumber === 1 || stage.includes('Pre-A0')) {
-    centralEmoji = '🔤';
+    baseEmoji = '🔤';
     categoryTitle = 'مصنع الأحرف والأسماء';
   } else if (levelNumber === 2 || stage.includes('A0')) {
-    centralEmoji = '🌉';
+    baseEmoji = '🌉';
     categoryTitle = 'جسر الكلمات وفعل الربط';
   } else if (levelNumber === 3 || stage.includes('A1')) {
-    centralEmoji = '🏙️';
+    baseEmoji = '🏙️';
     categoryTitle = 'إنجليزي الشارع والتواصل';
   } else if (levelNumber === 4 || stage.includes('A1+')) {
-    centralEmoji = '💼';
+    baseEmoji = '💼';
     categoryTitle = 'الصياغة الاحترافية البيزنس';
   } else if (levelNumber === 5 || stage.includes('A2')) {
-    centralEmoji = '📖';
+    baseEmoji = '📖';
     categoryTitle = 'القصة والسرد الدرامي';
   } else if (levelNumber === 6 || stage.includes('B1')) {
-    centralEmoji = '🏫';
+    baseEmoji = '🏫';
     categoryTitle = 'وضع الفصل الدراسي';
   } else if (levelNumber === 7 || stage.includes('B1+')) {
-    centralEmoji = '🛠️';
+    baseEmoji = '🛠️';
     categoryTitle = 'صيانة وتسريع الأداء';
   } else if (levelNumber === 8 || stage.includes('B2')) {
-    centralEmoji = '💻';
+    baseEmoji = '💻';
     categoryTitle = 'الطرفية والتحليل التقني';
   } else {
-    centralEmoji = '🚀';
+    baseEmoji = '🚀';
     categoryTitle = 'الطلاقة الفائقة C1';
   }
+
+  // Choose the best emoji for the specific word/prompt to "explain the word shown"
+  const centralEmoji = getEmojiForWord(englishTarget + ' ' + promptAr, baseEmoji);
 
   // Clean prompt text for SVG text nodes
   const cleanPrompt = promptAr.replace(/["']/g, '').substring(0, 32);
@@ -101,8 +106,11 @@ export function generatePythonLevelSvg({
       <circle cx="200" cy="95" r="55" fill="hsl(${secondaryHue}, 60%, 20%)" opacity="0.4" filter="url(#glow-${levelNumber})" />
       <circle cx="200" cy="95" r="42" fill="none" stroke="url(#accentGrad-${levelNumber})" stroke-width="2.5" stroke-dasharray="6,4" />
 
-      <!-- Central Icon -->
-      <text x="200" y="108" font-size="44" text-anchor="middle" dominant-baseline="central">${centralEmoji}</text>
+      <!-- Central Icon to explain the word -->
+      <text x="200" y="100" font-size="52" text-anchor="middle" dominant-baseline="central">${centralEmoji}</text>
+
+      <!-- Target word below emoji -->
+      <text x="200" y="138" font-size="14" font-weight="bold" fill="#34D399" text-anchor="middle">${cleanTarget}</text>
 
       <!-- Top Badge -->
       <rect x="20" y="15" width="130" height="26" rx="13" fill="rgba(16, 185, 129, 0.15)" stroke="rgba(16, 185, 129, 0.3)" stroke-width="1" />
@@ -113,12 +121,11 @@ export function generatePythonLevelSvg({
       <text x="320" y="32" font-size="10" font-weight="bold" fill="${gold}" text-anchor="middle">⚡ Pyodide/Local</text>
 
       <!-- Category Label -->
-      <text x="200" y="158" font-size="13" font-weight="bold" fill="${sand}" text-anchor="middle" dir="rtl">${categoryTitle}</text>
+      <text x="200" y="165" font-size="12" font-weight="bold" fill="${sand}" opacity="0.8" text-anchor="middle" dir="rtl">${categoryTitle}</text>
 
       <!-- Prompt / Target Preview Footer Bar -->
-      <rect x="15" y="172" width="370" height="36" rx="12" fill="rgba(10, 14, 19, 0.6)" stroke="rgba(255, 255, 255, 0.1)" stroke-width="1" />
-      <text x="370" y="195" font-size="11" font-weight="bold" fill="#34D399" text-anchor="end" dir="rtl">"${cleanPrompt}"</text>
-      <text x="30" y="195" font-size="11" font-weight="bold" fill="#9CA3AF" text-anchor="start" dir="ltr">➔ ${cleanTarget}</text>
+      <rect x="15" y="178" width="370" height="30" rx="12" fill="rgba(10, 14, 19, 0.6)" stroke="rgba(255, 255, 255, 0.1)" stroke-width="1" />
+      <text x="200" y="198" font-size="12" font-weight="bold" fill="#F7F0E0" text-anchor="middle" dir="rtl">${cleanPrompt}</text>
     </svg>
   `;
 }

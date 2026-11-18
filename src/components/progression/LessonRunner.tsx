@@ -591,8 +591,8 @@ export function LessonRunner({
           )}
         </motion.div>
 
-        {/* Sticky Bottom Action Bar */}
-        <div className="sticky bottom-0 bg-surface p-4 border-t border-border z-10 shrink-0 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+        {/* Sticky Bottom Action Bar (60px Height, High Contrast) */}
+        <div className="sticky bottom-0 bg-stone-950 p-4 border-t border-stone-800 z-10 shrink-0 pb-[calc(1rem+env(safe-area-inset-bottom))]">
           {!isAnswered ? (
             <button
               onClick={handleCheckAnswer}
@@ -601,17 +601,21 @@ export function LessonRunner({
                   ? selectedChips.length === 0
                   : !userInput.trim()
               }
-              className="w-full py-4 min-h-[48px] rounded-2xl bg-primary text-on-primary font-black text-base transition disabled:opacity-40 disabled:bg-surface-2 disabled:text-muted disabled:cursor-not-allowed shadow-lg active:scale-95"
+              aria-label="تحقق من البناء · Check Structure"
+              className="w-full min-h-[60px] py-4 rounded-2xl bg-amber-400 hover:bg-amber-300 text-stone-950 font-black text-lg transition disabled:opacity-40 disabled:bg-stone-800 disabled:text-stone-500 disabled:cursor-not-allowed shadow-2xl active:scale-[0.99] border-2 border-amber-300 focus-visible:ring-4 focus-visible:ring-amber-300 flex items-center justify-center gap-2 cursor-pointer"
             >
-              {isArabic ? 'تحقق من البناء 🚀' : 'Check Structure 🚀'}
+              <span>{isArabic ? 'تحقق من البناء 🚀' : 'Check Structure 🚀'}</span>
+              <span className="text-xs font-sans font-bold opacity-80">· Check</span>
             </button>
           ) : (
             <button
               onClick={handleNextExercise}
-              className="w-full py-4 min-h-[48px] rounded-2xl bg-success text-on-primary font-black text-base transition shadow-lg active:scale-95 flex items-center justify-center gap-2"
+              aria-label="السؤال التالي · Next Question"
+              className="w-full min-h-[60px] py-4 rounded-2xl bg-emerald-400 hover:bg-emerald-300 text-stone-950 font-black text-lg transition shadow-2xl active:scale-[0.99] border-2 border-emerald-300 focus-visible:ring-4 focus-visible:ring-emerald-300 flex items-center justify-center gap-2 cursor-pointer"
             >
               <span>{isArabic ? 'السؤال التالي' : 'Next Question'}</span>
-              <ArrowRight size={20} className={isArabic ? 'rotate-180' : ''} />
+              <span className="text-xs font-sans font-bold opacity-80">· Next</span>
+              <ArrowRight size={22} className={isArabic ? 'rotate-180' : ''} />
             </button>
           )}
         </div>

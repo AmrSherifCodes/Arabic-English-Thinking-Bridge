@@ -10,6 +10,12 @@ export interface DictWordEntry {
   sourceMeanings?: Record<string, string>;
   reading?: string;
   romaji?: string;
+  englishTranslation?: string;
+  germanWord?: string;
+  spanishWord?: string;
+  frenchWord?: string;
+  arabicWord?: string;
+  [key: string]: any;
 }
 
 const loadedDictionaryCache: Record<string, DictWordEntry[]> = {};

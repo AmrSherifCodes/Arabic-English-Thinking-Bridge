@@ -700,6 +700,21 @@ export function ReviewView({
                   ))}
                 </div>
 
+                <div className="flex flex-col gap-2 mt-4 text-sm font-medium opacity-80" dir="ltr">
+                  {currentCardData.arabicFallback && currentCardData.arabicFallback !== currentCardData.ar && currentCardData.arabicFallback !== currentCardData.en && (
+                    <div className="bg-stone-800/50 py-1.5 px-3 rounded-lg text-left">🇸🇦 Arabic: {currentCardData.arabicFallback}</div>
+                  )}
+                  {currentCardData.german && currentCardData.german !== currentCardData.ar && currentCardData.german !== currentCardData.en && (
+                    <div className="bg-stone-800/50 py-1.5 px-3 rounded-lg text-left">🇩🇪 German: {currentCardData.german}</div>
+                  )}
+                  {currentCardData.spanish && currentCardData.spanish !== currentCardData.ar && currentCardData.spanish !== currentCardData.en && (
+                    <div className="bg-stone-800/50 py-1.5 px-3 rounded-lg text-left">🇪🇸 Spanish: {currentCardData.spanish}</div>
+                  )}
+                  {currentCardData.french && currentCardData.french !== currentCardData.ar && currentCardData.french !== currentCardData.en && (
+                    <div className="bg-stone-800/50 py-1.5 px-3 rounded-lg text-left">🇫🇷 French: {currentCardData.french}</div>
+                  )}
+                </div>
+
                 {/* Arabic Phonetic Guide */}
                 <div dir="rtl" className="my-2 inline-flex items-center gap-2 rounded-xl border border-amber-500/40 bg-amber-950/40 px-3 py-1 text-sm font-bold text-amber-300 shadow-sm">
                   <span className="text-xs text-amber-400/80 font-normal">نطقها بحروف عربي:</span>
