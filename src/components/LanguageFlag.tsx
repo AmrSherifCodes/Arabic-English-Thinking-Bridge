@@ -19,6 +19,8 @@ const ISO_MAP: Record<string, string> = {
   pt: 'br',
   it: 'it',
   ar: 'eg',
+  arz: 'eg',
+  'ar-eg': 'eg',
   egyptian: 'eg',
   msa: 'un',
 };
@@ -35,11 +37,12 @@ const LANG_COLORS: Record<string, string> = {
   pt: 'bg-emerald-600 text-white',
   it: 'bg-green-600 text-white',
   ar: 'bg-teal-600 text-white',
+  arz: 'bg-teal-600 text-white',
 };
 
 export function LanguageFlag({ code, size = 20, className = '', showCodePill = false }: LanguageFlagProps) {
   const [failed, setFailed] = useState(false);
-  const cleanCode = code.toLowerCase();
+  const cleanCode = (code || 'ar').toLowerCase();
   const iso = ISO_MAP[cleanCode] || 'un';
   const colorClass = LANG_COLORS[cleanCode] || 'bg-stone-700 text-stone-200';
 

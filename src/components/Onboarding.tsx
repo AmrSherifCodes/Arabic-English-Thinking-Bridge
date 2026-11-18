@@ -165,7 +165,7 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
       )}
 
       {/* Main Game Container */}
-      <div className="w-full max-w-lg rounded-3xl border border-teal-500/30 bg-stone-900/90 p-6 sm:p-8 shadow-2xl backdrop-blur-xl relative z-10 overflow-hidden flex flex-col justify-between min-h-[540px]">
+      <div className="w-full max-w-2xl md:max-w-3xl rounded-3xl border border-teal-500/30 bg-stone-900/95 p-6 sm:p-8 shadow-2xl backdrop-blur-xl relative z-10 overflow-hidden flex flex-col justify-between min-h-[540px]">
         {/* Header Bar with Level Progress */}
         <div className="flex items-center justify-between gap-4 mb-6 pb-4 border-b border-stone-800">
           <div className="flex items-center gap-2">

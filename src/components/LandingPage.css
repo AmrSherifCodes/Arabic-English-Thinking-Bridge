@@ -3,25 +3,25 @@
    Palette: sand, papyrus, Nile blues, gold
    ============================================================ */
    :root {
-    --sand-light:   #F7F0E0;
-    --sand:         #EBD9B4;
+    --sand-light:   #090D16;
+    --sand:         #1E293B;
     --sand-warm:    #D4A373;
-    --papyrus:      #F5E6C8;
-    --papyrus-deep: #E8D0A0;
-    --nile:         #1E6091;
-    --nile-deep:    #0B3D5C;
-    --med:          #168AAD;
+    --papyrus:      #111827;
+    --papyrus-deep: #1F2937;
+    --nile:         #2DD4BF;
+    --nile-deep:    #0D9488;
+    --med:          #14B8A6;
     --med-light:    #52B69A;
-    --gold:         #C9A227;
-    --gold-bright:  #DAA520;
+    --gold:         #F59E0B;
+    --gold-bright:  #FBBF24;
     --terracotta:   #E76F51;
-    --navy:         #0B132B;
-    --ink:          #1A1A2E;
-    --ink-soft:     #4A4A66;
-    --line:         rgba(11, 19, 43, 0.12);
-    --shadow-sm:    0 2px 8px rgba(11, 19, 43, 0.08);
-    --shadow-md:    0 8px 24px rgba(11, 19, 43, 0.12);
-    --shadow-lg:    0 20px 48px rgba(11, 19, 43, 0.18);
+    --navy:         #F8FAFC;
+    --ink:          #EEF2F5;
+    --ink-soft:     #94A3B8;
+    --line:         rgba(255, 255, 255, 0.12);
+    --shadow-sm:    0 2px 8px rgba(0, 0, 0, 0.3);
+    --shadow-md:    0 8px 24px rgba(0, 0, 0, 0.4);
+    --shadow-lg:    0 20px 48px rgba(0, 0, 0, 0.6);
     --radius:       18px;
     --radius-sm:    12px;
     --font-display: 'Tajawal', 'Cairo', system-ui, sans-serif;
@@ -29,8 +29,8 @@
 
   .egyptian-landing {
     font-family: 'Cairo', 'Tajawal', system-ui, sans-serif;
-    background: var(--sand-light);
-    color: var(--ink);
+    background: #090D16;
+    color: #EEF2F5;
     line-height: 1.7;
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
@@ -85,7 +85,7 @@
     position: sticky;
     top: 0;
     z-index: 100;
-    background: rgba(247, 240, 224, 0.85);
+    background: rgba(9, 13, 22, 0.92);
     backdrop-filter: saturate(160%) blur(16px);
     -webkit-backdrop-filter: saturate(160%) blur(16px);
     border-bottom: 1px solid var(--line);
@@ -227,7 +227,7 @@
     right: 0;
     bottom: -2px;
     height: 90px;
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 90' preserveAspectRatio='none'><path d='M0,90 L0,60 Q40,30 80,55 Q120,20 160,50 Q200,15 240,48 Q280,20 320,52 Q360,25 400,50 Q440,18 480,52 Q520,28 560,55 Q600,20 640,50 Q680,25 720,55 Q760,22 800,52 Q840,28 880,58 Q920,30 960,55 Q1000,25 1040,52 Q1080,30 1120,58 Q1160,32 1200,55 L1200,90 Z' fill='%23F7F0E0'/></svg>");
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 90' preserveAspectRatio='none'><path d='M0,90 L0,60 Q40,30 80,55 Q120,20 160,50 Q200,15 240,48 Q280,20 320,52 Q360,25 400,50 Q440,18 480,52 Q520,28 560,55 Q600,20 640,50 Q680,25 720,55 Q760,22 800,52 Q840,28 880,58 Q920,30 960,55 Q1000,25 1040,52 Q1080,30 1120,58 Q1160,32 1200,55 L1200,90 Z' fill='%23090D16'/></svg>");
     background-size: 100% 100%;
     background-repeat: no-repeat;
     z-index: 2;
