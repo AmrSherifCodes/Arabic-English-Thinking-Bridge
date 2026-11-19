@@ -101,10 +101,17 @@ export function generatePythonLevelSvg({
 }
 
 /**
- * Returns a data URL string for the locally generated SVG image.
+ * Returns a base64 data URL string for the locally generated SVG image.
  */
 export function getLocalLevelImageDataUrl(props: LevelVisualProps): string {
   const svg = generatePythonLevelSvg(props);
-  const encoded = encodeURIComponent(svg);
-  return `data:image/svg+xml;charset=utf-8,${encoded}`;
+  try {
+    const base64 = typeof window !== 'undefined' && typeof window.btoa !== 'undefined'
+      ? window.btoa(unescape(encodeURIComponent(svg)))
+      : Buffer.from(svg, 'utf-8').toString('base64');
+    return `data:image/svg+xml;base64,${base64}`;
+  } catch {
+    const encoded = encodeURIComponent(svg);
+    return `data:image/svg+xml;charset=utf-8,${encoded}`;
+  }
 }
