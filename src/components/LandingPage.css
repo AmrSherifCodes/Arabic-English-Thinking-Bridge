@@ -1,643 +1,669 @@
 /* ============================================================
-   جسر التفكير — Egyptian Aesthetic Landing
-   Palette: sand, papyrus, Nile blues, gold
+   جسر التفكير — High-Contrast Alexandrian Landing Page
    ============================================================ */
-   :root {
-    --sand-light:   #07111E;
-    --sand:         #0E1B2E;
-    --sand-warm:    #162740;
-    --papyrus:      #0B1524;
-    --papyrus-deep: #111F36;
-    --nile:         #2DD4BF;
-    --nile-deep:    #14B8A6;
-    --med:          #0F766E;
-    --med-light:    #34D399;
-    --gold:         #F59E0B;
-    --gold-bright:  #FACC15;
-    --terracotta:   #E76F51;
-    --navy:         #F8FAFC;
-    --ink:          #F1F5F9;
-    --ink-soft:     #94A3B8;
-    --line:         rgba(45, 212, 191, 0.18);
-    --shadow-sm:    0 2px 8px rgba(0, 0, 0, 0.4);
-    --shadow-md:    0 8px 24px rgba(0, 0, 0, 0.5);
-    --shadow-lg:    0 20px 48px rgba(0, 0, 0, 0.7);
-    --radius:       18px;
-    --radius-sm:    12px;
-    --font-display: 'Tajawal', 'Cairo', system-ui, sans-serif;
-  }
+:root {
+  --sand-light:   #060D17;
+  --sand:         #0A1728;
+  --sand-warm:    #0F213A;
+  --papyrus:      #0E1E36;
+  --papyrus-deep: #132744;
+  --nile:         #2DD4BF;
+  --nile-bright:  #5EEAD4;
+  --nile-deep:    #0D9488;
+  --gold:         #F59E0B;
+  --gold-bright:  #FDE047;
+  --terracotta:   #F97316;
+  --navy:         #FFFFFF;
+  --ink:          #F8FAFC;
+  --ink-soft:     #E2E8F0;
+  --line:         rgba(45, 212, 191, 0.35);
+  --shadow-sm:    0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-md:    0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-lg:    0 20px 48px rgba(0, 0, 0, 0.7);
+  --radius:       18px;
+  --radius-sm:    12px;
+  --font-display: 'Cairo', 'Tajawal', system-ui, sans-serif;
+}
 
-  .egyptian-landing {
-    font-family: 'Cairo', 'Tajawal', system-ui, sans-serif;
-    background: #07111E !important;
-    color: #F8FAFC !important;
-    line-height: 1.7;
-    overflow-x: hidden;
-    -webkit-font-smoothing: antialiased;
-    min-height: 100vh;
-    min-height: 100dvh;
-    width: 100%;
-    color-scheme: dark;
-  }
+.egyptian-landing {
+  font-family: 'Cairo', 'Tajawal', system-ui, sans-serif;
+  background: #060E18 !important;
+  color: #FFFFFF !important;
+  line-height: 1.7;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  min-height: 100dvh;
+  width: 100%;
+  color-scheme: dark;
+}
 
-  /* Ensure dark theme for Alexandrian Mediterranean Coast aesthetic */
-  html:has(.egyptian-landing) {
-    color-scheme: dark;
-  }
+html:has(.egyptian-landing) {
+  color-scheme: dark;
+}
 
-  body:has(.egyptian-landing) {
-    background: #07111E !important;
-  }
+body:has(.egyptian-landing) {
+  background: #060E18 !important;
+}
 
+.egyptian-landing .hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2.5rem;
+  align-items: center;
+}
+
+@media (min-width: 1024px) {
   .egyptian-landing .hero-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 2.5rem;
-    align-items: center;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
   }
 
-  @media (min-width: 1024px) {
-    .egyptian-landing .hero-grid {
-      grid-template-columns: repeat(12, minmax(0, 1fr));
-    }
-
-    .egyptian-landing .hero-copy {
-      grid-column: span 7;
-    }
-
-    .egyptian-landing .hero-mockup {
-      grid-column: span 5;
-    }
+  .egyptian-landing .hero-copy {
+    grid-column: span 7;
   }
 
-  .egyptian-landing a { color: inherit; text-decoration: none; }
-  .egyptian-landing img { max-width: 100%; display: block; }
-  .egyptian-landing button { font-family: inherit; cursor: pointer; border: none; }
-
-  /* --- Reusable --- */
-  .egyptian-landing .el-container {
-    max-width: 1180px;
-    margin: 0 auto;
-    padding: 0 24px;
+  .egyptian-landing .hero-mockup {
+    grid-column: span 5;
   }
+}
 
-  .egyptian-landing .section {
-    padding: 88px 0;
-    position: relative;
-  }
+.egyptian-landing a { color: inherit; text-decoration: none; }
+.egyptian-landing img { max-width: 100%; display: block; }
+.egyptian-landing button { font-family: inherit; cursor: pointer; border: none; }
 
-  .egyptian-landing .eyebrow {
-    display: inline-block;
-    font-size: 0.9rem;
-    font-weight: 700;
-    color: var(--nile);
-    background: rgba(30, 96, 145, 0.08);
-    padding: 6px 16px;
-    border-radius: 100px;
-    margin-bottom: 20px;
-    letter-spacing: 0.02em;
-  }
+/* --- Reusable Container & Section --- */
+.egyptian-landing .el-container {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
 
-  .egyptian-landing .h2 {
-    font-family: var(--font-display);
-    font-size: clamp(1.8rem, 4vw, 2.8rem);
-    font-weight: 900;
-    line-height: 1.25;
-    color: var(--navy);
-    margin-bottom: 16px;
-  }
+.egyptian-landing .section {
+  padding: 88px 0;
+  position: relative;
+}
 
-  .egyptian-landing .lede {
-    font-size: clamp(1rem, 1.6vw, 1.15rem);
-    color: var(--ink-soft);
-    max-width: 640px;
-    margin-bottom: 48px;
-  }
+.egyptian-landing .eyebrow {
+  display: inline-block;
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: #5EEAD4 !important;
+  background: rgba(45, 212, 191, 0.18);
+  border: 1px solid rgba(45, 212, 191, 0.4);
+  padding: 6px 18px;
+  border-radius: 100px;
+  margin-bottom: 20px;
+  letter-spacing: 0.02em;
+}
 
-  /* --- Nav --- */
-  .egyptian-landing .nav {
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    background: rgba(9, 13, 22, 0.92);
-    backdrop-filter: saturate(160%) blur(16px);
-    -webkit-backdrop-filter: saturate(160%) blur(16px);
-    border-bottom: 1px solid var(--line);
-  }
+.egyptian-landing .h2 {
+  font-family: var(--font-display);
+  font-size: clamp(1.9rem, 4.2vw, 2.9rem);
+  font-weight: 900;
+  line-height: 1.25;
+  color: #FFFFFF !important;
+  margin-bottom: 16px;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+}
 
-  .egyptian-landing .nav-inner {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 72px;
-  }
+.egyptian-landing .lede {
+  font-size: clamp(1.05rem, 1.6vw, 1.2rem);
+  color: #CBD5E1 !important;
+  max-width: 660px;
+  margin-bottom: 48px;
+  font-weight: 600;
+}
 
-  .egyptian-landing .brand {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-family: var(--font-display);
-    font-weight: 900;
-    font-size: 1.25rem;
-    color: var(--navy);
-  }
+/* --- Nav --- */
+.egyptian-landing .nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(6, 13, 23, 0.96);
+  backdrop-filter: saturate(160%) blur(16px);
+  -webkit-backdrop-filter: saturate(160%) blur(16px);
+  border-bottom: 1.5px solid rgba(45, 212, 191, 0.3);
+}
 
-  .egyptian-landing .brand-mark {
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
-    background: linear-gradient(135deg, var(--gold) 0%, var(--terracotta) 100%);
-    display: grid;
-    place-items: center;
-    color: white;
-    box-shadow: var(--shadow-sm);
-  }
+.egyptian-landing .nav-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 72px;
+}
 
-  .egyptian-landing .brand-mark svg { width: 24px; height: 24px; }
+.egyptian-landing .brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 1.3rem;
+  color: #FFFFFF !important;
+}
 
-  .egyptian-landing .nav-links {
-    display: flex;
-    align-items: center;
-    gap: 28px;
-    list-style: none;
-    margin: 0;
-    padding: 0;
-  }
+.egyptian-landing .brand-mark {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #F59E0B 0%, #F97316 100%);
+  display: grid;
+  place-items: center;
+  color: #060D17;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+}
 
-  .egyptian-landing .nav-links a {
-    font-weight: 600;
-    font-size: 0.95rem;
-    color: var(--ink);
-    transition: color 0.2s;
-  }
+.egyptian-landing .brand-mark svg { width: 24px; height: 24px; }
 
-  .egyptian-landing .nav-links a:hover { color: var(--nile); }
+.egyptian-landing .nav-links {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
 
-  .egyptian-landing .btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    font-weight: 700;
-    font-size: 1rem;
-    padding: 14px 28px;
-    border-radius: 100px;
-    min-height: 48px;
-    transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s;
-    white-space: nowrap;
-    text-decoration: none;
-  }
+.egyptian-landing .nav-links a {
+  font-weight: 700;
+  font-size: 0.98rem;
+  color: #F8FAFC !important;
+  transition: color 0.2s;
+}
 
-  .egyptian-landing .btn-primary {
-    background: var(--navy);
-    color: var(--sand-light);
-    box-shadow: var(--shadow-md);
-  }
+.egyptian-landing .nav-links a:hover { color: #5EEAD4 !important; }
 
-  .egyptian-landing .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
-    background: var(--nile-deep);
-  }
+.egyptian-landing .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 800;
+  font-size: 1rem;
+  padding: 14px 28px;
+  border-radius: 100px;
+  min-height: 48px;
+  transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s;
+  white-space: nowrap;
+  text-decoration: none;
+}
 
-  .egyptian-landing .btn-gold {
-    background: var(--gold);
-    color: var(--navy);
-    box-shadow: 0 8px 24px rgba(201, 162, 39, 0.35);
-  }
+.egyptian-landing .btn-primary {
+  background: linear-gradient(135deg, #2DD4BF 0%, #0D9488 100%);
+  color: #060D17 !important;
+  font-weight: 900;
+  box-shadow: 0 6px 20px rgba(45, 212, 191, 0.35);
+}
 
-  .egyptian-landing .btn-gold:hover {
-    transform: translateY(-2px);
-    background: var(--gold-bright);
-    box-shadow: 0 12px 32px rgba(201, 162, 39, 0.45);
-  }
+.egyptian-landing .btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(45, 212, 191, 0.5);
+  background: linear-gradient(135deg, #5EEAD4 0%, #14B8A6 100%);
+}
 
-  .egyptian-landing .btn-ghost {
-    background: transparent;
-    color: var(--sand-light);
-    border: 2px solid var(--sand-light);
-  }
+.egyptian-landing .btn-gold {
+  background: linear-gradient(135deg, #FACC15 0%, #F59E0B 100%);
+  color: #060D17 !important;
+  font-weight: 900;
+  font-size: 1.05rem;
+  box-shadow: 0 8px 25px rgba(245, 158, 11, 0.45);
+  border: 1.5px solid #FEF08A;
+}
 
-  .egyptian-landing .btn-ghost:hover { background: var(--navy); color: var(--sand-light); border-color: var(--navy); }
+.egyptian-landing .btn-gold:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, #FDE047 0%, #F59E0B 100%);
+  box-shadow: 0 12px 32px rgba(245, 158, 11, 0.6);
+}
 
-  .egyptian-landing .btn-sm { padding: 10px 20px; font-size: 0.9rem; min-height: 40px; }
+.egyptian-landing .btn-ghost {
+  background: transparent;
+  color: #FFFFFF !important;
+  border: 2px solid #5EEAD4;
+}
 
-  /* --- Hero --- */
-  .egyptian-landing .hero {
-    position: relative;
-    min-height: 92vh;
-    display: flex;
-    align-items: center;
-    overflow: hidden;
-    color: var(--sand-light);
-    isolation: isolate;
-  }
+.egyptian-landing .btn-ghost:hover { background: #2DD4BF; color: #060D17 !important; }
 
-  .egyptian-landing .hero-bg {
-    position: absolute;
-    inset: 0;
-    /* Using Alexandria Corniche/Sea image instead of Pyramids */
-    background-image:
-      linear-gradient(135deg, rgba(11,19,43,0.85) 0%, rgba(11,61,92,0.65) 60%, rgba(231,111,81,0.45) 100%),
-      url('https://images.unsplash.com/photo-1596700547076-2d1f435ce82d?auto=format&fit=crop&w=1920&q=80');
-    background-size: cover;
-    background-position: center;
-    background-blend-mode: multiply;
-    z-index: -2;
-  }
+.egyptian-landing .btn-sm { padding: 10px 20px; font-size: 0.9rem; min-height: 40px; }
 
-  .egyptian-landing .hero-bg::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(ellipse at bottom, transparent 40%, rgba(11,19,43,0.65) 100%);
-  }
+/* --- Hero --- */
+.egyptian-landing .hero {
+  position: relative;
+  min-height: 92vh;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  color: #FFFFFF !important;
+  isolation: isolate;
+}
 
-  /* Papyrus reeds SVG silhouette bottom */
-  .egyptian-landing .hero::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: -2px;
-    height: 90px;
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 90' preserveAspectRatio='none'><path d='M0,90 L0,60 Q40,30 80,55 Q120,20 160,50 Q200,15 240,48 Q280,20 320,52 Q360,25 400,50 Q440,18 480,52 Q520,28 560,55 Q600,20 640,50 Q680,25 720,55 Q760,22 800,52 Q840,28 880,58 Q920,30 960,55 Q1000,25 1040,52 Q1080,30 1120,58 Q1160,32 1200,55 L1200,90 Z' fill='%23090D16'/></svg>");
-    background-size: 100% 100%;
-    background-repeat: no-repeat;
-    z-index: 2;
-  }
+.egyptian-landing .hero-bg {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(135deg, rgba(6, 14, 24, 0.92) 0%, rgba(10, 29, 48, 0.82) 60%, rgba(15, 23, 42, 0.9) 100%),
+    url('https://images.unsplash.com/photo-1596700547076-2d1f435ce82d?auto=format&fit=crop&w=1920&q=80');
+  background-size: cover;
+  background-position: center;
+  z-index: -2;
+}
 
-  .egyptian-landing .hero-inner {
-    position: relative;
-    z-index: 3;
-    padding: 120px 0 160px;
-    width: 100%;
-  }
+.egyptian-landing .hero-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at bottom, transparent 30%, rgba(6, 14, 24, 0.85) 100%);
+}
 
-  .egyptian-landing .hero h1 {
-    font-family: var(--font-display);
-    font-size: clamp(2.2rem, 6vw, 4.4rem);
-    font-weight: 900;
-    line-height: 1.15;
-    max-width: 900px;
-    margin-bottom: 24px;
-    letter-spacing: -0.01em;
-    text-shadow: 0 4px 24px rgba(0,0,0,0.3);
-  }
+.egyptian-landing .hero::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -2px;
+  height: 90px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 90' preserveAspectRatio='none'><path d='M0,90 L0,60 Q40,30 80,55 Q120,20 160,50 Q200,15 240,48 Q280,20 320,52 Q360,25 400,50 Q440,18 480,52 Q520,28 560,55 Q600,20 640,50 Q680,25 720,55 Q760,22 800,52 Q840,28 880,58 Q920,30 960,55 Q1000,25 1040,52 Q1080,30 1120,58 Q1160,32 1200,55 L1200,90 Z' fill='%23060E18'/></svg>");
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  z-index: 2;
+}
 
-  .egyptian-landing .hero h1 .accent {
-    background: linear-gradient(135deg, var(--gold-bright) 0%, var(--terracotta) 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
+.egyptian-landing .hero-inner {
+  position: relative;
+  z-index: 3;
+  padding: 120px 0 160px;
+  width: 100%;
+}
 
-  .egyptian-landing .hero p {
-    font-size: clamp(1.05rem, 2vw, 1.3rem);
-    max-width: 640px;
-    margin-bottom: 40px;
-    color: rgba(247, 240, 224, 0.9);
-    line-height: 1.7;
-  }
+.egyptian-landing .hero h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2.2rem, 6vw, 4.4rem);
+  font-weight: 900;
+  line-height: 1.18;
+  max-width: 900px;
+  margin-bottom: 24px;
+  letter-spacing: -0.01em;
+  color: #FFFFFF !important;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.9);
+}
 
-  .egyptian-landing .hero-cta {
-    display: flex;
-    gap: 14px;
-    flex-wrap: wrap;
-  }
+.egyptian-landing .hero h1 .accent {
+  background: linear-gradient(135deg, #FDE047 0%, #FB923C 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-weight: 900;
+  filter: drop-shadow(0 2px 8px rgba(245, 158, 11, 0.4));
+}
 
-  .egyptian-landing .hero-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    background: rgba(247, 240, 224, 0.12);
-    border: 1px solid rgba(247, 240, 224, 0.25);
-    backdrop-filter: blur(8px);
-    padding: 8px 18px;
-    border-radius: 100px;
-    font-size: 0.9rem;
-    font-weight: 600;
-    margin-bottom: 28px;
-    color: var(--gold-bright);
-  }
+.egyptian-landing .hero p {
+  font-size: clamp(1.1rem, 2vw, 1.35rem);
+  max-width: 680px;
+  margin-bottom: 40px;
+  color: #F1F5F9 !important;
+  font-weight: 600;
+  line-height: 1.75;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+}
 
-  .egyptian-landing .hero-badge svg { width: 16px; height: 16px; }
+.egyptian-landing .hero-cta {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
 
-  /* --- Why Cards --- */
-  .egyptian-landing .why { background: var(--sand-light); }
+.egyptian-landing .hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(13, 148, 136, 0.22);
+  border: 1.5px solid #2DD4BF;
+  backdrop-filter: blur(12px);
+  padding: 8px 18px;
+  border-radius: 100px;
+  font-size: 0.92rem;
+  font-weight: 800;
+  margin-bottom: 28px;
+  color: #5EEAD4 !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
 
-  .egyptian-landing .cards-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 24px;
-  }
+.egyptian-landing .hero-badge svg { width: 16px; height: 16px; }
 
-  .egyptian-landing .feature-card {
-    background: var(--papyrus);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    padding: 36px 28px;
-    transition: transform 0.2s, box-shadow 0.2s;
-    position: relative;
-    overflow: hidden;
-  }
+/* --- Why Section & Cards --- */
+.egyptian-landing .why {
+  background: #060E18 !important;
+}
 
-  .egyptian-landing .feature-card::before {
-    content: '';
-    position: absolute;
-    top: 0; right: 0;
-    width: 6px;
-    height: 100%;
-    background: linear-gradient(180deg, var(--gold), var(--terracotta));
-  }
+.egyptian-landing .cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+}
 
-  .egyptian-landing .feature-card:hover {
-    transform: translateY(-6px);
-    box-shadow: var(--shadow-lg);
-  }
+.egyptian-landing .feature-card {
+  background: #0E1E36 !important;
+  border: 1.5px solid rgba(45, 212, 191, 0.35) !important;
+  border-radius: var(--radius);
+  padding: 36px 28px;
+  transition: transform 0.2s, box-shadow 0.2s;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
 
-  .egyptian-landing .feature-icon {
-    width: 64px;
-    height: 64px;
-    border-radius: 16px;
-    background: var(--nile);
-    color: white;
-    display: grid;
-    place-items: center;
-    margin-bottom: 24px;
-    box-shadow: var(--shadow-md);
-  }
+.egyptian-landing .feature-card::before {
+  content: '';
+  position: absolute;
+  top: 0; right: 0;
+  width: 6px;
+  height: 100%;
+  background: linear-gradient(180deg, #F59E0B, #F97316);
+}
 
-  .egyptian-landing .feature-icon svg { width: 32px; height: 32px; stroke-width: 1.8; }
+.egyptian-landing .feature-card:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-lg);
+  border-color: #2DD4BF !important;
+}
 
-  .egyptian-landing .feature-card h3 {
-    font-family: var(--font-display);
-    font-size: 1.35rem;
-    font-weight: 800;
-    color: var(--navy);
-    margin-bottom: 12px;
-  }
+.egyptian-landing .feature-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #2DD4BF 0%, #0D9488 100%);
+  color: #060D17;
+  display: grid;
+  place-items: center;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-md);
+}
 
-  .egyptian-landing .feature-card p { color: var(--ink-soft); font-size: 1rem; }
+.egyptian-landing .feature-icon svg { width: 32px; height: 32px; stroke-width: 2.2; }
 
-  /* --- How it works --- */
-  .egyptian-landing .how {
-    background: linear-gradient(180deg, var(--papyrus) 0%, var(--sand) 100%);
-    position: relative;
-  }
+.egyptian-landing .feature-card h3 {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: #FFFFFF !important;
+  margin-bottom: 12px;
+}
 
-  .egyptian-landing .how::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'><g fill='none' stroke='%23D4A373' stroke-width='0.8' opacity='0.18'><path d='M40 0 L80 40 L40 80 L0 40 Z'/><circle cx='40' cy='40' r='12'/></g></svg>");
-    background-size: 80px 80px;
-    opacity: 0.6;
-    pointer-events: none;
-  }
+.egyptian-landing .feature-card p {
+  color: #E2E8F0 !important;
+  font-size: 1.02rem;
+  font-weight: 500;
+}
 
-  .egyptian-landing .how .el-container { position: relative; z-index: 1; }
+/* --- How Section --- */
+.egyptian-landing .how {
+  background: linear-gradient(180deg, #0A1728 0%, #060E18 100%) !important;
+  position: relative;
+}
 
-  .egyptian-landing .steps {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 32px;
-    counter-reset: step;
-  }
+.egyptian-landing .how::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'><g fill='none' stroke='%232DD4BF' stroke-width='0.8' opacity='0.12'><path d='M40 0 L80 40 L40 80 L0 40 Z'/><circle cx='40' cy='40' r='12'/></g></svg>");
+  background-size: 80px 80px;
+  opacity: 0.6;
+  pointer-events: none;
+}
 
-  .egyptian-landing .step {
-    background: var(--sand-light);
-    border-radius: var(--radius);
-    padding: 36px 28px 32px;
-    position: relative;
-    box-shadow: var(--shadow-md);
-    counter-increment: step;
-  }
+.egyptian-landing .how .el-container { position: relative; z-index: 1; }
 
-  .egyptian-landing .step::before {
-    content: counter(step);
-    position: absolute;
-    top: -20px;
-    right: 28px;
-    width: 52px;
-    height: 52px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--gold), var(--terracotta));
-    color: white;
-    font-family: var(--font-display);
-    font-weight: 900;
-    font-size: 1.4rem;
-    display: grid;
-    place-items: center;
-    box-shadow: var(--shadow-md);
-  }
+.egyptian-landing .steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 32px;
+  counter-reset: step;
+}
 
-  .egyptian-landing .step h3 {
-    font-family: var(--font-display);
-    font-size: 1.2rem;
-    font-weight: 800;
-    color: var(--navy);
-    margin: 8px 0 10px;
-  }
+.egyptian-landing .step {
+  background: #0E1E36 !important;
+  border: 1.5px solid rgba(45, 212, 191, 0.35) !important;
+  border-radius: var(--radius);
+  padding: 36px 28px 32px;
+  position: relative;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  counter-increment: step;
+}
 
-  .egyptian-landing .step p { color: var(--ink-soft); font-size: 0.98rem; }
+.egyptian-landing .step::before {
+  content: counter(step);
+  position: absolute;
+  top: -20px;
+  right: 28px;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #F59E0B, #F97316);
+  color: #060D17;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 1.4rem;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 6px 18px rgba(245, 158, 11, 0.4);
+}
 
-  /* --- Stats band --- */
-  .egyptian-landing .stats {
-    background:
-      linear-gradient(135deg, rgba(11,19,43,0.88) 0%, rgba(11,61,92,0.9) 100%),
-      url('https://images.unsplash.com/photo-1596700547076-2d1f435ce82d?auto=format&fit=crop&w=1920&q=80');
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
-    color: var(--sand-light);
-    padding: 88px 0;
-  }
+.egyptian-landing .step h3 {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: #FFFFFF !important;
+  margin: 12px 0 10px;
+}
 
-  .egyptian-landing .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 32px;
-    text-align: center;
-  }
+.egyptian-landing .step p {
+  color: #E2E8F0 !important;
+  font-size: 1.02rem;
+  font-weight: 500;
+}
 
-  .egyptian-landing .stat-value {
-    font-family: var(--font-display);
-    font-size: clamp(2.4rem, 5vw, 3.6rem);
-    font-weight: 900;
-    background: linear-gradient(135deg, var(--gold-bright), var(--terracotta));
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    line-height: 1;
-    margin-bottom: 10px;
-  }
+/* --- Stats Band --- */
+.egyptian-landing .stats {
+  background:
+    linear-gradient(135deg, rgba(6, 14, 24, 0.92) 0%, rgba(10, 29, 48, 0.95) 100%),
+    url('https://images.unsplash.com/photo-1596700547076-2d1f435ce82d?auto=format&fit=crop&w=1920&q=80');
+  background-size: cover;
+  background-position: center;
+  color: #FFFFFF !important;
+  padding: 88px 0;
+  border-top: 1.5px solid rgba(45, 212, 191, 0.3);
+  border-bottom: 1.5px solid rgba(45, 212, 191, 0.3);
+}
 
-  .egyptian-landing .stat-label {
-    font-size: 1rem;
-    color: rgba(247, 240, 224, 0.85);
-    font-weight: 600;
-  }
+.egyptian-landing .stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 32px;
+  text-align: center;
+}
 
-  /* --- Final CTA --- */
-  .egyptian-landing .cta-final {
-    position: relative;
-    background:
-      linear-gradient(135deg, rgba(201,162,39,0.92) 0%, rgba(231,111,81,0.92) 100%),
-      url('https://images.unsplash.com/photo-1596700547076-2d1f435ce82d?auto=format&fit=crop&w=1920&q=80');
-    background-size: cover;
-    background-position: center 30%;
-    background-blend-mode: multiply;
-    color: var(--navy);
-    text-align: center;
-    padding: 100px 0;
-  }
+.egyptian-landing .stat-value {
+  font-family: var(--font-display);
+  font-size: clamp(2.4rem, 5vw, 3.6rem);
+  font-weight: 900;
+  background: linear-gradient(135deg, #FDE047, #F97316);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  line-height: 1;
+  margin-bottom: 10px;
+}
 
-  .egyptian-landing .cta-final h2 {
-    font-family: var(--font-display);
-    font-size: clamp(1.9rem, 4.5vw, 3rem);
-    font-weight: 900;
-    margin-bottom: 16px;
-    line-height: 1.2;
-  }
+.egyptian-landing .stat-label {
+  font-size: 1.05rem;
+  color: #F1F5F9 !important;
+  font-weight: 700;
+}
 
-  .egyptian-landing .cta-final p {
-    font-size: 1.15rem;
-    max-width: 560px;
-    margin: 0 auto 36px;
-    color: var(--navy);
-    font-weight: 600;
-  }
+/* --- Final CTA --- */
+.egyptian-landing .cta-final {
+  position: relative;
+  background: linear-gradient(135deg, #B45309 0%, #C2410C 100%) !important;
+  color: #FFFFFF !important;
+  text-align: center;
+  padding: 100px 0;
+  border-top: 1.5px solid #F59E0B;
+}
 
-  .egyptian-landing .cta-final .btn-primary {
-    background: var(--navy);
-    color: var(--sand-light);
-    font-size: 1.1rem;
-    padding: 18px 40px;
-  }
+.egyptian-landing .cta-final h2 {
+  font-family: var(--font-display);
+  font-size: clamp(1.9rem, 4.5vw, 3rem);
+  font-weight: 900;
+  margin-bottom: 16px;
+  line-height: 1.2;
+  color: #FFFFFF !important;
+}
 
-  /* --- Subscribe Section --- */
-  .egyptian-landing .subscribe-section {
-    background: var(--sand-light);
-    padding: 88px 0;
-    text-align: center;
-  }
+.egyptian-landing .cta-final p {
+  font-size: 1.2rem;
+  max-width: 580px;
+  margin: 0 auto 36px;
+  color: #FEF3C7 !important;
+  font-weight: 700;
+}
 
+.egyptian-landing .cta-final .btn-primary {
+  background: #FFFFFF !important;
+  color: #060D17 !important;
+  font-size: 1.1rem;
+  font-weight: 900;
+  padding: 18px 40px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+/* --- Subscribe Section --- */
+.egyptian-landing .subscribe-section {
+  background: #060E18 !important;
+  padding: 88px 0;
+  text-align: center;
+  border-top: 1.5px solid rgba(45, 212, 191, 0.25);
+}
+
+.egyptian-landing .subscribe-section form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 480px;
+  margin: 24px auto 0;
+}
+
+@media (min-width: 820px) {
   .egyptian-landing .subscribe-section form {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    max-width: 480px;
-    margin: 24px auto 0;
+    flex-direction: row;
   }
+}
 
-  @media (min-width: 820px) {
-    .egyptian-landing .subscribe-section form {
-      flex-direction: row;
-    }
-  }
+.egyptian-landing .subscribe-section input {
+  flex: 1;
+  padding: 16px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid #2DD4BF;
+  background: #0E1E36;
+  color: #FFFFFF !important;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 600;
+}
 
-  .egyptian-landing .subscribe-section input {
-    flex: 1;
-    padding: 16px;
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--nile);
-    background: var(--papyrus);
-    color: var(--navy);
-    font-family: var(--font-display);
-    font-size: 1rem;
-  }
+.egyptian-landing .subscribe-section input:focus {
+  outline: 2px solid #F59E0B;
+}
 
-  .egyptian-landing .subscribe-section input:focus {
-    outline: 2px solid var(--gold);
-  }
+/* --- Download Cards --- */
+.egyptian-landing .download-card {
+  background: #0E1E36 !important;
+  border: 1.5px solid rgba(45, 212, 191, 0.35) !important;
+  border-radius: var(--radius);
+  padding: 24px;
+  text-align: center;
+  color: #FFFFFF !important;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
 
-  .egyptian-landing .subscribe-section .btn-primary {
-    padding: 16px 32px;
-  }
+.egyptian-landing .download-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+  border-color: #2DD4BF !important;
+}
 
-  /* --- Download Cards --- */
-  .egyptian-landing .download-card {
-    background: var(--papyrus);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    padding: 24px;
-    text-align: center;
-    transition: transform 0.2s, box-shadow 0.2s;
-  }
-  .egyptian-landing .download-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-md);
-  }
-  .egyptian-landing .download-card.highlight {
-    background: var(--sand-light);
-    border: 2px solid var(--nile);
-    box-shadow: var(--shadow-sm);
-  }
-  .egyptian-landing .download-card svg {
-    margin: 0 auto 12px;
-    color: var(--nile);
-  }
+.egyptian-landing .download-card.highlight {
+  background: #132744 !important;
+  border: 2px solid #2DD4BF !important;
+  box-shadow: 0 8px 24px rgba(45, 212, 191, 0.25);
+}
 
-  /* --- Footer --- */
-  .egyptian-landing .footer {
-    background: var(--navy);
-    color: rgba(247, 240, 224, 0.75);
-    padding: 56px 0 32px;
-    font-size: 0.95rem;
-  }
+.egyptian-landing .download-card svg {
+  margin: 0 auto 12px;
+  color: #5EEAD4 !important;
+}
 
-  .egyptian-landing .footer-grid {
-    display: grid;
-    grid-template-columns: 1.6fr 1fr 1fr;
-    gap: 40px;
-    margin-bottom: 40px;
-  }
+/* --- Footer --- */
+.egyptian-landing .footer {
+  background: #040912 !important;
+  color: #CBD5E1 !important;
+  padding: 56px 0 32px;
+  font-size: 0.98rem;
+  border-top: 1.5px solid rgba(45, 212, 191, 0.25);
+}
 
-  .egyptian-landing .footer-brand p {
-    margin-top: 12px;
-    max-width: 320px;
-    line-height: 1.7;
-  }
+.egyptian-landing .footer-grid {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr 1fr;
+  gap: 40px;
+  margin-bottom: 40px;
+}
 
-  .egyptian-landing .footer h4 {
-    color: var(--sand-light);
-    font-family: var(--font-display);
-    font-weight: 800;
-    font-size: 1.05rem;
-    margin-bottom: 16px;
-  }
+.egyptian-landing .footer-brand p {
+  margin-top: 12px;
+  max-width: 320px;
+  line-height: 1.7;
+  color: #94A3B8;
+}
 
-  .egyptian-landing .footer ul { list-style: none; display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; }
+.egyptian-landing .footer h4 {
+  color: #FFFFFF !important;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.1rem;
+  margin-bottom: 16px;
+}
 
-  .egyptian-landing .footer a:hover { color: var(--gold-bright); }
+.egyptian-landing .footer ul { list-style: none; display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; }
 
-  .egyptian-landing .footer-bottom {
-    border-top: 1px solid rgba(247, 240, 224, 0.15);
-    padding-top: 24px;
-    text-align: center;
-    font-size: 0.9rem;
-  }
+.egyptian-landing .footer a { color: #CBD5E1 !important; font-weight: 600; }
+.egyptian-landing .footer a:hover { color: #FDE047 !important; }
 
-  .egyptian-landing .footer .brand { color: var(--sand-light); }
+.egyptian-landing .footer-bottom {
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  padding-top: 24px;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #94A3B8;
+}
 
-  /* --- Responsive --- */
-  @media (max-width: 900px) {
-    .egyptian-landing .nav-links { display: none; }
-    .egyptian-landing .footer-grid { grid-template-columns: 1fr; gap: 32px; }
-    .egyptian-landing .section { padding: 64px 0; }
-    .egyptian-landing .hero-inner { padding: 88px 0 120px; }
-    .egyptian-landing .stats { background-attachment: scroll; }
-  }
+.egyptian-landing .footer .brand { color: #FFFFFF !important; }
 
-  @media (max-width: 600px) {
-    .egyptian-landing .el-container { padding: 0 18px; }
-    .egyptian-landing .hero { min-height: 88vh; }
-    .egyptian-landing .hero-cta { flex-direction: column; align-items: stretch; }
-    .egyptian-landing .hero-cta .btn { width: 100%; }
-    .egyptian-landing .cards-grid, .egyptian-landing .steps { gap: 20px; }
-    .egyptian-landing .feature-card { padding: 28px 24px; }
-    .egyptian-landing .step { padding: 32px 24px 28px; }
-    .egyptian-landing .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 24px; }
-    .egyptian-landing .cta-final { padding: 72px 0; }
-  }
+/* --- Responsive --- */
+@media (max-width: 900px) {
+  .egyptian-landing .nav-links { display: none; }
+  .egyptian-landing .footer-grid { grid-template-columns: 1fr; gap: 32px; }
+  .egyptian-landing .section { padding: 64px 0; }
+  .egyptian-landing .hero-inner { padding: 88px 0 120px; }
+}
+
+@media (max-width: 600px) {
+  .egyptian-landing .el-container { padding: 0 18px; }
+  .egyptian-landing .hero { min-height: 88vh; }
+  .egyptian-landing .hero-cta { flex-direction: column; align-items: stretch; }
+  .egyptian-landing .hero-cta .btn { width: 100%; }
+  .egyptian-landing .cards-grid, .egyptian-landing .steps { gap: 20px; }
+  .egyptian-landing .feature-card { padding: 28px 24px; }
+  .egyptian-landing .step { padding: 32px 24px 28px; }
+  .egyptian-landing .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 24px; }
+  .egyptian-landing .cta-final { padding: 72px 0; }
+}

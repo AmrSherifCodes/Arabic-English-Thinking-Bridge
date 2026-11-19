@@ -167,7 +167,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
                 {isAr ? '— مش بترجمة حرفية' : '— no literal translation'}
               </h1>
 
-              <p className="text-stone-200">
+              <p className="text-slate-100 font-semibold text-lg leading-relaxed">
                 {isAr
                   ? 'بطل تترجم الكلمة بكلمتها فدماغك. هنا هنفهمك تركيب الجملة بالإنجليزي بطريقة منطقية عشان تتكلم بطلاقة وعلى طبيعتك، من قلب إسكندرية للمصريين كلهم.'
                   : 'Stop translating word-for-word in your head. Grasp the logical structure of English to speak fluently and naturally, straight from Alexandria to the world.'}

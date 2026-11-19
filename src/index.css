@@ -50,9 +50,9 @@ body {
 .landing-shell {
   min-height: 100vh;
   min-height: 100dvh;
-  background: #F7F0E0;
-  color: #1A1A2E;
-  color-scheme: light;
+  background: #060E18;
+  color: #F8FAFC;
+  color-scheme: dark;
 }
 
 .landing-shell > header {
