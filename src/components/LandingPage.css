@@ -3,25 +3,25 @@
    Palette: sand, papyrus, Nile blues, gold
    ============================================================ */
    :root {
-    --sand-light:   #090D16;
-    --sand:         #1E293B;
-    --sand-warm:    #D4A373;
-    --papyrus:      #111827;
-    --papyrus-deep: #1F2937;
+    --sand-light:   #07111E;
+    --sand:         #0E1B2E;
+    --sand-warm:    #162740;
+    --papyrus:      #0B1524;
+    --papyrus-deep: #111F36;
     --nile:         #2DD4BF;
-    --nile-deep:    #0D9488;
-    --med:          #14B8A6;
-    --med-light:    #52B69A;
+    --nile-deep:    #14B8A6;
+    --med:          #0F766E;
+    --med-light:    #34D399;
     --gold:         #F59E0B;
-    --gold-bright:  #FBBF24;
+    --gold-bright:  #FACC15;
     --terracotta:   #E76F51;
     --navy:         #F8FAFC;
-    --ink:          #EEF2F5;
+    --ink:          #F1F5F9;
     --ink-soft:     #94A3B8;
-    --line:         rgba(255, 255, 255, 0.12);
-    --shadow-sm:    0 2px 8px rgba(0, 0, 0, 0.3);
-    --shadow-md:    0 8px 24px rgba(0, 0, 0, 0.4);
-    --shadow-lg:    0 20px 48px rgba(0, 0, 0, 0.6);
+    --line:         rgba(45, 212, 191, 0.18);
+    --shadow-sm:    0 2px 8px rgba(0, 0, 0, 0.4);
+    --shadow-md:    0 8px 24px rgba(0, 0, 0, 0.5);
+    --shadow-lg:    0 20px 48px rgba(0, 0, 0, 0.7);
     --radius:       18px;
     --radius-sm:    12px;
     --font-display: 'Tajawal', 'Cairo', system-ui, sans-serif;
@@ -29,30 +29,24 @@
 
   .egyptian-landing {
     font-family: 'Cairo', 'Tajawal', system-ui, sans-serif;
-    background: #090D16;
-    color: #EEF2F5;
+    background: #07111E !important;
+    color: #F8FAFC !important;
     line-height: 1.7;
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
-  }
-
-  /* Defensive override: landing must never inherit the app dark shell */
-  .egyptian-landing {
     min-height: 100vh;
     min-height: 100dvh;
     width: 100%;
-    color-scheme: light;
-    background: #F7F0E0 !important;
-    color: #1A1A2E !important;
+    color-scheme: dark;
   }
 
-  /* Make the browser controls/inputs light while landing is mounted */
+  /* Ensure dark theme for Alexandrian Mediterranean Coast aesthetic */
   html:has(.egyptian-landing) {
-    color-scheme: light;
+    color-scheme: dark;
   }
 
   body:has(.egyptian-landing) {
-    background: #F7F0E0 !important;
+    background: #07111E !important;
   }
 
   .egyptian-landing .hero-grid {

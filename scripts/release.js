@@ -167,29 +167,27 @@ run(`${gradlewCmd} assembleRelease --no-daemon`, path.join(ROOT_DIR, 'android'),
 
 // 7. Copy Output APKs
 console.log(`\n📋 6. Copying production APK...`);
-const builtApkPath = path.join(ROOT_DIR, 'android', 'app', 'build', 'outputs', 'apk', 'release', 'app-universal-release.apk');
-const arm64ApkPath = path.join(ROOT_DIR, 'android', 'app', 'build', 'outputs', 'apk', 'release', 'app-arm64-v8a-release.apk');
-const desktopApkPath = `C:\\Users\\MSI\\Desktop\\Thinking-Bridge-${tag}.apk`;
-const desktopAliasPath = `C:\\Users\\MSI\\Desktop\\app-universal-release.apk`;
-const desktopArm64Path = `C:\\Users\\MSI\\Desktop\\Thinking-Bridge-${tag}-arm64.apk`;
+const os = await import('node:os');
+const userDesktop = path.join(os.homedir(), 'Desktop');
 
-if (fs.existsSync(builtApkPath)) {
+const possibleApkPaths = [
+  path.join(ROOT_DIR, 'android', 'app', 'build', 'outputs', 'apk', 'release', 'app-universal-release.apk'),
+  path.join(ROOT_DIR, 'android', 'app', 'build', 'outputs', 'apk', 'release', 'app-release.apk'),
+];
+
+let sourceApkPath = possibleApkPaths.find((p) => fs.existsSync(p));
+
+const desktopApkPath = path.join(userDesktop, `Thinking-Bridge-${tag}.apk`);
+const desktopAliasPath = path.join(userDesktop, `Thinking-Bridge.apk`);
+
+if (sourceApkPath && fs.existsSync(sourceApkPath)) {
   try {
-    fs.copyFileSync(builtApkPath, desktopApkPath);
-    fs.copyFileSync(builtApkPath, desktopAliasPath);
-    console.log(`   ✓ Copied Universal APK to Desktop: ${desktopApkPath}`);
+    fs.copyFileSync(sourceApkPath, desktopApkPath);
+    fs.copyFileSync(sourceApkPath, desktopAliasPath);
+    console.log(`   ✓ Copied Release APK to Desktop: ${desktopApkPath}`);
     console.log(`   ✓ Copied Alias APK to Desktop: ${desktopAliasPath}`);
   } catch (err) {
-    console.warn(`   ⚠️ Could not copy universal APK to desktop: ${err.message}`);
-  }
-}
-
-if (fs.existsSync(arm64ApkPath)) {
-  try {
-    fs.copyFileSync(arm64ApkPath, desktopArm64Path);
-    console.log(`   ✓ Copied Lean ARM64 APK to Desktop: ${desktopArm64Path}`);
-  } catch (err) {
-    console.warn(`   ⚠️ Could not copy arm64 APK to desktop: ${err.message}`);
+    console.warn(`   ⚠️ Could not copy APK to desktop: ${err.message}`);
   }
 }
 
