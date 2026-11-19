@@ -10,8 +10,8 @@
   --nile:         #00E5FF;
   --nile-bright:  #38BDF8;
   --nile-deep:    #0096C7;
-  --gold:         #FFC72C;
-  --gold-bright:  #FFF066;
+  --gold:         #00E5FF;
+  --gold-bright:  #38BDF8;
   --terracotta:   #FF5E36;
   --navy:         #FFFFFF;
   --ink:          #F8FAFC;
@@ -106,7 +106,6 @@ body:has(.egyptian-landing) {
   line-height: 1.25;
   color: #FFFFFF !important;
   margin-bottom: 16px;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
 }
 
 .egyptian-landing .lede {
@@ -150,11 +149,11 @@ body:has(.egyptian-landing) {
   width: 44px;
   height: 44px;
   border-radius: 14px;
-  background: linear-gradient(135deg, #FFC72C 0%, #FF8C00 100%);
+  background: linear-gradient(135deg, #00E5FF 0%, #0096C7 100%);
   display: grid;
   place-items: center;
   color: #040D1A;
-  box-shadow: 0 4px 18px rgba(255, 199, 44, 0.5);
+  box-shadow: 0 4px 20px rgba(0, 229, 255, 0.4);
 }
 
 .egyptian-landing .brand-mark svg { width: 24px; height: 24px; }
@@ -206,18 +205,18 @@ body:has(.egyptian-landing) {
 }
 
 .egyptian-landing .btn-gold {
-  background: linear-gradient(135deg, #FFF066 0%, #FFC72C 50%, #FF8C00 100%);
+  background: linear-gradient(135deg, #00E5FF 0%, #38BDF8 50%, #0096C7 100%);
   color: #040D1A !important;
   font-weight: 900;
   font-size: 1.05rem;
-  box-shadow: 0 8px 28px rgba(255, 199, 44, 0.5);
-  border: 1.5px solid #FFF066;
+  box-shadow: 0 8px 28px rgba(0, 229, 255, 0.45);
+  border: 1.5px solid #38BDF8;
 }
 
 .egyptian-landing .btn-gold:hover {
   transform: translateY(-2px);
-  background: linear-gradient(135deg, #FFFFFF 0%, #FFC72C 100%);
-  box-shadow: 0 12px 36px rgba(255, 199, 44, 0.7);
+  background: linear-gradient(135deg, #7DD3FC 0%, #00E5FF 100%);
+  box-shadow: 0 12px 36px rgba(0, 229, 255, 0.65);
 }
 
 .egyptian-landing .btn-ghost {
@@ -233,7 +232,7 @@ body:has(.egyptian-landing) {
 /* --- Hero --- */
 .egyptian-landing .hero {
   position: relative;
-  min-height: 92vh;
+  min-height: min(92vh, 840px);
   display: flex;
   align-items: center;
   overflow: hidden;
@@ -275,7 +274,7 @@ body:has(.egyptian-landing) {
 .egyptian-landing .hero-inner {
   position: relative;
   z-index: 3;
-  padding: 120px 0 160px;
+  padding: clamp(48px, 8vh, 100px) 0 clamp(64px, 10vh, 120px);
   width: 100%;
 }
 
@@ -288,16 +287,20 @@ body:has(.egyptian-landing) {
   margin-bottom: 24px;
   letter-spacing: -0.01em;
   color: #FFFFFF !important;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.9);
 }
 
 .egyptian-landing .hero h1 .accent {
-  background: linear-gradient(135deg, #FFF066 0%, #FFC72C 45%, #FF8C00 100%);
+  background: linear-gradient(180deg, #FFFFFF 0%, #38BDF8 55%, #00E5FF 100%);
   -webkit-background-clip: text;
   background-clip: text;
+  -webkit-text-fill-color: transparent;
   color: transparent;
   font-weight: 900;
-  filter: drop-shadow(0 2px 14px rgba(255, 199, 44, 0.6));
+  display: inline-block;
+  text-shadow: none !important;
+  filter: none !important;
+  -webkit-filter: none !important;
+  isolation: isolate;
 }
 
 .egyptian-landing .hero p {
@@ -307,7 +310,6 @@ body:has(.egyptian-landing) {
   color: #F1F5F9 !important;
   font-weight: 600;
   line-height: 1.75;
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.85);
 }
 
 .egyptian-landing .hero-cta {
@@ -365,7 +367,7 @@ body:has(.egyptian-landing) {
   top: 0; right: 0;
   width: 5px;
   height: 100%;
-  background: linear-gradient(180deg, #FFC72C 0%, #FF8C00 100%);
+  background: linear-gradient(180deg, #00E5FF 0%, #34D399 100%);
 }
 
 .egyptian-landing .feature-card:hover {
@@ -447,14 +449,14 @@ body:has(.egyptian-landing) {
   width: 52px;
   height: 52px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #FFF066 0%, #FFC72C 50%, #FF8C00 100%);
+  background: linear-gradient(135deg, #00E5FF 0%, #0096C7 100%);
   color: #040D1A;
   font-family: var(--font-display);
   font-weight: 900;
   font-size: 1.4rem;
   display: grid;
   place-items: center;
-  box-shadow: 0 6px 20px rgba(255, 199, 44, 0.5);
+  box-shadow: 0 6px 20px rgba(0, 229, 255, 0.4);
 }
 
 .egyptian-landing .step h3 {
@@ -495,13 +497,13 @@ body:has(.egyptian-landing) {
   font-family: var(--font-display);
   font-size: clamp(2.4rem, 5vw, 3.6rem);
   font-weight: 900;
-  background: linear-gradient(135deg, #FFF066 0%, #FFC72C 50%, #FF8C00 100%);
+  background: linear-gradient(135deg, #38BDF8 0%, #00E5FF 50%, #34D399 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
   line-height: 1;
   margin-bottom: 10px;
-  filter: drop-shadow(0 2px 10px rgba(255, 199, 44, 0.4));
+  filter: drop-shadow(0 0 16px rgba(0, 229, 255, 0.35));
 }
 
 .egyptian-landing .stat-label {
@@ -517,7 +519,7 @@ body:has(.egyptian-landing) {
   color: #FFFFFF !important;
   text-align: center;
   padding: 100px 0;
-  border-top: 1.5px solid #FFC72C;
+  border-top: 1.5px solid rgba(0, 229, 255, 0.4);
 }
 
 .egyptian-landing .cta-final h2 {
@@ -533,17 +535,17 @@ body:has(.egyptian-landing) {
   font-size: 1.2rem;
   max-width: 580px;
   margin: 0 auto 36px;
-  color: #FEF3C7 !important;
+  color: #E2E8F0 !important;
   font-weight: 700;
 }
 
 .egyptian-landing .cta-final .btn-primary {
-  background: linear-gradient(135deg, #FFF066 0%, #FFC72C 50%, #FF8C00 100%) !important;
+  background: linear-gradient(135deg, #00E5FF 0%, #38BDF8 50%, #0096C7 100%) !important;
   color: #030914 !important;
   font-size: 1.1rem;
   font-weight: 900;
   padding: 18px 40px;
-  box-shadow: 0 10px 30px rgba(255, 199, 44, 0.5);
+  box-shadow: 0 10px 30px rgba(0, 229, 255, 0.5);
 }
 
 /* --- Subscribe Section --- */

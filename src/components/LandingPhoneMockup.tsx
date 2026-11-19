@@ -106,11 +106,11 @@ export function LandingPhoneMockup({ isArabic = true }: { isArabic?: boolean }) 
           <span className="text-[10px] uppercase tracking-wider text-teal-400 font-bold block">
             {isArabic ? 'الجملة العربية (الفكرة الأصلية)' : 'Arabic Thought'}
           </span>
-          <div className="flex items-center justify-center gap-2 text-xl font-black text-amber-300" dir="rtl">
+          <div className="flex items-center justify-center gap-2 text-xl font-black text-cyan-300" dir="rtl">
             <span>"{currentDrill.ar}"</span>
             <button
               onClick={() => soundFX.playChipSelect()}
-              className="p-1 rounded-full bg-amber-500/10 text-amber-300 hover:bg-amber-500/20"
+              className="p-1 rounded-full bg-cyan-500/10 text-cyan-300 hover:bg-cyan-500/20"
               aria-label="استمع"
             >
               <Volume2 size={16} />
@@ -176,7 +176,7 @@ export function LandingPhoneMockup({ isArabic = true }: { isArabic?: boolean }) 
 
           <button
             onClick={handleNextDrill}
-            className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-black text-[11px] transition active:scale-95"
+            className="px-3 py-1.5 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-slate-950 font-black text-[11px] transition active:scale-95 shadow-md shadow-cyan-500/20"
           >
             {isArabic ? 'تمرين آخر ⚡' : 'Next Demo ⚡'}
           </button>

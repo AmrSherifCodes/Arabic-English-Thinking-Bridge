@@ -72,13 +72,13 @@
         --sand-light: #F7F0E0;
         --sand: #EBD9B4;
         --papyrus: #F5E6C8;
-        --papyrus-deep: #E8D0A0;
-        --nile-deep: #0B3D5C;
-        --nile: #1E6091;
-        --med: #168AAD;
-        --gold: #C9A227;
-        --gold-bright: #DAA520;
-        --terracotta: #E76F51;
+        --papyrus-deep: #12305A;
+        --nile-deep: #0096C7;
+        --nile: #00E5FF;
+        --med: #38BDF8;
+        --gold: #00E5FF;
+        --gold-bright: #38BDF8;
+        --terracotta: #34D399;
         --navy: #0B132B;
         --ink: #1A1A2E;
         --ink-soft: #4A4A66;
@@ -145,14 +145,14 @@
 
       .btn-gold {
         background: linear-gradient(135deg, var(--gold) 0%, var(--gold-bright) 100%);
-        color: var(--navy);
-        box-shadow: 0 4px 18px rgba(201, 162, 39, 0.35);
+        color: #040D1A;
+        box-shadow: 0 4px 18px rgba(0, 229, 255, 0.35);
       }
 
       .btn-gold:hover {
         transform: translateY(-2px);
-        box-shadow: 0 6px 24px rgba(201, 162, 39, 0.5);
-        background: linear-gradient(135deg, var(--gold-bright) 0%, #F3C63F 100%);
+        box-shadow: 0 6px 24px rgba(0, 229, 255, 0.5);
+        background: linear-gradient(135deg, var(--gold-bright) 0%, #34D399 100%);
       }
 
       .btn-nile {
@@ -365,10 +365,13 @@
       }
 
       .hero-content h1 .highlight {
-        background: linear-gradient(135deg, var(--gold) 0%, #F5D365 100%);
+        background: linear-gradient(180deg, #FFFFFF 0%, #38BDF8 55%, #00E5FF 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         display: inline-block;
+        text-shadow: none !important;
+        filter: none !important;
+        -webkit-filter: none !important;
       }
 
       .hero-tagline {

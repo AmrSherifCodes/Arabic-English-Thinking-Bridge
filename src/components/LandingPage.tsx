@@ -155,7 +155,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
                   <ShieldCheck size={16} className="text-[#2DD4BF]" />
                   <span>{isAr ? 'مجاني · يعمل بدون إنترنت' : 'Free · 100% Offline'}</span>
                 </div>
-                <div className="hero-badge m-0 bg-amber-500/10 border-amber-500/30 text-amber-300">
+                <div className="hero-badge m-0 bg-cyan-500/10 border-cyan-500/30 text-cyan-300">
                   <Sparkles size={16} />
                   <span>{isAr ? 'فكّر بالإنجليزي، مش تترجم.' : 'Think in English, don\'t translate.'}</span>
                 </div>
@@ -187,7 +187,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
                       window.dispatchEvent(new PopStateEvent('popstate'));
                     }
                   }}
-                  className="btn bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30 transition flex items-center gap-2 cursor-pointer font-bold"
+                  className="btn bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 hover:bg-cyan-500/30 transition flex items-center gap-2 cursor-pointer font-bold"
                 >
                   <span>☕ {isAr ? 'اختبار يا باشا (اعرف مستواك)' : 'Ya Basha CEFR Exam'}</span>
                 </a>
@@ -428,15 +428,15 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
 
           {/* Secret Feature Vault (Revealed when Subscribed) */}
           {subscribed && (
-            <div className="mt-10 p-6 sm:p-8 rounded-3xl bg-[#0F172A] border-2 border-amber-500/60 shadow-2xl text-start text-white space-y-6 animate-in fade-in duration-300">
+            <div className="mt-10 p-6 sm:p-8 rounded-3xl bg-[#0F172A] border-2 border-cyan-500/60 shadow-2xl text-start text-white space-y-6 animate-in fade-in duration-300">
               <div className="flex items-center justify-between border-b border-stone-800 pb-4">
                 <div className="flex items-center gap-2">
-                  <Sparkles className="text-amber-400" size={24} />
-                  <h3 className="font-black text-lg sm:text-xl text-amber-300">
+                  <Sparkles className="text-cyan-400" size={24} />
+                  <h3 className="font-black text-lg sm:text-xl text-cyan-300">
                     {isAr ? '🔓 تم فتح الخزنة السرية للميزات المتقدمة!' : '🔓 Secret Feature Vault Unlocked!'}
                   </h3>
                 </div>
-                <span className="text-xs font-mono px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                <span className="text-xs font-mono px-3 py-1 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
                   SUBSCRIBER VIP PASS
                 </span>
               </div>

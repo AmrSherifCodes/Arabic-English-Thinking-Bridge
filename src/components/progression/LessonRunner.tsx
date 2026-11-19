@@ -460,17 +460,17 @@ export function LessonRunner({
 
           {/* Socratic Mnemonic Hint */}
           {!isAnswered && (
-            <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-200 text-xs font-medium flex items-start gap-2.5 shadow-sm">
-              <Brain size={18} className="shrink-0 text-amber-400 mt-0.5" />
-              <span className="leading-relaxed">{getSocraticHint(currentExercise, isArabic)}</span>
-            </div>
-          )}
-
-          {/* Manual hint confirmation */}
-          {autoHintPill && (
-            <div className="p-3 rounded-2xl bg-primary/20 border border-primary/40 text-primary text-xs font-bold flex items-center gap-2 animate-bounce shadow-md">
-              <Sparkles size={16} className="shrink-0" />
-              <span>{autoHintPill}</span>
+            <div className="p-3.5 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-200 text-xs font-semibold flex items-start gap-2.5 shadow-sm transition-all">
+              <Brain size={18} className="shrink-0 text-cyan-400 mt-0.5" />
+              <div className="flex-1 space-y-1.5">
+                <span className="leading-relaxed block">{getSocraticHint(currentExercise, isArabic)}</span>
+                {autoHintPill && (
+                  <div className="inline-flex items-center gap-1.5 text-[11px] font-bold text-teal-300 bg-teal-500/20 px-3 py-1 rounded-xl border border-teal-500/40">
+                    <Sparkles size={13} className="shrink-0 text-teal-300" />
+                    <span>{autoHintPill}</span>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
