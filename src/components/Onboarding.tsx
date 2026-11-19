@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+import i18n from '../i18n';
 import {
   Briefcase,
   Plane,
@@ -52,6 +53,13 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
   const [selectedAgeBand, setSelectedAgeBand] = useState<NonNullable<UserProfile['ageBand']> | null>(null);
 
   const [selectedTargetDialect, setSelectedTargetDialect] = useState<string>('egyptian');
+  const [isReverse, setIsReverse] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('tb.learningDirection') === 'x-to-ar';
+    } catch {
+      return false;
+    }
+  });
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -101,6 +109,12 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
       localStorage.setItem('tb.sourceLang', 'arz');
       localStorage.setItem('tb.targetLang', 'en');
     } catch {}
+    setIsReverse(false);
+    void i18n.changeLanguage('ar');
+    if (typeof document !== 'undefined') {
+      document.documentElement.dir = 'rtl';
+      document.documentElement.lang = 'ar';
+    }
     goToNextStep(1);
   };
 
@@ -113,12 +127,17 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
       localStorage.setItem('tb.targetLang', targetLangCode);
     } catch {}
     setSelectedTargetDialect(dialect);
+    setIsReverse(true);
+    void i18n.changeLanguage('en');
+    if (typeof document !== 'undefined') {
+      document.documentElement.dir = 'ltr';
+      document.documentElement.lang = 'en';
+    }
     setShowArabicSubChoice(false);
     goToNextStep(1);
   };
 
   const handleFinish = () => {
-    const isReverse = localStorage.getItem('tb.learningDirection') === 'x-to-ar';
     const dialectChoice = selectedTargetDialect || localStorage.getItem('tb.targetArabicDialect') || 'egyptian';
     const targetArLang = (
       dialectChoice === 'egyptian' ? 'arz' : dialectChoice === 'gulf' ? 'afb' : dialectChoice === 'levantine' ? 'apc' : 'ar'
@@ -167,8 +186,10 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
 
   return (
     <div
-      dir="rtl"
-      className="fixed inset-0 z-50 h-screen w-screen overflow-hidden flex flex-col items-center justify-center bg-[#090D16] text-[#EEF2F5] p-4 select-none font-arabic"
+      dir={isReverse ? 'ltr' : 'rtl'}
+      className={`fixed inset-0 z-50 h-screen w-screen overflow-hidden flex flex-col items-center justify-center bg-[#090D16] text-[#EEF2F5] p-4 select-none ${
+        isReverse ? 'font-sans' : 'font-arabic'
+      }`}
     >
       {/* Dynamic Ambient Glow Background */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
@@ -372,10 +393,16 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
               >
                 <div>
                   <h1 className="text-2xl sm:text-3xl font-black text-white leading-snug">
-                    اختر <span className="text-teal-400">مهمتك الأولى</span> 🎯
+                    {isReverse ? (
+                      <>Choose Your <span className="text-teal-400 font-black">Primary Mission</span> 🎯</>
+                    ) : (
+                      <>اختر <span className="text-teal-400">مهمتك الأولى</span> 🎯</>
+                    )}
                   </h1>
                   <p className="text-xs sm:text-sm text-stone-300 mt-1">
-                    حدد المجال الذي تريد أن تفكر وتتحدث فيه بطلاقة أولاً:
+                    {isReverse
+                      ? 'Select the domain you want to think and speak fluently in first:'
+                      : 'حدد المجال الذي تريد أن تفكر وتتحدث فيه بطلاقة أولاً:'}
                   </p>
                 </div>
 
@@ -396,8 +423,10 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
                       <Briefcase size={20} />
                     </div>
                     <div>
-                      <h2 className="text-sm font-bold">💼 عالم الأعمال</h2>
-                      <p className="text-[11px] text-stone-400 mt-0.5">إيميلات، اجتماعات، وتفاوض شركات</p>
+                      <h2 className="text-sm font-bold">{isReverse ? '💼 Business & Work' : '💼 عالم الأعمال'}</h2>
+                      <p className="text-[11px] text-stone-400 mt-0.5">
+                        {isReverse ? 'Corporate emails, meetings, and client negotiations' : 'إيميلات، اجتماعات، وتفاوض شركات'}
+                      </p>
                     </div>
                   </button>
 
@@ -417,8 +446,10 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
                       <Plane size={20} />
                     </div>
                     <div>
-                      <h2 className="text-sm font-bold">✈️ السفر والمغامرة</h2>
-                      <p className="text-[11px] text-stone-400 mt-0.5">المطارات، المطاعم، وحياة الخارج</p>
+                      <h2 className="text-sm font-bold">{isReverse ? '✈️ Travel & Adventure' : '✈️ السفر والمغامرة'}</h2>
+                      <p className="text-[11px] text-stone-400 mt-0.5">
+                        {isReverse ? 'Airports, dining, and daily life abroad' : 'المطارات، المطاعم، وحياة الخارج'}
+                      </p>
                     </div>
                   </button>
 
@@ -438,8 +469,10 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
                       <Clapperboard size={20} />
                     </div>
                     <div>
-                      <h2 className="text-sm font-bold">🎬 الأفلام والميديا</h2>
-                      <p className="text-[11px] text-stone-400 mt-0.5">تعبيرات دارجة وحوارات سينمائية</p>
+                      <h2 className="text-sm font-bold">{isReverse ? '🎬 Movies & Media' : '🎬 الأفلام والميديا'}</h2>
+                      <p className="text-[11px] text-stone-400 mt-0.5">
+                        {isReverse ? 'Casual idioms and cinematic dialogue' : 'تعبيرات دارجة وحوارات سينمائية'}
+                      </p>
                     </div>
                   </button>
 
@@ -459,8 +492,10 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
                       <GraduationCap size={20} />
                     </div>
                     <div>
-                      <h2 className="text-sm font-bold">🎓 الدراسة والجامعة</h2>
-                      <p className="text-[11px] text-stone-400 mt-0.5">أبحاث علمية ومناقشات أكاديمية</p>
+                      <h2 className="text-sm font-bold">{isReverse ? '🎓 Study & University' : '🎓 الدراسة والجامعة'}</h2>
+                      <p className="text-[11px] text-stone-400 mt-0.5">
+                        {isReverse ? 'Academic papers and research discussions' : 'أبحاث علمية ومناقشات أكاديمية'}
+                      </p>
                     </div>
                   </button>
                 </div>
@@ -481,10 +516,16 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
               >
                 <div>
                   <h1 className="text-xl sm:text-2xl font-black text-white leading-snug">
-                    تخصيص <span className="text-amber-400">الفئة العمرية</span> 🎯
+                    {isReverse ? (
+                      <>Customize <span className="text-amber-400 font-black">Age Group</span> 🎯</>
+                    ) : (
+                      <>تخصيص <span className="text-amber-400">الفئة العمرية</span> 🎯</>
+                    )}
                   </h1>
                   <p className="text-xs text-stone-300 mt-1 mb-6">
-                    نخصص المفردات، القواعد وحجم الخط حسب الفئة العمرية ليناسبك تماماً:
+                    {isReverse
+                      ? 'We tailor vocabulary, complexity, and font size specifically for your age group:'
+                      : 'نخصص المفردات، القواعد وحجم الخط حسب الفئة العمرية ليناسبك تماماً:'}
                   </p>
                 </div>
 
@@ -498,7 +539,7 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
                       localStorage.setItem('tb.ageTrack', track);
                     } catch {}
                   }}
-                  isArabic={true}
+                  isArabic={!isReverse}
                 />
 
                 <div className="pt-6 flex justify-end">
@@ -507,7 +548,7 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
                     disabled={!selectedAgeBand && selectedTrack !== 'street_starter'}
                     className="px-6 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-stone-950 font-bold text-sm transition-colors disabled:opacity-50"
                   >
-                    التالي
+                    {isReverse ? 'Next' : 'التالي'}
                   </button>
                 </div>
               </motion.div>
@@ -527,10 +568,16 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
               >
                 <div>
                   <h1 className="text-xl sm:text-2xl font-black text-white leading-snug">
-                    اختبار التفكير: <span className="text-amber-400">لا تترجم حرفياً!</span> 🧠
+                    {isReverse ? (
+                      <>Cognitive Test: <span className="text-amber-400 font-black">Don't Translate Literally!</span> 🧠</>
+                    ) : (
+                      <>اختبار التفكير: <span className="text-amber-400">لا تترجم حرفياً!</span> 🧠</>
+                    )}
                   </h1>
                   <p className="text-xs text-stone-300 mt-1">
-                    اختر المعنى الذهني الحقيقي للعبارة التالية:
+                    {isReverse
+                      ? 'Choose the true cognitive meaning of the following phrase:'
+                      : 'اختر المعنى الذهني الحقيقي للعبارة التالية:'}
                   </p>
                 </div>
 
@@ -554,9 +601,9 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
                     }}
                     className="w-full p-3.5 rounded-2xl border border-stone-700 bg-stone-800/80 hover:border-amber-500/50 hover:bg-stone-800 text-start text-xs font-semibold text-stone-200 transition-all flex items-center justify-between"
                   >
-                    <span>❌ تمطر قططاً وكلاباً (ترجمة حرفية)</span>
+                    <span>{isReverse ? '❌ It is raining cats and dogs (Literal translation)' : '❌ تمطر قططاً وكلاباً (ترجمة حرفية)'}</span>
                     <span className="text-[10px] text-stone-400 bg-stone-900 px-2 py-0.5 rounded-md">
-                      مبتدئ A1
+                      {isReverse ? 'Beginner A1' : 'مبتدئ A1'}
                     </span>
                   </button>
 
@@ -569,9 +616,9 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
                     }}
                     className="w-full p-3.5 rounded-2xl border border-teal-500/50 bg-teal-950/30 hover:border-teal-400 hover:bg-teal-900/30 text-start text-xs font-bold text-teal-200 transition-all flex items-center justify-between shadow-md"
                   >
-                    <span>💡 تمطر بغزارة (المعنى الاصطلاحي)</span>
+                    <span>{isReverse ? '💡 It is raining heavily (Idiomatic meaning)' : '💡 تمطر بغزارة (المعنى الاصطلاحي)'}</span>
                     <span className="text-[10px] text-teal-300 bg-teal-900/60 px-2 py-0.5 rounded-md">
-                      متوسط A2/B1
+                      {isReverse ? 'Intermediate A2/B1' : 'متوسط A2/B1'}
                     </span>
                   </button>
 
@@ -584,9 +631,9 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
                     }}
                     className="w-full p-3.5 rounded-2xl border border-stone-700 bg-stone-800/80 hover:border-stone-500 text-start text-xs font-medium text-stone-300 transition-all flex items-center justify-between"
                   >
-                    <span>❓ لا أعرف المعنى، أريد البدء من الأساسيات</span>
+                    <span>{isReverse ? "❓ I don't know the meaning, start from basics" : '❓ لا أعرف المعنى، أريد البدء من الأساسيات'}</span>
                     <span className="text-[10px] text-stone-400 bg-stone-900 px-2 py-0.5 rounded-md">
-                      تأسيس A0
+                      {isReverse ? 'Starter A0' : 'تأسيس A0'}
                     </span>
                   </button>
                 </div>
@@ -607,10 +654,16 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
               >
                 <div>
                   <h1 className="text-xl sm:text-2xl font-black text-white leading-snug">
-                    من سيكون <span className="text-emerald-400">رفيقك في الرحلة؟</span> 🤖
+                    {isReverse ? (
+                      <>Who will be <span className="text-emerald-400 font-black">your companion?</span> 🤖</>
+                    ) : (
+                      <>من سيكون <span className="text-emerald-400">رفيقك في الرحلة؟</span> 🤖</>
+                    )}
                   </h1>
                   <p className="text-xs text-stone-300 mt-1">
-                    اختر شخصية الذكاء الاصطناعي التي تناسب أسلوبك في التعلم:
+                    {isReverse
+                      ? 'Choose the AI personality that best fits your learning style:'
+                      : 'اختر شخصية الذكاء الاصطناعي التي تناسب أسلوبك في التعلم:'}
                   </p>
                 </div>
 
@@ -631,9 +684,11 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
                       <Bot size={22} />
                     </div>
                     <div>
-                      <h2 className="text-sm font-bold">🤖 المعلم الصارم (Strict Tutor)</h2>
+                      <h2 className="text-sm font-bold">{isReverse ? '🤖 Strict Tutor' : '🤖 المعلم الصارم (Strict Tutor)'}</h2>
                       <p className="text-[11px] text-stone-400 mt-0.5">
-                        يدقق في القواعد فوراً ويصلح كل خطأ بدقة متناهية
+                        {isReverse
+                          ? 'Strict grammar checking and immediate precise corrections'
+                          : 'يدقق في القواعد فوراً ويصلح كل خطأ بدقة متناهية'}
                       </p>
                     </div>
                   </button>
@@ -654,9 +709,11 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
                       <Smile size={22} />
                     </div>
                     <div>
-                      <h2 className="text-sm font-bold">😎 الصديق المتفهم (Chill Friend)</h2>
+                      <h2 className="text-sm font-bold">{isReverse ? '😎 Chill Friend' : '😎 الصديق المتفهم (Chill Friend)'}</h2>
                       <p className="text-[11px] text-stone-400 mt-0.5">
-                        يركز على طلاقة الحديث ويكسر حاجز الخوف من الخطأ
+                        {isReverse
+                          ? 'Focuses on fluency and overcomes fear of making errors'
+                          : 'يركز على طلاقة الحديث ويكسر حاجز الخوف من الخطأ'}
                       </p>
                     </div>
                   </button>
@@ -677,9 +734,11 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
                       <Brain size={22} />
                     </div>
                     <div>
-                      <h2 className="text-sm font-bold">🧠 المحلل الذكي (Smart Analyst)</h2>
+                      <h2 className="text-sm font-bold">{isReverse ? '🧠 Smart Analyst' : '🧠 المحلل الذكي (Smart Analyst)'}</h2>
                       <p className="text-[11px] text-stone-400 mt-0.5">
-                        يشرح لك المنطق الذهني وسبب ترتيب كل جملة
+                        {isReverse
+                          ? 'Explains the cognitive logic behind every sentence structure'
+                          : 'يشرح لك المنطق الذهني وسبب ترتيب كل جملة'}
                       </p>
                     </div>
                   </button>
@@ -705,49 +764,73 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
 
                 <div>
                   <h1 className="text-2xl sm:text-3xl font-black text-white">
-                    أنت جاهز للمهمة! 🚀
+                    {isReverse ? "You're Ready for the Mission! 🚀" : 'أنت جاهز للمهمة! 🚀'}
                   </h1>
                   <p className="text-xs sm:text-sm text-stone-300 mt-1 max-w-sm mx-auto leading-relaxed">
-                    تم تخصيص جسر التفكير خصيصاً لمهمتك ومستواك الذهني.
+                    {isReverse
+                      ? 'Your cognitive bridge has been tailored specifically for your target level.'
+                      : 'تم تخصيص جسر التفكير خصيصاً لمهمتك ومستواك الذهني.'}
                   </p>
                 </div>
 
                 {/* Selected Options Summary Pill */}
                 <div className="p-4 rounded-2xl bg-stone-800/90 border border-stone-700 text-start space-y-2 text-xs">
                   <div className="flex items-center justify-between text-stone-300">
-                    <span>اتجاه التعلم:</span>
+                    <span>{isReverse ? 'Learning Direction:' : 'اتجاه التعلم:'}</span>
                     <span className="font-bold text-teal-300">
-                      {localStorage.getItem('tb.learningDirection') === 'x-to-ar'
-                        ? '🌍 لست عربي ← تعلم العربية'
+                      {isReverse
+                        ? '🌍 Learning Arabic (Reverse Path)'
                         : '🇪🇬 عربي ← تعلم لغة جديدة'}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-stone-300">
-                    <span>المهمة المختارة:</span>
+                    <span>{isReverse ? 'Selected Mission:' : 'المهمة المختارة:'}</span>
                     <span className="font-bold text-teal-300">
-                      {selectedMission === 'business'
-                        ? '💼 عالم الأعمال'
-                        : selectedMission === 'travel'
-                        ? '✈️ السفر والمغامرة'
-                        : selectedMission === 'academic'
-                        ? '🎓 الدراسة والجامعة'
-                        : '🎬 الأفلام والميديا'}
+                      {isReverse ? (
+                        selectedMission === 'business'
+                          ? '💼 Business & Work'
+                          : selectedMission === 'travel'
+                          ? '✈️ Travel & Adventure'
+                          : selectedMission === 'academic'
+                          ? '🎓 Study & University'
+                          : '🎬 Movies & Media'
+                      ) : (
+                        selectedMission === 'business'
+                          ? '💼 عالم الأعمال'
+                          : selectedMission === 'travel'
+                          ? '✈️ السفر والمغامرة'
+                          : selectedMission === 'academic'
+                          ? '🎓 الدراسة والجامعة'
+                          : '🎬 الأفلام والميديا'
+                      )}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-stone-300">
-                    <span>المستوى التشخيصي:</span>
+                    <span>{isReverse ? 'Diagnostic Level:' : 'المستوى التشخيصي:'}</span>
                     <span className="font-bold text-amber-300">
-                      {diagnosticLevel === 'intermediate' ? 'متوسط A2/B1' : 'تأسيس A1/A0'}
+                      {isReverse ? (
+                        diagnosticLevel === 'intermediate' ? 'Intermediate A2/B1' : 'Starter A1/A0'
+                      ) : (
+                        diagnosticLevel === 'intermediate' ? 'متوسط A2/B1' : 'تأسيس A1/A0'
+                      )}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-stone-300">
-                    <span>رفيق الذكاء الاصطناعي:</span>
+                    <span>{isReverse ? 'AI Companion:' : 'رفيق الذكاء الاصطناعي:'}</span>
                     <span className="font-bold text-emerald-300">
-                      {companion === 'strict'
-                        ? '🤖 المعلم الصارم'
-                        : companion === 'analyst'
-                        ? '🧠 المحلل الذكي'
-                        : '😎 الصديق المتفهم'}
+                      {isReverse ? (
+                        companion === 'strict'
+                          ? '🤖 Strict Tutor'
+                          : companion === 'analyst'
+                          ? '🧠 Smart Analyst'
+                          : '😎 Chill Friend'
+                      ) : (
+                        companion === 'strict'
+                          ? '🤖 المعلم الصارم'
+                          : companion === 'analyst'
+                          ? '🧠 المحلل الذكي'
+                          : '😎 الصديق المتفهم'
+                      )}
                     </span>
                   </div>
                 </div>
@@ -758,7 +841,7 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
                   onClick={handleFinish}
                   className="w-full py-4 rounded-2xl bg-gradient-to-r from-teal-400 via-emerald-400 to-teal-300 text-stone-950 text-base font-black shadow-xl shadow-teal-500/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
                 >
-                  <span>ابدأ اللعبة الآن</span>
+                  <span>{isReverse ? 'Start Game Now ⚡' : 'ابدأ اللعبة الآن ⚡'}</span>
                   <Zap size={20} className="fill-current" />
                 </button>
               </motion.div>
@@ -774,8 +857,8 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
               onClick={goToPrevStep}
               className="text-xs font-bold text-stone-400 hover:text-white flex items-center gap-1.5 transition-colors"
             >
-              <ArrowRight size={16} />
-              <span>رجوع</span>
+              {isReverse ? <ArrowLeft size={16} /> : <ArrowRight size={16} />}
+              <span>{isReverse ? 'Back' : 'رجوع'}</span>
             </button>
 
             <span className="text-[11px] text-stone-500 font-mono">
