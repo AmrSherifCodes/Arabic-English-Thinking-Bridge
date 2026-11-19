@@ -94,6 +94,7 @@ export function LessonRunner({
 
   const currentExercise: ExerciseItem = exercises[currentIndex] || exercises[0];
   const isJapaneseExercise = /[\u3040-\u30ff\u3400-\u9fff]/u.test(currentExercise.targetSentence);
+  const isTargetRtl = /[\u0600-\u06FF]/u.test(currentExercise?.targetSentence || '');
 
   useEffect(() => {
     const rawOptions = currentExercise.options && currentExercise.options.length > 0
@@ -515,10 +516,10 @@ export function LessonRunner({
           {/* Structure Builder / Word Chips Mode */}
           {currentExercise.type === 'structure_builder' && (
             <div className="space-y-4">
-              {/* Selected Chips Slot (Strict LTR direction & left alignment for English/German target sentence building) */}
+              {/* Selected Chips Slot */}
               <div
-                dir="ltr"
-                style={{ direction: 'ltr', textAlign: 'left', justifyContent: 'flex-start' }}
+                dir={isTargetRtl ? 'rtl' : 'ltr'}
+                style={{ direction: isTargetRtl ? 'rtl' : 'ltr', textAlign: isTargetRtl ? 'right' : 'left', justifyContent: isTargetRtl ? 'flex-end' : 'flex-start' }}
                 className="p-4 rounded-2xl bg-surface-2 border border-border min-h-[72px] flex flex-wrap flex-row items-center gap-2"
               >
                 {selectedChips.length === 0 ? (
@@ -534,7 +535,7 @@ export function LessonRunner({
                           setSelectedChips((prev) => prev.filter((_, i) => i !== idx));
                         }
                       }}
-                      dir="ltr"
+                      dir={isTargetRtl ? 'rtl' : 'ltr'}
                       className="px-3.5 py-2.5 rounded-xl bg-purple-500/20 border border-purple-400 text-purple-200 font-black text-sm active:scale-95 shadow-sm"
                     >
                       {chip}
@@ -544,7 +545,7 @@ export function LessonRunner({
               </div>
 
               {/* Available Word Chips Bank */}
-              <div className="flex flex-wrap gap-2 justify-center pt-2" dir="ltr">
+              <div className="flex flex-wrap gap-2 justify-center pt-2" dir={isTargetRtl ? 'rtl' : 'ltr'}>
                 {shuffledOptions.map((chip, idx) => {
                   const isSelected = selectedChips.includes(chip);
                   return (
@@ -557,7 +558,7 @@ export function LessonRunner({
                         soundFX.playChipSelect();
                         setSelectedChips((prev) => [...prev, chip]);
                       }}
-                      dir="ltr"
+                      dir={isTargetRtl ? 'rtl' : 'ltr'}
                       className={`px-4 py-2.5 min-h-[48px] rounded-xl font-bold text-sm transition ${
                         isSelected
                           ? 'opacity-30 bg-surface border border-border text-muted'
@@ -579,7 +580,7 @@ export function LessonRunner({
                 value={userInput}
                 onChange={(e) => setUserInput(e.target.value)}
                 disabled={isAnswered}
-                dir="ltr"
+                dir={isTargetRtl ? 'rtl' : 'ltr'}
                 placeholder={isArabic ? 'اكتب الجملة باللغة المستهدفة هنا...' : 'Type the sentence in the target language...'}
                 className="w-full p-4 rounded-2xl bg-surface-2 border border-border text-text text-base font-bold placeholder:text-muted focus:outline-none focus:border-success min-h-[100px] resize-none"
               />

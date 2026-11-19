@@ -44,8 +44,8 @@ export function getCurriculum(source: SourceLanguage = 'ar', target: TargetLangu
     }));
   }
 
-  if (target === 'ar') {
-    // Foreign -> Arabic: swap sourceThought and targetSentence
+  if (target === 'ar' || target === 'arz' || target === 'apc' || target === 'afb' || target === 'ary' || target.startsWith('ar')) {
+    // Foreign -> Arabic: swap sourceThought and targetSentence, and populate Arabic word chips & chunks
     return PHASES_DATA.map(p => ({
       ...p,
       lessons: p.lessons.map(l => ({
@@ -56,6 +56,21 @@ export function getCurriculum(source: SourceLanguage = 'ar', target: TargetLangu
           ...ex,
           sourceThought: ex.englishTarget || ex.targetSentence,
           targetSentence: ex.arabicThought || ex.sourceThought,
+          arabicThought: ex.englishTarget || ex.targetSentence,
+          englishTarget: ex.arabicThought || ex.sourceThought,
+          wordChips: ex.arabicThought
+            ? ex.arabicThought.replace(/[.!?،,]/g, '').split(/\s+/).filter(Boolean)
+            : ex.wordChips,
+          breakdownChunks: (ex.breakdownChunks || []).map(chunk => ({
+            ...chunk,
+            arabicText: chunk.englishText,
+            englishText: chunk.arabicText,
+            sourceText: chunk.englishText,
+            targetText: chunk.arabicText,
+          })),
+          acceptableAlternatives: Array.from(
+            new Set([ex.arabicThought, ...(ex.acceptableAlternatives || [])])
+          ).filter(Boolean),
         })),
       })),
     }));

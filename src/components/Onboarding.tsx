@@ -51,6 +51,8 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
   });
   const [selectedAgeBand, setSelectedAgeBand] = useState<NonNullable<UserProfile['ageBand']> | null>(null);
 
+  const [selectedTargetDialect, setSelectedTargetDialect] = useState<string>('egyptian');
+
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => {
@@ -96,6 +98,8 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
   const handleSelectDirectionCardA = () => {
     try {
       localStorage.setItem('tb.learningDirection', 'ar-to-x');
+      localStorage.setItem('tb.sourceLang', 'arz');
+      localStorage.setItem('tb.targetLang', 'en');
     } catch {}
     goToNextStep(1);
   };
@@ -103,20 +107,30 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
   const handleSelectDirectionCardBSubChoice = (dialect: string) => {
     try {
       localStorage.setItem('tb.targetArabicDialect', dialect);
-      localStorage.setItem('tb.learningDirection', 'ar-to-x');
+      localStorage.setItem('tb.learningDirection', 'x-to-ar');
+      localStorage.setItem('tb.sourceLang', 'en');
+      const targetLangCode = dialect === 'egyptian' ? 'arz' : dialect === 'gulf' ? 'afb' : dialect === 'levantine' ? 'apc' : 'ar';
+      localStorage.setItem('tb.targetLang', targetLangCode);
     } catch {}
-    showToast('🚧 المسار العكسي قادم قريباً · Reverse path coming soon');
+    setSelectedTargetDialect(dialect);
     setShowArabicSubChoice(false);
+    goToNextStep(1);
   };
 
   const handleFinish = () => {
+    const isReverse = localStorage.getItem('tb.learningDirection') === 'x-to-ar';
+    const dialectChoice = selectedTargetDialect || localStorage.getItem('tb.targetArabicDialect') || 'egyptian';
+    const targetArLang = (
+      dialectChoice === 'egyptian' ? 'arz' : dialectChoice === 'gulf' ? 'afb' : dialectChoice === 'levantine' ? 'apc' : 'ar'
+    ) as any;
+
     const updatedProfile: UserProfile = {
-      language: 'arabic', // Arabic UI
-      dialect: 'egyptian',
+      language: isReverse ? 'english' : 'arabic',
+      dialect: dialectChoice === 'msa' ? 'msa' : 'egyptian',
       level: (diagnosticLevel as any),
-      goal: 'general',
-      sourceLanguage: 'arz',
-      targetLanguage: 'en',
+      goal: selectedMission || 'general',
+      sourceLanguage: isReverse ? 'en' : 'arz',
+      targetLanguage: isReverse ? targetArLang : 'en',
       learnerTrack: selectedTrack,
       ageBand: selectedAgeBand || undefined,
     };
@@ -124,6 +138,10 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
     try {
       localStorage.setItem('tb.ageTrack', selectedTrack);
       localStorage.setItem('tb.aiCompanion', companion);
+      if (isReverse) {
+        localStorage.setItem('tb.sourceLang', 'en');
+        localStorage.setItem('tb.targetLang', targetArLang);
+      }
     } catch {}
 
     onComplete(updatedProfile, { companion, diagnosticLevel, track: selectedTrack } as any);

@@ -648,6 +648,9 @@ export default function App() {
               ...profile,
               ...newProfile,
             });
+            if (newProfile.sourceLanguage && newProfile.targetLanguage) {
+              setPair(newProfile.sourceLanguage, newProfile.targetLanguage);
+            }
             const stage: CefrStage = extraData?.diagnosticLevel === 'intermediate' ? 'A2' : 'A0';
             updateProgression((p) => ({
               ...p,

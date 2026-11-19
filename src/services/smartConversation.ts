@@ -356,6 +356,33 @@ export function generateSmartConversationReply(
       : "No problem at all! Cancelled. What would you like to practice next?";
   }
 
+  // 3b. Arabic Target Experience (Foreigner / English Speaker learning Arabic)
+  if (targetLang === 'ar' || targetLang === 'arz' || targetLang === 'apc' || targetLang === 'afb' || targetLang === 'ary' || targetLang.startsWith('ar')) {
+    if (lowerPrompt.includes('hello') || lowerPrompt.includes('hi') || lowerPrompt.includes('marhaba') || lowerPrompt.includes('salam') || lowerPrompt.includes('ahlan')) {
+      return "Ahlan! (أهلاً!) I'm excited to practice Arabic with you today. How are you doing? (ازيك؟ / كيف حالك؟)";
+    }
+    if (lowerPrompt.includes('how are you') || lowerPrompt.includes('how r u') || lowerPrompt.includes('how are u')) {
+      return "Ana kwayyis! (أنا كويس!) 💡 Native Tip: Nominal sentences in Arabic omit present linking verbs: **'Ana kwayyis'** (I am good). What would you like to practice in Arabic today?";
+    }
+    if (lowerPrompt.includes('how do i say') || lowerPrompt.includes('how to say')) {
+      const targetTerm = cleanPrompt.replace(/.*how\s+(?:do\s+i|to)\s+say\s+/i, '').replace(/[?!=.]/g, '').trim();
+      if (targetTerm) {
+        const dictHit = searchOfflineDictionary(targetTerm, 'en');
+        if (dictHit) {
+          return `To say **"${targetTerm}"** in Arabic, we say:\n\n🎯 **"${dictHit}"**\n\n💡 Try saying it out loud!`;
+        }
+      }
+    }
+    if (!isArabicInput) {
+      const dictHit = searchOfflineDictionary(cleanPrompt, 'en');
+      if (dictHit) {
+        return `Got it! In Arabic, to express that thought:\n🎯 **"${dictHit}"**\nTry saying it out loud!`;
+      }
+      return "Understood! Let's express that thought in natural Arabic. Try speaking a short sentence in Arabic, or ask me how to say any word!";
+    }
+    return "Mumtaz! (ممتاز!) Your Arabic sentence structure is getting smoother. Tell me more in Arabic!";
+  }
+
   // 4. German Target Experience
   if (targetLang === 'de') {
     if (lowerPrompt.includes('hallo') || lowerPrompt.includes('guten tag') || lowerPrompt.includes('hi')) {

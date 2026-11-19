@@ -131,3 +131,19 @@ test('4. Checkpoint-Based Feature Unlocks Test', () => {
   state.currentStage = 'A2';
   assert.equal(isFeatureUnlocked('story', state, 'en'), true);
 });
+
+test('5. Reverse Path (Foreigners / English Speakers Learning Arabic) Curriculum Test', async () => {
+  const { getCurriculum } = await import('../data/curriculumRegistry');
+  const phasesEnAr = getCurriculum('en', 'ar');
+  assert.ok(phasesEnAr.length >= 3, 'Reverse curriculum (English to Arabic) must have phases');
+
+  const ex0 = phasesEnAr[0].lessons[0].exercises[0];
+  assert.ok(ex0.targetSentence, 'Target sentence in reverse path must exist');
+  assert.ok(/[\u0600-\u06FF]/.test(ex0.targetSentence), 'Target sentence in reverse path must be Arabic');
+  assert.ok(ex0.wordChips.length > 0, 'Word chips in reverse path must exist');
+  assert.ok(/[\u0600-\u06FF]/.test(ex0.wordChips[0]), 'Word chips in reverse path must be Arabic words');
+
+  const phasesEnArz = getCurriculum('en', 'arz');
+  const exArz = phasesEnArz[0].lessons[0].exercises[0];
+  assert.ok(/[\u0600-\u06FF]/.test(exArz.targetSentence), 'Egyptian Arabic target sentence must be Arabic');
+});
