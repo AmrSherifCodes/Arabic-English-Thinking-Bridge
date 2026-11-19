@@ -14,6 +14,15 @@ export interface LevelVisualProps {
   category?: string;
 }
 
+function escapeXml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
 /**
  * Generates a relevant SVG illustration string for any level/exercise based on L1/L2 topic keywords.
  */
@@ -27,12 +36,16 @@ export function generatePythonLevelSvg({
   // Resolve rich topic scene context
   const scene = getSceneContextForExercise(englishTarget, promptAr, stage, levelNumber);
 
-  const cleanPrompt = promptAr.replace(/["']/g, '').substring(0, 36);
-  const cleanTarget = englishTarget.replace(/["']/g, '').substring(0, 42);
+  const cleanPrompt = escapeXml(promptAr.replace(/["']/g, '').substring(0, 36));
+  const cleanTarget = escapeXml(englishTarget.replace(/["']/g, '').substring(0, 42));
+  const categoryTitleAr = escapeXml(scene.categoryTitleAr);
+  const categoryTitleEn = escapeXml(scene.categoryTitleEn);
+  const grammarTag = escapeXml(scene.grammarTag);
+  const stageEscaped = escapeXml(stage);
   const idSeed = `${levelNumber}-${stage.replace(/[^a-zA-Z0-9]/g, '')}-${englishTarget.length}`;
 
   return `
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 220" width="100%" height="100%" style="border-radius: 18px; overflow: hidden; font-family: system-ui, -apple-system, sans-serif;">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 220" width="100%" height="100%" style="display: block; width: 100%; height: 100%; border-radius: 18px; overflow: hidden; font-family: system-ui, -apple-system, sans-serif;">
       <defs>
         <linearGradient id="bgGrad-${idSeed}" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stop-color="${scene.theme.primaryBg}" />
@@ -78,16 +91,16 @@ export function generatePythonLevelSvg({
       <text x="200" y="142" font-size="14" font-weight="900" fill="${scene.theme.accentColor}" text-anchor="middle">${cleanTarget}</text>
 
       <!-- Category / Topic Title -->
-      <text x="200" y="162" font-size="11" font-weight="700" fill="#E2E8F0" opacity="0.9" text-anchor="middle" dir="rtl">${scene.categoryTitleAr} · ${scene.categoryTitleEn}</text>
+      <text x="200" y="162" font-size="11" font-weight="700" fill="#E2E8F0" opacity="0.9" text-anchor="middle" dir="rtl">${categoryTitleAr} · ${categoryTitleEn}</text>
 
       <!-- Top Bar Badges -->
       <!-- Left Level Badge -->
       <rect x="12" y="10" width="100" height="22" rx="11" fill="${scene.theme.badgeBg}" stroke="${scene.theme.accentColor}" stroke-width="0.8" />
-      <text x="62" y="24" font-size="10" font-weight="800" fill="${scene.theme.badgeText}" text-anchor="middle">المستوى ${levelNumber} · ${stage}</text>
+      <text x="62" y="24" font-size="10" font-weight="800" fill="${scene.theme.badgeText}" text-anchor="middle">المستوى ${levelNumber} · ${stageEscaped}</text>
 
       <!-- Center Grammar Pattern Tag -->
       <rect x="122" y="10" width="156" height="22" rx="11" fill="rgba(0,0,0,0.5)" stroke="rgba(255,255,255,0.15)" stroke-width="0.8" />
-      <text x="200" y="24" font-size="9" font-weight="700" fill="#94A3B8" text-anchor="middle">${scene.grammarTag}</text>
+      <text x="200" y="24" font-size="9" font-weight="700" fill="#94A3B8" text-anchor="middle">${grammarTag}</text>
 
       <!-- Right Pyodide / On-Device Tag -->
       <rect x="288" y="10" width="100" height="22" rx="11" fill="rgba(201, 162, 39, 0.15)" stroke="rgba(201, 162, 39, 0.3)" stroke-width="0.8" />
@@ -101,17 +114,10 @@ export function generatePythonLevelSvg({
 }
 
 /**
- * Returns a base64 data URL string for the locally generated SVG image.
+ * Returns a base64 or UTF-8 data URL string for the locally generated SVG image.
  */
 export function getLocalLevelImageDataUrl(props: LevelVisualProps): string {
   const svg = generatePythonLevelSvg(props);
-  try {
-    const base64 = typeof window !== 'undefined' && typeof window.btoa !== 'undefined'
-      ? window.btoa(unescape(encodeURIComponent(svg)))
-      : Buffer.from(svg, 'utf-8').toString('base64');
-    return `data:image/svg+xml;base64,${base64}`;
-  } catch {
-    const encoded = encodeURIComponent(svg);
-    return `data:image/svg+xml;charset=utf-8,${encoded}`;
-  }
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 }
+

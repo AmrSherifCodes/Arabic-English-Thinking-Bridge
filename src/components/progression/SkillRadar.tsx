@@ -38,9 +38,9 @@ export function SkillRadar({ skills, branchData, isArabic = true }: SkillRadarPr
     });
 
     return (
-      <div className="flex flex-col items-center justify-center p-3 rounded-2xl bg-stone-900/90 border border-stone-800 backdrop-blur-sm">
-        <h4 className="text-xs font-bold text-amber-400 mb-1 flex items-center gap-1">
-          <span>🎯</span>
+      <div className="flex flex-col items-center justify-center p-3.5 rounded-2xl bg-gradient-to-br from-[#0B1C33]/95 via-[#0E2746]/90 to-[#081527]/95 border border-cyan-500/30 shadow-lg backdrop-blur-md">
+        <h4 className="text-xs font-black text-cyan-300 mb-1 flex items-center gap-1.5">
+          <span className="text-amber-400">🎯</span>
           <span>{isArabic ? 'خريطة المهارات الأربعة' : '4-Axis Skill Radar'}</span>
         </h4>
         <svg width={size} height={size} className="overflow-visible">
@@ -49,7 +49,7 @@ export function SkillRadar({ skills, branchData, isArabic = true }: SkillRadarPr
               key={idx}
               points={webPoints}
               fill="none"
-              stroke="#27272a"
+              stroke="rgba(30, 58, 95, 0.8)"
               strokeWidth="1"
               strokeDasharray={idx < 3 ? '2 2' : 'none'}
             />
@@ -66,7 +66,7 @@ export function SkillRadar({ skills, branchData, isArabic = true }: SkillRadarPr
                 y1={center}
                 x2={x}
                 y2={y}
-                stroke="#3f3f46"
+                stroke="rgba(6, 182, 212, 0.3)"
                 strokeWidth="1"
               />
             );
@@ -74,9 +74,9 @@ export function SkillRadar({ skills, branchData, isArabic = true }: SkillRadarPr
 
           <polygon
             points={points}
-            fill="rgba(245, 158, 11, 0.25)"
-            stroke="#f59e0b"
-            strokeWidth="2"
+            fill="rgba(6, 182, 212, 0.3)"
+            stroke="#06b6d4"
+            strokeWidth="2.5"
           />
 
           {branches.map((branch, i) => {
@@ -93,9 +93,9 @@ export function SkillRadar({ skills, branchData, isArabic = true }: SkillRadarPr
                 key={branch}
                 x={lx}
                 y={ly}
-                fill="#e4e4e7"
+                fill="#38bdf8"
                 fontSize="9"
-                fontWeight="bold"
+                fontWeight="800"
                 textAnchor="middle"
                 dominantBaseline="middle"
               >

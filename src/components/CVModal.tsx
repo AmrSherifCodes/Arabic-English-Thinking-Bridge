@@ -14,9 +14,12 @@ import {
   Headphones,
   Code2,
   Bot,
-  BookOpen,
   CheckCircle2,
   SlidersHorizontal,
+  Copy,
+  Check,
+  Download,
+  ExternalLink,
 } from 'lucide-react';
 import { SocialLinks } from './SocialLinks';
 
@@ -38,7 +41,7 @@ interface Dimension {
 }
 
 export function CVModal({ isOpen, onClose }: CVModalProps) {
-  // Accordion state: by default, show AI & Software open
+  const [copiedEmail, setCopiedEmail] = useState(false);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     ai: true,
     software: true,
@@ -57,6 +60,12 @@ export function CVModal({ isOpen, onClose }: CVModalProps) {
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
+
+  const handleCopyEmail = () => {
+    navigator.clipboard.writeText('amrsherifwork@gmail.com');
+    setCopiedEmail(true);
+    setTimeout(() => setCopiedEmail(false), 2000);
+  };
 
   const toggleSection = (id: string) => {
     setOpenSections((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -80,8 +89,8 @@ export function CVModal({ isOpen, onClose }: CVModalProps) {
       id: 'ai',
       title: 'AI Tools & Agentic Architect',
       subtitle: 'Prompt Engineering · LLM Pipelines · Real-Time Audio',
-      icon: <Bot className="w-5 h-5 text-purple-400" />,
-      accentColor: 'border-purple-500/30 bg-purple-950/20 text-purple-300',
+      icon: <Bot className="w-5 h-5 text-cyan-400" />,
+      accentColor: 'border-cyan-500/40 bg-cyan-950/30 text-cyan-300',
       badge: 'Core Superpower',
       summary:
         'Architected real-time conversational AI workflows with sub-second voice latency and automated Socratic feedback.',
@@ -98,7 +107,7 @@ export function CVModal({ isOpen, onClose }: CVModalProps) {
       title: 'Full-Stack & Mobile Software Engineer',
       subtitle: 'Creator of Thinking Bridge · +44,000 Lines of Code · Offline-First PWA & Android',
       icon: <Code2 className="w-5 h-5 text-teal-400" />,
-      accentColor: 'border-teal-500/30 bg-teal-950/20 text-teal-300',
+      accentColor: 'border-teal-500/40 bg-teal-950/30 text-teal-300',
       badge: '44K+ Lines',
       summary:
         'Architected and built a complete production-grade language learning ecosystem from scratch (+44,000 lines of code across 188 files) with 111 automated unit tests.',
@@ -115,8 +124,8 @@ export function CVModal({ isOpen, onClose }: CVModalProps) {
       id: 'science',
       title: 'Chemist & Environmental Scientist',
       subtitle: 'Alexandria University · Faculty of Science (B.Sc. Expected 2028)',
-      icon: <FlaskConical className="w-5 h-5 text-emerald-400" />,
-      accentColor: 'border-emerald-500/30 bg-emerald-950/20 text-emerald-300',
+      icon: <FlaskConical className="w-5 h-5 text-amber-400" />,
+      accentColor: 'border-amber-500/40 bg-amber-950/30 text-amber-300',
       badge: 'Academic Science',
       summary:
         'Rigorous laboratory proficiency in instrumental chemical analysis, environmental monitoring, and industrial chlor-alkali processes.',
@@ -132,8 +141,8 @@ export function CVModal({ isOpen, onClose }: CVModalProps) {
       id: 'leadership',
       title: 'Call Center Specialist & Floor Coach',
       subtitle: 'Intelcia Egypt · Optimum Corporate Account (July 2024 – Present)',
-      icon: <Headphones className="w-5 h-5 text-amber-400" />,
-      accentColor: 'border-amber-500/30 bg-amber-950/20 text-amber-300',
+      icon: <Headphones className="w-5 h-5 text-emerald-400" />,
+      accentColor: 'border-emerald-500/40 bg-emerald-950/30 text-emerald-300',
       badge: 'Corporate Leadership',
       summary:
         'Loyalty retention specialist and acting floor coach managing high-stakes client relationships and agent mentorship.',
@@ -150,7 +159,7 @@ export function CVModal({ isOpen, onClose }: CVModalProps) {
       title: 'Language Expert & Cognitive Pedagogy',
       subtitle: 'Multilingual Polyglot · Arabic Dialect & Cognitive Transfer Specialist',
       icon: <Languages className="w-5 h-5 text-sky-400" />,
-      accentColor: 'border-sky-500/30 bg-sky-950/20 text-sky-300',
+      accentColor: 'border-sky-500/40 bg-sky-950/30 text-sky-300',
       badge: 'Pedagogy',
       summary:
         'Expert in eliminating Arabic-English language interference traps through structured thinking methods.',
@@ -169,131 +178,154 @@ export function CVModal({ isOpen, onClose }: CVModalProps) {
       role="dialog"
       aria-modal="true"
       aria-labelledby="cv-modal-title"
-      className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-fade-in"
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-5 bg-[#060E1A]/90 backdrop-blur-xl animate-fade-in"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="relative w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-3xl bg-stone-900 border border-stone-800 text-stone-100 shadow-2xl p-5 sm:p-7 space-y-6">
+      <div className="relative w-full max-w-2xl max-h-[92vh] overflow-y-auto rounded-3xl bg-gradient-to-br from-[#0B1C33]/98 via-[#0E2746]/95 to-[#060E1A]/98 border border-cyan-500/30 text-slate-100 shadow-[0_0_60px_rgba(6,182,212,0.2)] p-5 sm:p-8 space-y-6 scrollbar-thin">
         {/* Close Button */}
         <button
           type="button"
           onClick={onClose}
           aria-label="Close CV modal"
-          className="absolute top-5 right-5 p-2 rounded-full text-stone-400 hover:text-stone-100 hover:bg-stone-800 transition"
+          className="absolute top-5 right-5 p-2 rounded-2xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 transition shadow-sm"
         >
           <X className="w-5 h-5" />
         </button>
 
-        {/* Header Profile */}
-        <header className="pr-10">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-teal-500/10 text-teal-400 border border-teal-500/20 mb-2.5">
-            <Sparkles className="w-3.5 h-3.5" />
-            Polymath Creator & Software Builder
-          </div>
-          <h2 id="cv-modal-title" className="text-2xl sm:text-3xl font-black text-stone-100 tracking-tight">
-            Amr Sherif Abdelaal Ibrahim
-          </h2>
-          <div className="flex flex-wrap items-center gap-3.5 mt-2.5 text-xs text-stone-400">
-            <span className="inline-flex items-center gap-1.5">
-              <MapPin className="w-3.5 h-3.5 text-stone-400" />
-              Alexandria, Egypt 🇪🇬
+        {/* Header Profile with Alexandrian Ocean Style */}
+        <header className="flex flex-col sm:flex-row items-start sm:items-center gap-5 pr-8">
+          <div className="relative group shrink-0">
+            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl p-1 bg-gradient-to-br from-cyan-400 via-teal-400 to-amber-400 shadow-lg shadow-cyan-500/20">
+              <img
+                src="/amr.jpg"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = '/amr-avatar.png';
+                }}
+                alt="Amr Sherif Abdelaal"
+                className="w-full h-full object-cover rounded-[20px] bg-slate-900"
+              />
+            </div>
+            <span className="absolute -bottom-2 -right-2 px-2 py-0.5 rounded-full bg-slate-950 border border-cyan-400 text-cyan-300 text-[10px] font-black shadow-md flex items-center gap-1">
+              🌊 Alexandrian
             </span>
-            <a
-              href="mailto:amrsherifwork@gmail.com"
-              className="inline-flex items-center gap-1.5 text-teal-400 hover:underline font-medium"
-            >
-              <Mail className="w-3.5 h-3.5" />
-              amrsherifwork@gmail.com
-            </a>
           </div>
 
-          {/* Quick Pillars Strip */}
-          <div className="flex flex-wrap gap-1.5 mt-3.5">
-            {['Scientist', 'Floor Coach', 'Student', 'Full-Stack Dev', 'AI Tools Expert', 'Linguist'].map((role) => (
-              <span
-                key={role}
-                className="text-[11px] font-semibold px-2.5 py-0.5 rounded-lg bg-stone-800/80 text-stone-300 border border-stone-700/60"
-              >
-                {role}
+          <div className="space-y-1.5 flex-1 min-w-0">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
+              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+              Polymath Creator & Full-Stack Engineer
+            </div>
+            <h2 id="cv-modal-title" className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+              Amr Sherif Abdelaal Ibrahim
+            </h2>
+            <p className="text-xs font-mono text-cyan-300/90 font-bold" dir="rtl">
+              عمرو شريف عبد العال إبراهيم
+            </p>
+
+            <div className="flex flex-wrap items-center gap-3 pt-1 text-xs text-slate-300 font-bold">
+              <span className="inline-flex items-center gap-1.5">
+                <MapPin className="w-3.5 h-3.5 text-amber-400" />
+                Alexandria, Egypt 🇪🇬
               </span>
-            ))}
+              <button
+                onClick={handleCopyEmail}
+                className="inline-flex items-center gap-1.5 text-cyan-300 hover:text-cyan-200 transition bg-cyan-500/10 border border-cyan-500/30 px-2.5 py-1 rounded-xl"
+              >
+                {copiedEmail ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Mail className="w-3.5 h-3.5 text-cyan-400" />}
+                <span>{copiedEmail ? 'Copied Email!' : 'amrsherifwork@gmail.com'}</span>
+              </button>
+            </div>
           </div>
         </header>
 
+        {/* Quick Skill Badges Strip */}
+        <div className="flex flex-wrap gap-1.5 pt-1">
+          {['Scientist 🔬', 'Floor Coach 🎧', 'Chemist ⚗️', 'Full-Stack Dev 💻', 'AI Tools Expert 🤖', 'Linguist 🗣️'].map((role) => (
+            <span
+              key={role}
+              className="text-[11px] font-extrabold px-3 py-1 rounded-xl bg-[#061224] text-cyan-300 border border-cyan-500/25 shadow-sm"
+            >
+              {role}
+            </span>
+          ))}
+        </div>
+
         {/* Executive Summary / About */}
-        <section className="rounded-2xl bg-stone-950/70 border border-stone-800/80 p-4">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-teal-400 mb-1.5">
-            About & Executive Summary
+        <section className="rounded-3xl bg-[#061224]/90 border border-cyan-500/25 p-4 sm:p-5 shadow-inner space-y-2">
+          <h3 className="text-xs font-black uppercase tracking-wider text-cyan-400 flex items-center gap-2">
+            <Award className="w-4 h-4 text-amber-400" />
+            <span>Executive Summary & Profile</span>
           </h3>
-          <p className="text-xs sm:text-sm text-stone-300 leading-relaxed">
-            Dedicated Chemistry and Environmental Studies undergraduate combining laboratory analytical rigor with real-world corporate leadership and advanced AI-native software engineering. Sole architect and developer of Thinking Bridge—a massive cross-platform ecosystem built from scratch spanning <strong>+44,000 lines of production code</strong> across 188 files (React 19, TypeScript, Node.js serverless streaming, and native Android), backed by 111/111 passing automated tests.
+          <p className="text-xs sm:text-sm text-slate-200 leading-relaxed font-medium">
+            Dedicated Chemistry & Environmental Studies undergraduate combining laboratory analytical rigor with real-world corporate leadership and advanced AI-native software engineering. Sole architect and developer of Thinking Bridge—a massive cross-platform ecosystem built from scratch spanning <strong>+44,000 lines of production code</strong> across 188 files (React 19, TypeScript, Node.js serverless streaming, and native Android), backed by 111/111 passing automated tests.
           </p>
         </section>
 
         {/* Interactive Foldable Roles & Experience */}
         <section className="space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-stone-400">
-              <Briefcase className="w-4 h-4 text-teal-400" />
-              Interactive Roles & Project Milestones
+            <h3 className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-300">
+              <Briefcase className="w-4 h-4 text-cyan-400" />
+              <span>Interactive Roles & Engineering Milestones</span>
             </h3>
             <button
               type="button"
               onClick={toggleAll}
-              className="text-[11px] font-semibold text-teal-400 hover:text-teal-300 transition flex items-center gap-1"
+              className="text-[11px] font-black text-cyan-300 hover:text-cyan-200 transition flex items-center gap-1 bg-cyan-500/10 border border-cyan-500/30 px-2.5 py-1 rounded-xl"
             >
               <SlidersHorizontal className="w-3 h-3" />
               {allOpen ? 'Collapse All' : 'Expand All'}
             </button>
           </div>
 
-          <div className="space-y-2.5">
+          <div className="space-y-3">
             {dimensions.map((dim) => {
               const isOpen = Boolean(openSections[dim.id]);
               return (
                 <div
                   key={dim.id}
-                  className="rounded-2xl bg-stone-950/70 border border-stone-800/80 overflow-hidden transition-all duration-200"
+                  className="rounded-3xl bg-[#061224]/80 border border-cyan-500/25 overflow-hidden transition-all duration-200 shadow-md hover:border-cyan-500/40"
                 >
                   {/* Foldable Header */}
                   <button
                     type="button"
                     onClick={() => toggleSection(dim.id)}
-                    className="w-full p-4 flex items-center justify-between gap-3 text-left hover:bg-stone-800/30 transition cursor-pointer"
+                    className="w-full p-4 flex items-center justify-between gap-3 text-left hover:bg-cyan-500/5 transition cursor-pointer"
                     aria-expanded={isOpen}
                   >
                     <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-xl bg-stone-900 border border-stone-800 shrink-0">
+                      <div className="p-2.5 rounded-2xl bg-[#0B1C33] border border-cyan-500/30 shrink-0 shadow-sm">
                         {dim.icon}
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="font-bold text-sm text-stone-100">{dim.title}</span>
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${dim.accentColor}`}>
+                          <span className="font-black text-sm text-white">{dim.title}</span>
+                          <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${dim.accentColor}`}>
                             {dim.badge}
                           </span>
                         </div>
-                        <span className="text-xs text-stone-400 block mt-0.5">{dim.subtitle}</span>
+                        <span className="text-xs text-slate-400 block mt-0.5">{dim.subtitle}</span>
                       </div>
                     </div>
-                    <div className="text-stone-400 shrink-0 p-1">
-                      {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                    <div className="text-slate-400 shrink-0 p-1">
+                      {isOpen ? <ChevronUp className="w-4 h-4 text-cyan-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
                     </div>
                   </button>
 
                   {/* Foldable Body */}
                   {isOpen && (
-                    <div className="px-4 pb-4 pt-1 space-y-3 border-t border-stone-800/50 bg-stone-900/40">
-                      <p className="text-xs text-stone-300 leading-relaxed font-medium">
+                    <div className="px-4 pb-4 pt-2 space-y-3 border-t border-cyan-500/20 bg-[#0B1C33]/60">
+                      <p className="text-xs text-slate-200 leading-relaxed font-bold">
                         {dim.summary}
                       </p>
 
-                      <div className="space-y-1.5">
-                        <span className="text-[11px] font-bold uppercase tracking-wider text-stone-400 block">
-                          Key Achievements & Learned Capabilities:
+                      <div className="space-y-2">
+                        <span className="text-[11px] font-black uppercase tracking-wider text-cyan-300 block">
+                          Key Achievements & Capabilities:
                         </span>
-                        <ul className="space-y-1.5 text-xs text-stone-300">
+                        <ul className="space-y-1.5 text-xs text-slate-200">
                           {dim.highlights.map((item, idx) => (
                             <li key={idx} className="flex items-start gap-2">
                               <CheckCircle2 className="w-3.5 h-3.5 text-teal-400 shrink-0 mt-0.5" />
@@ -307,7 +339,7 @@ export function CVModal({ isOpen, onClose }: CVModalProps) {
                         {dim.skills.map((skill) => (
                           <span
                             key={skill}
-                            className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-stone-800 text-stone-300 border border-stone-700/50"
+                            className="text-[10px] font-extrabold px-2.5 py-1 rounded-xl bg-[#061224] text-cyan-300 border border-cyan-500/25 shadow-sm"
                           >
                             {skill}
                           </span>
@@ -322,16 +354,26 @@ export function CVModal({ isOpen, onClose }: CVModalProps) {
         </section>
 
         {/* Social & Channel Links */}
-        <SocialLinks />
+        <div className="pt-2">
+          <SocialLinks />
+        </div>
 
-        {/* Footer */}
-        <footer className="pt-2 border-t border-stone-800 text-center">
+        {/* Footer Actions */}
+        <footer className="pt-3 border-t border-cyan-500/20 flex flex-col sm:flex-row items-center gap-3">
+          <button
+            type="button"
+            onClick={handleCopyEmail}
+            className="w-full sm:w-1/2 py-3 rounded-2xl bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-500/30 transition font-black text-xs flex items-center justify-center gap-2 cursor-pointer shadow-md"
+          >
+            {copiedEmail ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4 text-cyan-400" />}
+            <span>{copiedEmail ? 'Email Copied!' : 'Copy Contact Email'}</span>
+          </button>
           <button
             type="button"
             onClick={onClose}
-            className="w-full py-3 rounded-2xl bg-teal-600 hover:bg-teal-500 active:scale-98 transition font-bold text-sm text-white shadow-lg shadow-teal-900/30 cursor-pointer"
+            className="w-full sm:w-1/2 py-3 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 hover:from-amber-300 hover:to-amber-500 transition font-black text-xs text-slate-950 shadow-lg shadow-amber-500/20 cursor-pointer border border-amber-300"
           >
-            Close
+            Close CV Window ✕
           </button>
         </footer>
       </div>

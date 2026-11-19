@@ -191,7 +191,11 @@ export default function App() {
     if (typeof window !== 'undefined' && window.location.search.includes('admin=true')) {
       return false;
     }
-    return localStorage.getItem('tb.onboardingComplete') !== 'true';
+    try {
+      return localStorage.getItem('tb.onboardingComplete') !== 'true';
+    } catch {
+      return false;
+    }
   });
 
   const [onboardingOpen, setOnboardingOpen] = useState<boolean>(() => {
@@ -261,15 +265,17 @@ export default function App() {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const isAndroid = /android/i.test(navigator.userAgent || navigator.vendor || (window as any).opera);
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone;
-    const isNative = Capacitor.isNativePlatform();
-    const isDismissed = localStorage.getItem('hide_download_banner') === 'true';
+    try {
+      const isAndroid = /android/i.test(navigator.userAgent || navigator.vendor || (window as any).opera);
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone;
+      const isNative = Capacitor.isNativePlatform();
+      const isDismissed = localStorage.getItem('hide_download_banner') === 'true';
 
-    if (isAndroid && !isStandalone && !isNative && !isDismissed) {
-      const t = window.setTimeout(() => setShowApkBanner(true), 3000);
-      return () => window.clearTimeout(t);
-    }
+      if (isAndroid && !isStandalone && !isNative && !isDismissed) {
+        const t = window.setTimeout(() => setShowApkBanner(true), 3000);
+        return () => window.clearTimeout(t);
+      }
+    } catch {}
   }, []);
 
 
@@ -476,7 +482,9 @@ export default function App() {
               }}
               onOpenPreferences={() => setView({ name: 'preferences' })}
               onDeleteData={() => {
-                localStorage.clear();
+                try {
+                  localStorage.clear();
+                } catch {}
                 window.location.reload();
               }}
               onOpenPrivacyPolicy={() => setPrivacyOpen(true)}
@@ -767,7 +775,9 @@ export default function App() {
             <button
               onClick={() => {
                 setShowApkBanner(false);
-                localStorage.setItem('hide_download_banner', 'true');
+                try {
+                  localStorage.setItem('hide_download_banner', 'true');
+                } catch {}
               }}
               className="p-2 rounded-xl bg-surface-2 text-muted hover:text-text transition"
               aria-label="إغلاق"

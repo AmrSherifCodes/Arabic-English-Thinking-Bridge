@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { MutahEasterEggModal } from './MutahEasterEggModal';
 import { CVModal } from './CVModal';
-import { Github, Linkedin, Youtube, Twitter, Mail, MapPin } from 'lucide-react';
+import { Github, Linkedin, Youtube, Twitter, Mail, MapPin, FileText, Sparkles, Swords } from 'lucide-react';
 
 export function CreatorCard() {
   const [tapCount, setTapCount] = useState(0);
@@ -9,11 +9,12 @@ export function CreatorCard() {
   const [isCVOpen, setIsCVOpen] = useState(false);
 
   const handlePhotoClick = () => {
-    setIsCVOpen(true);
     const nextCount = tapCount + 1;
     setTapCount(nextCount);
-    if (nextCount === 8) {
+    if (nextCount === 3 || nextCount === 8) {
       setIsPoemOpen(true);
+    } else if (nextCount === 1) {
+      setIsCVOpen(true);
     }
   };
 
@@ -24,16 +25,16 @@ export function CreatorCard() {
         dir="rtl"
         aria-label="بطاقة مؤسس المشروع - Founder Card"
       >
-        <div className="relative overflow-hidden rounded-3xl border-2 border-emerald-500/40 bg-[#0E151D]/90 p-6 sm:p-7 shadow-[0_0_35px_rgba(16,185,129,0.15)] backdrop-blur-md transition-all hover:border-emerald-400/60">
+        <div className="relative overflow-hidden rounded-3xl border-2 border-cyan-500/40 bg-gradient-to-br from-[#0B1C33]/95 via-[#0E2746]/90 to-[#071325]/95 p-6 sm:p-7 shadow-[0_0_40px_rgba(6,182,212,0.18)] backdrop-blur-xl transition-all hover:border-cyan-400/60">
           <div className="flex flex-col sm:flex-row items-center gap-6 text-center sm:text-right">
-            {/* Interactive Portrait with 8-tap Battle of Mu'tah Easter Egg */}
+            {/* Interactive Portrait with Easter Egg Tap Counter */}
             <div className="relative group cursor-pointer flex-shrink-0" onClick={handlePhotoClick}>
               <div className="absolute -top-12 left-1/2 -translate-x-1/2 flex flex-col items-center animate-bounce z-10 w-max">
-                <span className="text-xs font-black text-amber-400 bg-amber-950/80 px-2 py-1 rounded-full shadow-lg border border-amber-500/30 font-arabic whitespace-nowrap">
-                  👇 اضغط على صورتي لرؤية السيرة الذاتية / Click for CV
+                <span className="text-xs font-black text-amber-300 bg-amber-950/90 px-3 py-1 rounded-full shadow-lg border border-amber-500/40 font-arabic whitespace-nowrap">
+                  👇 اضغط على صورتي (السيرة الذاتية 📄 / أسرار ⚡)
                 </span>
               </div>
-              <div className="absolute -inset-1 rounded-full bg-gradient-to-tr from-emerald-500 via-teal-400 to-amber-400 opacity-75 blur-sm group-hover:opacity-100 transition duration-300" />
+              <div className="absolute -inset-1 rounded-full bg-gradient-to-tr from-cyan-400 via-teal-400 to-amber-400 opacity-80 blur-sm group-hover:opacity-100 transition duration-300" />
               <img
                 src="/amr.jpg"
                 data-amr-avatar="true"
@@ -41,91 +42,94 @@ export function CreatorCard() {
                   e.currentTarget.src = '/amr-avatar.png';
                 }}
                 alt="عمرو شريف عبد العال - Amr Sherif Abdelaal"
-                className="relative h-24 w-24 sm:h-28 sm:w-28 rounded-full object-cover border-2 border-emerald-400 shadow-md select-none active:scale-95 transition-transform"
+                className="relative h-24 w-24 sm:h-28 sm:w-28 rounded-full object-cover border-2 border-cyan-400 shadow-xl select-none active:scale-95 transition-transform"
                 title="عمرو شريف عبد العال · اضغط للتعرف على المزيد"
               />
               {tapCount > 0 && (
-                <span className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-amber-400 font-extrabold text-[11px] text-black shadow-lg animate-pulse">
+                <span className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-amber-400 font-black text-[11px] text-slate-950 shadow-lg animate-pulse border border-amber-200">
                   {tapCount}
                 </span>
               )}
             </div>
 
             {/* Creator Info */}
-            <div className="space-y-2 flex-1">
-              <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-950/40 px-3 py-0.5 text-xs font-semibold text-emerald-300">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping" />
-                <span>المؤسس والمطوّر · Founder & Maintainer</span>
+            <div className="space-y-2.5 flex-1">
+              <div className="inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-950/50 px-3.5 py-1 text-xs font-black text-cyan-300 shadow-sm">
+                <Sparkles size={13} className="text-amber-400" />
+                <span>المؤسس والمطوّر · Founder & Maintainer 🌊</span>
               </div>
               <div>
-                <h3 className="text-xl sm:text-2xl font-black text-[#EEF2F5] font-arabic">
+                <h3 className="text-xl sm:text-2xl font-black text-white font-arabic">
                   عمرو شريف عبد العال
                 </h3>
-                <p className="text-xs font-mono text-emerald-400/90 font-medium dir-ltr text-right">
+                <p className="text-xs font-mono text-cyan-300/90 font-bold dir-ltr text-right">
                   Amr Sherif Abdelaal
                 </p>
               </div>
 
-              <div className="flex items-center justify-center sm:justify-start gap-1.5 text-xs text-slate-400">
+              <div className="flex items-center justify-center sm:justify-start gap-1.5 text-xs text-slate-300 font-bold">
                 <MapPin size={13} className="text-amber-400" />
-                <span>الإسكندرية، مصر · Alexandria, Egypt</span>
+                <span>الإسكندرية، مصر · Alexandria, Egypt 🇪🇬</span>
               </div>
 
-              <p className="text-sm leading-relaxed text-[#9AA7B2] font-arabic">
+              <p className="text-xs sm:text-sm leading-relaxed text-slate-200 font-arabic font-medium">
                 بنى الفكرة على منهج التفكير (Thinking Method) لميهاليس إليفثريو. مشروع مفتوح المصدر بالكامل (CC0 1.0).
               </p>
-              <p className="text-xs text-slate-400 dir-ltr text-right font-sans">
-                Built on Mihalis Eleftheriou's Thinking Method. Fully open source (CC0 1.0).
-              </p>
 
-              {/* Social & Contact Links */}
+              {/* Action Buttons: CV Modal, Mutah Poem & Social Links */}
               <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsCVOpen(true)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 hover:from-amber-300 hover:to-amber-500 text-slate-950 font-black text-xs shadow-md transition active:scale-95 border border-amber-300"
+                >
+                  <FileText size={14} />
+                  <span>السيرة الذاتية (CV) 📄</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsPoemOpen(true)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-rose-900/60 to-rose-950/80 hover:from-rose-800/80 hover:to-rose-900 border border-rose-500/40 text-amber-300 font-black text-xs shadow-md transition active:scale-95"
+                >
+                  <Swords size={14} className="text-amber-400" />
+                  <span>قصيدة غزوة مؤتة ⚔️</span>
+                </button>
                 <a
                   href="https://github.com/AmrSherifCodes"
                   target="_blank"
                   rel="noopener noreferrer"
-                  aria-label="GitHub - AmrSherifCodes (يفتح في نافذة جديدة)"
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700/60 text-xs font-semibold text-slate-200 hover:text-emerald-300 hover:border-emerald-500/50 transition-colors"
+                  aria-label="GitHub - AmrSherifCodes"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-[#061224] border border-cyan-500/30 text-xs font-bold text-slate-200 hover:text-cyan-300 hover:border-cyan-400 transition"
                 >
-                  <Github size={14} />
+                  <Github size={14} className="text-cyan-400" />
                   <span>GitHub</span>
                 </a>
                 <a
                   href="https://linkedin.com/in/sciamrsherif-abdelaal"
                   target="_blank"
                   rel="noopener noreferrer"
-                  aria-label="LinkedIn - Amr Sherif Abdelaal (يفتح في نافذة جديدة)"
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700/60 text-xs font-semibold text-slate-200 hover:text-emerald-300 hover:border-emerald-500/50 transition-colors"
+                  aria-label="LinkedIn - Amr Sherif Abdelaal"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-[#061224] border border-cyan-500/30 text-xs font-bold text-slate-200 hover:text-cyan-300 hover:border-cyan-400 transition"
                 >
-                  <Linkedin size={14} />
+                  <Linkedin size={14} className="text-blue-400" />
                   <span>LinkedIn</span>
                 </a>
                 <a
                   href="https://youtube.com/@SciAmrSherif"
                   target="_blank"
                   rel="noopener noreferrer"
-                  aria-label="YouTube - @SciAmrSherif (يفتح في نافذة جديدة)"
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700/60 text-xs font-semibold text-slate-200 hover:text-emerald-300 hover:border-emerald-500/50 transition-colors"
+                  aria-label="YouTube - @SciAmrSherif"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-[#061224] border border-cyan-500/30 text-xs font-bold text-slate-200 hover:text-cyan-300 hover:border-cyan-400 transition"
                 >
-                  <Youtube size={14} />
+                  <Youtube size={14} className="text-rose-400" />
                   <span>YouTube</span>
                 </a>
                 <a
-                  href="https://x.com/SciAmrSherif"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="X (Twitter) - @SciAmrSherif (يفتح في نافذة جديدة)"
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700/60 text-xs font-semibold text-slate-200 hover:text-emerald-300 hover:border-emerald-500/50 transition-colors"
-                >
-                  <Twitter size={14} />
-                  <span>X</span>
-                </a>
-                <a
                   href="mailto:amrsherifwork@gmail.com"
-                  aria-label="البريد الإلكتروني - Email Amr Sherif"
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700/60 text-xs font-semibold text-slate-200 hover:text-emerald-300 hover:border-emerald-500/50 transition-colors"
+                  aria-label="البريد الإلكتروني"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-[#061224] border border-cyan-500/30 text-xs font-bold text-slate-200 hover:text-cyan-300 hover:border-cyan-400 transition"
                 >
-                  <Mail size={14} />
+                  <Mail size={14} className="text-amber-400" />
                   <span>Email</span>
                 </a>
               </div>
@@ -133,8 +137,8 @@ export function CreatorCard() {
           </div>
 
           {/* Rule 8 Attribution Footer */}
-          <div className="mt-5 pt-3 border-t border-slate-800 text-center sm:text-right text-[11px] text-slate-400">
-            With thanks to Mihalis Eleftheriou and Language Transfer for the Thinking Method.
+          <div className="mt-5 pt-3 border-t border-cyan-500/20 text-center sm:text-right text-[11px] text-slate-400 font-mono">
+            Built in Alexandria, Egypt. Powered by Mihalis Eleftheriou's Thinking Method.
           </div>
         </div>
       </section>

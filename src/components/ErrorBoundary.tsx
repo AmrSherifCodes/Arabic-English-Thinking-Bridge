@@ -8,15 +8,17 @@ interface Props {
 interface State {
   hasError: boolean;
   error?: Error;
+  showDetails: boolean;
 }
 
 export class ErrorBoundary extends Component<Props, State> {
   public state: State = {
     hasError: false,
+    showDetails: false,
   };
 
   public static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error };
+    return { hasError: true, error, showDetails: false };
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
@@ -24,7 +26,21 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   private handleReset = () => {
-    this.setState({ hasError: false, error: undefined });
+    // If it's a dynamic chunk loading error, a full window reload is required to fetch updated bundle
+    const isChunkError =
+      this.state.error?.name === 'ChunkLoadError' ||
+      (this.state.error?.message &&
+        (this.state.error.message.includes('Failed to fetch dynamically imported module') ||
+          this.state.error.message.includes('Importing a module script failed') ||
+          this.state.error.message.includes('Loading chunk') ||
+          this.state.error.message.includes('Failed to load module script')));
+
+    if (isChunkError && typeof window !== 'undefined') {
+      window.location.reload();
+      return;
+    }
+
+    this.setState({ hasError: false, error: undefined, showDetails: false });
   };
 
   private handleReload = () => {
@@ -77,6 +93,29 @@ export class ErrorBoundary extends Component<Props, State> {
               {isArabic ? 'إعادة تحميل التطبيق' : 'Reload app'}
             </button>
           </div>
+
+          {this.state.error && (
+            <div className="max-w-md w-full pt-4">
+              <button
+                type="button"
+                onClick={() => this.setState((prev) => ({ showDetails: !prev.showDetails }))}
+                className="text-[11px] text-stone-500 hover:text-stone-300 underline transition"
+              >
+                {this.state.showDetails
+                  ? isArabic
+                    ? 'إخفاء التفاصيل الفنية'
+                    : 'Hide technical details'
+                  : isArabic
+                  ? 'عرض التفاصيل الفنية'
+                  : 'Show technical details'}
+              </button>
+              {this.state.showDetails && (
+                <pre className="mt-3 p-3 bg-stone-950/80 border border-stone-800 text-stone-300 text-[10px] text-left overflow-x-auto rounded-xl font-mono leading-relaxed max-h-40">
+                  {this.state.error.stack || this.state.error.message}
+                </pre>
+              )}
+            </div>
+          )}
         </div>
       );
     }

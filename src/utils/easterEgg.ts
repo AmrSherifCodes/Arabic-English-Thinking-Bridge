@@ -46,8 +46,8 @@ export function useAmrClickEasterEgg() {
         }
       } catch {}
 
-      if (next === 8) {
-        // 8-click poem checkpoint
+      if (next === 3 || next === 8) {
+        // 3 or 8 click poem checkpoint (Battle of Mu'tah)
         setShowPoemModal(true);
       } else if (next === 99 || (next > 99 && next % 99 === 0)) {
         // 99-click Captain Erwin video checkpoint

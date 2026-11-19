@@ -41,33 +41,33 @@ export function LevelMapViewModal({
           initial={{ opacity: 0, scale: 0.95, y: 30 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 30 }}
-          className="relative w-full max-w-2xl overflow-hidden bg-stone-900 border border-stone-800 rounded-3xl shadow-2xl flex flex-col max-h-[90vh]"
+          className="relative w-full max-w-2xl overflow-hidden bg-[#0B1C33] border border-cyan-500/30 rounded-3xl shadow-2xl flex flex-col max-h-[90vh]"
           dir={isArabic ? 'rtl' : 'ltr'}
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-5 border-b border-stone-800 bg-stone-950/70">
+          <div className="flex items-center justify-between p-5 border-b border-cyan-500/20 bg-[#061224]/90 backdrop-blur-md">
             <div>
               <div className="flex items-center gap-2">
                 <Crown className="w-5 h-5 text-amber-400" />
                 <h2 className="text-lg font-black text-white">
-                  {isArabic ? 'خريطة المستويات الخمسة (CEFR A1 → C1)' : '5-Tier CEFR Level Map (A1 → C1)'}
+                  {isArabic ? 'خريطة المستويات الخمسة (CEFR A1 → C1) ⚓' : '5-Tier CEFR Level Map (A1 → C1) ⚓'}
                 </h2>
               </div>
-              <p className="text-xs text-stone-400 mt-0.5">
-                {isArabic ? 'مسار تعلم التفكير التراكمي بدون ترجمة' : 'Cumulative cognitive immersion roadmap'}
+              <p className="text-xs text-cyan-300/80 mt-0.5">
+                {isArabic ? 'مسار تعلم التفكير التراكمي بدون ترجمة · Made in Alexandria 🌊' : 'Cumulative cognitive immersion roadmap'}
               </p>
             </div>
             <div className="flex items-center gap-2">
               <button
                 onClick={onOpenPlacementTest}
-                className="px-3 py-1.5 text-xs font-bold text-teal-400 bg-teal-500/10 border border-teal-500/30 hover:bg-teal-500/20 rounded-xl transition-all flex items-center gap-1.5"
+                className="px-3 py-1.5 text-xs font-bold text-cyan-300 bg-cyan-500/15 border border-cyan-500/30 hover:bg-cyan-500/25 rounded-xl transition-all flex items-center gap-1.5 shadow-sm"
               >
-                <Compass className="w-4 h-4" />
-                <span>{isArabic ? 'اختبار تحديد المستوى' : 'Placement Test'}</span>
+                <Compass className="w-4 h-4 text-cyan-400" />
+                <span>{isArabic ? 'تحديد المستوى' : 'Placement Test'}</span>
               </button>
               <button
                 onClick={onClose}
-                className="p-2 text-stone-400 hover:text-white hover:bg-stone-800 rounded-full transition-colors"
+                className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-full transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>

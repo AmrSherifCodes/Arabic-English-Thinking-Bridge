@@ -25,20 +25,20 @@ export function LanguagePairBanner({
 
   return (
     <section
-      className={`flex items-center justify-between p-2 px-3 rounded-xl bg-surface border border-border shadow-sm text-text ${className}`}
+      className={`flex items-center justify-between p-2.5 px-3.5 rounded-2xl bg-gradient-to-r from-[#0B1C33] via-[#0E2746] to-[#081527] border border-cyan-500/30 shadow-md text-white ${className}`}
       dir={isAr ? 'rtl' : 'ltr'}
       aria-label="Active Language Learning Bridge"
     >
       {/* Left side: Flag ➔ Flag & Language Names */}
-      <div className="flex items-center gap-2 text-xs font-bold text-text min-w-0">
+      <div className="flex items-center gap-2 text-xs font-bold text-white min-w-0">
         <div className="flex items-center gap-1.5 shrink-0">
           <LanguageFlag code={sourceLang} size={16} />
-          <span className="truncate">{sourceMeta.nameNative}</span>
+          <span className="truncate text-slate-200">{sourceMeta.nameNative}</span>
         </div>
-        <span className="text-muted font-normal text-[11px] shrink-0">➔</span>
+        <span className="text-cyan-400/80 font-black text-[11px] shrink-0">➔</span>
         <div className="flex items-center gap-1.5 min-w-0">
           <LanguageFlag code={targetLang} size={16} />
-          <span className="truncate text-primary font-extrabold">{targetMeta.nameNative}</span>
+          <span className="truncate text-cyan-300 font-extrabold">{targetMeta.nameNative}</span>
         </div>
       </div>
 
@@ -46,9 +46,9 @@ export function LanguagePairBanner({
       <button
         type="button"
         onClick={onOpenSelector}
-        className="px-2.5 py-1 rounded-lg text-xs font-bold bg-surface-2 hover:bg-surface border border-border text-muted hover:text-text transition flex items-center gap-1 shrink-0 ms-2"
+        className="px-2.5 py-1 rounded-xl text-xs font-extrabold bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/30 text-cyan-300 transition flex items-center gap-1 shrink-0 ms-2 shadow-sm"
       >
-        <Globe size={13} className="text-primary shrink-0" />
+        <Globe size={13} className="text-cyan-400 shrink-0" />
         <span>{isAr ? 'تغيير' : 'Change'}</span>
         <ChevronDown size={12} className="shrink-0" />
       </button>

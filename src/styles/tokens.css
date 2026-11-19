@@ -3,30 +3,31 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  /* Design Tokens per spec */
-  --bg: #0A0E13;
-  --surface: #0F151C;
-  --border: #1E2933;
-  --text: #EEF2F5;
-  --muted: #9AA7B2;
-  --accent-teal: #2DD4BF;
-  --secondary-amber: #F5B942;
+  /* Design Tokens - Alexandrian Mediterranean Theme (عروس البحر المتوسط) */
+  --bg: #060E1A;
+  --surface: #0B1C33;
+  --surface-2: #122846;
+  --border: #1E3A5F;
+  --text: #F8FAFC;
+  --muted: #94A3B8;
+  --accent-teal: #06B6D4;
+  --secondary-amber: #F59E0B;
   --font: 'Readex Pro', sans-serif;
   --radius-sm: 12px;
   --radius-md: 20px;
   --radius-lg: 28px;
   --max-width: 1200px;
 
-  /* Dark Theme Default Tokens (Deep Midnight Obsidian & Vibrant Emerald/Gold) */
+  /* Alexandrian Ocean & Sunlight Dark Theme Default Tokens */
   --color-bg: var(--bg);
   --color-surface: var(--surface);
-  --color-surface-2: #1F2937;
+  --color-surface-2: var(--surface-2);
   --color-border: var(--border);
   --color-text: var(--text);
-  --color-text-soft: #E5E7EB;
+  --color-text-soft: #E2E8F0;
   --color-muted: var(--muted);
   --color-primary: var(--accent-teal);
-  --color-on-primary: #090D16;
+  --color-on-primary: #060E1A;
   --color-success: #10B981;
   --color-danger: #EF4444;
 }
