@@ -24,28 +24,28 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
       id: 'philosophy',
       title: 'فكّر بالإنجليزي، مش تترجم',
       description: 'الطريقة التقليدية بتخليك تترجم كل كلمة في دماغك قبل ما تتكلم. هنا إحنا بنبني "جسور هيكلية" عشان تفكر وتتكلم مباشرة بالإنجليزي.',
-      icon: <BrainCircuit className="w-16 h-16 text-teal-400 mb-6 mx-auto" />
+      icon: <BrainCircuit className="w-20 h-20 text-[var(--color-primary)] mb-8 mx-auto" />
     },
     {
       id: 'lesson-demo',
       title: 'الدروس الهيكلية التفاعلية',
       description: 'كل درس بيعلمك إزاي تبني الجملة صح من غير ما تحفظ قواعد جافة.',
-      icon: <Zap className="w-16 h-16 text-amber-400 mb-6 mx-auto" />,
+      icon: <Zap className="w-16 h-16 text-[var(--secondary-amber)] mb-6 mx-auto drop-shadow-md" />,
       content: demoExercise && (
-        <div className="bg-stone-800 p-4 rounded-xl text-right mt-6 border border-stone-700">
-          <p className="text-stone-400 text-sm mb-2 font-arabic">بدل ما تترجم حرفياً:</p>
-          <p className="text-xl font-bold font-arabic mb-4 text-rose-400 line-through decoration-rose-500/50">عندي سؤال مهم (With me important question)</p>
-          <p className="text-stone-400 text-sm mb-2 font-arabic">بنخليك تفكر كده:</p>
-          <div className="flex flex-col gap-2 bg-stone-900 p-3 rounded-lg border border-stone-800">
+        <div className="bg-[var(--color-surface-2)] p-4 rounded-2xl text-right mt-6 border border-[var(--color-border)] shadow-xl">
+          <p className="text-[var(--color-muted)] text-sm mb-2 font-arabic">بدل ما تترجم حرفياً:</p>
+          <p className="text-xl font-bold font-arabic mb-4 text-[var(--color-danger)] line-through decoration-[var(--color-danger)]/50">عندي سؤال مهم (With me important question)</p>
+          <p className="text-[var(--color-muted)] text-sm mb-2 font-arabic">بنخليك تفكر كده:</p>
+          <div className="flex flex-col gap-2 bg-[var(--color-bg)] p-3 rounded-xl border border-[var(--color-border)]">
             {demoExercise.breakdownChunks?.map((chunk: any, i: number) => (
               <div key={i} className="flex justify-between items-center text-sm">
-                <span className="font-arabic text-teal-300">{chunk.arabicText}</span>
-                <ArrowLeft className="w-4 h-4 text-stone-500" />
-                <span className="font-mono text-emerald-400 font-bold">{chunk.englishText}</span>
+                <span className="font-arabic text-[var(--color-primary)]">{chunk.arabicText}</span>
+                <ArrowLeft className="w-4 h-4 text-[var(--color-muted)]" />
+                <span className="font-mono text-[var(--color-success)] font-bold">{chunk.englishText}</span>
               </div>
             ))}
           </div>
-          <p className="mt-4 font-mono text-center text-lg font-bold text-white tracking-wide">
+          <p className="mt-4 font-mono text-center text-lg font-bold text-[var(--color-text)] tracking-wide">
             {demoExercise.targetSentence}
           </p>
         </div>
@@ -55,13 +55,13 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
       id: 'smart-trainer',
       title: 'المدرب الذكي والتحدث الصوتي',
       description: 'بعد كل درس، هتتكلم بصوتك مع المدرب الذكي. بيسمعك، بيصحح لك، وبيساعدك تكسر حاجز الخوف من الكلام، وكل ده 100% بدون إنترنت.',
-      icon: <MessageCircle className="w-16 h-16 text-indigo-400 mb-6 mx-auto" />
+      icon: <MessageCircle className="w-16 h-16 text-indigo-400 mb-6 mx-auto drop-shadow-md" />
     },
     {
       id: 'srs',
       title: 'نظام المراجعة الذكي (SRS)',
       description: 'عشان ما تنساش اللي اتعلمته، التطبيق بيبرمج مراجعاتك أوتوماتيكياً بطريقة التكرار المتباعد (Spaced Repetition) عشان يثبت الجمل في ذاكرتك للأبد.',
-      icon: <RefreshCw className="w-16 h-16 text-sky-400 mb-6 mx-auto" />
+      icon: <RefreshCw className="w-16 h-16 text-sky-400 mb-6 mx-auto drop-shadow-md" />
     }
   ];
 
@@ -88,23 +88,28 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   const currentStep = steps[step];
 
   return (
-    <div className="fixed inset-0 z-[100000] bg-stone-950 flex flex-col justify-between">
-      <div className="flex-1 overflow-y-auto pt-16 pb-8 px-6 flex flex-col items-center justify-center">
+    <div className="fixed inset-0 z-[100000] bg-[var(--color-bg)] flex flex-col justify-between overflow-hidden">
+      {/* Background Decorators for visual flair */}
+      <div className="absolute top-0 inset-x-0 h-64 bg-gradient-to-b from-[var(--color-primary)]/10 to-transparent pointer-events-none" />
+      <div className="absolute bottom-0 inset-x-0 h-64 bg-gradient-to-t from-[var(--color-surface-2)]/20 to-transparent pointer-events-none" />
+
+      <div className="relative z-10 flex-1 overflow-y-auto pt-16 pb-8 px-6 flex flex-col items-center justify-center">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentStep.id}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
             className="max-w-md w-full text-center"
           >
             {currentStep.icon}
 
-            <h1 className="text-3xl font-bold font-arabic mb-6 text-stone-100 leading-tight">
+            <h1 className="text-3xl font-bold font-arabic mb-6 text-[var(--color-text)] leading-tight tracking-wide">
               {currentStep.title}
             </h1>
 
-            <p className="text-lg font-arabic text-stone-300 leading-relaxed">
+            <p className="text-lg font-arabic text-[var(--color-text-soft)] leading-relaxed px-2">
               {currentStep.description}
             </p>
 
@@ -113,14 +118,14 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
         </AnimatePresence>
       </div>
 
-      <div className="bg-stone-900 border-t border-stone-800 p-6 safe-area-bottom">
+      <div className="relative z-20 bg-[var(--color-surface)] border-t border-[var(--color-border)] p-6 safe-area-bottom shadow-[0_-8px_30px_rgba(0,0,0,0.12)]">
         <div className="max-w-md w-full mx-auto flex flex-col gap-4">
-          <div className="flex justify-center gap-2 mb-2">
+          <div className="flex justify-center gap-3 mb-4">
             {steps.map((_, i) => (
               <div
                 key={i}
-                className={`h-1.5 rounded-full transition-all duration-300 ${
-                  i === step ? 'w-8 bg-teal-500' : 'w-2 bg-stone-700'
+                className={`h-2 rounded-full transition-all duration-500 ease-out ${
+                  i === step ? 'w-10 bg-[var(--color-primary)] shadow-[0_0_12px_var(--color-primary)]' : 'w-2 bg-[var(--color-border)]'
                 }`}
               />
             ))}
@@ -128,17 +133,17 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
 
           <button
             onClick={handleNext}
-            className="w-full py-4 rounded-xl bg-teal-600 hover:bg-teal-500 active:bg-teal-700 text-white font-arabic font-bold text-lg flex items-center justify-center gap-2 transition-colors"
+            className="w-full py-4 rounded-2xl bg-[var(--color-primary)] hover:opacity-90 active:scale-95 text-[var(--color-on-primary)] font-arabic font-bold text-xl flex items-center justify-center gap-3 transition-all shadow-lg"
           >
             {step === steps.length - 1 ? (
               <>
                 <span>ابدأ رحلتك</span>
-                <CheckCircle className="w-5 h-5" />
+                <CheckCircle className="w-6 h-6" />
               </>
             ) : (
               <>
                 <span>التالي</span>
-                <ArrowLeft className="w-5 h-5" />
+                <ArrowLeft className="w-6 h-6" />
               </>
             )}
           </button>
@@ -146,7 +151,7 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
           {step < steps.length - 1 && (
             <button
               onClick={handleSkip}
-              className="w-full py-3 rounded-xl bg-transparent text-stone-400 hover:text-stone-300 font-arabic text-base transition-colors"
+              className="w-full py-3 rounded-xl bg-transparent text-[var(--color-muted)] hover:text-[var(--color-text)] font-arabic text-base transition-colors"
             >
               تخطي المقدمة
             </button>
