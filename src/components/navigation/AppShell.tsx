@@ -18,6 +18,7 @@ interface AppShellProps {
   children: React.ReactNode;
   isArabic?: boolean;
   onOpenLanding?: () => void;
+  onOpenLanguageSelector?: () => void;
 }
 
 export function AppShell({
@@ -28,6 +29,7 @@ export function AppShell({
   children,
   isArabic = true,
   onOpenLanding,
+  onOpenLanguageSelector,
 }: AppShellProps) {
   const [privacyOpen, setPrivacyOpen] = useState(false);
   const [streetDemoOpen, setStreetDemoOpen] = useState(false);
@@ -147,15 +149,23 @@ export function AppShell({
                 href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hidden xs:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-black transition active:scale-95 shrink-0 shadow-sm"
+                className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-black transition active:scale-95 shrink-0 shadow-sm"
                 title="الكود مفتوح · Open Source Repository"
               >
                 <span>Open Source ⚡</span>
               </a>
-              <div className="flex items-center gap-1.5 px-2 py-1 rounded-xl bg-[#0B1C33] border border-cyan-500/30 shrink-0">
+              <button
+                type="button"
+                onClick={() => {
+                  triggerHapticImpact();
+                  onOpenLanguageSelector?.();
+                }}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-[#0B1C33] border border-cyan-500/40 hover:border-cyan-400 text-cyan-300 hover:bg-cyan-500/20 text-xs font-black transition active:scale-95 shrink-0 shadow-sm cursor-pointer"
+                title={isArabic ? 'تغيير اللغة' : 'Change Language'}
+              >
                 <LanguageFlag code={targetLang} size={18} />
-                <span className="text-[11px] font-black text-cyan-300 uppercase">{targetLang}</span>
-              </div>
+                <span className="text-[11px] font-black uppercase">{targetLang}</span>
+              </button>
             </div>
 
             {/* Right HUD: Streak 🔥, XP 🏆, Shields 🛡️ - Glowing Alexandrian Badges */}

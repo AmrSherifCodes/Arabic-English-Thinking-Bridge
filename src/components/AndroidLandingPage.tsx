@@ -94,9 +94,9 @@ export function AndroidLandingPage() {
             </a>
             <a
               className="android-download-button"
-              href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v4.2.0/Thinking-Bridge-v4.2.0.apk"
-              download="Thinking-Bridge-v4.2.0.apk"
-              aria-label="تحميل تطبيق الأندرويد المباشر v4.2.0"
+              href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v4.3.0/Thinking-Bridge-v4.3.0.apk"
+              download="Thinking-Bridge-v4.3.0.apk"
+              aria-label="تحميل تطبيق الأندرويد المباشر v4.3.0"
               style={{
                 background: 'rgba(201, 162, 39, 0.15)',
                 color: '#FACC15',

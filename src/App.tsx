@@ -405,6 +405,7 @@ export default function App() {
           targetLang={targetLang}
           isArabic={isArabic}
           onOpenLanding={() => setView({ name: 'landing' })}
+          onOpenLanguageSelector={() => setLangSelectorOpen(true)}
         >
           {activeTab === 'path' && (
             <div className="space-y-3">

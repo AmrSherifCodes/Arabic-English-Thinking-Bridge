@@ -319,7 +319,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
               <Smartphone size={32} />
               <div className="mb-4 text-center">
                 <span className="font-bold text-lg block text-[var(--navy)]">Android</span>
-                <span className="text-sm text-[var(--ink-soft)] block">v4.2.0 Release · PWA & APK</span>
+                <span className="text-sm text-[var(--ink-soft)] block">v4.3.0 Release · PWA & APK</span>
               </div>
               <a
                 href="/app"
@@ -330,11 +330,11 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
                 <span>{t('landing2.launch_app___')}</span>
               </a>
               <a
-                href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v4.2.0/Thinking-Bridge-v4.2.0.apk"
-                download="Thinking-Bridge-v4.2.0.apk"
+                href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v4.3.0/Thinking-Bridge-v4.3.0.apk"
+                download="Thinking-Bridge-v4.3.0.apk"
                 className="btn btn-gold btn-sm w-full mt-1"
               >
-                <span>{isAr ? 'تحميل APK (v4.2.0)' : 'Download APK (v4.2.0)'}</span>
+                <span>{isAr ? 'تحميل APK (v4.3.0)' : 'Download APK (v4.3.0)'}</span>
               </a>
             </div>
 

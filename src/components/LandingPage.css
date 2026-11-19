@@ -32,7 +32,10 @@
               linear-gradient(180deg, #030914 0%, #0A192F 50%, #040A14 100%) !important;
   color: #FFFFFF !important;
   line-height: 1.75;
-  overflow-x: hidden;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  touch-action: pan-y !important;
+  -webkit-overflow-scrolling: touch !important;
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
   min-height: 100dvh;
@@ -42,10 +45,14 @@
 
 html:has(.egyptian-landing) {
   color-scheme: dark;
+  overflow-y: auto !important;
+  touch-action: pan-y !important;
 }
 
 body:has(.egyptian-landing) {
   background: #030914 !important;
+  overflow-y: auto !important;
+  touch-action: pan-y !important;
 }
 
 .egyptian-landing .hero-grid {
