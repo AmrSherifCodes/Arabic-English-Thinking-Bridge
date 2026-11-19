@@ -1,45 +1,44 @@
-# Thinking Bridge v4.1.0 — Release Notes
+# Thinking Bridge v4.2.0 — Release Notes
 
 ### Think in the language. Don't translate it.
 
-Thinking Bridge v4.1.0 is a major feature and refinement release bringing expanded multi-language curricula, instant offline speech, age-adaptive UI options, interactive checkpoints, and formal privacy constitutional guarantees.
+Thinking Bridge v4.2.0 brings dynamic exercise randomization, an upgraded topic-aware on-device vector artwork engine, and UI alignment refinements across all CEFR levels.
 
 ---
 
-## 🚀 What's New
+## 🚀 What's New in v4.2.0
 
-- **Expanded Curricula**: Added complete learning curricula for Japanese, Spanish, and French.
-- **Flipped Learning Path**: Introduced the English → Arabic (EN → AR) learning direction.
-- **Instant Offline Pronunciation**: Integrated instant offline Text-to-Speech (TTS) engine for audio pronunciation without internet latency.
-- **Discord Webhook UI Integration**: Added a dedicated Discord Webhook card in Preferences with live connection testing for progress log notifications.
-- **Age Group UI Configurator**: Interactive UI settings to scale typography, touch targets, and layout density tailored to different age groups.
-- **Interactive Erwin Checkpoint Easter Egg**: Added an interactive 99-tap Captain Erwin video modal checkpoint with a glowing counter bubble and full mobile touch/pointer support.
-- **Embedded Constitution**: Included `CONSTITUTION.md` defining project principles, privacy guarantees, and architectural safety rules.
+- **🔀 Randomized Exercise Order**: Every lesson session now automatically shuffles exercise order upon start, preventing repetitive first-exercise loops across sessions.
+- **⚡ On-Demand Shuffle Control (`🔀`)**: Added an interactive exercise randomization button in the header of `LessonRunner` and `LessonView` with haptic/audio feedback.
+- **🎨 Topic-Aware On-Device Scene Engine**:
+  - Automatically generates rich 3D vector SVG illustrations matching the exact subject of each exercise (Firefighter, Doctor/Hospital, Architect/Engineer, Programmer/AI, Pilot/Aviation, Chef/Culinary, Police/Law, Athlete/Sports, Teacher/Education, Space, Weather, Business, Science, and Arts).
+  - Features hero character badges flanked by contextual accessory badges, dynamic gradient backdrops, and glowing aura filters.
+  - Displays a live Grammar Structure Pattern pill tag (`Subject ➔ Copula ➔ Noun/Adj`, `Modal Verb ➔ Action`, `Conditional Clause`, `Phrasal Verb`, etc.).
+- **⚡ 100% On-Device & Zero Asset Weight**: All vector graphics generate locally in 0ms without any network requests or external API calls, adding 0 MB to the app installation size.
+- **🎯 Randomized Evaluation Tests**: Placement tests, level capstones, and phase mastery checks now shuffle exercise pools dynamically on each attempt.
 
 ---
 
-## 🛠️ Fixes & Polish
+## 🛠️ UI & Stability Fixes
 
-- **Mobile Speech & Gesture Handling**: Fixed touch/gesture event stacking for mobile speech synthesis and enabled eager voice caching on iOS and Android.
-- **Touch Event Precision**: Added `pointerdown` and touch-tap handlers for interactive modals on mobile displays.
-- **Android & Web Landing Polish**: Updated release download URLs, landing page responsiveness, and UI alignment across mobile/desktop browsers.
-- **QA & Stability Improvements**: Cleaned up minor layout shifts, optimized local storage synchronization, and resolved edge-case edge-to-edge UI overlaps.
+- **Landing Page Collision**: Resolved static fallback HTML layout bleed under SPA mounts in `index.html` and `main.tsx`.
+- **Level Visual Aspect Ratio**: Updated `LevelVisualIllustration` container to `aspect-[400/220]` and `object-contain`, preserving full top badge rendering (`A1 · المستوى 1` and `⚡ Pyodide/Local`) without edge clipping.
+- **Build & Test Verification**: Clean compilation, type verification, and production Vite bundling.
 
 ---
 
 ## 📜 Constitution
 
-- **Offline-First**: All core learning modules, flashcards, SRS scheduling, and TTS capabilities function 100% offline without requiring internet access.
-- **No Analytics / Radical Privacy**: Zero telemetry, zero analytics tracking scripts, zero third-party profiling, and zero user account mandates. All user data stays strictly on-device.
+- **100% Offline-First**: All core learning modules, flashcards, SRS scheduling, TTS capabilities, and vector artwork generation function completely offline.
+- **Radical Privacy**: Zero telemetry, zero tracking scripts, zero third-party profiling, and zero user account mandates. All data stays strictly on-device.
 
 ---
 
 ## 📦 Downloads & Artifacts
 
-- **Android APK**: `https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v4.1.0/Thinking-Bridge-v4.1.0.apk`
-  - **SHA-256**: `f5eed85dccbbed8b9367e9cd8b1a8dca79081b0738e80c2c699c0c29c956f6d8`
+- **Android APK**: `https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v4.2.0/Thinking-Bridge-v4.2.0.apk`
 - **Web App**: [https://tb-eg.vercel.app](https://tb-eg.vercel.app)
-- **Source Code**: Available on GitHub (`v4.1.0`)
+- **Source Code**: Available on GitHub (`v4.2.0`)
 
 ---
 *Built in Alexandria, Egypt by Amr Sherif Abdelaal. Open source & free forever.*

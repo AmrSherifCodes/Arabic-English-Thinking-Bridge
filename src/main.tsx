@@ -24,3 +24,7 @@ createRoot(document.getElementById('root')!).render(
   </ErrorBoundary>
 );
 document.documentElement.dataset.appReady = 'true';
+const staticLanding = document.getElementById('static-landing-content');
+if (staticLanding) {
+  staticLanding.remove();
+}

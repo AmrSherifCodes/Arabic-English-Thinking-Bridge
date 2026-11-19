@@ -1,7 +1,7 @@
 import { Capacitor } from '@capacitor/core';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { ArrowLeft, Volume2, Sparkles, AlertCircle, CheckCircle2, ChevronRight, BookOpen, Star, Youtube, HelpCircle } from 'lucide-react';
+import { ArrowLeft, Volume2, Sparkles, AlertCircle, CheckCircle2, ChevronRight, BookOpen, Star, Youtube, HelpCircle, Shuffle } from 'lucide-react';
 import { TabTutorialModal } from '../../components/TabTutorialModal';
 import { Exercise, Lesson, Phase, UserProfile, UserProgress, SourceLanguage, TargetLanguage } from '../../types';
 import { getCurriculum } from '../../data/curriculumRegistry';
@@ -50,6 +50,7 @@ export function LessonView({
   const firstIncomplete = allLessons.find(l => !progress.completedLessonIds.includes(l.id)) || allLessons[0];
 
   const [activeLesson, setActiveLesson] = useState<Lesson | null>(firstIncomplete);
+  const [shuffledExercises, setShuffledExercises] = useState<Exercise[]>([]);
   const [showGuide, setShowGuide] = useState(false);
   const [syllabusFilter, setSyllabusFilter] = useState<'all' | 'recommended' | 1 | 2 | 3>('all');
   const [exerciseIndex, setExerciseIndex] = useState<number>(0);
@@ -60,14 +61,38 @@ export function LessonView({
 
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Sync active lesson when language pair changes
+  // Sync active lesson when language pair changes or active lesson changes
   useEffect(() => {
     const nextFirst = allLessons.find(l => !progress.completedLessonIds.includes(l.id)) || allLessons[0];
     setActiveLesson(nextFirst);
     setExerciseIndex(0);
   }, [source, target, allLessons]);
 
-  const exercise: Exercise | undefined = activeLesson?.exercises[exerciseIndex];
+  useEffect(() => {
+    if (activeLesson?.exercises) {
+      const list = [...activeLesson.exercises];
+      for (let i = list.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [list[i], list[j]] = [list[j], list[i]];
+      }
+      setShuffledExercises(list);
+    }
+  }, [activeLesson?.id]);
+
+  const handleShuffleActiveLesson = () => {
+    if (activeLesson?.exercises) {
+      const list = [...shuffledExercises];
+      for (let i = list.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [list[i], list[j]] = [list[j], list[i]];
+      }
+      setShuffledExercises(list);
+      setExerciseIndex(0);
+      onToast('🔀 Exercises randomized!');
+    }
+  };
+
+  const exercise: Exercise | undefined = shuffledExercises[exerciseIndex] || activeLesson?.exercises[exerciseIndex];
 
   useEffect(() => {
     setInput('');
@@ -429,6 +454,15 @@ export function LessonView({
           </div>
         </div>
         <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={handleShuffleActiveLesson}
+            className="p-2 rounded-xl text-amber-400 hover:text-amber-300 bg-amber-500/10 border border-amber-500/20 transition"
+            title="Randomize exercises"
+            aria-label="Randomize exercises"
+          >
+            <Shuffle className="w-4 h-4" />
+          </button>
           <button
             type="button"
             onClick={() => setShowGuide(true)}

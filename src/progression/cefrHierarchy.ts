@@ -2274,12 +2274,22 @@ export function calculateLevelSkillNodes(
   return result;
 }
 
+function shuffleArray<T>(array: T[]): T[] {
+  const result = [...array];
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+}
+
 /**
  * Generates Level Capstone Lesson
  */
 export function generateCapstoneLesson(levelId: CefrLevelId): LessonNode {
   const levelNode = CEFR_LEVELS_MASTER.find((l) => l.level === levelId) || CEFR_LEVELS_MASTER[0];
-  const exercises = createExercisesForUnit(`capstone-${levelId}`, levelNode.titleEn, levelNode.titleAr, ['grammar', 'vocabulary', 'listening', 'pronunciation'], 20);
+  const rawExercises = createExercisesForUnit(`capstone-${levelId}`, levelNode.titleEn, levelNode.titleAr, ['grammar', 'vocabulary', 'listening', 'pronunciation'], 20);
+  const exercises = shuffleArray(rawExercises);
 
   return {
     id: `${levelId.toLowerCase()}-capstone`,
@@ -2304,7 +2314,8 @@ export function generateCapstoneLesson(levelId: CefrLevelId): LessonNode {
  */
 export function generatePhaseMasteryCheck(phaseId: PhaseId): LessonNode {
   const levelId = phaseId.split('.')[0] as CefrLevelId;
-  const exercises = createExercisesForUnit(`mastery-${phaseId}`, `Phase ${phaseId} Assessment`, `اختبار المرحلة ${phaseId}`, ['grammar', 'vocabulary', 'listening'], 10);
+  const rawExercises = createExercisesForUnit(`mastery-${phaseId}`, `Phase ${phaseId} Assessment`, `اختبار المرحلة ${phaseId}`, ['grammar', 'vocabulary', 'listening'], 10);
+  const exercises = shuffleArray(rawExercises);
 
   return {
     id: `${phaseId.toLowerCase()}-mastery`,
@@ -2328,7 +2339,8 @@ export function generatePhaseMasteryCheck(phaseId: PhaseId): LessonNode {
  * Generates Adaptive Placement Test
  */
 export function generatePlacementTest(): LessonNode {
-  const exercises = createExercisesForUnit('placement-test', 'CEFR Adaptive Placement', 'تحديد المستوى التكيفي', ['grammar', 'vocabulary', 'listening'], 15);
+  const rawExercises = createExercisesForUnit('placement-test', 'CEFR Adaptive Placement', 'تحديد المستوى التكيفي', ['grammar', 'vocabulary', 'listening'], 15);
+  const exercises = shuffleArray(rawExercises);
 
   return {
     id: 'cefr-placement-test',

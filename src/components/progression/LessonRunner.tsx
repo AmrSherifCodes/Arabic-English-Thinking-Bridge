@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { LessonNode, ExerciseItem } from '../../progression/types';
-import { CheckCircle2, XCircle, ArrowRight, Zap, Timer, Sparkles, Brain } from 'lucide-react';
+import { CheckCircle2, XCircle, ArrowRight, Zap, Timer, Sparkles, Brain, Shuffle } from 'lucide-react';
 import { computeNextHintWord } from '../../utils/habitPsychology';
 import { soundFX } from '../../utils/soundFX';
 import { updateCognitiveProfile, runLocalTrainingStep, getDifficultyKnob } from '../../utils/OnlineLearningEngine';
@@ -46,7 +46,30 @@ export function LessonRunner({
   onClose,
   isArabic = true,
 }: LessonRunnerProps) {
-  const exercises = lesson.exercises;
+  const [exercises, setExercises] = useState<ExerciseItem[]>(() => {
+    const list = [...lesson.exercises];
+    for (let i = list.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [list[i], list[j]] = [list[j], list[i]];
+    }
+    return list;
+  });
+
+  const handleShuffleExercises = () => {
+    const list = [...exercises];
+    for (let i = list.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [list[i], list[j]] = [list[j], list[i]];
+    }
+    setExercises(list);
+    setCurrentIndex(0);
+    setSelectedChips([]);
+    setUserInput('');
+    setIsAnswered(false);
+    setAutoHintPill(isArabic ? '🔀 تم خلط التمارين بنجاح!' : '🔀 Exercises shuffled!');
+    soundFX.playChipSelect();
+  };
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedChips, setSelectedChips] = useState<string[]>([]);
   const [shuffledOptions, setShuffledOptions] = useState<string[]>([]);
@@ -389,9 +412,20 @@ export function LessonRunner({
               style={{ width: `${progressPercent}%` }}
             />
           </div>
-          <div className="flex items-center gap-1 text-xs font-black text-muted">
-            <Timer size={14} className="text-primary" />
-            <span>{currentIndex + 1}/{exercises.length}</span>
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={handleShuffleExercises}
+              className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20 text-xs font-bold transition active:scale-95"
+              title={isArabic ? 'إعادة ترتيب التمارين عشوائياً' : 'Randomize exercise order'}
+              aria-label={isArabic ? 'إعادة ترتيب التمارين عشوائياً' : 'Randomize exercise order'}
+            >
+              <Shuffle size={16} />
+            </button>
+            <div className="flex items-center gap-1 text-xs font-black text-muted">
+              <Timer size={14} className="text-primary" />
+              <span>{currentIndex + 1}/{exercises.length}</span>
+            </div>
           </div>
         </div>
 

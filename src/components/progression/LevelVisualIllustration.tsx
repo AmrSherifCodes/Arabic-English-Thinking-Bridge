@@ -11,7 +11,7 @@ export function LevelVisualIllustration({
   promptAr,
   englishTarget,
   category,
-  className = 'w-full h-auto max-h-[180px] sm:max-h-[220px]',
+  className = 'w-full h-auto aspect-[400/220] max-h-[180px] sm:max-h-[220px]',
 }: LevelVisualIllustrationProps) {
   const imageDataUrl = useMemo(
     () =>
@@ -26,11 +26,11 @@ export function LevelVisualIllustration({
   );
 
   return (
-    <div className={`relative overflow-hidden rounded-2xl shadow-lg border border-stone-800 ${className}`}>
+    <div className={`relative overflow-hidden rounded-2xl shadow-lg border border-stone-800 bg-stone-950/80 flex items-center justify-center ${className}`}>
       <img
         src={imageDataUrl}
         alt={`Local Python visual artwork for Level ${levelNumber} (${stage})`}
-        className="w-full h-full object-cover select-none"
+        className="w-full h-full object-contain select-none"
         loading="lazy"
       />
     </div>
