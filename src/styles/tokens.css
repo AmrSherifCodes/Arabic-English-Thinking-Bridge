@@ -4,21 +4,21 @@
 
 :root {
   /* Design Tokens - Alexandrian Mediterranean Theme (عروس البحر المتوسط) */
-  --bg: #060E1A;
-  --surface: #0B1C33;
-  --surface-2: #122846;
-  --border: #1E3A5F;
+  --bg: #030A16;
+  --surface: #0A192F;
+  --surface-2: #102A4C;
+  --border: #1E3E66;
   --text: #F8FAFC;
   --muted: #94A3B8;
-  --accent-teal: #06B6D4;
-  --secondary-amber: #F59E0B;
+  --accent-teal: #00E5FF;
+  --secondary-amber: #FFC72C;
   --font: 'Readex Pro', sans-serif;
   --radius-sm: 12px;
   --radius-md: 20px;
   --radius-lg: 28px;
   --max-width: 1200px;
 
-  /* Alexandrian Ocean & Sunlight Dark Theme Default Tokens */
+  /* Alexandrian Ocean & Sunset Gold Dark Theme Default Tokens */
   --color-bg: var(--bg);
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
@@ -27,30 +27,31 @@
   --color-text-soft: #E2E8F0;
   --color-muted: var(--muted);
   --color-primary: var(--accent-teal);
-  --color-on-primary: #060E1A;
+  --color-on-primary: #030A16;
   --color-success: #10B981;
   --color-danger: #EF4444;
 }
 
 /* Light Theme Tokens */
 html.light {
-  --bg: #F7FAF9;
+  --bg: #F0F7FF;
   --surface: #FFFFFF;
-  --border: #C9D4D5;
-  --text: #17252B;
-  --muted: #4B5B61;
-  --accent-teal: #0F766E;
-  --secondary-amber: #805800;
+  --surface-2: #E2EEFC;
+  --border: #B8D4F0;
+  --text: #0B1D3A;
+  --muted: #475569;
+  --accent-teal: #0088A8;
+  --secondary-amber: #D97706;
   --color-bg: var(--bg);
   --color-surface: var(--surface);
-  --color-surface-2: #E5E7EB;
+  --color-surface-2: var(--surface-2);
   --color-border: var(--border);
   --color-text: var(--text);
-  --color-text-soft: #1F2937;
+  --color-text-soft: #1E293B;
   --color-muted: var(--muted);
   --color-primary: var(--accent-teal);
   --color-on-primary: #FFFFFF;
-  --color-success: #047857;
+  --color-success: #059669;
   --color-danger: #DC2626;
 }
 
