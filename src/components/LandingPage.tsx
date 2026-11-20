@@ -319,7 +319,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
               <Smartphone size={32} />
               <div className="mb-4 text-center">
                 <span className="font-bold text-lg block text-[var(--navy)]">Android</span>
-                <span className="text-sm text-[var(--ink-soft)] block">v4.3.0 Release · PWA & APK</span>
+                <span className="text-sm text-[var(--ink-soft)] block">v4.4.0 Stable · PWA & APK</span>
               </div>
               <a
                 href="/app"
@@ -330,11 +330,11 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
                 <span>{t('landing2.launch_app___')}</span>
               </a>
               <a
-                href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v4.3.0/Thinking-Bridge-v4.3.0.apk"
-                download="Thinking-Bridge-v4.3.0.apk"
+                href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v4.4.0/Thinking-Bridge-v4.4.0.apk"
+                download="Thinking-Bridge-v4.4.0.apk"
                 className="btn btn-gold btn-sm w-full mt-1"
               >
-                <span>{isAr ? 'تحميل APK (v4.3.0)' : 'Download APK (v4.3.0)'}</span>
+                <span>{isAr ? 'تحميل APK (v4.4.0)' : 'Download APK (v4.4.0)'}</span>
               </a>
             </div>
 
@@ -516,21 +516,21 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
             {isAr ? '🛡️ معيار السيادة الرقمية والخصوصية المطلقة' : '🛡️ Digital Sovereignty & Absolute Privacy Standard'}
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-start">
-            <div className="p-5 rounded-2xl bg-white/80 border border-[var(--line)] space-y-2">
-              <span className="text-lg block font-bold text-[var(--navy)]">⚡ {isAr ? 'عملية 100% بدون إنترنت' : '100% Offline Architecture'}</span>
-              <p className="text-xs text-[var(--ink-soft)] leading-relaxed">
+            <div className="p-5 rounded-2xl bg-[#0B1C33] border border-cyan-500/30 space-y-2">
+              <span className="text-lg block font-bold text-white">⚡ {isAr ? 'عملية 100% بدون إنترنت' : '100% Offline Architecture'}</span>
+              <p className="text-xs text-slate-300 leading-relaxed">
                 {isAr ? 'يعمل التطبيق بالكامل بدون حاجة لاتصال بالإنترنت، وبدون سيرفرات خارجية تتبع بياناتك.' : 'Zero foreign cloud servers or telemetry trackers required. Designed for complete offline autonomy.'}
               </p>
             </div>
-            <div className="p-5 rounded-2xl bg-white/80 border border-[var(--line)] space-y-2">
-              <span className="text-lg block font-bold text-[var(--navy)]">🔐 {isAr ? 'بياناتك ملكك على جهازك' : 'Local Device Vault'}</span>
-              <p className="text-xs text-[var(--ink-soft)] leading-relaxed">
+            <div className="p-5 rounded-2xl bg-[#0B1C33] border border-cyan-500/30 space-y-2">
+              <span className="text-lg block font-bold text-white">🔐 {isAr ? 'بياناتك ملكك على جهازك' : 'Local Device Vault'}</span>
+              <p className="text-xs text-slate-300 leading-relaxed">
                 {isAr ? 'تُحفظ جميع إنجازاتك وتقدمك التعليمي محلياً على هاتفك في الخزنة المحلية.' : 'All progression, flashcards, and SRS metrics remain securely in local browser IndexedDB storage.'}
               </p>
             </div>
-            <div className="p-5 rounded-2xl bg-white/80 border border-[var(--line)] space-y-2">
-              <span className="text-lg block font-bold text-[var(--navy)]">🔑 {isAr ? 'مفتاحك الخاص (BYOK)' : 'Bring Your Own Key (BYOK)'}</span>
-              <p className="text-xs text-[var(--ink-soft)] leading-relaxed">
+            <div className="p-5 rounded-2xl bg-[#0B1C33] border border-cyan-500/30 space-y-2">
+              <span className="text-lg block font-bold text-white">🔑 {isAr ? 'مفتاحك الخاص (BYOK)' : 'Bring Your Own Key (BYOK)'}</span>
+              <p className="text-xs text-slate-300 leading-relaxed">
                 {isAr ? 'ميزات الذكاء الاصطناعي اختيارية ومجانية عبر مفتاحك الخاص بدون أي تكاليف أو تتبع.' : 'Optional AI capabilities use your private Gemini key, stored locally without proxy retention.'}
               </p>
             </div>

@@ -1069,7 +1069,7 @@
           </ul>
 
           <div class="nav-actions">
-            <button type="button" class="lang-btn" onclick="toggleLanguage()" aria-label="تغيير اللغة">
+            <button type="button" class="lang-btn" id="btn-toggle-language" aria-label="تغيير اللغة">
               English
             </button>
             <a href="#download-section" class="btn btn-gold" style="padding: 0.5rem 1.1rem; font-size: 0.9rem; min-height: 40px;">
@@ -1278,12 +1278,15 @@
             <div class="dl-card highlight">
               <div class="dl-icon">📱</div>
               <div class="dl-title">Android</div>
-              <div class="dl-ver">v1.0.0 Stable · PWA</div>
-              <a href="/app" class="btn btn-gold" style="width: 100%; padding: 0.6rem 1rem; font-size: 0.9rem;">
-                تشغيل على الويب (PWA)
+              <div class="dl-ver">v4.4.0 Stable · APK + PWA</div>
+              <a href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v4.4.0/Thinking-Bridge-v4.4.0.apk" class="btn btn-gold" style="width: 100%; padding: 0.6rem 1rem; font-size: 0.9rem; margin-bottom: 0.5rem;" download="Thinking-Bridge-v4.4.0.apk">
+                تحميل APK مباشر
               </a>
-              <div class="hash-box">
-                تثبيت فوري بدون متجر · 100% Offline Ready
+              <a href="/app" class="btn btn-outline" style="width: 100%; padding: 0.5rem 1rem; font-size: 0.85rem;">
+                تشغيل PWA
+              </a>
+              <div class="hash-box" style="margin-top: 0.5rem;">
+                تثبيت فوري · 100% Offline Ready
               </div>
             </div>
 
@@ -1291,8 +1294,8 @@
             <div class="dl-card">
               <div class="dl-icon">🍎</div>
               <div class="dl-title">iOS / iPhone</div>
-              <div class="dl-ver">v1.0.0 Stable · Web App</div>
-              <button type="button" onclick="toggleIosGuide()" class="btn btn-outline" style="width: 100%; padding: 0.6rem 1rem; font-size: 0.9rem;">
+              <div class="dl-ver">v4.4.0 Stable · Web App</div>
+              <button type="button" class="btn btn-outline toggle-ios-guide" style="width: 100%; padding: 0.6rem 1rem; font-size: 0.9rem;">
                 دليل التثبيت على iPhone
               </button>
             </div>
@@ -1301,7 +1304,7 @@
             <div class="dl-card">
               <div class="dl-icon">💻</div>
               <div class="dl-title">Windows</div>
-              <div class="dl-ver">v1.0.0 Stable · Desktop</div>
+              <div class="dl-ver">v4.4.0 Stable · Desktop</div>
               <a href="/app" class="btn btn-outline" style="width: 100%; padding: 0.6rem 1rem; font-size: 0.9rem;">
                 تشغيل على الويب
               </a>
@@ -1311,7 +1314,7 @@
             <div class="dl-card">
               <div class="dl-icon">🖥️</div>
               <div class="dl-title">macOS</div>
-              <div class="dl-ver">v1.0.0 Stable · Desktop</div>
+              <div class="dl-ver">v4.4.0 Stable · Desktop</div>
               <a href="/app" class="btn btn-outline" style="width: 100%; padding: 0.6rem 1rem; font-size: 0.9rem;">
                 تشغيل على الويب
               </a>
@@ -1327,7 +1330,7 @@
           <h2 class="section-title" style="color: var(--sand-light);">اشترك للحصول على التحديثات والميزات السرية</h2>
           <p style="color: rgba(247, 240, 224, 0.85); font-size: 1rem;">سجل دلوقتي وفعّل حسابك في دقيقة واحدة. أول درس مجاني بالكامل.</p>
 
-          <form class="subscribe-form" onsubmit="handleSubscription(event)">
+          <form class="subscribe-form" id="subscribe-form">
             <label for="sub-email" class="sr-only" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0;">البريد الإلكتروني</label>
             <input type="email" id="sub-email" class="subscribe-input" placeholder="ادخل بريدك الإلكتروني" required dir="ltr" />
             <button type="submit" class="btn btn-gold">اشتراك</button>
@@ -1434,8 +1437,8 @@
     </div>
 
     <!-- Modal for iOS Safari Guide -->
-    <div id="ios-modal" class="modal-backdrop" onclick="toggleIosGuide()">
-      <div class="modal-content" onclick="event.stopPropagation()">
+    <div id="ios-modal" class="modal-backdrop toggle-ios-guide">
+      <div class="modal-content" id="ios-modal-content">
         <h3 style="color: var(--navy); margin-bottom: 1rem;">دليل تثبيت التطبيق على iPhone (iOS):</h3>
         <ol style="margin-right: 1.5rem; line-height: 1.8; color: var(--ink-soft); font-size: 0.95rem;">
           <li>افتح الموقع في متصفح <strong>Safari</strong>.</li>
@@ -1443,7 +1446,7 @@
           <li>اختر <strong>"إضافة إلى الشاشة الرئيسية" (Add to Home Screen)</strong>.</li>
           <li>اضغط <strong>إضافة (Add)</strong> ليظهر التطبيق كأيقونة مستقلة تعمل بدون إنترنت!</li>
         </ol>
-        <button type="button" class="btn btn-nile" onclick="toggleIosGuide()" style="margin-top: 1.5rem; width: 100%;">فهمت</button>
+        <button type="button" class="btn btn-nile toggle-ios-guide" style="margin-top: 1.5rem; width: 100%;">فهمت</button>
       </div>
     </div>
 
