@@ -527,7 +527,7 @@ export function LandingView({ onStartWebApp, isArabic = true }: LandingViewProps
                 <Globe size={13} />
                 <span>{isInstallable ? (t('landing2.install_pwa')) : (t('landing2.open_web_app'))}</span>
               </button>
-              <a href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/latest" className="block text-[10px] font-bold text-[var(--landing-muted)] underline underline-offset-2">
+              <a href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/tag/v4.4.0" className="block text-[10px] font-bold text-[var(--landing-muted)] underline underline-offset-2">
                 {t('landing2.desktop_releases')}
               </a>
             </div>
@@ -546,7 +546,7 @@ export function LandingView({ onStartWebApp, isArabic = true }: LandingViewProps
                 <Globe size={13} />
                 <span>{isInstallable ? (t('landing2.install_pwa')) : (t('landing2.open_web_app'))}</span>
               </button>
-              <a href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/latest" className="block text-[10px] font-bold text-[var(--landing-muted)] underline underline-offset-2">
+              <a href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/tag/v4.4.0" className="block text-[10px] font-bold text-[var(--landing-muted)] underline underline-offset-2">
                 {t('landing2.desktop_releases')}
               </a>
             </div>

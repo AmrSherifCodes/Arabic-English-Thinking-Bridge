@@ -34,7 +34,7 @@
 ### 📥 روابط التنزيل المباشر / Direct Download Links
 
 - **Android APK (v4.4.0 / v1.0.0 Stable)**: `Thinking-Bridge-v1.0.0-stable.apk` *(نسخة جاهزة وموجودة مباشرة على سطح المكتب)*
-- **GitHub Release APK**: [Thinking-Bridge-v4.4.0-beta.apk](https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v4.4.0-beta/Thinking-Bridge-v4.4.0-beta.apk)
+- **GitHub Release APK**: [Thinking-Bridge-v1.0.0-stable.apk](https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v4.4.0/Thinking-Bridge-v1.0.0-stable.apk)
 - **Web App / PWA**: [https://tb-eg.vercel.app](https://tb-eg.vercel.app)
 - **Offline HTML Download**: `https://tb-eg.vercel.app/Thinking-English-v4.html`
 

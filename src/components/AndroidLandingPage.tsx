@@ -94,8 +94,8 @@ export function AndroidLandingPage() {
             </a>
             <a
               className="android-download-button"
-              href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v4.4.0/Thinking-Bridge-v4.4.0.apk"
-              download="Thinking-Bridge-v4.4.0.apk"
+              href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v4.4.0/Thinking-Bridge-v1.0.0-stable.apk"
+              download="Thinking-Bridge-v1.0.0-stable.apk"
               aria-label="تحميل تطبيق الأندرويد المباشر v4.4.0"
               style={{
                 background: 'rgba(201, 162, 39, 0.15)',
@@ -113,7 +113,7 @@ export function AndroidLandingPage() {
               }}
             >
               <span>📱</span>
-              <span>تحميل تطبيق الأندرويد (v4.4.0 APK) — Direct Download</span>
+              <span>تحميل تطبيق الأندرويد (v4.4.0 APK · 106 MB) — Direct Download</span>
             </a>
           </div>
           <span className="android-version">Web App & PWA · 100% Offline Ready</span>

@@ -32,5 +32,6 @@ Thinking Bridge v4.4.0 brings transport-safe silent audio defaults with pulsing 
 
 ## 📦 Downloads & Links
 
-- **Android APK**: Placed on Desktop (`Thinking-Bridge-v1.0.0-stable.apk`) & available on GitHub Releases.
+- **Android APK**: [Thinking-Bridge-v1.0.0-stable.apk](https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v4.4.0/Thinking-Bridge-v1.0.0-stable.apk) (106 MB)
+- **Release Tag & Assets**: [https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/tag/v4.4.0](https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/tag/v4.4.0)
 - **Web App / PWA**: [https://tb-eg.vercel.app](https://tb-eg.vercel.app)

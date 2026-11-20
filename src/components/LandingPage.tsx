@@ -319,7 +319,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
               <Smartphone size={32} />
               <div className="mb-4 text-center">
                 <span className="font-bold text-lg block text-[var(--navy)]">Android</span>
-                <span className="text-sm text-[var(--ink-soft)] block">v4.4.0 Stable · PWA & APK</span>
+                <span className="text-sm text-[var(--ink-soft)] block">v4.4.0 Stable · 106 MB APK</span>
               </div>
               <a
                 href="/app"
@@ -330,11 +330,11 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
                 <span>{t('landing2.launch_app___')}</span>
               </a>
               <a
-                href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v4.4.0/Thinking-Bridge-v4.4.0.apk"
-                download="Thinking-Bridge-v4.4.0.apk"
+                href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v4.4.0/Thinking-Bridge-v1.0.0-stable.apk"
+                download="Thinking-Bridge-v1.0.0-stable.apk"
                 className="btn btn-gold btn-sm w-full mt-1"
               >
-                <span>{isAr ? 'تحميل APK (v4.4.0)' : 'Download APK (v4.4.0)'}</span>
+                <span>{isAr ? 'تحميل APK (v4.4.0 · 106 MB)' : 'Download APK (v4.4.0 · 106 MB)'}</span>
               </a>
             </div>
 
@@ -373,7 +373,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
                 <Globe size={16} />
                 <span>{isInstallable ? (t('landing2.install_pwa')) : (t('landing2.open_web_app'))}</span>
               </button>
-              <a href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/latest" className="text-xs font-bold text-[var(--nile)] underline text-center w-full block mt-2">
+              <a href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/tag/v4.4.0" className="text-xs font-bold text-[var(--nile)] underline text-center w-full block mt-2">
                 {t('landing2.desktop_releases')}
               </a>
             </div>
@@ -391,7 +391,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
                 <Globe size={16} />
                 <span>{isInstallable ? (t('landing2.install_pwa')) : (t('landing2.open_web_app'))}</span>
               </button>
-              <a href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/latest" className="text-xs font-bold text-[var(--nile)] underline text-center w-full block mt-2">
+              <a href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/tag/v4.4.0" className="text-xs font-bold text-[var(--nile)] underline text-center w-full block mt-2">
                 {t('landing2.desktop_releases')}
               </a>
             </div>

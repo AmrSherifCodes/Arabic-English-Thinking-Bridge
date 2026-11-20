@@ -75,12 +75,12 @@ const menuPath = path.join(ROOT_DIR, 'src', 'features', 'menu', 'ChoiceMenu.tsx'
 if (fs.existsSync(menuPath)) {
   let menuContent = fs.readFileSync(menuPath, 'utf8');
   menuContent = menuContent.replace(
-    /releases\/download\/v[0-9.]+\/Thinking-Bridge-v[0-9.]+\.apk/g,
-    `releases/download/${tag}/Thinking-Bridge-${tag}.apk`
+    /releases\/download\/v[0-9.]+\/Thinking-Bridge-.*\.apk/g,
+    `releases/download/${tag}/Thinking-Bridge-v1.0.0-stable.apk`
   );
   menuContent = menuContent.replace(
-    /download="Thinking-Bridge-v[0-9.]+\.apk"/g,
-    `download="Thinking-Bridge-${tag}.apk"`
+    /download="Thinking-Bridge-.*\.apk"/g,
+    `download="Thinking-Bridge-v1.0.0-stable.apk"`
   );
   menuContent = menuContent.replace(
     /v[0-9.]+\s*·\s*APK/g,
