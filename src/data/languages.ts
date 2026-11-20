@@ -284,6 +284,17 @@ export const SOURCE_LANGUAGES: Record<SourceLanguage, LanguageMeta> = {
     descriptionEn: 'Learn thinking from Turkish to English',
     descriptionAr: 'من التركية إلى الإنجليزية',
     badge: 'Beta'
+  },
+  he: {
+    code: 'he',
+    nameEn: 'Hebrew',
+    nameNative: 'עברית',
+    nameAr: 'العبرية',
+    flag: 'PS',
+    direction: 'rtl',
+    descriptionEn: 'Learn thinking from Hebrew to English',
+    descriptionAr: 'من العبرية إلى الإنجليزية',
+    badge: 'Beta'
   }
 };
 
@@ -430,6 +441,17 @@ export const TARGET_LANGUAGE_META: Record<TargetLanguage, LanguageMeta> = {
     descriptionEn: 'Shared Egyptian-Turkish words bridge',
     descriptionAr: 'جسر الكلمات المشتركة بين المصرية والتركية',
     badge: 'جديد'
+  },
+  he: {
+    code: 'he',
+    nameEn: 'Hebrew',
+    nameNative: 'עברית',
+    nameAr: 'العبرية',
+    flag: 'PS',
+    direction: 'rtl',
+    descriptionEn: 'Learn Hebrew grammar and phrasing',
+    descriptionAr: 'تعلم قواعد وتراكيب اللغة العبرية',
+    badge: 'جديد'
   }
 };
 
@@ -447,6 +469,7 @@ export const TARGET_LANGUAGES: LanguageConfig[] = [
   { code: 'pt', nameEn: 'Portuguese', nameAr: 'البرتغالية', flag: '🇧🇷', defaultVoice: 'pt-BR-FranciscaNeural' },
   { code: 'it', nameEn: 'Italian', nameAr: 'الإيطالية', flag: '🇮🇹', defaultVoice: 'it-IT-IsabellaNeural' },
   { code: 'el', nameEn: 'Greek', nameAr: 'اليونانية', flag: '🇬🇷', defaultVoice: 'el-GR-NestorasNeural' },
+  { code: 'he', nameEn: 'Hebrew', nameAr: 'العبرية', flag: 'PS', defaultVoice: 'he-IL-AvriNeural' },
 ];
 
 export const TARGET_LANGUAGE_LOCALES: Record<TargetLanguage, string> = {
@@ -463,6 +486,7 @@ export const TARGET_LANGUAGE_LOCALES: Record<TargetLanguage, string> = {
   it: 'it-IT',
   el: 'el-GR',
   tr: 'tr-TR',
+  he: 'he-IL',
 };
 
 export const ARABIC_DIALECT_VOICES: Record<string, string> = {

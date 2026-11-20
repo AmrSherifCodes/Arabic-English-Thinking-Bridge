@@ -2,6 +2,7 @@ import { StageNode, UnitNode, LessonNode, ExerciseItem, ExerciseType, Progressio
 import { getCefrLevelHierarchy, convertHierarchyToStageNodes } from './cefrHierarchy';
 import { PHASES_DATA } from '../data/lessons';
 import { getCurriculum } from '../data/curriculumRegistry';
+import { buildDictionaryPhases } from '../data/curriculum/dictionaryCurriculum';
 import { TARGET_LANGUAGES, TARGET_LANGUAGE_META } from '../data/languages';
 import { getTargetDictionary } from '../data/dictionaries';
 import { assignCEFRLevels } from './cefrSorter';
@@ -81,6 +82,25 @@ const STAGE_DEFINITIONS: Omit<StageNode, 'units' | 'stageExam'>[] = [
     descriptionEn: 'Final Boss mastery challenge',
   }
 ];
+
+function getLocalizedStageDefinitions(targetLang: TargetLanguage): Omit<StageNode, 'units' | 'stageExam'>[] {
+  const targetName = TARGET_LANGUAGE_META[targetLang]?.nameAr || 'الإنجليزية';
+  return STAGE_DEFINITIONS.map((def) => {
+    let titleAr = def.titleAr;
+    let descAr = def.descriptionAr;
+    if (targetLang !== 'en') {
+      titleAr = titleAr.replace(/إنجليزي/g, targetName).replace(/الإنجليزية/g, targetName);
+      descAr = descAr.replace(/إنجليزي/g, targetName).replace(/الإنجليزية/g, targetName)
+        .replace(/am \/ is \/ are/gi, 'روابط الكينونة')
+        .replace(/I am ready/gi, '');
+    }
+    return {
+      ...def,
+      titleAr,
+      descriptionAr: descAr,
+    };
+  });
+}
 
 export type LocalizedTarget = 'de' | 'es' | 'ja' | 'fr' | 'zh' | 'hi' | 'ru' | 'pt' | 'it' | 'el';
 
@@ -1435,7 +1455,7 @@ export function generateProceduralStageLessons(
   const result: LocalizedLessonDefinition[] = [...seedDefinitions];
 
   const rawDict = getTargetDictionary(targetLang as TargetLanguage);
-  const rankedDict = assignCEFRLevels(rawDict);
+  const rankedDict = assignCEFRLevels(rawDict as any[]) as any[];
 
   let pool = rankedDict.filter((entry) => entry.cefrLevel === stage);
   if (!pool || pool.length < 10) {
@@ -1451,7 +1471,7 @@ export function generateProceduralStageLessons(
 
     const filtered = pool.filter((item) => {
       const term = (item.term || (item as any).word || '').toLowerCase();
-      const en = (item.sourceMeanings?.en || (item as any).translation || '').toLowerCase();
+      const en = ((item as any).sourceMeanings?.en || (item as any).translation || '').toLowerCase();
       return keywords.some((k) => term.includes(k) || en.includes(k));
     });
 
@@ -1470,13 +1490,13 @@ export function generateProceduralStageLessons(
     const term2 = entry2.term || (entry2 as any).word || 'ist';
     const term3 = entry3.term || (entry3 as any).word || 'gut';
 
-    const en1 = entry1.sourceMeanings?.en || (entry1 as any).translation || term1;
-    const en2 = entry2.sourceMeanings?.en || (entry2 as any).translation || term2;
-    const en3 = entry3.sourceMeanings?.en || (entry3 as any).translation || term3;
+    const en1 = (entry1 as any).sourceMeanings?.en || (entry1 as any).translation || term1;
+    const en2 = (entry2 as any).sourceMeanings?.en || (entry2 as any).translation || term2;
+    const en3 = (entry3 as any).sourceMeanings?.en || (entry3 as any).translation || term3;
 
-    const ar1 = entry1.sourceMeanings?.ar || en1;
-    const ar2 = entry2.sourceMeanings?.ar || en2;
-    const ar3 = entry3.sourceMeanings?.ar || en3;
+    const ar1 = (entry1 as any).sourceMeanings?.ar || en1;
+    const ar2 = (entry2 as any).sourceMeanings?.ar || en2;
+    const ar3 = (entry3 as any).sourceMeanings?.ar || en3;
 
     const lessonNum = result.length + 1;
     const lessonId = `${targetLang}-${stage.toLowerCase()}-gen-${lessonNum}`;
@@ -1539,6 +1559,7 @@ export function buildCourseStructure(
   const targetLang = requestedTarget ?? activeProfile?.targetLang ?? 'en';
   const focusArea = requestedFocus ?? activeProfile?.focusArea ?? 'general';
   const sourceLang = requestedSource ?? activeProfile?.sourceLang ?? 'arz';
+  const stageDefs = getLocalizedStageDefinitions(targetLang);
 
   if (lastRoutedTargetLang !== targetLang) {
     console.log('[Curriculum Router] Loading language:', targetLang, 'Focus Area:', focusArea, 'Source:', sourceLang);
@@ -1571,7 +1592,7 @@ export function buildCourseStructure(
         })),
       }));
 
-      return STAGE_DEFINITIONS.map((definition, index) => {
+      return stageDefs.map((definition, index) => {
         const start = (index * LESSONS_PER_STAGE) % Math.max(1, arabicLessons.length);
         let slice = arabicLessons.slice(start, start + LESSONS_PER_STAGE);
         if (slice.length < LESSONS_PER_STAGE && arabicLessons.length > 0) {
@@ -1588,23 +1609,40 @@ export function buildCourseStructure(
     case 'pt':
     case 'tr': {
       const phases = getCurriculum('ar', targetLang);
-      const lessons = phases.flatMap((phase) => phase.lessons);
-      return STAGE_DEFINITIONS.map((definition, index) => {
-        const start = (index * LESSONS_PER_STAGE) % Math.max(1, lessons.length);
-        let slice = lessons.slice(start, start + LESSONS_PER_STAGE);
-        if (slice.length < LESSONS_PER_STAGE && lessons.length > 0) {
-          slice = [...slice, ...lessons.slice(0, LESSONS_PER_STAGE - slice.length)];
+      const exercises = phases.flatMap((phase) => phase.lessons).flatMap((l) => l.exercises);
+      const fallbackExercises = buildDictionaryPhases(targetLang, getTargetDictionary(targetLang), 'ar').flatMap(p => p.lessons).flatMap(l => l.exercises);
+      const activeExercises = exercises.length > 0 ? exercises : fallbackExercises;
+
+      return stageDefs.map((definition, index) => {
+        const lessonsForStage: Lesson[] = [];
+        for (let lIdx = 0; lIdx < LESSONS_PER_STAGE; lIdx++) {
+          const start = (index * LESSONS_PER_STAGE + lIdx * 3) % Math.max(1, activeExercises.length);
+          const exSlice = activeExercises.slice(start, start + 3);
+          lessonsForStage.push({
+            id: `${targetLang}-stage-${index + 1}-l${lIdx + 1}`,
+            phaseId: 1,
+            phaseTitle: definition.titleEn,
+            phaseLevel: definition.stage,
+            number: index * LESSONS_PER_STAGE + lIdx + 1,
+            title: `${definition.stage} Lesson ${lIdx + 1}`,
+            titleAr: definition.titleAr,
+            transferConcept: definition.descriptionEn,
+            transferConceptAr: definition.descriptionAr,
+            weakSpotTag: 'grammar',
+            exercises: exSlice.length > 0 ? exSlice : activeExercises.slice(0, 3)
+          });
         }
-        return createStageNode(definition, slice.length > 0 ? slice : lessons);
+        return createStageNode(definition, lessonsForStage);
       });
     }
     case 'zh':
     case 'hi':
     case 'ru':
-    case 'el': {
-      const seedA0 = LOCALIZED_A0_LESSONS[targetLang] || [];
-      const seedA1 = LOCALIZED_A1_A2_LESSONS[targetLang]?.A1 || [];
-      const seedA2 = LOCALIZED_A1_A2_LESSONS[targetLang]?.A2 || [];
+    case 'el':
+    case 'he': {
+      const seedA0 = (LOCALIZED_A0_LESSONS as any)[targetLang] || [];
+      const seedA1 = (LOCALIZED_A1_A2_LESSONS as any)[targetLang]?.A1 || [];
+      const seedA2 = (LOCALIZED_A1_A2_LESSONS as any)[targetLang]?.A2 || [];
 
       const a0 = generateProceduralStageLessons(targetLang as any, 'A0', seedA0, focusArea, 10, sourceLang);
       const a1 = generateProceduralStageLessons(targetLang as any, 'A1', seedA1, focusArea, 15, sourceLang);
@@ -1635,7 +1673,7 @@ export function buildCourseStructure(
 
       const finalLessons = convertedLessons.length > 0 ? convertedLessons : PHASES_DATA.flatMap(p => p.lessons);
 
-      return STAGE_DEFINITIONS.map((definition, index) => {
+      return stageDefs.map((definition, index) => {
         const start = (index * LESSONS_PER_STAGE) % finalLessons.length;
         let slice = finalLessons.slice(start, start + LESSONS_PER_STAGE);
         if (slice.length < LESSONS_PER_STAGE) {
@@ -1647,7 +1685,7 @@ export function buildCourseStructure(
     case 'en':
     case 'ar': {
       const lessons = PHASES_DATA.flatMap((phase) => phase.lessons);
-      return STAGE_DEFINITIONS.map((definition, index) => {
+      return stageDefs.map((definition, index) => {
         const start = (index * LESSONS_PER_STAGE) % lessons.length;
         let slice = lessons.slice(start, start + LESSONS_PER_STAGE);
         if (slice.length < LESSONS_PER_STAGE) {

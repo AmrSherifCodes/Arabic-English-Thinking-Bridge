@@ -1,9 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildCourseStructure, isLessonUnlocked, isStageUnlocked, getNextStageAfterLessonCompletion } from './courseData';
+import { buildCourseStructure, getCefrLevelHierarchy, isLessonUnlocked, isStageUnlocked, getNextStageAfterLessonCompletion } from './courseData';
 import { createInitialProgressionState } from './engine';
 import { getTargetDictionaryAsync, searchTargetDictionaryAsync } from '../data/dictionaries';
 import { isFeatureUnlocked } from './featureUnlocks';
+import { getUiMode, setUiMode } from '../utils/uiMode';
 import type { TargetLanguage } from '../types';
 
 const TEST_LANGUAGES: { code: TargetLanguage; minDictEntries: number; sampleQuery: string }[] = [
@@ -11,6 +12,10 @@ const TEST_LANGUAGES: { code: TargetLanguage; minDictEntries: number; sampleQuer
   { code: 'ar', minDictEntries: 10000, sampleQuery: 'كتاب' },
   { code: 'de', minDictEntries: 2000, sampleQuery: 'Haus' },
   { code: 'es', minDictEntries: 10000, sampleQuery: 'hablar' },
+];
+
+const ALL_TARGET_LANGUAGES: TargetLanguage[] = [
+  'en', 'ar', 'de', 'es', 'fr', 'ja', 'tr', 'zh', 'ru', 'hi', 'pt', 'it', 'el', 'he'
 ];
 
 test('1. Multi-Language Course Structure & Exercise Quality Test', async (t) => {
@@ -143,7 +148,49 @@ test('5. Reverse Path (Foreigners / English Speakers Learning Arabic) Curriculum
   assert.ok(ex0.wordChips.length > 0, 'Word chips in reverse path must exist');
   assert.ok(/[\u0600-\u06FF]/.test(ex0.wordChips[0]), 'Word chips in reverse path must be Arabic words');
 
-  const phasesEnArz = getCurriculum('en', 'arz');
+  const phasesEnArz = getCurriculum('en', 'arz' as any);
   const exArz = phasesEnArz[0].lessons[0].exercises[0];
-  assert.ok(/[\u0600-\u06FF]/.test(exArz.targetSentence), 'Egyptian Arabic target sentence must be Arabic');
+  assert.ok(/[\u0600-\u06FF]/.test(exArz.targetSentence || ''), 'Egyptian Arabic target sentence must be Arabic');
+});
+
+test('6. Comprehensive Audit: All 14 Target Languages Load > 0 Lessons & Valid Exercises', async () => {
+  for (const lang of ALL_TARGET_LANGUAGES) {
+    const hierarchy = getCefrLevelHierarchy(lang);
+    assert.ok(hierarchy.length > 0, `Hierarchy for ${lang} must exist`);
+
+    const allLessons = hierarchy.flatMap((level) =>
+      level.phases.flatMap((phase) =>
+        phase.modules.flatMap((mod) =>
+          mod.units.flatMap((unit) => {
+            if (lang !== 'en') {
+              assert.equal(
+                unit.titleAr.includes('(-ed)'),
+                false,
+                `Unit title in ${lang} must not contain English (-ed) grammar label`
+              );
+            }
+            return unit.lessons;
+          })
+        )
+      )
+    );
+
+    assert.ok(allLessons.length > 0, `Target ${lang} must load > 0 lessons, got ${allLessons.length}`);
+    const firstLesson = allLessons[0];
+    const firstEx = firstLesson?.exercises[0];
+    assert.ok(firstEx, `First exercise in ${lang} must exist`);
+    assert.ok(firstEx.targetSentence, `First exercise in ${lang} must have target sentence`);
+    assert.ok((firstEx.wordChips?.length || 0) > 0, `First exercise in ${lang} must have word chips`);
+  }
+});
+
+test('7. Simple Mode <-> Pro Mode State Toggle Test', () => {
+  setUiMode('simple');
+  assert.equal(getUiMode(), 'simple');
+
+  setUiMode('pro');
+  assert.equal(getUiMode(), 'pro');
+
+  setUiMode('simple');
+  assert.equal(getUiMode(), 'simple');
 });

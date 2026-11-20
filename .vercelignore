@@ -2,6 +2,9 @@
 node_modules
 android/
 src-tauri/
+.aistudio/
+e2e/
+trailer-tutor/
 coverage/
 .cache/
 build/

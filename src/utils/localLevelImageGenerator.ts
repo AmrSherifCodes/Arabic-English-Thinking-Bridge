@@ -37,7 +37,7 @@ export function generatePythonLevelSvg({
   const scene = getSceneContextForExercise(englishTarget, promptAr, stage, levelNumber);
 
   const cleanPrompt = escapeXml(promptAr.replace(/["']/g, '').substring(0, 36));
-  const cleanTarget = escapeXml(englishTarget.replace(/["']/g, '').substring(0, 42));
+  const cleanTarget = escapeXml((englishTarget || '🤔 ركّب الجملة بالإنجليزي...').replace(/["']/g, '').substring(0, 42));
   const categoryTitleAr = escapeXml(scene.categoryTitleAr);
   const categoryTitleEn = escapeXml(scene.categoryTitleEn);
   const grammarTag = escapeXml(scene.grammarTag);

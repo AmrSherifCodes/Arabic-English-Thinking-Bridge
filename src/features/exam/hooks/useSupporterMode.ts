@@ -7,12 +7,13 @@
 
 import { useState } from 'react';
 import { STORAGE_KEYS } from '../types';
+import { isYouTubeSubscribed, setYouTubeSubscribed } from '../../../utils/youtubeSupporter';
 
 export function useSupporterMode() {
   const [supporterMode, setSupporterModeState] = useState<boolean>(() => {
     try {
       if (typeof window === 'undefined') return false;
-      return window.localStorage.getItem(STORAGE_KEYS.SUPPORTER_MODE) === 'on';
+      return isYouTubeSubscribed() || window.localStorage.getItem(STORAGE_KEYS.SUPPORTER_MODE) === 'on';
     } catch {
       return false;
     }
@@ -21,6 +22,7 @@ export function useSupporterMode() {
   const setSupporterMode = (enabled: boolean) => {
     setSupporterModeState(enabled);
     try {
+      setYouTubeSubscribed(enabled);
       window.localStorage.setItem(STORAGE_KEYS.SUPPORTER_MODE, enabled ? 'on' : 'off');
     } catch (err) {
       console.warn('Unable to persist Supporter Mode state.', err);

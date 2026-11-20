@@ -71,14 +71,14 @@ export const ExamStartScreen: React.FC<ExamStartScreenProps> = ({
         <p className="text-sm text-stone-300 max-w-md leading-relaxed">
           مش امتحان وزارة. ٢٠ سؤال، كوباية شاي، ونتيجة على طول.
           <br />
-          <span className="text-xs text-stone-400 font-sans">20 questions · Instant CEFR assessment · 100% offline</span>
+          <span className="text-xs text-stone-400 font-sans" dir="ltr">20 سؤال • 100% بدون إنترنت</span>
         </p>
       </div>
 
       {/* Step 1: Language Selector (English / Deutsch / عبري) */}
       <div className="w-full bg-stone-900/95 border border-stone-800 rounded-3xl p-5 shadow-xl backdrop-blur-md flex flex-col gap-3">
         <label className="text-sm font-bold text-amber-400 flex items-center gap-1.5">
-          <span>١. اختار اللغة المراد تعلّمها</span>
+          <span>١. اختار اللغة</span>
           <span className="text-xs text-stone-400 font-normal">· Choose Target Language</span>
         </label>
         <div className="grid grid-cols-3 gap-2.5">
@@ -91,8 +91,8 @@ export const ExamStartScreen: React.FC<ExamStartScreenProps> = ({
                 : 'bg-stone-800 hover:bg-stone-750 text-stone-200 font-sans border border-stone-700'
             }`}
           >
-            <span>English</span>
-            <span className="text-[10px] opacity-80">إنجليزي</span>
+            <span className="font-sans">EN</span>
+            <span className="text-[10px] opacity-90 font-bold">الإنجليزية</span>
           </button>
 
           <button
@@ -104,8 +104,8 @@ export const ExamStartScreen: React.FC<ExamStartScreenProps> = ({
                 : 'bg-stone-800 hover:bg-stone-750 text-stone-200 font-sans border border-stone-700'
             }`}
           >
-            <span>Deutsch</span>
-            <span className="text-[10px] opacity-80">ألماني</span>
+            <span className="font-sans">DE</span>
+            <span className="text-[10px] opacity-90 font-bold">الألمانية</span>
           </button>
 
           <button
@@ -117,8 +117,8 @@ export const ExamStartScreen: React.FC<ExamStartScreenProps> = ({
                 : 'bg-stone-800 hover:bg-stone-750 text-stone-200 border border-stone-700'
             }`}
           >
-            <span>عبري</span>
-            <span className="text-[10px] opacity-80 font-sans">Hebrew</span>
+            <span className="font-sans">HE</span>
+            <span className="text-[10px] opacity-90 font-bold">العبرية</span>
           </button>
         </div>
       </div>
@@ -126,7 +126,7 @@ export const ExamStartScreen: React.FC<ExamStartScreenProps> = ({
       {/* Step 2: Mode Selector */}
       <div className="w-full bg-stone-900/95 border border-stone-800 rounded-3xl p-5 shadow-xl backdrop-blur-md flex flex-col gap-3">
         <label className="text-sm font-bold text-amber-400 flex items-center gap-1.5">
-          <span>٢. اختار نوع الجلسة</span>
+          <span>٢. اختار نوع الاختبار</span>
           <span className="text-xs text-stone-400 font-normal">· Select Session Type</span>
         </label>
         <div className="grid grid-cols-2 gap-3">
@@ -163,7 +163,7 @@ export const ExamStartScreen: React.FC<ExamStartScreenProps> = ({
         <div className="w-full bg-gradient-to-r from-amber-950/70 to-stone-900 border border-amber-500/40 rounded-3xl p-4 shadow-lg flex items-center justify-between">
           <div className="flex flex-col text-right">
             <span className="text-xs text-amber-300 font-bold flex items-center gap-1">
-              <Calendar className="w-3.5 h-3.5" /> سؤال النهارده (+15 XP) · Daily Question
+              <Calendar className="w-3.5 h-3.5" /> سؤال اليوم (+15 XP) · Daily Question
             </span>
             <span className="text-xs text-stone-200 mt-1">{dailyQuestion.promptArz}</span>
           </div>
@@ -172,7 +172,7 @@ export const ExamStartScreen: React.FC<ExamStartScreenProps> = ({
             aria-label="حِل سؤال النهاردة · Solve Daily Question"
             className="min-h-[44px] py-2 px-4 rounded-xl bg-amber-400 hover:bg-amber-300 text-stone-950 text-xs font-bold transition-all shadow-md focus-visible:ring-2 focus-visible:ring-amber-200"
           >
-            حِل سؤال النهاردة
+            حِل سؤال اليوم
           </button>
         </div>
       )}
@@ -180,10 +180,10 @@ export const ExamStartScreen: React.FC<ExamStartScreenProps> = ({
       {/* Step 3: Main Start CTA Button (64px Height, WCAG AA Contrast) */}
       <button
         onClick={() => onStartSession(selectedLang, isPlacement)}
-        aria-label="ابدأ الامتحان يا باشا · Start Exam"
+        aria-label="ابدأ الاختبار · Start Assessment"
         className="w-full min-h-[64px] py-4 px-6 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 hover:from-amber-300 hover:to-amber-500 text-stone-950 font-black text-xl transition-all shadow-xl active:scale-[0.99] flex flex-col items-center justify-center border-2 border-amber-300 focus-visible:ring-4 focus-visible:ring-amber-300 cursor-pointer"
       >
-        <span>ابدأ الامتحان يا باشا 🚀</span>
+        <span>ابدأ الاختبار 🚀</span>
         <span className="text-xs font-sans font-bold opacity-85">Start Assessment Now</span>
       </button>
 

@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://tb-eg.vercel.app/sitemap.xml

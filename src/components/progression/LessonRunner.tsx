@@ -2,35 +2,73 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { LessonNode, ExerciseItem } from '../../progression/types';
-import { CheckCircle2, XCircle, ArrowRight, Zap, Timer, Sparkles, Brain, Shuffle } from 'lucide-react';
+import { CheckCircle2, XCircle, ArrowRight, Zap, Timer, Sparkles, Brain, Shuffle, X } from 'lucide-react';
 import { computeNextHintWord } from '../../utils/habitPsychology';
 import { soundFX } from '../../utils/soundFX';
 import { updateCognitiveProfile, runLocalTrainingStep, getDifficultyKnob } from '../../utils/OnlineLearningEngine';
 import { getDynamicExerciseOptions } from '../../utils/adaptiveCurriculum';
 import { LevelVisualIllustration } from './LevelVisualIllustration';
+import { NameForge } from '../NameForge';
+import { DualSpeedAudio } from '../DualSpeedAudio';
+import { useUiMode } from '../../utils/uiMode';
 
-function getSocraticHint(exercise: ExerciseItem, isArabic: boolean): string {
+function getSmartGrammarClue(exercise: ExerciseItem, isArabic: boolean): string {
+  const arExplanation = exercise.explanationAr || (exercise as any).hintAr || '';
+  if (isArabic && arExplanation) return arExplanation;
+  if (!isArabic && exercise.explanationEn) return exercise.explanationEn;
+
   const target = (exercise.targetSentence || '').toLowerCase();
-  const arExplanation = exercise.explanationAr || '';
 
-  if (arExplanation.includes('كينونة') || arExplanation.includes('ربط') || arExplanation.includes('am') || arExplanation.includes('is') || arExplanation.includes('are') || target.includes(' am ') || target.includes(' is ') || target.includes(' are ')) {
+  if (/\b(a|an)\b\s+\w+\s+\w+/.test(target) || target.includes('a new') || target.includes('a big') || target.includes('a fast') || target.includes('a red')) {
     return isArabic
-      ? '💡 سر التركيب بالبلدي: في العربي بنقول (أنا طالب) على طول، لكن الإنجليزي ميعرفش يعيش من غير فعل ربط يسند الجملة زي (I am a student).'
-      : '💡 Native Tip: Arabic omits present linking verbs (أنا طالب), but English requires the linking verb "am/is/are".';
+      ? 'في الإنجليزي الصفة بتيجي قبل الاسم (new bicycle مش bicycle new)، ولازم نضيف a أو an قبل المفرد النكرة.'
+      : 'In English, adjectives come before nouns (new bicycle), and indefinite singular nouns require "a" or "an".';
   }
-  if (arExplanation.includes('حرف') || arExplanation.includes('جر') || arExplanation.includes('in') || arExplanation.includes('on') || arExplanation.includes('at')) {
+  if (/\b(am|is|are)\b/.test(target)) {
     return isArabic
-      ? '💡 سر التركيب بالبلدي: حروف الجر أصلها المفهوم الذهني (in للمكان المقفول، on للسطح المستوي، at لنقطة معينة).'
-      : '💡 Native Tip: Spatial prepositions reflect spatial containers (in = enclosed space, on = surface, at = specific point).';
+      ? 'الإنجليزي بيحتاج فعل ربط (am / is / are) بين الفاعل والصفة أو الاسم — زي: I am a student.'
+      : 'English requires a linking verb (am / is / are) between subject and adjective or noun.';
   }
-  if (target.includes('do') || target.includes('does') || target.includes('did')) {
+  if (/\b(bought|went|ate|saw|took|made|was|were|did)\b|\w+ed\b/.test(target)) {
     return isArabic
-      ? '💡 سر التركيب بالبلدي: في السؤال والنفي لازم نحط الفعل المساعد (do/does) عشان الجملة تظبط صح.'
-      : '💡 Native Tip: Questions and negatives in English require auxiliary do/does verbs to anchor tense.';
+      ? 'الجملة في الماضي — بنبدأ بالفاعل وبعده الفعل في صيغة الماضي مباشرة.'
+      : 'The sentence is in past tense — subject followed immediately by past verb form.';
+  }
+  if (/^(hello|hi|good|how are|nice to|thank|please|excuse)/i.test(target)) {
+    return isArabic
+      ? 'دي عبارة ترحيب أو ذوق يومية جاهزة — ركّبها كقطعة واحدة زي ما بتتقال.'
+      : 'This is a standard daily greeting or polite expression — assemble it as a fixed phrase.';
+  }
+  if (target.endsWith('?')) {
+    return isArabic
+      ? 'في السؤال بالإنجليزي بنبدأ بأداة السؤال أو الفعل المساعد (Do / Are / What / Where) قبل الفاعل.'
+      : 'In English questions, start with the question word or auxiliary verb before the subject.';
   }
   return isArabic
-    ? '💡 سر التركيب بالبلدي: فكّر بالترتيب الإنجليزي المباشر (مين بيعمل إيه) من غير ما تترجم كلمة بكلمة فدماغك.'
-    : '💡 Native Tip: Order your thoughts natively: Subject ➔ Verb ➔ Object without literal word swapping.';
+    ? 'رتّب الجملة بالنظام الإنجليزي: الفاعل الأول ← بعده الفعل ← بعده باقي المعنى.'
+    : 'Order the sentence natively: Subject first ← then Verb ← then remaining meaning.';
+}
+
+function getNextHintWord(targetSentence: string, currentWordsStr: string) {
+  const targetWords = (targetSentence || '').replace(/[.,?!]/g, '').split(/\s+/).filter(Boolean);
+  const currentWords = (currentWordsStr || '').replace(/[.,?!]/g, '').split(/\s+/).filter(Boolean);
+
+  for (let i = 0; i < targetWords.length; i++) {
+    if (i >= currentWords.length || currentWords[i].toLowerCase() !== targetWords[i].toLowerCase()) {
+      return {
+        nextWord: targetWords[i],
+        position: i + 1,
+        total: targetWords.length,
+        allMatched: false,
+      };
+    }
+  }
+  return {
+    nextWord: null,
+    position: targetWords.length,
+    total: targetWords.length,
+    allMatched: true,
+  };
 }
 
 interface LessonRunnerProps {
@@ -46,6 +84,7 @@ export function LessonRunner({
   onClose,
   isArabic = true,
 }: LessonRunnerProps) {
+  const [uiMode] = useUiMode();
   const [exercises, setExercises] = useState<ExerciseItem[]>(() => {
     const list = [...lesson.exercises];
     for (let i = list.length - 1; i > 0; i--) {
@@ -80,6 +119,11 @@ export function LessonRunner({
   const [showSummary, setShowSummary] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
 
+  // Hint Drawer & Stage State
+  const [hintDrawerOpen, setHintDrawerOpen] = useState(false);
+  const [hintStage, setHintStage] = useState<1 | 2 | 3>(1);
+  const [lastAddedHintWord, setLastAddedHintWord] = useState<string | null>(null);
+
   // Variable-Ratio Rewards & Streak Micro-Celebrations State
   const [sessionStreak, setSessionStreak] = useState(0);
   const [sessionXpEarned, setSessionXpEarned] = useState(0);
@@ -91,6 +135,14 @@ export function LessonRunner({
   const [responseTimesMs, setResponseTimesMs] = useState<number[]>([]);
 
   const [autoHintPill, setAutoHintPill] = useState<string | null>(null);
+  const [showNameForge, setShowNameForge] = useState(lesson.stage === 'Pre-A0');
+  const [inputMode, setInputMode] = useState<'tiles' | 'keyboard'>('tiles');
+
+  useEffect(() => {
+    setInputMode('tiles');
+    setHintDrawerOpen(false);
+    setHintStage(1);
+  }, [currentIndex]);
 
   const currentExercise: ExerciseItem = exercises[currentIndex] || exercises[0];
   const isJapaneseExercise = /[\u3040-\u30ff\u3400-\u9fff]/u.test(currentExercise.targetSentence);
@@ -122,41 +174,26 @@ export function LessonRunner({
     exerciseStartTimeRef.current = Date.now();
   }, [currentIndex]);
 
-  const triggerAutoHelper = useCallback((customPillMessage?: string) => {
-    if (isAnswered || showSummary) return;
+  const triggerAutoHelper = useCallback((customPillMessage?: string): string | null => {
+    if (isAnswered || showSummary) return null;
 
     const targetSentence = currentExercise.targetSentence || '';
+    const targetTokens = targetSentence.replace(/[.,?!。、「」]/g, '').split(/\s+/).filter(Boolean);
 
-    const normalizeAnswer = (value: string) => {
-      const normalized = value.toLowerCase().replace(/['".,?!。、「」]/g, '');
-      return normalized.trim().replace(/\s+/g, ' ');
-    };
-
-    if (currentExercise.type === 'structure_builder') {
+    if (inputMode === 'tiles') {
       const currentChoice = selectedChips.join(' ');
-
-      // If already correct, don't show hint
-      if (normalizeAnswer(currentChoice) === normalizeAnswer(targetSentence)) return;
-
       const { nextWord } = computeNextHintWord(targetSentence, currentChoice);
 
-      // Try to find nextWord in available options that hasn't been selected yet
-      let candidateOption = (currentExercise.options || []).find(
-        (opt) => opt.toLowerCase() === (nextWord || '').toLowerCase() && !selectedChips.includes(opt)
-      );
+      let candidateOption: string | undefined = undefined;
+      const availablePool = [...shuffledOptions, ...(currentExercise.options || [])];
+      if (nextWord) {
+        candidateOption = availablePool.find(
+          (opt) => opt.toLowerCase() === nextWord.toLowerCase()
+        );
+      }
 
-      // Smart Fallback: If currentChoice didn't match prefix, find first target token not yet in selectedChips
-      if (!candidateOption) {
-        const targetTokens = currentExercise.wordChips || targetSentence.replace(/[.,?!]/g, '').split(/\s+/).filter(Boolean);
-        for (const token of targetTokens) {
-          const opt = (currentExercise.options || []).find(
-            (o) => o.toLowerCase() === token.toLowerCase() && !selectedChips.includes(o)
-          );
-          if (opt) {
-            candidateOption = opt;
-            break;
-          }
-        }
+      if (!candidateOption && targetTokens[selectedChips.length]) {
+        candidateOption = targetTokens[selectedChips.length];
       }
 
       if (candidateOption) {
@@ -164,29 +201,31 @@ export function LessonRunner({
         setAutoHintPill(
           customPillMessage ?? (
             isArabic
-              ? `💡 تلميح: أضفنا "${candidateOption}" إلى إجابتك`
-              : `💡 Hint: Added "${candidateOption}" to your answer`
+              ? `💡 أضفنا الكلمة: "${candidateOption}"`
+              : `💡 Added word: "${candidateOption}"`
           )
         );
+        return candidateOption;
       }
     } else {
-      if (normalizeAnswer(userInput) === normalizeAnswer(targetSentence)) return;
-      const { nextWord, prefixToKeep } = computeNextHintWord(targetSentence, userInput);
+      const { nextWord } = computeNextHintWord(targetSentence, userInput);
       if (nextWord) {
-        const updatedInput = prefixToKeep ? `${prefixToKeep} ${nextWord}` : nextWord;
+        const updatedInput = userInput ? `${userInput} ${nextWord}` : nextWord;
         setUserInput(updatedInput);
         setAutoHintPill(
           customPillMessage ?? (
             isArabic
-              ? `💡 تلميح: أضفنا "${nextWord}" إلى إجابتك`
-              : `💡 Hint: Added "${nextWord}" to your answer`
+              ? `💡 أضفنا الكلمة: "${nextWord}"`
+              : `💡 Added word: "${nextWord}"`
           )
         );
+        return nextWord;
       }
     }
-  }, [isAnswered, showSummary, currentExercise, selectedChips, userInput, isArabic]);
+    return null;
+  }, [isAnswered, showSummary, currentExercise, selectedChips, userInput, shuffledOptions, isArabic, inputMode]);
 
-  // Automatic 30-second Idle Guard: Trigger hint automatically if user stays >30s on an exercise
+  // Automatic 30-second Idle Guard
   useEffect(() => {
     if (isAnswered || showSummary) return;
     const timer = window.setTimeout(() => {
@@ -198,7 +237,6 @@ export function LessonRunner({
     return () => window.clearTimeout(timer);
   }, [currentIndex, isAnswered, showSummary, triggerAutoHelper, isArabic]);
 
-  // Dismiss the manual-hint confirmation after 2.5s.
   useEffect(() => {
     if (autoHintPill) {
       const t = window.setTimeout(() => setAutoHintPill(null), 2500);
@@ -209,13 +247,12 @@ export function LessonRunner({
   const handleCheckAnswer = () => {
     if (isAnswered) return;
 
-    // Hole 1 Fix: Cap timeSpentMs at 30,000ms (30 seconds) to prevent ruined cognitive metrics on idle tabs
     const rawTimeSpentMs = Math.max(1000, Date.now() - exerciseStartTimeRef.current);
     const timeSpentMs = Math.min(30000, rawTimeSpentMs);
     setResponseTimesMs((prev) => [...prev, timeSpentMs]);
 
     let userSentence = '';
-    if (currentExercise.type === 'structure_builder') {
+    if (inputMode === 'tiles') {
       userSentence = selectedChips.join(' ').trim();
     } else {
       userSentence = userInput.trim();
@@ -236,7 +273,6 @@ export function LessonRunner({
         (alt) => normalizeAnswer(alt) === normUser
       );
 
-    // Online Learning Engine PyTorch-Style Model Weight Update
     const category = currentExercise.weakSpotTag || 'general';
     updateCognitiveProfile(timeSpentMs, isMatch, category);
     runLocalTrainingStep('answer_exercise', isMatch, category, timeSpentMs);
@@ -244,18 +280,16 @@ export function LessonRunner({
     setIsCorrect(isMatch);
 
     if (isMatch) {
-      // Hole 3 Fix: Variable-Ratio Reward Algorithm (Dopamine Loop)
-      // 10% chance Critical Hit (+50 XP), 10% chance Normal (+10 XP), 80% chance Standard (+15 XP)
       const rand = Math.random();
       let awardedXp = 15;
       let critical = false;
       if (rand < 0.10) {
-        awardedXp = 50; // Critical Hit! (10%)
+        awardedXp = 50;
         critical = true;
       } else if (rand < 0.20) {
-        awardedXp = 10; // Normal (10%)
+        awardedXp = 10;
       } else {
-        awardedXp = 15; // Standard (80%)
+        awardedXp = 15;
       }
 
       setLastExerciseXp(awardedXp);
@@ -270,7 +304,6 @@ export function LessonRunner({
         soundFX.playFanfare();
       }
 
-      // Micro-Celebration: Trigger Confetti on 3-Streak or Critical Hit!
       if (nextStreak % 3 === 0 || critical) {
         confetti({
           particleCount: critical ? 120 : 60,
@@ -291,7 +324,8 @@ export function LessonRunner({
         navigator.vibrate(isMatch ? [30, 40, 50] : [70]);
       }
     } catch {}
-    setAutoHintPill(null); // Clear any active hint
+    setAutoHintPill(null);
+    setHintDrawerOpen(false);
     setIsAnswered(true);
 
     if (isMatch) {
@@ -305,6 +339,7 @@ export function LessonRunner({
     setSelectedChips([]);
     setUserInput('');
     setAutoHintPill(null);
+    setHintDrawerOpen(false);
 
     if (currentIndex + 1 < exercises.length) {
       setCurrentIndex((prev) => prev + 1);
@@ -312,6 +347,14 @@ export function LessonRunner({
       setShowSummary(true);
     }
   };
+
+  if (showNameForge) {
+    return (
+      <div className="fixed inset-0 z-[100] bg-bg/90 backdrop-blur-xl flex items-center justify-center p-2 sm:p-6">
+        <NameForge onComplete={() => setShowNameForge(false)} />
+      </div>
+    );
+  }
 
   if (showSummary) {
     const accuracy = Math.round((correctAnswersCount / exercises.length) * 100);
@@ -346,7 +389,6 @@ export function LessonRunner({
               </p>
             </div>
 
-            {/* Reward Summary Card */}
             <div className="p-4 rounded-3xl bg-surface border border-border grid grid-cols-2 gap-3">
               <div className="p-3 rounded-2xl bg-surface-2">
                 <span className="text-xl font-black text-success block">+{earnedXp} XP</span>
@@ -358,7 +400,6 @@ export function LessonRunner({
               </div>
             </div>
 
-            {/* Automaticity Reflex Meter Card */}
             <div className="p-3.5 rounded-2xl bg-surface-2 border border-border flex items-center justify-between text-start">
               <div className="flex items-center gap-2.5">
                 <div className="p-2 rounded-xl bg-success/20 text-success">
@@ -383,7 +424,7 @@ export function LessonRunner({
                 onCompleteSession(earnedXp, accuracy);
                 onClose();
               }}
-              className="w-full py-4 min-h-[48px] rounded-2xl bg-primary text-on-primary font-black text-base transition active:scale-95 shadow-lg"
+              className="w-full py-4 min-h-[48px] rounded-2xl bg-primary text-on-primary font-black text-base transition active:scale-95 shadow-lg cursor-pointer"
             >
               {isArabic ? 'استمرار والعودة للمسار 🚀' : 'Continue to Path 🚀'}
             </button>
@@ -402,10 +443,10 @@ export function LessonRunner({
         <div className="p-4 border-b border-border flex items-center gap-3 bg-surface/50">
           <button
             onClick={() => setShowExitConfirm(true)}
-            className="p-2 min-h-[48px] min-w-[48px] flex items-center justify-center rounded-xl bg-surface-2 text-muted hover:text-text font-bold transition"
-            aria-label={isArabic ? 'إغلاق' : 'Close'}
+            className="p-2 min-h-[48px] min-w-[48px] flex items-center justify-center rounded-xl bg-surface-2 text-muted hover:text-text font-bold transition cursor-pointer"
+            aria-label={isArabic ? 'إغلاق الدرس' : 'Close Lesson'}
           >
-            ✕
+            <X size={20} />
           </button>
           <div className="flex-1 bg-surface-2 h-3 rounded-full overflow-hidden border border-border">
             <div
@@ -416,8 +457,23 @@ export function LessonRunner({
           <div className="flex items-center gap-1.5">
             <button
               type="button"
+              onClick={() => {
+                const addedWord = triggerAutoHelper();
+                if (addedWord) setLastAddedHintWord(addedWord);
+                setHintDrawerOpen(true);
+              }}
+              className={`p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl bg-cyan-500/15 border border-cyan-500/40 text-cyan-300 hover:bg-cyan-500/25 text-xs font-bold transition active:scale-95 cursor-pointer ${
+                !isAnswered && !hintDrawerOpen ? 'ring-2 ring-amber-400/70 animate-pulse' : ''
+              }`}
+              title={isArabic ? 'تلميح ذكي' : 'Smart Hint'}
+              aria-label={isArabic ? 'تلميح ذكي' : 'Smart Hint'}
+            >
+              💡 <span className="hidden sm:inline ms-1">{uiMode === 'simple' ? (isArabic ? 'ساعدني' : 'Help') : (isArabic ? 'تلميح' : 'Hint')}</span>
+            </button>
+            <button
+              type="button"
               onClick={handleShuffleExercises}
-              className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20 text-xs font-bold transition active:scale-95"
+              className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20 text-xs font-bold transition active:scale-95 cursor-pointer"
               title={isArabic ? 'إعادة ترتيب التمارين عشوائياً' : 'Randomize exercise order'}
               aria-label={isArabic ? 'إعادة ترتيب التمارين عشوائياً' : 'Randomize exercise order'}
             >
@@ -429,6 +485,56 @@ export function LessonRunner({
             </div>
           </div>
         </div>
+
+        {/* Floating Side-Popup Smart Hint Drawer */}
+        {hintDrawerOpen && (
+          <div className="fixed top-20 end-4 z-50 w-80 max-w-[calc(100vw-2rem)] rounded-3xl bg-[#0B1C33] border-2 border-cyan-500/50 shadow-2xl p-4 space-y-3 text-start animate-in fade-in slide-in-from-top-2" dir={isArabic ? 'rtl' : 'ltr'}>
+            <div className="flex items-center justify-between border-b border-cyan-500/20 pb-2">
+              <div className="flex items-center gap-2">
+                <span className="text-base">💡</span>
+                <h3 className="text-sm font-black text-white">{isArabic ? 'المساعد الذكي' : 'Smart Hint Assistant'}</h3>
+              </div>
+              <button
+                onClick={() => setHintDrawerOpen(false)}
+                className="p-1.5 rounded-xl bg-slate-800 text-slate-300 hover:text-white cursor-pointer text-xs"
+              >
+                ✕
+              </button>
+            </div>
+
+            {lastAddedHintWord && (
+              <div className="flex items-center justify-between bg-slate-950 p-2.5 rounded-xl border border-cyan-500/30">
+                <span className="text-xs font-bold text-emerald-300">✅ أضفنا الكلمة:</span>
+                <div className="flex items-center gap-2">
+                  <span className="font-mono font-black text-amber-300 text-sm px-2 py-0.5 bg-amber-500/15 rounded-lg">
+                    {lastAddedHintWord}
+                  </span>
+                  <DualSpeedAudio text={lastAddedHintWord} showLabels={false} />
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-2 text-xs">
+              <div className="flex items-center gap-1.5 text-cyan-300 font-bold">
+                <span>🧠 القاعدة وسر التركيب:</span>
+              </div>
+              <p className="text-slate-200 leading-relaxed font-medium">
+                {getSmartGrammarClue(currentExercise, isArabic)}
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                const nextAdded = triggerAutoHelper();
+                if (nextAdded) setLastAddedHintWord(nextAdded);
+              }}
+              className="w-full py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs transition cursor-pointer shadow-md flex items-center justify-center gap-1.5"
+            >
+              <span>➕ ضيف الكلمة الجاية</span>
+            </button>
+          </div>
+        )}
 
         {/* Exercise Body */}
         <motion.div
@@ -458,63 +564,44 @@ export function LessonRunner({
             </motion.div>
           )}
 
-          {/* Socratic Mnemonic Hint */}
-          {!isAnswered && (
-            <div className="p-3.5 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-200 text-xs font-semibold flex items-start gap-2.5 shadow-sm transition-all">
-              <Brain size={18} className="shrink-0 text-cyan-400 mt-0.5" />
-              <div className="flex-1 space-y-1.5">
-                <span className="leading-relaxed block">{getSocraticHint(currentExercise, isArabic)}</span>
-                {autoHintPill && (
-                  <div className="inline-flex items-center gap-1.5 text-[11px] font-bold text-teal-300 bg-teal-500/20 px-3 py-1 rounded-xl border border-teal-500/40">
-                    <Sparkles size={13} className="shrink-0 text-teal-300" />
-                    <span>{autoHintPill}</span>
-                  </div>
-                )}
-              </div>
-            </div>
+          {/* Compact Visual Illustration (only shown after answered, otherwise omitted to save vertical space) */}
+          {isAnswered && (
+            <LevelVisualIllustration
+              stage={lesson.stage || 'A0'}
+              levelNumber={currentIndex + 1}
+              promptAr={currentExercise.promptAr}
+              englishTarget={currentExercise.targetSentence}
+              className="w-full h-auto max-h-[120px]"
+            />
           )}
-
-          {/* Manual hint button */}
-          {!isAnswered && (
-            <div className="flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-2xl bg-surface border border-border">
-              <div className="flex items-center gap-2.5 flex-1 min-w-0">
-                <Sparkles size={18} className="text-primary shrink-0" />
-                <span className="flex-1 text-[10px] font-bold text-muted">
-                  {isArabic ? 'خذ وقتك، لا تنتقل إلا عندما تكون مستعداً' : 'Take your time; continue when you are ready'}
-                </span>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => triggerAutoHelper()}
-                className="px-3 py-2 rounded-xl bg-primary/20 border border-primary/40 text-primary hover:bg-primary hover:text-on-primary font-bold text-xs transition active:scale-95 shrink-0"
-              >
-                {isArabic ? '💡 تلميح الآن' : '💡 Hint Now'}
-              </button>
-            </div>
-          )}
-
-          {/* Locally Generated Python Visual Illustration */}
-          <LevelVisualIllustration
-            stage={lesson.stage || 'A0'}
-            levelNumber={currentIndex + 1}
-            promptAr={currentExercise.promptAr}
-            englishTarget={currentExercise.targetSentence}
-            className="w-full h-auto max-h-[150px] sm:max-h-[180px]"
-          />
 
           {/* Source Thought Prompt */}
-          <div className="p-4 rounded-3xl bg-surface border border-border space-y-2">
-            <span className="text-[10px] font-black uppercase tracking-wider text-success block">
-              {isArabic ? 'عَبّر عن الفكرة بترتيب اللغة المستهدفة:' : 'Express the thought in the target language:'}
-            </span>
-            <h2 className="text-lg font-black text-text" dir="auto">
-              "{isArabic ? currentExercise.promptAr : currentExercise.promptEn}"
-            </h2>
+          <div className="p-4 rounded-3xl bg-surface border border-border space-y-2 flex items-center justify-between gap-2">
+            <div>
+              <span className="text-[10px] font-black uppercase tracking-wider text-success block">
+                {isArabic ? 'عَبّر عن الفكرة بترتيب اللغة المستهدفة:' : 'Express the thought in the target language:'}
+              </span>
+              <h2 className="text-lg font-black text-text" dir="auto">
+                "{isArabic ? currentExercise.promptAr : currentExercise.promptEn}"
+              </h2>
+            </div>
+            {uiMode === 'pro' && (
+              <button
+                type="button"
+                onClick={() => setInputMode(m => m === 'tiles' ? 'keyboard' : 'tiles')}
+                className="px-3 py-1.5 rounded-xl bg-surface-2 text-text text-xs font-bold border border-border shrink-0 cursor-pointer"
+              >
+                {inputMode === 'tiles' ? (isArabic ? '⌨️ اكتب بالكيبورد' : 'Keyboard') : (isArabic ? '🧩 ركّب بالكلمات' : 'Word Tiles')}
+              </button>
+            )}
+          </div>
+
+          <div className="flex justify-center">
+            <DualSpeedAudio text={currentExercise.targetSentence} showLabels={true} />
           </div>
 
           {/* Structure Builder / Word Chips Mode */}
-          {currentExercise.type === 'structure_builder' && (
+          {inputMode === 'tiles' && (
             <div className="space-y-4">
               {/* Selected Chips Slot */}
               <div
@@ -536,7 +623,7 @@ export function LessonRunner({
                         }
                       }}
                       dir={isTargetRtl ? 'rtl' : 'ltr'}
-                      className="px-3.5 py-2.5 rounded-xl bg-purple-500/20 border border-purple-400 text-purple-200 font-black text-sm active:scale-95 shadow-sm"
+                      className="px-3.5 py-2.5 rounded-xl bg-purple-500/20 border border-purple-400 text-purple-200 font-black text-sm active:scale-95 shadow-sm cursor-pointer"
                     >
                       {chip}
                     </button>
@@ -559,9 +646,9 @@ export function LessonRunner({
                         setSelectedChips((prev) => [...prev, chip]);
                       }}
                       dir={isTargetRtl ? 'rtl' : 'ltr'}
-                      className={`px-4 py-2.5 min-h-[48px] rounded-xl font-bold text-sm transition ${
+                      className={`px-4 py-2.5 min-h-[48px] rounded-xl font-bold text-sm transition cursor-pointer ${
                         isSelected
-                          ? 'opacity-30 bg-surface border border-border text-muted'
+                          ? 'opacity-30 bg-surface border border-border text-muted cursor-not-allowed'
                           : 'bg-surface border border-border text-text hover:bg-surface-2 active:scale-95 shadow-sm'
                       }`}
                     >
@@ -574,7 +661,7 @@ export function LessonRunner({
           )}
 
           {/* Text Input Mode */}
-          {currentExercise.type !== 'structure_builder' && (
+          {inputMode === 'keyboard' && (
             <div className="space-y-2">
               <textarea
                 value={userInput}
@@ -632,12 +719,12 @@ export function LessonRunner({
             <button
               onClick={handleCheckAnswer}
               disabled={
-                currentExercise.type === 'structure_builder'
+                inputMode === 'tiles'
                   ? selectedChips.length === 0
                   : !userInput.trim()
               }
               aria-label="تحقق من البناء · Check Structure"
-              className="w-full min-h-[60px] py-4 rounded-2xl bg-amber-400 hover:bg-amber-300 text-stone-950 font-black text-lg transition disabled:opacity-40 disabled:bg-stone-800 disabled:text-stone-500 disabled:cursor-not-allowed shadow-2xl active:scale-[0.99] border-2 border-amber-300 focus-visible:ring-4 focus-visible:ring-amber-300 flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full min-h-[60px] py-4 rounded-2xl bg-amber-400 hover:bg-amber-300 text-stone-950 font-black text-lg transition disabled:opacity-70 disabled:bg-slate-700 disabled:text-slate-200 disabled:border-slate-500 disabled:cursor-not-allowed shadow-2xl active:scale-[0.99] border-2 border-amber-300 focus-visible:ring-4 focus-visible:ring-amber-300 flex items-center justify-center gap-2 cursor-pointer"
             >
               <span>{isArabic ? 'تحقق من البناء 🚀' : 'Check Structure 🚀'}</span>
               <span className="text-xs font-sans font-bold opacity-80">· Check</span>
@@ -670,14 +757,14 @@ export function LessonRunner({
                 <button
                   type="button"
                   onClick={() => setShowExitConfirm(false)}
-                  className="flex-1 py-3 min-h-[48px] rounded-2xl bg-primary text-on-primary font-black text-sm transition active:scale-95"
+                  className="flex-1 py-3 min-h-[48px] rounded-2xl bg-primary text-on-primary font-black text-sm transition active:scale-95 cursor-pointer"
                 >
                   {isArabic ? 'متابعة التعلم' : 'Keep learning'}
                 </button>
                 <button
                   type="button"
                   onClick={onClose}
-                  className="flex-1 py-3 min-h-[48px] rounded-2xl bg-surface-2 border border-border text-text font-black text-sm transition active:scale-95"
+                  className="flex-1 py-3 min-h-[48px] rounded-2xl bg-surface-2 border border-border text-text font-black text-sm transition active:scale-95 cursor-pointer"
                 >
                   {isArabic ? 'خروج' : 'Leave'}
                 </button>

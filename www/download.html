@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>ابدأ في ٣٠ ثانية · Start in 30 seconds — فكّر إنجليزي (Thinking Bridge)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Cairo', sans-serif;
+      background-color: #0A0E13;
+      color: #EEF2F5;
+      text-align: center;
+      padding: 2rem 1rem;
+      margin: 0;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    .badge {
+      display: inline-block;
+      background: rgba(16, 185, 129, 0.2);
+      color: #10B981;
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      padding: 0.4rem 1.2rem;
+      border-radius: 9999px;
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+    .btn-primary {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      padding: 1.35rem 1.75rem;
+      background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+      color: #0A0E13;
+      font-weight: 900;
+      text-decoration: none;
+      border-radius: 20px;
+      font-size: 1.4rem;
+      box-shadow: 0 12px 30px -5px rgba(16, 185, 129, 0.45);
+      transition: all 0.25s ease;
+    }
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #34D399 0%, #10B981 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 16px 35px -5px rgba(16, 185, 129, 0.6);
+    }
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.25rem;
+      background: rgba(255, 255, 255, 0.05);
+      color: #9CA3AF;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #EEF2F5;
+    }
+    .instructions-card {
+      background: #141A22;
+      padding: 1.75rem;
+      border-radius: 24px;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      text-align: right;
+    }
+    .step-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 1.25rem;
+      margin-bottom: 1.25rem;
+    }
+    .step-item:last-child {
+      margin-bottom: 0;
+    }
+    .step-num {
+      background: #10B981;
+      color: #0A0E13;
+      font-weight: 900;
+      font-size: 1.2rem;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+    .step-text {
+      line-height: 1.6;
+      font-size: 1.05rem;
+    }
+    .why-card {
+      background: #0E151D;
+      padding: 1.5rem;
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      text-align: right;
+    }
+    .why-list {
+      list-style: none;
+      padding: 0;
+      margin: 0.75rem 0 0 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .why-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 1rem;
+      color: #D1D5DB;
+    }
+    .footer {
+      margin-top: 1.5rem;
+      font-size: 0.85rem;
+      color: #6B7280;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div>
+      <span class="badge">⚡ يعمل بدون إنترنت · Instant Web App</span>
+      <h1 style="font-size: 2.2rem; margin-top: 0.75rem; margin-bottom: 0.5rem; font-weight: 900;">
+        ابدأ في ٣٠ ثانية — Start in 30 seconds
+      </h1>
+      <p style="color: #9CA3AF; margin: 0; font-size: 1.05rem;">
+        فكّر إنجليزي (Thinking Bridge) · المنصة المعرفية لتجاوز الترجمة الحرفية
+      </p>
+    </div>
+
+    <!-- MAIN VISUALLY DOMINANT PWA CTA -->
+    <a
+      href="/app"
+      class="btn-primary"
+      aria-label="ابدأ الآن مجاناً وبدون إنترنت - Start Now Free Offline"
+    >
+      <span>🚀</span>
+      <span>ابدأ في المتصفح مجاناً — Open Web App</span>
+    </a>
+
+    <!-- DIRECT ANDROID APK DOWNLOAD CTA -->
+    <a
+      href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v4.3.0/Thinking-Bridge-v4.3.0.apk"
+      download="Thinking-Bridge-v4.3.0.apk"
+      class="btn-secondary"
+      style="padding: 1rem 1.5rem; font-size: 1.15rem; background: rgba(0, 229, 255, 0.15); color: #00E5FF; border-color: rgba(0, 229, 255, 0.4);"
+      aria-label="تحميل تطبيق الأندرويد v4.3.0 Direct APK Download"
+    >
+      <span>📱</span>
+      <span>تحميل تطبيق الأندرويد (v4.3.0 APK) — Direct Download</span>
+    </a>
+
+    <!-- 3-STEP NUMBERED BLOCK -->
+    <div class="instructions-card">
+      <h3 style="margin-top:0; color: #10B981; font-size: 1.25rem; margin-bottom: 1.25rem;">
+        💡 كيف تبدأ الاستخدام؟ / How to start?
+      </h3>
+
+      <div class="step-item">
+        <div class="step-num">١</div>
+        <div class="step-text">
+          <strong>اضغط الزر الأخضر (Start Now)</strong> — Tap the green button to launch immediately in your browser.
+        </div>
+      </div>
+
+      <div class="step-item">
+        <div class="step-num">٢</div>
+        <div class="step-text">
+          <strong>اضغط "تثبيت" من المتصفح (Install)</strong> — Tap "Install" or "Add to Home Screen" for an instant app icon.
+        </div>
+      </div>
+
+      <div class="step-item">
+        <div class="step-num">٣</div>
+        <div class="step-text">
+          <strong>افتح التطبيق في أي وقت</strong> — Open the app anytime. It works 100% offline with zero internet required.
+        </div>
+      </div>
+    </div>
+
+    <!-- WHY THIS APP BLOCK -->
+    <div class="why-card">
+      <h3 style="margin-top:0; color: #F59E0B; font-size: 1.15rem; margin-bottom: 0.5rem;">
+        🌟 لماذا هذا التطبيق؟ / Why this app?
+      </h3>
+      <ul class="why-list">
+        <li class="why-item">
+          <span style="color: #10B981;">✓</span>
+          <span><strong>يعمل بدون إنترنت</strong> — Works 100% offline anywhere</span>
+        </li>
+        <li class="why-item">
+          <span style="color: #10B981;">✓</span>
+          <span><strong>مجاني 100% بدون إعلانات</strong> — 100% free forever, no ads</span>
+        </li>
+        <li class="why-item">
+          <span style="color: #10B981;">✓</span>
+          <span><strong>خصوصيتك محفوظة</strong> — No tracking, no mandatory accounts</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- DEVELOPER SOURCE LINK -->
+    <div style="margin-top: 0.5rem;">
+      <a
+        href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="btn-secondary"
+        aria-label="كود المصدر للمطورين على GitHub - Source Code on GitHub"
+      >
+        <span>💻</span>
+        <span>المصدر للمطورين على GitHub (CC0 1.0)</span>
+      </a>
+    </div>
+
+    <div class="footer">
+      صُنع في الإسكندرية، مصر 🇪🇬 — حقوق الطبع والنشر © عمرو شريف عبد العال<br />
+      With thanks to Mihalis Eleftheriou & Language Transfer.
+    </div>
+  </div>
+</body>
+</html>

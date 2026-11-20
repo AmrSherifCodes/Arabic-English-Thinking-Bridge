@@ -34,11 +34,6 @@ export function BubbleArcadeGame({
     setPoppedIndex(null);
     setWrongIndex(null);
 
-    // Auto speak target word
-    try {
-      speakWithRate(current.en, 1.0, preferredVoice);
-    } catch {}
-
     // Generate 3 choices (1 correct, 2 distractors)
     const otherCards = cards.filter((c, i) => i !== index);
     const shuffledOthers = [...otherCards].sort(() => 0.5 - Math.random());

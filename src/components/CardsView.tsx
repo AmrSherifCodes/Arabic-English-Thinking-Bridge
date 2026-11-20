@@ -12,6 +12,7 @@ import { getArabicPhoneticSpelling } from '../utils/arabicPhonetics';
 import { InteractiveArabicSentence } from './InteractiveArabicSentence';
 import { JapaneseFuriganaText } from './JapaneseFuriganaText';
 import { Flashcard } from './Flashcard';
+import { DualSpeedAudio } from './DualSpeedAudio';
 import { OliveBranchIcon } from './CulturalToast';
 import { BouncyButton } from './BouncyButton';
 import { soundFX } from '../utils/soundFX';
@@ -737,30 +738,7 @@ export function ReviewView({
                 )}
 
                 {/* Dual Speed Audio */}
-                <div className="mt-3 flex flex-wrap justify-center gap-2">
-                  <button
-                    type="button"
-                    className={`${BTN_GHOST} text-xs font-bold active:translate-y-1`}
-                    style={{ minHeight: 44 }}
-                    onClick={e => {
-                      e.stopPropagation();
-                      speakWithRate(currentCardData.en, 1, preferredVoice);
-                    }}
-                  >
-                    🔊 اسمع عادي
-                  </button>
-                  <button
-                    type="button"
-                    className={`${BTN_GHOST} text-xs font-bold text-amber-400 active:translate-y-1`}
-                    style={{ minHeight: 44 }}
-                    onClick={e => {
-                      e.stopPropagation();
-                      speakWithRate(currentCardData.en, 0.65, preferredVoice);
-                    }}
-                  >
-                    🐢 اسمع بالبطيء حرف حرف
-                  </button>
-                </div>
+                <DualSpeedAudio text={currentCardData.en} preferredVoice={preferredVoice} />
               </div>
             }
           />

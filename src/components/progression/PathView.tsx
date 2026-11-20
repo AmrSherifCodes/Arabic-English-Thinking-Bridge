@@ -20,6 +20,7 @@ import {
 import { getTargetDictionary, getTargetDictionaryAsync } from '../../data/dictionaries';
 import { Play, Crown, LockKeyhole, Star, Mic, Layers, Sparkles, Compass, Award, Map, ChevronDown, ChevronUp, CheckCircle } from 'lucide-react';
 import { TargetLanguage, UserProgress } from '../../types';
+import { TARGET_LANGUAGE_META } from '../../data/languages';
 import confetti from 'canvas-confetti';
 import { motion } from 'framer-motion';
 import {
@@ -34,6 +35,20 @@ import { CanDoPanelModal } from './CanDoPanelModal';
 import { LevelMapViewModal } from './LevelMapViewModal';
 import { PlacementTestModal } from './PlacementTestModal';
 import { CapstoneRunnerModal } from './CapstoneRunnerModal';
+import { NameForge } from '../NameForge';
+import { useUiMode } from '../../utils/uiMode';
+
+const langNamesAr: Record<string, string> = {
+  en: 'الإنجليزية',
+  de: 'الألمانية',
+  es: 'الإسبانية',
+  fr: 'الفرنسية',
+  ja: 'اليابانية',
+  it: 'الإيطالية',
+  tr: 'التركية',
+  ru: 'الروسية',
+  zh: 'الصينية',
+};
 
 interface PathViewProps {
   state: ProgressionState;
@@ -54,6 +69,7 @@ interface PathViewProps {
   isArabic?: boolean;
   progress?: UserProgress;
   flashcardDeckIds?: string[];
+  onOpenLanguageSelector?: () => void;
 }
 
 export function PathView({
@@ -74,7 +90,9 @@ export function PathView({
   isArabic = true,
   progress,
   flashcardDeckIds,
+  onOpenLanguageSelector,
 }: PathViewProps) {
+  const [uiMode, setUiMode] = useUiMode();
   const [dictionaryVersion, setDictionaryVersion] = useState(0);
   const [selectedLockedFeature, setSelectedLockedFeature] = useState<FeatureUnlockDefinition | null>(null);
 
@@ -82,6 +100,7 @@ export function PathView({
   const [canDoOpen, setCanDoOpen] = useState(false);
   const [levelMapOpen, setLevelMapOpen] = useState(false);
   const [placementOpen, setPlacementOpen] = useState(false);
+  const [nameForgeOpen, setNameForgeOpen] = useState(false);
   const [capstoneModalTarget, setCapstoneModalTarget] = useState<{ levelId?: CefrLevelId; phaseId?: PhaseId } | null>(null);
 
   // Active CEFR Level and Phase selection state
@@ -189,30 +208,198 @@ export function PathView({
     }
   };
 
+  const [statsExpanded, setStatsExpanded] = useState(false);
+  const hasCompletedAny = (state.completedLessonIds?.length || 0) > 0;
+
+  const targetNameAr = langNamesAr[targetLang] || TARGET_LANGUAGE_META[targetLang]?.nameAr || targetLang;
+  const targetNameEn = TARGET_LANGUAGE_META[targetLang]?.nameEn || targetLang;
+  const nameForgeBtnLabel = targetLang === 'en'
+    ? (isArabic ? 'اكتب اسمك بالإنجليزي (30 ثانية)' : 'Name Forge (30s)')
+    : (isArabic ? `اكتب اسمك بـ${targetNameAr} (30 ثانية)` : `${targetNameEn} Name Forge (30s)`);
+
+  if (uiMode === 'simple') {
+    return (
+      <div className="relative space-y-6 max-w-md md:max-w-2xl lg:max-w-3xl mx-auto pb-32 sm:pb-36" dir={isArabic ? 'rtl' : 'ltr'}>
+        {/* 1 Giant Friendly Hero Card */}
+        <div className="p-6 rounded-3xl bg-gradient-to-r from-emerald-950/90 via-[#0B1C33] to-[#0E2746] border-2 border-emerald-500/50 shadow-2xl text-start space-y-4">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            {/* Obvious 1-Tap Mode Toggle */}
+            <div className="flex items-center gap-1 p-1 rounded-2xl bg-[#061224] border border-emerald-500/40 shadow-inner">
+              <button
+                type="button"
+                onClick={() => setUiMode('simple')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 ${
+                  uiMode === 'simple'
+                    ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <span>🟢</span>
+                <span>{isArabic ? 'البسيط' : 'Simple'}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setUiMode('pro')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 ${
+                  (uiMode as string) === 'pro'
+                    ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <span>⚡</span>
+                <span>{isArabic ? 'المتقدم' : 'Pro'}</span>
+              </button>
+            </div>
+            <span className="text-xs font-bold text-slate-300">
+              {completedLevelCount} من {allLevelLessons.length} دروس
+            </span>
+          </div>
+          <h2 className="text-xl font-black text-white">
+            {hasCompletedAny ? (isArabic ? 'عاش يا بطل! كمّل درسك الجاي 🚀' : 'Keep it up! Continue next lesson 🚀') : (isArabic ? 'أهلاً بيك! جاهز تتعلم أول جملة؟ 🎯' : 'Welcome! Ready for your first sentence? 🎯')}
+          </h2>
+          <p className="text-xs text-slate-300 leading-relaxed">
+            {isArabic ? 'اضغط الزر الأخضر وهنبدأ سوا خطوة بخطوة — مفيش أي قواعد معقدة أو توتر.' : 'Tap the green button to start step-by-step with zero stress.'}
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 pt-2">
+            <button
+              onClick={() => {
+                if (nextLessonToPlay) onSelectLesson(nextLessonToPlay);
+              }}
+              className="w-full min-h-[60px] px-6 py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-base shadow-xl transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <span>▶ {isArabic ? 'ابدأ الدرس التالي دلوقتي' : 'Start Next Lesson Now'}</span>
+            </button>
+            <button
+              onClick={() => setNameForgeOpen(true)}
+              className="px-4 py-3 rounded-2xl bg-[#0B1C33] border border-cyan-500/40 text-cyan-300 hover:bg-cyan-500/20 font-bold text-xs transition cursor-pointer text-center"
+            >
+              ✨ {nameForgeBtnLabel}
+            </button>
+          </div>
+        </div>
+
+        {nameForgeOpen && (
+          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4" dir="rtl">
+            <div className="relative w-full max-w-lg">
+              <button
+                onClick={() => setNameForgeOpen(false)}
+                className="absolute top-3 end-3 p-2 rounded-xl bg-stone-800 text-stone-300 hover:text-white z-10 cursor-pointer"
+              >
+                ✕
+              </button>
+              <NameForge onComplete={() => {
+                setNameForgeOpen(false);
+                if (onUpdateState) {
+                  onUpdateState(prev => ({ ...prev, xp: prev.xp + 50 }));
+                }
+              }} />
+            </div>
+          </div>
+        )}
+
+        {/* Simple Flat Lesson Path */}
+        <div className="space-y-3">
+          <h3 className="text-sm font-black text-cyan-300 px-1">{isArabic ? 'قائمة الدروس:' : 'Lesson List:'}</h3>
+          <div className="grid grid-cols-1 gap-3">
+            {allLevelLessons.map((lesson, idx) => {
+              const isCompleted = state.completedLessonIds.includes(lesson.id);
+              const isNext = nextLessonToPlay?.id === lesson.id;
+
+              return (
+                <div
+                  key={lesson.id}
+                  onClick={() => onSelectLesson(lesson)}
+                  className={`p-4 rounded-2xl border transition flex items-center justify-between cursor-pointer ${
+                    isNext
+                      ? 'bg-gradient-to-r from-emerald-500/20 to-[#0B1C33] border-emerald-400 shadow-lg ring-1 ring-emerald-400/50'
+                      : isCompleted
+                      ? 'bg-[#0B1C33]/90 border-emerald-500/40 text-emerald-300'
+                      : 'bg-[#0B1C33]/70 border-[#1E3A5F] hover:border-cyan-500/40'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm ${
+                      isCompleted ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' : isNext ? 'bg-emerald-500 text-slate-950 shadow' : 'bg-slate-800 text-slate-300'
+                    }`}>
+                      {isCompleted ? <CheckCircle size={18} /> : idx + 1}
+                    </div>
+                    <div>
+                      <h4 className="font-black text-sm text-white">{isArabic ? lesson.titleAr : lesson.titleEn}</h4>
+                      <span className="text-[11px] text-slate-400">~{lesson.estimatedMinutes || 5} {isArabic ? 'دقائق' : 'mins'}</span>
+                    </div>
+                  </div>
+                  <button className="px-4 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 text-xs font-black border border-emerald-500/40 transition">
+                    {isCompleted ? (isArabic ? 'راجع' : 'Review') : (isArabic ? 'ابدأ' : 'Start')}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="relative space-y-6 max-w-md md:max-w-2xl lg:max-w-3xl mx-auto pb-32 sm:pb-36" dir={isArabic ? 'rtl' : 'ltr'}>
-      {/* Alexandrian Coastal Welcome Banner */}
-      <div className="p-4 rounded-3xl bg-gradient-to-r from-cyan-950/80 via-[#0B1C33]/90 to-amber-950/60 border border-cyan-500/40 text-start flex items-center justify-between gap-3 shadow-xl backdrop-blur-md relative overflow-hidden">
-        <div className="space-y-0.5 min-w-0 z-10">
-          <div className="flex items-center gap-1.5 text-xs font-black text-amber-300">
-            <span>⚓</span>
-            <span>{isArabic ? 'نظام التفكير التراكمي · عروس البحر 🌊' : '5-Tier Alexandrian Cognitive Bridge'}</span>
-          </div>
-          <p className="text-[11px] text-slate-200 font-bold leading-snug truncate">
-            {isArabic ? 'فكّر بالإنجليزي مباشرة، دون ترجمة حرفية أو عقد' : 'Think directly in English without mental translation'}
-          </p>
+      {/* Top Hero Action Card (Above the Fold) */}
+      <div className="p-5 rounded-3xl bg-gradient-to-r from-amber-950/90 via-[#0B1C33] to-[#0E2746] border-2 border-amber-400/60 shadow-2xl text-start space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="px-3 py-1 rounded-full text-xs font-black bg-amber-500/20 text-amber-300 border border-amber-500/40">
+            {isArabic ? '🚀 الخطوة الأولى' : '🚀 First Step'}
+          </span>
+          <button
+            onClick={() => setLevelMapOpen(true)}
+            className="text-xs font-bold text-cyan-300 hover:underline flex items-center gap-1 cursor-pointer"
+          >
+            <Map size={14} />
+            <span>{isArabic ? 'خريطة المستويات' : 'Level Map'}</span>
+          </button>
         </div>
-        <button
-          onClick={() => setLevelMapOpen(true)}
-          className="px-3.5 py-2 text-xs font-black text-cyan-300 bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/40 rounded-2xl transition-all flex items-center gap-1.5 shrink-0 shadow-md z-10"
-        >
-          <Map className="w-3.5 h-3.5 text-cyan-400" />
-          <span>{isArabic ? 'خريطة المستويات' : 'Level Map'}</span>
-        </button>
+        <h2 className="text-xl font-black text-white">
+          {hasCompletedAny
+            ? (isArabic ? 'كمّل من مكان ما وقفت 🚀' : 'Continue Where You Left Off 🚀')
+            : (isArabic ? `جاهز لأول جملة ${targetNameAr}؟ 🎯` : `Ready for Your First ${targetNameEn} Sentence? 🎯`)}
+        </h2>
+        <div className="flex flex-wrap items-center gap-3 pt-1">
+          <button
+            onClick={() => {
+              if (nextLessonToPlay) onSelectLesson(nextLessonToPlay);
+            }}
+            className="flex-1 min-h-[52px] px-5 py-3 rounded-2xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black text-sm shadow-xl transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <span>{hasCompletedAny ? (isArabic ? 'كمّل الدرس التالي ←' : 'Continue Next Lesson ←') : (isArabic ? 'ابدأ الدرس الأول الآن ←' : 'Start First Lesson Now ←')}</span>
+          </button>
+          <button
+            onClick={() => setNameForgeOpen(true)}
+            className="px-4 py-3 rounded-2xl bg-[#0B1C33] border border-cyan-500/40 text-cyan-300 hover:bg-cyan-500/20 font-bold text-xs transition cursor-pointer"
+          >
+            ✨ {nameForgeBtnLabel}
+          </button>
+        </div>
       </div>
 
+      {nameForgeOpen && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4" dir="rtl">
+          <div className="relative w-full max-w-lg">
+            <button
+              onClick={() => setNameForgeOpen(false)}
+              className="absolute top-3 end-3 p-2 rounded-xl bg-stone-800 text-stone-300 hover:text-white z-10 cursor-pointer"
+            >
+              ✕
+            </button>
+            <NameForge onComplete={() => {
+              setNameForgeOpen(false);
+              if (onUpdateState) {
+                onUpdateState(prev => ({ ...prev, xp: prev.xp + 50 }));
+              }
+            }} />
+          </div>
+        </div>
+      )}
+
       {/* Level Header Card - Alexandrian Deep Sea Glass */}
-      <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-br from-[#0B1C33]/95 via-[#0E2746]/90 to-[#071325]/95 border border-cyan-500/30 shadow-2xl space-y-5 backdrop-blur-xl">
+      <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-br from-[#0B1C33]/95 via-[#0E2746]/90 to-[#071325]/95 border border-cyan-500/30 shadow-2xl space-y-4 backdrop-blur-xl">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 text-slate-950 font-black text-xl shadow-lg shadow-amber-500/30 border border-amber-300">
@@ -232,82 +419,62 @@ export function PathView({
               </p>
             </div>
           </div>
-
-          <div className="flex items-center gap-2 self-stretch sm:self-auto justify-end">
-            <button
-              onClick={() => setCanDoOpen(true)}
-              className="px-3 py-2 text-xs font-extrabold text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 rounded-xl transition-all flex items-center gap-1.5 shadow-sm"
-            >
-              <Award className="w-4 h-4 text-amber-400" />
-              <span>{isArabic ? 'Can-Do (5/5)' : 'Can-Do Statements'}</span>
-            </button>
-            <button
-              onClick={() => setPlacementOpen(true)}
-              className="px-3 py-2 text-xs font-extrabold text-cyan-300 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 rounded-xl transition-all flex items-center gap-1.5 shadow-sm"
-            >
-              <Compass className="w-4 h-4 text-cyan-400" />
-              <span>{isArabic ? 'تحديد المستوى' : 'Placement Test'}</span>
-            </button>
-          </div>
         </div>
 
-        {/* Skill Radar & Level Metadata Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center border-t border-cyan-500/20 pt-4">
-          <SkillRadar branchData={levelSkillNodes} isArabic={isArabic} />
-
-          <div className="space-y-3 bg-[#061224]/80 p-4 rounded-2xl border border-cyan-500/20 shadow-inner">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-slate-400">{isArabic ? 'الوقت التقديري للمستوى:' : 'Estimated Level Time:'}</span>
-              <span className="font-black text-cyan-300">~{currentLevelNode.estimatedMinutes} {isArabic ? 'دقيقة' : 'mins'}</span>
+        {/* Collapsed Stats & Skills Radar Accordion */}
+        <div className="bg-[#061224]/80 rounded-2xl border border-cyan-500/30 overflow-hidden">
+          <button
+            onClick={() => setStatsExpanded(!statsExpanded)}
+            className="w-full p-3 px-4 flex items-center justify-between text-xs font-black text-cyan-300 hover:bg-cyan-500/10 transition cursor-pointer"
+          >
+            <span>📊 {isArabic ? 'تفاصيل مستواك وخريطة المهارات' : 'Your Level Details & Skill Map'}</span>
+            <span>{statsExpanded ? '▴' : '▾'}</span>
+          </button>
+          {statsExpanded && (
+            <div className="p-4 border-t border-cyan-500/20 space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
+                <SkillRadar branchData={levelSkillNodes} isArabic={isArabic} />
+                <div className="space-y-3 bg-[#0B1C33] p-4 rounded-2xl border border-cyan-500/20 shadow-inner">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-slate-400">{isArabic ? 'الوقت التقديري للمستوى:' : 'Estimated Level Time:'}</span>
+                    <span className="font-black text-cyan-300">~{currentLevelNode.estimatedMinutes} {isArabic ? 'دقيقة' : 'mins'}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-slate-400">{isArabic ? 'المرحلة النشطة:' : 'Active Phase:'}</span>
+                    <span className="font-black text-amber-400">{selectedPhaseId}</span>
+                  </div>
+                  <div className="w-full h-2.5 bg-slate-900 rounded-full overflow-hidden p-0.5 border border-cyan-500/20">
+                    <div
+                      className="h-full bg-gradient-to-r from-cyan-500 via-teal-400 to-amber-400 rounded-full transition-all duration-500"
+                      style={{ width: `${levelProgressPct}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <button
+                  onClick={() => setCanDoOpen(true)}
+                  className="px-3 py-1.5 text-xs font-bold text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-xl cursor-pointer"
+                >
+                  {isArabic ? 'أقدر أعمل إيه؟ (5/5)' : 'Can-Do Statements'}
+                </button>
+                <button
+                  onClick={() => setPlacementOpen(true)}
+                  className="px-3 py-1.5 text-xs font-bold text-cyan-300 bg-cyan-500/10 border border-cyan-500/30 rounded-xl cursor-pointer"
+                >
+                  {isArabic ? 'تحديد المستوى' : 'Placement Test'}
+                </button>
+              </div>
             </div>
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-slate-400">{isArabic ? 'المرحلة النشطة:' : 'Active Phase:'}</span>
-              <span className="font-black text-amber-400">{selectedPhaseId}</span>
-            </div>
-            <div className="w-full h-2.5 bg-slate-900 rounded-full overflow-hidden p-0.5 border border-cyan-500/20">
-              <div
-                className="h-full bg-gradient-to-r from-cyan-500 via-teal-400 to-amber-400 rounded-full transition-all duration-500 shadow-[0_0_8px_rgba(6,182,212,0.5)]"
-                style={{ width: `${levelProgressPct}%` }}
-              />
-            </div>
-          </div>
+          )}
         </div>
-      </div>
-
-      {/* Sticky Primary CTA */}
-      <div className="sticky top-14 z-20 p-4 rounded-3xl bg-[#061224]/95 border-2 border-amber-400/80 shadow-[0_10px_35px_rgba(245,158,11,0.22)] backdrop-blur-2xl flex items-center justify-between gap-3">
-        <div className="space-y-1 text-start min-w-0">
-          <span className="text-xs font-black text-amber-300 block">
-            {isArabic ? `المستوى الحالي: ${currentLevelNode.level} · المرحلة ${selectedPhaseId}` : `Level: ${currentLevelNode.level} · Phase ${selectedPhaseId}`}
-          </span>
-          <h3 className="text-base font-black text-white truncate">
-            {isArabic ? nextLessonToPlay?.titleAr || 'متابعة التعلم' : nextLessonToPlay?.titleEn || 'Continue Learning'}
-          </h3>
-          <p className="text-xs text-slate-300">
-            {isArabic ? 'اضغط الزر الذهبي لبدء الدرس مباشرة' : 'Tap the gold button to launch lesson'}
-          </p>
-        </div>
-
-        <button
-          onClick={() => {
-            if (nextLessonToPlay) onSelectLesson(nextLessonToPlay);
-          }}
-          aria-label="ابدأ الدرس الحالي"
-          className="min-h-[56px] px-5 py-3 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 hover:from-amber-300 hover:to-amber-500 text-slate-950 font-black text-sm shadow-2xl transition active:scale-95 flex items-center justify-center gap-2 shrink-0 border-2 border-amber-300 cursor-pointer"
-        >
-          <Play size={18} fill="currentColor" />
-          <div className="flex flex-col items-center">
-            <span>ابدأ الدرس 🚀</span>
-            <span className="text-[9px] font-sans font-bold opacity-90">Start Lesson</span>
-          </div>
-        </button>
       </div>
 
       {/* Phase Selector Tabs */}
       <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
         {currentLevelNode.phases.map((phase) => {
           const isSelected = phase.id === selectedPhaseId;
-          const isPhaseUnlocked = isHierarchicalPhaseUnlocked(state, phase.id);
+          const isPhaseUnlocked = true;
 
           return (
             <button
@@ -318,14 +485,11 @@ export function PathView({
               className={`px-4 py-2.5 rounded-2xl text-xs font-extrabold transition-all shrink-0 flex items-center gap-2 border ${
                 isSelected
                   ? 'bg-gradient-to-r from-cyan-500 via-teal-400 to-cyan-500 text-slate-950 border-cyan-300 font-black shadow-lg shadow-cyan-500/30'
-                  : isPhaseUnlocked
-                  ? 'bg-[#0B1C33] text-slate-300 border-[#1E3A5F] hover:border-cyan-500/40 hover:bg-[#122846]'
-                  : 'bg-[#061224]/60 text-slate-600 border-slate-900 cursor-not-allowed opacity-50'
+                  : 'bg-[#0B1C33] text-slate-300 border-[#1E3A5F] hover:border-cyan-500/40 hover:bg-[#122846]'
               }`}
             >
               <span>{phase.id}</span>
               <span className="truncate max-w-[120px]">{isArabic ? phase.titleAr : phase.titleEn}</span>
-              {!isPhaseUnlocked && <LockKeyhole className="w-3.5 h-3.5 text-slate-600" />}
             </button>
           );
         })}
@@ -334,7 +498,7 @@ export function PathView({
       {/* Modules & Units Tree inside Active Phase */}
       <div className="space-y-6">
         {activePhaseNode.modules.map((mod) => {
-          const isModUnlocked = isHierarchicalModuleUnlocked(state, mod.id, activePhaseNode.id);
+          const isModUnlocked = true;
 
           return (
             <div key={mod.id} className="space-y-3">
@@ -358,16 +522,12 @@ export function PathView({
               {/* Units List */}
               <div className="grid grid-cols-1 gap-4">
                 {mod.units.map((unit) => {
-                  const isUnitUnlocked = isHierarchicalUnitUnlocked(state, unit.id, mod.id, activePhaseNode.id);
+                  const isUnitUnlocked = true;
 
                   return (
                     <div
                       key={unit.id}
-                      className={`p-4 sm:p-5 rounded-3xl border transition-all ${
-                        isUnitUnlocked
-                          ? 'bg-[#0B1C33]/85 border-[#1E3A5F] shadow-lg'
-                          : 'bg-[#061224]/40 border-slate-900 opacity-60'
-                      }`}
+                      className="p-4 sm:p-5 rounded-3xl border bg-[#0B1C33]/85 border-[#1E3A5F] shadow-lg"
                     >
                       <div className="flex items-center justify-between mb-4">
                         <div>
@@ -378,18 +538,12 @@ export function PathView({
                             {isArabic ? unit.descriptionAr : unit.descriptionEn}
                           </p>
                         </div>
-                        {!isUnitUnlocked && (
-                          <span className="px-2.5 py-1 text-[10px] font-bold text-slate-400 bg-slate-800/80 rounded-xl flex items-center gap-1">
-                            <LockKeyhole className="w-3.5 h-3.5" />
-                            <span>{isArabic ? 'يتطلب إكمال الوحدة السابقة' : 'Complete previous unit'}</span>
-                          </span>
-                        )}
                       </div>
 
                       {/* Lessons Grid */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {unit.lessons.map((lesson) => {
-                          const isUnlocked = isHierarchicalLessonUnlocked(state, lesson);
+                          const isUnlocked = true;
                           const isCompleted = state.completedLessonIds.includes(lesson.id);
                           const isNext = nextLessonToPlay?.id === lesson.id;
 
@@ -425,7 +579,7 @@ export function PathView({
                                     {isCompleted ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : isUnlocked ? <Crown className="w-4 h-4" /> : <LockKeyhole className="w-4 h-4" />}
                                   </div>
                                   <div>
-                                    <h5 className="text-xs font-black text-white truncate max-w-[160px]">
+                                    <h5 className="text-xs font-black text-white line-clamp-2 leading-snug">
                                       {isArabic ? lesson.titleAr : lesson.titleEn}
                                     </h5>
                                     <span className="text-[10px] text-slate-400">
@@ -467,6 +621,7 @@ export function PathView({
         isOpen={levelMapOpen}
         onClose={() => setLevelMapOpen(false)}
         state={state}
+        targetLang={targetLang}
         onSelectPhase={(phaseId) => setSelectedPhaseId(phaseId)}
         onOpenPlacementTest={() => {
           setLevelMapOpen(false);

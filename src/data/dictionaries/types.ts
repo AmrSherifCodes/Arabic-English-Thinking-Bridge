@@ -1,5 +1,39 @@
 import { SourceLanguage, TargetLanguage } from '../../types';
 
+export interface DictWordEntry {
+  word: string;
+  translation: string;
+  term?: string;
+  normalizedTerm?: string;
+  sourceMeanings?: Record<string, string>;
+  reading?: string;
+  romaji?: string;
+  phonetic?: string;
+  phoneticAr?: string;
+  pinyin?: string;
+  transliteration?: string;
+  partOfSpeech?: string;
+  cefrLevel?: string;
+  cefr?: string;
+  exampleSentence?: string;
+  exampleTarget?: string;
+  exampleSource?: string;
+  exampleDe?: string;
+  exampleAr?: string;
+  exampleEnglish?: string;
+  exampleSentenceGerman?: string;
+  exampleSentenceJapanese?: string;
+  cognitiveHint?: string;
+  usageHint?: string;
+  habitHint?: string;
+  englishTranslation?: string;
+  germanWord?: string;
+  spanishWord?: string;
+  frenchWord?: string;
+  arabicWord?: string;
+  [key: string]: any;
+}
+
 export interface ContextualExample {
   targetSentence: string;
   sourceSentences: {

@@ -1,6 +1,6 @@
 import React from 'react';
 import { ProgressionState } from '../../progression/types';
-import { Trophy, Shield, Lock, EyeOff } from 'lucide-react';
+import { Trophy, Shield, EyeOff } from 'lucide-react';
 
 interface LeagueViewProps {
   state: ProgressionState;
@@ -31,18 +31,30 @@ export function LeagueView({ state, onToggleOptOut, isArabic = true }: LeagueVie
     );
   }
 
-  // Combine user entry into current league members
-  const allMembers = [
-    ...state.leagueMembers,
+  const baseMembers = [
+    ...(state.leagueMembers || []),
     {
       id: 'user-self',
-      alias: `${state.anonymousAlias} (${isArabic ? 'أنت' : 'You'})`,
+      alias: `${state.anonymousAlias || 'أنت'} (${isArabic ? 'أنت' : 'You'})`,
       avatarIcon: '👑',
-      weeklyXp: state.weeklyXp || state.xp,
+      weeklyXp: state.weeklyXp || state.xp || 0,
       tier: state.leagueTier,
       isUser: true,
     },
-  ].sort((a, b) => b.weeklyXp - a.weeklyXp);
+  ];
+
+  const offlineRivals = [
+    { id: 'rival-1', alias: 'أحمد (متدرّب افتراضي)', avatarIcon: '⚡', weeklyXp: 120, tier: state.leagueTier, isUser: false },
+    { id: 'rival-2', alias: 'مريم (متدرّبة افتراضية)', avatarIcon: '🌟', weeklyXp: 95, tier: state.leagueTier, isUser: false },
+    { id: 'rival-3', alias: 'يوسف (متدرّب افتراضي)', avatarIcon: '🔥', weeklyXp: 60, tier: state.leagueTier, isUser: false },
+    { id: 'rival-4', alias: 'سارة (متدرّبة افتراضية)', avatarIcon: '🎯', weeklyXp: 30, tier: state.leagueTier, isUser: false },
+  ];
+
+  const allMembers = baseMembers.length < 5
+    ? [...baseMembers, ...offlineRivals.slice(0, 5 - baseMembers.length)]
+    : baseMembers;
+
+  const sortedMembers = allMembers.sort((a, b) => b.weeklyXp - a.weeklyXp);
 
   return (
     <div className="space-y-6 max-w-md md:max-w-2xl lg:max-w-3xl mx-auto pb-32 sm:pb-36" dir={isArabic ? 'rtl' : 'ltr'}>
@@ -57,7 +69,7 @@ export function LeagueView({ state, onToggleOptOut, isArabic = true }: LeagueVie
             <span>{isArabic ? `دوري ${state.leagueTier}` : `${state.leagueTier} League`}</span>
           </h2>
           <p className="text-[11px] text-stone-400">
-            {isArabic ? 'الارتقاء أسبوعياً بناءً على نقاط XP المكتسبة' : 'Promote weekly based on earned XP'}
+            {isArabic ? 'التنافس والارتقاء أسبوعياً بناءً على نقاط XP' : 'Promote weekly based on earned XP'}
           </p>
         </div>
 
@@ -70,50 +82,42 @@ export function LeagueView({ state, onToggleOptOut, isArabic = true }: LeagueVie
         </button>
       </div>
 
-      {/* League Members Table / Honest Empty State */}
-      {allMembers.length < 5 ? (
-        <div className="p-6 rounded-3xl bg-stone-900 border border-stone-800 text-center space-y-2 shadow-lg">
-          <Trophy className="mx-auto text-amber-400" size={32} />
-          <h3 className="text-sm font-black text-white">
-            {isArabic ? 'الدوري سينطلق فور انضمام 5 متعلمين!' : 'League Activates at 5 Real Learners!'}
-          </h3>
-          <p className="text-xs text-stone-400 leading-relaxed">
-            {isArabic
-              ? `يتواجد حالياً ${allMembers.length} متعلم حقيقي. التطبيق لا يستخدم أي حسابات وهمية (Bots) احتراماً للمنافسة العادلة.`
-              : `Currently ${allMembers.length} real learner(s). We never populate fake bots to guarantee honest, real competition.`}
-          </p>
-        </div>
-      ) : (
-        <div className="space-y-2">
-          {allMembers.map((member, rank) => {
-            const isTop3 = rank < 3;
-            return (
-              <div
-                key={member.id}
-                className={`p-3 rounded-2xl border flex items-center justify-between transition ${
-                  member.isUser
-                    ? 'bg-teal-950/50 border-teal-500 ring-2 ring-teal-500/30 font-bold'
-                    : 'bg-stone-900 border-stone-800 text-stone-300'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <span className={`w-6 text-center font-black text-xs ${isTop3 ? 'text-amber-400' : 'text-stone-500'}`}>
-                    #{rank + 1}
-                  </span>
-                  <span className="text-xl">{member.avatarIcon}</span>
-                  <span className="text-xs font-bold text-white truncate max-w-[150px]">
-                    {member.alias}
-                  </span>
-                </div>
-
-                <span className="text-xs font-black text-amber-400">
-                  {member.weeklyXp} XP
-                </span>
-              </div>
-            );
-          })}
+      {baseMembers.length < 5 && (
+        <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs text-center font-bold">
+          {isArabic ? '⚡ تحدّي تجريبي محلي حتى ينضم متعلمون جدد' : '⚡ Local practice challenge until new learners join'}
         </div>
       )}
+
+      {/* League Members Table */}
+      <div className="space-y-2">
+        {sortedMembers.map((member, rank) => {
+          const isTop3 = rank < 3;
+          return (
+            <div
+              key={member.id}
+              className={`p-3 rounded-2xl border flex items-center justify-between transition ${
+                member.isUser
+                  ? 'bg-teal-950/50 border-teal-500 ring-2 ring-teal-500/30 font-bold'
+                  : 'bg-stone-900 border-stone-800 text-stone-300'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <span className={`w-6 text-center font-black text-xs ${isTop3 ? 'text-amber-400' : 'text-stone-500'}`}>
+                  #{rank + 1}
+                </span>
+                <span className="text-xl">{member.avatarIcon}</span>
+                <span className="text-xs font-bold text-white truncate max-w-[180px]">
+                  {member.alias}
+                </span>
+              </div>
+
+              <span className="text-xs font-black text-amber-400">
+                {member.weeklyXp} XP
+              </span>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

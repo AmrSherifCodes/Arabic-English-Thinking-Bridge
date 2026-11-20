@@ -357,7 +357,7 @@ export function generateSmartConversationReply(
   }
 
   // 3b. Arabic Target Experience (Foreigner / English Speaker learning Arabic)
-  if (targetLang === 'ar' || targetLang === 'arz' || targetLang === 'apc' || targetLang === 'afb' || targetLang === 'ary' || targetLang.startsWith('ar')) {
+  if (targetLang === 'ar' || (targetLang as string) === 'arz' || (targetLang as string) === 'apc' || (targetLang as string) === 'afb' || (targetLang as string) === 'ary' || targetLang.startsWith('ar')) {
     if (lowerPrompt.includes('hello') || lowerPrompt.includes('hi') || lowerPrompt.includes('marhaba') || lowerPrompt.includes('salam') || lowerPrompt.includes('ahlan')) {
       return "Ahlan! (أهلاً!) I'm excited to practice Arabic with you today. How are you doing? (ازيك؟ / كيف حالك؟)";
     }

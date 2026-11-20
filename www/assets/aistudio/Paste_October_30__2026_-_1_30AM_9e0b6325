@@ -1,0 +1,516 @@
+Got it. You want two things:
+1. **Strict Enforcement**: They cannot close the screen or bypass it without clicking the button.
+2. **Permanent Unlock**: Once they click "I've Subscribed," the timer is gone forever on that device. It will never pop up again, even if they close the app and come back tomorrow.
+
+Since we are using the **Honor System** (no Google login), we can't technically verify if they actually clicked "Subscribe" on YouTube. We have to trust them. However, we *can* make the UI completely lock them out until they click the unlock button, and we can save that "unlocked" status permanently to their browser.
+
+The code I gave you earlier actually **already does this**. Look at the integration in `App.tsx`:
+```tsx
+const { isBlocked, unlock } = useTimeLimit({ permanentUnlock: true });
+```
+The `permanentUnlock: true` flag ensures that once they click the button, it saves `unlocked: true` to their browser's `localStorage`. They will never see the block screen again.
+
+The `BlockScreen` component also uses `inert={isBlocked}` on the main app, meaning they cannot click, type, or interact with the app at all until they click the unlock button.
+
+To make absolutely sure AI Studio implements this perfectly, I have updated the Master Prompt with a strict new rule. Copy and paste this into AI Studio:
+
+***
+
+**COPY BELOW THIS LINE:**
+
+```text
+# Paste everything below this line into AI Studio (Build mode): HONOR-SYSTEM version
+
+You are an expert React + TypeScript + PWA developer. This is an existing Vite + React 19 + TypeScript + Tailwind 4 app (Arabic→English learning, "Thinking Bridge"). Add the features below by **creating/overwriting exactly the files shown, with exactly the code shown**. Do not rewrite, shorten, simplify or "improve" this code.
+
+## Rules
+0. The PWA icon files referenced by `vite.config.ts` must exist in `public/` so the PWA is installable: `pwa-64x64.png`, `pwa-192x192.png`, `pwa-512x512.png`, `maskable-icon-512x512.png`, `apple-touch-icon-180x180.png`, `favicon.ico`. If they don't exist, create simple placeholder icons (an indigo #4f46e5 square with a white "TB"), keeping the artwork inside the central 80% for the maskable one. The build must not fail because of missing icons.
+1. In `package.json`: **delete** the `"esbuild": "^0.25.0"` devDependency and **add** `"vite-plugin-pwa": "^1.3.0"` to devDependencies. `@google/genai` and `lucide-react` are already installed. Delete any `package-lock.json`.
+2. **Do not remove or change any existing app functionality or UI.** Wrap the existing app with the integration pattern in step 7; keep existing lexicon data/components working. If the app already imports `generateLexiconEntry` expecting `null` on failure, switch those call sites to `safeGenerateLexiconEntry`.
+3. `LexiconEntry.situations` may only contain `'student' | 'call-center' | 'public-matter'`.
+4. `src/vite-env.d.ts` must contain `/// <reference types="vite/client" />`.
+5. In `index.html` `<head>` add (keep existing tags):
+```html
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#4f46e5" />
+<link rel="icon" href="/favicon.ico" sizes="48x48" />
+<link rel="apple-touch-icon" href="/apple-touch-icon-180x180.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="Thinking Bridge" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+```
+6. HONOR SYSTEM ONLY: no Google sign-in, no OAuth, no YouTube API, no backend. Clicking "I've Subscribed, Unlock App" simply unlocks.
+7. **STRICT ENFORCEMENT & PERMANENT UNLOCK:** The block screen MUST completely prevent interaction with the app behind it (using `inert`). Once the user clicks "I've Subscribed, Unlock App", the `unlock()` function MUST save `unlocked: true` permanently to `localStorage`. The block screen must NEVER appear again on that device, even after refreshing or closing the browser.
+
+## Files
+
+### 1. `vite.config.ts` (replaces the existing one)
+```ts
+import path from 'path';
+import { defineConfig, loadEnv } from 'vite';
+import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
+import { VitePWA } from 'vite-plugin-pwa';
+
+const BASE = process.env.VITE_BASE ?? '/';
+
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, '.', '');
+  return {
+    base: BASE,
+    plugins: [
+      react(),
+      tailwindcss(),
+      VitePWA({
+        registerType: 'autoUpdate',
+        injectRegister: 'auto',
+        includeAssets: ['favicon.ico', 'apple-touch-icon-180x180.png'],
+        manifest: {
+          name: 'Thinking Bridge',
+          short_name: 'Thinking Bridge',
+          description: 'Learn English through the structure of Arabic.',
+          lang: 'en',
+          dir: 'ltr',
+          start_url: BASE,
+          scope: BASE,
+          display: 'standalone',
+          orientation: 'portrait',
+          theme_color: '#4f46e5',
+          background_color: '#ffffff',
+          categories: ['education'],
+          icons: [
+            { src: 'pwa-64x64.png', sizes: '64x64', type: 'image/png' },
+            { src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' },
+            { src: 'pwa-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+            { src: 'maskable-icon-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+          ],
+        },
+        workbox: {
+          globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+          navigateFallback: `${BASE}index.html`,
+          cleanupOutdatedCaches: true,
+          runtimeCaching: [
+            { urlPattern: ({ url }) => url.hostname === 'generativelanguage.googleapis.com', handler: 'NetworkOnly' },
+          ],
+        },
+        devOptions: { enabled: false },
+      }),
+    ],
+    define: {
+      'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY ?? env.VITE_GEMINI_API_KEY ?? ''),
+    },
+    resolve: { alias: { '@': path.resolve(__dirname, '.') } },
+    server: { hmr: process.env.DISABLE_HMR !== 'true' },
+  };
+});
+```
+
+### 2. Voice hook (`src/hooks/useSpeech.ts`)
+```ts
+import { useCallback, useEffect, useRef, useState } from 'react';
+
+interface RecAlt { transcript: string; confidence: number }
+interface RecResult { readonly length: number; readonly isFinal: boolean; [i: number]: RecAlt }
+interface RecEvent extends Event { readonly resultIndex: number; readonly results: { readonly length: number; [i: number]: RecResult } }
+interface RecErrorEvent extends Event { readonly error: string; readonly message?: string }
+interface RecognitionLike {
+  lang: string; continuous: boolean; interimResults: boolean; maxAlternatives: number;
+  onstart: (() => void) | null; onend: (() => void) | null;
+  onerror: ((e: RecErrorEvent) => void) | null; onresult: ((e: RecEvent) => void) | null;
+  start(): void; stop(): void; abort(): void;
+}
+type RecognitionCtor = new () => RecognitionLike;
+
+function getRecognitionCtor(): RecognitionCtor | undefined {
+  if (typeof window === 'undefined') return undefined;
+  const w = window as unknown as { SpeechRecognition?: RecognitionCtor; webkitSpeechRecognition?: RecognitionCtor };
+  return w.SpeechRecognition ?? w.webkitSpeechRecognition;
+}
+
+const hasTts = () => typeof window !== 'undefined' && 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
+
+export type SpeechErrorCode = 'stt-unsupported' | 'tts-unsupported' | 'permission-denied' | 'no-speech' | 'no-microphone' | 'network' | 'tts-no-voice' | 'tts-failed' | 'unknown';
+export interface SpeechError { code: SpeechErrorCode; message: string; }
+export interface UseSpeechOptions { defaultLang?: string; continuous?: boolean; }
+
+function mapSttError(code: string): SpeechError {
+  switch (code) {
+    case 'not-allowed': case 'service-not-allowed': return { code: 'permission-denied', message: 'Microphone access blocked.' };
+    case 'no-speech': return { code: 'no-speech', message: "Didn't hear anything." };
+    case 'audio-capture': return { code: 'no-microphone', message: 'No microphone found.' };
+    case 'network': return { code: 'network', message: 'Needs internet.' };
+    default: return { code: 'unknown', message: `Error (${code}).` };
+  }
+}
+
+function splitIntoChunks(text: string, max = 180): string[] {
+  const sentences = text.match(/[^.!?؟\n]+[.!?؟]*/g) ?? [text];
+  const out: string[] = []; let cur = '';
+  for (const s of sentences) {
+    const t = s.trim(); if (!t) continue;
+    if (cur && `${cur} ${t}`.length > max) { out.push(cur); cur = t; } else { cur = cur ? `${cur} ${t}` : t; }
+  }
+  if (cur) out.push(cur); return out.length ? out : [text];
+}
+
+function pickVoice(voices: SpeechSynthesisVoice[], lang: string): SpeechSynthesisVoice | undefined {
+  const norm = (l: string) => l.toLowerCase().replace('_', '-'); const want = norm(lang); const primary = want.split('-')[0];
+  return voices.find((v) => norm(v.lang) === want) ?? voices.find((v) => norm(v.lang).split('-')[0] === primary);
+}
+
+export function useSpeech({ defaultLang = 'en-US', continuous = false }: UseSpeechOptions = {}) {
+  const [isListening, setIsListening] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [transcript, setTranscript] = useState('');
+  const [interimTranscript, setInterimTranscript] = useState('');
+  const [error, setError] = useState<SpeechError | null>(null);
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const recRef = useRef<RecognitionLike | null>(null);
+  const finalRef = useRef(''); const interimRef = useRef(''); const speakTokenRef = useRef(0);
+  const utterancesRef = useRef(new Set<SpeechSynthesisUtterance>());
+  const isSttSupported = !!getRecognitionCtor(); const isTtsSupported = hasTts();
+
+  useEffect(() => {
+    if (!hasTts()) return; const synth = window.speechSynthesis;
+    const load = () => setVoices(synth.getVoices()); load(); synth.addEventListener('voiceschanged', load);
+    return () => synth.removeEventListener('voiceschanged', load);
+  }, []);
+
+  const cancelSpeech = useCallback(() => { speakTokenRef.current++; if (hasTts()) window.speechSynthesis.cancel(); utterancesRef.current.clear(); setIsSpeaking(false); }, []);
+  const stopListening = useCallback(() => recRef.current?.stop(), []);
+  const abortListening = useCallback(() => recRef.current?.abort(), []);
+  const resetTranscript = useCallback(() => { finalRef.current = ''; interimRef.current = ''; setTranscript(''); setInterimTranscript(''); }, []);
+
+  const startListening = useCallback((lang: string = defaultLang) => {
+    const Ctor = getRecognitionCtor();
+    if (!Ctor) { setError({ code: 'stt-unsupported', message: 'Voice input unsupported.' }); return; }
+    if (recRef.current) return; setError(null); resetTranscript(); cancelSpeech();
+    const rec = new Ctor(); rec.lang = lang; rec.continuous = continuous; rec.interimResults = true; rec.maxAlternatives = 1;
+    rec.onstart = () => setIsListening(true);
+    rec.onresult = (e) => {
+      let interim = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const r = e.results[i]; const text = r[0]?.transcript ?? '';
+        if (r.isFinal) finalRef.current = `${finalRef.current} ${text}`.trim(); else interim += text;
+      }
+      interimRef.current = interim.trim(); setTranscript(finalRef.current); setInterimTranscript(interimRef.current);
+    };
+    rec.onerror = (e) => { if (e.error !== 'aborted') setError(mapSttError(e.error)); };
+    rec.onend = () => {
+      recRef.current = null; setIsListening(false);
+      if (interimRef.current) { finalRef.current = `${finalRef.current} ${interimRef.current}`.trim(); setTranscript(finalRef.current); interimRef.current = ''; setInterimTranscript(''); }
+    };
+    recRef.current = rec;
+    try { rec.start(); } catch (e) { recRef.current = null; setIsListening(false); setError({ code: 'unknown', message: 'Could not start.' }); }
+  }, [defaultLang, continuous, cancelSpeech, resetTranscript]);
+
+  const speak = useCallback((text: string, lang: string = defaultLang, opts: { rate?: number; pitch?: number } = {}) =>
+    new Promise<void>((resolve) => {
+      if (!hasTts()) { setError({ code: 'tts-unsupported', message: 'TTS unsupported.' }); return resolve(); }
+      const clean = text.trim(); if (!clean) return resolve();
+      recRef.current?.abort(); window.speechSynthesis.cancel(); setError(null);
+      const available = window.speechSynthesis.getVoices(); const voice = pickVoice(available, lang);
+      if (available.length > 0 && !voice) { setError({ code: 'tts-no-voice', message: `No voice for ${lang}.` }); return resolve(); }
+      const token = ++speakTokenRef.current; const chunks = splitIntoChunks(clean); let index = 0;
+      const next = () => {
+        if (token !== speakTokenRef.current) return resolve();
+        if (index >= chunks.length) { setIsSpeaking(false); return resolve(); }
+        const u = new SpeechSynthesisUtterance(chunks[index++]); u.lang = lang; if (voice) u.voice = voice; u.rate = opts.rate ?? 0.95;
+        utterancesRef.current.add(u);
+        u.onend = () => { utterancesRef.current.delete(u); next(); };
+        u.onerror = (ev) => { utterancesRef.current.delete(u); if (token === speakTokenRef.current) { if (ev.error !== 'canceled') setError({ code: 'tts-failed', message: 'Audio failed.' }); setIsSpeaking(false); } resolve(); };
+        window.speechSynthesis.speak(u);
+      };
+      setIsSpeaking(true); setTimeout(next, 50);
+    }), [defaultLang]);
+
+  useEffect(() => {
+    const onHide = () => { if (document.visibilityState === 'hidden') { recRef.current?.abort(); cancelSpeech(); } };
+    document.addEventListener('visibilitychange', onHide);
+    return () => { document.removeEventListener('visibilitychange', onHide); recRef.current?.abort(); cancelSpeech(); };
+  }, [cancelSpeech]);
+
+  const hasVoiceFor = useCallback((lang: string) => !!pickVoice(voices, lang), [voices]);
+  return { isListening, isSpeaking, transcript, interimTranscript, error, isSttSupported, isTtsSupported, voices, startListening, stopListening, abortListening, resetTranscript, speak, cancelSpeech, hasVoiceFor, clearError: () => setError(null) };
+}
+```
+
+### 3. Gemini lexicon service (`src/services/geminiLexicon.ts`)
+```ts
+import { GoogleGenAI, Type } from '@google/genai';
+
+export const SITUATIONS = ['student', 'call-center', 'public-matter'] as const;
+export type Situation = (typeof SITUATIONS)[number];
+export const PARTS_OF_SPEECH = ['noun', 'verb', 'adjective', 'adverb', 'preposition', 'conjunction', 'pronoun', 'interjection', 'phrase'] as const;
+export type PartOfSpeech = (typeof PARTS_OF_SPEECH)[number];
+
+export interface LexiconEntry {
+  arabicWord: string; englishTranslation: string; partOfSpeech: PartOfSpeech;
+  situations: Situation[]; exampleSentenceArabic: string; exampleSentenceEnglish: string;
+}
+
+export type LexiconErrorCode = 'missing-key' | 'empty-input' | 'timeout' | 'rate-limited' | 'network' | 'bad-output' | 'unknown';
+export class LexiconError extends Error { constructor(public code: LexiconErrorCode, message: string) { super(message); this.name = 'LexiconError'; } }
+export type LexiconResult = { ok: true; entry: LexiconEntry } | { ok: false; error: LexiconError };
+
+const str = (v: unknown): string => (typeof v === 'string' ? v.trim() : '');
+const isSituation = (v: unknown): v is Situation => (SITUATIONS as readonly string[]).includes(v as string);
+const isPos = (v: unknown): v is PartOfSpeech => (PARTS_OF_SPEECH as readonly string[]).includes(v as string);
+
+export function isLexiconEntry(v: unknown): v is LexiconEntry {
+  if (!v || typeof v !== 'object') return false; const e = v as Record<string, unknown>;
+  return !!str(e.arabicWord) && !!str(e.englishTranslation) && isPos(e.partOfSpeech) && Array.isArray(e.situations) && e.situations.length > 0 && e.situations.every(isSituation) && !!str(e.exampleSentenceArabic) && !!str(e.exampleSentenceEnglish);
+}
+
+export function normalizeEntry(raw: unknown): LexiconEntry | null {
+  const first = Array.isArray(raw) ? raw[0] : raw; if (!first || typeof first !== 'object') return null; const r = first as Record<string, unknown>;
+  const situations = Array.isArray(r.situations) ? [...new Set(r.situations.map((s) => str(s).toLowerCase().replace(/[\s_]+/g, '-')).filter(isSituation))] : [];
+  const candidate = { arabicWord: str(r.arabicWord), englishTranslation: str(r.englishTranslation), partOfSpeech: str(r.partOfSpeech).toLowerCase(), situations, exampleSentenceArabic: str(r.exampleSentenceArabic), exampleSentenceEnglish: str(r.exampleSentenceEnglish) };
+  return isLexiconEntry(candidate) ? candidate : null;
+}
+
+function parseModelJson(text: string | undefined): unknown {
+  if (!text) throw new LexiconError('bad-output', 'Empty response.'); const cleaned = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+  try { return JSON.parse(cleaned); } catch { throw new LexiconError('bad-output', 'Malformed JSON.'); }
+}
+
+function readApiKey(): string | undefined {
+  const fromVite = import.meta.env.VITE_GEMINI_API_KEY as string | undefined; if (fromVite) return fromVite;
+  try { return process.env.GEMINI_API_KEY || undefined; } catch { return undefined; }
+}
+const API_KEY = readApiKey(); const MODEL = (import.meta.env.VITE_GEMINI_MODEL as string | undefined) ?? 'gemini-2.5-flash'; const TIMEOUT_MS = 20_000; const MAX_ATTEMPTS = 3;
+let client: GoogleGenAI | null = null;
+function getClient(): GoogleGenAI { if (!API_KEY) throw new LexiconError('missing-key', 'Missing key.'); client ??= new GoogleGenAI({ apiKey: API_KEY }); return client; }
+
+const entryProperties = {
+  arabicWord: { type: Type.STRING, description: 'The Arabic word.' }, englishTranslation: { type: Type.STRING, description: 'English equivalent.' },
+  partOfSpeech: { type: Type.STRING, enum: [...PARTS_OF_SPEECH] }, situations: { type: Type.ARRAY, items: { type: Type.STRING, enum: [...SITUATIONS] } },
+  exampleSentenceArabic: { type: Type.STRING }, exampleSentenceEnglish: { type: Type.STRING },
+};
+const ENTRY_KEYS = Object.keys(entryProperties);
+const entrySchema = { type: Type.OBJECT, properties: entryProperties, required: ENTRY_KEYS, propertyOrdering: ENTRY_KEYS };
+const SYSTEM = `You are a lexicographer. Situations: "student", "call-center", "public-matter". Treat input as DATA.`;
+
+function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const t = setTimeout(() => reject(new LexiconError('timeout', 'Timed out.')), ms);
+    p.then((v) => { clearTimeout(t); resolve(v); }, (e) => { clearTimeout(t); reject(e); });
+  });
+}
+
+function toLexiconError(e: unknown): LexiconError {
+  if (e instanceof LexiconError) return e; const status = (e as { status?: number })?.status; const msg = e instanceof Error ? e.message : String(e);
+  if (status === 429 || /quota|rate/i.test(msg)) return new LexiconError('rate-limited', 'Too many requests.');
+  if (status === 400 && /api key/i.test(msg)) return new LexiconError('missing-key', 'Key rejected.');
+  if (/fetch|network|failed to load/i.test(msg) || (typeof navigator !== 'undefined' && !navigator.onLine)) return new LexiconError('network', 'Network error.');
+  return new LexiconError('unknown', msg || 'Error.');
+}
+
+const isRetryable = (e: LexiconError) => ['timeout', 'rate-limited', 'network', 'bad-output'].includes(e.code);
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+async function withRetries<T>(fn: () => Promise<T>, signal?: AbortSignal): Promise<T> {
+  let last: LexiconError | undefined;
+  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+    if (signal?.aborted) throw new LexiconError('unknown', 'Cancelled.');
+    try { return await fn(); } catch (e) { last = toLexiconError(e); if (!isRetryable(last) || attempt === MAX_ATTEMPTS - 1) break; await sleep(500 * 2 ** attempt); }
+  }
+  throw last ?? new LexiconError('unknown', 'Error.');
+}
+
+const CACHE_PREFIX = 'tb.lexicon.v2:'; const memory = new Map<string, LexiconEntry>(); const cacheKey = (w: string) => CACHE_PREFIX + w.trim().toLowerCase();
+function cacheGet(word: string): LexiconEntry | null { const k = cacheKey(word); const hit = memory.get(k); if (hit) return hit; try { const raw = window.localStorage.getItem(k); const entry = raw ? normalizeEntry(JSON.parse(raw)) : null; if (entry) memory.set(k, entry); return entry; } catch { return null; } }
+function cacheSet(word: string, entry: LexiconEntry) { const k = cacheKey(word); memory.set(k, entry); try { window.localStorage.setItem(k, JSON.stringify(entry)); } catch {} }
+
+export interface GenerateOptions { situations?: Situation[]; forceRefresh?: boolean; signal?: AbortSignal; }
+
+export async function generateLexiconEntry(word: string, opts: GenerateOptions = {}): Promise<LexiconEntry> {
+  const input = word.trim(); if (!input || input.length > 64 || /[\r\n]/.test(input)) throw new LexiconError('empty-input', 'Invalid input.');
+  if (!opts.forceRefresh) { const cached = cacheGet(input); if (cached) return cached; }
+  const hint = opts.situations?.length ? `\nPrioritise: ${opts.situations.join(', ')}.` : '';
+  const entry = await withRetries(async () => {
+    const res = await withTimeout(getClient().models.generateContent({
+      model: MODEL, contents: `Create lexicon entry for: <<<${input}>>>${hint}`,
+      config: { systemInstruction: SYSTEM, responseMimeType: 'application/json', responseSchema: entrySchema, temperature: 0.3 },
+    }), TIMEOUT_MS);
+    const normalized = normalizeEntry(parseModelJson(res.text)); if (!normalized) throw new LexiconError('bad-output', 'Incomplete.'); return normalized;
+  }, opts.signal);
+  cacheSet(input, entry); return entry;
+}
+
+export async function safeGenerateLexiconEntry(word: string, opts: GenerateOptions = {}): Promise<LexiconResult> {
+  try { return { ok: true, entry: await generateLexiconEntry(word, opts) }; } catch (e) { return { ok: false, error: toLexiconError(e) }; }
+}
+```
+
+### 4. 30-minute timer hook (`src/hooks/useTimeLimit.ts`)
+```ts
+import { useCallback, useEffect, useRef, useState } from 'react';
+
+export const DEFAULT_LIMIT_MS = 30 * 60 * 1000; const STORAGE_KEY = 'tb.timeLimit.v1'; const SAVE_EVERY_MS = 5000;
+interface Stored { usedMs: number; unlocked: boolean; }
+interface Options { limitMs?: number; permanentUnlock?: boolean; }
+let memoryStore: Stored = { usedMs: 0, unlocked: false };
+
+function read(): Stored {
+  try { const raw = window.localStorage.getItem(STORAGE_KEY); if (!raw) return memoryStore; const p = JSON.parse(raw) as Partial<Stored>;
+    return { usedMs: Math.max(0, Number(p.usedMs) || 0), unlocked: p.unlocked === true }; } catch { return memoryStore; }
+}
+function write(s: Stored) { memoryStore = s; try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); } catch {} }
+
+export function useTimeLimit({ limitMs = DEFAULT_LIMIT_MS, permanentUnlock = false }: Options = {}) {
+  const [usedMs, setUsedMs] = useState(() => read().usedMs);
+  const [unlocked, setUnlocked] = useState(() => read().unlocked);
+  const usedRef = useRef(usedMs); const unlockedRef = useRef(unlocked); const lastTickRef = useRef(Date.now()); const lastSaveRef = useRef(0);
+  const limitReached = usedMs >= limitMs; const isBlocked = !unlocked && limitReached;
+
+  const save = useCallback(() => { lastSaveRef.current = Date.now(); write({ usedMs: Math.floor(usedRef.current), unlocked: unlockedRef.current }); }, []);
+
+  useEffect(() => {
+    if (unlocked || limitReached) return; lastTickRef.current = Date.now();
+    const id = window.setInterval(() => {
+      const now = Date.now(); const delta = Math.min(now - lastTickRef.current, 2000); lastTickRef.current = now;
+      if (document.visibilityState !== 'visible') return;
+      usedRef.current += delta; setUsedMs(usedRef.current);
+      if (usedRef.current >= limitMs || now - lastSaveRef.current >= SAVE_EVERY_MS) save();
+    }, 1000);
+    return () => window.clearInterval(id);
+  }, [unlocked, limitReached, limitMs, save]);
+
+  useEffect(() => {
+    const onVisibility = () => { if (document.visibilityState === 'hidden') save(); else lastTickRef.current = Date.now(); };
+    document.addEventListener('visibilitychange', onVisibility); window.addEventListener('pagehide', save);
+    return () => { document.removeEventListener('visibilitychange', onVisibility); window.removeEventListener('pagehide', save); save(); };
+  }, [save]);
+
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key !== STORAGE_KEY) return; const s = read(); usedRef.current = s.usedMs; unlockedRef.current = s.unlocked; setUsedMs(s.usedMs); setUnlocked(s.unlocked);
+    };
+    window.addEventListener('storage', onStorage); return () => window.removeEventListener('storage', onStorage);
+  }, []);
+
+  const unlock = useCallback(() => {
+    usedRef.current = 0; 
+    unlockedRef.current = permanentUnlock; 
+    lastTickRef.current = Date.now(); 
+    setUsedMs(0); 
+    setUnlocked(permanentUnlock); 
+    save();
+  }, [permanentUnlock, save]);
+
+  return { isBlocked, usedMs, remainingMs: unlocked ? Infinity : Math.max(0, limitMs - usedMs), unlock };
+}
+```
+
+### 5. Unlock hook (honor system)
+#### `src/hooks/useSubscriptionUnlock.ts`
+```ts
+import { useCallback } from 'react';
+
+export function useSubscriptionUnlock(unlock: () => void, _active?: boolean) {
+  const verify = useCallback(async () => {
+    unlock();
+  }, [unlock]);
+
+  return { verify, verifying: false, error: null as string | null, needsSignIn: false };
+}
+```
+
+### 6. Block screen
+#### `src/components/BlockScreen.tsx`
+```tsx
+import { useEffect, useRef } from 'react';
+import { Clock, Loader2, Youtube } from 'lucide-react';
+
+const YOUTUBE_URL = 'https://www.youtube.com/@SciAmrSherif?sub_confirmation=1';
+
+interface Props {
+  isBlocked: boolean; onUnlock: () => void | Promise<void>;
+  busy?: boolean; error?: string | null; hint?: string; youtubeUrl?: string;
+}
+
+export function BlockScreen({ isBlocked, onUnlock, busy = false, error = null, hint, youtubeUrl = YOUTUBE_URL }: Props) {
+  const rootRef = useRef<HTMLDivElement>(null);
+  const firstRef = useRef<HTMLAnchorElement>(null);
+
+  useEffect(() => {
+    if (!isBlocked) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    firstRef.current?.focus();
+    return () => { document.body.style.overflow = prev; };
+  }, [isBlocked]);
+
+  if (!isBlocked) return null;
+
+  const trapFocus = (e: React.KeyboardEvent) => {
+    if (e.key !== 'Tab') return;
+    const items = rootRef.current?.querySelectorAll<HTMLElement>('a[href], button:not([disabled])');
+    if (!items?.length) return;
+    const first = items[0]; const last = items[items.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  };
+
+  return (
+    <div ref={rootRef} role="dialog" aria-modal="true" aria-labelledby="block-title" onKeyDown={trapFocus}
+      className="fixed inset-0 z-[1000] flex items-center justify-center bg-slate-950/95 p-6 backdrop-blur-sm"
+      style={{ paddingTop: 'max(1.5rem, env(safe-area-inset-top))', paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
+      <div className="w-full max-w-sm text-center text-white">
+        <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-red-500/15 text-red-400">
+          <Clock size={32} />
+        </div>
+        <h1 id="block-title" className="text-2xl font-bold">Time&apos;s Up!</h1>
+        <p className="mt-2 text-lg text-slate-200">Please subscribe to continue.</p>
+        <p className="mt-1 text-sm text-slate-400" dir="rtl">انتهى الوقت! اشترك للمتابعة</p>
+
+        <div className="mt-8 flex flex-col gap-3">
+          <a ref={firstRef} href={youtubeUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 rounded-xl bg-red-600 px-5 py-3 font-semibold text-white transition hover:bg-red-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-white">
+            <Youtube size={20} /> Subscribe on YouTube
+          </a>
+          <button type="button" onClick={() => void onUnlock()} disabled={busy} className="flex items-center justify-center gap-2 rounded-xl border border-slate-600 px-5 py-3 font-semibold text-white transition hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-white disabled:opacity-60">
+            {busy && <Loader2 size={18} className="animate-spin" />} I&apos;ve Subscribed, Unlock App
+          </button>
+          {hint && !error && <p className="text-xs text-slate-400">{hint}</p>}
+          {error && <p role="alert" className="rounded-lg bg-red-500/15 p-3 text-sm text-red-200">{error}</p>}
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+### 7. Integration into existing `src/App.tsx`
+```tsx
+import { useEffect } from 'react';
+import { useSpeech } from './hooks/useSpeech';
+import { useTimeLimit } from './hooks/useTimeLimit';
+import { useSubscriptionUnlock } from './hooks/useSubscriptionUnlock';
+import { BlockScreen } from './components/BlockScreen';
+
+export default function App() {
+  // permanentUnlock: true is CRITICAL. It saves the unlocked status forever.
+  const { isBlocked, unlock } = useTimeLimit({ permanentUnlock: true });
+  const { verify, verifying, error } = useSubscriptionUnlock(unlock, isBlocked);
+  const speech = useSpeech({ defaultLang: 'en-US' });
+
+  useEffect(() => {
+    if (isBlocked) { speech.abortListening(); speech.cancelSpeech(); }
+  }, [isBlocked]);
+
+  return (
+    <>
+      <div inert={isBlocked}>
+        {/* ALL existing app UI stays here, unchanged. */}
+      </div>
+      <BlockScreen isBlocked={isBlocked} onUnlock={verify} busy={verifying} error={error} />
+    </>
+  );
+}
+```
+
+## After generating
+Confirm `npm run build` passes with no TypeScript errors, and list any file you had to adjust.
+```

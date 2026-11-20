@@ -11,8 +11,9 @@ type AgeBand = NonNullable<UserProfile['ageBand']>;
 export interface AgeTrackSliderProps {
   value: LearnerTrack | null;
   ageBand: AgeBand | null;
-  onChange: (track: LearnerTrack, ageBand: AgeBand | null) => void;
+  onChange: (track: LearnerTrack, ageBand: AgeBand | null, examSubTrack?: 'thanawiya_amma' | 'igcse_gcse' | 'american_diploma') => void;
   isArabic: boolean;
+  examSubTrack?: 'thanawiya_amma' | 'igcse_gcse' | 'american_diploma' | null;
 }
 
 function getPresetKeyForStop(index: number): AgePresetKey {
@@ -95,9 +96,10 @@ const STOPS = [
   }
 ];
 
-export function AgeTrackSlider({ value, ageBand, onChange, isArabic }: AgeTrackSliderProps) {
+export function AgeTrackSlider({ value, ageBand, onChange, isArabic, examSubTrack }: AgeTrackSliderProps) {
   const currentIndex = STOPS.find(s => s.ageBand === ageBand)?.index || 3;
   const [sliderValue, setSliderValue] = useState<number>(currentIndex);
+  const [subTrack, setSubTrack] = useState<'thanawiya_amma' | 'igcse_gcse' | 'american_diploma' | undefined>(examSubTrack || undefined);
 
   useEffect(() => {
     if (ageBand) {
@@ -123,12 +125,19 @@ export function AgeTrackSlider({ value, ageBand, onChange, isArabic }: AgeTrackS
   const handlePointerUp = () => {
     if (selectedStop) {
       applyAgePreset(selectedStop.presetKey);
-      onChange(selectedStop.track, selectedStop.ageBand);
+      onChange(selectedStop.track, selectedStop.ageBand, subTrack);
+    }
+  };
+
+  const handleSubTrackChange = (newSubTrack: 'thanawiya_amma' | 'igcse_gcse' | 'american_diploma') => {
+    setSubTrack(newSubTrack);
+    if (selectedStop) {
+      onChange(selectedStop.track, selectedStop.ageBand, newSubTrack);
     }
   };
 
   const handleSkip = () => {
-    onChange('street_starter', null);
+    onChange('street_starter', null, undefined);
   };
 
   const fillPercentage = ((sliderValue - 1) / (STOPS.length - 1)) * 100;
@@ -203,6 +212,44 @@ export function AgeTrackSlider({ value, ageBand, onChange, isArabic }: AgeTrackS
             <span className="font-semibold text-stone-200">{selectedStop.hintEn}</span>
           </div>
         </div>
+
+        {selectedStop.track === 'thanawiya_igcse' && (
+          <div className="mt-4 border-t border-stone-800/50 pt-4">
+            <h5 className="text-sm font-bold text-stone-400 mb-2">{isArabic ? 'النظام التعليمي:' : 'Educational System:'}</h5>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => handleSubTrackChange('thanawiya_amma')}
+                className={`flex-1 py-2 px-3 rounded-lg border text-sm font-medium transition-all ${
+                  subTrack === 'thanawiya_amma'
+                    ? 'bg-teal-900/40 border-teal-500/50 text-teal-300'
+                    : 'bg-stone-900 border-stone-700 text-stone-400 hover:border-stone-500'
+                }`}
+              >
+                ثانوي عام
+              </button>
+              <button
+                onClick={() => handleSubTrackChange('igcse_gcse')}
+                className={`flex-1 py-2 px-3 rounded-lg border text-sm font-medium transition-all ${
+                  subTrack === 'igcse_gcse'
+                    ? 'bg-teal-900/40 border-teal-500/50 text-teal-300'
+                    : 'bg-stone-900 border-stone-700 text-stone-400 hover:border-stone-500'
+                }`}
+              >
+                IGCSE
+              </button>
+              <button
+                onClick={() => handleSubTrackChange('american_diploma')}
+                className={`flex-1 py-2 px-3 rounded-lg border text-sm font-medium transition-all ${
+                  subTrack === 'american_diploma'
+                    ? 'bg-teal-900/40 border-teal-500/50 text-teal-300'
+                    : 'bg-stone-900 border-stone-700 text-stone-400 hover:border-stone-500'
+                }`}
+              >
+                American Diploma
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       <button

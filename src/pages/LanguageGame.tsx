@@ -2,6 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ChevronRight, Star, Flame, Trophy, PlayCircle } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { VOCAB, VocabWord } from './vocab';
+import { soundFX } from '../utils/soundFX';
+import { TARGET_LANGUAGE_META } from '../data/languages';
+import type { TargetLanguage } from '../types';
 
 // --- Types ---
 type AgeBand = '5-7' | '8-9' | '10-12';
@@ -25,53 +28,212 @@ interface CardData {
   isSource: boolean;
   content: string; // Emoji, Arabic word, or English word
   subContent?: string; // For 5-7 band (small text)
-  lang: 'ar' | 'en'; // For TTS
+  lang: string; // For TTS
   ttsText: string;
 }
 
-// --- Audio Effects ---
-const playTone = (freq: number, type: OscillatorType, duration: number, vol: number) => {
-  try {
-    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-    if (!AudioContextClass) return;
-    const ctx = new AudioContextClass();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = type;
-    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+// --- Numbers Dictionary for All Supported Languages ---
+interface NumberEntry {
+  id: string;
+  digit: string;
+  emoji: string;
+  targetWord: string;
+  arabicWord: string;
+}
 
-    gain.gain.setValueAtTime(vol, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration);
-
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-
-    osc.start();
-    osc.stop(ctx.currentTime + duration);
-  } catch (e) {}
+const NUMBERS_BY_LANG: Record<string, NumberEntry[]> = {
+  en: [
+    { id: '1', digit: '1', emoji: '1️⃣', targetWord: 'One', arabicWord: 'واحد' },
+    { id: '2', digit: '2', emoji: '2️⃣', targetWord: 'Two', arabicWord: 'اتنين' },
+    { id: '3', digit: '3', emoji: '3️⃣', targetWord: 'Three', arabicWord: 'تلاتة' },
+    { id: '4', digit: '4', emoji: '4️⃣', targetWord: 'Four', arabicWord: 'أربعة' },
+    { id: '5', digit: '5', emoji: '5️⃣', targetWord: 'Five', arabicWord: 'خمسة' },
+    { id: '6', digit: '6', emoji: '6️⃣', targetWord: 'Six', arabicWord: 'ستة' },
+    { id: '7', digit: '7', emoji: '7️⃣', targetWord: 'Seven', arabicWord: 'سبعة' },
+    { id: '8', digit: '8', emoji: '8️⃣', targetWord: 'Eight', arabicWord: 'ثمانية' },
+    { id: '9', digit: '9', emoji: '9️⃣', targetWord: 'Nine', arabicWord: 'تسعة' },
+    { id: '10', digit: '10', emoji: '🔟', targetWord: 'Ten', arabicWord: 'عشرة' },
+  ],
+  de: [
+    { id: '1', digit: '1', emoji: '1️⃣', targetWord: 'Eins', arabicWord: 'واحد' },
+    { id: '2', digit: '2', emoji: '2️⃣', targetWord: 'Zwei', arabicWord: 'اتنين' },
+    { id: '3', digit: '3', emoji: '3️⃣', targetWord: 'Drei', arabicWord: 'تلاتة' },
+    { id: '4', digit: '4', emoji: '4️⃣', targetWord: 'Vier', arabicWord: 'أربعة' },
+    { id: '5', digit: '5', emoji: '5️⃣', targetWord: 'Fünf', arabicWord: 'خمسة' },
+    { id: '6', digit: '6', emoji: '6️⃣', targetWord: 'Sechs', arabicWord: 'ستة' },
+    { id: '7', digit: '7', emoji: '7️⃣', targetWord: 'Sieben', arabicWord: 'سبعة' },
+    { id: '8', digit: '8', emoji: '8️⃣', targetWord: 'Acht', arabicWord: 'ثمانية' },
+    { id: '9', digit: '9', emoji: '9️⃣', targetWord: 'Neun', arabicWord: 'تسعة' },
+    { id: '10', digit: '10', emoji: '🔟', targetWord: 'Zehn', arabicWord: 'عشرة' },
+  ],
+  es: [
+    { id: '1', digit: '1', emoji: '1️⃣', targetWord: 'Uno', arabicWord: 'واحد' },
+    { id: '2', digit: '2', emoji: '2️⃣', targetWord: 'Dos', arabicWord: 'اتنين' },
+    { id: '3', digit: '3', emoji: '3️⃣', targetWord: 'Tres', arabicWord: 'تلاتة' },
+    { id: '4', digit: '4', emoji: '4️⃣', targetWord: 'Cuatro', arabicWord: 'أربعة' },
+    { id: '5', digit: '5', emoji: '5️⃣', targetWord: 'Cinco', arabicWord: 'خمسة' },
+    { id: '6', digit: '6', emoji: '6️⃣', targetWord: 'Seis', arabicWord: 'ستة' },
+    { id: '7', digit: '7', emoji: '7️⃣', targetWord: 'Siete', arabicWord: 'سبعة' },
+    { id: '8', digit: '8', emoji: '8️⃣', targetWord: 'Ocho', arabicWord: 'ثمانية' },
+    { id: '9', digit: '9', emoji: '9️⃣', targetWord: 'Nueve', arabicWord: 'تسعة' },
+    { id: '10', digit: '10', emoji: '🔟', targetWord: 'Diez', arabicWord: 'عشرة' },
+  ],
+  fr: [
+    { id: '1', digit: '1', emoji: '1️⃣', targetWord: 'Un', arabicWord: 'واحد' },
+    { id: '2', digit: '2', emoji: '2️⃣', targetWord: 'Deux', arabicWord: 'اتنين' },
+    { id: '3', digit: '3', emoji: '3️⃣', targetWord: 'Trois', arabicWord: 'تلاتة' },
+    { id: '4', digit: '4', emoji: '4️⃣', targetWord: 'Quatre', arabicWord: 'أربعة' },
+    { id: '5', digit: '5', emoji: '5️⃣', targetWord: 'Cinq', arabicWord: 'خمسة' },
+    { id: '6', digit: '6', emoji: '6️⃣', targetWord: 'Six', arabicWord: 'ستة' },
+    { id: '7', digit: '7', emoji: '7️⃣', targetWord: 'Sept', arabicWord: 'سبعة' },
+    { id: '8', digit: '8', emoji: '8️⃣', targetWord: 'Huit', arabicWord: 'ثمانية' },
+    { id: '9', digit: '9', emoji: '9️⃣', targetWord: 'Neuf', arabicWord: 'تسعة' },
+    { id: '10', digit: '10', emoji: '🔟', targetWord: 'Dix', arabicWord: 'عشرة' },
+  ],
+  it: [
+    { id: '1', digit: '1', emoji: '1️⃣', targetWord: 'Uno', arabicWord: 'واحد' },
+    { id: '2', digit: '2', emoji: '2️⃣', targetWord: 'Due', arabicWord: 'اتنين' },
+    { id: '3', digit: '3', emoji: '3️⃣', targetWord: 'Tre', arabicWord: 'تلاتة' },
+    { id: '4', digit: '4', emoji: '4️⃣', targetWord: 'Quattro', arabicWord: 'أربعة' },
+    { id: '5', digit: '5', emoji: '5️⃣', targetWord: 'Cinque', arabicWord: 'خمسة' },
+    { id: '6', digit: '6', emoji: '6️⃣', targetWord: 'Sei', arabicWord: 'ستة' },
+    { id: '7', digit: '7', emoji: '7️⃣', targetWord: 'Sette', arabicWord: 'سبعة' },
+    { id: '8', digit: '8', emoji: '8️⃣', targetWord: 'Otto', arabicWord: 'ثمانية' },
+    { id: '9', digit: '9', emoji: '9️⃣', targetWord: 'Nove', arabicWord: 'تسعة' },
+    { id: '10', digit: '10', emoji: '🔟', targetWord: 'Dieci', arabicWord: 'عشرة' },
+  ],
+  pt: [
+    { id: '1', digit: '1', emoji: '1️⃣', targetWord: 'Um', arabicWord: 'واحد' },
+    { id: '2', digit: '2', emoji: '2️⃣', targetWord: 'Dois', arabicWord: 'اتنين' },
+    { id: '3', digit: '3', emoji: '3️⃣', targetWord: 'Três', arabicWord: 'تلاتة' },
+    { id: '4', digit: '4', emoji: '4️⃣', targetWord: 'Quatro', arabicWord: 'أربعة' },
+    { id: '5', digit: '5', emoji: '5️⃣', targetWord: 'Cinco', arabicWord: 'خمسة' },
+    { id: '6', digit: '6', emoji: '6️⃣', targetWord: 'Seis', arabicWord: 'ستة' },
+    { id: '7', digit: '7', emoji: '7️⃣', targetWord: 'Sete', arabicWord: 'سبعة' },
+    { id: '8', digit: '8', emoji: '8️⃣', targetWord: 'Oito', arabicWord: 'ثمانية' },
+    { id: '9', digit: '9', emoji: '9️⃣', targetWord: 'Nove', arabicWord: 'تسعة' },
+    { id: '10', digit: '10', emoji: '🔟', targetWord: 'Dez', arabicWord: 'عشرة' },
+  ],
+  ja: [
+    { id: '1', digit: '1', emoji: '1️⃣', targetWord: '一 (Ichi)', arabicWord: 'واحد' },
+    { id: '2', digit: '2', emoji: '2️⃣', targetWord: '二 (Ni)', arabicWord: 'اتنين' },
+    { id: '3', digit: '3', emoji: '3️⃣', targetWord: '三 (San)', arabicWord: 'تلاتة' },
+    { id: '4', digit: '4', emoji: '4️⃣', targetWord: '四 (Yon)', arabicWord: 'أربعة' },
+    { id: '5', digit: '5', emoji: '5️⃣', targetWord: '五 (Go)', arabicWord: 'خمسة' },
+    { id: '6', digit: '6', emoji: '6️⃣', targetWord: '六 (Roku)', arabicWord: 'ستة' },
+    { id: '7', digit: '7', emoji: '7️⃣', targetWord: '七 (Nana)', arabicWord: 'سبعة' },
+    { id: '8', digit: '8', emoji: '8️⃣', targetWord: '八 (Hachi)', arabicWord: 'ثمانية' },
+    { id: '9', digit: '9', emoji: '9️⃣', targetWord: '九 (Kyu)', arabicWord: 'تسعة' },
+    { id: '10', digit: '10', emoji: '🔟', targetWord: '十 (Jyu)', arabicWord: 'عشرة' },
+  ],
+  tr: [
+    { id: '1', digit: '1', emoji: '1️⃣', targetWord: 'Bir', arabicWord: 'واحد' },
+    { id: '2', digit: '2', emoji: '2️⃣', targetWord: 'İki', arabicWord: 'اتنين' },
+    { id: '3', digit: '3', emoji: '3️⃣', targetWord: 'Üç', arabicWord: 'تلاتة' },
+    { id: '4', digit: '4', emoji: '4️⃣', targetWord: 'Dört', arabicWord: 'أربعة' },
+    { id: '5', digit: '5', emoji: '5️⃣', targetWord: 'Beş', arabicWord: 'خمسة' },
+    { id: '6', digit: '6', emoji: '6️⃣', targetWord: 'Altı', arabicWord: 'ستة' },
+    { id: '7', digit: '7', emoji: '7️⃣', targetWord: 'Yedi', arabicWord: 'سبعة' },
+    { id: '8', digit: '8', emoji: '8️⃣', targetWord: 'Sekiz', arabicWord: 'ثمانية' },
+    { id: '9', digit: '9', emoji: '9️⃣', targetWord: 'Dokuz', arabicWord: 'تسعة' },
+    { id: '10', digit: '10', emoji: '🔟', targetWord: 'On', arabicWord: 'عشرة' },
+  ],
+  zh: [
+    { id: '1', digit: '1', emoji: '1️⃣', targetWord: '一 (Yī)', arabicWord: 'واحد' },
+    { id: '2', digit: '2', emoji: '2️⃣', targetWord: '二 (Èr)', arabicWord: 'اتنين' },
+    { id: '3', digit: '3', emoji: '3️⃣', targetWord: '三 (Sān)', arabicWord: 'تلاتة' },
+    { id: '4', digit: '4', emoji: '4️⃣', targetWord: '四 (Sì)', arabicWord: 'أربعة' },
+    { id: '5', digit: '5', emoji: '5️⃣', targetWord: '五 (Wǔ)', arabicWord: 'خمسة' },
+    { id: '6', digit: '6', emoji: '6️⃣', targetWord: '六 (Liù)', arabicWord: 'ستة' },
+    { id: '7', digit: '7', emoji: '7️⃣', targetWord: '七 (Qī)', arabicWord: 'سبعة' },
+    { id: '8', digit: '8', emoji: '8️⃣', targetWord: '八 (Bā)', arabicWord: 'ثمانية' },
+    { id: '9', digit: '9', emoji: '9️⃣', targetWord: '九 (Jiǔ)', arabicWord: 'تسعة' },
+    { id: '10', digit: '10', emoji: '🔟', targetWord: '十 (Shí)', arabicWord: 'عشرة' },
+  ],
+  ru: [
+    { id: '1', digit: '1', emoji: '1️⃣', targetWord: 'Один', arabicWord: 'واحد' },
+    { id: '2', digit: '2', emoji: '2️⃣', targetWord: 'Два', arabicWord: 'اتنين' },
+    { id: '3', digit: '3', emoji: '3️⃣', targetWord: 'Три', arabicWord: 'تلاتة' },
+    { id: '4', digit: '4', emoji: '4️⃣', targetWord: 'Четыре', arabicWord: 'أربعة' },
+    { id: '5', digit: '5', emoji: '5️⃣', targetWord: 'Пять', arabicWord: 'خمسة' },
+    { id: '6', digit: '6', emoji: '6️⃣', targetWord: 'Шесть', arabicWord: 'ستة' },
+    { id: '7', digit: '7', emoji: '7️⃣', targetWord: 'Семь', arabicWord: 'سبعة' },
+    { id: '8', digit: '8', emoji: '8️⃣', targetWord: 'Восемь', arabicWord: 'ثمانية' },
+    { id: '9', digit: '9', emoji: '9️⃣', targetWord: 'Девять', arabicWord: 'تسعة' },
+    { id: '10', digit: '10', emoji: '🔟', targetWord: 'Десять', arabicWord: 'عشرة' },
+  ],
+  hi: [
+    { id: '1', digit: '1', emoji: '1️⃣', targetWord: 'एक (Ek)', arabicWord: 'واحد' },
+    { id: '2', digit: '2', emoji: '2️⃣', targetWord: 'दो (Do)', arabicWord: 'اتنين' },
+    { id: '3', digit: '3', emoji: '3️⃣', targetWord: 'तीन (Teen)', arabicWord: 'تلاتة' },
+    { id: '4', digit: '4', emoji: '4️⃣', targetWord: 'चार (Chaar)', arabicWord: 'أربعة' },
+    { id: '5', digit: '5', emoji: '5️⃣', targetWord: 'पाँच (Paanch)', arabicWord: 'خمسة' },
+    { id: '6', digit: '6', emoji: '6️⃣', targetWord: 'छः (Chheh)', arabicWord: 'ستة' },
+    { id: '7', digit: '7', emoji: '7️⃣', targetWord: 'सात (Saat)', arabicWord: 'سبعة' },
+    { id: '8', digit: '8', emoji: '8️⃣', targetWord: 'आठ (Aath)', arabicWord: 'ثمانية' },
+    { id: '9', digit: '9', emoji: '9️⃣', targetWord: 'नौ (Nau)', arabicWord: 'تسعة' },
+    { id: '10', digit: '10', emoji: '🔟', targetWord: 'दस (Dus)', arabicWord: 'عشرة' },
+  ],
+  el: [
+    { id: '1', digit: '1', emoji: '1️⃣', targetWord: 'Ένα', arabicWord: 'واحد' },
+    { id: '2', digit: '2', emoji: '2️⃣', targetWord: 'Δύο', arabicWord: 'اتنين' },
+    { id: '3', digit: '3', emoji: '3️⃣', targetWord: 'Τρία', arabicWord: 'تلاتة' },
+    { id: '4', digit: '4', emoji: '4️⃣', targetWord: 'Τέσσερα', arabicWord: 'أربعة' },
+    { id: '5', digit: '5', emoji: '5️⃣', targetWord: 'Πέντε', arabicWord: 'خمسة' },
+    { id: '6', digit: '6', emoji: '6️⃣', targetWord: 'Έξι', arabicWord: 'ستة' },
+    { id: '7', digit: '7', emoji: '7️⃣', targetWord: 'Επτά', arabicWord: 'سبعة' },
+    { id: '8', digit: '8', emoji: '8️⃣', targetWord: 'Οκτώ', arabicWord: 'ثمانية' },
+    { id: '9', digit: '9', emoji: '9️⃣', targetWord: 'Εννέα', arabicWord: 'تسعة' },
+    { id: '10', digit: '10', emoji: '🔟', targetWord: 'Δέκα', arabicWord: 'عشرة' },
+  ],
+  he: [
+    { id: '1', digit: '1', emoji: '1️⃣', targetWord: 'אחד', arabicWord: 'واحد' },
+    { id: '2', digit: '2', emoji: '2️⃣', targetWord: 'שתיים', arabicWord: 'اتنين' },
+    { id: '3', digit: '3', emoji: '3️⃣', targetWord: 'שלוש', arabicWord: 'تلاتة' },
+    { id: '4', digit: '4', emoji: '4️⃣', targetWord: 'ארבע', arabicWord: 'أربعة' },
+    { id: '5', digit: '5', emoji: '5️⃣', targetWord: 'חמש', arabicWord: 'خمسة' },
+    { id: '6', digit: '6', emoji: '6️⃣', targetWord: 'שש', arabicWord: 'ستة' },
+    { id: '7', digit: '7', emoji: '7️⃣', targetWord: 'שבע', arabicWord: 'سبعة' },
+    { id: '8', digit: '8', emoji: '8️⃣', targetWord: 'שמונה', arabicWord: 'ثمانية' },
+    { id: '9', digit: '9', emoji: '9️⃣', targetWord: 'תשע', arabicWord: 'تسعة' },
+    { id: '10', digit: '10', emoji: '🔟', targetWord: 'עשר', arabicWord: 'עشرة' },
+  ],
+  ar: [
+    { id: '1', digit: '١', emoji: '1️⃣', targetWord: 'واحد', arabicWord: 'One' },
+    { id: '2', digit: '٢', emoji: '2️⃣', targetWord: 'إثنان', arabicWord: 'Two' },
+    { id: '3', digit: '٣', emoji: '3️⃣', targetWord: 'ثلاثة', arabicWord: 'Three' },
+    { id: '4', digit: '٤', emoji: '4️⃣', targetWord: 'أربعة', arabicWord: 'Four' },
+    { id: '5', digit: '٥', emoji: '5️⃣', targetWord: 'خمسة', arabicWord: 'Five' },
+    { id: '6', digit: '٦', emoji: '6️⃣', targetWord: 'ستة', arabicWord: 'Six' },
+    { id: '7', digit: '٧', emoji: '7️⃣', targetWord: 'سبعة', arabicWord: 'Seven' },
+    { id: '8', digit: '٨', emoji: '8️⃣', targetWord: 'ثمانية', arabicWord: 'Eight' },
+    { id: '9', digit: '٩', emoji: '9️⃣', targetWord: 'تسعة', arabicWord: 'Nine' },
+    { id: '10', digit: '١٠', emoji: '🔟', targetWord: 'عشرة', arabicWord: 'Ten' },
+  ],
 };
 
-const playPop = () => {
-  playTone(600, 'sine', 0.1, 0.5);
-  setTimeout(() => playTone(800, 'sine', 0.15, 0.5), 50);
+const LANGUAGE_LOCALES: Record<string, string> = {
+  ar: 'ar-SA',
+  en: 'en-US',
+  de: 'de-DE',
+  ja: 'ja-JP',
+  es: 'es-ES',
+  fr: 'fr-FR',
+  zh: 'zh-CN',
+  hi: 'hi-IN',
+  ru: 'ru-RU',
+  pt: 'pt-BR',
+  it: 'it-IT',
+  el: 'el-GR',
+  tr: 'tr-TR',
+  he: 'he-IL',
 };
 
-const playError = () => {
-  playTone(300, 'triangle', 0.3, 0.3);
-};
-
-const playVictory = () => {
-  playTone(400, 'sine', 0.1, 0.5);
-  setTimeout(() => playTone(500, 'sine', 0.1, 0.5), 100);
-  setTimeout(() => playTone(600, 'sine', 0.1, 0.5), 200);
-  setTimeout(() => playTone(800, 'sine', 0.4, 0.5), 300);
-};
-
-const speak = (text: string, lang: 'ar' | 'en') => {
+const speak = (text: string, langCode: string) => {
   if (!('speechSynthesis' in window)) return;
   window.speechSynthesis.cancel();
   const ut = new SpeechSynthesisUtterance(text);
-  ut.lang = lang === 'ar' ? 'ar-EG' : 'en-US';
+  ut.lang = LANGUAGE_LOCALES[langCode] || (langCode === 'ar' ? 'ar-SA' : 'en-US');
   window.speechSynthesis.speak(ut);
 };
 
@@ -87,7 +249,7 @@ const shuffle = <T,>(array: T[]): T[] => {
 };
 
 // --- Main Component ---
-export const LanguageGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
+export const LanguageGame: React.FC<{ onBack: () => void; targetLang?: string; sourceLang?: string }> = ({ onBack, targetLang = 'en', sourceLang = 'ar' }) => {
   // Storage
   const [state, setState] = useState<GameState>(() => {
     try {
@@ -155,7 +317,7 @@ export const LanguageGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
       setClicks(0);
       setMatches(0);
       startTime.current = Date.now();
-      playError();
+      soundFX.playError();
     } else if (state.ageBand === '10-12') {
       // 10-12: Lose points, end round
       finishRound(true);
@@ -172,41 +334,64 @@ export const LanguageGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
       pairCount = 7;
       timeLimit = 30; // Daily always has a bit of pressure
     } else {
-      if (band === '5-7') { pairCount = 3; timeLimit = null; }
+      if (band === '5-7') { pairCount = 4; timeLimit = null; } // 4 numbers for simple mode
       if (band === '8-9') { pairCount = 5; timeLimit = 45; }
       if (band === '10-12') { pairCount = 7; timeLimit = 25; }
     }
-
-    // Pick words
-    const available = VOCAB.filter(v => daily || v.bands.includes(band || '5-7'));
-    const selectedVocab = shuffle(available).slice(0, pairCount);
 
     const newCards: CardData[] = [];
     const dir = state.direction || 'ar-en';
     const isArSource = dir === 'ar-en';
 
-    selectedVocab.forEach((v, idx) => {
-      let sourceCard: CardData;
-      let targetCard: CardData;
+    if (band === '5-7' && !daily) {
+      // Simple Mode: Gamified to just numbers in ALL supported languages
+      const langNumbers = NUMBERS_BY_LANG[targetLang] || NUMBERS_BY_LANG['en'];
+      const selectedNumbers = shuffle(langNumbers).slice(0, pairCount);
 
-      const sourceText = isArSource ? v.ar : v.en;
-      const targetText = isArSource ? v.en : v.ar;
-      const sourceLang = isArSource ? 'ar' : 'en';
-      const targetLang = isArSource ? 'en' : 'ar';
+      selectedNumbers.forEach((item) => {
+        const sourceText = isArSource ? item.arabicWord : item.targetWord;
+        const targetText = isArSource ? item.targetWord : item.arabicWord;
+        const sourceLangCode = isArSource ? sourceLang : targetLang;
+        const targetLangCode = isArSource ? targetLang : sourceLang;
 
-      if (band === '5-7' && !daily) {
-        sourceCard = { uniqueId: `${v.id}-src`, wordId: v.id, isSource: true, content: v.emoji, subContent: sourceText, lang: sourceLang, ttsText: sourceText };
-        targetCard = { uniqueId: `${v.id}-tgt`, wordId: v.id, isSource: false, content: v.emoji, subContent: targetText, lang: targetLang, ttsText: targetText };
-      } else if (band === '8-9' && !daily) {
-        sourceCard = { uniqueId: `${v.id}-src`, wordId: v.id, isSource: true, content: v.emoji, lang: sourceLang, ttsText: sourceText };
-        targetCard = { uniqueId: `${v.id}-tgt`, wordId: v.id, isSource: false, content: targetText, lang: targetLang, ttsText: targetText };
-      } else {
-        sourceCard = { uniqueId: `${v.id}-src`, wordId: v.id, isSource: true, content: sourceText, lang: sourceLang, ttsText: sourceText };
-        targetCard = { uniqueId: `${v.id}-tgt`, wordId: v.id, isSource: false, content: targetText, lang: targetLang, ttsText: targetText };
-      }
+        const sourceCard: CardData = {
+          uniqueId: `${item.id}-src`,
+          wordId: item.id,
+          isSource: true,
+          content: item.emoji, // Number emoji/digit
+          subContent: sourceText,
+          lang: sourceLangCode,
+          ttsText: sourceText
+        };
+        const targetCard: CardData = {
+          uniqueId: `${item.id}-tgt`,
+          wordId: item.id,
+          isSource: false,
+          content: targetText,
+          subContent: item.emoji,
+          lang: targetLangCode,
+          ttsText: targetText
+        };
 
-      newCards.push(sourceCard, targetCard);
-    });
+        newCards.push(sourceCard, targetCard);
+      });
+    } else {
+      // Pick words for older bands or daily
+      const available = VOCAB.filter(v => daily || v.bands.includes(band || '8-9'));
+      const selectedVocab = shuffle(available).slice(0, pairCount);
+
+      selectedVocab.forEach((v) => {
+        const sourceText = isArSource ? v.ar : v.en;
+        const targetText = isArSource ? v.en : v.ar;
+        const sourceLangCode = isArSource ? sourceLang : targetLang;
+        const targetLangCode = isArSource ? targetLang : sourceLang;
+
+        const sourceCard: CardData = { uniqueId: `${v.id}-src`, wordId: v.id, isSource: true, content: v.emoji, subContent: sourceText, lang: sourceLangCode, ttsText: sourceText };
+        const targetCard: CardData = { uniqueId: `${v.id}-tgt`, wordId: v.id, isSource: false, content: targetText, lang: targetLangCode, ttsText: targetText };
+
+        newCards.push(sourceCard, targetCard);
+      });
+    }
 
     setCards(shuffle(newCards));
     setMatchedPairs(new Set());
@@ -233,7 +418,7 @@ export const LanguageGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     const firstCard = cards.find(c => c.uniqueId === selectedId)!;
     if (firstCard.wordId === card.wordId && firstCard.isSource !== card.isSource) {
       // Match!
-      playPop();
+      soundFX.playCorrect();
       setMatchedPairs(prev => {
         const next = new Set(prev);
         next.add(card.wordId);
@@ -250,7 +435,7 @@ export const LanguageGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
       }
     } else {
       // Wrong
-      playError();
+      soundFX.playError();
       setWrongShakeId(card.uniqueId);
       setTimeout(() => setWrongShakeId(null), 400);
       setSelectedId(null);
@@ -266,7 +451,7 @@ export const LanguageGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     if (isDaily) score = Math.floor(score * 1.5);
     if (timeout) score = Math.floor(score / 2);
 
-    playVictory();
+    soundFX.playFanfare();
     confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#F0B84C', '#6FCF97', '#E8886B'] });
 
     // Update streak
@@ -347,13 +532,13 @@ export const LanguageGame: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             onClick={() => { saveState({ direction: 'ar-en' }); setStep('HOME'); }}
             className="bg-[#143A6B] hover:bg-[#1a4a8a] text-xl font-bold py-8 rounded-2xl border-2 border-[#A8B2C9]/20 transition-transform active:scale-95"
           >
-            عربي ← إنجليزي
+            عربي ← {TARGET_LANGUAGE_META[(targetLang as TargetLanguage) || 'en']?.nameAr || 'إنجليزي'}
           </button>
           <button
             onClick={() => { saveState({ direction: 'en-ar' }); setStep('HOME'); }}
             className="bg-[#143A6B] hover:bg-[#1a4a8a] text-xl font-bold py-8 rounded-2xl border-2 border-[#A8B2C9]/20 transition-transform active:scale-95"
           >
-            إنجليزي ← عربي
+            {TARGET_LANGUAGE_META[(targetLang as TargetLanguage) || 'en']?.nameAr || 'إنجليزي'} ← عربي
           </button>
         </div>
       </div>

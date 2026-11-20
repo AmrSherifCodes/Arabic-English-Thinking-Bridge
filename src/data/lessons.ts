@@ -14,55 +14,47 @@ export const PHASES_DATA: Phase[] = [
         phaseTitle: 'Foundations & The Skeleton',
         phaseLevel: 'A0',
         number: 1,
-        title: 'The Hidden Copula (Nominal Sentences)',
-        titleAr: 'فعل الربط المخفي (am / is / are)',
-        transferConcept: 'Arabic creates complete present statements with zero verbs (مبتدأ وخبر: هو طبيب). English grammar strictly forbids verbless sentences; an overt linking verb ("am / is / are") must serve as the structural backbone.',
-        transferConceptAr: 'في العربية نقول (هو طبيب) بدون أي فعل. أما في الإنجليزية، فالجملة لا تكتمل أبداً بدون فعل ربط أساسي (am / is / are).',
-        weakSpotTag: 'copula-omission',
+        title: 'Daily Greetings & Goodbyes',
+        titleAr: 'التحيات اليومية والوداع',
+        transferConcept: 'Essential greeting patterns and polite responses in everyday English conversations.',
+        transferConceptAr: 'أدبيات السلام والتعارف الأساسي والردود اليومية.',
+        weakSpotTag: 'greetings',
         exercises: [
           {
             id: 'ex-1-1-1',
-            arabicThought: 'هو مهندس معماري',
-            englishTarget: 'He is an architect',
-            acceptableAlternatives: ["He's an architect"],
-            wordChips: ['He', 'is', 'an', 'architect', 'a', 'engineer', 'are'],
+            arabicThought: 'أهلاً، إزيك؟',
+            englishTarget: 'Hello, how are you?',
+            acceptableAlternatives: ['Hi, how are you?', 'Hello, how are you'],
+            wordChips: ['Hello', 'how', 'are', 'you', 'Hi', 'is', 'am'],
             breakdownChunks: [
-              { arabicText: 'هو', englishText: 'He', role: 'subject', explanation: 'Subject pronoun' },
-              { arabicText: '— (غير منطوق في العربية)', englishText: 'is', role: 'verb', explanation: 'Required copula verb in English' },
-              { arabicText: 'مهندس معماري', englishText: 'an architect', role: 'object', explanation: 'Indefinite singular noun taking "an"' }
+              { arabicText: 'أهلاً', englishText: 'Hello', role: 'modifier', explanation: 'Standard polite greeting' },
+              { arabicText: 'إزيك؟', englishText: 'how are you?', role: 'modifier', explanation: 'Inquiry about well-being' }
             ],
-            habitHint: 'In Arabic, you say "هو مهندس" without any verb. In English, you cannot leave the verb implicit. Which form of "to be" must bridge the subject and the noun?',
-            specificMisconceptions: [
-              { pattern: '^he architect|^he an architect', diagnosis: 'Notice how you omitted "is". In English, verbless sentences do not exist in the present tense.' }
-            ]
+            habitHint: 'Use "Hello, how are you?" as your primary everyday greeting.'
           },
           {
             id: 'ex-1-1-2',
-            arabicThought: 'الطقس بارد جداً اليوم',
-            englishTarget: 'The weather is very cold today',
-            acceptableAlternatives: ["The weather's very cold today", 'Today the weather is very cold'],
-            wordChips: ['The', 'weather', 'is', 'very', 'cold', 'today', 'are', 'has'],
+            arabicThought: 'صباح الخير',
+            englishTarget: 'Good morning',
+            acceptableAlternatives: ['Morning'],
+            wordChips: ['Good', 'morning', 'evening', 'night', 'hi'],
             breakdownChunks: [
-              { arabicText: 'الطقس', englishText: 'The weather', role: 'subject', explanation: 'Definite subject' },
-              { arabicText: '— (فعل الربط الأساسي المخفي)', englishText: 'is', role: 'verb', explanation: 'Required linking verb' },
-              { arabicText: 'بارد جداً', englishText: 'very cold', role: 'modifier', explanation: 'Adjective phrase complement' },
-              { arabicText: 'اليوم', englishText: 'today', role: 'connector', explanation: 'Time adverbial' }
+              { arabicText: 'صباح', englishText: 'morning', role: 'modifier', explanation: 'Time of day' },
+              { arabicText: 'الخير', englishText: 'Good', role: 'modifier', explanation: 'Polite wish' }
             ],
-            habitHint: 'Arabic connects the weather directly to the adjective (الطقس بارد). English requires the copula "is" to hold the adjective to the subject.'
+            habitHint: 'Use "Good morning" until noon.'
           },
           {
             id: 'ex-1-1-3',
-            arabicThought: 'نحن جاهزون للمقابلة',
-            englishTarget: 'We are ready for the interview',
-            acceptableAlternatives: ["We're ready for the interview"],
-            wordChips: ['We', 'are', 'ready', 'for', 'the', 'interview', 'is', 'to'],
+            arabicThought: 'شكراً جزيلاً',
+            englishTarget: 'Thank you very much',
+            acceptableAlternatives: ['Thanks a lot', 'Thank you'],
+            wordChips: ['Thank', 'you', 'very', 'much', 'thanks', 'a', 'lot'],
             breakdownChunks: [
-              { arabicText: 'نحن', englishText: 'We', role: 'subject', explanation: 'Plural subject' },
-              { arabicText: '— (رابطة محذوفة)', englishText: 'are', role: 'verb', explanation: 'Plural copula verb' },
-              { arabicText: 'جاهزون', englishText: 'ready', role: 'modifier', explanation: 'Predicate adjective' },
-              { arabicText: 'للمقابلة', englishText: 'for the interview', role: 'object', explanation: 'Prepositional complement' }
+              { arabicText: 'شكراً', englishText: 'Thank you', role: 'modifier', explanation: 'Gratitude' },
+              { arabicText: 'جزيلاً', englishText: 'very much', role: 'modifier', explanation: 'Emphatic adverbial' }
             ],
-            habitHint: 'Plural subject "We" needs the plural linking verb "are".'
+            habitHint: 'Express appreciation warmly.'
           }
         ]
       },

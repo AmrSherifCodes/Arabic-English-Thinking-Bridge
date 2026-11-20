@@ -22,6 +22,95 @@ const AMR_POSES = {
   ready: '/amr-guide/pose4.png'
 };
 
+const PRESET_PROFILES = [
+  {
+    id: 'school_student',
+    title: 'طالب مدرسة',
+    titleEn: 'School Student',
+    icon: '🎒',
+    preset: {
+       age: 15,
+       isStudent: true,
+       level: 'beginner',
+       goal: 'academic'
+    }
+  },
+  {
+    id: 'university',
+    title: 'طالب جامعي',
+    titleEn: 'University Student',
+    icon: '🎓',
+    preset: {
+       age: 20,
+       isStudent: true,
+       level: 'intermediate',
+       goal: 'academic'
+    }
+  },
+  {
+    id: 'professional',
+    title: 'للشغل والعمل',
+    titleEn: 'Career / Work',
+    icon: '💼',
+    preset: {
+       age: 26,
+       isStudent: false,
+       level: 'intermediate',
+       goal: 'work'
+    }
+  },
+  {
+    id: 'traveler',
+    title: 'مسافر ومغترب',
+    titleEn: 'Traveler',
+    icon: '✈️',
+    preset: {
+       age: 30,
+       isStudent: false,
+       level: 'beginner',
+       goal: 'travel'
+    }
+  },
+  {
+    id: 'custom',
+    title: 'إعداد مخصص',
+    titleEn: 'Custom Setup',
+    icon: '⚙️',
+  }
+];
+
+const GUIDES = [
+  {
+    id: 'amr',
+    nameAr: 'عمرو شريف',
+    nameEn: 'Amr Sherif',
+    roleAr: 'المدرب الأساسي',
+    roleEn: 'Core Coach',
+    avatar: '👨🏻‍🏫', // Or the actual image if we can render it
+    unlocked: true,
+  },
+  {
+    id: 'sarah',
+    nameAr: 'سارة',
+    nameEn: 'Sarah',
+    roleAr: 'خبيرة النطق',
+    roleEn: 'Pronunciation Expert',
+    avatar: '👩🏽‍🏫',
+    unlocked: false,
+    unlockLevel: 5,
+  },
+  {
+    id: 'tariq',
+    nameAr: 'طارق',
+    nameEn: 'Tariq',
+    roleAr: 'محترف بيئة العمل',
+    roleEn: 'Career Expert',
+    avatar: '👨🏽‍💼',
+    unlocked: false,
+    unlockLevel: 10,
+  }
+];
+
 const DIALECT_OPTIONS = [
   {
     id: 'egyptian' as const,
@@ -200,12 +289,14 @@ export function OnboardingModal({
   onComplete,
   onSkip
 }: OnboardingModalProps) {
-  // 4 Steps:
-  // Step 0: Source Language (ar vs en) + Dialect if Arabic
-  // Step 1: Target Language (en, de, ja)
-  // Step 2: Level & Main Goal & Name
-  // Step 3: Confirmation & Personalization Summary
+  // 5 Steps:
+  // Step 0: Welcome & Avatars / Gamification
+  // Step 1: Preset Profiles
+  // Step 2: Source & Target Language
+  // Step 3: Custom Level & Goal
+  // Step 4: Confirmation
   const [step, setStep] = useState<number>(0);
+  const [presetId, setPresetId] = useState<string>('');
 
   const [sourceLang, setSourceLang] = useState<SourceLanguage>(
     initialSourceLang || (initialProfile?.sourceLanguage || (initialProfile?.language === 'english' ? 'en' : 'ar'))
@@ -238,28 +329,38 @@ export function OnboardingModal({
     if (step === 0) {
       return {
         pose: AMR_POSES.welcome,
-        coachTag: isSourceArabic ? 'عمرو شريف · مدربك اللغوي من الإسكندرية 🌊' : 'Amr Sherif · Cognitive Coach',
-        title: isSourceArabic ? 'أهلاً بيك يا بطل! من إسكندرية لجميع أهل مصر 👋' : "Welcome! I'm Amr 👋",
+        coachTag: isSourceArabic ? 'عمرو شريف · مدربك اللغوي 🌊' : 'Amr Sherif · Cognitive Coach',
+        title: isSourceArabic ? 'أهلاً بيك يا بطل! جاهز للرحلة؟ 👋' : "Welcome! I'm Amr 👋",
         dialogue: isSourceArabic
-          ? 'أنا عمرو شريف، وهكون معاك خطوة بخطوة عشان نفك عقدة الإنجليزي ونفكر بالبلدي وبدون ترجمة عصبية في سرك! جاهز ننطلق؟'
-          : "I'll guide you step by step to rewire your brain to think directly in your target language. First, what language do you currently think in?"
+          ? 'أنا عمرو، وهكون معاك خطوة بخطوة. هنجمع نقاط (XP)، ونفك عقدة الإنجليزي ونفكر مباشرة بدون ترجمة! جاهز ننطلق؟'
+          : "I'll guide you step by step. We'll earn XP, rewire your brain, and think directly! Ready to start?"
       };
     }
     if (step === 1) {
       return {
         pose: AMR_POSES.thinking,
-        coachTag: isSourceArabic ? 'عمرو شريف · لغة التفكير 🎯' : 'Amr Sherif · Target Language 🎯',
-        title: isSourceArabic ? 'اختيار ممتاز! ودلوقتي أهم قرار 👏' : 'Great choice! Now the core target 👏',
+        coachTag: isSourceArabic ? 'عمرو شريف · إعداد سريع ⏱️' : 'Amr Sherif · Quick Setup ⏱️',
+        title: isSourceArabic ? 'عشان نوفر وقتك، إنت مين في دول؟ 🚀' : 'To save time, which one are you? 🚀',
         dialogue: isSourceArabic
-          ? 'عايز تدرب مخك يفكر مباشرة بانهي لغة؟ اختر لغة الهدف اللي نفسك تتقن التفكير والتحدث بيها!'
-          : 'Which language do you want to train your brain to think in? Select your target language!'
+          ? 'اختار بروفايل جاهز وهظبطلك خطتك تلقائياً، أو اختار إعداد مخصص لو حابب تختار كل حاجة بنفسك.'
+          : 'Pick a preset profile to auto-configure your plan, or choose Custom Setup.'
       };
     }
     if (step === 2) {
       return {
         pose: AMR_POSES.thinking,
+        coachTag: isSourceArabic ? 'عمرو شريف · اللغات 🌍' : 'Amr Sherif · Languages 🌍',
+        title: isSourceArabic ? 'إيه هي لغتك الحالية واللغة اللي بتستهدفها؟' : 'Source & Target Languages?',
+        dialogue: isSourceArabic
+          ? 'بنحتاج نعرف لغتك الأم اللي بتفكر بيها دلوقتي، واللغة اللي نفسك تتقن التفكير والتحدث بيها.'
+          : 'What language do you think in now, and which one do you want to learn to think in?'
+      };
+    }
+    if (step === 3) {
+      return {
+        pose: AMR_POSES.thinking,
         coachTag: isSourceArabic ? 'عمرو شريف · تفصيل الخطة 📊' : 'Amr Sherif · Custom Plan 📊',
-        title: isSourceArabic ? 'قربنا ننطلق! قولي مستواك وهدفك 🚀' : 'Almost ready! Tell me your level & goal 🚀',
+        title: isSourceArabic ? 'تخصيص الخطة: مستواك وهدفك 🚀' : 'Tailor your plan: Level & Goal 🚀',
         dialogue: isSourceArabic
           ? 'عشان أظبطلك التمارين والمفردات بالمللي على مقاسك وما نضيعش وقتك، إيه مستواك الحالي وإيه هدفك الأساسي؟'
           : 'To tailor every exercise and situation precisely to your needs, what is your current level and main goal?'
@@ -267,11 +368,11 @@ export function OnboardingModal({
     }
     return {
       pose: AMR_POSES.ready,
-      coachTag: isSourceArabic ? 'عمرو شريف · خطتك الشخصية جاهزة 🌟' : 'Amr Sherif · Ready for Launch 🌟',
+      coachTag: isSourceArabic ? 'عمرو شريف · الخطة جاهزة (+50 XP) 🌟' : 'Amr Sherif · Ready (+50 XP) 🌟',
       title: isSourceArabic ? `عاش عليك يا ${name.trim() || 'بطل'}! 👏` : `Outstanding, ${name.trim() || 'Champion'}! 👏`,
       dialogue: isSourceArabic
-        ? `جهزتلك جسر تحول ذهني مخصص من ${SOURCE_LANGUAGES[sourceLang]?.nameAr} إلى ${TARGET_LANGUAGE_META[targetLang]?.nameAr}. التمارين والمفردات وأسلوب المدرب متبرمجين بالكامل لخدمة هدفك!`
-        : `Your personalized cognitive bridge from ${SOURCE_LANGUAGES[sourceLang]?.nameEn} to ${TARGET_LANGUAGE_META[targetLang]?.nameEn} is fully prepared!`
+        ? `حصلت على 50 نقطة خبرة كبداية! جهزتلك جسر تحول ذهني مخصص من ${SOURCE_LANGUAGES[sourceLang]?.nameAr} إلى ${TARGET_LANGUAGE_META[targetLang]?.nameAr}. انطلق!`
+        : `You earned 50 XP to start! Your cognitive bridge from ${SOURCE_LANGUAGES[sourceLang]?.nameEn} to ${TARGET_LANGUAGE_META[targetLang]?.nameEn} is fully prepared!`
     };
   }, [step, isSourceArabic, sourceLang, targetLang, name]);
 
@@ -315,7 +416,13 @@ export function OnboardingModal({
   };
 
   const handleNext = () => {
-    if (step < 3) {
+    if (step === 1 && presetId && presetId !== 'custom') {
+      // Skip step 3 (Custom setup) if preset is chosen
+      setStep(2);
+    } else if (step === 2 && presetId && presetId !== 'custom') {
+      // Go directly to Step 4 after language choice
+      setStep(4);
+    } else if (step < 4) {
       setStep(prev => prev + 1);
     } else {
       handleFinish();
@@ -323,8 +430,25 @@ export function OnboardingModal({
   };
 
   const handlePrev = () => {
-    if (step > 0) {
+    if (step === 4 && presetId && presetId !== 'custom') {
+      setStep(2);
+    } else if (step === 2 && presetId && presetId !== 'custom') {
+      setStep(1);
+    } else if (step > 0) {
       setStep(prev => prev - 1);
+    }
+  };
+
+  const handleSelectPreset = (id: string) => {
+    setPresetId(id);
+    if (id !== 'custom') {
+      const p = PRESET_PROFILES.find(x => x.id === id)?.preset;
+      if (p) {
+        setAge(p.age);
+        setIsStudent(p.isStudent);
+        setLevel(p.level as any);
+        setGoal(p.goal as any);
+      }
     }
   };
 
@@ -372,7 +496,7 @@ export function OnboardingModal({
         {/* Progress Bar (Step Indicator) */}
         <div className="flex items-center justify-between mb-3.5">
           <div className="flex items-center gap-1.5">
-            {[0, 1, 2, 3].map(idx => (
+            {[0, 1, 2, 3, 4].map(idx => (
               <span
                 key={idx}
                 className={`h-1.5 rounded-full transition-all ${
@@ -386,7 +510,7 @@ export function OnboardingModal({
             ))}
           </div>
           <span className="text-[11px] font-bold text-stone-400">
-            {isSourceArabic ? `الخطوة ${step + 1} من 4` : `Step ${step + 1} of 4`}
+            {isSourceArabic ? `الخطوة ${step + 1} من 5` : `Step ${step + 1} of 5`}
           </span>
         </div>
 
@@ -422,7 +546,7 @@ export function OnboardingModal({
 
         {/* Step Content */}
         <AnimatePresence mode="wait">
-          {/* STEP 0: SOURCE LANGUAGE & DIALECT */}
+          {/* STEP 0: WELCOME & GUIDES (GAMIFIED) */}
           {step === 0 && (
             <motion.div
               key="step-0"
@@ -430,101 +554,48 @@ export function OnboardingModal({
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: isRtl ? 15 : -15 }}
               transition={{ duration: 0.18 }}
-              className="space-y-3"
+              className="space-y-4"
             >
-              <div className="space-y-1">
-                <span className="text-xs font-bold text-teal-400">
-                  {isSourceArabic ? '1. لغة التفكير الحالية (لغة الأم / الشرح):' : '1. Language you currently think in:'}
-                </span>
+              <div className="text-center space-y-1 mb-4">
+                <h3 className="text-lg font-black text-white">{isSourceArabic ? 'اختر مدربك للرحلة 🗺️' : 'Choose your Guide 🗺️'}</h3>
+                <p className="text-xs text-stone-400">
+                  {isSourceArabic ? 'ستفتح المزيد من المدربين كلما تقدمت في المستويات!' : 'You will unlock more guides as you level up!'}
+                </p>
               </div>
 
-              {/* Source Language Cards */}
-              <div className="grid grid-cols-2 gap-2.5">
-                <button
-                  type="button"
-                  onClick={() => handleSelectSource('ar')}
-                  className={`flex flex-col items-center justify-center p-3 rounded-2xl border text-center transition cursor-pointer ${
-                    sourceLang === 'ar'
-                      ? 'bg-teal-950/50 border-teal-500 ring-2 ring-teal-500/30'
-                      : 'bg-stone-950/60 border-stone-800 hover:border-stone-700'
-                  }`}
-                >
-                  <LanguageFlag code="ar" size={22} className="mb-1" />
-                  <span className="font-black text-sm text-stone-100">العربية (Arabic)</span>
-                  <span className="text-[10px] text-stone-400 mt-0.5">لغة الأم والتفكير التلقائي</span>
-                  {sourceLang === 'ar' && (
-                    <span className="mt-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-teal-500 text-stone-950">
-                      <Check size={10} strokeWidth={3} />
-                    </span>
-                  )}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleSelectSource('en')}
-                  className={`flex flex-col items-center justify-center p-3 rounded-2xl border text-center transition cursor-pointer ${
-                    sourceLang === 'en'
-                      ? 'bg-teal-950/50 border-teal-500 ring-2 ring-teal-500/30'
-                      : 'bg-stone-950/60 border-stone-800 hover:border-stone-700'
-                  }`}
-                >
-                  <LanguageFlag code="en" size={22} className="mb-1" />
-                  <span className="font-black text-sm text-stone-100">English (الإنجليزية)</span>
-                  <span className="text-[10px] text-stone-400 mt-0.5">I think mainly in English</span>
-                  {sourceLang === 'en' && (
-                    <span className="mt-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-teal-500 text-stone-950">
-                      <Check size={10} strokeWidth={3} />
-                    </span>
-                  )}
-                </button>
-              </div>
-
-              {/* If Arabic is selected: Dialect Preference Sub-Selector */}
-              {sourceLang === 'ar' && (
-                <div className="pt-1.5 space-y-2">
-                  <span className="text-[11px] font-bold text-stone-300 block">
-                    لهجة الشرح والأمثلة المفضلة:
-                  </span>
-                  <div className="grid gap-2">
-                    {DIALECT_OPTIONS.map(opt => {
-                      const isSelected = dialect === opt.id;
-                      return (
-                        <button
-                          key={opt.id}
-                          type="button"
-                          onClick={() => setDialect(opt.id)}
-                          className={`flex items-start gap-2.5 p-2.5 sm:p-3 rounded-xl border text-right transition cursor-pointer ${
-                            isSelected
-                              ? 'bg-teal-950/40 border-teal-500/80 ring-1 ring-teal-500/30'
-                              : 'bg-stone-950/40 border-stone-800 hover:border-stone-700'
-                          }`}
-                        >
-                          <span className="text-xl shrink-0 mt-0.5">{opt.icon}</span>
-                          <div className="flex-1">
-                            <div className="flex items-center justify-between">
-                              <span className="font-black text-xs sm:text-sm text-stone-100">
-                                {opt.title}
-                              </span>
-                              {isSelected && (
-                                <span className="flex h-4 w-4 items-center justify-center rounded-full bg-teal-500 text-stone-950">
-                                  <Check size={10} strokeWidth={3} />
-                                </span>
-                              )}
-                            </div>
-                            <p className="text-[11px] text-stone-400 mt-0.5 leading-snug">
-                              {opt.desc}
-                            </p>
-                          </div>
-                        </button>
-                      );
-                    })}
+              <div className="grid grid-cols-3 gap-2">
+                {GUIDES.map(g => (
+                  <div
+                    key={g.id}
+                    className={`relative p-3 rounded-2xl border text-center flex flex-col items-center justify-center gap-2 ${
+                      g.unlocked
+                        ? 'bg-teal-950/40 border-teal-500/80 ring-1 ring-teal-500/30'
+                        : 'bg-stone-950/40 border-stone-800 opacity-60 grayscale'
+                    }`}
+                  >
+                    <div className="text-4xl">{g.avatar}</div>
+                    <div>
+                      <span className="font-bold text-[11px] text-stone-100 block truncate">{isSourceArabic ? g.nameAr : g.nameEn}</span>
+                      <span className="text-[9px] text-stone-400 block truncate">{isSourceArabic ? g.roleAr : g.roleEn}</span>
+                    </div>
+                    {!g.unlocked && (
+                      <div className="absolute top-2 right-2 bg-stone-900 text-stone-400 p-1 rounded-md text-[8px] font-bold border border-stone-800">
+                        🔒 Lv {g.unlockLevel}
+                      </div>
+                    )}
                   </div>
-                </div>
-              )}
+                ))}
+              </div>
+
+              <div className="text-center mt-4">
+                 <div className="inline-block bg-amber-500/20 border border-amber-500/30 text-amber-300 text-[11px] px-3 py-1 rounded-full font-bold">
+                    ✨ {isSourceArabic ? 'أكمل الإعداد لتحصل على 50 نقطة خبرة (XP) مجانية!' : 'Complete setup to get 50 free XP!'}
+                 </div>
+              </div>
             </motion.div>
           )}
 
-          {/* STEP 1: TARGET LANGUAGE */}
+          {/* STEP 1: PRESET PROFILES */}
           {step === 1 && (
             <motion.div
               key="step-1"
@@ -532,48 +603,26 @@ export function OnboardingModal({
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: isRtl ? 15 : -15 }}
               transition={{ duration: 0.18 }}
-              className="space-y-2.5"
+              className="space-y-3"
             >
-              <div className="space-y-1">
-                <span className="text-xs font-bold text-teal-400">
-                  {isSourceArabic ? '2. لغة الهدف (اللغة التي تريد تعلم التفكير بها):' : '2. Language you want to learn to think in:'}
-                </span>
-              </div>
-
-              <div className="grid gap-2.5">
-                {TARGET_OPTIONS.map(opt => {
-                  const isSelected = targetLang === opt.id;
-                  const isDisabled = sourceLang === opt.id; // cannot choose en -> en as standard onboarding target
+              <div className="grid grid-cols-2 gap-2.5">
+                {PRESET_PROFILES.map(p => {
+                  const isSelected = presetId === p.id;
                   return (
                     <button
-                      key={opt.id}
+                      key={p.id}
                       type="button"
-                      disabled={isDisabled}
-                      onClick={() => setTargetLang(opt.id)}
-                      className={`flex items-start gap-3 p-3 rounded-2xl border text-start transition cursor-pointer ${
+                      onClick={() => handleSelectPreset(p.id)}
+                      className={`flex flex-col items-center justify-center p-3 sm:p-4 rounded-2xl border text-center transition cursor-pointer ${
                         isSelected
-                          ? 'bg-teal-950/40 border-teal-500 ring-2 ring-teal-500/30'
-                          : isDisabled
-                          ? 'opacity-40 cursor-not-allowed bg-stone-950/30 border-stone-800'
+                          ? 'bg-teal-950/50 border-teal-500 ring-2 ring-teal-500/30'
                           : 'bg-stone-950/60 border-stone-800 hover:border-stone-700'
                       }`}
                     >
-                      <LanguageFlag code={opt.id} size={22} className="mt-1" />
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between">
-                          <span className="font-black text-sm text-stone-100">
-                            {opt.title}
-                          </span>
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-500/10 text-teal-400 border border-teal-500/20">
-                            {opt.pedagogyTag}
-                          </span>
-                        </div>
-                        <p className="text-xs text-stone-400 mt-1 leading-relaxed">
-                          {isSourceArabic ? opt.desc : opt.descEn}
-                        </p>
-                      </div>
+                      <span className="text-3xl mb-1.5">{p.icon}</span>
+                      <span className="font-black text-sm text-stone-100">{isSourceArabic ? p.title : p.titleEn}</span>
                       {isSelected && (
-                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-teal-500 text-stone-950 font-bold shrink-0 mt-1">
+                        <span className="mt-2 flex h-5 w-5 items-center justify-center rounded-full bg-teal-500 text-stone-950">
                           <Check size={12} strokeWidth={3} />
                         </span>
                       )}
@@ -581,20 +630,76 @@ export function OnboardingModal({
                   );
                 })}
               </div>
+            </motion.div>
+          )}
 
-              {/* Active Pair Visual Bridge */}
-              <div className="mt-2 p-2 rounded-xl bg-stone-950/60 border border-stone-800 text-center flex items-center justify-center gap-2 text-xs font-bold text-stone-300">
-                <LanguageFlag code={sourceLang} size={16} />
-                <span>{isSourceArabic ? SOURCE_LANGUAGES[sourceLang]?.nameNative : SOURCE_LANGUAGES[sourceLang]?.nameEn}</span>
-                <span className="text-teal-400">➔</span>
-                <LanguageFlag code={targetLang} size={16} />
-                <span>{TARGET_LANGUAGE_META[targetLang]?.nameNative} ({isSourceArabic ? TARGET_LANGUAGE_META[targetLang]?.nameAr : TARGET_LANGUAGE_META[targetLang]?.nameEn})</span>
+          {/* STEP 2: SOURCE & TARGET LANGUAGE (Was Step 0 and Step 1 combined conceptually, but we can just ask both here or in quick succession. Let's do it in one view for speed) */}
+          {step === 2 && (
+            <motion.div
+              key="step-2"
+              initial={{ opacity: 0, x: isRtl ? -15 : 15 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: isRtl ? 15 : -15 }}
+              transition={{ duration: 0.18 }}
+              className="space-y-4"
+            >
+              <div className="space-y-2">
+                <span className="text-xs font-bold text-teal-400">
+                  {isSourceArabic ? 'أ. لغة التفكير الحالية (لغة الأم):' : 'A. Language you currently think in:'}
+                </span>
+                <div className="grid grid-cols-2 gap-2">
+                  <button type="button" onClick={() => handleSelectSource('ar')} className={`flex items-center gap-2 p-2 rounded-xl border transition ${sourceLang === 'ar' ? 'bg-teal-950/50 border-teal-500' : 'border-stone-800'}`}>
+                    <LanguageFlag code="ar" size={16} /> <span className="text-xs font-bold text-white">العربية</span>
+                  </button>
+                  <button type="button" onClick={() => handleSelectSource('en')} className={`flex items-center gap-2 p-2 rounded-xl border transition ${sourceLang === 'en' ? 'bg-teal-950/50 border-teal-500' : 'border-stone-800'}`}>
+                    <LanguageFlag code="en" size={16} /> <span className="text-xs font-bold text-white">English</span>
+                  </button>
+                </div>
+                {sourceLang === 'ar' && (
+                   <div className="pt-2">
+                      <span className="text-[10px] font-bold text-stone-400 block mb-1">لهجة الشرح:</span>
+                      <select value={dialect} onChange={e => setDialect(e.target.value as any)} className="w-full bg-stone-900 border border-stone-800 rounded-lg p-2 text-xs text-white outline-none">
+                         <option value="egyptian">🇪🇬 العامية المصرية</option>
+                         <option value="msa">🌍 العربية الفصحى</option>
+                      </select>
+                   </div>
+                )}
+              </div>
+
+              <div className="space-y-2 pt-2 border-t border-stone-800/60">
+                <span className="text-xs font-bold text-teal-400">
+                  {isSourceArabic ? 'ب. لغة الهدف (اللغة المراد تعلمها):' : 'B. Target Language:'}
+                </span>
+                <div className="grid grid-cols-2 gap-2 max-h-[200px] overflow-y-auto pr-1 custom-scrollbar">
+                  {TARGET_OPTIONS.map(opt => {
+                    const isDisabled = sourceLang === opt.id;
+                    return (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        disabled={isDisabled}
+                        onClick={() => setTargetLang(opt.id)}
+                        className={`flex flex-col items-center p-2 rounded-xl border text-center transition ${
+                          targetLang === opt.id
+                            ? 'bg-teal-950/50 border-teal-500'
+                            : isDisabled ? 'opacity-30 border-stone-800' : 'bg-stone-900 border-stone-800'
+                        }`}
+                      >
+                         <div className="flex items-center gap-1">
+                            <LanguageFlag code={opt.id} size={16} />
+                            <span className="text-xs font-bold text-white">{opt.title.split('·')[1] || opt.title}</span>
+                         </div>
+                         <span className="text-[9px] text-stone-400 mt-1">{opt.pedagogyTag}</span>
+                      </button>
+                    )
+                  })}
+                </div>
               </div>
             </motion.div>
           )}
 
-          {/* STEP 2: LEVEL & GOAL & NAME */}
-          {step === 2 && (
+          {/* STEP 3: CUSTOM SETUP (Only if custom selected) */}
+          {step === 3 && (
             <motion.div
               key="step-2"
               initial={{ opacity: 0, x: isRtl ? -15 : 15 }}
@@ -704,10 +809,10 @@ export function OnboardingModal({
             </motion.div>
           )}
 
-          {/* STEP 3: CONFIRMATION & PERSONALIZATION SUMMARY */}
-          {step === 3 && (
+          {/* STEP 4: CONFIRMATION & PERSONALIZATION SUMMARY */}
+          {step === 4 && (
             <motion.div
-              key="step-3"
+              key="step-4"
               initial={{ opacity: 0, x: isRtl ? -15 : 15 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: isRtl ? 15 : -15 }}
@@ -715,12 +820,13 @@ export function OnboardingModal({
               className="space-y-3"
             >
               <div className="p-3.5 rounded-2xl bg-stone-950/70 border border-teal-500/40 space-y-2.5">
-                <div className="flex items-center justify-between border-b border-stone-800 pb-2">
-                  <span className="text-xs font-bold text-teal-400">
-                    {isSourceArabic ? '🎯 ملخص خطة التحول الذهني المخصصة:' : '🎯 Your Personalized Immersion Plan:'}
+                <div className="flex flex-col items-center justify-center border-b border-stone-800 pb-3 mb-2 gap-1 text-center">
+                  <div className="text-2xl mb-1">🎉</div>
+                  <span className="text-sm font-black text-amber-400">
+                    {isSourceArabic ? '+50 نقطة خبرة (XP) 🌟' : '+50 XP Gained! 🌟'}
                   </span>
-                  <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-300">
-                    جاهزة للانطلاق
+                  <span className="text-[10px] text-stone-400">
+                    {isSourceArabic ? 'تم تفعيل خطة التحول الذهني بنجاح' : 'Immersion Plan Activated'}
                   </span>
                 </div>
 
@@ -795,7 +901,7 @@ export function OnboardingModal({
             onClick={handleNext}
             className="btn-shiny px-5 py-2.5 rounded-2xl bg-teal-500 hover:bg-teal-400 active:scale-95 text-stone-950 font-black text-xs shadow-md transition flex items-center gap-1.5"
           >
-            {step < 3 ? (
+            {step < 4 ? (
               <>
                 <span>{isSourceArabic ? 'الخطوة التالية' : 'Next Step'}</span>
                 {isRtl ? <ArrowLeft size={14} /> : <ArrowRight size={14} />}

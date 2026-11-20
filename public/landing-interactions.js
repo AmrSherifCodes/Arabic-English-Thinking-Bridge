@@ -2,15 +2,18 @@
   'use strict';
   var crYear = document.getElementById('cr-year');
   if (crYear) crYear.textContent = new Date().getFullYear();
+
   if (localStorage.getItem('tb.subscribed') === 'true') {
     var ee = document.getElementById('easter-egg');
     if (ee) ee.classList.add('active');
   }
-  window.toggleIosGuide = function () {
+
+  function toggleIosGuide() {
     var m = document.getElementById('ios-modal');
     if (m) m.classList.toggle('active');
-  };
-  window.toggleLanguage = function () {
+  }
+
+  function toggleLanguage() {
     var lang = document.documentElement.lang;
     if (lang === 'ar') {
       document.documentElement.lang = 'en';
@@ -19,8 +22,9 @@
       document.documentElement.lang = 'ar';
       document.documentElement.dir = 'rtl';
     }
-  };
-  window.handleSubscription = function (e) {
+  }
+
+  function handleSubscription(e) {
     if (e && e.preventDefault) e.preventDefault();
     var el = document.getElementById('sub-email');
     if (!el) return;
@@ -33,5 +37,29 @@
       encodeURIComponent('Thinking Bridge Subscription') +
       '&body=' + encodeURIComponent('Please subscribe: ' + email);
     window.location.href = url;
-  };
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    var toggleLanguageBtn = document.getElementById('btn-toggle-language');
+    if (toggleLanguageBtn) {
+      toggleLanguageBtn.addEventListener('click', toggleLanguage);
+    }
+
+    var iosGuideTriggers = document.querySelectorAll('.toggle-ios-guide');
+    iosGuideTriggers.forEach(function(el) {
+      el.addEventListener('click', toggleIosGuide);
+    });
+
+    var iosModalContent = document.getElementById('ios-modal-content');
+    if (iosModalContent) {
+      iosModalContent.addEventListener('click', function(e) {
+        e.stopPropagation();
+      });
+    }
+
+    var subscribeForm = document.getElementById('subscribe-form');
+    if (subscribeForm) {
+      subscribeForm.addEventListener('submit', handleSubscription);
+    }
+  });
 })();

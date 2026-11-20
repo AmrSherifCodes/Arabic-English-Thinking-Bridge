@@ -1,0 +1,1 @@
+import"./rolldown-runtime-COiEfhsA.js";import{Xt as e}from"./icons-vendor-Cr0CL0GC.js";import{r as t}from"./react-vendor-BRxpwUBr.js";e();var n=t(),r=({icon:e,flipInRTL:t=!0,className:r=``,...i})=>(0,n.jsx)(e,{className:`${t?`rtl:-scale-x-100 transform`:``} ${r}`.trim(),...i});export{r as t};

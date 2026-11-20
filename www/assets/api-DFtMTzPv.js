@@ -1,0 +1,1 @@
+import{m as e}from"./capacitor-vendor-C87JPNyC.js";var t=`https://tb-eg.vercel.app`;function n(){return typeof window>`u`||e.isNativePlatform()?t:window.location.origin}var r=e.isNativePlatform()?t:n();export{r as t};

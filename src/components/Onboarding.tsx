@@ -51,6 +51,7 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
     return initialProfile?.learnerTrack || 'street_starter';
   });
   const [selectedAgeBand, setSelectedAgeBand] = useState<NonNullable<UserProfile['ageBand']> | null>(null);
+  const [selectedExamSubTrack, setSelectedExamSubTrack] = useState<NonNullable<UserProfile['examSubTrack']> | null>(null);
 
   const [selectedTargetDialect, setSelectedTargetDialect] = useState<string>('egyptian');
   const [isReverse, setIsReverse] = useState<boolean>(() => {
@@ -151,6 +152,7 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
       sourceLanguage: isReverse ? 'en' : 'arz',
       targetLanguage: isReverse ? targetArLang : 'en',
       learnerTrack: selectedTrack,
+      examSubTrack: selectedExamSubTrack || undefined,
       ageBand: selectedAgeBand || undefined,
     };
 
@@ -532,9 +534,11 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
                 <AgeTrackSlider
                   value={selectedTrack}
                   ageBand={selectedAgeBand}
-                  onChange={(track, band) => {
+                  examSubTrack={selectedExamSubTrack}
+                  onChange={(track, band, examSub) => {
                     setSelectedTrack(track);
                     setSelectedAgeBand(band);
+                    if (examSub) setSelectedExamSubTrack(examSub);
                     try {
                       localStorage.setItem('tb.ageTrack', track);
                     } catch {}

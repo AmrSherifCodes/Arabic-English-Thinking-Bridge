@@ -24,9 +24,10 @@ export type SourceLanguage =
   | 'pt'
   | 'it'
   | 'el'
-  | 'tr';
+  | 'tr'
+  | 'he';
 
-export type TargetLanguage = 'ar' | 'en' | 'de' | 'ja' | 'es' | 'fr' | 'zh' | 'hi' | 'ru' | 'pt' | 'it' | 'el' | 'tr';
+export type TargetLanguage = 'ar' | 'en' | 'de' | 'ja' | 'es' | 'fr' | 'zh' | 'hi' | 'ru' | 'pt' | 'it' | 'el' | 'tr' | 'he';
 
 export interface LanguagePair {
   source: SourceLanguage;
@@ -140,6 +141,7 @@ export interface UserProfile {
   computedStage?: string;
   highSchoolTrack?: string;
   learnerTrack?: 'street_starter' | 'kg_primary' | 'prep_stage' | 'thanawiya_igcse' | 'uni_career';
+  examSubTrack?: 'thanawiya_amma' | 'igcse_gcse' | 'american_diploma';
   ageBand?: '4-11' | '12-14' | '15-18' | '18-30' | '30+';
   skillLevels?: {
     writing: 'A0' | 'A1' | 'A2' | 'B1' | 'B2' | 'C1';

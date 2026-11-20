@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { X, Check, ArrowLeft, ArrowRight, Share2, Globe, Sparkles } from 'lucide-react';
+import { X, Check, ArrowRight, Share2, Globe, Sparkles } from 'lucide-react';
 import { SourceLanguage, TargetLanguage } from '../types';
 import { SOURCE_LANGUAGES, TARGET_LANGUAGE_META, getPairConfig } from '../data/languages';
 import { LanguageFlag } from './LanguageFlag';
@@ -11,22 +11,16 @@ interface LanguageSelectorModalProps {
   currentTarget: TargetLanguage;
   onSelectPair: (source: SourceLanguage, target: TargetLanguage) => void;
   onToast?: (msg: string) => void;
+  onOpenSupporterGate?: () => void;
 }
 
-// Canonical source dialect/language options for a clean, uncluttered list.
+// Canonical home languages (L1) - kept strictly to Arabic & English only.
 const CANONICAL_SOURCE_OPTIONS: SourceLanguage[] = [
-  'arz',   // عامية مصرية
-  'ar',    // العربية (الفصحى)
-  'apc',   // لهجة شامية
-  'afb',   // لهجة خليجية
-  'ary',   // دارجة مغربية
-  'ar-SD', // لهجة سودانية
-  'ar-IQ', // لهجة عراقية
-  'ar-YE', // لهجة يمنية
-  'en',    // English
+  'arz',   // العربية (عامية مصرية / فصحى)
+  'en',    // الإنجليزية (English)
 ];
 
-// All available target languages.
+// All available target languages (L2).
 const SUPPORTED_TARGET_OPTIONS: TargetLanguage[] = [
   'en',
   'de',
@@ -41,6 +35,7 @@ const SUPPORTED_TARGET_OPTIONS: TargetLanguage[] = [
   'pt',
   'it',
   'el',
+  'he',
 ];
 
 export function LanguageSelectorModal({
@@ -49,7 +44,7 @@ export function LanguageSelectorModal({
   currentSource,
   currentTarget,
   onSelectPair,
-  onToast
+  onToast,
 }: LanguageSelectorModalProps) {
   const [step, setStep] = useState<1 | 2>(1);
   const [selectedSource, setSelectedSource] = useState<SourceLanguage>(currentSource);
@@ -83,6 +78,14 @@ export function LanguageSelectorModal({
     });
   };
 
+  const renderAccessPill = (_code: TargetLanguage) => {
+    return (
+      <span className="mt-1.5 px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+        مجاني 100%
+      </span>
+    );
+  };
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-sm transition-opacity animate-in fade-in"
@@ -101,12 +104,12 @@ export function LanguageSelectorModal({
             <div className="text-start">
               <h2 id="lang-modal-title" className="text-base sm:text-lg font-black text-text">
                 {step === 1
-                  ? '١. اختر لغتك الأم أو لهجتك (L1)'
+                  ? '١. اختر لغتك الأم (L1)'
                   : '٢. اختر اللغة التي تريد التفكير بها (L2)'}
               </h2>
               <p className="text-xs text-muted font-bold mt-0.5">
                 {step === 1
-                  ? 'ما هي لغتك الحالية أو لهجتك التي تفكر بها تلقائياً؟'
+                  ? 'ما هي لغتك الحالية التي تفكر بها تلقائياً؟'
                   : 'أي لغة تريد بناء بديهتك والتوقف عن ترجمتها في عقلك؟'}
               </p>
             </div>
@@ -123,10 +126,10 @@ export function LanguageSelectorModal({
 
         {/* Modal Body */}
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-5">
-          {/* STEP 1: Source / Native Language (L1) */}
+          {/* STEP 1: Source / Native Language (L1) - Exactly 2 options: Arabic & English */}
           {step === 1 && (
             <div className="space-y-4">
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-w-md mx-auto">
                 {CANONICAL_SOURCE_OPTIONS.map((langKey) => {
                   const meta = SOURCE_LANGUAGES[langKey];
                   if (!meta) return null;
@@ -143,21 +146,21 @@ export function LanguageSelectorModal({
                         }
                         setStep(2);
                       }}
-                      className={`flex flex-col items-start p-3 sm:p-3.5 rounded-2xl border text-start transition-all ${
+                      className={`flex flex-col items-start p-4 sm:p-5 rounded-2xl border text-start transition-all cursor-pointer ${
                         isSelected
-                          ? 'border-primary bg-primary/20 text-primary shadow-md ring-1 ring-primary/40'
+                          ? 'border-primary bg-primary/20 text-primary shadow-lg ring-2 ring-primary/40'
                           : 'border-border bg-surface-2 hover:border-primary/50 hover:bg-surface-2/80 text-text'
                       }`}
                     >
-                      <div className="flex items-center justify-between w-full mb-1.5">
-                        <LanguageFlag code={langKey} size={22} />
-                        {isSelected && <Check className="w-4 h-4 text-primary shrink-0" />}
+                      <div className="flex items-center justify-between w-full mb-2">
+                        <LanguageFlag code={langKey} size={28} />
+                        {isSelected && <Check className="w-5 h-5 text-primary shrink-0" />}
                       </div>
-                      <span className="font-black text-text text-xs sm:text-sm block truncate w-full">
-                        {meta.nameAr}
+                      <span className="font-black text-text text-base sm:text-lg block truncate w-full">
+                        {langKey === 'arz' ? 'العربية' : 'English'}
                       </span>
-                      <span className="text-[10px] text-muted font-semibold block truncate w-full mt-0.5">
-                        {meta.nameNative} ({meta.nameEn})
+                      <span className="text-xs text-muted font-semibold block truncate w-full mt-0.5">
+                        {langKey === 'arz' ? 'العربية (اللغة الأم)' : 'English (Home Language)'}
                       </span>
                     </button>
                   );
@@ -166,7 +169,7 @@ export function LanguageSelectorModal({
             </div>
           )}
 
-          {/* STEP 2: Target / Learning Goal (L2) */}
+          {/* STEP 2: Target / Learning Goal (L2) - 100% Unlocked */}
           {step === 2 && (
             <div className="space-y-5">
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 sm:gap-3">
@@ -180,7 +183,7 @@ export function LanguageSelectorModal({
                         key={code}
                         type="button"
                         onClick={() => setSelectedTarget(code)}
-                        className={`flex flex-col items-start p-3 sm:p-3.5 rounded-2xl border text-start transition-all ${
+                        className={`flex flex-col items-start p-3 sm:p-3.5 rounded-2xl border text-start transition-all cursor-pointer ${
                           isSelected
                             ? 'border-emerald-500 bg-emerald-500/20 text-emerald-300 shadow-md ring-1 ring-emerald-500/40'
                             : 'border-border bg-surface-2 hover:border-emerald-500/50 text-text'
@@ -196,6 +199,7 @@ export function LanguageSelectorModal({
                         <span className="text-[10px] text-muted font-semibold block truncate w-full mt-0.5">
                           {meta.nameNative} ({meta.nameEn})
                         </span>
+                        {renderAccessPill(code)}
                       </button>
                     );
                   })}
@@ -211,7 +215,7 @@ export function LanguageSelectorModal({
                   <button
                     type="button"
                     onClick={handleCopyShareLink}
-                    className="inline-flex items-center gap-1 text-xs text-muted hover:text-text underline"
+                    className="inline-flex items-center gap-1 text-xs text-muted hover:text-text underline cursor-pointer"
                     title="مشاركة رابط المسار"
                   >
                     <Share2 className="w-3.5 h-3.5" />
@@ -221,7 +225,7 @@ export function LanguageSelectorModal({
                 <div className="text-xs font-black text-text flex items-center gap-2 flex-wrap" dir="ltr">
                   <div className="flex items-center gap-1.5 bg-surface px-2.5 py-1 rounded-xl border border-border">
                     <LanguageFlag code={selectedSource} size={18} />
-                    <span>{SOURCE_LANGUAGES[selectedSource]?.nameAr || selectedSource}</span>
+                    <span>{selectedSource === 'arz' ? 'العربية' : 'English'}</span>
                   </div>
                   <span className="text-amber-400 font-bold text-sm">➔</span>
                   <div className="flex items-center gap-1.5 bg-emerald-500/15 text-emerald-300 px-2.5 py-1 rounded-xl border border-emerald-500/30">
@@ -243,7 +247,7 @@ export function LanguageSelectorModal({
             <button
               type="button"
               onClick={() => setStep(1)}
-              className="px-4 py-2.5 rounded-xl text-xs font-bold bg-surface border border-border text-text hover:bg-surface-2 transition-colors flex items-center gap-1.5 min-h-[44px]"
+              className="px-4 py-2.5 rounded-xl text-xs font-bold bg-surface border border-border text-text hover:bg-surface-2 transition-colors flex items-center gap-1.5 min-h-[44px] cursor-pointer"
             >
               <ArrowRight size={14} />
               <span>العودة للخطوة ١</span>
@@ -256,7 +260,7 @@ export function LanguageSelectorModal({
             <button
               type="button"
               onClick={() => setStep(2)}
-              className="px-5 py-2.5 rounded-xl text-xs font-black bg-primary text-on-primary shadow-md hover:opacity-90 transition-all flex items-center gap-1.5 min-h-[44px]"
+              className="px-5 py-2.5 rounded-xl text-xs font-black bg-primary text-on-primary shadow-md hover:opacity-90 transition-all flex items-center gap-1.5 min-h-[44px] cursor-pointer"
             >
               <span>التالي: اختر اللغة الهدف ←</span>
             </button>
@@ -264,7 +268,7 @@ export function LanguageSelectorModal({
             <button
               type="button"
               onClick={handleApply}
-              className="px-6 py-2.5 rounded-xl text-xs font-black bg-amber-500 hover:bg-amber-400 text-stone-950 shadow-md hover:shadow-lg transition-all flex items-center gap-1.5 active:scale-95 min-h-[44px]"
+              className="px-6 py-2.5 rounded-xl text-xs font-black bg-amber-500 hover:bg-amber-400 text-stone-950 shadow-md hover:shadow-lg transition-all flex items-center gap-1.5 active:scale-95 min-h-[44px] cursor-pointer"
             >
               <span>تأكيد وبدء التعلّم 🚀</span>
             </button>

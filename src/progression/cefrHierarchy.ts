@@ -16,6 +16,7 @@ import {
 import { PHASES_DATA } from '../data/lessons';
 import type { TargetLanguage } from '../types';
 import { getCurriculum } from '../data/curriculumRegistry';
+import { TARGET_LANGUAGE_META } from '../data/languages';
 
 /**
  * Skill Branch Definitions & Helper Maps
@@ -34,37 +35,76 @@ export const SKILL_BRANCH_META: Record<
  * Creates default exercises for any generated lesson node
  */
 
+function sanitizeUnitTitleAr(titleAr: string, targetLang: TargetLanguage): string {
+  if (targetLang === 'en') return titleAr;
+  return titleAr
+    .replace(/\s*\([^)]*-\w+[^)]*\)/g, '')
+    .replace(/\s*\([^)]*(don't|doesn't|Do|Does|Did|Didn't|Going to|Will|Ever|Never|Just|Already|Yet|For|Since|like|prefer|Comparatives|in|on|at|near|This|That|These|Those|Wish|Passive|Passive Voice|Modals|Pitch|Participle|Cleft)[^)]*\)/gi, '')
+    .replace(/:\s*"[^"]*"/g, '')
+    .replace(/(-ed)/gi, '')
+    .replace(/Going to/gi, '')
+    .replace(/Will/gi, '')
+    .trim();
+}
+
+function sanitizeDescriptionAr(descAr: string, targetLang: TargetLanguage): string {
+  if (targetLang === 'en') return descAr;
+  const targetName = TARGET_LANGUAGE_META[targetLang]?.nameAr || 'اللغة المستهدفة';
+  return descAr
+    .replace(/am\/is\/are\s*going to/gi, 'قواعد التخطيط')
+    .replace(/going to/gi, '')
+    .replace(/will/gi, '')
+    .replace(/الإنجليزية/g, targetName)
+    .replace(/إنجليزية/g, targetName)
+    .trim();
+}
+
+const poolCache: Record<string, any[]> = {};
+function getPoolForLang(targetLang: TargetLanguage) {
+  if (poolCache[targetLang]) return poolCache[targetLang];
+  const phases = getCurriculum('ar', targetLang);
+  const pool = phases.flatMap((p) => p.lessons).flatMap((l) => l.exercises);
+  poolCache[targetLang] = pool;
+  return pool;
+}
+
 function createExercisesForUnit(
   unitId: string,
   unitTitleEn: string,
   unitTitleAr: string,
   skills: SkillBranch[],
-  count: number = 5
+  count: number = 5,
+  targetLang: TargetLanguage = 'en'
 ): ExerciseItem[] {
-  // Extract canonical exercises from PHASES_DATA pool if available
-  const pool = PHASES_DATA.flatMap((p) => p.lessons).flatMap((l) => l.exercises);
+  const pool = getPoolForLang(targetLang);
+  const fallbackPool = PHASES_DATA.flatMap((p) => p.lessons).flatMap((l) => l.exercises);
+
   const items: ExerciseItem[] = [];
 
   for (let i = 0; i < count; i++) {
-    const poolItem = pool[(items.length + i * 3) % pool.length];
+    const activePool = pool.length > 0 ? pool : fallbackPool;
+    const rawItem = activePool[(items.length + i * 3) % activePool.length];
     const skillAxes: ('structure' | 'vocabulary' | 'listening' | 'speaking' | 'writing')[] = [];
     if (skills.includes('grammar')) skillAxes.push('structure', 'writing');
     if (skills.includes('vocabulary')) skillAxes.push('vocabulary');
     if (skills.includes('listening')) skillAxes.push('listening');
     if (skills.includes('pronunciation')) skillAxes.push('speaking');
 
+    const targetSentence = rawItem?.targetSentence || rawItem?.englishTarget || `Practice ${unitTitleEn} #${i + 1}`;
+    const wordChips = rawItem?.wordChips && rawItem.wordChips.length > 0
+      ? rawItem.wordChips
+      : targetSentence.split(/\s+/).filter(Boolean);
+
     items.push({
       id: `${unitId}-ex-${i + 1}`,
       type: i % 2 === 0 ? 'structure_builder' : 'translate_thought',
-      promptAr: poolItem?.arabicThought || `تمرین ${unitTitleAr} - الجزء ${i + 1}`,
-      promptEn: poolItem?.englishTarget ? `Express: ${poolItem.englishTarget}` : `Practice ${unitTitleEn} #${i + 1}`,
-      targetSentence: poolItem?.englishTarget || `I can practice ${unitTitleEn.toLowerCase()} effectively.`,
-      acceptableAlternatives: poolItem?.acceptableAlternatives || [
-        poolItem?.englishTarget || `I practice ${unitTitleEn.toLowerCase()} well.`
-      ],
-      wordChips: poolItem?.wordChips || (poolItem?.englishTarget ? poolItem.englishTarget.split(/\s+/) : ['I', 'can', 'practice', 'well']),
-      breakdownChunks: poolItem?.breakdownChunks || [],
-      explanationAr: poolItem?.habitHint || `ركز على بناء الجملة مباشرة دون ترجمة حرفية. (${unitTitleAr})`,
+      promptAr: rawItem?.arabicThought || rawItem?.sourceThought || `تمرين ${unitTitleAr} - الجزء ${i + 1}`,
+      promptEn: rawItem?.englishTarget ? `Express: ${rawItem.englishTarget}` : `Practice ${unitTitleEn} #${i + 1}`,
+      targetSentence,
+      acceptableAlternatives: rawItem?.acceptableAlternatives || [targetSentence],
+      wordChips: wordChips.length > 0 ? wordChips : [targetSentence],
+      breakdownChunks: rawItem?.breakdownChunks || [],
+      explanationAr: rawItem?.habitHintAr || rawItem?.habitHint || `ركز على بناء المعنى والجملة بـ ${targetLang}.`,
       explanationEn: `Focus on natural sentence construction for ${unitTitleEn}.`,
       skillAxes: skillAxes.length > 0 ? skillAxes : ['structure', 'vocabulary'],
     });
@@ -82,7 +122,8 @@ function createLessonsForUnit(
   unitTitleAr: string,
   unitTitleEn: string,
   skills: SkillBranch[],
-  count: number = 4
+  count: number = 4,
+  targetLang: TargetLanguage = 'en'
 ): LessonNode[] {
   const lessons: LessonNode[] = [];
   for (let i = 1; i <= count; i++) {
@@ -100,7 +141,7 @@ function createLessonsForUnit(
       descriptionAr: `تطبيق عملي وتدريبات متدرجة على ${unitTitleAr}`,
       descriptionEn: `Interactive practice and step-by-step exercises for ${unitTitleEn}`,
       icon: skills.includes('grammar') ? 'Layers' : skills.includes('listening') ? 'Headphones' : skills.includes('pronunciation') ? 'Mic' : 'BookOpen',
-      exercises: createExercisesForUnit(`${unitId}-l${i}`, unitTitleEn, unitTitleAr, skills, 6),
+      exercises: createExercisesForUnit(`${unitId}-l${i}`, unitTitleEn, unitTitleAr, skills, 6, targetLang),
       canDoIds: [`${levelId.toLowerCase()}-cd-${(i % 5) + 1}`],
     });
   }
@@ -2045,19 +2086,41 @@ export const CEFR_LEVELS_MASTER: LevelNode[] = [
   },
 ];
 
-// Initialize all unit lesson nodes once
-let _cachedTree: LevelNode[] | null = null;
+// Initialize all unit lesson nodes cached per target language
+const _cachedTreesByLang: Record<string, LevelNode[]> = {};
 
 export function getCefrLevelHierarchy(targetLang: TargetLanguage = 'en'): LevelNode[] {
-  if (_cachedTree && targetLang === 'en') return _cachedTree;
+  if (_cachedTreesByLang[targetLang]) return _cachedTreesByLang[targetLang];
 
   // Deep clone master definition and scaffold lesson nodes for each unit
   const levels: LevelNode[] = JSON.parse(JSON.stringify(CEFR_LEVELS_MASTER));
+  const targetName = TARGET_LANGUAGE_META[targetLang]?.nameAr || 'الإنجليزية';
 
   levels.forEach((level) => {
+    if (targetLang !== 'en') {
+      level.titleAr = level.titleAr.replace(/الإنجليزية/g, targetName).replace(/إنجليزية/g, targetName);
+    }
     level.phases.forEach((phase) => {
+      if (targetLang !== 'en') {
+        phase.titleAr = sanitizeUnitTitleAr(phase.titleAr, targetLang)
+          .replace(/الإنجليزية/g, targetName)
+          .replace(/إنجليزية/g, targetName);
+      }
       phase.modules.forEach((mod) => {
+        if (targetLang !== 'en') {
+          mod.titleAr = sanitizeUnitTitleAr(mod.titleAr, targetLang)
+            .replace(/الإنجليزية/g, targetName)
+            .replace(/إنجليزية/g, targetName);
+        }
         mod.units.forEach((unit) => {
+          let sanitizedAr = sanitizeUnitTitleAr(unit.titleAr, targetLang);
+          if (targetLang !== 'en') {
+            sanitizedAr = sanitizedAr.replace(/الإنجليزية/g, targetName).replace(/إنجليزية/g, targetName);
+          }
+          unit.titleAr = sanitizedAr;
+          if (unit.descriptionAr) {
+            unit.descriptionAr = sanitizeDescriptionAr(unit.descriptionAr, targetLang);
+          }
           const mappedStage: CefrStage = level.level === 'A1' ? 'A1' : level.level === 'A2' ? 'A2' : level.level === 'B1' ? 'B1' : level.level === 'B2' ? 'B2' : 'C1';
           unit.lessons = createLessonsForUnit(
             unit.id,
@@ -2065,19 +2128,18 @@ export function getCefrLevelHierarchy(targetLang: TargetLanguage = 'en'): LevelN
             level.level,
             phase.id,
             mod.id,
-            unit.titleAr,
+            sanitizedAr,
             unit.titleEn,
             mod.skills,
-            4
+            4,
+            targetLang
           );
         });
       });
     });
   });
 
-  if (targetLang === 'en') {
-    _cachedTree = levels;
-  }
+  _cachedTreesByLang[targetLang] = levels;
   return levels;
 }
 

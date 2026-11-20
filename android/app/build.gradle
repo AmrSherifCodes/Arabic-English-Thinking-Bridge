@@ -13,8 +13,8 @@ android {
         applicationId "com.amrsherif.thinkingenglish"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 406
-        versionName "4.3.0"
+        versionCode 4401
+        versionName "4.4.0-beta"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -99,9 +99,9 @@ task copyFinalApk {
             copy {
                 from targetApk
                 into desktopDir
-                rename { "thinking-english-v1.1.0.apk" }
+                rename { "Thinking-Bridge-v4.4.0-beta.apk" }
             }
-            println "SUCCESS: Copied APK to ${desktopDir.absolutePath}/thinking-english-v1.1.0.apk"
+            println "SUCCESS: Copied APK to ${desktopDir.absolutePath}/Thinking-Bridge-v4.4.0-beta.apk"
         } else {
             println "WARNING: Release APK not found."
         }

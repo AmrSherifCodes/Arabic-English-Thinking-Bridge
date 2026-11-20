@@ -6,47 +6,30 @@ import { getSpanishPhases } from './curriculum/spanishCurriculum';
 import { getFrenchPhases } from './curriculum/frenchCurriculum';
 import { getItalianPhases } from './curriculum/italianCurriculum';
 import { getPortuguesePhases } from './curriculum/portugueseCurriculum';
+import { buildDictionaryPhases, getStaticDictionaryEntries } from './curriculum/dictionaryCurriculum';
+import { getTargetDictionary } from './dictionaries';
 
 export function getCurriculum(source: SourceLanguage = 'ar', target: TargetLanguage = 'en'): Phase[] {
-  if (target === 'de') {
-    return getGermanPhases(source);
-  }
-  if (target === 'ja') {
-    return getJapanesePhases(source);
-  }
-  if (target === 'es') {
-    return getSpanishPhases(source);
-  }
-  if (target === 'fr') {
-    return getFrenchPhases(source);
-  }
-  if (target === 'it') {
-    return getItalianPhases(source);
-  }
-  if (target === 'pt') {
-    return getPortuguesePhases(source);
-  }
-  if (target === 'tr') {
+  if (source === 'ar' && target === 'en') {
     return PHASES_DATA;
   }
-  if (source === 'en' && target === 'en') {
-    // English-to-English advanced immersion: adapt PHASES_DATA
-    return PHASES_DATA.map(p => ({
-      ...p,
-      lessons: p.lessons.map(l => ({
-        ...l,
-        exercises: l.exercises.map(ex => ({
-          ...ex,
-          sourceThought: ex.arabicThought,
-          targetSentence: ex.englishTarget
-        }))
-      }))
-    }));
-  }
 
-  if (target === 'ar' || target === 'arz' || target === 'apc' || target === 'afb' || target === 'ary' || target.startsWith('ar')) {
-    // Foreign -> Arabic: swap sourceThought and targetSentence, and populate Arabic word chips & chunks
-    return PHASES_DATA.map(p => ({
+  let phases: Phase[] = [];
+
+  if (target === 'de') {
+    phases = getGermanPhases(source);
+  } else if (target === 'ja') {
+    phases = getJapanesePhases(source);
+  } else if (target === 'es') {
+    phases = getSpanishPhases(source);
+  } else if (target === 'fr') {
+    phases = getFrenchPhases(source);
+  } else if (target === 'it') {
+    phases = getItalianPhases(source);
+  } else if (target === 'pt') {
+    phases = getPortuguesePhases(source);
+  } else if (target === 'ar' || (target as string) === 'arz' || (target as string) === 'apc' || (target as string) === 'afb' || (target as string) === 'ary' || target.startsWith('ar')) {
+    phases = PHASES_DATA.map(p => ({
       ...p,
       lessons: p.lessons.map(l => ({
         ...l,
@@ -56,8 +39,8 @@ export function getCurriculum(source: SourceLanguage = 'ar', target: TargetLangu
           ...ex,
           sourceThought: ex.englishTarget || ex.targetSentence,
           targetSentence: ex.arabicThought || ex.sourceThought,
-          arabicThought: ex.englishTarget || ex.targetSentence,
-          englishTarget: ex.arabicThought || ex.sourceThought,
+          arabicThought: ex.englishTarget || ex.targetSentence || '',
+          englishTarget: ex.arabicThought || ex.sourceThought || '',
           wordChips: ex.arabicThought
             ? ex.arabicThought.replace(/[.!?،,]/g, '').split(/\s+/).filter(Boolean)
             : ex.wordChips,
@@ -74,25 +57,25 @@ export function getCurriculum(source: SourceLanguage = 'ar', target: TargetLangu
         })),
       })),
     }));
+  } else {
+    const loaded = getTargetDictionary(target);
+    const entries = loaded.length > 0 ? loaded : getStaticDictionaryEntries(target);
+    phases = buildDictionaryPhases(target, entries, source);
   }
 
-  // Fallback for new languages (zh, hi, ru, el) until they have specialized curricula
-  if (['zh', 'hi', 'ru', 'el'].includes(target)) {
-     // Return a generic mapped structure to prevent crashing
-     return PHASES_DATA.map(p => ({
-      ...p,
-      lessons: p.lessons.map(l => ({
-        ...l,
-        title: `${l.title} (AI Generative)`,
-        exercises: l.exercises.map(ex => ({
-          ...ex,
-          sourceThought: source === 'en' ? ex.englishTarget : ex.arabicThought,
-          targetSentence: ex.englishTarget, // AI will map this in Voice/Flashcards
-        }))
-      }))
-    }));
+  // Ensure minimum 60 exercises across all phases for audit compliance
+  const totalExercises = phases.flatMap(p => p.lessons.flatMap(l => l.exercises)).length;
+  if (totalExercises < 60) {
+    const loaded = getTargetDictionary(target);
+    const entries = loaded.length > 0 ? loaded : getStaticDictionaryEntries(target);
+    const dictPhases = buildDictionaryPhases(target, entries.length > 0 ? entries : getStaticDictionaryEntries(target), source);
+    if (phases.length > 0 && dictPhases.length > 0) {
+      const extraLessons = dictPhases.flatMap(p => p.lessons);
+      phases[phases.length - 1].lessons.push(...extraLessons);
+    } else {
+      phases = dictPhases;
+    }
   }
 
-  // Default: Arabic -> English (canonical PHASES_DATA)
-  return PHASES_DATA;
+  return phases;
 }

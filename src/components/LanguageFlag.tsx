@@ -23,6 +23,7 @@ const ISO_MAP: Record<string, string> = {
   'ar-eg': 'eg',
   egyptian: 'eg',
   msa: 'un',
+  he: 'ps',
 };
 
 const LANG_COLORS: Record<string, string> = {
@@ -38,11 +39,37 @@ const LANG_COLORS: Record<string, string> = {
   it: 'bg-green-600 text-white',
   ar: 'bg-teal-600 text-white',
   arz: 'bg-teal-600 text-white',
+  he: 'bg-emerald-800 text-white',
 };
 
 export function LanguageFlag({ code, size = 20, className = '', showCodePill = false }: LanguageFlagProps) {
   const [failed, setFailed] = useState(false);
   const cleanCode = (code || 'ar').toLowerCase();
+
+  if (cleanCode === 'he') {
+    return (
+      <span className={`inline-flex items-center gap-1.5 shrink-0 select-none ${className}`}>
+        <svg
+          width={Math.round(size * 1.35)}
+          height={size}
+          viewBox="0 0 900 600"
+          className="rounded-sm object-cover shadow-sm shrink-0 border border-stone-700/50"
+          aria-label="Palestinian flag"
+        >
+          <rect width="900" height="200" fill="#000000" />
+          <rect y="200" width="900" height="200" fill="#FFFFFF" />
+          <rect y="400" width="900" height="200" fill="#007A3D" />
+          <polygon points="0,0 0,600 450,300" fill="#CE1126" />
+        </svg>
+        {showCodePill && (
+          <span className="text-[10px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider bg-emerald-800 text-white">
+            HE
+          </span>
+        )}
+      </span>
+    );
+  }
+
   const iso = ISO_MAP[cleanCode] || 'un';
   const colorClass = LANG_COLORS[cleanCode] || 'bg-stone-700 text-stone-200';
 
