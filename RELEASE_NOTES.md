@@ -1,40 +1,36 @@
-# Thinking Bridge v4.3.0 — Release Notes
+# Thinking Bridge v4.4.0 (v1.0.0 Stable) — Release Notes
 
 ### Think in the language. Don't translate it.
 
-Thinking Bridge v4.3.0 brings a complete high-contrast Alexandrian visual redesign, authentic street-friendly Egyptian copy, non-layout-shifting interactive hint cards, and laptop/desktop window scale responsiveness.
+Thinking Bridge v4.4.0 brings transport-safe silent audio defaults with pulsing manual triggers, 16 fully pre-bundled offline languages, warm Egyptian dialect coaching defaults, and universal platform readiness (Android APK + PWA + Single-File HTML).
 
 ---
 
-## 🚀 What's New in v4.3.0
+## 🚀 What's New in v4.4.0 Stable
 
-- **🌊 High-Contrast Alexandrian Visual Redesign**:
-  - Re-engineered headline typography with a razor-sharp 180° White-to-Sky-Cyan gradient (`#FFFFFF` ➔ `#38BDF8` ➔ `#00E5FF`).
-  - Completely eliminated dark fuzzy drop-shadow clipping artifacts and muddy amber text halos.
-- **🗣️ Street-Friendly Alexandrian Egyptian Copy**:
-  - Simplified landing page and interactive prompts into warm, direct, accessible Alexandrian Egyptian Arabic (`اتعلم إنجليزي بعقلك المصري - من غير ترجمة حرفية`).
-- **✨ Non-Layout-Shifting Popups & Hints**:
-  - Re-architected Socratic hints and manual helper confirmation pills to update inline inside reserved glassmorphic hint cards (`bg-cyan-500/10 border-cyan-500/30 text-cyan-200`), guaranteeing zero vertical layout jump when hints are pressed.
-- **🖥️ Laptop & Window Scale Responsiveness**:
-  - Added responsive `clamp()` paddings, container query scale bounds, and `max-h-[88vh]` dialog boundaries for seamless rendering on 13-inch MacBooks, 1080p, and 4K desktop viewports.
-- **📱 Standalone Android Release Package**:
-  - Assembled updated Android Release APK (`Thinking-Bridge-v4.3.0.apk`) with 100% offline web assets synced.
-
----
-
-## 📜 Constitution
-
-- **100% Offline-First**: All core learning modules, flashcards, SRS scheduling, TTS capabilities, and vector engines function completely offline.
-- **Radical Privacy**: Zero telemetry, zero tracking scripts, zero third-party profiling, and zero user account mandates. All data stays strictly on-device.
+- **🔊 Transport-Safe Audio Controls**:
+  - 100% silent on load across all interactive exercises and views.
+  - Prominent, pulsing `🔊 اسمع` button to manually listen to natural speech synthesis whenever desired.
+- **🌍 16 Pre-bundled Offline Languages & Dialects**:
+  - Zero-leak offline dictionaries for Arabic (`ar`), Egyptian (`arz`), Levantine (`apc`), Gulf (`afb`), Moroccan (`ary`), English, German, Japanese, Spanish, French, Italian, Portuguese, Russian, Chinese, Hindi, Greek, Hebrew, and Turkish.
+  - Optimized chunking with `sourcemap: false` to eliminate debug bloat.
+- **🇪🇬 Warm Egyptian Dialect Default**:
+  - Respectful Egyptian Arabic default UI (`عامية مصرية محترمة`) for intuitive cognitive transfer.
+- **📱 Universal Platform & APK Deployment**:
+  - Universal Android Release APK (`Thinking-Bridge-v1.0.0-stable.apk` / `Thinking-Bridge-v4.4.0-beta.apk`) built and copied directly to the user's Desktop.
+  - Offline Single-File HTML app (`Thinking-English-v4.html`) ready for zero-network environments.
 
 ---
 
-## 📦 Downloads & Artifacts
+## 📜 Licensing & Provenance
 
-- **Android APK**: `https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v4.3.0/Thinking-Bridge-v4.3.0.apk`
-- **Web App**: [https://tb-eg.vercel.app](https://tb-eg.vercel.app)
-- **Direct Download**: [https://tb-eg.vercel.app/download](https://tb-eg.vercel.app/download)
-- **Source Code**: Available on GitHub (`v4.3.0`)
+- **Software Code**: GNU AGPLv3
+- **Educational Content**: CC BY-NC-SA 4.0
+- **Trademark & Brand**: All rights reserved © Amr Sherif Abdelaal (Alexandria, Egypt 🇪🇬).
 
 ---
-*Built in Alexandria, Egypt by Amr Sherif Abdelaal. Open source & free forever.*
+
+## 📦 Downloads & Links
+
+- **Android APK**: Placed on Desktop (`Thinking-Bridge-v1.0.0-stable.apk`) & available on GitHub Releases.
+- **Web App / PWA**: [https://tb-eg.vercel.app](https://tb-eg.vercel.app)
