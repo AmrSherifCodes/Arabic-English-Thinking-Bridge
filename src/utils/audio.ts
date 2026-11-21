@@ -253,7 +253,7 @@ export function speakWithRate(
   const timeoutId = setTimeout(() => {
     controller.abort();
     speakWithNativeSpeechSynthesis(clean, requestedRate, preferredVoiceName);
-  }, 3500);
+  }, 1500);
 
   const voipi = createVoiPiVoice();
   void voipi

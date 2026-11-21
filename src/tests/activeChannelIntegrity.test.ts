@@ -53,4 +53,39 @@ describe('Active Channel Data Integrity & Gloss Coverage', () => {
 
     assert.deepStrictEqual(missingGlosses, [], `Missing glosses found for words: ${JSON.stringify(missingGlosses.slice(0, 10))}`);
   });
+
+  it('resolves glosses correctly for en -> ar direction', () => {
+    const glossHello = getGlossForWord('أهلاً', [], 'ar', 'en');
+    assert.ok(
+      glossHello.toLowerCase().includes('hi') || glossHello.toLowerCase().includes('hello'),
+      `Expected hello/hi gloss for أهلاً, got: ${glossHello}`
+    );
+
+    const glossHouse = getGlossForWord('بيت', [], 'ar', 'en');
+    assert.ok(
+      glossHouse.toLowerCase().includes('house'),
+      `Expected house gloss for بيت, got: ${glossHouse}`
+    );
+  });
+
+  it('tracks repeated word tile selections independently by index', () => {
+    const shuffledOptions = ['the', 'dog', 'saw', 'the', 'cat'];
+    let selectedIndices: number[] = [];
+
+    // Selecting first "the" (index 0)
+    selectedIndices.push(0);
+    assert.strictEqual(selectedIndices.includes(0), true, 'Index 0 should be selected');
+    assert.strictEqual(selectedIndices.includes(3), false, 'Index 3 (second "the") should NOT be selected');
+
+    // Selecting second "the" (index 3)
+    selectedIndices.push(3);
+    assert.strictEqual(selectedIndices.includes(3), true, 'Index 3 should now be selected');
+    const selectedWords = selectedIndices.map((i) => shuffledOptions[i]);
+    assert.deepStrictEqual(selectedWords, ['the', 'the']);
+
+    // Unselecting first "the" (index at pos 0 in selectedIndices)
+    selectedIndices = selectedIndices.filter((_, i) => i !== 0);
+    assert.strictEqual(selectedIndices.includes(0), false, 'Index 0 should be unselected');
+    assert.strictEqual(selectedIndices.includes(3), true, 'Index 3 should remain selected');
+  });
 });

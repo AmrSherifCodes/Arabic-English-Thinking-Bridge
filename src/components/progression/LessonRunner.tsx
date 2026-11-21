@@ -9,6 +9,7 @@ import { updateCognitiveProfile, runLocalTrainingStep, getDifficultyKnob } from 
 import { getDynamicExerciseOptions } from '../../utils/adaptiveCurriculum';
 import { getGlossForWord } from '../../utils/glossHelper';
 import { speakWithRate } from '../../utils/audio';
+import { useLanguagePair } from '../../hooks/useLanguagePair';
 import { LevelVisualIllustration } from './LevelVisualIllustration';
 import { NameForge } from '../NameForge';
 import { DualSpeedAudio } from '../DualSpeedAudio';
@@ -78,6 +79,8 @@ interface LessonRunnerProps {
   onCompleteSession: (earnedXp: number, accuracyPercent: number) => void;
   onClose: () => void;
   isArabic?: boolean;
+  targetLang?: string;
+  sourceLang?: string;
 }
 
 export function LessonRunner({
@@ -85,7 +88,13 @@ export function LessonRunner({
   onCompleteSession,
   onClose,
   isArabic = true,
+  targetLang,
+  sourceLang,
 }: LessonRunnerProps) {
+  const { sourceLang: pairSource, targetLang: pairTarget } = useLanguagePair();
+  const activeTargetLang = targetLang || pairTarget || 'en';
+  const activeSourceLang = sourceLang || pairSource || 'ar';
+
   const [uiMode] = useUiMode();
   const [exercises, setExercises] = useState<ExerciseItem[]>(() => {
     const list = [...lesson.exercises];
@@ -96,6 +105,11 @@ export function LessonRunner({
     return list;
   });
 
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [selectedOptionIndices, setSelectedOptionIndices] = useState<number[]>([]);
+  const [shuffledOptions, setShuffledOptions] = useState<string[]>([]);
+  const selectedChips = selectedOptionIndices.map((idx) => shuffledOptions[idx] || '').filter(Boolean);
+
   const handleShuffleExercises = () => {
     const list = [...exercises];
     for (let i = list.length - 1; i > 0; i--) {
@@ -104,16 +118,12 @@ export function LessonRunner({
     }
     setExercises(list);
     setCurrentIndex(0);
-    setSelectedChips([]);
+    setSelectedOptionIndices([]);
     setUserInput('');
     setIsAnswered(false);
     setAutoHintPill(isArabic ? '🔀 تم خلط التمارين بنجاح!' : '🔀 Exercises shuffled!');
     soundFX.playChipSelect();
   };
-
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [selectedChips, setSelectedChips] = useState<string[]>([]);
-  const [shuffledOptions, setShuffledOptions] = useState<string[]>([]);
   const [userInput, setUserInput] = useState('');
   const [isAnswered, setIsAnswered] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
@@ -171,6 +181,7 @@ export function LessonRunner({
       [options[index], options[swapIndex]] = [options[swapIndex], options[index]];
     }
     setShuffledOptions(options);
+    setSelectedOptionIndices([]);
   }, [currentExercise.id, currentIndex]);
 
   useEffect(() => {
@@ -195,12 +206,23 @@ export function LessonRunner({
         );
       }
 
-      if (!candidateOption && targetTokens[selectedChips.length]) {
-        candidateOption = targetTokens[selectedChips.length];
+      if (!candidateOption && targetTokens[selectedOptionIndices.length]) {
+        candidateOption = targetTokens[selectedOptionIndices.length];
       }
 
       if (candidateOption) {
-        setSelectedChips((prev) => [...prev, candidateOption!]);
+        let optIdx = shuffledOptions.findIndex(
+          (opt, idx) => opt.toLowerCase() === candidateOption!.toLowerCase() && !selectedOptionIndices.includes(idx)
+        );
+
+        if (optIdx !== -1) {
+          setSelectedOptionIndices((prev) => [...prev, optIdx]);
+        } else {
+          const newIdx = shuffledOptions.length;
+          setShuffledOptions((prev) => [...prev, candidateOption!]);
+          setSelectedOptionIndices((prev) => [...prev, newIdx]);
+        }
+
         setAutoHintPill(
           customPillMessage ?? (
             isArabic
@@ -226,7 +248,7 @@ export function LessonRunner({
       }
     }
     return null;
-  }, [isAnswered, showSummary, currentExercise, selectedChips, userInput, shuffledOptions, isArabic, inputMode]);
+  }, [isAnswered, showSummary, currentExercise, selectedChips, selectedOptionIndices, userInput, shuffledOptions, isArabic, inputMode]);
 
   // Automatic 30-second Idle Guard
   useEffect(() => {
@@ -339,7 +361,7 @@ export function LessonRunner({
   const handleNextExercise = () => {
     setIsAnswered(false);
     setIsCorrect(false);
-    setSelectedChips([]);
+    setSelectedOptionIndices([]);
     setUserInput('');
     setAutoHintPill(null);
     setHintDrawerOpen(false);
@@ -625,20 +647,21 @@ export function LessonRunner({
                 style={{ direction: isTargetRtl ? 'rtl' : 'ltr', textAlign: isTargetRtl ? 'right' : 'left', justifyContent: isTargetRtl ? 'flex-end' : 'flex-start' }}
                 className="p-4 rounded-2xl bg-surface-2 border border-border min-h-[72px] flex flex-wrap flex-row items-center gap-2"
               >
-                {selectedChips.length === 0 ? (
+                {selectedOptionIndices.length === 0 ? (
                   <span className="text-xs text-muted font-bold" dir={isArabic ? 'rtl' : 'ltr'}>
                     {isArabic ? 'اضغط الكلمات أدناه للترتيب الصحيح' : 'Tap words below to arrange'}
                   </span>
                 ) : (
-                  selectedChips.map((chip, idx) => {
-                    const gloss = getGlossForWord(chip, currentExercise.breakdownChunks || [], 'en', 'ar');
+                  selectedOptionIndices.map((optionIdx, selectedIdx) => {
+                    const chip = shuffledOptions[optionIdx] || '';
+                    const gloss = getGlossForWord(chip, currentExercise.breakdownChunks || [], activeTargetLang, activeSourceLang);
                     return (
                       <button
-                        key={idx}
+                        key={selectedIdx}
                         onClick={() => {
                           if (!isAnswered) {
                             speakWithRate(chip);
-                            setSelectedChips((prev) => prev.filter((_, i) => i !== idx));
+                            setSelectedOptionIndices((prev) => prev.filter((_, i) => i !== selectedIdx));
                           }
                         }}
                         dir={isTargetRtl ? 'rtl' : 'ltr'}
@@ -655,8 +678,8 @@ export function LessonRunner({
               {/* Available Word Chips Bank */}
               <div className="flex flex-wrap gap-2 justify-center pt-2" dir={isTargetRtl ? 'rtl' : 'ltr'}>
                 {shuffledOptions.map((chip, idx) => {
-                  const isSelected = selectedChips.includes(chip);
-                  const gloss = getGlossForWord(chip, currentExercise.breakdownChunks || [], 'en', 'ar');
+                  const isSelected = selectedOptionIndices.includes(idx);
+                  const gloss = getGlossForWord(chip, currentExercise.breakdownChunks || [], activeTargetLang, activeSourceLang);
                   return (
                     <button
                       key={idx}
@@ -666,7 +689,7 @@ export function LessonRunner({
                       onClick={() => {
                         soundFX.playChipSelect();
                         speakWithRate(chip);
-                        setSelectedChips((prev) => [...prev, chip]);
+                        setSelectedOptionIndices((prev) => [...prev, idx]);
                       }}
                       dir={isTargetRtl ? 'rtl' : 'ltr'}
                       className={`px-4 py-2.5 min-h-[48px] rounded-xl font-bold text-sm flex flex-col items-center justify-center transition cursor-pointer ${
@@ -738,7 +761,7 @@ export function LessonRunner({
         </motion.div>
 
         {/* Sticky Bottom Action Bar (60px Height, High Contrast) */}
-        <div className="sticky bottom-0 bg-stone-950 p-4 border-t border-stone-800 z-10 shrink-0 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+        <div className="sticky bottom-0 bg-stone-950 p-4 border-t border-stone-800 z-10 shrink-0 pb-[max(1rem,env(safe-area-inset-bottom))]">
           {!isAnswered ? (
             <button
               onClick={handleCheckAnswer}
