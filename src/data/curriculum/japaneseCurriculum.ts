@@ -6,8 +6,6 @@ function sourceThought(source: SourceLanguage, ar: string, en: string): string {
 }
 
 export function getJapanesePhases(source: SourceLanguage): Phase[] {
-  const isAr = source === 'ar';
-
   const phase1Lessons: Lesson[] = [];
   for (let i = 1; i <= 7; i++) {
     phase1Lessons.push({
@@ -16,7 +14,7 @@ export function getJapanesePhases(source: SourceLanguage): Phase[] {
       phaseTitle: '基礎 The Core Skeleton & Particles',
       phaseLevel: 'N5 – N4',
       number: i,
-      title: `Lesson ${i}: SOV Rule & Topic ${i}`,
+      title: `Lesson ${i}: SOV Rule & Topic`,
       titleAr: `الدرس ${i}: ترتيب الجملة وحرف المبتدأ`,
       transferConcept: 'Master strict SOV word order and particles.',
       transferConceptAr: 'الفعل دائماً في نهاية الجملة اليابانية.',
@@ -48,7 +46,7 @@ export function getJapanesePhases(source: SourceLanguage): Phase[] {
           targetSentence: 'これは水です',
           romajiTarget: 'Kore wa mizu desu',
           furiganaTarget: 'これは<ruby>水<rt>みず</rt></ruby>です',
-          acceptableAlternatives: ['これは水です', 'これはみずです', 'kore wa mizu desu'],
+          acceptableAlternatives: ['<ctrl42>call:default_api:replace_file_content', 'これはみずです', 'kore wa mizu desu'],
           wordChips: ['これ', 'は', '水', 'です', 'それ', 'あれ', 'お茶', '本'],
           breakdownChunks: [
             { arabicText: 'これ', englishText: 'this', sourceText: 'هذا', targetText: 'これ', role: 'subject', explanation: 'Demonstrative' },
@@ -66,11 +64,11 @@ export function getJapanesePhases(source: SourceLanguage): Phase[] {
           targetSentence: '水を飲みます',
           romajiTarget: 'Mizu o nomimasu',
           furiganaTarget: '<ruby>水<rt>みず</rt></ruby>を<ruby>飲<rt>の</rt></ruby>みます',
-          acceptableAlternatives: ['水を飲みます', 'みず을のみます'.replace('을', ''), 'mizu o nomimasu'],
+          acceptableAlternatives: ['水を飲みます', 'mizu o nomimasu'],
           wordChips: ['水', 'を', '飲みます', 'お茶', '食べる', '見る', '行く'],
           breakdownChunks: [
             { arabicText: '水', englishText: 'water', sourceText: 'ماء', targetText: '水', role: 'object', explanation: 'Object' },
-            { arabicText: 'を', englishText: 'particle', sourceText: 'أداة', targetText: 'を', role: 'connector', explanation: 'Particle' },
+            { arabicText: '를', englishText: 'particle', sourceText: 'أداة', targetText: 'を', role: 'connector', explanation: 'Particle' },
             { arabicText: '飲みます', englishText: 'drink', sourceText: 'أشرب', targetText: '飲みます', role: 'verb', explanation: 'Verb' }
           ],
           habitHint: 'المفعول مع を والفعل في النهاية.'
@@ -104,7 +102,7 @@ export function getJapanesePhases(source: SourceLanguage): Phase[] {
       phaseTitle: '文法 Connections & Describing Actions',
       phaseLevel: 'N4 – N3',
       number: i,
-      title: `Lesson ${i}: Te-Form & Past Tense ${i}`,
+      title: `Lesson ${i}: Te-Form & Past Tense`,
       titleAr: `الدرس ${i}: صيغة الربط والماضي`,
       transferConcept: 'Master connecting actions and past tense.',
       transferConceptAr: 'إتقان صيغة الربط والماضي.',
@@ -190,7 +188,7 @@ export function getJapanesePhases(source: SourceLanguage): Phase[] {
       phaseTitle: '応用 Mastery, Politeness & Natural Context',
       phaseLevel: 'N3 – N2',
       number: i,
-      title: `Lesson ${i}: Ability & Potential ${i}`,
+      title: `Lesson ${i}: Ability & Potential`,
       titleAr: `الدرس ${i}: القدرة والاستطاعة`,
       transferConcept: 'Master potential forms and advanced flow.',
       transferConceptAr: 'إتقان صيغ الاستطاعة والطلاقة.',
@@ -215,60 +213,61 @@ export function getJapanesePhases(source: SourceLanguage): Phase[] {
         },
         {
           id: `ja-ex-3-${i}-2`,
-          arabicThought: 'أستطيع قراءة الكتاب',
-          englishTarget: '本を読むことができます',
-          sourceThought: sourceThought(source, 'أستطيع قراءة الكتاب', 'Can read book'),
-          targetSentence: '本を読むことができます',
-          romajiTarget: 'Hon o yomu koto ga dekimasu',
-          furiganaTarget: '<ruby>本<rt>ほん</rt></ruby>を<ruby>読<rt>よ</rt></ruby>むことができます',
-          acceptableAlternatives: ['本を読むことができます', 'hon o yomu koto ga dekimasu'],
-          wordChips: ['本を', '読む', 'ことができます', '書く', '見る'],
+          arabicThought: 'أستطيع قراءة هذا الكانجي',
+          englishTarget: 'この漢字が読めます',
+          sourceThought: sourceThought(source, 'أستطيع قراءة هذا الكانجي', 'Can read kanji'),
+          targetSentence: 'この漢字が読めます',
+          romajiTarget: 'Kono kanji ga yomemasu',
+          furiganaTarget: 'この<ruby>漢字<rt>かんじ</rt></ruby>が<ruby>読<rt>よ</rt></ruby>めます',
+          acceptableAlternatives: ['この漢字が読めます', 'kono kanji ga yomemasu'],
+          wordChips: ['この', '漢字', 'が', '読めます', '本', '新聞'],
           breakdownChunks: [
-            { arabicText: '本を', englishText: 'book', sourceText: 'الكتاب', targetText: '本を', role: 'object', explanation: 'Object' },
-            { arabicText: '読むことができます', englishText: 'can read', sourceText: 'أستطيع قراءة', targetText: '読むことができます', role: 'verb', explanation: 'Potential' }
+            { arabicText: 'この漢字', englishText: 'this kanji', sourceText: 'هذا الكانجي', targetText: 'この漢字', role: 'object', explanation: 'Noun phrase' },
+            { arabicText: 'が', englishText: 'subject', sourceText: 'حرف', targetText: 'が', role: 'connector', explanation: 'Particle' },
+            { arabicText: '読めます', englishText: 'can read', sourceText: 'أستطيع قراءة', targetText: '読めます', role: 'verb', explanation: 'Potential' }
           ],
-          habitHint: 'مُصْدَر + ことができます.'
+          habitHint: 'فعل الاستطاعة 読めます.'
         },
         {
           id: `ja-ex-3-${i}-3`,
-          arabicThought: 'أحب اللغة اليابانية',
-          englishTarget: '日本語が好きです',
-          sourceThought: sourceThought(source, 'أحب اللغة اليابانية', 'Like Japanese'),
-          targetSentence: '日本語が好きです',
-          romajiTarget: 'Nihongo ga suki desu',
-          furiganaTarget: '<ruby>日本語<rt>にほんご</rt></ruby>が好きです',
-          acceptableAlternatives: ['日本語が好きです', 'nihongo ga suki desu'],
-          wordChips: ['日本語', 'が', '好きです', '嫌い', '大'],
+          arabicThought: 'أستطيع المجيء غداً',
+          englishTarget: '明日来ることができます',
+          sourceThought: sourceThought(source, 'أستطيع المجيء غداً', 'Can come tomorrow'),
+          targetSentence: '明日来ることができます',
+          romajiTarget: 'Ashita kuru koto ga dekimasu',
+          furiganaTarget: '<ruby>明日<rt>あした</rt></ruby><ruby>来<rt>く</rt></ruby>ることができます',
+          acceptableAlternatives: ['明日来ることができます', 'ashita kuru koto ga dekimasu'],
+          wordChips: ['明日', '来ること', 'が', 'できます', '行くこと', '今日'],
           breakdownChunks: [
-            { arabicText: '日本語', englishText: 'Japanese', sourceText: 'اليابانية', targetText: '日本語', role: 'object', explanation: 'Object' },
-            { arabicText: 'が好きです', englishText: 'like', sourceText: 'أحب', targetText: 'が好きです', role: 'verb', explanation: 'Preference' }
+            { arabicText: '明日', englishText: 'tomorrow', sourceText: 'غداً', targetText: '明日', role: 'connector', explanation: 'Time' },
+            { arabicText: '来ること', englishText: 'coming', sourceText: 'المجيء', targetText: '来ること', role: 'object', explanation: 'Nominalized verb' },
+            { arabicText: 'ができます', englishText: 'can', sourceText: 'أستطيع', targetText: 'ができます', role: 'verb', explanation: 'Potential' }
           ],
-          habitHint: 'التفضيل が好きです.'
+          habitHint: 'Nominalized verb ことができる.'
         },
         {
           id: `ja-ex-3-${i}-4`,
-          arabicThought: 'أعرف هذا الشخص',
-          englishTarget: 'この人を知っています',
-          sourceThought: sourceThought(source, 'أعرف هذا الشخص', 'Know this person'),
-          targetSentence: 'この人を知っています',
-          romajiTarget: 'Kono hito o shitte imasu',
-          furiganaTarget: 'この<ruby>人<rt>ひと</rt></ruby>を<ruby>知<rt>し</rt></ruby>っています',
-          acceptableAlternatives: ['이 사람이 아닙니다', 'この人を知っています', 'kono hito o shitte imasu'],
-          wordChips: ['この', '人', 'を', '知っています', '先生', '友達'],
+          arabicThought: 'أستطيع السباحة',
+          englishTarget: '泳ぐことができます',
+          sourceThought: sourceThought(source, 'أستطيع السباحة', 'Can swim'),
+          targetSentence: '泳ぐことができます',
+          romajiTarget: 'Oyogu koto ga dekimasu',
+          furiganaTarget: '<ruby>泳<rt>およ</rt></ruby>ぐことができます',
+          acceptableAlternatives: ['泳ぐことができます', 'oyogu koto ga dekimasu'],
+          wordChips: ['泳ぐこと', 'が', 'できます', '走ること', '飛ぶこと'],
           breakdownChunks: [
-            { arabicText: 'この人', englishText: 'this person', sourceText: 'هذا الشخص', targetText: 'この人', role: 'object', explanation: 'Object' },
-            { arabicText: 'を', englishText: 'particle', sourceText: 'أداة', targetText: 'を', role: 'connector', explanation: 'Particle' },
-            { arabicText: '知っています', englishText: 'know', sourceText: 'أعرف', targetText: '知っています', role: 'verb', explanation: 'Verb' }
+            { arabicText: '泳ぐこと', englishText: 'swimming', sourceText: 'السباحة', targetText: '泳ぐこと', role: 'object', explanation: 'Noun' },
+            { arabicText: 'ができます', englishText: 'can', sourceText: 'أستطيع', targetText: 'ができます', role: 'verb', explanation: 'Potential' }
           ],
-          habitHint: 'فعل المعرفة 知っています.'
+          habitHint: 'فعل السباحة.'
         }
       ]
     });
   }
 
   return [
-    { id: 1, title: '基礎 The Core Skeleton & Particles', titleAr: 'أساسيات البناء الياباني وحروف المعاني', level: 'N5 – N4', tagline: 'Core Particles & SOV', lessons: phase1Lessons },
-    { id: 2, title: '文法 Connections & Describing Actions', titleAr: 'ربط الجمل وتوصيف الأفعال باليابانية', level: 'N4 – N3', tagline: 'Te-Form & Past Tense', lessons: phase2Lessons },
-    { id: 3, title: '応用 Mastery, Politeness & Natural Context', titleAr: 'الإتقان واليابانية الطبيعية الاحترافية', level: 'N3 – N2', tagline: 'Potential & Politeness', lessons: phase3Lessons }
+    { id: 1, title: '基礎 The Core Skeleton & Particles', titleAr: 'المرحلة ١: ترتيب الجملة وحروف الجر', level: 'N5 – N4', tagline: 'SOV & Basic Particles', lessons: phase1Lessons },
+    { id: 2, title: '文法 Connections & Describing Actions', titleAr: 'المرحلة ٢: الربط والتعبير عن الأفعال', level: 'N4 – N3', tagline: 'Te-Form & Past Tense', lessons: phase2Lessons },
+    { id: 3, title: '応用 Mastery, Politeness & Natural Context', titleAr: 'المرحلة ٣: الطلاقة والاستطاعة', level: 'N3 – N2', tagline: 'Potential & Flow', lessons: phase3Lessons }
   ];
 }

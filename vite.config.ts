@@ -88,6 +88,7 @@ export default defineConfig(async ({ command, mode }) => {
                   !entry.url.includes('curriculum-core-') &&
                   !entry.url.includes('app-data-') &&
                   !entry.url.includes('wasm') &&
+                  !entry.url.includes('ort-wasm') &&
                   !entry.url.includes('dictionary.json') &&
                   !entry.url.includes('aistudio/')
               );
@@ -95,7 +96,7 @@ export default defineConfig(async ({ command, mode }) => {
             },
           ],
           globPatterns: ['**/*.{js,css,html,woff2}'],
-          globIgnores: ['**/pyodide/**', '**/*.wasm', '**/assets/dict-*.js', '**/curriculum-core-*.js', '**/app-data-*.js'],
+          globIgnores: ['**/pyodide/**', '**/*.wasm', '**/ort-wasm*', '**/assets/dict-*.js', '**/curriculum-core-*.js', '**/app-data-*.js'],
           navigateFallback: `${BASE}index.html`,
           navigateFallbackDenylist: [/^\/apk/, /^\/download/, /^\/api/],
           cleanupOutdatedCaches: true,

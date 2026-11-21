@@ -2,56 +2,86 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { PHASES_DATA } from '../data/lessons';
 import { getGlossForWord } from '../utils/glossHelper';
+import { getCurriculum } from '../data/curriculumRegistry';
+import { getTargetDictionaryAsync } from '../data/dictionaries';
+import { TargetLanguage } from '../types';
+import {
+  selectBestVoiceForLang,
+  getCloudTtsUnavailable,
+  setCloudTtsUnavailable,
+  speakWithRate,
+} from '../utils/audio';
 
 describe('Active Channel Data Integrity & Gloss Coverage', () => {
-  const allLessons = PHASES_DATA.flatMap((phase) => phase.lessons);
+  const UNLOCKED_TARGETS: TargetLanguage[] = ['en', 'de', 'es', 'fr', 'tr', 'ja', 'it', 'pt', 'ar'];
 
-  it('contains zero duplicate prompts within the same lesson', () => {
-    for (const lesson of allLessons) {
-      const seenPrompts = new Set<string>();
-      for (const ex of lesson.exercises) {
-        const prompt = ex.arabicThought;
-        assert.strictEqual(seenPrompts.has(prompt), false, `Duplicate prompt "${prompt}" in lesson ${lesson.id}`);
-        seenPrompts.add(prompt);
-      }
-    }
-  });
+  it('verifies all unlocked language channels have zero duplicates, zero trailing numbers, zero inappropriate distractors, and 100% gloss coverage', async () => {
+    for (const target of UNLOCKED_TARGETS) {
+      await getTargetDictionaryAsync(target);
+      const phases = getCurriculum('ar', target);
+      const lessons = phases.flatMap((p) => p.lessons);
 
-  it('contains zero numbered placeholder titles or prompts', () => {
-    for (const lesson of allLessons) {
-      assert.strictEqual(/\d+$/.test(lesson.title), false, `Lesson title has trailing number: ${lesson.title}`);
-      for (const ex of lesson.exercises) {
-        const prompt = ex.arabicThought;
-        const target = ex.englishTarget || ex.targetSentence || '';
-        assert.strictEqual(/\d+$/.test(prompt), false, `Prompt has trailing number: ${prompt}`);
-        assert.strictEqual(/\d+$/.test(target), false, `Target sentence has trailing number: ${target}`);
-      }
-    }
-  });
+      assert.ok(lessons.length > 0, `Expected non-empty lessons for target language ${target}`);
 
-  it('provides 100% gloss coverage for all word chips across active lessons', () => {
-    const missingGlosses: { lessonId: string; exerciseId: string; word: string }[] = [];
+      for (const lesson of lessons) {
+        const seenPrompts = new Set<string>();
+        assert.strictEqual(
+          /\d+$/.test(lesson.title),
+          false,
+          `Lesson title has trailing number: ${lesson.title} in channel ${target}`
+        );
 
-    for (const lesson of allLessons) {
-      for (const ex of lesson.exercises) {
-        const chips = ex.wordChips || [];
-        for (const chip of chips) {
-          const cleanWord = chip.replace(/[.,!?;:]/g, '').trim();
-          if (!cleanWord) continue;
+        for (const ex of lesson.exercises) {
+          const prompt = ex.arabicThought || (ex as any).promptAr || ex.sourceThought || '';
+          const targetText = ex.englishTarget || ex.targetSentence || '';
 
-          const gloss = getGlossForWord(cleanWord, ex.breakdownChunks || [], 'en', 'ar');
-          if (!gloss) {
-            missingGlosses.push({
-              lessonId: lesson.id,
-              exerciseId: ex.id,
-              word: cleanWord,
-            });
+          // 1. Zero duplicate prompts within the same lesson
+          assert.strictEqual(
+            seenPrompts.has(prompt),
+            false,
+            `Duplicate prompt "${prompt}" in lesson ${lesson.id} of channel ${target}`
+          );
+          seenPrompts.add(prompt);
+
+          // 2. Zero trailing placeholder numbers
+          assert.strictEqual(
+            /\d+$/.test(prompt.trim()),
+            false,
+            `Prompt has trailing number: "${prompt}" in channel ${target}`
+          );
+          assert.strictEqual(
+            /\d+$/.test(targetText.trim()),
+            false,
+            `Target text has trailing number: "${targetText}" in channel ${target}`
+          );
+
+          // 3. Zero spoiler glosses and zero inappropriate distractors
+          const allText = `${prompt} ${targetText} ${ex.wordChips?.join(' ')} ${(ex.breakdownChunks || []).map((c) => c.explanation).join(' ')}`;
+          assert.strictEqual(
+            allText.includes('(خطأ)'),
+            false,
+            `Found spoiler gloss (خطأ) in lesson ${lesson.id} of channel ${target}`
+          );
+          assert.strictEqual(
+            /\bBier\b/i.test(allText),
+            false,
+            `Found inappropriate distractor Bier in lesson ${lesson.id} of channel ${target}`
+          );
+
+          // 4. 100% word-level gloss coverage for word chips
+          const chips = ex.wordChips || [];
+          for (const chip of chips) {
+            const cleanWord = chip.replace(/[.,!?;:]/g, '').trim();
+            if (!cleanWord) continue;
+            const gloss = getGlossForWord(cleanWord, ex.breakdownChunks || [], target, 'ar');
+            assert.ok(
+              gloss !== '',
+              `Missing gloss for word "${cleanWord}" in exercise ${ex.id} of channel ${target}`
+            );
           }
         }
       }
     }
-
-    assert.deepStrictEqual(missingGlosses, [], `Missing glosses found for words: ${JSON.stringify(missingGlosses.slice(0, 10))}`);
   });
 
   it('resolves glosses correctly for en -> ar direction', () => {
@@ -87,5 +117,41 @@ describe('Active Channel Data Integrity & Gloss Coverage', () => {
     selectedIndices = selectedIndices.filter((_, i) => i !== 0);
     assert.strictEqual(selectedIndices.includes(0), false, 'Index 0 should be unselected');
     assert.strictEqual(selectedIndices.includes(3), true, 'Index 3 should remain selected');
+  });
+
+  it('selects localService === true voice when offline = true', () => {
+    const mockVoices = [
+      {
+        name: 'Google US English (Online)',
+        lang: 'en-US',
+        localService: false,
+        default: false,
+        voiceURI: 'google-online',
+      },
+      {
+        name: 'Microsoft David (Offline Local)',
+        lang: 'en-US',
+        localService: true,
+        default: true,
+        voiceURI: 'microsoft-david',
+      },
+    ] as unknown as SpeechSynthesisVoice[];
+
+    const chosen = selectBestVoiceForLang(mockVoices, 'en-US', undefined, true);
+    assert.ok(chosen, 'Expected a voice to be chosen');
+    assert.strictEqual(chosen?.localService, true, 'Expected offline selection to pick localService: true voice');
+    assert.strictEqual(chosen?.name, 'Microsoft David (Offline Local)');
+  });
+
+  it('handles Edge TTS circuit breaker cleanly', () => {
+    setCloudTtsUnavailable(false);
+    assert.strictEqual(getCloudTtsUnavailable(), false);
+
+    setCloudTtsUnavailable(true);
+    assert.strictEqual(getCloudTtsUnavailable(), true);
+
+    const handled = speakWithRate('Test sentence', 1.0, undefined, 'en-US');
+    assert.strictEqual(typeof handled, 'boolean');
+    setCloudTtsUnavailable(false);
   });
 });

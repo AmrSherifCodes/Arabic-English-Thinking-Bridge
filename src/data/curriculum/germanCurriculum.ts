@@ -6,8 +6,6 @@ function sourceThought(source: SourceLanguage, ar: string, en: string): string {
 }
 
 export function getGermanPhases(source: SourceLanguage): Phase[] {
-  const isAr = source === 'ar';
-
   const phase1Lessons: Lesson[] = [];
   for (let i = 1; i <= 7; i++) {
     const target1 = i === 1 ? 'Heute trinke ich Kaffee' : 'Ich lerne Deutsch';
@@ -21,7 +19,7 @@ export function getGermanPhases(source: SourceLanguage): Phase[] {
       phaseTitle: 'Phase 1: Der Satzbau & Die V2-Regel',
       phaseLevel: 'A1',
       number: i,
-      title: `Lesson ${i}: V2 Rule & Word Order ${i}`,
+      title: `Lesson ${i}: V2 Rule & Word Order`,
       titleAr: `الدرس ${i}: قاعدة الفعل الثاني V2`,
       transferConcept: 'Master the strict V2 verb position in German main clauses.',
       transferConceptAr: 'إتقان مكان الفعل الثاني الصارم V2 في الجملة الألمانية.',
@@ -29,9 +27,9 @@ export function getGermanPhases(source: SourceLanguage): Phase[] {
       exercises: [
         {
           id: `de-ex-1-${i}-1`,
-          arabicThought: i === 1 ? 'أنا أبدأ بتناول القهوة اليوم' : `أنا أتعلم الألمانية ${i}`,
+          arabicThought: i === 1 ? 'أنا أبدأ بتناول القهوة اليوم' : 'أنا أتعلم الألمانية',
           englishTarget: target1,
-          sourceThought: sourceThought(source, i === 1 ? 'أنا أبدأ بتناول القهوة اليوم' : `أنا أتعلم الألمانية ${i}`, i === 1 ? 'Today I am drinking coffee' : `I learn German ${i}`),
+          sourceThought: sourceThought(source, i === 1 ? 'أنا أبدأ بتناول القهوة اليوم' : 'أنا أتعلم الألمانية', i === 1 ? 'Today I am drinking coffee' : 'I learn German'),
           targetSentence: target1,
           acceptableAlternatives: [target1.toLowerCase()],
           wordChips: Array.from(new Set([...target1.split(/\s+/), 'und', 'du', 'Wasser', 'Kaffee', 'heute'])),
@@ -43,9 +41,9 @@ export function getGermanPhases(source: SourceLanguage): Phase[] {
         },
         {
           id: `de-ex-1-${i}-2`,
-          arabicThought: i === 1 ? 'أنا أحتاج إلى قهوة' : `هذا منزل جميل ${i}`,
+          arabicThought: i === 1 ? 'أنا أحتاج إلى قهوة' : 'هذا منزل جميل',
           englishTarget: target2,
-          sourceThought: sourceThought(source, i === 1 ? 'أنا أحتاج إلى قهوة' : `هذا منزل جميل ${i}`, i === 1 ? 'I need a coffee' : `This is a nice house ${i}`),
+          sourceThought: sourceThought(source, i === 1 ? 'أنا أحتاج إلى قهوة' : 'هذا منزل جميل', i === 1 ? 'I need a coffee' : 'This is a nice house'),
           targetSentence: target2,
           acceptableAlternatives: [target2.toLowerCase()],
           wordChips: Array.from(new Set([...target2.split(/\s+/), 'Wasser', 'Tee', 'Haus', 'schön'])),
@@ -56,9 +54,9 @@ export function getGermanPhases(source: SourceLanguage): Phase[] {
         },
         {
           id: `de-ex-1-${i}-3`,
-          arabicThought: i === 1 ? 'سأتصل بك غداً' : `أنا أرى الرجل ${i}`,
+          arabicThought: i === 1 ? 'سأتصل بك غداً' : 'أنا أرى الرجل',
           englishTarget: target3,
-          sourceThought: sourceThought(source, i === 1 ? 'سأتصل بك غداً' : `أنا أرى الرجل ${i}`, i === 1 ? 'I will call you tomorrow' : `I see the man ${i}`),
+          sourceThought: sourceThought(source, i === 1 ? 'سأتصل بك غداً' : 'أنا أرى الرجل', i === 1 ? 'I will call you tomorrow' : 'I see the man'),
           targetSentence: target3,
           acceptableAlternatives: [target3.toLowerCase()],
           wordChips: Array.from(new Set([...target3.split(/\s+/), 'heute', 'wir', 'Mann', 'Frau'])),
@@ -69,9 +67,9 @@ export function getGermanPhases(source: SourceLanguage): Phase[] {
         },
         {
           id: `de-ex-1-${i}-4`,
-          arabicThought: `تدريب إضافي ${i}`,
+          arabicThought: 'نحن نحب ألمانيا',
           englishTarget: target4,
-          sourceThought: sourceThought(source, `تدريب إضافي ${i}`, `Practice ${i}`),
+          sourceThought: sourceThought(source, 'نحن نحب ألمانيا', 'We love Germany'),
           targetSentence: target4,
           acceptableAlternatives: [target4.toLowerCase()],
           wordChips: Array.from(new Set([...target4.split(/\s+/), 'Berlin', 'Hamburg', 'Land'])),
@@ -97,7 +95,7 @@ export function getGermanPhases(source: SourceLanguage): Phase[] {
       phaseTitle: 'Phase 2: Die Fälle (Akkusativ & Dativ)',
       phaseLevel: 'A2',
       number: i,
-      title: `Lesson ${i}: Accusative & Cases ${i}`,
+      title: `Lesson ${i}: Accusative & Cases`,
       titleAr: `الدرس ${i}: حالات الإعراب والنصب والجر`,
       transferConcept: 'Master noun cases and article changes in German.',
       transferConceptAr: 'إتقان الحالات الإعرابية وتغير أدوات التعريف.',
@@ -105,9 +103,9 @@ export function getGermanPhases(source: SourceLanguage): Phase[] {
       exercises: [
         {
           id: `de-ex-2-${i}-1`,
-          arabicThought: `أنا أرى الرجل ${i}`,
+          arabicThought: 'أنا أرى الرجل',
           englishTarget: target1,
-          sourceThought: sourceThought(source, `أنا أرى الرجل ${i}`, `I see the man ${i}`),
+          sourceThought: sourceThought(source, 'أنا أرى الرجل', 'I see the man'),
           targetSentence: target1,
           acceptableAlternatives: [target1.toLowerCase()],
           wordChips: Array.from(new Set([...target1.split(/\s+/), 'Frau', 'Kind', 'der'])),
@@ -118,9 +116,9 @@ export function getGermanPhases(source: SourceLanguage): Phase[] {
         },
         {
           id: `de-ex-2-${i}-2`,
-          arabicThought: `أنا أشتري تفاحة ${i}`,
+          arabicThought: 'أنا أشتري تفاحة',
           englishTarget: target2,
-          sourceThought: sourceThought(source, `أنا أشتري تفاحة ${i}`, `I buy an apple ${i}`),
+          sourceThought: sourceThought(source, 'أنا أشتري تفاحة', 'I buy an apple'),
           targetSentence: target2,
           acceptableAlternatives: [target2.toLowerCase()],
           wordChips: Array.from(new Set([...target2.split(/\s+/), 'Banane', 'Wasser'])),
@@ -131,9 +129,9 @@ export function getGermanPhases(source: SourceLanguage): Phase[] {
         },
         {
           id: `de-ex-2-${i}-3`,
-          arabicThought: `هو يقرأ كتاباً ${i}`,
+          arabicThought: 'هو يقرأ كتاباً',
           englishTarget: target3,
-          sourceThought: sourceThought(source, `هو يقرأ كتاباً ${i}`, `He reads a book ${i}`),
+          sourceThought: sourceThought(source, 'هو يقرأ كتاباً', 'He reads a book'),
           targetSentence: target3,
           acceptableAlternatives: [target3.toLowerCase()],
           wordChips: Array.from(new Set([...target3.split(/\s+/), 'Zeitung', 'Brief'])),
@@ -144,9 +142,9 @@ export function getGermanPhases(source: SourceLanguage): Phase[] {
         },
         {
           id: `de-ex-2-${i}-4`,
-          arabicThought: `نحن نحب ألمانيا ${i}`,
+          arabicThought: 'نحن نحب ألمانيا',
           englishTarget: target4,
-          sourceThought: sourceThought(source, `نحن نحب ألمانيا ${i}`, `We love Germany ${i}`),
+          sourceThought: sourceThought(source, 'نحن نحب ألمانيا', 'We love Germany'),
           targetSentence: target4,
           acceptableAlternatives: [target4.toLowerCase()],
           wordChips: Array.from(new Set([...target4.split(/\s+/), 'Europa', 'Welt'])),
@@ -172,7 +170,7 @@ export function getGermanPhases(source: SourceLanguage): Phase[] {
       phaseTitle: 'Phase 3: Perfekt & Nebensätze',
       phaseLevel: 'B1',
       number: i,
-      title: `Lesson ${i}: Past & Complex Sentences ${i}`,
+      title: `Lesson ${i}: Past & Complex Sentences`,
       titleAr: `الدرس ${i}: الماضي والجمل المركبة`,
       transferConcept: 'Master Perfekt tense and subordinate clauses.',
       transferConceptAr: 'إتقان الماضي المركب والجمل الفرعية.',
@@ -180,9 +178,9 @@ export function getGermanPhases(source: SourceLanguage): Phase[] {
       exercises: [
         {
           id: `de-ex-3-${i}-1`,
-          arabicThought: `لقد سافرت إلى برلين ${i}`,
+          arabicThought: 'لقد سافرت إلى برلين',
           englishTarget: target1,
-          sourceThought: sourceThought(source, `لقد سافرت إلى برلين ${i}`, `I traveled to Berlin ${i}`),
+          sourceThought: sourceThought(source, 'لقد سافرت إلى برلين', 'I traveled to Berlin'),
           targetSentence: target1,
           acceptableAlternatives: [target1.toLowerCase()],
           wordChips: Array.from(new Set([...target1.split(/\s+/), 'Hamburg', 'Wien'])),
@@ -193,9 +191,9 @@ export function getGermanPhases(source: SourceLanguage): Phase[] {
         },
         {
           id: `de-ex-3-${i}-2`,
-          arabicThought: `أنا أكل تفاحة ${i}`,
+          arabicThought: 'أنا أكل تفاحة',
           englishTarget: target2,
-          sourceThought: sourceThought(source, `أنا أكل تفاحة ${i}`, `I have eaten an apple ${i}`),
+          sourceThought: sourceThought(source, 'أنا أكل تفاحة', 'I have eaten an apple'),
           targetSentence: target2,
           acceptableAlternatives: [target2.toLowerCase()],
           wordChips: Array.from(new Set([...target2.split(/\s+/), 'gemacht', 'gekauft'])),
@@ -206,9 +204,9 @@ export function getGermanPhases(source: SourceLanguage): Phase[] {
         },
         {
           id: `de-ex-3-${i}-3`,
-          arabicThought: `لأنني أتعلم الألمانية ${i}`,
+          arabicThought: 'لأنني أتعلم الألمانية',
           englishTarget: target3,
-          sourceThought: sourceThought(source, `لأنني أتعلم الألمانية ${i}`, `Because I learn German ${i}`),
+          sourceThought: sourceThought(source, 'لأنني أتعلم الألمانية', 'Because I learn German'),
           targetSentence: target3,
           acceptableAlternatives: [target3.toLowerCase()],
           wordChips: Array.from(new Set([...target3.split(/\s+/), 'dass', 'obwohl'])),
@@ -219,9 +217,9 @@ export function getGermanPhases(source: SourceLanguage): Phase[] {
         },
         {
           id: `de-ex-3-${i}-4`,
-          arabicThought: `أنا أعلم أنك تفهم ${i}`,
+          arabicThought: 'أنا أعلم أنك تفهم',
           englishTarget: target4,
-          sourceThought: sourceThought(source, `أنا أعلم أنك تفهم ${i}`, `I know that you understand ${i}`),
+          sourceThought: sourceThought(source, 'أنا أعلم أنك تفهم', 'I know that you understand'),
           targetSentence: target4,
           acceptableAlternatives: [target4.toLowerCase(), 'ich weiss, dass du verstehst'],
           wordChips: Array.from(new Set([...target4.split(/\s+/), 'glaube', 'denke'])),

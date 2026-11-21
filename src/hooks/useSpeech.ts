@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { BaseVoiceProvider, VoiPi, type AudioData, type SpeakOptions } from 'voipi';
 import { API_BASE_URL } from '../utils/api';
+import { cloudTtsUnavailable, setCloudTtsUnavailable } from '../utils/audio';
 
 interface RecAlt { transcript: string; confidence: number }
 interface RecResult { readonly length: number; readonly isFinal: boolean; [i: number]: RecAlt }
@@ -267,6 +268,12 @@ export function useSpeech({ defaultLang = 'en-US', continuous = false }: UseSpee
     const { targetLang, neuralVoice } = resolveTargetLangAndNeuralVoice(clean, lang);
     setIsSpeaking(true);
 
+    const isOffline = typeof navigator !== 'undefined' && !navigator.onLine;
+    if (cloudTtsUnavailable || isOffline) {
+      await speakWithBrowserFallback(clean, targetLang, opts, token);
+      return;
+    }
+
     try {
       const voipi = createVoiPiVoice();
       await voipi.speak(clean, {
@@ -279,6 +286,7 @@ export function useSpeech({ defaultLang = 'en-US', continuous = false }: UseSpee
         setIsSpeaking(false);
       }
     } catch {
+      setCloudTtsUnavailable(true);
       if (token !== speakTokenRef.current || controller.signal.aborted) {
         setIsSpeaking(false);
         return;

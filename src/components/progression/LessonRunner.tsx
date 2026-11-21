@@ -10,6 +10,7 @@ import { getDynamicExerciseOptions } from '../../utils/adaptiveCurriculum';
 import { getGlossForWord } from '../../utils/glossHelper';
 import { speakWithRate } from '../../utils/audio';
 import { useLanguagePair } from '../../hooks/useLanguagePair';
+import { getTargetDictionaryAsync } from '../../data/dictionaries';
 import { LevelVisualIllustration } from './LevelVisualIllustration';
 import { NameForge } from '../NameForge';
 import { DualSpeedAudio } from '../DualSpeedAudio';
@@ -94,6 +95,10 @@ export function LessonRunner({
   const { sourceLang: pairSource, targetLang: pairTarget } = useLanguagePair();
   const activeTargetLang = targetLang || pairTarget || 'en';
   const activeSourceLang = sourceLang || pairSource || 'ar';
+
+  useEffect(() => {
+    void getTargetDictionaryAsync(activeTargetLang);
+  }, [activeTargetLang]);
 
   const [uiMode] = useUiMode();
   const [exercises, setExercises] = useState<ExerciseItem[]>(() => {
@@ -534,7 +539,7 @@ export function LessonRunner({
                   <span className="font-mono font-black text-amber-300 text-sm px-2 py-0.5 bg-amber-500/15 rounded-lg">
                     {lastAddedHintWord}
                   </span>
-                  <DualSpeedAudio text={lastAddedHintWord} showLabels={false} />
+                  <DualSpeedAudio text={lastAddedHintWord} showLabels={false} targetLang={activeTargetLang} />
                 </div>
               </div>
             )}
@@ -635,7 +640,7 @@ export function LessonRunner({
           </div>
 
           <div className="flex justify-center">
-            <DualSpeedAudio text={currentExercise.targetSentence} showLabels={true} />
+            <DualSpeedAudio text={currentExercise.targetSentence} showLabels={true} targetLang={activeTargetLang} />
           </div>
 
           {/* Structure Builder / Word Chips Mode */}
@@ -660,12 +665,13 @@ export function LessonRunner({
                         key={selectedIdx}
                         onClick={() => {
                           if (!isAnswered) {
-                            speakWithRate(chip);
+                            speakWithRate(chip, 1.0, undefined, activeTargetLang);
                             setSelectedOptionIndices((prev) => prev.filter((_, i) => i !== selectedIdx));
                           }
                         }}
                         dir={isTargetRtl ? 'rtl' : 'ltr'}
-                        className="px-3.5 py-2.5 rounded-xl bg-purple-500/20 border border-purple-400 text-purple-200 font-black text-sm flex flex-col items-center justify-center active:scale-95 shadow-sm cursor-pointer"
+                        style={{ unicodeBidi: 'isolate', touchAction: 'manipulation' }}
+                        className="px-3.5 py-2.5 min-h-[44px] rounded-xl bg-purple-500/20 border border-purple-400 text-purple-200 font-black text-sm flex flex-col items-center justify-center active:scale-95 shadow-sm cursor-pointer"
                       >
                         <span>{chip}</span>
                         {showGlosses && gloss && <span className="text-[10px] opacity-70 mt-0.5 leading-none" dir={!isTargetRtl ? 'rtl' : 'ltr'}>{gloss}</span>}
@@ -688,10 +694,11 @@ export function LessonRunner({
                       data-word={chip}
                       onClick={() => {
                         soundFX.playChipSelect();
-                        speakWithRate(chip);
+                        speakWithRate(chip, 1.0, undefined, activeTargetLang);
                         setSelectedOptionIndices((prev) => [...prev, idx]);
                       }}
                       dir={isTargetRtl ? 'rtl' : 'ltr'}
+                      style={{ unicodeBidi: 'isolate', touchAction: 'manipulation' }}
                       className={`px-4 py-2.5 min-h-[48px] rounded-xl font-bold text-sm flex flex-col items-center justify-center transition cursor-pointer ${
                         isSelected
                           ? 'opacity-30 bg-surface border border-border text-muted cursor-not-allowed'
@@ -782,7 +789,6 @@ export function LessonRunner({
               className="w-full min-h-[60px] py-4 rounded-2xl bg-emerald-400 hover:bg-emerald-300 text-stone-950 font-black text-lg transition shadow-2xl active:scale-[0.99] border-2 border-emerald-300 focus-visible:ring-4 focus-visible:ring-emerald-300 flex items-center justify-center gap-2 cursor-pointer"
             >
               <span>{isArabic ? 'السؤال التالي' : 'Next Question'}</span>
-              <span className="text-xs font-sans font-bold opacity-80">· Next</span>
               <ArrowRight size={22} className={isArabic ? 'rotate-180' : ''} />
             </button>
           )}

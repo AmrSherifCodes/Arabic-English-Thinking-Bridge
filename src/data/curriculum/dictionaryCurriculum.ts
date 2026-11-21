@@ -8,7 +8,8 @@ import { HINDI_DICTIONARY } from '../dictionaries/hindiDictionary';
 import { GREEK_DICTIONARY } from '../dictionaries/greekDictionary';
 
 function extractWord(entry: any): string {
-  return entry.word || entry.term || entry.germanWord || entry.tr || entry.kanji || entry.romaji || '';
+  const raw = entry.word || entry.term || entry.germanWord || entry.tr || entry.kanji || entry.romaji || '';
+  return raw.replace(/\d+$/, '').trim();
 }
 
 function extractTranslation(entry: any): string {
@@ -169,6 +170,7 @@ export function buildDictionaryPhases(
 
       const sampleEntry = phasePool[(lIdx * exercisesPerLesson) % phasePool.length];
       const sampleWord = extractWord(sampleEntry);
+      const cleanSampleWord = (sampleWord || '').replace(/\d+$/, '').trim();
 
       lessons.push({
         id: `${target}-l${lessonNum}`,
@@ -176,8 +178,8 @@ export function buildDictionaryPhases(
         phaseTitle: pMeta.title,
         phaseLevel: pMeta.level,
         number: lessonNum,
-        title: `Lesson ${lessonNum}: ${sampleWord}`,
-        titleAr: `الدرس ${lessonNum}: ${sampleWord}`,
+        title: `Lesson ${lessonNum}: ${cleanSampleWord}`,
+        titleAr: `الدرس ${lessonNum}: ${cleanSampleWord}`,
         transferConcept: `Core vocabulary and structures for ${target}`,
         transferConceptAr: `المفردات والتراكيب الأساسية في ${target}`,
         weakSpotTag: 'vocabulary',

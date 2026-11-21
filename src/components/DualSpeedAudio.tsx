@@ -5,22 +5,23 @@ import { speakWithRate, unlockAudio } from '../utils/audio';
 interface DualSpeedAudioProps {
   text: string;
   preferredVoice?: string;
+  targetLang?: string;
   className?: string;
   btnClassName?: string;
   showLabels?: boolean;
 }
 
-export function DualSpeedAudio({ text, preferredVoice, className = 'flex flex-wrap justify-center gap-2 mt-3', btnClassName = 'px-4 py-2 rounded-xl bg-stone-800/80 hover:bg-stone-700 text-stone-200 border border-stone-700 transition-colors flex items-center gap-2 text-xs font-bold active:translate-y-1', showLabels = true }: DualSpeedAudioProps) {
+export function DualSpeedAudio({ text, preferredVoice, targetLang, className = 'flex flex-wrap justify-center gap-2 mt-3', btnClassName = 'px-4 py-2 rounded-xl bg-stone-800/80 hover:bg-stone-700 text-stone-200 border border-stone-700 transition-colors flex items-center gap-2 text-xs font-bold active:translate-y-1', showLabels = true }: DualSpeedAudioProps) {
   const handleNormal = (e: React.MouseEvent) => {
     e.stopPropagation();
     unlockAudio();
-    speakWithRate(text, 1.0, preferredVoice);
+    speakWithRate(text, 1.0, preferredVoice, targetLang);
   };
 
   const handleSlow = (e: React.MouseEvent) => {
     e.stopPropagation();
     unlockAudio();
-    speakWithRate(text, 0.75, preferredVoice);
+    speakWithRate(text, 0.75, preferredVoice, targetLang);
   };
 
   return (

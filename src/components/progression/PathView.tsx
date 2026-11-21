@@ -402,7 +402,7 @@ export function PathView({
       <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-br from-[#0B1C33]/95 via-[#0E2746]/90 to-[#071325]/95 border border-cyan-500/30 shadow-2xl space-y-4 backdrop-blur-xl">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 text-slate-950 font-black text-xl shadow-lg shadow-amber-500/30 border border-amber-300">
+            <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 text-slate-950 font-black text-xl shadow-lg shadow-amber-500/30 border border-amber-300 overflow-visible">
               {currentLevelNode.level}
             </div>
             <div>
