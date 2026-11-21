@@ -30,7 +30,7 @@ export function DualSpeedAudio({ text, preferredVoice, targetLang, className = '
         type="button"
         onClick={handleNormal}
         title="اسمع النطق (1.0x)"
-        className={`${btnClassName} min-h-[44px] bg-emerald-700/80 hover:bg-emerald-600 text-emerald-100 border border-emerald-500/50 shadow-md animate-pulse focus:animate-none hover:animate-none`}
+        className={`${btnClassName} min-h-[44px] bg-emerald-700/80 hover:bg-emerald-600 text-emerald-100 border border-emerald-500/50 shadow-md cursor-pointer`}
         aria-label="Play normal speed"
       >
         <Volume2 size={16} />

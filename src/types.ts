@@ -63,6 +63,8 @@ export interface Exercise {
   breakdownChunks: ChunkMapping[];
   habitHint: string;
   habitHintAr?: string;
+  explanationAr?: string;
+  explanationEn?: string;
   specificMisconceptions?: SpecificMisconception[];
 }
 

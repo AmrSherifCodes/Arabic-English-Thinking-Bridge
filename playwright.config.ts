@@ -1,7 +1,13 @@
 import { defineConfig } from '@playwright/test';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export default defineConfig({
-  testDir: './e2e',
+  testDir: path.resolve(__dirname, 'e2e'),
+  testMatch: '**/*.spec.ts',
   timeout: 45000,
   fullyParallel: false,
   workers: 1,
@@ -11,7 +17,7 @@ export default defineConfig({
     viewport: { width: 375, height: 667 },
   },
   webServer: {
-    command: 'npm run preview -- --port 4173 --strictPort',
+    command: 'npx vite preview --port 4173',
     url: 'https://localhost:4173',
     ignoreHTTPSErrors: true,
     reuseExistingServer: true,

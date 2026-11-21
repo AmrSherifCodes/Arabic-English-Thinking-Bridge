@@ -6,6 +6,7 @@ import { getSpanishPhases } from './curriculum/spanishCurriculum';
 import { getFrenchPhases } from './curriculum/frenchCurriculum';
 import { getItalianPhases } from './curriculum/italianCurriculum';
 import { getPortuguesePhases } from './curriculum/portugueseCurriculum';
+import { getTurkishPhases } from './curriculum/turkishCurriculum';
 import { buildDictionaryPhases, getStaticDictionaryEntries } from './curriculum/dictionaryCurriculum';
 import { getTargetDictionary } from './dictionaries';
 
@@ -18,6 +19,8 @@ export function getCurriculum(source: SourceLanguage = 'ar', target: TargetLangu
 
   if (target === 'de') {
     phases = getGermanPhases(source);
+  } else if (target === 'tr') {
+    phases = getTurkishPhases(source);
   } else if (target === 'ja') {
     phases = getJapanesePhases(source);
   } else if (target === 'es') {

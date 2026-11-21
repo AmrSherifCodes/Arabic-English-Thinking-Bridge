@@ -16,10 +16,31 @@ import { NameForge } from '../NameForge';
 import { DualSpeedAudio } from '../DualSpeedAudio';
 import { useUiMode } from '../../utils/uiMode';
 
-function getSmartGrammarClue(exercise: ExerciseItem, isArabic: boolean): string {
+function getSmartGrammarClue(exercise: ExerciseItem, isArabic: boolean, targetLang: string = 'en'): string {
   const arExplanation = exercise.explanationAr || (exercise as any).hintAr || '';
   if (isArabic && arExplanation) return arExplanation;
   if (!isArabic && exercise.explanationEn) return exercise.explanationEn;
+
+  if (targetLang === 'de') {
+    return isArabic
+      ? 'في الألمانية: انتبه لمكان الفعل الثاني V2 وحالة الإعراب (النصب والجر).'
+      : 'In German: Note strict V2 verb position and noun cases.';
+  }
+  if (targetLang === 'ja') {
+    return isArabic
+      ? 'في اليابانية: يأتي الفعل دائماً في نهاية الجملة (SOV).'
+      : 'In Japanese: The verb comes at the end of the sentence (SOV).';
+  }
+  if (targetLang === 'tr') {
+    return isArabic
+      ? 'في التركية: يأتي الفعل في النهاية وتُضاف اللاحقات للتعبير عن الفاعل والزمن.'
+      : 'In Turkish: Verbs come at the end with suffixes for subject and tense.';
+  }
+  if (targetLang === 'es' || targetLang === 'fr' || targetLang === 'it' || targetLang === 'pt') {
+    return isArabic
+      ? 'تأكد من توافق الصفة في الجنس والعدد مع الاسم.'
+      : 'Ensure adjective agreement in gender and number with the noun.';
+  }
 
   const target = (exercise.targetSentence || '').toLowerCase();
 
@@ -49,7 +70,7 @@ function getSmartGrammarClue(exercise: ExerciseItem, isArabic: boolean): string 
       : 'In English questions, start with the question word or auxiliary verb before the subject.';
   }
   return isArabic
-    ? 'رتّب الجملة بالنظام الإنجليزي: الفاعل الأول ← بعده الفعل ← بعده باقي المعنى.'
+    ? 'رتّب الجملة بالنظام الصحيح: الفاعل الأول ← بعده الفعل ← بعده باقي المعنى.'
     : 'Order the sentence natively: Subject first ← then Verb ← then remaining meaning.';
 }
 
@@ -161,6 +182,37 @@ export function LessonRunner({
     setHintDrawerOpen(false);
     setHintStage(1);
   }, [currentIndex]);
+
+  // Desktop Keyboard Shortcuts (Enter to Check / Next)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (showSummary || showExitConfirm) return;
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          if (!isAnswered) {
+            if (userInput.trim()) handleCheckAnswer();
+          } else {
+            handleNextExercise();
+          }
+        }
+        return;
+      }
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        if (!isAnswered) {
+          const hasInput = inputMode === 'tiles' ? selectedChips.length > 0 : !!userInput.trim();
+          if (hasInput) {
+            handleCheckAnswer();
+          }
+        } else {
+          handleNextExercise();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isAnswered, selectedChips, userInput, inputMode, showSummary, showExitConfirm]);
 
   const currentExercise: ExerciseItem = exercises[currentIndex] || exercises[0];
   const isJapaneseExercise = /[\u3040-\u30ff\u3400-\u9fff]/u.test(currentExercise.targetSentence);
@@ -492,13 +544,12 @@ export function LessonRunner({
                 if (addedWord) setLastAddedHintWord(addedWord);
                 setHintDrawerOpen(true);
               }}
-              className={`p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl bg-cyan-500/15 border border-cyan-500/40 text-cyan-300 hover:bg-cyan-500/25 text-xs font-bold transition active:scale-95 cursor-pointer ${
-                !isAnswered && !hintDrawerOpen ? 'ring-2 ring-amber-400/70 animate-pulse' : ''
-              }`}
+              className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl bg-cyan-500/15 border border-cyan-500/40 text-cyan-300 hover:bg-cyan-500/25 text-xs font-bold transition active:scale-95 cursor-pointer"
               title={isArabic ? 'تلميح ذكي' : 'Smart Hint'}
               aria-label={isArabic ? 'تلميح ذكي' : 'Smart Hint'}
             >
-              💡 <span className="hidden sm:inline ms-1">{uiMode === 'simple' ? (isArabic ? 'ساعدني' : 'Help') : (isArabic ? 'تلميح' : 'Hint')}</span>
+              <Brain size={16} className="text-cyan-400 shrink-0" />
+              <span className="hidden sm:inline ms-1.5">{uiMode === 'simple' ? (isArabic ? 'ساعدني' : 'Help') : (isArabic ? 'تلميح' : 'Hint')}</span>
             </button>
             <button
               type="button"
@@ -549,7 +600,7 @@ export function LessonRunner({
                 <span>🧠 القاعدة وسر التركيب:</span>
               </div>
               <p className="text-slate-200 leading-relaxed font-medium">
-                {getSmartGrammarClue(currentExercise, isArabic)}
+                {getSmartGrammarClue(currentExercise, isArabic, activeTargetLang)}
               </p>
             </div>
 
@@ -674,7 +725,7 @@ export function LessonRunner({
                         className="px-3.5 py-2.5 min-h-[44px] rounded-xl bg-purple-500/20 border border-purple-400 text-purple-200 font-black text-sm flex flex-col items-center justify-center active:scale-95 shadow-sm cursor-pointer"
                       >
                         <span>{chip}</span>
-                        {showGlosses && gloss && <span className="text-[10px] opacity-70 mt-0.5 leading-none" dir={!isTargetRtl ? 'rtl' : 'ltr'}>{gloss}</span>}
+                        {showGlosses && gloss && <span className="text-[11px] sm:text-xs font-medium text-purple-300 dark:text-purple-300 opacity-90 mt-0.5 leading-none" dir={!isTargetRtl ? 'rtl' : 'ltr'}>{gloss}</span>}
                       </button>
                     );
                   })
@@ -706,7 +757,7 @@ export function LessonRunner({
                       }`}
                     >
                       <span>{chip}</span>
-                      {showGlosses && gloss && <span className="text-[10px] opacity-60 mt-0.5 leading-none" dir={!isTargetRtl ? 'rtl' : 'ltr'}>{gloss}</span>}
+                      {showGlosses && gloss && <span className="text-[11px] sm:text-xs font-medium text-slate-300 dark:text-slate-300 opacity-85 mt-0.5 leading-none" dir={!isTargetRtl ? 'rtl' : 'ltr'}>{gloss}</span>}
                     </button>
                   );
                 })}
@@ -733,7 +784,7 @@ export function LessonRunner({
             <div
               className={`p-4 rounded-2xl border text-start ${
                 isCorrect
-                  ? 'bg-success/15 border-success text-text animate-pulse'
+                  ? 'bg-success/15 border-success text-text'
                   : 'bg-danger/15 border-danger text-text'
               }`}
               dir={isArabic ? 'rtl' : 'ltr'}

@@ -39,8 +39,12 @@ const SUPPORTED_TARGET_OPTIONS: TargetLanguage[] = [
 ];
 
 const isChannelActive = (source: SourceLanguage, target: TargetLanguage) => {
-  if (source === 'arz' || source === 'ar') return ['en'].includes(target);
-  if (source === 'en') return ['ar', 'arz'].includes(target);
+  if (source === 'arz' || source === 'ar') {
+    return ['en', 'de', 'tr', 'es', 'fr', 'ja', 'it', 'pt'].includes(target);
+  }
+  if (source === 'en') {
+    return ['ar', 'arz'].includes(target);
+  }
   return false;
 };
 
