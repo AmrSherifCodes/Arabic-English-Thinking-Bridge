@@ -20,7 +20,7 @@ import './android-landing-page.css';
 
 const WEB_APP_URL = '/app';
 const GITHUB_URL = 'https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge';
-const APK_URL = 'https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/tag/v4.4.1';
+const APK_URL = 'https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v4.4.1/ThinkingBridge-v4.4.1.apk';
 const X_URL = 'https://x.com/SciAmrSherif';
 
 const FEATURES = [
@@ -56,7 +56,7 @@ const FEATURES = [
 
 const QUICK_SPECS = [
   { label: 'إصدار الأندرويد', value: 'Android 8.0+' },
-  { label: 'حجم التطبيق', value: '106 MB' },
+  { label: 'حجم التطبيق', value: '112 MB' },
   { label: 'استهلاك البيانات', value: '0 MB' },
   { label: 'التراخيص', value: 'AGPLv3 / CC BY-NC-SA' },
 ];
@@ -147,7 +147,7 @@ export function AndroidLandingPage() {
               aria-label="تحميل تطبيق الأندرويد المباشر APK"
             >
               <Download size={18} aria-hidden="true" />
-              <span>تحميل تطبيق APK (v4.4.1 · 106 MB)</span>
+              <span>تحميل تطبيق APK (v4.4.1 · 112 MB)</span>
             </a>
           </div>
 
