@@ -1,204 +1,255 @@
 import { useEffect, useState } from 'react';
-import { AudioLines, BookOpen, Github, LockKeyhole, Mic2, WifiOff, Globe, Sparkles } from 'lucide-react';
+import {
+  WifiOff,
+  LockKeyhole,
+  Sparkles,
+  Mic2,
+  Globe,
+  Github,
+  Smartphone,
+  Download,
+  ArrowRight,
+  ShieldCheck,
+  Zap,
+  CheckCircle2,
+  Laptop
+} from 'lucide-react';
 import { CreatorCard } from './CreatorCard';
+import { LandingPhoneMockup } from './LandingPhoneMockup';
 import './android-landing-page.css';
 
 const WEB_APP_URL = '/app';
 const GITHUB_URL = 'https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge';
+const APK_URL = 'https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v4.4.0/Thinking-Bridge-v1.0.0-stable.apk';
 const X_URL = 'https://x.com/SciAmrSherif';
 
 const FEATURES = [
   {
     icon: WifiOff,
-    title: 'يعمل بدون إنترنت · Works Offline',
-    description: 'جميع الدروس والبطاقات المعرفية والمعاجم تعمل بدون اتصال بالإنترنت. All core lessons, flashcards, and dictionaries work 100% offline.',
+    title: 'يعمل 100% بدون إنترنت',
+    subtitle: '100% Offline Autonomy',
+    description: 'جميع الدروس والبطاقات المعرفية والمعاجم تعمل بدون اتصال بالإنترنت نهائياً على هاتف الأندرويد الخاص بك.',
+    badge: 'بدون شبكة 📶',
   },
   {
     icon: LockKeyhole,
-    title: 'خصوصيتك محفوظة · Private & Local',
-    description: 'لا تتبع ولا حسابات إجبارية. تقدمك يُحفظ محلياً على جهازك. No tracking, no mandatory accounts. Progress stays local on your device.',
+    title: 'خصوصيتك محفوظة 100%',
+    subtitle: 'Private & Local Vault',
+    description: 'لا تتبع، لا إعلانات، ولا حسابات إجبارية. تقدمك ومستواك يُحفظ محلياً على هاتفك فقط.',
+    badge: 'خصوصية كاملة 🔒',
   },
   {
     icon: Sparkles,
-    title: 'مجاني 100% بدون إعلانات · 100% Free & No Ads',
-    description: 'مشروع مفتوح المصدر محمي ضد الاستغلال التجاري وبدون اشتراكات. Free and open source (AGPLv3 / CC BY-NC-SA 4.0) with zero ads or paywalls.',
+    title: 'مجاني ومفتوح المصدر',
+    subtitle: '100% Free & Open Source',
+    description: 'مشروع غير تجاري برخصة (AGPLv3) حرة. بدون رسوم مخفية، بدون إعلانات، وبدون اشتراكات.',
+    badge: 'مفتوح المصدر 📜',
   },
   {
     icon: Mic2,
-    title: 'تمارين نطق معرفية · Cognitive Speaking Practice',
-    description: 'تدرب على نطق الجمل والتركيب الإنجليزي مباشرة بسرعة ودقة. Practice English sentence structure directly.',
+    title: 'تمارين نطق وبناء معرفي',
+    subtitle: 'Cognitive Sentence Practice',
+    description: 'تدرب على تركيب الجمل مباشرة بالمنطق الإنجليزي وتغلب على معضلة الترجمة الحرفية.',
+    badge: 'تفاعل فوري ⚡',
   },
+];
+
+const QUICK_SPECS = [
+  { label: 'إصدار الأندرويد', value: 'Android 8.0+' },
+  { label: 'حجم التطبيق', value: '106 MB' },
+  { label: 'استهلاك البيانات', value: '0 MB' },
+  { label: 'التراخيص', value: 'AGPLv3 / CC BY-NC-SA' },
 ];
 
 export function AndroidLandingPage() {
   const [showStickyDownload, setShowStickyDownload] = useState(false);
 
   useEffect(() => {
-    const updateScrollState = () => setShowStickyDownload(window.scrollY > 300);
+    const updateScrollState = () => setShowStickyDownload(window.scrollY > 280);
     updateScrollState();
     window.addEventListener('scroll', updateScrollState, { passive: true });
     return () => window.removeEventListener('scroll', updateScrollState);
   }, []);
 
   return (
-    <main className="android-landing" aria-labelledby="android-hero-title">
+    <main className="android-landing" aria-labelledby="android-hero-title" dir="rtl">
+      {/* ===== HEADER ===== */}
       <header className="android-header">
-        <a className="android-brand" href="/" aria-label="الصفحة الرئيسية لجسر التفكير · Thinking Bridge Home">
+        <a className="android-brand" href="/" aria-label="جسر التفكير — الرئيسية">
           <span className="android-brand-mark" aria-hidden="true">🧠</span>
-          <span>Thinking Bridge</span>
+          <div className="android-brand-text">
+            <span className="android-brand-name">Thinking Bridge</span>
+            <span className="android-brand-tag">Android Edition</span>
+          </div>
         </a>
-        <a
-          className="android-header-link"
-          href={GITHUB_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="المصدر على GitHub - Source on GitHub"
-        >
-          <Github size={16} aria-hidden="true" />
-          <span>GitHub</span>
-        </a>
+
+        <div className="android-header-actions">
+          <a
+            className="android-header-btn android-header-btn-ghost"
+            href={GITHUB_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="المصدر على GitHub"
+          >
+            <Github size={16} aria-hidden="true" />
+            <span className="android-hide-mobile">GitHub</span>
+          </a>
+          <a
+            className="android-header-btn android-header-btn-primary"
+            href={WEB_APP_URL}
+            aria-label="تشغيل التطبيق"
+          >
+            <Globe size={15} aria-hidden="true" />
+            <span>ابدأ الآن</span>
+          </a>
+        </div>
       </header>
 
+      {/* ===== HERO SECTION ===== */}
       <section className="android-hero">
         <div className="android-hero-copy">
-          <span className="android-eyebrow">100% FREE · OPEN SOURCE (AGPLv3) · PWA</span>
-          <h1 id="android-hero-title">فكّر بالإنجليزي، مش تترجم.</h1>
+          <div className="android-badges-row">
+            <span className="android-badge android-badge-green">
+              <Zap size={13} aria-hidden="true" />
+              <span>أندرويد · Android</span>
+            </span>
+            <span className="android-badge android-badge-outline">
+              <ShieldCheck size={13} aria-hidden="true" />
+              <span>مجاني 100% · بدون إعلانات</span>
+            </span>
+          </div>
+
+          <h1 id="android-hero-title">
+            فكّر بالإنجليزي، <br />
+            <span className="android-title-accent">مش تترجم.</span>
+          </h1>
+
           <p className="android-subtitle">
-            المنصة المعرفية الأقوى لمساعدة العقل العربي على البدء في التفكير باللغة الإنجليزية مباشرة وتجاوز الترجمة الحرفية.
+            المنصة المعرفية الأقوى لمساعدة العقل العربي على التفكير بالإنجليزية مباشرة وتجاوز الترجمة الحرفية — مصممة لتعمل 100% بدون إنترنت على هاتفك.
           </p>
-          <p className="android-clarifier">
-            تعمل 100% بدون إنترنت. ابدأ الآن في 30 ثانية من أي متصفح.
-          </p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', margin: '1rem 0' }}>
+
+          {/* Clean Vertical CTAs */}
+          <div className="android-cta-group">
             <a
-              className="android-download-button"
+              className="android-btn android-btn-primary"
               href={WEB_APP_URL}
-              aria-label="تشغيل التطبيق الفوري مجاناً وبدون إنترنت - Start Now Free Offline"
-              style={{
-                background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
-                color: '#0A0E13',
-                textDecoration: 'none',
-                padding: '1.1rem 1.75rem',
-                borderRadius: '16px',
-                fontWeight: 900,
-                fontSize: '1.25rem',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.6rem',
-                boxShadow: '0 10px 25px -5px rgba(16, 185, 129, 0.4)'
-              }}
+              aria-label="تشغيل التطبيق المباشر مجاناً"
             >
-              <Globe size={24} aria-hidden="true" />
-              <span>ابدأ الآن مجاناً - Start Now Free <span aria-hidden="true">🚀</span></span>
+              <Zap size={20} aria-hidden="true" />
+              <span>ابدأ الآن مجاناً — Start Now</span>
+              <ArrowRight size={18} className="android-arrow-rtl" aria-hidden="true" />
             </a>
+
             <a
-              className="android-download-button"
-              href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v4.4.0/Thinking-Bridge-v1.0.0-stable.apk"
+              className="android-btn android-btn-secondary"
+              href={APK_URL}
               download="Thinking-Bridge-v1.0.0-stable.apk"
-              aria-label="تحميل تطبيق الأندرويد المباشر v4.4.0"
-              style={{
-                background: 'rgba(201, 162, 39, 0.15)',
-                color: '#FACC15',
-                border: '1px solid rgba(201, 162, 39, 0.4)',
-                textDecoration: 'none',
-                padding: '0.85rem 1.5rem',
-                borderRadius: '16px',
-                fontWeight: 800,
-                fontSize: '1.05rem',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.5rem',
-              }}
+              aria-label="تحميل تطبيق الأندرويد المباشر APK"
             >
-              <span>📱</span>
-              <span>تحميل تطبيق الأندرويد (v4.4.0 APK · 106 MB) — Direct Download</span>
+              <Download size={18} aria-hidden="true" />
+              <span>تحميل تطبيق APK (v4.4.0 · 106 MB)</span>
             </a>
           </div>
-          <span className="android-version">Web App & PWA · 100% Offline Ready</span>
+
+          <div className="android-hero-meta">
+            <span><CheckCircle2 size={13} className="android-icon-green" /> يعمل فوراً بدون تثبيت (PWA)</span>
+            <span><CheckCircle2 size={13} className="android-icon-green" /> ملف APK مباشر للأندرويد</span>
+          </div>
         </div>
 
-        <div className="android-device-wrap" aria-label="معاينة حية لتطبيقات التفكير بالإنجليزي - Live Demo Preview">
-          <div className="android-phone">
-            <div className="android-phone-camera" aria-hidden="true" />
-            <div className="android-phone-screen">
-              <div className="android-phone-topline">
-                <span>9:41</span>
-                <span aria-label="يعمل بدون إنترنت - Offline-ready">● ● ▰</span>
-              </div>
-              <div className="android-demo-heading">
-                <span className="android-demo-icon" aria-hidden="true">🧠</span>
-                <span><strong>فكّر إنجليزي</strong><small>English · A0-A2</small></span>
-              </div>
-              <div className="android-demo-chat">
-                <span className="android-chat-label">الفكرة العربية</span>
-                <p dir="rtl" lang="ar">أنا عايز أتعلم إنجليزي</p>
-                <span className="android-chat-label android-chat-label-coach">التركيب المعرفي</span>
-                <p className="android-coach-bubble">I want to learn English.</p>
-                <p className="android-coach-note">ابدأ بالفاعل (I) ثم الرغبة (want) ثم المصدر (to learn).</p>
-              </div>
-              <div className="android-orb" aria-hidden="true"><AudioLines size={28} /></div>
-              <span className="android-listening-label">تطبيق معرفي تفاعلي بدون إنترنت</span>
-              <div className="android-demo-bottom"><BookOpen size={16} /> 27 درساً <span>·</span> جاهز بدون إنترنت</div>
-            </div>
-          </div>
+        {/* Live Interactive Phone Demo (Portrait Optimized) */}
+        <div className="android-device-wrap" aria-label="معاينة حية لتطبيق جسر التفكير للأندرويد">
+          <LandingPhoneMockup isArabic={true} />
         </div>
       </section>
 
-      {/* Creator Presentation */}
-      <CreatorCard />
+      {/* ===== QUICK SPECS BAR ===== */}
+      <section className="android-specs-bar" aria-label="مواصفات تطبيق الأندرويد">
+        <div className="android-specs-grid">
+          {QUICK_SPECS.map((spec) => (
+            <div className="android-spec-item" key={spec.label}>
+              <span className="android-spec-label">{spec.label}</span>
+              <span className="android-spec-value">{spec.value}</span>
+            </div>
+          ))}
+        </div>
+      </section>
 
+      {/* ===== FEATURES SECTION ===== */}
       <section className="android-features" aria-labelledby="android-features-title">
         <div className="android-section-heading">
-          <span className="android-eyebrow">مميزات المنصة المعرفية</span>
-          <h2 id="android-features-title">تعلم حقيقي بدون تشتيت</h2>
+          <span className="android-eyebrow">مميزات منصة الأندرويد</span>
+          <h2 id="android-features-title">تعلم حقيقي، من غير تشتيت</h2>
+          <p className="android-section-desc">
+            تم تصميم كل جزئية في التطبيق لتناسب الهاتف المحمول، مع تركيز تام على التفكير البنيوي السريع.
+          </p>
         </div>
+
         <div className="android-feature-grid">
-          {FEATURES.map(({ icon: Icon, title, description }) => (
+          {FEATURES.map(({ icon: Icon, title, subtitle, description, badge }) => (
             <article className="android-feature-card" key={title}>
-              <span className="android-feature-icon"><Icon size={21} aria-hidden="true" /></span>
+              <div className="android-feature-card-header">
+                <span className="android-feature-icon">
+                  <Icon size={22} aria-hidden="true" />
+                </span>
+                <span className="android-feature-pill">{badge}</span>
+              </div>
               <h3>{title}</h3>
+              <span className="android-feature-sub">{subtitle}</span>
               <p>{description}</p>
             </article>
           ))}
         </div>
       </section>
 
+      {/* ===== CREATOR PRESENTATION ===== */}
+      <section className="android-creator-wrapper" aria-label="صانع المشروع">
+        <CreatorCard />
+      </section>
+
+      {/* ===== FOOTER ===== */}
       <footer className="android-footer">
-        <span>حقوق الطبع والنشر © {new Date().getFullYear()} عمرو شريف عبد العال</span>
-        <nav aria-label="روابط التواصل والمصدر - Social and Source Links">
+        <div className="android-footer-brand">
+          <span>🧠 Thinking Bridge Android</span>
+          <small>حقوق الطبع والنشر © {new Date().getFullYear()} عمرو شريف عبد العال</small>
+        </div>
+
+        <nav className="android-footer-nav" aria-label="روابط التواصل">
           <a
             href={GITHUB_URL}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label="كود المصدر على GitHub (يفتح في نافذة جديدة)"
+            aria-label="المصدر على GitHub"
           >
-            <Github size={16} aria-hidden="true" /> GitHub
+            <Github size={15} aria-hidden="true" /> GitHub
           </a>
           <a
             href={X_URL}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label="حساب X (تويتر) لعمرو شريف (يفتح في نافذة جديدة)"
+            aria-label="حساب X"
           >
-            X
+            X (Twitter)
           </a>
         </nav>
       </footer>
 
+      {/* ===== STICKY BOTTOM DOWNLOAD FOR MOBILE VERTICAL ===== */}
       <div
         className={`android-sticky-download${showStickyDownload ? ' is-visible' : ''}`}
         aria-hidden={!showStickyDownload}
       >
-        <a
-          href={WEB_APP_URL}
-          tabIndex={showStickyDownload ? 0 : -1}
-          aria-label="تشغيل التطبيق - Launch PWA"
-        >
-          <Globe size={19} aria-hidden="true" />
-          ابدأ الآن — Launch App
-        </a>
+        <div className="android-sticky-inner">
+          <a
+            href={WEB_APP_URL}
+            tabIndex={showStickyDownload ? 0 : -1}
+            className="android-sticky-btn"
+            aria-label="تشغيل التطبيق الفوري"
+          >
+            <Zap size={18} aria-hidden="true" />
+            <span>ابدأ الآن مجاناً — Launch App</span>
+          </a>
+        </div>
       </div>
     </main>
   );

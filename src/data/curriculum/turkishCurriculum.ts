@@ -53,7 +53,7 @@ export function getTurkishPhases(source: SourceLanguage): Phase[] {
     [
       { ar: 'هذا المطعم ممتاز جداً', en: 'Bu restoran çok harika', sentence: 'Bu restoran çok harika', chips: ['Bu', 'restoran', 'çok', 'harika', 'güzel', 'kötü'] },
       { ar: 'طاولة لشخصين من فضلك', en: 'İki kişilik bir masa lütfen', sentence: 'İki kişilik bir masa lütfen', chips: ['İki', 'kişilik', 'bir', 'masa', 'lütfen', 'üç', 'sandalye'] },
-      { ar: 'الحساب من فضلك', en: 'Hesap lütfen', sentence: 'Hesap lütfen', chips: ['Hesap', 'lütfen', 'danke', 'nakit', 'kart'] },
+      { ar: 'الحساب من فضلك', en: 'Hesap lütfen', sentence: 'Hesap lütfen', chips: ['Hesap', 'lütfen', 'teşekkürler', 'nakit', 'kart'] },
       { ar: 'الشاي التركي رائع', en: 'Türk çayı çok güzel', sentence: 'Türk çayı çok güzel', chips: ['Türk', 'çayı', 'çok', 'güzel', 'kahvesi', 'sıcak'] }
     ],
     [

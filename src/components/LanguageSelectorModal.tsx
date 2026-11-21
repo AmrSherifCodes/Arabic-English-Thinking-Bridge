@@ -75,7 +75,8 @@ export function LanguageSelectorModal({
     onSelectPair(selectedSource, selectedTarget);
     onClose();
     const targetMeta = TARGET_LANGUAGE_META[selectedTarget];
-    onToast?.(`🚀 تم تفعيل مسار: ${targetMeta?.nameAr || selectedTarget} بنجاح!`);
+    const isSourceArabic = selectedSource === 'arz' || selectedSource === 'ar';
+    onToast?.(isSourceArabic ? `🚀 تم تفعيل مسار: ${targetMeta?.nameAr || selectedTarget} بنجاح!` : `🚀 Activated track: ${targetMeta?.nameEn || selectedTarget} successfully!`);
   };
 
   const handleCopyShareLink = () => {
@@ -247,7 +248,7 @@ export function LanguageSelectorModal({
                     <LanguageFlag code={selectedSource} size={18} />
                     <span>{selectedSource === 'arz' ? 'العربية' : 'English'}</span>
                   </div>
-                  <span className="text-amber-400 font-bold text-sm">➔</span>
+                  <ArrowRight size={14} className="text-amber-400 shrink-0" />
                   <div className="flex items-center gap-1.5 bg-emerald-500/15 text-emerald-300 px-2.5 py-1 rounded-xl border border-emerald-500/30">
                     <LanguageFlag code={selectedTarget} size={18} />
                     <span>{TARGET_LANGUAGE_META[selectedTarget]?.nameAr} ({TARGET_LANGUAGE_META[selectedTarget]?.nameNative})</span>

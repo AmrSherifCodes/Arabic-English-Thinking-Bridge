@@ -9,9 +9,18 @@ interface DualSpeedAudioProps {
   className?: string;
   btnClassName?: string;
   showLabels?: boolean;
+  isArabic?: boolean;
 }
 
-export function DualSpeedAudio({ text, preferredVoice, targetLang, className = 'flex flex-wrap justify-center gap-2 mt-3', btnClassName = 'px-4 py-2 rounded-xl bg-stone-800/80 hover:bg-stone-700 text-stone-200 border border-stone-700 transition-colors flex items-center gap-2 text-xs font-bold active:translate-y-1', showLabels = true }: DualSpeedAudioProps) {
+export function DualSpeedAudio({
+  text,
+  preferredVoice,
+  targetLang,
+  className = 'flex flex-wrap justify-center gap-2 mt-3',
+  btnClassName = 'px-4 py-2 rounded-xl bg-stone-800/80 hover:bg-stone-700 text-stone-200 border border-stone-700 transition-colors flex items-center gap-2 text-xs font-bold active:translate-y-1',
+  showLabels = true,
+  isArabic = true,
+}: DualSpeedAudioProps) {
   const handleNormal = (e: React.MouseEvent) => {
     e.stopPropagation();
     unlockAudio();
@@ -29,22 +38,22 @@ export function DualSpeedAudio({ text, preferredVoice, targetLang, className = '
       <button
         type="button"
         onClick={handleNormal}
-        title="اسمع النطق (1.0x)"
+        title={isArabic ? 'اسمع النطق (1.0x)' : 'Listen (1.0x)'}
         className={`${btnClassName} min-h-[44px] bg-emerald-700/80 hover:bg-emerald-600 text-emerald-100 border border-emerald-500/50 shadow-md cursor-pointer`}
-        aria-label="Play normal speed"
+        aria-label={isArabic ? 'اسمع النطق (1.0x)' : 'Listen (1.0x)'}
       >
         <Volume2 size={16} />
-        {showLabels && <span>اسمع (1.0x)</span>}
+        {showLabels && <span>{isArabic ? 'اسمع (1.0x)' : 'Listen (1.0x)'}</span>}
       </button>
       <button
         type="button"
         onClick={handleSlow}
-        title="بطيء وواضح (0.75x)"
+        title={isArabic ? 'بطيء وواضح (0.75x)' : 'Slow (0.75x)'}
         className={`${btnClassName} min-h-[44px] text-amber-400 border-amber-500/30 hover:bg-amber-950/40`}
-        aria-label="Play slow speed"
+        aria-label={isArabic ? 'بطيء وواضح (0.75x)' : 'Slow (0.75x)'}
       >
         <Turtle size={16} />
-        {showLabels && <span>بالراحة (0.75x)</span>}
+        {showLabels && <span>{isArabic ? 'بالراحة (0.75x)' : 'Slow (0.75x)'}</span>}
       </button>
     </div>
   );

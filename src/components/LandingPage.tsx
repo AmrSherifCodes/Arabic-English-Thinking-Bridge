@@ -199,7 +199,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
                   className="btn bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30 transition flex items-center gap-2 cursor-pointer font-bold"
                 >
                   <Zap size={18} className="text-emerald-400" />
-                  <span>{isAr ? 'جرب عرض الشارع 🚶‍♂️⚡' : 'Street Presentation 🚶‍♂️⚡'}</span>
+                  <span>{isAr ? 'جرب عرض الشارع 🚶‍♂️' : 'Street Presentation 🚶‍♂️'}</span>
                 </button>
               </div>
             </motion.div>

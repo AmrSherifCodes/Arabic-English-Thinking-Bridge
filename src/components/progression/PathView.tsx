@@ -251,7 +251,7 @@ export function PathView({
               </button>
             </div>
             <span className="text-xs font-bold text-slate-300">
-              {completedLevelCount} من {allLevelLessons.length} دروس
+              {isArabic ? `${completedLevelCount} من ${allLevelLessons.length} دروس` : `${completedLevelCount} of ${allLevelLessons.length} lessons`}
             </span>
           </div>
           <h2 className="text-xl font-black text-white">

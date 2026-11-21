@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronDown, Globe } from 'lucide-react';
+import { ChevronDown, Globe, ArrowRight } from 'lucide-react';
 import { SourceLanguage, TargetLanguage } from '../types';
 import { SOURCE_LANGUAGES, TARGET_LANGUAGE_META } from '../data/languages';
 import { LanguageFlag } from './LanguageFlag';
@@ -39,7 +39,7 @@ export function LanguagePairBanner({
           <span className="truncate text-slate-200 font-bold">{sourceName}</span>
         </div>
 
-        <span className="text-amber-400 font-black text-xs shrink-0">➔</span>
+        <ArrowRight size={14} className="text-amber-400 shrink-0" />
 
         <div className="flex items-center gap-1.5 min-w-0 max-w-[140px] sm:max-w-none">
           <LanguageFlag code={targetLang} size={18} />

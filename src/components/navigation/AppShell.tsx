@@ -315,7 +315,7 @@ export function AppShell({
                     }`}
                     title={isArabic ? 'الوضع البسيط (للمبتدئين)' : 'Simple Mode'}
                   >
-                    🟢 بسيط
+                    🟢 {isArabic ? 'بسيط' : 'Simple'}
                   </button>
                   <button
                     type="button"
@@ -328,7 +328,7 @@ export function AppShell({
                     }`}
                     title={isArabic ? 'الوضع المتقدم (كل الأدوات)' : 'Pro Mode'}
                   >
-                    ⚡ متقدم
+                    ⚡ {isArabic ? 'متقدم' : 'Pro'}
                   </button>
                 </div>
               )}

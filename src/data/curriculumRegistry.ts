@@ -31,33 +31,39 @@ export function getCurriculum(source: SourceLanguage = 'ar', target: TargetLangu
     phases = getItalianPhases(source);
   } else if (target === 'pt') {
     phases = getPortuguesePhases(source);
-  } else if (target === 'ar' || (target as string) === 'arz' || (target as string) === 'apc' || (target as string) === 'afb' || (target as string) === 'ary' || target.startsWith('ar')) {
+  } else if (target === 'ar' || (target as string) === 'arz' || (target as string) === 'apc' || (target as string) === 'afb' || (target as string) === 'ary') {
     phases = PHASES_DATA.map(p => ({
       ...p,
       lessons: p.lessons.map(l => ({
         ...l,
         title: l.titleAr || l.title,
         titleAr: l.title,
-        exercises: l.exercises.map(ex => ({
-          ...ex,
-          sourceThought: ex.englishTarget || ex.targetSentence,
-          targetSentence: ex.arabicThought || ex.sourceThought,
-          arabicThought: ex.englishTarget || ex.targetSentence || '',
-          englishTarget: ex.arabicThought || ex.sourceThought || '',
-          wordChips: ex.arabicThought
-            ? ex.arabicThought.replace(/[.!?،,]/g, '').split(/\s+/).filter(Boolean)
-            : ex.wordChips,
-          breakdownChunks: (ex.breakdownChunks || []).map(chunk => ({
-            ...chunk,
-            arabicText: chunk.englishText,
-            englishText: chunk.arabicText,
-            sourceText: chunk.englishText,
-            targetText: chunk.arabicText,
-          })),
-          acceptableAlternatives: Array.from(
-            new Set([ex.arabicThought, ...(ex.acceptableAlternatives || [])])
-          ).filter(Boolean),
-        })),
+        exercises: l.exercises.map(ex => {
+          const arText = ex.arabicThought || ex.sourceThought || '';
+          const enText = ex.englishTarget || ex.targetSentence || '';
+          return {
+            ...ex,
+            sourceThought: enText,
+            targetSentence: arText,
+            arabicThought: arText,
+            englishTarget: enText,
+            promptEn: enText,
+            promptAr: arText,
+            wordChips: arText
+              ? arText.replace(/[.!?،,]/g, '').split(/\s+/).filter(Boolean)
+              : ex.wordChips,
+            breakdownChunks: (ex.breakdownChunks || []).map(chunk => ({
+              ...chunk,
+              arabicText: chunk.arabicText,
+              englishText: chunk.englishText,
+              sourceText: chunk.englishText,
+              targetText: chunk.arabicText,
+            })),
+            acceptableAlternatives: Array.from(
+              new Set([arText, ...(ex.acceptableAlternatives || [])])
+            ).filter(Boolean),
+          };
+        }),
       })),
     }));
   } else {

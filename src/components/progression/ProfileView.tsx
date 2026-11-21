@@ -169,46 +169,46 @@ export function ProfileView({
         <div className="p-6 rounded-3xl bg-gradient-to-r from-emerald-950/90 via-[#0B1C33] to-[#0E2746] border-2 border-emerald-500/50 shadow-2xl text-start space-y-4">
           <div className="flex items-center justify-between">
             <span className="px-3 py-1 rounded-full text-xs font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
-              🟢 الوضع البسيط
+              🟢 {isArabic ? 'الوضع البسيط' : 'Simple Mode'}
             </span>
             <button
               onClick={() => setUiMode('pro')}
               className="px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-bold text-xs transition border border-amber-500/40 cursor-pointer"
             >
-              ⚡ التبديل للوضع المتقدم
+              ⚡ {isArabic ? 'التبديل للوضع المتقدم' : 'Switch to Pro Mode'}
             </button>
           </div>
-          <h3 className="text-xl font-black text-white">حسابي وإنجازاتك</h3>
+          <h3 className="text-xl font-black text-white">{isArabic ? 'حسابي وإنجازاتك' : 'Account & Progress'}</h3>
           <div className="grid grid-cols-3 gap-3">
             <div className="p-3 rounded-2xl bg-stone-900 border border-stone-800 text-center">
               <span className="text-xl block">🔥</span>
               <span className="text-lg font-black text-amber-300">{state?.streak || 0}</span>
-              <span className="text-[10px] text-stone-400 block">أيام الاستمرار</span>
+              <span className="text-[10px] text-stone-400 block">{isArabic ? 'أيام الاستمرار' : 'Streak Days'}</span>
             </div>
             <div className="p-3 rounded-2xl bg-stone-900 border border-stone-800 text-center">
               <span className="text-xl block">⭐</span>
               <span className="text-lg font-black text-cyan-300">{state?.xp || 0}</span>
-              <span className="text-[10px] text-stone-400 block">مجموع النقاط</span>
+              <span className="text-[10px] text-stone-400 block">{isArabic ? 'مجموع النقاط' : 'Total XP'}</span>
             </div>
             <div className="p-3 rounded-2xl bg-stone-900 border border-stone-800 text-center">
               <span className="text-xl block">✅</span>
               <span className="text-lg font-black text-emerald-300">{state?.completedLessonIds?.length || 0}</span>
-              <span className="text-[10px] text-stone-400 block">دروس مكتملة</span>
+              <span className="text-[10px] text-stone-400 block">{isArabic ? 'دروس مكتملة' : 'Completed Lessons'}</span>
             </div>
           </div>
         </div>
 
         {/* Backup & Restore */}
         <div className="p-5 rounded-3xl bg-stone-900 border border-stone-800 space-y-3 shadow-xl text-start">
-          <h4 className="text-sm font-black text-white">حفظ واستعادة تقدمك</h4>
+          <h4 className="text-sm font-black text-white">{isArabic ? 'حفظ واستعادة تقدمك' : 'Save & Restore Progress'}</h4>
           <div className="flex flex-wrap gap-3">
             {onExportData && (
               <button onClick={onExportData} className="px-4 py-2 rounded-xl bg-stone-800 text-stone-200 text-xs font-bold flex items-center gap-2 cursor-pointer">
-                <Download size={14} /> تصدير التقدم (JSON)
+                <Download size={14} /> {isArabic ? 'تصدير التقدم (JSON)' : 'Export Progress (JSON)'}
               </button>
             )}
             <button onClick={() => setUiMode('pro')} className="px-4 py-2 rounded-xl bg-cyan-500/20 text-cyan-300 text-xs font-bold cursor-pointer border border-cyan-500/30">
-              ⚡ عرض كل أدوات الوضع المتقدم
+              ⚡ {isArabic ? 'عرض كل أدوات الوضع المتقدم' : 'Show All Pro Tools'}
             </button>
           </div>
         </div>

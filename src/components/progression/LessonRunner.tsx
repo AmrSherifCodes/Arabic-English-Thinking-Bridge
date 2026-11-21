@@ -424,7 +424,30 @@ export function LessonRunner({
     setHintDrawerOpen(false);
 
     if (currentIndex + 1 < exercises.length) {
-      setCurrentIndex((prev) => prev + 1);
+      const nextIdx = currentIndex + 1;
+      const nextExercise = exercises[nextIdx];
+      if (nextExercise) {
+        const rawOptions = nextExercise.options && nextExercise.options.length > 0
+          ? nextExercise.options
+          : nextExercise.wordChips && nextExercise.wordChips.length > 0
+          ? nextExercise.wordChips
+          : nextExercise.targetSentence ? nextExercise.targetSentence.split(/\s+/) : [];
+
+        const difficulty = getDifficultyKnob();
+        const { wordChips: dynamicChips } = getDynamicExerciseOptions(
+          rawOptions,
+          nextExercise.targetSentence,
+          difficulty
+        );
+
+        const options = [...dynamicChips];
+        for (let index = options.length - 1; index > 0; index -= 1) {
+          const swapIndex = Math.floor(Math.random() * (index + 1));
+          [options[index], options[swapIndex]] = [options[swapIndex], options[index]];
+        }
+        setShuffledOptions(options);
+      }
+      setCurrentIndex(nextIdx);
     } else {
       setShowSummary(true);
     }
@@ -619,7 +642,7 @@ export function LessonRunner({
 
         {/* Exercise Body */}
         <motion.div
-          key={currentIndex}
+          key={`${lesson.id}-${currentExercise.id}-${currentIndex}`}
           animate={isAnswered && isCorrect
             ? { scale: [1, 1.02, 1], boxShadow: '0 0 20px rgba(16, 185, 129, 0.4)' }
             : { scale: 1, boxShadow: '0 0 0 rgba(16, 185, 129, 0)' }}
@@ -662,8 +685,8 @@ export function LessonRunner({
               <span className="text-[10px] font-black uppercase tracking-wider text-success block">
                 {isArabic ? 'عَبّر عن الفكرة بترتيب اللغة المستهدفة:' : 'Express the thought in the target language:'}
               </span>
-              <h2 className="text-lg font-black text-text" dir="auto">
-                "{isArabic ? currentExercise.promptAr : currentExercise.promptEn}"
+              <h2 className="text-lg font-black text-text" dir={!isArabic ? 'ltr' : 'auto'}>
+                "{isArabic ? currentExercise.promptAr : (currentExercise.promptEn || currentExercise.promptAr)}"
               </h2>
             </div>
             <div className="flex items-center gap-1.5 shrink-0">
@@ -691,7 +714,7 @@ export function LessonRunner({
           </div>
 
           <div className="flex justify-center">
-            <DualSpeedAudio text={currentExercise.targetSentence} showLabels={true} targetLang={activeTargetLang} />
+            <DualSpeedAudio text={currentExercise.targetSentence} showLabels={true} targetLang={activeTargetLang} isArabic={isArabic} />
           </div>
 
           {/* Structure Builder / Word Chips Mode */}
@@ -782,7 +805,7 @@ export function LessonRunner({
           {/* Rule Explanation "WHY" Feedback Card */}
           {isAnswered && (
             <div
-              className={`p-4 rounded-2xl border text-start ${
+              className={`p-4 rounded-2xl border text-start pb-3 ${
                 isCorrect
                   ? 'bg-success/15 border-success text-text'
                   : 'bg-danger/15 border-danger text-text'
@@ -803,17 +826,24 @@ export function LessonRunner({
                 )}
               </div>
 
-              <p className="text-xs font-semibold text-text-soft leading-relaxed mt-1" dir={isArabic ? 'rtl' : 'ltr'}>
+              <p className="text-xs sm:text-sm font-semibold text-text-soft leading-normal sm:leading-relaxed mt-1 pb-1" dir={isArabic ? 'rtl' : 'ltr'}>
                 <strong>{isArabic ? 'الجملة الصحيحة:' : 'Target:'}</strong>{' '}
-                <span dir="ltr" className="font-bold text-text">{currentExercise.targetSentence}</span>
+                <span dir="ltr" className="font-bold text-text inline-block pb-0.5">{currentExercise.targetSentence}</span>
               </p>
 
-              {currentExercise.explanationAr && (
-                <p className="text-xs text-muted mt-2 border-t border-border/50 pt-2 leading-relaxed" dir={isArabic ? 'rtl' : 'ltr'}>
-                  💡 <strong>{isArabic ? 'سبب القاعدة:' : 'Rule Explanation:'}</strong>{' '}
-                  {isArabic ? currentExercise.explanationAr : currentExercise.explanationEn}
-                </p>
-              )}
+              {(() => {
+                const arHasArabic = /[\u0600-\u06FF]/.test(currentExercise.explanationAr || '');
+                const displayExplanation = isArabic
+                  ? (arHasArabic ? currentExercise.explanationAr : getSmartGrammarClue(currentExercise, true, activeTargetLang))
+                  : (currentExercise.explanationEn || (arHasArabic ? '' : currentExercise.explanationAr) || getSmartGrammarClue(currentExercise, false, activeTargetLang));
+                if (!displayExplanation) return null;
+                return (
+                  <p className="text-xs text-muted mt-2 border-t border-border/50 pt-2 pb-1 leading-relaxed" dir={isArabic ? 'rtl' : 'ltr'}>
+                    💡 <strong>{isArabic ? 'سبب القاعدة:' : 'Rule Explanation:'}</strong>{' '}
+                    {displayExplanation}
+                  </p>
+                );
+              })()}
             </div>
           )}
         </motion.div>
