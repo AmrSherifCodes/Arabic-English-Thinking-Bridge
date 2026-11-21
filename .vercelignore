@@ -36,3 +36,6 @@ Wa3iCoder/
 Wa3iHub/
 
 requirements.txt
+
+pyproject.toml
+Pipfile
