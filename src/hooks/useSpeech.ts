@@ -66,6 +66,13 @@ export function resolveTargetLangAndNeuralVoice(
     return { targetLang, neuralVoice };
   }
 
+  if (lower.startsWith('de')) {
+    return {
+      targetLang: lower.startsWith('de-') ? normLang : 'de-DE',
+      neuralVoice: 'de-DE-KatjaNeural',
+    };
+  }
+
   return {
     targetLang: normLang || 'en-US',
     neuralVoice: lower === 'en-gb' ? 'en-GB-SoniaNeural' : 'en-US-AvaNeural',
