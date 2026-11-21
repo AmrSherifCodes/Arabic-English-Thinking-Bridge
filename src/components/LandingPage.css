@@ -37,7 +37,7 @@
   touch-action: pan-y !important;
   -webkit-overflow-scrolling: touch !important;
   -webkit-font-smoothing: antialiased;
-  min-height: 100vh;
+  min-height: 100dvh;
   min-height: 100dvh;
   width: 100%;
   color-scheme: dark;

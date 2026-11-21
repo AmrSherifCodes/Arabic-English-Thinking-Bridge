@@ -34,7 +34,7 @@ export function getGermanPhases(source: SourceLanguage): Phase[] {
           sourceThought: sourceThought(source, i === 1 ? 'أنا أبدأ بتناول القهوة اليوم' : `أنا أتعلم الألمانية ${i}`, i === 1 ? 'Today I am drinking coffee' : `I learn German ${i}`),
           targetSentence: target1,
           acceptableAlternatives: [target1.toLowerCase()],
-          wordChips: Array.from(new Set([...target1.split(/\s+/), 'und', 'du', 'Wasser', 'Bier', 'heute'])),
+          wordChips: Array.from(new Set([...target1.split(/\s+/), 'und', 'du', 'Wasser', 'Kaffee', 'heute'])),
           breakdownChunks: [
             { arabicText: 'Heute', englishText: 'today', sourceText: 'اليوم', targetText: 'Heute', role: 'connector', explanation: 'Adverb' },
             { arabicText: 'trinke', englishText: 'drink', sourceText: 'أشرب', targetText: 'trinke', role: 'verb', explanation: 'Verb V2' }

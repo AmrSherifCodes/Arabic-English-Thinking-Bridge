@@ -2,11 +2,13 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { LessonNode, ExerciseItem } from '../../progression/types';
-import { CheckCircle2, XCircle, ArrowRight, Zap, Timer, Sparkles, Brain, Shuffle, X } from 'lucide-react';
+import { CheckCircle2, XCircle, ArrowRight, Zap, Timer, Sparkles, Brain, Shuffle, X, Eye, EyeOff } from 'lucide-react';
 import { computeNextHintWord } from '../../utils/habitPsychology';
 import { soundFX } from '../../utils/soundFX';
 import { updateCognitiveProfile, runLocalTrainingStep, getDifficultyKnob } from '../../utils/OnlineLearningEngine';
 import { getDynamicExerciseOptions } from '../../utils/adaptiveCurriculum';
+import { getGlossForWord } from '../../utils/glossHelper';
+import { speakWithRate } from '../../utils/audio';
 import { LevelVisualIllustration } from './LevelVisualIllustration';
 import { NameForge } from '../NameForge';
 import { DualSpeedAudio } from '../DualSpeedAudio';
@@ -118,6 +120,7 @@ export function LessonRunner({
   const [correctAnswersCount, setCorrectAnswersCount] = useState(0);
   const [showSummary, setShowSummary] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
+  const [showGlosses, setShowGlosses] = useState<boolean>(true);
 
   // Hint Drawer & Stage State
   const [hintDrawerOpen, setHintDrawerOpen] = useState(false);
@@ -585,15 +588,28 @@ export function LessonRunner({
                 "{isArabic ? currentExercise.promptAr : currentExercise.promptEn}"
               </h2>
             </div>
-            {uiMode === 'pro' && (
-              <button
-                type="button"
-                onClick={() => setInputMode(m => m === 'tiles' ? 'keyboard' : 'tiles')}
-                className="px-3 py-1.5 rounded-xl bg-surface-2 text-text text-xs font-bold border border-border shrink-0 cursor-pointer"
-              >
-                {inputMode === 'tiles' ? (isArabic ? '⌨️ اكتب بالكيبورد' : 'Keyboard') : (isArabic ? '🧩 ركّب بالكلمات' : 'Word Tiles')}
-              </button>
-            )}
+            <div className="flex items-center gap-1.5 shrink-0">
+              {inputMode === 'tiles' && (
+                <button
+                  type="button"
+                  onClick={() => setShowGlosses((v) => !v)}
+                  className="px-2.5 py-1.5 rounded-xl bg-surface-2 text-text text-xs font-bold border border-border flex items-center gap-1 cursor-pointer"
+                  title={showGlosses ? (isArabic ? 'إخفاء المعاني' : 'Hide Glosses') : (isArabic ? 'إظهار المعاني' : 'Show Glosses')}
+                >
+                  {showGlosses ? <EyeOff size={14} /> : <Eye size={14} />}
+                  <span className="hidden sm:inline">{showGlosses ? (isArabic ? 'إخفاء المعاني' : 'Hide Glosses') : (isArabic ? 'إظهار المعاني' : 'Show Glosses')}</span>
+                </button>
+              )}
+              {uiMode === 'pro' && (
+                <button
+                  type="button"
+                  onClick={() => setInputMode(m => m === 'tiles' ? 'keyboard' : 'tiles')}
+                  className="px-3 py-1.5 rounded-xl bg-surface-2 text-text text-xs font-bold border border-border shrink-0 cursor-pointer"
+                >
+                  {inputMode === 'tiles' ? (isArabic ? '⌨️ كيبورد' : 'Keyboard') : (isArabic ? '🧩 كلمات' : 'Word Tiles')}
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="flex justify-center">
@@ -614,20 +630,25 @@ export function LessonRunner({
                     {isArabic ? 'اضغط الكلمات أدناه للترتيب الصحيح' : 'Tap words below to arrange'}
                   </span>
                 ) : (
-                  selectedChips.map((chip, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => {
-                        if (!isAnswered) {
-                          setSelectedChips((prev) => prev.filter((_, i) => i !== idx));
-                        }
-                      }}
-                      dir={isTargetRtl ? 'rtl' : 'ltr'}
-                      className="px-3.5 py-2.5 rounded-xl bg-purple-500/20 border border-purple-400 text-purple-200 font-black text-sm active:scale-95 shadow-sm cursor-pointer"
-                    >
-                      {chip}
-                    </button>
-                  ))
+                  selectedChips.map((chip, idx) => {
+                    const gloss = getGlossForWord(chip, currentExercise.breakdownChunks || [], 'en', 'ar');
+                    return (
+                      <button
+                        key={idx}
+                        onClick={() => {
+                          if (!isAnswered) {
+                            speakWithRate(chip);
+                            setSelectedChips((prev) => prev.filter((_, i) => i !== idx));
+                          }
+                        }}
+                        dir={isTargetRtl ? 'rtl' : 'ltr'}
+                        className="px-3.5 py-2.5 rounded-xl bg-purple-500/20 border border-purple-400 text-purple-200 font-black text-sm flex flex-col items-center justify-center active:scale-95 shadow-sm cursor-pointer"
+                      >
+                        <span>{chip}</span>
+                        {showGlosses && gloss && <span className="text-[10px] opacity-70 mt-0.5 leading-none" dir={!isTargetRtl ? 'rtl' : 'ltr'}>{gloss}</span>}
+                      </button>
+                    );
+                  })
                 )}
               </div>
 
@@ -635,6 +656,7 @@ export function LessonRunner({
               <div className="flex flex-wrap gap-2 justify-center pt-2" dir={isTargetRtl ? 'rtl' : 'ltr'}>
                 {shuffledOptions.map((chip, idx) => {
                   const isSelected = selectedChips.includes(chip);
+                  const gloss = getGlossForWord(chip, currentExercise.breakdownChunks || [], 'en', 'ar');
                   return (
                     <button
                       key={idx}
@@ -643,16 +665,18 @@ export function LessonRunner({
                       data-word={chip}
                       onClick={() => {
                         soundFX.playChipSelect();
+                        speakWithRate(chip);
                         setSelectedChips((prev) => [...prev, chip]);
                       }}
                       dir={isTargetRtl ? 'rtl' : 'ltr'}
-                      className={`px-4 py-2.5 min-h-[48px] rounded-xl font-bold text-sm transition cursor-pointer ${
+                      className={`px-4 py-2.5 min-h-[48px] rounded-xl font-bold text-sm flex flex-col items-center justify-center transition cursor-pointer ${
                         isSelected
                           ? 'opacity-30 bg-surface border border-border text-muted cursor-not-allowed'
                           : 'bg-surface border border-border text-text hover:bg-surface-2 active:scale-95 shadow-sm'
                       }`}
                     >
-                      {chip}
+                      <span>{chip}</span>
+                      {showGlosses && gloss && <span className="text-[10px] opacity-60 mt-0.5 leading-none" dir={!isTargetRtl ? 'rtl' : 'ltr'}>{gloss}</span>}
                     </button>
                   );
                 })}

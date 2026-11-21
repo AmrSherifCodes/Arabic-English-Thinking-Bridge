@@ -6,7 +6,7 @@
   --android-muted: #a3b0bb;
   --android-green: #35dc8b;
   --android-green-glow: rgb(53 220 139 / 30%);
-  min-height: 100vh;
+  min-height: 100dvh;
   overflow-x: hidden;
   padding: 0 24px;
   color: var(--android-text);

@@ -38,6 +38,12 @@ const SUPPORTED_TARGET_OPTIONS: TargetLanguage[] = [
   'he',
 ];
 
+const isChannelActive = (source: SourceLanguage, target: TargetLanguage) => {
+  if (source === 'arz' || source === 'ar') return ['en'].includes(target);
+  if (source === 'en') return ['ar', 'arz'].includes(target);
+  return false;
+};
+
 export function LanguageSelectorModal({
   isOpen,
   onClose,
@@ -78,7 +84,15 @@ export function LanguageSelectorModal({
     });
   };
 
-  const renderAccessPill = (_code: TargetLanguage) => {
+  const renderAccessPill = (code: TargetLanguage) => {
+    const isActive = isChannelActive(selectedSource, code);
+    if (!isActive) {
+      return (
+        <span className="mt-1.5 px-2 py-0.5 rounded-full text-[10px] font-black bg-stone-500/15 text-stone-400 border border-stone-500/30">
+          🚧 قريباً
+        </span>
+      );
+    }
     return (
       <span className="mt-1.5 px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
         مجاني 100%
@@ -140,8 +154,8 @@ export function LanguageSelectorModal({
                       type="button"
                       onClick={() => {
                         setSelectedSource(langKey);
-                        if (selectedTarget === (langKey as unknown as TargetLanguage)) {
-                          const nextTarget = SUPPORTED_TARGET_OPTIONS.find((t) => (t as string) !== (langKey as string)) || 'en';
+                        if (!isChannelActive(langKey, selectedTarget)) {
+                          const nextTarget = SUPPORTED_TARGET_OPTIONS.find((t) => isChannelActive(langKey, t)) || 'en';
                           setSelectedTarget(nextTarget);
                         }
                         setStep(2);
@@ -178,15 +192,17 @@ export function LanguageSelectorModal({
                   .map((code) => {
                     const meta = TARGET_LANGUAGE_META[code];
                     const isSelected = selectedTarget === code;
+                    const isActive = isChannelActive(selectedSource, code as TargetLanguage);
                     return (
                       <button
                         key={code}
                         type="button"
-                        onClick={() => setSelectedTarget(code)}
-                        className={`flex flex-col items-start p-3 sm:p-3.5 rounded-2xl border text-start transition-all cursor-pointer ${
+                        disabled={!isActive}
+                        onClick={() => setSelectedTarget(code as TargetLanguage)}
+                        className={`flex flex-col items-start p-3 sm:p-3.5 rounded-2xl border text-start transition-all ${isActive ? 'cursor-pointer' : 'cursor-not-allowed opacity-60 grayscale'} ${
                           isSelected
                             ? 'border-emerald-500 bg-emerald-500/20 text-emerald-300 shadow-md ring-1 ring-emerald-500/40'
-                            : 'border-border bg-surface-2 hover:border-emerald-500/50 text-text'
+                            : isActive ? 'border-border bg-surface-2 hover:border-emerald-500/50 text-text' : 'border-border bg-surface-2 text-muted'
                         }`}
                       >
                         <div className="flex items-center justify-between w-full mb-1.5">

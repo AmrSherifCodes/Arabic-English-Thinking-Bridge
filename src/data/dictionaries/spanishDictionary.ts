@@ -51133,7 +51133,7 @@ export const SPANISH_DICTIONARY = [
   },
   {
     "word": "berciano",
-    "translation": "of, from or relating to El Bierzo; native or inhabitant of El Bierzo"
+    "translation": "of, from or relating to El Kaffeezo; native or inhabitant of El Kaffeezo"
   },
   {
     "word": "adúltero",
@@ -94553,7 +94553,7 @@ export const SPANISH_DICTIONARY = [
   },
   {
     "word": "villafranquino",
-    "translation": "of, from or relating to Villafranca del Bierzo; native or inhabitant of Villafranca del Bierzo"
+    "translation": "of, from or relating to Villafranca del Kaffeezo; native or inhabitant of Villafranca del Kaffeezo"
   },
   {
     "word": "escandalizador",
