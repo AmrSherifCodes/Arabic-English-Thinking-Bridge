@@ -1,4 +1,5 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it } from 'node:test';
+import assert from 'node:assert';
 import { PHASES_DATA } from '../data/lessons';
 import { getGlossForWord } from '../utils/glossHelper';
 
@@ -9,8 +10,8 @@ describe('Active Channel Data Integrity & Gloss Coverage', () => {
     for (const lesson of allLessons) {
       const seenPrompts = new Set<string>();
       for (const ex of lesson.exercises) {
-        const prompt = ex.promptAr || ex.arabicThought;
-        expect(seenPrompts.has(prompt), `Duplicate prompt "${prompt}" in lesson ${lesson.id}`).toBe(false);
+        const prompt = ex.arabicThought;
+        assert.strictEqual(seenPrompts.has(prompt), false, `Duplicate prompt "${prompt}" in lesson ${lesson.id}`);
         seenPrompts.add(prompt);
       }
     }
@@ -18,11 +19,12 @@ describe('Active Channel Data Integrity & Gloss Coverage', () => {
 
   it('contains zero numbered placeholder titles or prompts', () => {
     for (const lesson of allLessons) {
-      expect(lesson.title).not.toMatch(/\d+$/);
+      assert.strictEqual(/\d+$/.test(lesson.title), false, `Lesson title has trailing number: ${lesson.title}`);
       for (const ex of lesson.exercises) {
-        const prompt = ex.promptAr || ex.arabicThought;
-        expect(prompt).not.toMatch(/\d+$/);
-        expect(ex.targetSentence).not.toMatch(/\d+$/);
+        const prompt = ex.arabicThought;
+        const target = ex.englishTarget || ex.targetSentence || '';
+        assert.strictEqual(/\d+$/.test(prompt), false, `Prompt has trailing number: ${prompt}`);
+        assert.strictEqual(/\d+$/.test(target), false, `Target sentence has trailing number: ${target}`);
       }
     }
   });
@@ -34,7 +36,6 @@ describe('Active Channel Data Integrity & Gloss Coverage', () => {
       for (const ex of lesson.exercises) {
         const chips = ex.wordChips || [];
         for (const chip of chips) {
-          // Clean chip punctuation
           const cleanWord = chip.replace(/[.,!?;:]/g, '').trim();
           if (!cleanWord) continue;
 
@@ -50,10 +51,6 @@ describe('Active Channel Data Integrity & Gloss Coverage', () => {
       }
     }
 
-    if (missingGlosses.length > 0) {
-      console.warn(`Found ${missingGlosses.length} missing glosses across exercises. First 5:`, missingGlosses.slice(0, 5));
-    }
-
-    expect(missingGlosses, `Missing glosses found for words: ${JSON.stringify(missingGlosses.slice(0, 10))}`).toEqual([]);
+    assert.deepStrictEqual(missingGlosses, [], `Missing glosses found for words: ${JSON.stringify(missingGlosses.slice(0, 10))}`);
   });
 });

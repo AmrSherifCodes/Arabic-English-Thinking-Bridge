@@ -747,16 +747,15 @@ export function LessonRunner({
                   ? selectedChips.length === 0
                   : !userInput.trim()
               }
-              aria-label="تحقق من البناء · Check Structure"
+              aria-label={isArabic ? 'تحقق من البناء' : 'Check Structure'}
               className="w-full min-h-[60px] py-4 rounded-2xl bg-amber-400 hover:bg-amber-300 text-stone-950 font-black text-lg transition disabled:opacity-70 disabled:bg-slate-700 disabled:text-slate-200 disabled:border-slate-500 disabled:cursor-not-allowed shadow-2xl active:scale-[0.99] border-2 border-amber-300 focus-visible:ring-4 focus-visible:ring-amber-300 flex items-center justify-center gap-2 cursor-pointer"
             >
               <span>{isArabic ? 'تحقق من البناء 🚀' : 'Check Structure 🚀'}</span>
-              <span className="text-xs font-sans font-bold opacity-80">· Check</span>
             </button>
           ) : (
             <button
               onClick={handleNextExercise}
-              aria-label="السؤال التالي · Next Question"
+              aria-label={isArabic ? 'السؤال التالي' : 'Next Question'}
               className="w-full min-h-[60px] py-4 rounded-2xl bg-emerald-400 hover:bg-emerald-300 text-stone-950 font-black text-lg transition shadow-2xl active:scale-[0.99] border-2 border-emerald-300 focus-visible:ring-4 focus-visible:ring-emerald-300 flex items-center justify-center gap-2 cursor-pointer"
             >
               <span>{isArabic ? 'السؤال التالي' : 'Next Question'}</span>

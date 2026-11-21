@@ -33,7 +33,7 @@ export function DualSpeedAudio({ text, preferredVoice, className = 'flex flex-wr
         aria-label="Play normal speed"
       >
         <Volume2 size={16} />
-        {showLabels && <span>🔊 اسمع (1.0x)</span>}
+        {showLabels && <span>اسمع (1.0x)</span>}
       </button>
       <button
         type="button"
@@ -43,7 +43,7 @@ export function DualSpeedAudio({ text, preferredVoice, className = 'flex flex-wr
         aria-label="Play slow speed"
       >
         <Turtle size={16} />
-        {showLabels && <span>🐢 بالراحة (0.75x)</span>}
+        {showLabels && <span>بالراحة (0.75x)</span>}
       </button>
     </div>
   );
