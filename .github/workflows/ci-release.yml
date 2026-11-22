@@ -151,14 +151,29 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+      - name: Resolve release notes
+        id: notes
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          TAG="${{ github.ref_name }}"
+          CLEAN_VER="${TAG#v}"
+          MAJOR="${CLEAN_VER%%.*}"
+          CANDIDATE="docs/releases/V${MAJOR}_RELEASE_NOTES.md"
+          echo "major=$MAJOR" >> "$GITHUB_OUTPUT"
+          if [ -f "$CANDIDATE" ]; then
+            echo "Using custom release notes: $CANDIDATE"
+            echo "body_path=$CANDIDATE" >> "$GITHUB_OUTPUT"
+          else
+            FALLBACK="${{ runner.temp }}/release-notes.md"
+            printf "Official Android release for **Thinking Bridge %s**.\n\nDownload \`ThinkingBridge-%s.apk\` below.\n" "$TAG" "$TAG" > "$FALLBACK"
+            echo "body_path=$FALLBACK" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Attach APKs to GitHub Release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          name: Thinking Bridge ${{ github.ref_name }}
-          body: |
-            Official Android release. Download the APK below.
-
-            Includes major edge refinements, RTL typesetting fixes, and accessibility improvements.
+          name: Thinking Bridge V${{ steps.notes.outputs.major }} (${{ github.ref_name }})
+          body_path: ${{ steps.notes.outputs.body_path }}
           files: release-apks/ThinkingBridge-${{ github.ref_name }}.apk
           fail_on_unmatched_files: true

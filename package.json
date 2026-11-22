@@ -17,7 +17,7 @@
     "build:android": "cross-env CAPACITOR_BUILD=true vite build",
     "build:android:win": "set CAPACITOR_BUILD=true && vite build",
     "preview": "vite preview",
-    "test": "cross-env NODE_OPTIONS=--max-old-space-size=8192 tsx --test src/**/*.test.ts src/**/*.test.tsx api/*.test.js",
+    "test": "cross-env NODE_OPTIONS=--max-old-space-size=8192 tsx --test \"src/**/*.test.ts\" \"src/**/*.test.tsx\" \"api/*.test.js\"",
     "test:languages": "tsx scripts/verify-all-languages.mjs",
     "test:progression": "npx tsx --test src/progression/progression.test.ts src/progression/multiLanguagePairs.test.ts src/progression/modernization.test.ts src/progression/freeForever.test.ts src/progression/cefrSorter.test.ts src/progression/cefrHierarchy.test.ts src/progression/profileMatcherEngine.test.ts",
     "test:exam": "vitest run src/features/exam/__tests__/examEngine.spec.ts",
@@ -33,6 +33,8 @@
     "e2e": "playwright test",
     "social:dry": "node scripts/social-autoposter.mjs --dry-run",
     "social:post": "node scripts/social-autoposter.mjs --live",
+    "social:media": "node scripts/generate-v6-media.mjs",
+    "launch:v6": "node scripts/launch-v6.mjs",
     "vercel:env": "node scripts/setup-vercel-env.mjs",
     "dev:windows": "tauri dev",
     "build:windows": "tauri build"

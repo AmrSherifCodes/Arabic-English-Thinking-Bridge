@@ -1,0 +1,652 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Thinking Bridge V6 (v6.0.0) — Launch Command Center</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0A0E13;
+      --surface: #111822;
+      --surface-2: #162130;
+      --border: rgba(0, 229, 255, 0.22);
+      --cyan: #00E5FF;
+      --gold: #F5B700;
+      --emerald: #10B981;
+      --ink: #F1F5F9;
+      --muted: #94A3B8;
+      --sans: 'Segoe UI', 'Tahoma', 'Arial', sans-serif;
+      --mono: 'Cascadia Code', 'Consolas', monospace;
+    }
+    body {
+      background: radial-gradient(circle at 10% 10%, rgba(0, 229, 255, 0.10), transparent 36%), var(--bg);
+      color: var(--ink);
+      font-family: var(--sans);
+      line-height: 1.55;
+      padding: 28px 20px 64px 20px;
+    }
+    .container { max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
+    .hero {
+      background: linear-gradient(135deg, #0E1724 0%, #111D2D 100%);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 26px 28px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 5px 12px;
+      border-radius: 999px;
+      background: rgba(0, 229, 255, 0.12);
+      border: 1px solid rgba(0, 229, 255, 0.4);
+      color: var(--cyan);
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 800;
+      margin-bottom: 10px;
+    }
+    h1 { font-size: 28px; font-weight: 900; color: #FFF; }
+    .sub { color: var(--muted); font-size: 14px; margin-top: 4px; }
+    .progress-box {
+      background: #090E14;
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      border-radius: 16px;
+      padding: 14px 18px;
+      min-width: 240px;
+    }
+    .progress-label { font-family: var(--mono); font-size: 13px; color: var(--emerald); font-weight: 800; }
+    .progress-bar {
+      height: 10px;
+      background: #1E293B;
+      border-radius: 999px;
+      overflow: hidden;
+      margin: 8px 0;
+    }
+    .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--cyan), var(--emerald)); transition: width 0.25s ease; }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      border-radius: 20px;
+      padding: 22px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .panel h2 { font-size: 19px; font-weight: 900; color: #FFF; display: flex; align-items: center; gap: 10px; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 44px;
+      padding: 9px 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      background: var(--surface-2);
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 800;
+      text-decoration: none;
+      cursor: pointer;
+      transition: transform 0.15s ease, border-color 0.15s ease;
+    }
+    .btn:hover { transform: translateY(-1px); border-color: var(--cyan); }
+    .btn-primary { background: linear-gradient(135deg, var(--cyan), #38BDF8); color: #06101C; border-color: transparent; }
+    .btn-gold { background: linear-gradient(135deg, var(--gold), #F97316); color: #090D12; border-color: transparent; }
+    .btn-emerald { background: rgba(16, 185, 129, 0.16); color: #6EE7B7; border-color: rgba(16, 185, 129, 0.45); }
+    .meta-line {
+      background: #080C11;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: #CBD5E1;
+      word-break: break-all;
+    }
+    .media-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 14px;
+    }
+    .media-card {
+      background: #0A0F17;
+      border: 1px solid rgba(0, 229, 255, 0.2);
+      border-radius: 14px;
+      overflow: hidden;
+      text-decoration: none;
+      color: var(--ink);
+      display: flex;
+      flex-direction: column;
+    }
+    .media-card img { width: 100%; height: 150px; object-fit: cover; display: block; background: #05080C; }
+    .media-card span { padding: 10px 12px; font-size: 12px; font-family: var(--mono); color: var(--cyan); font-weight: 700; }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 16px;
+    }
+    .social-card {
+      background: #0B111A;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 16px;
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .social-card.done { border-color: rgba(16, 185, 129, 0.65); background: rgba(16, 185, 129, 0.06); }
+    .card-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .card-title { font-size: 16px; font-weight: 900; color: #FFF; }
+    .card-wave { font-family: var(--mono); font-size: 11px; color: var(--gold); }
+    .post-pre {
+      background: #060A0F;
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      border-radius: 12px;
+      padding: 12px;
+      font-family: var(--sans);
+      font-size: 13px;
+      color: #E2E8F0;
+      white-space: pre-wrap;
+      max-height: 210px;
+      overflow-y: auto;
+      line-height: 1.5;
+    }
+    .check-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      color: var(--muted);
+    }
+    .check-pill input { width: 17px; height: 17px; accent-color: var(--emerald); cursor: pointer; }
+    .toast {
+      position: fixed;
+      bottom: 22px;
+      right: 22px;
+      background: #0F172A;
+      border: 1px solid var(--emerald);
+      color: #6EE7B7;
+      padding: 12px 18px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 800;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+      display: none;
+      z-index: 9999;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="hero">
+      <div>
+        <span class="badge">THINKING BRIDGE V6 · v6.0.0 (versionCode 6000)</span>
+        <h1>V6 Launch Command Center</h1>
+        <p class="sub">1-Click GitHub Release + VirusTotal + All 11 Social Channels · Local Offline Hub (Zero External Dependencies)</p>
+      </div>
+      <div class="progress-box">
+        <div id="progress-label" class="progress-label">0 / 13 completed</div>
+        <div class="progress-bar"><div id="progress-fill" class="progress-fill"></div></div>
+        <button id="reset-progress-btn" type="button" class="btn" style="min-height:32px; padding:4px 10px; font-size:11px;">Reset Checklist</button>
+      </div>
+    </header>
+
+    <section class="panel">
+      <h2>1. Wave Launchers &amp; Core V6 Release Actions</h2>
+      <div id="wave-status" class="sub" style="color: var(--cyan);"></div>
+      <div class="btn-row">
+        <button id="wave1-btn" type="button" class="btn btn-primary">Wave 1: Open GitHub + VirusTotal + LinkedIn</button>
+        <button id="wave2-btn" type="button" class="btn btn-gold">Wave 2: Open X (EN/AR) + Facebook + WhatsApp</button>
+        <button id="wave3-btn" type="button" class="btn btn-emerald">Wave 3: Open YouTube + Threads + Bluesky</button>
+      </div>
+      <div class="btn-row">
+        <a class="btn btn-primary" target="_blank" rel="noopener noreferrer" href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/new?tag=v6.0.0&target=main&title=Thinking%20Bridge%20V6%20(v6.0.0)%20%E2%80%94%20The%20Six-Cylinder%20Release">Open Pre-Filled GitHub Release (v6.0.0)</a>
+        <a class="btn btn-gold" target="_blank" rel="noopener noreferrer" href="https://www.virustotal.com/gui/home/upload">Open VirusTotal APK Upload</a>
+        <a class="btn" target="_blank" rel="noopener noreferrer" href="https://tb-eg.vercel.app/api/health">Check Live /api/health</a>
+        <a class="btn" target="_blank" rel="noopener noreferrer" href="https://tb-eg.vercel.app">Open Live App</a>
+      </div>
+      <div class="btn-row">
+        <button id="copy-notes-btn" type="button" class="btn btn-emerald">Copy Full V6 Release Notes (Markdown)</button>
+        <button id="copy-sha-btn" type="button" class="btn">Copy APK SHA-256</button>
+        <button id="copy-apk-path-btn" type="button" class="btn">Copy APK Path</button>
+      </div>
+      <div class="meta-line">
+        APK: android\app\build\outputs\apk\release\ThinkingBridge-v6.0.0.apk (105.95 MB / 111,097,923 bytes)<br />
+        SHA-256: F0B10543E9B192FE28594BE3717F2CA7D18E1B29614A8CF933C8F7D9067F0A2A
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>2. Visual Media Pack (Generated PNGs in docs/releases/assets/)</h2>
+      <p class="sub">Click any card to open full-resolution PNG for LinkedIn, Instagram/TikTok Carousel, X, or Facebook.</p>
+      <div id="media-grid" class="media-grid"></div>
+    </section>
+
+    <section class="panel">
+      <h2>3. All-Socials Launch Grid (Pre-Filled Intent URLs + Copy + Progress Tracker)</h2>
+      <div id="socials-grid" class="cards-grid"></div>
+    </section>
+  </div>
+
+  <div id="toast" class="toast" role="status">Copied!</div>
+
+  <script>
+    const CHECKLIST_KEY = 'tb.v6_launch_checklist';
+    const APK_SHA256 = 'F0B10543E9B192FE28594BE3717F2CA7D18E1B29614A8CF933C8F7D9067F0A2A';
+    const APK_PATH = 'android\\app\\build\\outputs\\apk\\release\\ThinkingBridge-v6.0.0.apk';
+    const APP_URL = 'https://tb-eg.vercel.app';
+    const RELEASE_URL = 'https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/tag/v6.0.0';
+
+    const FULL_RELEASE_NOTES = `# 🏎️ Thinking Bridge V6 (\`v6.0.0\`) — The Six-Cylinder Release
+
+> **فكّر بالإنجليزي (والألماني والفرنساوي والإسباني والتركي) — مش تترجم. والمرة دي: محرك 6 سلندر مضبوط عالداينو.**
+>
+> *Naturally aspirated, 100% offline, zero ads, unlimited free hearts, and track-verified on real Android hardware.*
+
+---
+
+## ⚙️ Under the Hood: All 6 Cylinders Firing in Sync
+1. **Top-5 Language Curriculum & Dialect Routing (\`en\`, \`de\`, \`fr\`, \`es\`, \`tr\`):** Normalized all Arabic dialect codes (\`ar\`, \`arz\`, \`apc\`, \`afb\`, \`ary\`, \`ar-*\`) and purged non-Arabic hint leaks.
+2. **\`O(1)\` Indexed Gloss Engine & Zero Wiktionary Leaks:** Replaced 50k-entry linear scans with \`getDictLookupMaps\` (\`~66s → <1s\`) and filtered Wiktionary metadata labels.
+3. **Smart Dictionary \`10/10\` Top-1 Precision & Clean BCP-47 Audio:** Verified #1 exact match across all 5 languages, suppressed redundant \`([word])\` phonetics, and enforced \`en-US\`, \`de-DE\`, \`fr-FR\`, \`es-ES\`, \`tr-TR\`.
+4. **Natural Arabic UX, RTL Mirroring & \`48px+\` Accessibility:** Fixed prepositions, unwrapped badges, reversed RTL arrows, and upgraded interactive touch targets.
+5. **Live Honor 400 (\`DNY-NX9\`) Track Telemetry & \`safeVibrate\`:** \`0\` live CDP/CSP errors across all 5 languages, \`0\` overflow at \`150%\` font scale, and \`0\` crashes on release APK cold launch.
+6. **Unified Cross-Platform V6 Release:** Web PWA (\`https://tb-eg.vercel.app\`) + Signed Android APK (\`versionCode 6000\`, \`ThinkingBridge-v6.0.0.apk\`) + \`365/365\` active unit tests green.
+
+---
+
+## 📊 Dyno Sheet — Verified Top-5 Language Scorecard (Honor 400 \`DNY-NX9\`)
+
+| Language | BCP-47 TTS | Gloss / Grammar Leaks | Smart Dict Top-1 | Live CDP & CSP Errors | 150% Font-Scale Overflow | Status |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| **English (\`en\`)** | \`en-US\` | \`0\` | \`10 / 10\` | \`0\` | \`0\` (\`false\`) | **PASS** |
+| **German (\`de\`)** | \`de-DE\` | \`0\` | \`10 / 10\` | \`0\` | \`0\` (\`false\`) | **PASS** |
+| **French (\`fr\`)** | \`fr-FR\` | \`0\` | \`10 / 10\` | \`0\` | \`0\` (\`false\`) | **PASS** |
+| **Spanish (\`es\`)** | \`es-ES\` | \`0\` | \`10 / 10\` | \`0\` | \`0\` (\`false\`) | **PASS** |
+| **Turkish (\`tr\`)** | \`tr-TR\` | \`0\` | \`10 / 10\` | \`0\` | \`0\` (\`false\`) | **PASS** |
+
+- **Automated Test Suite (\`npm test\`):** \`365/365\` active tests passing (\`1\` \`LIVE_AUDIT\` skipped offline)
+- **TypeScript (\`npx tsc --noEmit\`):** \`0\` errors
+
+---
+
+## 📦 Downloads & Checksums
+- **Signed Android APK:** \`ThinkingBridge-v6.0.0.apk\` (\`105.95 MB\` / \`111,097,923 bytes\`)
+- **SHA-256:** \`${APK_SHA256}\`
+- **Web App / PWA:** https://tb-eg.vercel.app
+- **Quick Download Portal:** https://tb-eg.vercel.app/apk
+
+## 🛡️ 3-Tier Open Source Licensing
+- Software Code: GNU AGPLv3 (\`AGPL-3.0-or-later\`)
+- Educational Content: Creative Commons \`CC BY-NC-SA 4.0\`
+- Brand & Trademarks: Amr Sherif Abdelaal (Alexandria, Egypt)`;
+
+    const MEDIA_ASSETS = [
+      { file: 'assets/v6-hero-banner.png', label: 'Hero Banner (1200x675)' },
+      { file: 'assets/v6-carousel-01-cover.png', label: 'Slide 01: V6 Cover (1080x1350)' },
+      { file: 'assets/v6-carousel-02-cyl1.png', label: 'Slide 02: Cylinder 1 · 5 Languages' },
+      { file: 'assets/v6-carousel-03-cyl2.png', label: 'Slide 03: Cylinder 2 · O(1) Speed' },
+      { file: 'assets/v6-carousel-04-cyl3.png', label: 'Slide 04: Cylinder 3 · 10/10 Dict' },
+      { file: 'assets/v6-carousel-05-cyl4-5.png', label: 'Slide 05: Cylinders 4–5 · Honor 400' },
+      { file: 'assets/v6-carousel-06-cta.png', label: 'Slide 06: Cylinder 6 · Download CTA' },
+    ];
+
+    const SOCIAL_CARDS = [
+      {
+        id: 'gh-release',
+        wave: 'WAVE 1',
+        title: 'GitHub Release v6.0.0',
+        dir: 'ltr',
+        text: FULL_RELEASE_NOTES,
+        actions: [
+          { label: 'Draft Release v6.0.0', href: 'https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/new?tag=v6.0.0&target=main&title=Thinking%20Bridge%20V6%20(v6.0.0)%20%E2%80%94%20The%20Six-Cylinder%20Release', tone: 'btn-primary' },
+        ],
+      },
+      {
+        id: 'virustotal',
+        wave: 'WAVE 1',
+        title: 'VirusTotal APK Verification',
+        dir: 'ltr',
+        text: `File: ${APK_PATH}\nSHA-256: ${APK_SHA256}`,
+        actions: [
+          { label: 'Upload on VirusTotal', href: 'https://www.virustotal.com/gui/home/upload', tone: 'btn-gold' },
+          { label: 'Direct Search Hash', href: 'https://www.virustotal.com/gui/file/' + APK_SHA256.toLowerCase(), tone: 'btn' },
+        ],
+      },
+      {
+        id: 'linkedin-en',
+        wave: 'WAVE 1',
+        title: 'LinkedIn (English)',
+        dir: 'ltr',
+        text: `Just shipped Thinking Bridge V6 (v6.0.0) — The Six-Cylinder Release.\n\nNo cloud bloat, no paywalls, no ads, no infinite loading spinners — just a naturally aspirated 100% offline engine built in Alexandria, Egypt for Arabic-speaking learners.\n\nUnder the hood — all 6 cylinders firing in sync:\n1. Top-5 Languages Track-Verified (EN, DE, FR, ES, TR): 0 gloss/grammar leaks across every dialect including Egyptian Arabic (arz).\n2. O(1) Gloss Lookup Map: Replaced 50k-entry linear scans — full audit dropped from ~66s to <1s.\n3. Smart Dictionary 10/10 Top-1 Precision: Exact match #1 across all 5 languages + clean BCP-47 TTS.\n4. Natural Arabic Copy & 48px Touch Targets: Proper prepositions, RTL arrow mirroring, zero ellipsis truncation.\n5. Honor 400 (DNY-NX9) Hardware-Verified: 0 live CDP/CSP errors, 0 overflow even at 150% font scale, and safeVibrate WebView protection.\n6. Unified Cross-Platform Build: Web PWA + Signed Capacitor Android APK (versionCode 6000) — 365/365 unit tests passing.\n\nWeb App & PWA: ${APP_URL}\nV6 Release & Signed APK: ${RELEASE_URL}\n\n#OpenSource #EdTech #OfflineFirst #Android #PWA #Egypt`,
+        actions: [
+          { label: 'Open LinkedIn Share', intent: 'linkedin', tone: 'btn-primary' },
+        ],
+      },
+      {
+        id: 'linkedin-ar',
+        wave: 'WAVE 1',
+        title: 'LinkedIn (Arabic)',
+        dir: 'rtl',
+        text: `تم إطلاق النسخة الجديدة Thinking Bridge V6 (v6.0.0) — محرك الستة سلندر! 🏎️🇪🇬\n\nفكّر بالإنجليزي والألماني والفرنساوي والإسباني والتركي مباشرة بعقلك العربي — بدون ترجمة حرفية، بدون نت، وبدون إعلانات أو قلوب.\n\nإيه الجديد تحت الكبوت في V6؟\n• فحص شامل لأهم 5 لغات (EN / DE / FR / ES / TR): 0 أخطاء ترجمة أو تسريب قواعد\n• القاموس الذكي 10/10 في المركز الأول لكل الكلمات الأساسية مع نطق سليم\n• محرك بحث O(1) فوري نزّل وقت الفحص من 66 ثانية لأقل من ثانية\n• 365/365 اختبار برمجي ناجح + تجربة حية على Honor 400 بنسبة 0 انحراف حتى مع تكبير الخط 150%\n\nجرّبه الآن أو حمّل ملف الأندرويد APK:\n${APP_URL}\nصفحة الإطلاق على GitHub:\n${RELEASE_URL}\n\n#مفتوح_المصدر #تعليم #برمجة #أندرويد #الإسكندرية`,
+        actions: [
+          { label: 'Open LinkedIn Share', intent: 'linkedin', tone: 'btn-primary' },
+        ],
+      },
+      {
+        id: 'discord-en',
+        wave: 'WAVE 1',
+        title: 'Discord Announcement',
+        dir: 'ltr',
+        text: `@everyone 🏎️ **Thinking Bridge V6 (\`v6.0.0\`) — The Six-Cylinder Release is LIVE!**\n\nAll 6 cylinders firing in sync — 100% offline, 0 ads, unlimited hearts:\n• **5 Target Languages Verified (\`EN\`, \`DE\`, \`FR\`, \`ES\`, \`TR\`)**: \`0\` gloss/grammar leaks across MSA & Egyptian Arabic (\`arz\`)\n• **\`O(1)\` Gloss Lookup Engine**: Audit runtime cut from \`~66s\` → \`<1s\`\n• **Smart Dictionary \`10/10\` Top-1**: Clean exact matches + valid BCP-47 TTS\n• **Honor 400 Hardware Sweep**: \`0\` live CDP/CSP errors & \`0\` overflow at \`150%\` font scale\n• **\`365/365\` Automated Tests Green · Signed APK (\`versionCode 6000\`)**\n\n🌐 Web / PWA: ${APP_URL}\n📦 Release & APK: ${RELEASE_URL}`,
+        actions: [],
+      },
+      {
+        id: 'telegram-ar',
+        wave: 'WAVE 1',
+        title: 'Telegram Channel Broadcast',
+        dir: 'rtl',
+        text: `🏎️ انطلاق التحديث الكبير: فكّر إنجليزي V6 (v6.0.0)\n\n• 5 لغات موثقة بالكامل (الإنجليزي، الألماني، الفرنساوي، الإسباني، التركي) بدون أخطاء ترجمة\n• بحث لحظي O(1) في القاموس الذكي بنسبة 10/10 في النتائج الأولى مع نطق سليم\n• يعمل 100% بدون إنترنت، بدون إعلانات، وقلوب لا محدودة\n• متوافق تماماً مع الهواتف وتكبير الخط 150%\n\n🌐 التشغيل الفوري عبر المتصفح (PWA):\n${APP_URL}\n📱 تحميل تطبيق الأندرويد (APK) وملاحظات الإصدار:\n${RELEASE_URL}`,
+        actions: [
+          { label: 'Open Telegram Share', intent: 'telegram', tone: 'btn-primary' },
+        ],
+      },
+      {
+        id: 'x-en',
+        wave: 'WAVE 2',
+        title: 'X / Twitter + Bluesky + Threads (EN · 263 chars)',
+        dir: 'ltr',
+        text: `Thinking Bridge V6 (v6.0.0) just dropped — tuned like a naturally aspirated V6 engine 🏎️\n• Top 5 languages (EN/DE/FR/ES/TR): 0 leaks, 10/10 Top-1 Smart Dict\n• O(1) gloss speedup (66s→<1s) · 365/365 tests\n• 100% offline · 0 ads · ∞ hearts\n${APP_URL}`,
+        actions: [
+          { label: 'Post on X', intent: 'x', tone: 'btn-primary' },
+          { label: 'Post on Bluesky', intent: 'bluesky', tone: 'btn' },
+          { label: 'Post on Threads', intent: 'threads', tone: 'btn' },
+        ],
+      },
+      {
+        id: 'x-ar',
+        wave: 'WAVE 2',
+        title: 'X / Twitter + Bluesky + Threads (AR · 207 chars)',
+        dir: 'rtl',
+        text: `انطلاق فكّر إنجليزي V6 (v6.0.0) — محرك الستة سلندر 🏎️🇪🇬\n• 5 لغات موثقة: 0 أخطاء قاموس، 10/10 بحث ذكي\n• سرعة O(1) فورية و365/365 اختبار ناجح\n• مجاني 100% بدون نت أو إعلانات أو قلوب\n${APP_URL}`,
+        actions: [
+          { label: 'Post on X', intent: 'x', tone: 'btn-primary' },
+          { label: 'Post on Bluesky', intent: 'bluesky', tone: 'btn' },
+          { label: 'Post on Threads', intent: 'threads', tone: 'btn' },
+        ],
+      },
+      {
+        id: 'reddit-en',
+        wave: 'WAVE 2',
+        title: 'Reddit (r/opensource, androidapps, languagelearning, Egypt)',
+        dir: 'ltr',
+        redditTitle: 'Thinking Bridge V6 (v6.0.0) — 100% Offline, Open-Source Arabic→Language Cognitive App (EN/DE/FR/ES/TR)',
+        text: `Hi everyone! I just shipped Thinking Bridge V6 (v6.0.0) — an open-source, 100% offline-first language-thinking app built in Alexandria, Egypt (inspired by the Language Transfer *Thinking Method*).\n\nWhy 'V6'?\nWe tuned six core subsystems like a six-cylinder engine:\n1. Top-5 languages verified (English, German, French, Spanish, Turkish) across Egyptian & MSA Arabic — 0 gloss or grammar leaks.\n2. Indexed O(1) gloss lookup map replacing linear 50k-entry scans (cut full audit runtime from ~66s to <1s).\n3. Smart Dictionary ranking with 10/10 Top-1 accuracy for everyday core vocabulary + clean BCP-47 offline TTS.\n4. Natural Arabic UX, proper RTL mirroring, and >=48px tap targets.\n5. Live Honor 400 WebView CDP verification across all 5 languages (0 console/CSP errors, 0 overflow at 150% font scale, safeVibrate intervention guard).\n6. 365/365 automated tests passing across PWA and signed Android APK.\n\nZero ads, zero telemetry, unlimited hearts, AGPLv3 code + CC BY-NC-SA 4.0 content.\nLive PWA: ${APP_URL}\nRelease & APK: ${RELEASE_URL}`,
+        actions: [
+          { label: 'r/opensource', href: 'https://www.reddit.com/r/opensource/submit?title=Thinking%20Bridge%20V6%20(v6.0.0)%20%E2%80%94%20100%25%20Offline%20Cognitive%20Language%20App', tone: 'btn-gold' },
+          { label: 'r/androidapps', href: 'https://www.reddit.com/r/androidapps/submit?title=Thinking%20Bridge%20V6%20(v6.0.0)%20%E2%80%94%20100%25%20Offline%20Open-Source%20Language%20APK', tone: 'btn' },
+          { label: 'r/languagelearning', href: 'https://www.reddit.com/r/languagelearning/submit?title=Thinking%20Bridge%20V6%20(v6.0.0)%20%E2%80%94%20Free%20Offline%20Thinking-Method%20App', tone: 'btn' },
+          { label: 'r/Egypt', href: 'https://www.reddit.com/r/Egypt/submit?title=Thinking%20Bridge%20V6%20(v6.0.0)%20%E2%80%94%20Free%20Offline%20Language%20App%20Made%20in%20Alexandria', tone: 'btn' },
+        ],
+      },
+      {
+        id: 'facebook-ar',
+        wave: 'WAVE 2',
+        title: 'Facebook & Egyptian Campus Groups (AR)',
+        dir: 'rtl',
+        text: `بعد شغل ومراجعة دقيقة على 365 اختبار وعلى الموبايل الحقيقي، بنعلن عن إطلاق Thinking Bridge V6 (v6.0.0) — نسخة الستة سلندر! 🏎️🇪🇬\n\nلو زهقت من التطبيقات اللي بتوقفك بعد 5 أخطاء أو تطلعلك إعلانات كل دقيقة:\n✅ يعمل 100% بدون إنترنت (تطبيق أندرويد APK + ويب PWA)\n✅ قلوب لا محدودة ومجاني بالكامل بدون أي باقات\n✅ فحص كامل لأهم 5 لغات (إنجليزي، ألماني، فرنساوي، إسباني، تركي) بنسبة 10/10 في القاموس الذكي\n✅ مدرب تفكير ذكي بالمصري يشرحلك تركيب الجملة بدل الحفظ والترجمة الحرفية\n✅ خط واضح ومقروء ومناسب حتى لو مكبّر خط الموبايل 150%\n\nرابط التشغيل والتحميل المباشر:\n${APP_URL}\nالكود المصدري مفتوح للجميع (AGPLv3) على GitHub:\n${RELEASE_URL}`,
+        actions: [
+          { label: 'Share on Facebook', intent: 'facebook', tone: 'btn-primary' },
+        ],
+      },
+      {
+        id: 'whatsapp-ar',
+        wave: 'WAVE 2',
+        title: 'WhatsApp Campus Broadcast (AR)',
+        dir: 'rtl',
+        text: `🏎️ *انطلاق فكّر إنجليزي V6 (v6.0.0) — نسخة الستة سلندر!*\n\nتطبيق مجاني 100% ومفتوح المصدر لتعلّم التفكير باللغة بدون ترجمة حرفية وبدون إنترنت:\n\n✅ 5 لغات موثقة: الإنجليزي 🇺🇸 · الألماني 🇩🇪 · الفرنساوي 🇫🇷 · الإسباني 🇪🇸 · التركي 🇹🇷\n✅ 0 أخطاء قاموس أو قواعد + بحث فوري O(1) + 10/10 في النتيجة الأولى بالقاموس الذكي\n✅ مدرب تفكير بالمصري يشرحلك الغلطة وتصحيحها خطوة بخطوة\n✅ بدون إعلانات + بدون اشتراكات + قلوب لا محدودة (∞)\n\n🌐 *شغّله حالاً من المتصفح (PWA):*\n${APP_URL}\n📱 *تحميل تطبيق الأندرويد APK مباشرة:*\n${APP_URL}/apk`,
+        actions: [
+          { label: 'Send via WhatsApp', intent: 'whatsapp', tone: 'btn-emerald' },
+        ],
+      },
+      {
+        id: 'youtube-ar',
+        wave: 'WAVE 3',
+        title: 'YouTube Community (@SciAmrSherif)',
+        dir: 'rtl',
+        text: `نسخة Thinking Bridge V6 (v6.0.0) وصلت أخيراً! 🏎️💨\n\n6 سلندرات شغالين بتناغم تام:\n🔹 5 لغات موثقة (إنجليزي، ألماني، فرنساوي، إسباني، تركي) بصفر أخطاء قاموس أو قواعد\n🔹 محرك بحث فوري O(1) ودقة 10/10 في النتائج الأولى بالقاموس الذكي\n🔹 365 اختبار أوتوماتيك ناجح + اختبار فعلي على Honor 400 حتى مع تكبير الخط 150%\n🔹 مجاني 100%، بدون نت، بدون إعلانات، وقلوب لا محدودة!\n\nجرّبه فوراً من المتصفح أو حمّل الأندرويد APK:\n${APP_URL}\nملاحظات الإصدار والـ APK على GitHub:\n${RELEASE_URL}\n\nاكتبولي في الكومنتات: إيه أكتر لغة شغالين عليها دلوقتي؟ 👇🔥`,
+        actions: [
+          { label: 'Open @SciAmrSherif Community', href: 'https://www.youtube.com/@sciamrsherif/community', tone: 'btn-gold' },
+        ],
+      },
+      {
+        id: 'ig-threads-bsky',
+        wave: 'WAVE 3',
+        title: 'Instagram / TikTok Carousel Caption',
+        dir: 'rtl',
+        text: `وصل محرك الستة سلندر: Thinking Bridge V6 (v6.0.0) 🏎️🌉\n\nمش مجرد تطبيق لغات — ده كوتش مصري ذكي بيدرّبك تفكّر بالإنجليزي والألماني والفرنساوي والإسباني والتركي مباشرة من غير ترجمة حرفية!\n✔️ 100% بدون نت | ✔️ بدون إعلانات | ✔️ قلوب لا محدودة\n✔️ دقة 10/10 في القاموس الذكي | ✔️ سرعة بحث O(1) | ✔️ متجرب على Honor 400 حتى 150% تكبير خط\n\nالرابط في البايو: tb-eg.vercel.app 🔗\n\n#ThinkingBridge #فكر_إنجليزي #تعلم_الانجليزية #برمجة #أندرويد #مفتوح_المصدر #مصر`,
+        actions: [],
+      },
+    ];
+
+    function buildIntentUrl(intent, text) {
+      const eText = encodeURIComponent(text);
+      const eUrl = encodeURIComponent(APP_URL);
+      switch (intent) {
+        case 'x': return `https://x.com/intent/tweet?text=${eText}`;
+        case 'linkedin': return `https://www.linkedin.com/feed/?shareActive=true&mini=true&text=${eText}`;
+        case 'whatsapp': return `https://wa.me/?text=${eText}`;
+        case 'telegram': return `https://t.me/share/url?url=${eUrl}&text=${eText}`;
+        case 'facebook': return `https://www.facebook.com/sharer/sharer.php?u=${eUrl}&quote=${eText}`;
+        case 'bluesky': return `https://bsky.app/intent/compose?text=${eText}`;
+        case 'threads': return `https://www.threads.net/intent/post?text=${eText}`;
+        default: return APP_URL;
+      }
+    }
+
+    let toastTimer = null;
+    function showToast(msg) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.style.display = 'block';
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => { el.style.display = 'none'; }, 2400);
+    }
+
+    async function copyText(str, label) {
+      try {
+        await navigator.clipboard.writeText(str);
+        showToast('Copied ' + label + '!');
+      } catch {
+        const ta = document.createElement('textarea');
+        ta.value = str;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        showToast('Copied ' + label + '!');
+      }
+    }
+
+    function readChecklist() {
+      try {
+        return JSON.parse(localStorage.getItem(CHECKLIST_KEY) || '{}') || {};
+      } catch {
+        return {};
+      }
+    }
+
+    function saveChecklist(map) {
+      try {
+        localStorage.setItem(CHECKLIST_KEY, JSON.stringify(map));
+      } catch {}
+    }
+
+    function updateProgress() {
+      const state = readChecklist();
+      const doneCount = SOCIAL_CARDS.filter((c) => Boolean(state[c.id])).length;
+      document.getElementById('progress-label').textContent = `${doneCount} / ${SOCIAL_CARDS.length} completed`;
+      document.getElementById('progress-fill').style.width = `${Math.round((doneCount / SOCIAL_CARDS.length) * 100)}%`;
+      for (const c of SOCIAL_CARDS) {
+        const card = document.getElementById('card-' + c.id);
+        if (card) card.classList.toggle('done', Boolean(state[c.id]));
+      }
+    }
+
+    function renderMedia() {
+      const grid = document.getElementById('media-grid');
+      for (const item of MEDIA_ASSETS) {
+        const a = document.createElement('a');
+        a.className = 'media-card';
+        a.href = item.file;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        const img = document.createElement('img');
+        img.src = item.file;
+        img.alt = item.label;
+        const caption = document.createElement('span');
+        caption.textContent = item.label;
+        a.appendChild(img);
+        a.appendChild(caption);
+        grid.appendChild(a);
+      }
+    }
+
+    function renderSocialCards() {
+      const grid = document.getElementById('socials-grid');
+      const state = readChecklist();
+      for (const card of SOCIAL_CARDS) {
+        const box = document.createElement('article');
+        box.className = 'social-card' + (state[card.id] ? ' done' : '');
+        box.id = 'card-' + card.id;
+
+        const head = document.createElement('div');
+        head.className = 'card-head';
+
+        const titleWrap = document.createElement('div');
+        const wave = document.createElement('div');
+        wave.className = 'card-wave';
+        wave.textContent = card.wave;
+        const title = document.createElement('div');
+        title.className = 'card-title';
+        title.textContent = card.title;
+        titleWrap.appendChild(wave);
+        titleWrap.appendChild(title);
+
+        const checkLabel = document.createElement('label');
+        checkLabel.className = 'check-pill';
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.checked = Boolean(state[card.id]);
+        cb.addEventListener('change', () => {
+          const next = readChecklist();
+          next[card.id] = cb.checked;
+          saveChecklist(next);
+          updateProgress();
+        });
+        const checkSpan = document.createElement('span');
+        checkSpan.textContent = 'Done';
+        checkLabel.appendChild(cb);
+        checkLabel.appendChild(checkSpan);
+
+        head.appendChild(titleWrap);
+        head.appendChild(checkLabel);
+        box.appendChild(head);
+
+        const pre = document.createElement('pre');
+        pre.className = 'post-pre';
+        pre.dir = card.dir;
+        pre.textContent = card.text;
+        box.appendChild(pre);
+
+        const actions = document.createElement('div');
+        actions.className = 'btn-row';
+
+        const copyBtn = document.createElement('button');
+        copyBtn.type = 'button';
+        copyBtn.className = 'btn btn-emerald';
+        copyBtn.textContent = 'Copy Text';
+        copyBtn.addEventListener('click', () => copyText(card.text, card.title));
+        actions.appendChild(copyBtn);
+
+        if (card.redditTitle) {
+          const copyTitleBtn = document.createElement('button');
+          copyTitleBtn.type = 'button';
+          copyTitleBtn.className = 'btn';
+          copyTitleBtn.textContent = 'Copy Title';
+          copyTitleBtn.addEventListener('click', () => copyText(card.redditTitle, 'Reddit Title'));
+          actions.appendChild(copyTitleBtn);
+        }
+
+        for (const act of card.actions) {
+          const a = document.createElement('a');
+          a.className = 'btn ' + (act.tone || '');
+          a.target = '_blank';
+          a.rel = 'noopener noreferrer';
+          a.href = act.href || buildIntentUrl(act.intent, card.text);
+          a.textContent = act.label;
+          actions.appendChild(a);
+        }
+
+        box.appendChild(actions);
+        grid.appendChild(box);
+      }
+      updateProgress();
+    }
+
+    function openWave(urls) {
+      let blocked = 0;
+      for (const u of urls) {
+        const w = window.open(u, '_blank', 'noopener,noreferrer');
+        if (!w) blocked += 1;
+      }
+      const status = document.getElementById('wave-status');
+      status.textContent = blocked > 0
+        ? `Opened ${urls.length - blocked}/${urls.length} tabs (${blocked} blocked by browser pop-up blocker — allow pop-ups for file:// or use individual buttons below).`
+        : `Launched all ${urls.length} tabs in this wave!`;
+    }
+
+    document.getElementById('copy-notes-btn').addEventListener('click', () => copyText(FULL_RELEASE_NOTES, 'V6 Release Notes'));
+    document.getElementById('copy-sha-btn').addEventListener('click', () => copyText(APK_SHA256, 'APK SHA-256'));
+    document.getElementById('copy-apk-path-btn').addEventListener('click', () => copyText(APK_PATH, 'APK Path'));
+    document.getElementById('reset-progress-btn').addEventListener('click', () => {
+      saveChecklist({});
+      for (const cb of document.querySelectorAll('.check-pill input')) cb.checked = false;
+      updateProgress();
+      showToast('Checklist reset');
+    });
+
+    const cardMap = Object.fromEntries(SOCIAL_CARDS.map((c) => [c.id, c]));
+    document.getElementById('wave1-btn').addEventListener('click', () => openWave([
+      'https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/new?tag=v6.0.0&target=main&title=Thinking%20Bridge%20V6%20(v6.0.0)%20%E2%80%94%20The%20Six-Cylinder%20Release',
+      'https://www.virustotal.com/gui/home/upload',
+      buildIntentUrl('linkedin', cardMap['linkedin-en'].text),
+      buildIntentUrl('telegram', cardMap['telegram-ar'].text),
+    ]));
+    document.getElementById('wave2-btn').addEventListener('click', () => openWave([
+      buildIntentUrl('x', cardMap['x-en'].text),
+      buildIntentUrl('x', cardMap['x-ar'].text),
+      buildIntentUrl('facebook', cardMap['facebook-ar'].text),
+      buildIntentUrl('whatsapp', cardMap['whatsapp-ar'].text),
+    ]));
+    document.getElementById('wave3-btn').addEventListener('click', () => openWave([
+      'https://www.youtube.com/@sciamrsherif/community',
+      buildIntentUrl('threads', cardMap['x-en'].text),
+      buildIntentUrl('bluesky', cardMap['x-en'].text),
+    ]));
+
+    renderMedia();
+    renderSocialCards();
+  </script>
+</body>
+</html>
