@@ -28,6 +28,21 @@ import { NameForge } from '../NameForge';
 import { DualSpeedAudio } from '../DualSpeedAudio';
 import { useUiMode } from '../../utils/uiMode';
 
+function getGermanGenderClass(word: string, targetLang: string): string {
+  if (targetLang !== 'de') return '';
+  const clean = word.replace(/[.,!?;:]/g, '').trim().toLowerCase();
+  if (['der', 'den', 'dem', 'einen', 'einem', 'dieser', 'diesen', 'diesem'].includes(clean)) {
+    return 'border-sky-500/80 bg-sky-500/15 text-sky-200 shadow-[0_0_8px_rgba(56,189,248,0.2)]';
+  }
+  if (['die', 'eine', 'einer', 'diese'].includes(clean)) {
+    return 'border-rose-500/80 bg-rose-500/15 text-rose-200 shadow-[0_0_8px_rgba(244,63,94,0.2)]';
+  }
+  if (['das', 'ein', 'eines', 'dieses'].includes(clean)) {
+    return 'border-emerald-500/80 bg-emerald-500/15 text-emerald-200 shadow-[0_0_8px_rgba(16,185,129,0.2)]';
+  }
+  return '';
+}
+
 export function getSmartGrammarClue(exercise: ExerciseItem, isArabic: boolean, targetLang: string = 'en'): string {
   const arExplanation = exercise.explanationAr || (exercise as any).hintAr || '';
   if (isArabic && arExplanation && /[\u0600-\u06FF]/.test(arExplanation)) return arExplanation;
@@ -736,7 +751,7 @@ export function LessonRunner({
                 className="p-4 rounded-2xl bg-surface-2 border border-border min-h-[72px] flex flex-wrap flex-row items-center gap-2"
               >
                 {placedTileIds.length === 0 ? (
-                  <span className="text-xs text-muted font-bold" dir={isArabic ? 'rtl' : 'ltr'}>
+                  <span className={`text-xs text-muted font-bold w-full ${isArabic ? 'text-right' : 'text-left'}`} dir={isArabic ? 'rtl' : 'ltr'}>
                     {isArabic ? 'اضغط الكلمات أدناه للترتيب الصحيح' : 'Tap words below to arrange'}
                   </span>
                 ) : (
@@ -744,6 +759,7 @@ export function LessonRunner({
                     const tile = wordBankTiles.find((t) => t.id === tileId);
                     const chip = tile?.word || '';
                     const gloss = getGlossForWord(chip, currentExercise.breakdownChunks || [], activeTargetLang, activeSourceLang);
+                    const deGenderClass = activeTargetLang === 'de' ? getGermanGenderClass(chip, activeTargetLang) : '';
                     return (
                       <button
                         key={tileId}
@@ -755,7 +771,9 @@ export function LessonRunner({
                         }}
                         dir={isTargetRtl ? 'rtl' : 'ltr'}
                         style={{ unicodeBidi: 'isolate', touchAction: 'manipulation' }}
-                        className="px-3.5 py-2.5 min-h-[48px] rounded-xl bg-purple-500/20 border border-purple-400 text-purple-200 font-black text-sm flex flex-col items-center justify-center active:scale-95 shadow-sm cursor-pointer"
+                        className={`px-3.5 py-2.5 min-h-[48px] rounded-xl font-black text-sm flex flex-col items-center justify-center active:scale-95 shadow-sm cursor-pointer ${
+                          deGenderClass ? deGenderClass : 'bg-purple-500/20 border border-purple-400 text-purple-200'
+                        }`}
                       >
                         <span>{chip}</span>
                         {showGlosses && gloss && <span className="text-[11px] sm:text-xs font-medium text-purple-300 dark:text-purple-300 opacity-90 mt-0.5 leading-none" dir={!isTargetRtl ? 'rtl' : 'ltr'}>{gloss}</span>}
@@ -775,6 +793,42 @@ export function LessonRunner({
                     <span>{isArabic ? 'مسح' : 'Clear'}</span>
                   </button>
                 )}
+              </div>
+
+              {/* Available Word Chips Bank */}
+              <div className="flex flex-wrap gap-2 justify-center pt-2" dir={isTargetRtl ? 'rtl' : 'ltr'}>
+                {wordBankTiles.map((tile) => {
+                  const isPlaced = placedTileIds.includes(tile.id);
+                  const chip = tile.word;
+                  const gloss = getGlossForWord(chip, currentExercise.breakdownChunks || [], activeTargetLang, activeSourceLang);
+                  const deGenderClass = activeTargetLang === 'de' ? getGermanGenderClass(chip, activeTargetLang) : '';
+                  return (
+                    <button
+                      key={tile.id}
+                      disabled={isPlaced || isAnswered}
+                      data-testid="word-chip"
+                      data-word={chip}
+                      onClick={() => {
+                        soundFX.playChipSelect();
+                        speakWithRate(chip, 1.0, undefined, activeTargetLang);
+                        setPlacedTileIds((prev) => [...prev, tile.id]);
+                      }}
+                      dir={isTargetRtl ? 'rtl' : 'ltr'}
+                      style={{ unicodeBidi: 'isolate', touchAction: 'manipulation' }}
+                      className={`px-4 py-2.5 min-h-[48px] rounded-xl font-bold text-sm flex flex-col items-center justify-center transition cursor-pointer ${
+                        isPlaced
+                          ? 'opacity-30 bg-surface border border-border text-muted cursor-not-allowed'
+                          : deGenderClass
+                          ? `${deGenderClass} hover:opacity-90 active:scale-95`
+                          : 'bg-surface border border-border text-text hover:bg-surface-2 active:scale-95 shadow-sm'
+                      }`}
+                    >
+                      <span>{chip}</span>
+                      {showGlosses && gloss && <span className="text-[11px] sm:text-xs font-medium text-slate-300 dark:text-slate-300 opacity-85 mt-0.5 leading-none" dir={!isTargetRtl ? 'rtl' : 'ltr'}>{gloss}</span>}
+                    </button>
+                  );
+                })}
+              </div>
               </div>
             </div>
           )}

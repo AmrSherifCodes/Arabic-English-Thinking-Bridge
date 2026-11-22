@@ -92,7 +92,9 @@ export const PHASES_DATA: Phase[] = [
             breakdownChunks: [
               { arabicText: 'هو', englishText: 'He', role: 'subject', explanation: 'Subject' },
               { arabicText: 'اشترى', englishText: 'bought', role: 'verb', explanation: 'Past action' },
-              { arabicText: 'دراجة جديدة', englishText: 'a new bicycle', role: 'object', explanation: 'Singular countable noun requires indefinite "a"' }
+              { arabicText: 'واحد / مفرد', englishText: 'a', role: 'modifier', explanation: 'Indefinite article' },
+              { arabicText: 'جديدة', englishText: 'new', role: 'modifier', explanation: 'Adjective' },
+              { arabicText: 'دراجة', englishText: 'bicycle', role: 'object', explanation: 'Singular noun' }
             ],
             habitHint: 'Arabic relies on tanween for indefiniteness. English demands the discrete word "a" before a singular countable noun.'
           },

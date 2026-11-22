@@ -209,6 +209,23 @@ export default function App() {
   const { sourceLang, targetLang, setPair } = useLanguagePair();
   const [progress, setProgress] = useState<UserProgress>(loadUserProgress());
 
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    if (targetLang === 'de') {
+      document.title = 'فكّر ألماني · Thinking German | جسر التفكير المعرفي';
+    } else if (targetLang === 'tr') {
+      document.title = 'فكّر تركي · Thinking Turkish | جسر التفكير المعرفي';
+    } else if (targetLang === 'es') {
+      document.title = 'فكّر إسباني · Thinking Spanish | جسر التفكير المعرفي';
+    } else if (targetLang === 'fr') {
+      document.title = 'فكّر فرنسي · Thinking French | جسر التفكير المعرفي';
+    } else if (targetLang === 'ja') {
+      document.title = 'فكّر ياباني · Thinking Japanese | جسر التفكير المعرفي';
+    } else {
+      document.title = 'فكّر إنجليزي · Thinking English | جسر التفكير المعرفي';
+    }
+  }, [targetLang]);
+
   const updateAndSaveProgress = (updater: (prev: UserProgress) => UserProgress) => {
     setProgress((prev) => {
       const next = updater(prev);

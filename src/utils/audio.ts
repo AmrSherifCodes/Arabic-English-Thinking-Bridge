@@ -113,6 +113,49 @@ export function selectBestVoiceForLang(
   return scored[0]?.voice ?? voices.find(v => v.lang.toLowerCase().startsWith(targetLang.split('-')[0].toLowerCase()));
 }
 
+export function scoreGermanVoice(v: { name: string; lang: string; localService?: boolean }): number {
+  const normLang = (v.lang || '').toLowerCase().replace('_', '-');
+  return (
+    (/natural|neural|online|google|samsung|android/i.test(v.name) ? 50 : 0) +
+    (/katja|conrad|hedda|stefan|anna|vicki|marlena|hannah/i.test(v.name) ? 25 : 0) +
+    (normLang.startsWith('de-de') ? 20 : normLang.startsWith('de') ? 10 : 0)
+  );
+}
+
+export function getGermanVoices(): SpeechSynthesisVoice[] {
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return [];
+  try {
+    return window.speechSynthesis.getVoices().filter(v => {
+      const normLang = (v.lang || '').toLowerCase().replace('_', '-');
+      return normLang.startsWith('de') || /german/i.test(v.name);
+    });
+  } catch {
+    return [];
+  }
+}
+
+export function selectBestGermanVoice(
+  voices: SpeechSynthesisVoice[],
+  preferredVoiceName?: string,
+  forceLocalOnly: boolean = false
+): SpeechSynthesisVoice | undefined {
+  if (!voices || voices.length === 0) return undefined;
+  if (preferredVoiceName && preferredVoiceName !== CLOUD_AI_VOICE_ID) {
+    const found = voices.find(v => v.name === preferredVoiceName);
+    if (found && (!forceLocalOnly || found.localService === true)) return found;
+  }
+  const germanVoices = voices.filter(v => {
+    const normLang = (v.lang || '').toLowerCase().replace('_', '-');
+    return normLang.startsWith('de') || /german/i.test(v.name);
+  });
+  if (germanVoices.length === 0) return undefined;
+  if (forceLocalOnly) {
+    const local = germanVoices.filter(v => v.localService === true);
+    if (local.length > 0) return [...local].sort((a, b) => scoreGermanVoice(b) - scoreGermanVoice(a))[0];
+  }
+  return [...germanVoices].sort((a, b) => scoreGermanVoice(b) - scoreGermanVoice(a))[0];
+}
+
 export function selectBestEnglishVoice(
   voices: SpeechSynthesisVoice[],
   preferredVoiceName?: string

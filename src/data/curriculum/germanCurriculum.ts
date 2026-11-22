@@ -5,6 +5,184 @@ function sourceThought(source: SourceLanguage, ar: string, en: string): string {
   return en;
 }
 
+const GERMAN_CHIP_ARABIC_GLOSSES: Record<string, string> = {
+  'Ich': 'أنا',
+  'fange': 'أبدأ',
+  'früh': 'مبكراً',
+  'mit': 'مع',
+  'der': 'الـ (مذكر/مؤنث/محايد)',
+  'die': 'الـ',
+  'das': 'الـ',
+  'Arbeit': 'العمل',
+  'an': 'بادئة (أبدأ)',
+  'heute': 'اليوم',
+  'Heute': 'اليوم',
+  'spät': 'متأخراً',
+  'trinke': 'أشرب',
+  'Kaffee': 'قهوة',
+  'Wasser': 'ماء',
+  'und': 'و',
+  'du': 'أنت',
+  'Tee': 'شاي',
+  'brauche': 'أحتاج',
+  'einen': 'واحد / مفرد',
+  'bitte': 'من فضلك',
+  'ein': 'واحد / مفرد',
+  'rufe': 'أتصل',
+  'dich': 'بك',
+  'morgen': 'غداً',
+  'wir': 'نحن',
+  'Wir': 'نحن',
+  'Telefon': 'هاتف',
+  'jetzt': 'الآن',
+  'lieben': 'نحب',
+  'Deutschland': 'ألمانيا',
+  'Berlin': 'برلين',
+  'Hamburg': 'هامبورغ',
+  'Land': 'بلد',
+  'sehr': 'جداً',
+  'ist': 'يكون',
+  'schöner': 'جميل',
+  'Tag': 'يوم',
+  'wohne': 'أعيش',
+  'in': 'في',
+  'einer': 'واحدة / مفرد',
+  'schönen': 'جميلة',
+  'Stadt': 'مدينة',
+  'Dorf': 'قرية',
+  'Haus': 'منزل',
+  'kleinen': 'صغيرة',
+  'essen': 'نأكل',
+  'frisches': 'طازج',
+  'Brot': 'خبز',
+  'Wetter': 'الطقس',
+  'warm': 'دافئ',
+  'kalt': 'بارد',
+  'gut': 'جيد',
+  'Der': 'الـ',
+  'Bahnhof': 'محطة القطار',
+  'nah': 'قريب',
+  'weit': 'بعيد',
+  'hier': 'هنا',
+  'dort': 'هناك',
+  'Wo': 'أين',
+  'kann': 'يمكنني',
+  'ich': 'أنا',
+  'Ticket': 'تذكرة',
+  'kaufen': 'شراء',
+  'kaufen?': 'شراء',
+  'Bus': 'حافلة',
+  'Bahn': 'قطار',
+  'Zug': 'القطار',
+  'kommt': 'يصل',
+  'pünktlich': 'في الموعد',
+  'wünsche': 'أتمنى',
+  'dir': 'لك',
+  'eine': 'واحدة / مفرد',
+  'gute': 'جيدة',
+  'Reise': 'رحلة',
+  'Fahrt': 'رحلة',
+  'Mein': 'خاصتي',
+  'Meine': 'خاصتي',
+  'Freund': 'صديق',
+  'wohnt': 'يعيش',
+  'Familie': 'عائلة',
+  'groß': 'كبيرة',
+  'nett': 'لطيفة',
+  'klein': 'صغيرة',
+  'treffen': 'نلتقي',
+  'uns': 'أنفسنا',
+  'jedes': 'كل',
+  'Wochenende': 'نهاية الأسبوع',
+  'oft': 'غالباً',
+  'Bruder': 'أخي',
+  'arbeitet': 'يعمل',
+  'Firma': 'شركة',
+  'Schule': 'مدرسة',
+  'Unser': 'خاصتنا',
+  'Treffen': 'اجتماعنا',
+  'beginnt': 'يبدأ',
+  'später': 'لاحقاً',
+  'schreibe': 'أكتب',
+  'E-Mail': 'بريد إلكتروني',
+  'Brief': 'رسالة',
+  'Nachricht': 'رسالة',
+  'beenden': 'ننهي',
+  'Das': 'الـ',
+  'Restaurant': 'مطعم',
+  'bietet': 'يقدم',
+  'leckeres': 'لذيذ',
+  'Essen': 'طعام',
+  'Garten': 'حديقة',
+  'möchte': 'أريد',
+  'Tisch': 'طاولة',
+  'für': 'لـ / لأجل',
+  'zwei': 'شخصين',
+  'reservieren': 'حجز',
+  'Die': 'الـ',
+  'Rechnung': 'فاتورة',
+  'danke': 'شكراً',
+  'Karte': 'بطاقة',
+  'Geld': 'نقود',
+  'war': 'كان',
+  'lecker': 'لذيذ',
+  'Wie': 'كم',
+  'viel': 'كثير',
+  'kostet': 'يكلف',
+  'dieses': 'هذا',
+  'Dieser': 'هذا',
+  'Hemd': 'قميص',
+  'Hemd?': 'قميص',
+  'Hose': 'بنطال',
+  'Schuh': 'حذاء',
+  'bezahlen': 'دفع',
+  'Bargeld': 'نقد',
+  'Euro': 'يورو',
+  'Geschäft': 'متجر',
+  'bis': 'حتى',
+  'abends': 'المساء',
+  'geöffnet': 'مفتوح',
+  'offen': 'مفتوح',
+  'Preis': 'سعر',
+  'teuer': 'غالٍ',
+  'billig': 'رخيص',
+  'sehe': 'أرى',
+  'den': 'الـ',
+  'Mann': 'الرجل',
+  'auf': 'على',
+  'Straße': 'شارع',
+  'kaufe': 'أشتري',
+  'frischen': 'طازجة',
+  'Apfel': 'تفاحة',
+  'Er': 'هو',
+  'liest': 'يقرأ',
+  'neues': 'جديد',
+  'Buch': 'كتاب',
+  'Zeitung': 'جريدة',
+  'helfen': 'نساعد',
+  'dem': 'الـ',
+  'alten': 'القديم',
+  'Frau': 'امرأة',
+  'bin': 'أكون',
+  'kürzlich': 'مؤخراً',
+  'nach': 'إلى',
+  'gereist': 'سافرت',
+  'Wien': 'فيينا',
+  'habe': 'عندي',
+  'süßen': 'حلوة',
+  'gegessen': 'أكلت',
+  'Weil': 'لأن',
+  'fleißig': 'بجدية',
+  'Deutsch': 'الألمانية',
+  'lerne': 'أتعلم',
+  'dass': 'أن',
+  'obwohl': 'بالرغم من',
+  'weiß': 'أعلم',
+  'weiß,': 'أعلم',
+  'Idee': 'فكرة',
+  'verstehst': 'تفهم'
+};
+
 export function getGermanPhases(source: SourceLanguage): Phase[] {
   const isAr = source === 'ar' || source === 'arz' || source === 'apc' || source === 'afb' || source === 'ary';
 
@@ -22,6 +200,7 @@ export function getGermanPhases(source: SourceLanguage): Phase[] {
         { arabicText: 'أشرب', englishText: 'drink', sourceText: isAr ? 'أشرب' : 'drink', targetText: 'trinke', role: 'verb' as ChunkRole, explanation: 'Verb V2' },
         { arabicText: 'أنا', englishText: 'I', sourceText: isAr ? 'أنا' : 'I', targetText: 'ich', role: 'subject' as ChunkRole, explanation: 'Subject pronoun' },
         { arabicText: 'قهوة', englishText: 'coffee', sourceText: isAr ? 'قهوة' : 'coffee', targetText: 'Kaffee', role: 'object' as ChunkRole, explanation: 'Noun' },
+        { arabicText: 'ماء', englishText: 'water', sourceText: isAr ? 'ماء' : 'water', targetText: 'Wasser', role: 'object' as ChunkRole, explanation: 'Noun' },
         { arabicText: 'و', englishText: 'and', sourceText: isAr ? 'و' : 'and', targetText: 'und', role: 'connector' as ChunkRole, explanation: 'Conjunction' },
         { arabicText: 'أنت', englishText: 'you', sourceText: isAr ? 'أنت' : 'you', targetText: 'du', role: 'subject' as ChunkRole, explanation: 'Pronoun' },
         { arabicText: 'شاي', englishText: 'tea', sourceText: isAr ? 'شاي' : 'tea', targetText: 'Tee', role: 'object' as ChunkRole, explanation: 'Noun' }
@@ -39,14 +218,14 @@ export function getGermanPhases(source: SourceLanguage): Phase[] {
       acceptableAlternatives: ['ich brauche einen kaffee'],
       wordChips: ['Ich', 'brauche', 'einen', 'Kaffee', 'bitte', 'Tee', 'Wasser', 'ein'],
       breakdownChunks: [
-        { arabicText: 'Ich', englishText: 'I', sourceText: isAr ? 'أنا' : 'I', targetText: 'Ich', role: 'subject' as ChunkRole, explanation: 'Subject pronoun' },
-        { arabicText: 'brauche', englishText: 'need', sourceText: isAr ? 'أحتاج' : 'need', targetText: 'brauche', role: 'verb' as ChunkRole, explanation: 'Verb brauchten' },
-        { arabicText: 'einen', englishText: 'a', sourceText: isAr ? 'أداة مفرد مذكر' : 'a', targetText: 'einen', role: 'modifier', explanation: 'Accusative masculine article' },
-        { arabicText: 'Kaffee', englishText: 'coffee', sourceText: isAr ? 'قهوة' : 'coffee', targetText: 'Kaffee', role: 'object' as ChunkRole, explanation: 'Noun' },
-        { arabicText: 'bitte', englishText: 'please', sourceText: isAr ? 'من فضلك' : 'please', targetText: 'bitte', role: 'modifier', explanation: 'Polite' },
-        { arabicText: 'Tee', englishText: 'tea', sourceText: isAr ? 'شاي' : 'tea', targetText: 'Tee', role: 'object' as ChunkRole, explanation: 'Noun' },
-        { arabicText: 'Wasser', englishText: 'water', sourceText: isAr ? 'ماء' : 'water', targetText: 'Wasser', role: 'object' as ChunkRole, explanation: 'Noun' },
-        { arabicText: 'ein', englishText: 'a', sourceText: isAr ? 'أداة' : 'a', targetText: 'ein', role: 'modifier', explanation: 'Article' }
+        { arabicText: 'أنا', englishText: 'I', sourceText: isAr ? 'أنا' : 'I', targetText: 'Ich', role: 'subject' as ChunkRole, explanation: 'Subject pronoun' },
+        { arabicText: 'أحتاج', englishText: 'need', sourceText: isAr ? 'أحتاج' : 'need', targetText: 'brauche', role: 'verb' as ChunkRole, explanation: 'Verb brauchten' },
+        { arabicText: 'واحد / مفرد', englishText: 'a', sourceText: isAr ? 'أداة مفرد مذكر' : 'a', targetText: 'einen', role: 'modifier', explanation: 'Accusative masculine article' },
+        { arabicText: 'قهوة', englishText: 'coffee', sourceText: isAr ? 'قهوة' : 'coffee', targetText: 'Kaffee', role: 'object' as ChunkRole, explanation: 'Noun' },
+        { arabicText: 'من فضلك', englishText: 'please', sourceText: isAr ? 'من فضلك' : 'please', targetText: 'bitte', role: 'modifier', explanation: 'Polite' },
+        { arabicText: 'شاي', englishText: 'tea', sourceText: isAr ? 'شاي' : 'tea', targetText: 'Tee', role: 'object' as ChunkRole, explanation: 'Noun' },
+        { arabicText: 'ماء', englishText: 'water', sourceText: isAr ? 'ماء' : 'water', targetText: 'Wasser', role: 'object' as ChunkRole, explanation: 'Noun' },
+        { arabicText: 'واحد / مفرد', englishText: 'a', sourceText: isAr ? 'أداة' : 'a', targetText: 'ein', role: 'modifier', explanation: 'Article' }
       ],
       habitHint: 'النصب بالألمانية (Akkusativ).',
       explanationAr: 'كلمة Kaffee مذكر، وفي حالة النصب (Akkusativ) تأخذ أداة المنصوب einen.',
@@ -61,16 +240,16 @@ export function getGermanPhases(source: SourceLanguage): Phase[] {
       acceptableAlternatives: ['ich rufe dich morgen an'],
       wordChips: ['Ich', 'rufe', 'dich', 'morgen', 'an', 'heute', 'wir', 'Telefon', 'jetzt'],
       breakdownChunks: [
-        { arabicText: 'Ich', englishText: 'I', sourceText: isAr ? 'أنا' : 'I', targetText: 'Ich', role: 'subject' as ChunkRole, explanation: 'Subject pronoun' },
-        { arabicText: 'rufe ... an', englishText: 'call', sourceText: isAr ? 'أتصل' : 'call', targetText: 'rufe ... an', role: 'verb' as ChunkRole, explanation: 'Separable verb anrufen' },
-        { arabicText: 'rufe', englishText: 'call', sourceText: isAr ? 'أتصل' : 'call', targetText: 'rufe', role: 'verb' as ChunkRole, explanation: 'Verb root' },
-        { arabicText: 'dich', englishText: 'you', sourceText: isAr ? 'بك' : 'you', targetText: 'dich', role: 'object' as ChunkRole, explanation: 'Accusative pronoun' },
-        { arabicText: 'morgen', englishText: 'tomorrow', sourceText: isAr ? 'غداً' : 'tomorrow', targetText: 'morgen', role: 'connector' as ChunkRole, explanation: 'Adverb' },
-        { arabicText: 'an', englishText: 'prefix', sourceText: isAr ? 'بادئة منفصلة' : 'prefix', targetText: 'an', role: 'verb' as ChunkRole, explanation: 'Separable prefix' },
-        { arabicText: 'heute', englishText: 'today', sourceText: isAr ? 'اليوم' : 'today', targetText: 'heute', role: 'connector' as ChunkRole, explanation: 'Adverb' },
-        { arabicText: 'wir', englishText: 'we', sourceText: isAr ? 'نحن' : 'we', targetText: 'wir', role: 'subject' as ChunkRole, explanation: 'Pronoun' },
-        { arabicText: 'Telefon', englishText: 'phone', sourceText: isAr ? 'هاتف' : 'phone', targetText: 'Telefon', role: 'object' as ChunkRole, explanation: 'Noun' },
-        { arabicText: 'jetzt', englishText: 'now', sourceText: isAr ? 'الآن' : 'now', targetText: 'jetzt', role: 'connector' as ChunkRole, explanation: 'Adverb' }
+        { arabicText: 'أنا', englishText: 'I', sourceText: isAr ? 'أنا' : 'I', targetText: 'Ich', role: 'subject' as ChunkRole, explanation: 'Subject pronoun' },
+        { arabicText: 'أتصل', englishText: 'call', sourceText: isAr ? 'أتصل' : 'call', targetText: 'rufe ... an', role: 'verb' as ChunkRole, explanation: 'Separable verb anrufen' },
+        { arabicText: 'أتصل', englishText: 'call', sourceText: isAr ? 'أتصل' : 'call', targetText: 'rufe', role: 'verb' as ChunkRole, explanation: 'Verb root' },
+        { arabicText: 'بك', englishText: 'you', sourceText: isAr ? 'بك' : 'you', targetText: 'dich', role: 'object' as ChunkRole, explanation: 'Accusative pronoun' },
+        { arabicText: 'غداً', englishText: 'tomorrow', sourceText: isAr ? 'غداً' : 'tomorrow', targetText: 'morgen', role: 'connector' as ChunkRole, explanation: 'Adverb' },
+        { arabicText: 'بادئة (أبدأ)', englishText: 'prefix', sourceText: isAr ? 'بادئة (أبدأ)' : 'prefix', targetText: 'an', role: 'verb' as ChunkRole, explanation: 'Separable prefix' },
+        { arabicText: 'اليوم', englishText: 'today', sourceText: isAr ? 'اليوم' : 'today', targetText: 'heute', role: 'connector' as ChunkRole, explanation: 'Adverb' },
+        { arabicText: 'نحن', englishText: 'we', sourceText: isAr ? 'نحن' : 'we', targetText: 'wir', role: 'subject' as ChunkRole, explanation: 'Pronoun' },
+        { arabicText: 'هاتف', englishText: 'phone', sourceText: isAr ? 'هاتف' : 'phone', targetText: 'Telefon', role: 'object' as ChunkRole, explanation: 'Noun' },
+        { arabicText: 'الآن', englishText: 'now', sourceText: isAr ? 'الآن' : 'now', targetText: 'jetzt', role: 'connector' as ChunkRole, explanation: 'Adverb' }
       ],
       habitHint: 'الأفعال المنفصلة (Trennbares Verb).',
       explanationAr: 'الفعل anrufen فعل منفصل (Trennbares Verb): الجزء الأول rufe يأتي ثانياً، والبادئة an تذهب إلى نهاية الجملة.',
@@ -85,13 +264,13 @@ export function getGermanPhases(source: SourceLanguage): Phase[] {
       acceptableAlternatives: ['wir lieben deutschland'],
       wordChips: ['Wir', 'lieben', 'Deutschland', 'Berlin', 'Hamburg', 'Land', 'sehr'],
       breakdownChunks: [
-        { arabicText: 'Wir', englishText: 'we', sourceText: isAr ? 'نحن' : 'we', targetText: 'Wir', role: 'subject' as ChunkRole, explanation: 'Pronoun' },
-        { arabicText: 'lieben', englishText: 'love', sourceText: isAr ? 'نحب' : 'love', targetText: 'lieben', role: 'verb' as ChunkRole, explanation: 'Verb' },
-        { arabicText: 'Deutschland', englishText: 'Germany', sourceText: isAr ? 'ألمانيا' : 'Germany', targetText: 'Deutschland', role: 'object' as ChunkRole, explanation: 'Proper noun' },
-        { arabicText: 'Berlin', englishText: 'Berlin', sourceText: isAr ? 'برلين' : 'Berlin', targetText: 'Berlin', role: 'object' as ChunkRole, explanation: 'Noun' },
-        { arabicText: 'Hamburg', englishText: 'Hamburg', sourceText: isAr ? 'هامبورغ' : 'Hamburg', targetText: 'Hamburg', role: 'object' as ChunkRole, explanation: 'Noun' },
-        { arabicText: 'Land', englishText: 'country', sourceText: isAr ? 'بلد' : 'country', targetText: 'Land', role: 'object' as ChunkRole, explanation: 'Noun' },
-        { arabicText: 'sehr', englishText: 'very', sourceText: isAr ? 'جداً' : 'very', targetText: 'sehr', role: 'modifier', explanation: 'Adverb' }
+        { arabicText: 'نحن', englishText: 'we', sourceText: isAr ? 'نحن' : 'we', targetText: 'Wir', role: 'subject' as ChunkRole, explanation: 'Pronoun' },
+        { arabicText: 'نحب', englishText: 'love', sourceText: isAr ? 'نحب' : 'love', targetText: 'lieben', role: 'verb' as ChunkRole, explanation: 'Verb' },
+        { arabicText: 'ألمانيا', englishText: 'Germany', sourceText: isAr ? 'ألمانيا' : 'Germany', targetText: 'Deutschland', role: 'object' as ChunkRole, explanation: 'Proper noun' },
+        { arabicText: 'برلين', englishText: 'Berlin', sourceText: isAr ? 'برلين' : 'Berlin', targetText: 'Berlin', role: 'object' as ChunkRole, explanation: 'Noun' },
+        { arabicText: 'هامبورغ', englishText: 'Hamburg', sourceText: isAr ? 'هامبورغ' : 'Hamburg', targetText: 'Hamburg', role: 'object' as ChunkRole, explanation: 'Noun' },
+        { arabicText: 'بلد', englishText: 'country', sourceText: isAr ? 'بلد' : 'country', targetText: 'Land', role: 'object' as ChunkRole, explanation: 'Noun' },
+        { arabicText: 'جداً', englishText: 'very', sourceText: isAr ? 'جداً' : 'very', targetText: 'sehr', role: 'modifier', explanation: 'Adverb' }
       ],
       habitHint: 'تصريف الأفعال مع Wir.',
       explanationAr: 'مع الضمير Wir (نحن) ينتهي الفعل بالأحرف en مثل lieben.',
@@ -161,14 +340,17 @@ export function getGermanPhases(source: SourceLanguage): Phase[] {
         targetSentence: item.sentence,
         acceptableAlternatives: item.alternatives ?? [item.sentence.toLowerCase()],
         wordChips: item.chips,
-        breakdownChunks: item.chips.map(c => ({
-          arabicText: c,
-          englishText: c,
-          sourceText: c,
-          targetText: c,
-          role: 'modifier' as ChunkRole,
-          explanation: 'German vocabulary'
-        })),
+        breakdownChunks: item.chips.map(c => {
+          const arGloss = GERMAN_CHIP_ARABIC_GLOSSES[c] || GERMAN_CHIP_ARABIC_GLOSSES[c.replace(/[?,.!]/g, '')] || c;
+          return {
+            arabicText: isAr ? arGloss : c,
+            englishText: c,
+            sourceText: isAr ? arGloss : c,
+            targetText: c,
+            role: 'modifier' as ChunkRole,
+            explanation: 'German vocabulary'
+          };
+        }),
         habitHint: 'قاعدة الفعل V2.',
         explanationAr: 'الفعل يتبع قاعدة V2 في الجمل الألمانية.',
         explanationEn: 'The verb follows V2 word order rule in German.'
@@ -212,9 +394,10 @@ export function getGermanPhases(source: SourceLanguage): Phase[] {
           targetSentence: 'Ich sehe den Mann auf der Straße',
           acceptableAlternatives: ['ich sehe den mann auf der strasse'],
           wordChips: ['Ich', 'sehe', 'den', 'Mann', 'auf', 'der', 'Straße', 'heute', 'dort'],
-          breakdownChunks: ['Ich', 'sehe', 'den', 'Mann', 'auf', 'der', 'Straße', 'heute', 'dort'].map(c => ({
-            arabicText: c, englishText: c, sourceText: c, targetText: c, role: 'modifier', explanation: 'Case'
-          })),
+          breakdownChunks: ['Ich', 'sehe', 'den', 'Mann', 'auf', 'der', 'Straße', 'heute', 'dort'].map(c => {
+            const arGloss = GERMAN_CHIP_ARABIC_GLOSSES[c] || GERMAN_CHIP_ARABIC_GLOSSES[c.replace(/[?,.!]/g, '')] || c;
+            return { arabicText: isAr ? arGloss : c, englishText: c, sourceText: isAr ? arGloss : c, targetText: c, role: 'modifier' as ChunkRole, explanation: 'Case' };
+          }),
           habitHint: 'النصب (Akkusativ).',
           explanationAr: 'في حالة النصب تتحول أداة المذكر der إلى den.',
           explanationEn: 'In accusative case, masculine article der becomes den.'
@@ -227,9 +410,10 @@ export function getGermanPhases(source: SourceLanguage): Phase[] {
           targetSentence: 'Ich kaufe einen frischen Apfel',
           acceptableAlternatives: ['ich kaufe einen frischen apfel'],
           wordChips: ['Ich', 'kaufe', 'einen', 'frischen', 'Apfel', 'Wasser', 'Banane', 'heute'],
-          breakdownChunks: ['Ich', 'kaufe', 'einen', 'frischen', 'Apfel', 'Wasser', 'Banane', 'heute'].map(c => ({
-            arabicText: c, englishText: c, sourceText: c, targetText: c, role: 'modifier', explanation: 'Accusative'
-          })),
+          breakdownChunks: ['Ich', 'kaufe', 'einen', 'frischen', 'Apfel', 'Wasser', 'Banane', 'heute'].map(c => {
+            const arGloss = GERMAN_CHIP_ARABIC_GLOSSES[c] || GERMAN_CHIP_ARABIC_GLOSSES[c.replace(/[?,.!]/g, '')] || c;
+            return { arabicText: isAr ? arGloss : c, englishText: c, sourceText: isAr ? arGloss : c, targetText: c, role: 'modifier' as ChunkRole, explanation: 'Accusative' };
+          }),
           habitHint: 'النصب للمذكر (einen).',
           explanationAr: 'كلمة Apfel مذكر وتأخذ einen في حالة النصب.',
           explanationEn: 'Apfel is masculine and takes einen in accusative.'
@@ -242,9 +426,10 @@ export function getGermanPhases(source: SourceLanguage): Phase[] {
           targetSentence: 'Er liest ein neues Buch',
           acceptableAlternatives: ['er liest ein neues buch'],
           wordChips: ['Er', 'liest', 'ein', 'neues', 'Buch', 'Zeitung', 'Brief', 'heute'],
-          breakdownChunks: ['Er', 'liest', 'ein', 'neues', 'Buch', 'Zeitung', 'Brief', 'heute'].map(c => ({
-            arabicText: c, englishText: c, sourceText: c, targetText: c, role: 'modifier', explanation: 'Accusative'
-          })),
+          breakdownChunks: ['Er', 'liest', 'ein', 'neues', 'Buch', 'Zeitung', 'Brief', 'heute'].map(c => {
+            const arGloss = GERMAN_CHIP_ARABIC_GLOSSES[c] || GERMAN_CHIP_ARABIC_GLOSSES[c.replace(/[?,.!]/g, '')] || c;
+            return { arabicText: isAr ? arGloss : c, englishText: c, sourceText: isAr ? arGloss : c, targetText: c, role: 'modifier' as ChunkRole, explanation: 'Accusative' };
+          }),
           habitHint: 'النصب للمحايد (ein).',
           explanationAr: 'كلمة Buch محايدة وتأخذ ein في حالة النصب.',
           explanationEn: 'Buch is neutral and takes ein in accusative.'
@@ -257,9 +442,10 @@ export function getGermanPhases(source: SourceLanguage): Phase[] {
           targetSentence: 'Wir helfen dem alten Freund',
           acceptableAlternatives: ['wir helfen dem alten freund'],
           wordChips: ['Wir', 'helfen', 'dem', 'alten', 'Freund', 'Mann', 'Frau', 'sehr'],
-          breakdownChunks: ['Wir', 'helfen', 'dem', 'alten', 'Freund', 'Mann', 'Frau', 'sehr'].map(c => ({
-            arabicText: c, englishText: c, sourceText: c, targetText: c, role: 'modifier', explanation: 'Dative'
-          })),
+          breakdownChunks: ['Wir', 'helfen', 'dem', 'alten', 'Freund', 'Mann', 'Frau', 'sehr'].map(c => {
+            const arGloss = GERMAN_CHIP_ARABIC_GLOSSES[c] || GERMAN_CHIP_ARABIC_GLOSSES[c.replace(/[?,.!]/g, '')] || c;
+            return { arabicText: isAr ? arGloss : c, englishText: c, sourceText: isAr ? arGloss : c, targetText: c, role: 'modifier' as ChunkRole, explanation: 'Dative' };
+          }),
           habitHint: 'حالة الجر (Dativ).',
           explanationAr: 'الفعل helfen يأخذ حالة الجر (Dativ): der Freund -> dem Freund.',
           explanationEn: 'The verb helfen takes Dative case: der Freund -> dem Freund.'
@@ -290,9 +476,10 @@ export function getGermanPhases(source: SourceLanguage): Phase[] {
           targetSentence: 'Ich bin kürzlich nach Berlin gereist',
           acceptableAlternatives: ['ich bin kuerzlich nach berlin gereist', 'ich bin kürzlich nach berlin gereist'],
           wordChips: ['Ich', 'bin', 'kürzlich', 'nach', 'Berlin', 'gereist', 'Wien', 'heute'],
-          breakdownChunks: ['Ich', 'bin', 'kürzlich', 'nach', 'Berlin', 'gereist', 'Wien', 'heute'].map(c => ({
-            arabicText: c, englishText: c, sourceText: c, targetText: c, role: 'modifier', explanation: 'Perfekt'
-          })),
+          breakdownChunks: ['Ich', 'bin', 'kürzlich', 'nach', 'Berlin', 'gereist', 'Wien', 'heute'].map(c => {
+            const arGloss = GERMAN_CHIP_ARABIC_GLOSSES[c] || GERMAN_CHIP_ARABIC_GLOSSES[c.replace(/[?,.!]/g, '')] || c;
+            return { arabicText: isAr ? arGloss : c, englishText: c, sourceText: isAr ? arGloss : c, targetText: c, role: 'modifier' as ChunkRole, explanation: 'Perfekt' };
+          }),
           habitHint: 'الماضي المركب (Perfekt).',
           explanationAr: 'أفعال الحركة تأخذ الفعل المساعد sein في الماضي (Perfekt).',
           explanationEn: 'Movement verbs take auxiliary sein in Perfekt past tense.'
@@ -305,9 +492,10 @@ export function getGermanPhases(source: SourceLanguage): Phase[] {
           targetSentence: 'Ich habe einen süßen Apfel gegessen',
           acceptableAlternatives: ['ich habe einen suessen apfel gegessen', 'ich habe einen süßen apfel gegessen'],
           wordChips: ['Ich', 'habe', 'einen', 'süßen', 'Apfel', 'gegessen', 'Wasser', 'heute'],
-          breakdownChunks: ['Ich', 'habe', 'einen', 'süßen', 'Apfel', 'gegessen', 'Wasser', 'heute'].map(c => ({
-            arabicText: c, englishText: c, sourceText: c, targetText: c, role: 'modifier', explanation: 'Perfekt'
-          })),
+          breakdownChunks: ['Ich', 'habe', 'einen', 'süßen', 'Apfel', 'gegessen', 'Wasser', 'heute'].map(c => {
+            const arGloss = GERMAN_CHIP_ARABIC_GLOSSES[c] || GERMAN_CHIP_ARABIC_GLOSSES[c.replace(/[?,.!]/g, '')] || c;
+            return { arabicText: isAr ? arGloss : c, englishText: c, sourceText: isAr ? arGloss : c, targetText: c, role: 'modifier' as ChunkRole, explanation: 'Perfekt' };
+          }),
           habitHint: 'الماضي مع haben.',
           explanationAr: 'معظم الأفعال تأخذ الفعل المساعد haben وينتهي التصريف بـ gegessen.',
           explanationEn: 'Most verbs take auxiliary haben with Partizip II gegessen.'
@@ -320,9 +508,10 @@ export function getGermanPhases(source: SourceLanguage): Phase[] {
           targetSentence: 'Weil ich fleißig Deutsch lerne',
           acceptableAlternatives: ['weil ich fleissig deutsch lerne', 'weil ich fleißig deutsch lerne'],
           wordChips: ['Weil', 'ich', 'fleißig', 'Deutsch', 'lerne', 'dass', 'obwohl', 'sehr'],
-          breakdownChunks: ['Weil', 'ich', 'fleißig', 'Deutsch', 'lerne', 'dass', 'obwohl', 'sehr'].map(c => ({
-            arabicText: c, englishText: c, sourceText: c, targetText: c, role: 'modifier', explanation: 'Subordinate'
-          })),
+          breakdownChunks: ['Weil', 'ich', 'fleißig', 'Deutsch', 'lerne', 'dass', 'obwohl', 'sehr'].map(c => {
+            const arGloss = GERMAN_CHIP_ARABIC_GLOSSES[c] || GERMAN_CHIP_ARABIC_GLOSSES[c.replace(/[?,.!]/g, '')] || c;
+            return { arabicText: isAr ? arGloss : c, englishText: c, sourceText: isAr ? arGloss : c, targetText: c, role: 'modifier' as ChunkRole, explanation: 'Subordinate' };
+          }),
           habitHint: 'جملة Weil الفرعية.',
           explanationAr: 'أداة الربط Weil تقوم بطرد الفعل المصرف lerne إلى نهاية الجملة تماماً.',
           explanationEn: 'The conjunction Weil pushes the conjugated verb lerne to the end.'
@@ -335,9 +524,10 @@ export function getGermanPhases(source: SourceLanguage): Phase[] {
           targetSentence: 'Ich weiß, dass du die Idee verstehst',
           acceptableAlternatives: ['ich weiß, dass du die idee verstehst', 'ich weiss, dass du die idee verstehst'],
           wordChips: ['Ich', 'weiß,', 'dass', 'du', 'die', 'Idee', 'verstehst', 'gut'],
-          breakdownChunks: ['Ich', 'weiß,', 'dass', 'du', 'die', 'Idee', 'verstehst', 'gut'].map(c => ({
-            arabicText: c, englishText: c, sourceText: c, targetText: c, role: 'modifier', explanation: 'Subordinate'
-          })),
+          breakdownChunks: ['Ich', 'weiß,', 'dass', 'du', 'die', 'Idee', 'verstehst', 'gut'].map(c => {
+            const arGloss = GERMAN_CHIP_ARABIC_GLOSSES[c] || GERMAN_CHIP_ARABIC_GLOSSES[c.replace(/[?,.!]/g, '')] || c;
+            return { arabicText: isAr ? arGloss : c, englishText: c, sourceText: isAr ? arGloss : c, targetText: c, role: 'modifier' as ChunkRole, explanation: 'Subordinate' };
+          }),
           habitHint: 'جملة dass الفرعية.',
           explanationAr: 'أداة الربط dass تطرد الفعل المصرف verstehst إلى آخر الجملة الفرعية.',
           explanationEn: 'The conjunction dass sends the conjugated verb verstehst to the end.'

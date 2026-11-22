@@ -1434,16 +1434,16 @@ const GERMAN_COMMON_WORD_GLOSSES: Record<string, string> = {
   'es': 'هو / هي (محياد)',
   'wir': 'نحن',
   'ihr': 'أنتم',
-  'der': 'الـ (مذكر)',
-  'die': 'الـ (مؤنث/جمع)',
-  'das': 'الـ (محياد)',
+  'der': 'الـ (مذكر/مؤنث/محايد)',
+  'die': 'الـ',
+  'das': 'الـ',
   'ein': 'واحد / مفرد',
   'eine': 'واحدة / مفرد',
   'einen': 'واحد / مفرد (منصوب)',
   'den': 'الـ (منصوب)',
   'dem': 'الـ (مجرور)',
   'heute': 'اليوم',
-  'an': 'بـ / في (بادئة اتصال)',
+  'an': 'بادئة (أبدأ)',
   'mit': 'مع',
   'in': 'في',
   'aus': 'من',
@@ -1983,7 +1983,7 @@ function isValidGloss(candidate: string, word: string, targetLang: string, sourc
   const cleanWord = stripTashkeelAndPunctuation(word);
   const cleanGloss = stripTashkeelAndPunctuation(sanitized);
 
-  // 1. Self-referential check (word -> word)
+  // 1. Hard Guard: NEVER return self-referential gloss (word -> word)
   if (sanitized.toLowerCase() === word.toLowerCase() || cleanGloss === cleanWord) {
     return false;
   }

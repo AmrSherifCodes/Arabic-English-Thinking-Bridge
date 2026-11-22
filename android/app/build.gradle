@@ -107,9 +107,9 @@ task copyFinalApk {
             copy {
                 from targetApk
                 into desktopDir
-                rename { "ThinkingBridge-v6.0.0.apk" }
+                rename { "ThinkingEnglish-v6.0.0.apk" }
             }
-            println "SUCCESS: Copied APK to ${desktopDir.absolutePath}/ThinkingBridge-v6.0.0.apk"
+            println "SUCCESS: Copied APK to ${desktopDir.absolutePath}/ThinkingEnglish-v6.0.0.apk"
         } else {
             println "WARNING: Release APK not found."
         }
