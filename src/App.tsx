@@ -883,12 +883,13 @@ export default function App() {
             </div>
             <div className="flex flex-col min-w-0">
               <span className="text-sm font-black text-text truncate">حمّل تطبيق فكّر إنجليزي</span>
-              <span className="text-[10px] text-muted font-bold truncate">يعمل بدون إنترنت (أندرويد)</span>
+              <span className="text-[10px] text-muted font-bold truncate">يعمل بدون إنترنت · V6 (97.5 MB APK)</span>
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <a
-              href="/download"
+              href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v6.0.0/ThinkingBridge-v6.0.0.apk"
+              download="ThinkingBridge-v6.0.0.apk"
               className="px-4 py-2 rounded-xl bg-primary text-on-primary text-xs font-black shadow-md hover:opacity-90 transition active:scale-95"
             >
               تحميل

@@ -56,7 +56,7 @@ const FEATURES = [
 
 const QUICK_SPECS = [
   { label: 'إصدار الأندرويد', value: 'Android 8.0+' },
-  { label: 'حجم التطبيق', value: '106 MB' },
+  { label: 'حجم التطبيق', value: '97.5 MB' },
   { label: 'استهلاك البيانات', value: '0 MB' },
   { label: 'التراخيص', value: 'AGPLv3 / CC BY-NC-SA' },
 ];
@@ -147,13 +147,56 @@ export function AndroidLandingPage() {
               aria-label="تحميل تطبيق الأندرويد المباشر APK"
             >
               <Download size={18} aria-hidden="true" />
-              <span>تحميل تطبيق APK (V6 · v6.0.0 · 106 MB)</span>
+              <span>تحميل تطبيق APK (V6 · v6.0.0 · 97.5 MB)</span>
             </a>
           </div>
 
           <div className="android-hero-meta">
             <span><CheckCircle2 size={13} className="android-icon-green" /> يعمل فوراً بدون تثبيت (PWA)</span>
             <span><CheckCircle2 size={13} className="android-icon-green" /> ملف APK مباشر للأندرويد</span>
+          </div>
+
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '6px',
+              marginTop: '4px',
+              padding: '10px 12px',
+              borderRadius: '12px',
+              background: 'rgba(16, 23, 33, 0.72)',
+              border: '1px solid rgba(52, 211, 153, 0.25)',
+              maxWidth: '100%',
+              boxSizing: 'border-box',
+            }}
+          >
+            <a
+              href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/tag/v6.0.0"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                color: '#34d399',
+                fontSize: '0.82rem',
+                fontWeight: 700,
+                textDecoration: 'underline',
+              }}
+            >
+              صفحة الإصدار الرسمي والتحقق على GitHub (v6.0.0)
+            </a>
+            <code
+              dir="ltr"
+              style={{
+                direction: 'ltr',
+                fontFamily: 'monospace',
+                fontSize: '0.72rem',
+                color: '#cbd5e1',
+                wordBreak: 'break-all',
+                overflowWrap: 'anywhere',
+                maxWidth: '100%',
+              }}
+            >
+              SHA-256: 7587c2dd60872cad57939105e52e51b79d5c28a41e748c9cc3f5014b9ada4b09
+            </code>
           </div>
         </div>
 

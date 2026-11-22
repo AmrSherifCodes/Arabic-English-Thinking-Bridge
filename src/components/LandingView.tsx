@@ -464,7 +464,7 @@ export function LandingView({ onStartWebApp, isArabic = true }: LandingViewProps
               <Smartphone className="mx-auto text-[var(--landing-accent-teal)]" size={28} />
               <div>
                 <span className="font-bold text-sm text-[var(--landing-text)] block">Android</span>
-                <span className="text-[10px] text-[var(--landing-muted)] block">V6 (v6.0.0) · PWA</span>
+                <span className="text-[10px] text-[var(--landing-muted)] block">V6 (v6.0.0) · 97.5 MB APK</span>
               </div>
               <a
                 href="/app"
@@ -477,6 +477,26 @@ export function LandingView({ onStartWebApp, isArabic = true }: LandingViewProps
                 <ArrowDown size={13} aria-hidden="true" />
                 <span>{t('landing2.launch_app')}</span>
               </a>
+              {!Capacitor.isNativePlatform() && (
+                <>
+                  <a
+                    href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v6.0.0/ThinkingBridge-v6.0.0.apk"
+                    download="ThinkingBridge-v6.0.0.apk"
+                    className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-[var(--landing-surface)] border border-[var(--landing-accent-teal)]/50 text-[var(--landing-accent-teal)] font-bold text-xs w-full hover:border-[var(--landing-accent-teal)] transition"
+                  >
+                    <Download size={13} aria-hidden="true" />
+                    <span>{isAr ? 'تحميل APK (V6 · v6.0.0 · 97.5 MB)' : 'Download APK (V6 · v6.0.0 · 97.5 MB)'}</span>
+                  </a>
+                  <a
+                    href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/tag/v6.0.0"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block text-[10px] font-bold text-[var(--landing-muted)] underline underline-offset-2"
+                  >
+                    {isAr ? 'صفحة الإصدار على GitHub (v6.0.0)' : 'GitHub Release (v6.0.0)'}
+                  </a>
+                </>
+              )}
               {isInstallable && (
                 <button type="button" onClick={() => void triggerInstall()} className="text-[10px] font-bold text-[var(--landing-muted)] underline underline-offset-2">
                   {t('landing2.install_web_app')}

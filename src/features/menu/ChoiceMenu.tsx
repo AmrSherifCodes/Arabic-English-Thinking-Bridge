@@ -326,20 +326,21 @@ export function ChoiceMenu({
 
         {/* 6. Download App Button */}
         <a
-          href="/app"
+          href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v6.0.0/ThinkingBridge-v6.0.0.apk"
+          download="ThinkingBridge-v6.0.0.apk"
           className="menu__download-btn"
-          aria-label={isArabic ? 'تشغيل التطبيق v1.0.0' : 'Launch Web App v1.0.0'}
+          aria-label={isArabic ? 'تحميل تطبيق الأندرويد V6 (v6.0.0)' : 'Download Android APK V6 (v6.0.0)'}
         >
           <div className="menu__download-info">
             <Download className="menu__download-icon" />
             <div className="menu__download-text">
               <span className="menu__download-title">
-                {isArabic ? '📱 تشغيل تطبيق الويب (PWA)' : '📱 Launch PWA App'}
+                {isArabic ? '📱 تحميل تطبيق الأندرويد (APK)' : '📱 Download Android APK'}
               </span>
               <span className="menu__download-sub">
                 {isArabic
-                  ? 'تثبيت مباشر وتجربة بدون إنترنت'
-                  : 'Direct PWA install · Full offline access'}
+                  ? 'يعمل 100% بدون إنترنت · 97.5 MB'
+                  : '100% Offline Signed APK · 97.5 MB'}
               </span>
             </div>
           </div>

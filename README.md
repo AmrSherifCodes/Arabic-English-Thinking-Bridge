@@ -15,6 +15,16 @@
 
 ---
 
+## 📦 Download Thinking Bridge V6 (`v6.0.0`)
+
+- **Live Web PWA:** [https://tb-eg.vercel.app](https://tb-eg.vercel.app) (100% offline installable Web App)
+- **Quick Download Portal:** [https://tb-eg.vercel.app/apk](https://tb-eg.vercel.app/apk)
+- **Direct Signed Android APK (`versionCode 6000`):** [ThinkingBridge-v6.0.0.apk](https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v6.0.0/ThinkingBridge-v6.0.0.apk) (`97.50 MB` / `102,235,429 bytes`)
+- **GitHub Release & Release Notes:** [v6.0.0](https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/tag/v6.0.0)
+- **SHA-256:** `7587c2dd60872cad57939105e52e51b79d5c28a41e748c9cc3f5014b9ada4b09`
+
+---
+
 ## 🏛️ Digital Sovereignty & Privacy Principles
 
 - **100% Offline Autonomy**: Every core pedagogical feature—from 27 interactive structural bridge lessons, 4,090 flashcards, SRS SM-2 scheduling, phonetic transliteration, to offline voice recognition—operates 100% offline without requiring active internet connectivity.

@@ -71,6 +71,9 @@ describe('Production Readiness & Human-Use Audit Regressions (v6.0.0 V6 Edition)
       'public/download.html',
       'src/components/LandingPage.tsx',
       'src/components/AndroidLandingPage.tsx',
+      'src/components/LandingView.tsx',
+      'src/features/menu/ChoiceMenu.tsx',
+      'src/App.tsx',
     ];
 
     for (const relPath of filesToCheck) {
@@ -84,6 +87,29 @@ describe('Production Readiness & Human-Use Audit Regressions (v6.0.0 V6 Edition)
           `Outdated APK URL "${match}" found in ${relPath}`
         );
       }
+      assert.equal(
+        content.includes('106 MB'),
+        false,
+        `Stale 106 MB size label found in ${relPath}`
+      );
+    }
+
+    const verifiedSha256 = '7587c2dd60872cad57939105e52e51b79d5c28a41e748c9cc3f5014b9ada4b09';
+    for (const relPath of [
+      'index.html',
+      'public/download.html',
+      'src/components/LandingPage.tsx',
+      'src/components/AndroidLandingPage.tsx',
+    ]) {
+      const content = fs.readFileSync(path.join(ROOT, relPath), 'utf8');
+      assert.ok(
+        content.toLowerCase().includes(verifiedSha256),
+        `Expected verified SHA-256 checksum in ${relPath}`
+      );
+      assert.ok(
+        content.includes('releases/tag/v6.0.0'),
+        `Expected GitHub v6.0.0 release tag link in ${relPath}`
+      );
     }
 
     const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'));
