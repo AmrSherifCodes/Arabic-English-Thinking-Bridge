@@ -41,7 +41,7 @@ export function getTurkishPhases(source: SourceLanguage): Phase[] {
     [
       { ar: 'هذا صديقي العزيز', en: 'Bu benim sevgili arkadaşım', sentence: 'Bu benim sevgili arkadaşım', chips: ['Bu', 'benim', 'sevgili', 'arkadaşım', 'kardeşim', 'dostum'] },
       { ar: 'عائلتي تعيش هنا', en: 'Ailem burada yaşıyor', sentence: 'Ailem burada yaşıyor', chips: ['Ailem', 'burada', 'yaşıyor', 'orada', 'şimdi'] },
-      { ar: 'نحن نأكل العشاء معاً', en: 'Birlikte akşam yemeği yiyoruz', sentence: 'Birlikte akşam yemeği yiyoruz', chips: ['Birlikte', 'akşam', 'yemeği', 'yıyoruz', 'öğle', 'kahvaltı'] },
+      { ar: 'نحن نأكل العشاء معاً', en: 'Birlikte akşam yemeği yiyoruz', sentence: 'Birlikte akşam yemeği yiyoruz', chips: ['Birlikte', 'akşam', 'yemeği', 'yiyoruz', 'öğle', 'kahvaltı'] },
       { ar: 'أمي تطبخ طعاماً لذيذاً', en: 'Annem lezzetli yemek pişiriyor', sentence: 'Annem lezzetli yemek pişiriyor', chips: ['Annem', 'lezzetli', 'yemek', 'pişiriyor', 'babama', 'güzel'] }
     ],
     [

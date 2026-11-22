@@ -22,10 +22,11 @@ import { ErwinChargeModal } from './components/ErwinChargeModal';
 import { AlexandrianEasterEggModal } from './components/AlexandrianEasterEggModal';
 import { MutahEasterEggModal } from './components/MutahEasterEggModal';
 import { SupporterGateModal } from './components/SupporterGateModal';
+import { YouTubeSupporterPopup } from './components/YouTubeSupporterPopup';
 import { TARGET_LANGUAGE_META } from './data/languages';
 import { DualSpeedAudio } from './components/DualSpeedAudio';
 import { useAmrClickEasterEgg } from './utils/easterEgg';
-import { initYouTubeSupporter } from './utils/youtubeSupporter';
+import { initYouTubeSupporter, shouldShowSupporterPopup } from './utils/youtubeSupporter';
 import { useUiMode, syncUiModeClass } from './utils/uiMode';
 import { getLearnerMode, syncLearnerModeClass } from './utils/learnerMode';
 import { AgeGateModal } from './components/AgeGateModal';
@@ -170,6 +171,7 @@ export default function App() {
 
   const [activeLessonNode, setActiveLessonNode] = useState<LessonNode | null>(null);
   const [supporterGateOpen, setSupporterGateOpen] = useState(false);
+  const [showSupporterPopup, setShowSupporterPopup] = useState(false);
   const [newOnboardingOpen, setNewOnboardingOpen] = useState<boolean>(() => {
     if (typeof window !== 'undefined' && window.location.search.includes('admin=true')) {
       return false;
@@ -278,6 +280,14 @@ export default function App() {
     document.documentElement.lang = isArabic ? 'ar' : 'en';
     document.documentElement.dir = isArabic ? 'rtl' : 'ltr';
   }, [view.name, isArabic]);
+
+  useEffect(() => {
+    if (view.name === 'shell' && !showAgeGate && !newOnboardingOpen && !onboardingOpen) {
+      if (shouldShowSupporterPopup()) {
+        setShowSupporterPopup(true);
+      }
+    }
+  }, [view.name, showAgeGate, newOnboardingOpen, onboardingOpen]);
 
   // Save progression state updates
   const updateProgression = (updater: (prev: ProgressionState) => ProgressionState) => {
@@ -438,6 +448,7 @@ export default function App() {
           onOpenLanding={() => setView({ name: 'landing' })}
           onOpenLanguageSelector={() => setLangSelectorOpen(true)}
           onOpenAgeGate={() => setShowAgeGate(true)}
+          onOpenSupporterPopup={() => setShowSupporterPopup(true)}
         >
           {activeTab === 'path' && (
             <div className="space-y-3">
@@ -758,6 +769,13 @@ export default function App() {
           }
         }}
         onToast={(msg) => showToast(T(msg, msg))}
+      />
+
+      {/* One-time bright YouTube supporter nudge popup */}
+      <YouTubeSupporterPopup
+        isOpen={showSupporterPopup}
+        onClose={() => setShowSupporterPopup(false)}
+        isArabic={isArabic}
       />
 
       {/* Supporter Gate Modal (@sciamrsherif) */}

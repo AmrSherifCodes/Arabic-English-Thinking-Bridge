@@ -46,7 +46,7 @@ export function getJapanesePhases(source: SourceLanguage): Phase[] {
           targetSentence: 'これは水です',
           romajiTarget: 'Kore wa mizu desu',
           furiganaTarget: 'これは<ruby>水<rt>みず</rt></ruby>です',
-          acceptableAlternatives: ['<ctrl42>call:default_api:replace_file_content', 'これはみずです', 'kore wa mizu desu'],
+          acceptableAlternatives: ['これは水です', 'これはみずです', 'kore wa mizu desu'],
           wordChips: ['これ', 'は', '水', 'です', 'それ', 'あれ', 'お茶', '本'],
           breakdownChunks: [
             { arabicText: 'これ', englishText: 'this', sourceText: 'هذا', targetText: 'これ', role: 'subject', explanation: 'Demonstrative' },
@@ -68,7 +68,7 @@ export function getJapanesePhases(source: SourceLanguage): Phase[] {
           wordChips: ['水', 'を', '飲みます', 'お茶', '食べる', '見る', '行く'],
           breakdownChunks: [
             { arabicText: '水', englishText: 'water', sourceText: 'ماء', targetText: '水', role: 'object', explanation: 'Object' },
-            { arabicText: '를', englishText: 'particle', sourceText: 'أداة', targetText: 'を', role: 'connector', explanation: 'Particle' },
+            { arabicText: 'を', englishText: 'particle', sourceText: 'أداة', targetText: 'を', role: 'connector', explanation: 'Particle' },
             { arabicText: '飲みます', englishText: 'drink', sourceText: 'أشرب', targetText: '飲みます', role: 'verb', explanation: 'Verb' }
           ],
           habitHint: 'المفعول مع を والفعل في النهاية.'
@@ -117,7 +117,7 @@ export function getJapanesePhases(source: SourceLanguage): Phase[] {
           romajiTarget: 'Koohi o nonde hon o yomimasu',
           furiganaTarget: 'コーヒーを<ruby>飲<rt>の</rt></ruby>んで<ruby>本<rt>ほん</rt></ruby>を<ruby>読<rt>よ</rt></ruby>みます',
           acceptableAlternatives: ['コーヒーを飲んで本を読みます', 'koohi o nonde hon o yomimasu'],
-          wordChips: ['コーヒー', 'を', '飲んで', '本', '読みます', '水', 'お茶', '食べる', '行く', '来る', '見る', '話す'],
+          wordChips: ['コーヒー', 'を', '飲んで', '本', 'を', '読みます', '水', 'お茶', '食べる', '行く', '来る', '見る', '話す'],
           breakdownChunks: [
             { arabicText: 'コーヒーを', englishText: 'coffee', sourceText: 'القهوة', targetText: 'コーヒーを', role: 'object', explanation: 'Object' },
             { arabicText: '飲んで', englishText: 'drink and', sourceText: 'وأشرب', targetText: '飲んで', role: 'connector', explanation: 'Te-form' },

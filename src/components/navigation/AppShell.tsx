@@ -8,7 +8,8 @@ import { PrivacyPolicyModal } from '../progression/PrivacyPolicyModal';
 import { StreetDemoModal } from '../StreetDemoModal';
 import { SupportModal } from '../SupportModal';
 import { triggerHapticImpact } from '../../utils/fx';
-import { isYouTubeSubscribed, setYouTubeSubscribed } from '../../utils/youtubeSupporter';
+import { isYouTubeSubscribed } from '../../utils/youtubeSupporter';
+import { openSafeExternalUrl } from '../../utils/safeExternalUrl';
 import { useUiMode } from '../../utils/uiMode';
 import { useLearnerMode } from '../../utils/learnerMode';
 
@@ -24,11 +25,19 @@ interface AppShellProps {
   onOpenLanding?: () => void;
   onOpenLanguageSelector?: () => void;
   onOpenAgeGate?: () => void;
+  onOpenSupporterPopup?: () => void;
 }
 
-function YoutubeSupporterPill({ isArabic, compact }: { isArabic: boolean; compact?: boolean }) {
+function YoutubeSupporterPill({
+  isArabic,
+  compact,
+  onOpenSupporterPopup,
+}: {
+  isArabic: boolean;
+  compact?: boolean;
+  onOpenSupporterPopup?: () => void;
+}) {
   const [subscribed, setSubscribed] = useState(() => isYouTubeSubscribed());
-  const [showPopover, setShowPopover] = useState(false);
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -41,59 +50,27 @@ function YoutubeSupporterPill({ isArabic, compact }: { isArabic: boolean; compac
     return () => window.removeEventListener('tb:supporter-change', handler);
   }, []);
 
-  return (
-    <div className="relative shrink-0">
-      <button
-        type="button"
-        onClick={() => setShowPopover(!showPopover)}
-        className={`px-2.5 py-2 min-h-[44px] rounded-xl text-[11px] font-extrabold flex items-center justify-between gap-1 transition shadow-sm shrink-0 cursor-pointer active:scale-95 ${
-          subscribed
-            ? 'bg-amber-500/15 text-amber-300 border border-amber-500/30'
-            : 'bg-stone-900/90 text-stone-300 border border-amber-500/40 hover:border-amber-400'
-        }`}
-      >
-        <span className="truncate">
-          {compact
-            ? (subscribed ? (isArabic ? '☀️ داعم' : '☀️ Subbed') : (isArabic ? '🌧️ اشترك' : '🌧️ Sub'))
-            : (subscribed ? (isArabic ? '☀️ داعم لقناة @sciamrsherif' : '☀️ Supporter @sciamrsherif') : (isArabic ? '🌧️ التطبيق زعلان... اشترك' : '🌧️ A little sad — Sub'))}
-        </span>
-        <span className="text-[9px]">▼</span>
-      </button>
+  const handleClick = () => {
+    if (!subscribed && onOpenSupporterPopup) {
+      onOpenSupporterPopup();
+      return;
+    }
+    openSafeExternalUrl('https://www.youtube.com/@sciamrsherif');
+  };
 
-      {showPopover && (
-        <div className={`absolute ${compact ? 'top-full mt-2 end-0 w-64' : 'bottom-full mb-2 left-0 right-0'} z-50 p-3.5 rounded-2xl bg-[#0B1C33] border border-cyan-500/40 shadow-2xl space-y-2.5 text-xs text-start`}>
-          <p className="text-slate-200 leading-relaxed font-medium">
-            {isArabic
-              ? 'كل الميزات مفتوحة 100% مجاناً! بس التطبيق زعلان شوية عشان مش مشترك في قناة عمرو شريف. اشترك وهيرجع بألوانه ☀️'
-              : 'All features are 100% free! But the app is a bit sad until you subscribe to Amr Sherif.'}
-          </p>
-          <div className="flex flex-col gap-2 pt-1">
-            <a
-              href="https://www.youtube.com/@sciamrsherif"
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => {
-                setYouTubeSubscribed(true);
-                setShowPopover(false);
-              }}
-              className="px-3 py-2.5 min-h-[44px] rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-center transition block shadow-md flex items-center justify-center cursor-pointer"
-            >
-              {isArabic ? '▶️ افتح قناة @sciamrsherif على يوتيوب' : 'Open YouTube Channel'}
-            </a>
-            <button
-              type="button"
-              onClick={() => {
-                setYouTubeSubscribed(!subscribed);
-                setShowPopover(false);
-              }}
-              className="px-3 py-2.5 min-h-[44px] rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 font-bold text-center transition border border-cyan-500/40 flex items-center justify-center cursor-pointer"
-            >
-              {subscribed ? (isArabic ? 'تفعيل الوضع الزعلان 🌧️' : 'Enable Sad Mode') : (isArabic ? '✅ اشتركت! رجّع الألوان ☀️' : 'I Subscribed! ☀️')}
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      className="px-2.5 py-2 min-h-[44px] rounded-xl text-[11px] font-extrabold flex items-center justify-center gap-1.5 transition shadow-sm shrink-0 cursor-pointer active:scale-95 bg-amber-500/15 text-amber-300 border border-amber-500/35 hover:bg-amber-500/25"
+      title={isArabic ? 'قناة @sciamrsherif على يوتيوب' : '@sciamrsherif YouTube channel'}
+    >
+      <span className="truncate">
+        {compact
+          ? (subscribed ? (isArabic ? '☀️ داعم' : '☀️ Subbed') : (isArabic ? '▶️ القناة' : '▶️ YouTube'))
+          : (subscribed ? (isArabic ? '☀️ داعم لقناة @sciamrsherif' : '☀️ Supporter @sciamrsherif') : (isArabic ? '▶️ اشترك في @sciamrsherif' : '▶️ Subscribe @sciamrsherif'))}
+      </span>
+    </button>
   );
 }
 
@@ -107,6 +84,7 @@ export function AppShell({
   onOpenLanding,
   onOpenLanguageSelector,
   onOpenAgeGate,
+  onOpenSupporterPopup,
 }: AppShellProps) {
   const [privacyOpen, setPrivacyOpen] = useState(false);
   const [supportOpen, setSupportOpen] = useState(false);
@@ -210,7 +188,7 @@ export function AppShell({
 
         {/* User Level Summary in Sidebar */}
         <div className="space-y-2">
-          <YoutubeSupporterPill isArabic={isArabic} />
+          <YoutubeSupporterPill isArabic={isArabic} onOpenSupporterPopup={onOpenSupporterPopup} />
           <div className="p-3.5 rounded-2xl bg-gradient-to-r from-cyan-950/60 to-blue-950/60 border border-cyan-500/30 text-start space-y-1 shadow-md">
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-extrabold text-cyan-400 block uppercase tracking-wider">
@@ -229,9 +207,9 @@ export function AppShell({
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top Header HUD Bar */}
         <header className="sticky top-0 z-40 backdrop-blur-md bg-[#06101c]/95 border-b border-cyan-500/20 px-3 sm:px-4 pb-2.5 pt-safe">
-          <div className="max-w-4xl mx-auto flex items-center justify-between gap-2">
+          <div className="max-w-4xl mx-auto flex flex-wrap md:flex-nowrap items-center justify-between gap-2">
             {/* Left HUD Controls */}
-            <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-none py-0.5">
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 py-0.5 min-w-0">
               {onOpenLanding && (
                 <button
                   type="button"
@@ -244,7 +222,7 @@ export function AppShell({
                 </button>
               )}
               <div className="md:hidden">
-                <YoutubeSupporterPill isArabic={isArabic} compact />
+                <YoutubeSupporterPill isArabic={isArabic} compact onOpenSupporterPopup={onOpenSupporterPopup} />
               </div>
 
               {!isKids && uiMode === 'pro' && (

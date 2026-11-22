@@ -260,6 +260,20 @@ export function PathView({
           <p className="text-xs text-slate-300 leading-relaxed">
             {isArabic ? 'اضغط الزر الأخضر وهنبدأ سوا خطوة بخطوة — مفيش أي قواعد معقدة أو توتر.' : 'Tap the green button to start step-by-step with zero stress.'}
           </p>
+          <div className="flex flex-wrap gap-1.5" data-testid="path-advantage-strip">
+            <span className="px-2.5 py-1 rounded-full bg-rose-500/15 border border-rose-500/30 text-rose-200 text-[11px] font-bold">
+              ❤️ {isArabic ? '∞ قلوب مجانية' : '∞ Free Hearts'}
+            </span>
+            <span className="px-2.5 py-1 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-cyan-200 text-[11px] font-bold">
+              🧠 {isArabic ? 'شرح أخطاء مجاني' : 'Free Mistake Coach'}
+            </span>
+            <span className="px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-200 text-[11px] font-bold">
+              ✈️ {isArabic ? '100% بدون إنترنت' : '100% Offline'}
+            </span>
+            <span className="px-2.5 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-200 text-[11px] font-bold">
+              🚫 {isArabic ? 'بدون إعلانات' : 'No Ads'}
+            </span>
+          </div>
           <div className="flex flex-col sm:flex-row gap-3 pt-2">
             <button
               onClick={() => {
@@ -362,6 +376,20 @@ export function PathView({
             ? (isArabic ? 'كمّل من مكان ما وقفت 🚀' : 'Continue Where You Left Off 🚀')
             : (isArabic ? `جاهز لأول جملة ${targetNameAr}؟ 🎯` : `Ready for Your First ${targetNameEn} Sentence? 🎯`)}
         </h2>
+        <div className="flex flex-wrap gap-1.5" data-testid="path-advantage-strip">
+          <span className="px-2.5 py-1 rounded-full bg-rose-500/15 border border-rose-500/30 text-rose-200 text-[11px] font-bold">
+            ❤️ {isArabic ? '∞ قلوب مجانية' : '∞ Free Hearts'}
+          </span>
+          <span className="px-2.5 py-1 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-cyan-200 text-[11px] font-bold">
+            🧠 {isArabic ? 'شرح أخطاء مجاني' : 'Free Mistake Coach'}
+          </span>
+          <span className="px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-200 text-[11px] font-bold">
+            ✈️ {isArabic ? '100% بدون إنترنت' : '100% Offline'}
+          </span>
+          <span className="px-2.5 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-200 text-[11px] font-bold">
+            🚫 {isArabic ? 'بدون إعلانات' : 'No Ads'}
+          </span>
+        </div>
         <div className="flex flex-wrap items-center gap-3 pt-1">
           <button
             onClick={() => {
@@ -473,7 +501,7 @@ export function PathView({
       </div>
 
       {/* Phase Selector Tabs */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+      <div className="flex flex-wrap items-center gap-2 pb-1">
         {currentLevelNode.phases.map((phase) => {
           const isSelected = phase.id === selectedPhaseId;
           const isPhaseUnlocked = true;
@@ -484,14 +512,14 @@ export function PathView({
               onClick={() => {
                 if (isPhaseUnlocked) setSelectedPhaseId(phase.id);
               }}
-              className={`min-h-[44px] px-4 py-2.5 rounded-2xl text-xs font-extrabold transition-all shrink-0 flex items-center gap-2 border ${
+              className={`min-h-[44px] max-w-full px-3.5 py-2 rounded-2xl text-xs font-extrabold transition-all flex items-center gap-2 border text-start cursor-pointer ${
                 isSelected
                   ? 'bg-gradient-to-r from-cyan-500 via-teal-400 to-cyan-500 text-slate-950 border-cyan-300 font-black shadow-lg shadow-cyan-500/30'
                   : 'bg-[#0B1C33] text-slate-300 border-[#1E3A5F] hover:border-cyan-500/40 hover:bg-[#122846]'
               }`}
             >
-              <span>{phase.id}</span>
-              <span className="whitespace-nowrap">{isArabic ? phase.titleAr : phase.titleEn}</span>
+              <span className="shrink-0">{phase.id}</span>
+              <span className="leading-snug">{isArabic ? phase.titleAr : phase.titleEn}</span>
             </button>
           );
         })}

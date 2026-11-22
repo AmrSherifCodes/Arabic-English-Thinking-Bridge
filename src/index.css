@@ -9,11 +9,6 @@ html {
   font-size: calc(100% * var(--font-scale, 1));
 }
 
-html.tb-sad-mode {
-  filter: saturate(0.55) brightness(0.96);
-  transition: filter 450ms ease;
-}
-
 html.light {
   color-scheme: light;
 }

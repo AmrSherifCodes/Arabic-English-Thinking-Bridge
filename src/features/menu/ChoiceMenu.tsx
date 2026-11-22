@@ -343,13 +343,13 @@ export function ChoiceMenu({
               </span>
             </div>
           </div>
-          <span className="menu__download-badge">v1.0.0 Stable</span>
+          <span className="menu__download-badge">v5.0.0 Official Stable</span>
         </a>
 
         {/* 7. Two-line Footer + Socials */}
         <footer className="menu__footer" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <p className="menu__footer-line1">
-            {isArabic ? 'صُنع في الإسكندرية، مصر 🇪🇬 · v1.0.0 Stable' : 'Crafted in Alexandria, Egypt 🇪🇬 · v1.0.0 Stable'}
+            {isArabic ? 'صُنع في الإسكندرية، مصر 🇪🇬 · v5.0.0 Official Stable' : 'Crafted in Alexandria, Egypt 🇪🇬 · v5.0.0 Official Stable'}
           </p>
           <p className="menu__footer-line2">
             {isArabic ? 'مستوحى من ميهاليس إلفثيريو · CC0 1.0' : 'Inspired by Mihalis Eleftheriou · CC0 1.0'}

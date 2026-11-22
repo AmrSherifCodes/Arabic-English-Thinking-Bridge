@@ -1222,7 +1222,7 @@ const ADDITIONAL_LOCALIZED_A1_A2_LESSONS: Pick<
   ru: {
     A1: createSimpleLocalizedLessons('Russian', 'A1', [
       { promptAr: 'أنا أتعلم الروسية.', targetSentence: 'Я изучаю русский язык.', wordChips: ['Я', 'изучаю', 'русский', 'язык.'] },
-      { promptAr: 'هي تشرب воду.', targetSentence: 'Она пьёт воду.', wordChips: ['Она', 'пьёт', 'воду.'] },
+      { promptAr: 'هي تشرب الماء.', targetSentence: 'Она пьёт воду.', wordChips: ['Она', 'пьёт', 'воду.'] },
       { promptAr: 'نحن نذهب إلى المدرسة.', targetSentence: 'Мы идём в школу.', wordChips: ['Мы', 'идём', 'в', 'школу.'] },
       { promptAr: 'هو يقرأ كتاباً جديداً.', targetSentence: 'Он читает новую книгу.', wordChips: ['Он', 'читает', 'новую', 'книгу.'] },
       { promptAr: 'أريد كوباً من الشاي.', targetSentence: 'Я хочу чашку чая.', wordChips: ['Я', 'хочу', 'чашку', 'чая.'] },
@@ -1356,17 +1356,21 @@ function mapLegacyExerciseToItem(
   fallbackExplanationAr?: string,
   fallbackExplanationEn?: string
 ): ExerciseItem {
+  const targetSentence = exercise.targetSentence || exercise.englishTarget || '';
   const chips = exercise.wordChips.length > 0
     ? exercise.wordChips
-    : exercise.englishTarget.split(' ');
+    : targetSentence.split(/\s+/).filter(Boolean);
   const type: ExerciseType = chips.length > 0 ? 'structure_builder' : 'translate_thought';
+  const promptAr = exercise.arabicThought || exercise.sourceThought || 'عبر عن المعنى باللغة المستهدفة:';
+  const rawPromptEn = (exercise as { promptEn?: string }).promptEn || exercise.sourceThought || '';
+  const promptEn = rawPromptEn && rawPromptEn !== targetSentence ? rawPromptEn : promptAr;
 
   return {
     id: exercise.id || `ex-${lessonId}-${index}`,
     type,
-    promptAr: exercise.arabicThought || exercise.sourceThought || 'عبر عن المعنى بالإنجليزي:',
-    promptEn: exercise.englishTarget || exercise.targetSentence || '',
-    targetSentence: exercise.targetSentence || exercise.englishTarget,
+    promptAr,
+    promptEn,
+    targetSentence,
     acceptableAlternatives: exercise.acceptableAlternatives,
     breakdownChunks: (exercise.breakdownChunks || []).map((chunk) => ({
       ...chunk,
@@ -1506,8 +1510,10 @@ export function generateProceduralStageLessons(
       : `${term1} ${term2} ${term3}.`;
 
     const wordChips = targetLang === 'ja' || targetLang === 'zh'
-      ? [term1, term2, term3]
-      : [term1, term2, `${term3}.`];
+      ? [term1, term2, term3].flatMap((t) => Array.from(t.replace(/[。、「」\s]/g, ''))).filter(Boolean)
+      : [term1, term2, term3].flatMap((t) =>
+          t.replace(/^[.,!?;:¿¡"'«»„“”()[\]{}،؛؟]+|[.,!?;:¿¡"'«»„“”()[\]{}،؛؟]+$/g, '').split(/\s+/)
+        ).filter(Boolean);
 
     const promptAr = `${ar1} ${ar2} ${ar3}`;
 
@@ -1579,9 +1585,10 @@ export function buildCourseStructure(
           ...ex,
           id: `ar-flipped-${ex.id}`,
           arabicThought: ex.englishTarget,
+          sourceThought: ex.englishTarget,
           englishTarget: ex.arabicThought,
           acceptableAlternatives: [ex.arabicThought],
-          wordChips: ex.arabicThought.split(/\s+/),
+          wordChips: ex.arabicThought.replace(/[.!?،؛؟,]/g, '').split(/\s+/).filter(Boolean),
           breakdownChunks: ex.breakdownChunks.map((bc) => ({
             ...bc,
             arabicText: bc.englishText,
@@ -1682,8 +1689,7 @@ export function buildCourseStructure(
         return createStageNode(definition, slice);
       });
     }
-    case 'en':
-    case 'ar': {
+    case 'en': {
       const lessons = PHASES_DATA.flatMap((phase) => phase.lessons);
       return stageDefs.map((definition, index) => {
         const start = (index * LESSONS_PER_STAGE) % lessons.length;

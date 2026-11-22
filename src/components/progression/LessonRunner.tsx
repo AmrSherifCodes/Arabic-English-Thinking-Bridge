@@ -2,12 +2,15 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { LessonNode, ExerciseItem } from '../../progression/types';
-import { CheckCircle2, XCircle, ArrowRight, Zap, Timer, Sparkles, Brain, Shuffle, X, Eye, EyeOff } from 'lucide-react';
+import { CheckCircle2, XCircle, ArrowRight, Zap, Timer, Sparkles, Brain, Shuffle, X, Eye, EyeOff, Volume2, RotateCcw } from 'lucide-react';
 import { computeNextHintWord } from '../../utils/habitPsychology';
 import {
   WordBankTile,
   appendPlacedTileId,
+  computeSentenceDiff,
   createWordBankTiles,
+  ensureRequiredWordBankTokens,
+  normalizeAnswerForComparison,
   selectNextHintTile,
   tokenizeTargetSentence,
 } from '../../utils/sentenceBuilderHelper';
@@ -15,6 +18,7 @@ import { soundFX } from '../../utils/soundFX';
 import { updateCognitiveProfile, runLocalTrainingStep, getDifficultyKnob } from '../../utils/OnlineLearningEngine';
 import { getDynamicExerciseOptions } from '../../utils/adaptiveCurriculum';
 import { getGlossForWord } from '../../utils/glossHelper';
+import { checkAnswerMatch, diagnoseL1TransferHint } from '../../utils/transferLogic';
 import { speakWithRate } from '../../utils/audio';
 import { useLanguagePair } from '../../hooks/useLanguagePair';
 import { getTargetDictionaryAsync } from '../../data/dictionaries';
@@ -103,6 +107,29 @@ function getNextHintWord(targetSentence: string, currentWordsStr: string) {
   };
 }
 
+function buildWordBankForExercise(exercise: ExerciseItem, idx: number): WordBankTile[] {
+  const rawOptions =
+    exercise.options && exercise.options.length > 0
+      ? exercise.options
+      : exercise.wordChips && exercise.wordChips.length > 0
+        ? exercise.wordChips
+        : tokenizeTargetSentence(exercise.targetSentence || '');
+
+  const difficulty = getDifficultyKnob();
+  const { wordChips: dynamicChips } = getDynamicExerciseOptions(
+    rawOptions,
+    exercise.targetSentence,
+    difficulty
+  );
+
+  const options = ensureRequiredWordBankTokens(dynamicChips, exercise.targetSentence);
+  for (let index = options.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [options[index], options[swapIndex]] = [options[swapIndex], options[index]];
+  }
+  return createWordBankTiles(`${exercise.id}-${idx}`, options);
+}
+
 interface LessonRunnerProps {
   lesson: LessonNode;
   onCompleteSession: (earnedXp: number, accuracyPercent: number) => void;
@@ -178,21 +205,25 @@ export function LessonRunner({
   const [lastExerciseXp, setLastExerciseXp] = useState(10);
   const [isCriticalHit, setIsCriticalHit] = useState(false);
 
-  // Automaticity Timer Tracking (Reflex Speed in Seconds)
+  // Automaticity Timer & Mastery Loop Tracking (Zero Heart Paywall)
   const exerciseStartTimeRef = useRef<number>(Date.now());
+  const initialExerciseCountRef = useRef<number>(lesson.exercises.length);
+  const queuedRetryIdsRef = useRef<Set<string>>(new Set());
   const [responseTimesMs, setResponseTimesMs] = useState<number[]>([]);
+  const [firstTryCorrectCount, setFirstTryCorrectCount] = useState(0);
+  const [repairedMistakesCount, setRepairedMistakesCount] = useState(0);
+  const [lastSubmittedAnswer, setLastSubmittedAnswer] = useState('');
 
   const [autoHintPill, setAutoHintPill] = useState<string | null>(null);
   const [showNameForge, setShowNameForge] = useState(lesson.stage === 'Pre-A0');
   const [inputMode, setInputMode] = useState<'tiles' | 'keyboard'>('tiles');
 
   useEffect(() => {
-    setInputMode('tiles');
     setHintDrawerOpen(false);
     setHintStage(1);
   }, [currentIndex]);
 
-  // Desktop Keyboard Shortcuts (Enter to Check / Next)
+  // Desktop Keyboard Shortcuts (Enter to Check / Next, Backspace to undo last placed tile)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (showSummary || showExitConfirm) return;
@@ -205,6 +236,11 @@ export function LessonRunner({
             handleNextExercise();
           }
         }
+        return;
+      }
+      if (e.key === 'Backspace' && !isAnswered && inputMode === 'tiles') {
+        e.preventDefault();
+        setPlacedTileIds((prev) => (prev.length > 0 ? prev.slice(0, -1) : prev));
         return;
       }
       if (e.key === 'Enter') {
@@ -229,25 +265,7 @@ export function LessonRunner({
 
   useEffect(() => {
     if (!currentExercise) return;
-    const rawOptions = currentExercise.options && currentExercise.options.length > 0
-      ? currentExercise.options
-      : currentExercise.wordChips && currentExercise.wordChips.length > 0
-      ? currentExercise.wordChips
-      : currentExercise.targetSentence ? currentExercise.targetSentence.split(/\s+/) : [];
-
-    const difficulty = getDifficultyKnob();
-    const { wordChips: dynamicChips } = getDynamicExerciseOptions(
-      rawOptions,
-      currentExercise.targetSentence,
-      difficulty
-    );
-
-    const options = [...dynamicChips];
-    for (let index = options.length - 1; index > 0; index -= 1) {
-      const swapIndex = Math.floor(Math.random() * (index + 1));
-      [options[index], options[swapIndex]] = [options[swapIndex], options[index]];
-    }
-    setWordBankTiles(createWordBankTiles(`${currentExercise.id}-${currentIndex}`, options));
+    setWordBankTiles(buildWordBankForExercise(currentExercise, currentIndex));
     setPlacedTileIds([]);
   }, [currentExercise?.id, currentIndex]);
 
@@ -334,20 +352,26 @@ export function LessonRunner({
       userSentence = userInput.trim();
     }
 
-    const normalizeAnswer = (value: string) => {
-      const normalized = value.toLowerCase().replace(/['".,?!。、「」]/g, '');
-      return isJapaneseExercise
-        ? normalized.replace(/\s+/g, '')
-        : normalized.trim().replace(/\s+/g, ' ');
-    };
+    const normalizeAnswer = (value: string) =>
+      normalizeAnswerForComparison(value, isJapaneseExercise);
     const normUser = normalizeAnswer(userSentence);
     const normTarget = normalizeAnswer(currentExercise.targetSentence);
+
+    const transferMatch = checkAnswerMatch(userSentence, {
+      ...currentExercise,
+      englishTarget: currentExercise.targetSentence,
+      arabicThought: currentExercise.promptAr,
+      acceptableAlternatives: currentExercise.acceptableAlternatives || [],
+    } as any);
 
     const isMatch =
       normUser === normTarget ||
       (currentExercise.acceptableAlternatives || []).some(
         (alt) => normalizeAnswer(alt) === normUser
-      );
+      ) ||
+      transferMatch.isCorrect;
+
+    setLastSubmittedAnswer(userSentence);
 
     const category = currentExercise.weakSpotTag || 'general';
     updateCognitiveProfile(timeSpentMs, isMatch, category);
@@ -379,6 +403,7 @@ export function LessonRunner({
       if ((correctAnswersCount + 1) % 5 === 0) {
         soundFX.playFanfare();
       }
+      speakWithRate(currentExercise.targetSentence, 1.0, undefined, activeTargetLang);
 
       if (nextStreak % 3 === 0 || critical) {
         confetti({
@@ -393,6 +418,10 @@ export function LessonRunner({
       setSessionStreak(0);
       setIsCriticalHit(false);
       setLastExerciseXp(0);
+      if (!currentExercise.id.endsWith('__retry') && !queuedRetryIdsRef.current.has(currentExercise.id)) {
+        queuedRetryIdsRef.current.add(currentExercise.id);
+        setExercises((prev) => [...prev, { ...currentExercise, id: `${currentExercise.id}__retry` }]);
+      }
     }
 
     try {
@@ -406,6 +435,11 @@ export function LessonRunner({
 
     if (isMatch) {
       setCorrectAnswersCount((prev) => prev + 1);
+      if (currentExercise.id.endsWith('__retry')) {
+        setRepairedMistakesCount((prev) => prev + 1);
+      } else {
+        setFirstTryCorrectCount((prev) => prev + 1);
+      }
     }
   };
 
@@ -419,30 +453,7 @@ export function LessonRunner({
     setLastAddedHintWord(null);
 
     if (currentIndex + 1 < exercises.length) {
-      const nextIdx = currentIndex + 1;
-      const nextExercise = exercises[nextIdx];
-      if (nextExercise) {
-        const rawOptions = nextExercise.options && nextExercise.options.length > 0
-          ? nextExercise.options
-          : nextExercise.wordChips && nextExercise.wordChips.length > 0
-          ? nextExercise.wordChips
-          : nextExercise.targetSentence ? nextExercise.targetSentence.split(/\s+/) : [];
-
-        const difficulty = getDifficultyKnob();
-        const { wordChips: dynamicChips } = getDynamicExerciseOptions(
-          rawOptions,
-          nextExercise.targetSentence,
-          difficulty
-        );
-
-        const options = [...dynamicChips];
-        for (let index = options.length - 1; index > 0; index -= 1) {
-          const swapIndex = Math.floor(Math.random() * (index + 1));
-          [options[index], options[swapIndex]] = [options[swapIndex], options[index]];
-        }
-        setWordBankTiles(createWordBankTiles(`${nextExercise.id}-${nextIdx}`, options));
-      }
-      setCurrentIndex(nextIdx);
+      setCurrentIndex(currentIndex + 1);
     } else {
       setShowSummary(true);
     }
@@ -476,7 +487,7 @@ export function LessonRunner({
   }
 
   if (showSummary) {
-    const accuracy = Math.round((correctAnswersCount / exercises.length) * 100);
+    const accuracy = Math.min(100, Math.round((firstTryCorrectCount / Math.max(1, initialExerciseCountRef.current)) * 100));
     const totalTimeMs = responseTimesMs.reduce((a, b) => a + b, 0);
     const avgSecPerExercise = responseTimesMs.length > 0
       ? Number((totalTimeMs / responseTimesMs.length / 1000).toFixed(1))
@@ -538,6 +549,12 @@ export function LessonRunner({
               </span>
             </div>
 
+            {repairedMistakesCount > 0 && (
+              <div className="px-3.5 py-2 rounded-2xl bg-cyan-500/15 border border-cyan-500/30 text-cyan-200 text-xs font-black">
+                🔄 {isArabic ? `أصلحت ${repairedMistakesCount} أخطاء بمهارة!` : `Mastered ${repairedMistakesCount} past mistake(s)!`}
+              </div>
+            )}
+
             <button
               onClick={() => {
                 onCompleteSession(earnedXp, accuracy);
@@ -559,21 +576,38 @@ export function LessonRunner({
     <div className="fixed inset-0 z-50 bg-bg/90 backdrop-blur-xl flex items-center justify-center p-0 pt-safe pb-safe sm:p-4 md:p-6" dir={isArabic ? 'rtl' : 'ltr'}>
       <div className="w-full h-[100dvh] flex flex-col sm:h-auto sm:max-h-[88dvh] sm:max-w-xl md:max-w-2xl lg:max-w-4xl sm:rounded-3xl bg-bg border border-border shadow-2xl overflow-hidden relative">
         {/* Top Header Progress Bar */}
-        <div className="sticky top-0 z-40 px-4 pb-3 pt-safe border-b border-border flex items-center gap-3 bg-[#06101c]/95 backdrop-blur-md shrink-0">
+        <div className="sticky top-0 z-40 px-3 sm:px-4 pb-3 pt-safe border-b border-border flex items-center gap-2 sm:gap-3 bg-[#06101c]/95 backdrop-blur-md shrink-0">
           <button
             onClick={() => setShowExitConfirm(true)}
-            className="p-2 min-h-[48px] min-w-[48px] flex items-center justify-center rounded-xl bg-surface-2 text-muted hover:text-text font-bold transition cursor-pointer"
+            className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl bg-surface-2 text-muted hover:text-text font-bold transition cursor-pointer shrink-0"
             aria-label={isArabic ? 'إغلاق الدرس' : 'Close Lesson'}
           >
             <X size={20} />
           </button>
-          <div className="flex-1 bg-surface-2 h-3 rounded-full overflow-hidden border border-border">
+          <div className="flex-1 min-w-[32px] bg-surface-2 h-3 rounded-full overflow-hidden border border-border">
             <div
               className="bg-success h-full transition-all duration-300"
               style={{ width: `${progressPercent}%` }}
             />
           </div>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+            <span
+              data-testid="unlimited-hearts-badge"
+              className="px-2 py-1 rounded-full bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-black flex items-center gap-1 whitespace-nowrap"
+              title={isArabic ? 'قلوب لا محدودة مجاناً — أخطئ وتعلم بحرية' : 'Unlimited free hearts — zero paywalls'}
+            >
+              <span>❤️</span>
+              <span>∞</span>
+              <span className="hidden sm:inline">{isArabic ? 'مجاناً' : 'Free'}</span>
+            </span>
+            {sessionStreak >= 2 && (
+              <span
+                data-testid="combo-flame"
+                className="px-2 py-1 rounded-full bg-amber-500/20 border border-amber-400/40 text-amber-300 text-xs font-black whitespace-nowrap"
+              >
+                🔥 x{sessionStreak}
+              </span>
+            )}
             <button
               type="button"
               onClick={() => {
@@ -632,16 +666,26 @@ export function LessonRunner({
             </motion.div>
           )}
 
-          {/* Compact Visual Illustration (only shown after answered, otherwise omitted to save vertical space) */}
-          {isAnswered && (
-            <LevelVisualIllustration
-              stage={lesson.stage || 'A0'}
-              levelNumber={currentIndex + 1}
-              promptAr={currentExercise.promptAr}
-              englishTarget={currentExercise.targetSentence}
-              className="w-full h-auto max-h-[120px]"
-            />
+          {currentExercise.id.endsWith('__retry') && (
+            <div className="flex justify-center">
+              <span
+                data-testid="mistake-repair-badge"
+                className="px-3 py-1 rounded-full bg-cyan-500/15 border border-cyan-500/40 text-cyan-200 text-xs font-black"
+              >
+                🔄 {isArabic ? 'إصلاح خطأ سابق · Mistake Repair' : 'Mistake Repair · Master It Now'}
+              </span>
+            </div>
           )}
+
+          {/* Always-visible unclipped scene card; reveals target only after answered */}
+          <LevelVisualIllustration
+            stage={lesson.stage || 'A0'}
+            levelNumber={currentIndex + 1}
+            promptAr={currentExercise.promptAr}
+            englishTarget={currentExercise.targetSentence}
+            revealTarget={isAnswered}
+            className="max-w-[360px]"
+          />
 
           {/* Source Thought Prompt */}
           <div className="p-4 rounded-3xl bg-surface border border-border space-y-2 flex items-center justify-between gap-2">
@@ -658,22 +702,21 @@ export function LessonRunner({
                 <button
                   type="button"
                   onClick={() => setShowGlosses((v) => !v)}
-                  className="px-2.5 py-1.5 rounded-xl bg-surface-2 text-text text-xs font-bold border border-border flex items-center gap-1 cursor-pointer"
+                  className="px-2.5 py-1.5 min-h-[44px] rounded-xl bg-surface-2 text-text text-xs font-bold border border-border flex items-center gap-1 cursor-pointer"
                   title={showGlosses ? (isArabic ? 'إخفاء المعاني' : 'Hide Glosses') : (isArabic ? 'إظهار المعاني' : 'Show Glosses')}
                 >
                   {showGlosses ? <EyeOff size={14} /> : <Eye size={14} />}
                   <span className="hidden sm:inline">{showGlosses ? (isArabic ? 'إخفاء المعاني' : 'Hide Glosses') : (isArabic ? 'إظهار المعاني' : 'Show Glosses')}</span>
                 </button>
               )}
-              {uiMode === 'pro' && (
-                <button
-                  type="button"
-                  onClick={() => setInputMode(m => m === 'tiles' ? 'keyboard' : 'tiles')}
-                  className="px-3 py-1.5 rounded-xl bg-surface-2 text-text text-xs font-bold border border-border shrink-0 cursor-pointer"
-                >
-                  {inputMode === 'tiles' ? (isArabic ? '⌨️ كيبورد' : 'Keyboard') : (isArabic ? '🧩 كلمات' : 'Word Tiles')}
-                </button>
-              )}
+              <button
+                type="button"
+                data-testid="toggle-input-mode"
+                onClick={() => setInputMode((m) => (m === 'tiles' ? 'keyboard' : 'tiles'))}
+                className="px-3 py-1.5 min-h-[44px] rounded-xl bg-surface-2 text-text text-xs font-bold border border-border shrink-0 cursor-pointer"
+              >
+                {inputMode === 'tiles' ? (isArabic ? '⌨️ كيبورد' : 'Keyboard') : (isArabic ? '🧩 كلمات' : 'Word Tiles')}
+              </button>
             </div>
           </div>
 
@@ -717,6 +760,18 @@ export function LessonRunner({
                       </button>
                     );
                   })
+                )}
+                {placedTileIds.length > 0 && !isAnswered && (
+                  <button
+                    type="button"
+                    data-testid="clear-placed-tiles"
+                    onClick={() => setPlacedTileIds([])}
+                    aria-label={isArabic ? 'مسح الكلمات المختارة' : 'Clear selected words'}
+                    className="ms-auto px-2.5 py-2 min-h-[44px] rounded-xl bg-slate-800/80 border border-slate-700 text-slate-300 hover:text-white text-xs font-bold flex items-center gap-1 cursor-pointer shrink-0"
+                  >
+                    <RotateCcw size={13} />
+                    <span>{isArabic ? 'مسح' : 'Clear'}</span>
+                  </button>
                 )}
               </div>
 
@@ -770,34 +825,120 @@ export function LessonRunner({
             </div>
           )}
 
-          {/* Rule Explanation "WHY" Feedback Card */}
+          {/* Rule Explanation "WHY" Feedback Card + Word-by-Word Diff + Interactive Sentence Map */}
           {isAnswered && (
             <div
-              className={`p-4 rounded-2xl border text-start pb-3 ${
+              className={`p-4 rounded-2xl border text-start pb-3 space-y-3 ${
                 isCorrect
                   ? 'bg-success/15 border-success text-text'
                   : 'bg-danger/15 border-danger text-text'
               }`}
               dir={isArabic ? 'rtl' : 'ltr'}
             >
-              <div className="flex items-center gap-2 font-black text-sm mb-1">
-                {isCorrect ? (
-                  <>
-                    <CheckCircle2 className="text-success" size={20} />
-                    <span>{isArabic ? 'إجابة ممتازة وبناء صحيح! 🎉' : 'Great Job! Perfect Structure! 🎉'}</span>
-                  </>
-                ) : (
-                  <>
-                    <XCircle className="text-danger" size={20} />
-                    <span>{isArabic ? 'إجابة تحتاج تعديل بسيط' : 'Needs adjustment'}</span>
-                  </>
-                )}
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 font-black text-sm">
+                  {isCorrect ? (
+                    <>
+                      <CheckCircle2 className="text-success shrink-0" size={20} />
+                      <span>{isArabic ? 'إجابة ممتازة وبناء صحيح! 🎉' : 'Great Job! Perfect Structure! 🎉'}</span>
+                    </>
+                  ) : (
+                    <>
+                      <XCircle className="text-danger shrink-0" size={20} />
+                      <span>{isArabic ? 'إجابة تحتاج تعديل بسيط' : 'Needs adjustment'}</span>
+                    </>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => speakWithRate(currentExercise.targetSentence, 1.0, undefined, activeTargetLang)}
+                  className="px-3 py-1.5 min-h-[36px] rounded-xl bg-surface-2 border border-border text-text hover:bg-surface text-xs font-black flex items-center gap-1.5 cursor-pointer shrink-0"
+                  aria-label={isArabic ? 'استمع للجملة الصحيحة' : 'Listen to target sentence'}
+                >
+                  <Volume2 size={14} className="text-cyan-400" />
+                  <span>{isArabic ? 'اسمع' : 'Listen'}</span>
+                </button>
               </div>
 
-              <p className="text-xs sm:text-sm font-semibold text-text-soft leading-normal sm:leading-relaxed mt-1 pb-1" dir={isArabic ? 'rtl' : 'ltr'}>
+              <p className="text-xs sm:text-sm font-semibold text-text-soft leading-normal sm:leading-relaxed pb-0.5" dir={isArabic ? 'rtl' : 'ltr'}>
                 <strong>{isArabic ? 'الجملة الصحيحة:' : 'Target:'}</strong>{' '}
                 <span dir="ltr" className="font-bold text-text inline-block pb-0.5">{currentExercise.targetSentence}</span>
               </p>
+
+              {!isCorrect && (() => {
+                const diffTokens = computeSentenceDiff(lastSubmittedAnswer, currentExercise.targetSentence);
+                const l1Hint = diagnoseL1TransferHint(lastSubmittedAnswer, currentExercise.targetSentence, activeTargetLang, isArabic);
+                return (
+                  <div className="space-y-2.5 border-t border-border/50 pt-2.5">
+                    {diffTokens.length > 0 && (
+                      <div className="space-y-1.5" data-testid="mistake-diff">
+                        <span className="text-[11px] font-black text-amber-300 block">
+                          {isArabic ? '🔍 مقارنة كلمة بكلمة:' : '🔍 Word-by-word diff:'}
+                        </span>
+                        <div className="flex flex-wrap gap-1.5" dir={isTargetRtl ? 'rtl' : 'ltr'}>
+                          {diffTokens.map((tok, idx) => (
+                            <span
+                              key={`${tok.word}-${idx}`}
+                              className={`px-2.5 py-1 rounded-lg border text-xs font-bold inline-flex items-center gap-1 ${
+                                tok.status === 'match'
+                                  ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'
+                                  : 'bg-amber-500/20 border-amber-400/60 text-amber-200'
+                              }`}
+                            >
+                              {tok.status === 'wrong' && tok.userWord && (
+                                <span className="line-through text-rose-300 opacity-90">{tok.userWord}</span>
+                              )}
+                              <span>{tok.word}</span>
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {l1Hint && (
+                      <div
+                        data-testid="l1-diagnosis"
+                        className="p-2.5 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-xs text-cyan-100 leading-relaxed"
+                      >
+                        🧠 <strong>{isArabic ? 'مدرب التفكير (مجاناً):' : 'Free L1 Coach:'}</strong> {l1Hint}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+
+              {/* Interactive Tap-to-Hear Sentence Map */}
+              {(() => {
+                const mapTokens = tokenizeTargetSentence(currentExercise.targetSentence);
+                if (mapTokens.length === 0) return null;
+                return (
+                  <div className="space-y-1.5 border-t border-border/50 pt-2.5" data-testid="sentence-map">
+                    <span className="text-[11px] font-black text-cyan-300 block">
+                      🧩 {isArabic ? 'خريطة الجملة (اضغط أي كلمة للنطق):' : 'Sentence Map (tap any word to hear):'}
+                    </span>
+                    <div className="flex flex-wrap gap-1.5" dir={isTargetRtl ? 'rtl' : 'ltr'}>
+                      {mapTokens.map((tok, idx) => {
+                        const gloss = getGlossForWord(tok, currentExercise.breakdownChunks || [], activeTargetLang, activeSourceLang);
+                        return (
+                          <button
+                            key={`${tok}-${idx}`}
+                            type="button"
+                            onClick={() => speakWithRate(tok, 1.0, undefined, activeTargetLang)}
+                            className="px-2.5 py-1.5 min-h-[38px] rounded-xl bg-surface-2 border border-border hover:border-cyan-400/60 text-text text-xs font-bold flex flex-col items-center justify-center cursor-pointer active:scale-95 transition"
+                          >
+                            <span>{tok}</span>
+                            {gloss && (
+                              <span className="text-[10px] font-medium text-muted leading-none mt-0.5" dir={!isTargetRtl ? 'rtl' : 'ltr'}>
+                                {gloss}
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })()}
 
               {(() => {
                 const arHasArabic = /[\u0600-\u06FF]/.test(currentExercise.explanationAr || '');
@@ -806,7 +947,7 @@ export function LessonRunner({
                   : (currentExercise.explanationEn || (arHasArabic ? '' : currentExercise.explanationAr) || getSmartGrammarClue(currentExercise, false, activeTargetLang));
                 if (!displayExplanation) return null;
                 return (
-                  <p className="text-xs text-muted mt-2 border-t border-border/50 pt-2 pb-1 leading-relaxed" dir={isArabic ? 'rtl' : 'ltr'}>
+                  <p className="text-xs text-muted border-t border-border/50 pt-2 pb-1 leading-relaxed" dir={isArabic ? 'rtl' : 'ltr'}>
                     💡 <strong>{isArabic ? 'سبب القاعدة:' : 'Rule Explanation:'}</strong>{' '}
                     {displayExplanation}
                   </p>

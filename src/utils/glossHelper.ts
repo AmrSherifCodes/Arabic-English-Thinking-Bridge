@@ -1613,7 +1613,7 @@ const TURKISH_COMMON_WORD_GLOSSES: Record<string, string> = {
   'öğreniyorum': 'أتعلم',
   'öğreniyoruz': 'نتعلم',
   'öğreniyor': 'يتعلم',
-  'yıyoruz': 'نأكل',
+  'yiyoruz': 'نأكل',
   'yiyorum': 'آكل',
   'yiyor': 'يأكل',
   'yiyorsunuz': 'تأكلون',

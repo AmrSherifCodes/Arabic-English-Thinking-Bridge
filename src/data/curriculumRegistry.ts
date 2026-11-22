@@ -50,7 +50,7 @@ export function getCurriculum(source: SourceLanguage = 'ar', target: TargetLangu
             promptEn: enText,
             promptAr: arText,
             wordChips: arText
-              ? arText.replace(/[.!?،,]/g, '').split(/\s+/).filter(Boolean)
+              ? arText.replace(/[.!?،؛؟,]/g, '').split(/\s+/).filter(Boolean)
               : ex.wordChips,
             breakdownChunks: (ex.breakdownChunks || []).map(chunk => ({
               ...chunk,

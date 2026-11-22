@@ -1,6 +1,12 @@
 import { ALL_LESSONS } from '../data/lessons';
 import { Lesson, UserProgress } from '../types';
 import type { UserProfile } from '../hooks/useUserProfile';
+import {
+  ensureRequiredWordBankTokens,
+  normalizeAnswerForComparison,
+  normalizeTileWord,
+  tokenizeTargetSentence,
+} from './sentenceBuilderHelper';
 
 export interface AdaptiveRecommendation {
   lessonIndex: number;
@@ -52,31 +58,99 @@ export function getStageComplexityRules(stage: string): StageComplexityRules {
 
 /**
  * Dynamically adjusts exercise word chips and time limits based on the user's difficulty knob.
+ * Guarantees that every token required by targetSentence (including duplicate counts) is
+ * always preserved across Easy, Medium, and Hard modes.
  */
 export function getDynamicExerciseOptions(
   options: string[],
   targetSentence: string,
   difficultyLevel: 'Easy' | 'Medium' | 'Hard'
 ): { wordChips: string[]; timerLimitSec?: number } {
-  const targetWords = targetSentence.trim().split(/\s+/);
+  const safeOptions = ensureRequiredWordBankTokens(options, targetSentence);
 
   if (difficultyLevel === 'Hard') {
-    const distractors = options.filter(
-      (opt) => !targetWords.some((w) => w.toLowerCase() === opt.toLowerCase())
-    );
-    if (distractors.length > 2) {
-      const distractorsToRemove = new Set(distractors.slice(0, 2));
-      const filteredOptions = options.filter((opt) => !distractorsToRemove.has(opt));
-      return { wordChips: filteredOptions, timerLimitSec: 15 };
+    const isCjk = /[\u3040-\u30ff\u3400-\u9fff]/u.test(targetSentence || '');
+
+    if (isCjk) {
+      const targetNorm = normalizeAnswerForComparison(targetSentence, true);
+      const remainingChars = new Map<string, number>();
+      for (const ch of targetNorm) {
+        remainingChars.set(ch, (remainingChars.get(ch) || 0) + 1);
+      }
+
+      const protectedFlags = safeOptions.map((opt) => {
+        const optNorm = normalizeAnswerForComparison(opt, true);
+        if (!optNorm) return false;
+        let needed = false;
+        for (const ch of optNorm) {
+          if ((remainingChars.get(ch) || 0) > 0) {
+            needed = true;
+            break;
+          }
+        }
+        if (needed) {
+          for (const ch of optNorm) {
+            const left = remainingChars.get(ch) || 0;
+            if (left > 0) remainingChars.set(ch, left - 1);
+          }
+        }
+        return needed;
+      });
+
+      const distractorIndices = protectedFlags
+        .map((isProtected, idx) => (isProtected ? -1 : idx))
+        .filter((idx) => idx !== -1);
+
+      if (distractorIndices.length > 2) {
+        const dropSet = new Set(distractorIndices.slice(0, 2));
+        const filtered = safeOptions.filter((_, idx) => !dropSet.has(idx));
+        return {
+          wordChips: ensureRequiredWordBankTokens(filtered, targetSentence),
+          timerLimitSec: 15,
+        };
+      }
+      return { wordChips: safeOptions, timerLimitSec: 15 };
     }
-    return { wordChips: options, timerLimitSec: 15 };
+
+    const remainingRequired = new Map<string, number>();
+    for (const token of tokenizeTargetSentence(targetSentence)) {
+      const key = normalizeTileWord(token);
+      if (!key) continue;
+      remainingRequired.set(key, (remainingRequired.get(key) || 0) + 1);
+    }
+
+    const protectedFlags = safeOptions.map((opt) => {
+      if (/\s/.test(opt)) return false;
+      const key = normalizeTileWord(opt);
+      const needed = remainingRequired.get(key) || 0;
+      if (needed > 0) {
+        remainingRequired.set(key, needed - 1);
+        return true;
+      }
+      return false;
+    });
+
+    const distractorIndices = protectedFlags
+      .map((isProtected, idx) => (isProtected ? -1 : idx))
+      .filter((idx) => idx !== -1);
+
+    if (distractorIndices.length > 2) {
+      const dropSet = new Set(distractorIndices.slice(0, 2));
+      const filtered = safeOptions.filter((_, idx) => !dropSet.has(idx));
+      return {
+        wordChips: ensureRequiredWordBankTokens(filtered, targetSentence),
+        timerLimitSec: 15,
+      };
+    }
+
+    return { wordChips: safeOptions, timerLimitSec: 15 };
   }
 
   if (difficultyLevel === 'Easy') {
-    return { wordChips: options, timerLimitSec: 35 };
+    return { wordChips: safeOptions, timerLimitSec: 35 };
   }
 
-  return { wordChips: options, timerLimitSec: 25 };
+  return { wordChips: safeOptions, timerLimitSec: 25 };
 }
 
 /**

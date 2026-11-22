@@ -1,6 +1,6 @@
 [package]
 name = "thinking-english"
-version = "3.1.0"
+version = "5.0.0"
 description = "Arabic-to-English Cognitive Transfer App"
 authors = ["Amr Sherif"]
 edition = "2021"

@@ -27,9 +27,10 @@ export async function seedStorage(page: Page) {
     };
     window.localStorage.setItem('tb.progressionState', JSON.stringify(progression));
 
-    // 3. hide download banner, onboarding, and unlock audio
+    // 3. hide download banner, onboarding, one-time supporter nudge, and unlock audio
     window.localStorage.setItem('hide_download_banner', 'true');
     window.localStorage.setItem('tb.onboardingCompleted', 'true');
+    window.localStorage.setItem('tb.yt_nudge_dismissed_v1', 'true');
     window.sessionStorage.setItem('tb.audioUnlocked', 'true');
   });
 }

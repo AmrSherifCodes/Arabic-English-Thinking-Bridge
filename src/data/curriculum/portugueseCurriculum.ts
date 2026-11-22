@@ -602,7 +602,7 @@ export function getPortuguesePhases(source: SourceLanguage = 'ar'): Phase[] {
               sourceThought: sourceThought(source, 'لماذا تدرس اللغة البرتغالية؟', 'Why do you study Portuguese?'),
               targetSentence: 'Por que você estuda português?',
               acceptableAlternatives: ['Por que estuda português?'],
-              wordChips: ['Por que', 'você', 'estuda', 'português', '?', 'porque'],
+              wordChips: ['Por', 'que', 'você', 'estuda', 'português', 'porque'],
               breakdownChunks: [
                 {
                   arabicText: 'Por que',
@@ -1167,7 +1167,7 @@ export function getPortuguesePhases(source: SourceLanguage = 'ar'): Phase[] {
               sourceThought: sourceThought(source, 'نفضل القطار لأنه أسرع من الحافلة', 'We prefer the train because it is faster than the bus'),
               targetSentence: 'Preferimos o comboio porque é mais rápido do que o autocarro',
               acceptableAlternatives: ['Preferimos o trem porque é mais rápido do que o ônibus'],
-              wordChips: ['Preferimos', 'o', 'comboio', 'porque', 'é', 'mais', 'rápido', 'do que', 'o', 'autocarro', 'muito', 'menos' /* distractor */],
+              wordChips: ['Preferimos', 'o', 'comboio', 'porque', 'é', 'mais', 'rápido', 'do', 'que', 'o', 'autocarro', 'muito', 'menos' /* distractor */],
               breakdownChunks: [
                 {
                   arabicText: 'Preferimos o comboio',
@@ -1224,7 +1224,7 @@ export function getPortuguesePhases(source: SourceLanguage = 'ar'): Phase[] {
               sourceThought: sourceThought(source, 'يجب أن تأتي إلى الاجتماع في الوقت المحدد', 'It is necessary that you come to the meeting on time'),
               targetSentence: 'É necessário que você venha à reunião a tempo',
               acceptableAlternatives: ['É preciso que você venha à reunião a tempo'],
-              wordChips: ['É necessário que', 'você', 'venha', 'à', 'reunião', 'a', 'tempo', 'vem'],
+              wordChips: ['É', 'necessário', 'que', 'você', 'venha', 'à', 'reunião', 'a', 'tempo', 'vem'],
               breakdownChunks: [
                 {
                   arabicText: 'É necessário que você venha',
@@ -1572,7 +1572,7 @@ export function getPortuguesePhases(source: SourceLanguage = 'ar'): Phase[] {
               sourceThought: sourceThought(source, 'المشروع صعب، ومع ذلك سنحققه', 'The project is difficult, however we will achieve it'),
               targetSentence: 'O projeto é difícil, no entanto vamos realizá-lo',
               acceptableAlternatives: ['O projeto é difícil, todavia vamos realizá-lo'],
-              wordChips: ['O', 'projeto', 'é', 'difícil', 'no entanto', 'vamos', 'realizá-lo', 'sempre'],
+              wordChips: ['O', 'projeto', 'é', 'difícil', 'no', 'entanto', 'vamos', 'realizá-lo', 'sempre'],
               breakdownChunks: [
                 {
                   arabicText: 'O projeto é difícil',

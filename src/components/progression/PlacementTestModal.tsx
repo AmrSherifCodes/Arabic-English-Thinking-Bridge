@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { CefrLevelId, PhaseId, ProgressionState } from '../../progression/types';
-import { generatePlacementTest, getAllHierarchicalLessons } from '../../progression/cefrHierarchy';
-import { X, Compass, CheckCircle2, AlertCircle, ArrowLeft, ArrowRight, Award } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { CefrLevelId, PhaseId, ProgressionState, ExerciseItem } from '../../progression/types';
+import { generatePlacementTest } from '../../progression/cefrHierarchy';
+import { X, Compass, CheckCircle2, ArrowLeft, ArrowRight, Award } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface PlacementTestModalProps {
@@ -12,10 +12,28 @@ interface PlacementTestModalProps {
   isArabic?: boolean;
 }
 
+function buildSentenceChoices(exercises: ExerciseItem[]): string[][] {
+  return exercises.map((ex, idx) => {
+    const distractors: string[] = [];
+    for (let offset = 1; offset < exercises.length && distractors.length < 3; offset++) {
+      const candidate = exercises[(idx + offset) % exercises.length]?.targetSentence;
+      if (candidate && candidate !== ex.targetSentence && !distractors.includes(candidate)) {
+        distractors.push(candidate);
+      }
+    }
+    const choices = [ex.targetSentence, ...distractors];
+    for (let i = choices.length - 1; i > 0; i--) {
+      const j = (idx * 5 + i * 3) % (i + 1);
+      [choices[i], choices[j]] = [choices[j], choices[i]];
+    }
+    return choices;
+  });
+}
+
 export function PlacementTestModal({
   isOpen,
   onClose,
-  state,
+  state: _state,
   onCompletePlacement,
   isArabic = true,
 }: PlacementTestModalProps) {
@@ -23,11 +41,21 @@ export function PlacementTestModal({
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, string>>({});
   const [testResult, setTestResult] = useState<{ levelId: CefrLevelId; phaseId: PhaseId; score: number } | null>(null);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    setCurrentIndex(0);
+    setSelectedAnswers({});
+    setTestResult(null);
+  }, [isOpen]);
+
+  const testLesson = useMemo(() => generatePlacementTest(), [isOpen]);
+  const exercises = testLesson.exercises;
+  const choiceListByIndex = useMemo(() => buildSentenceChoices(exercises), [exercises]);
+
   if (!isOpen) return null;
 
-  const testLesson = generatePlacementTest();
-  const exercises = testLesson.exercises;
   const currentEx = exercises[currentIndex];
+  const currentChoices = choiceListByIndex[currentIndex] || [currentEx.targetSentence];
 
   const handleOptionSelect = (option: string) => {
     setSelectedAnswers((prev) => ({ ...prev, [currentIndex]: option }));
@@ -37,7 +65,6 @@ export function PlacementTestModal({
     if (currentIndex < exercises.length - 1) {
       setCurrentIndex((prev) => prev + 1);
     } else {
-      // Calculate placement result
       let correctCount = 0;
       exercises.forEach((ex, idx) => {
         const userAns = (selectedAnswers[idx] || '').trim().toLowerCase();
@@ -107,8 +134,10 @@ export function PlacementTestModal({
               </div>
             </div>
             <button
+              type="button"
               onClick={onClose}
-              className="p-2 text-stone-400 hover:text-white hover:bg-stone-800 rounded-full transition-colors"
+              aria-label={isArabic ? 'إغلاق' : 'Close'}
+              className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 text-stone-400 hover:text-white hover:bg-stone-800 rounded-full transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -135,20 +164,17 @@ export function PlacementTestModal({
                   </h4>
                 </div>
 
-                {/* Multiple choice chips or target selection */}
+                {/* Multiple choice full sentences */}
                 <div className="space-y-3">
-                  {(currentEx.wordChips || currentEx.options || [
-                    currentEx.targetSentence,
-                    currentEx.acceptableAlternatives?.[0] || 'I practice English.',
-                    'She is practicing daily.',
-                    'They have practiced yesterday.',
-                  ]).map((opt, i) => {
+                  {currentChoices.map((opt, i) => {
                     const isSelected = selectedAnswers[currentIndex] === opt;
                     return (
                       <button
+                        type="button"
                         key={i}
                         onClick={() => handleOptionSelect(opt)}
-                        className={`w-full text-right p-4 rounded-2xl border text-sm font-bold transition-all flex items-center justify-between ${
+                        dir="ltr"
+                        className={`w-full text-start p-4 min-h-[48px] rounded-2xl border text-sm font-bold transition-all flex items-center justify-between cursor-pointer ${
                           isSelected
                             ? 'bg-teal-500/20 border-teal-400 text-teal-200 ring-1 ring-teal-400/30'
                             : 'bg-stone-800/40 border-stone-800 text-stone-300 hover:border-stone-700 hover:bg-stone-800'
@@ -165,18 +191,20 @@ export function PlacementTestModal({
               {/* Footer */}
               <div className="p-4 border-t border-stone-800 bg-stone-950/80 flex items-center justify-between">
                 <button
+                  type="button"
                   disabled={currentIndex === 0}
                   onClick={() => setCurrentIndex((prev) => prev - 1)}
-                  className="px-4 py-2.5 text-xs font-bold text-stone-400 hover:text-white disabled:opacity-30 transition-all flex items-center gap-1.5"
+                  className="min-h-[44px] px-4 py-2.5 text-xs font-bold text-stone-400 hover:text-white disabled:opacity-30 transition-all flex items-center gap-1.5 cursor-pointer"
                 >
                   <ArrowRight className="w-4 h-4" />
                   <span>{isArabic ? 'السابق' : 'Previous'}</span>
                 </button>
 
                 <button
+                  type="button"
                   disabled={!selectedAnswers[currentIndex]}
                   onClick={handleNext}
-                  className="px-6 py-3 text-sm font-bold text-stone-900 bg-teal-400 hover:bg-teal-300 disabled:opacity-40 rounded-2xl transition-all shadow-lg shadow-teal-500/20 flex items-center gap-2"
+                  className="min-h-[44px] px-6 py-3 text-sm font-bold text-stone-900 bg-teal-400 hover:bg-teal-300 disabled:opacity-40 rounded-2xl transition-all shadow-lg shadow-teal-500/20 flex items-center gap-2 cursor-pointer"
                 >
                   <span>{currentIndex === exercises.length - 1 ? (isArabic ? 'إنهاء التقييم' : 'Finish Placement') : (isArabic ? 'التالي' : 'Next')}</span>
                   <ArrowLeft className="w-4 h-4" />
@@ -206,8 +234,9 @@ export function PlacementTestModal({
               </div>
 
               <button
+                type="button"
                 onClick={handleApplyResult}
-                className="w-full max-w-sm py-3.5 text-sm font-bold text-stone-900 bg-teal-400 hover:bg-teal-300 rounded-2xl transition-all shadow-lg shadow-teal-500/20"
+                className="w-full max-w-sm min-h-[48px] py-3.5 text-sm font-bold text-stone-900 bg-teal-400 hover:bg-teal-300 rounded-2xl transition-all shadow-lg shadow-teal-500/20 cursor-pointer"
               >
                 {isArabic ? 'بدء التعلم في مستواك الجديد' : 'Start Learning at New Level'}
               </button>

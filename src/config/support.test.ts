@@ -1,6 +1,8 @@
 // Copyright (c) Amr Sherif Abdelaal. Code licensed under AGPL-3.0-or-later.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
 import {
   INSTAPAY_IPA,
   INSTAPAY_LINK,
@@ -23,6 +25,9 @@ test('support config exports valid defaults', () => {
   assert.equal(typeof INSTAPAY_LINK, 'string');
   assert.equal(PAYPAL_URL, 'https://www.paypal.com/ncp/payment/TXQB2CWGRV5ZQ');
   assert.equal(PAYPAL_QR_PATH, '/paypal-qr.png');
+  const qrAssetPath = path.join(process.cwd(), 'public', 'paypal-qr.png');
+  assert.ok(fs.existsSync(qrAssetPath), 'public/paypal-qr.png must exist');
+  assert.ok(fs.statSync(qrAssetPath).size > 1000, 'public/paypal-qr.png must be non-empty');
 });
 
 test('getSafeInstapayLink validates official HTTPS InstaPay URLs only', () => {

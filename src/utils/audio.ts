@@ -145,9 +145,12 @@ if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
   } catch {}
 }
 
+let sharedUnlockAudioCtx: AudioContext | null = null;
+let audioElementPrimed = false;
+
 /**
  * Prime and unlock audio playback on mobile browsers, WebView and iOS Safari.
- * Call this on any initial user touch/click.
+ * Call this on any initial user touch/click. Reuses one AudioContext to prevent hardware pool exhaustion.
  */
 export function unlockAudio(): void {
   if (typeof window === 'undefined') return;
@@ -157,20 +160,24 @@ export function unlockAudio(): void {
     }
     const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
     if (AudioCtx) {
-      const ctx = new AudioCtx();
-      if (ctx.state === 'suspended') {
-        ctx.resume().catch(() => {});
+      if (!sharedUnlockAudioCtx || sharedUnlockAudioCtx.state === 'closed') {
+        sharedUnlockAudioCtx = new AudioCtx();
       }
-      const buffer = ctx.createBuffer(1, 1, 22050);
-      const source = ctx.createBufferSource();
+      if (sharedUnlockAudioCtx.state === 'suspended') {
+        sharedUnlockAudioCtx.resume().catch(() => {});
+      }
+      const buffer = sharedUnlockAudioCtx.createBuffer(1, 1, 22050);
+      const source = sharedUnlockAudioCtx.createBufferSource();
       source.buffer = buffer;
-      source.connect(ctx.destination);
+      source.connect(sharedUnlockAudioCtx.destination);
       source.start(0);
     }
-    // Also unlock HTML5 Audio element
-    const silent = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA');
-    silent.volume = 0.01;
-    silent.play().then(() => silent.pause()).catch(() => {});
+    if (!audioElementPrimed) {
+      audioElementPrimed = true;
+      const silent = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA');
+      silent.volume = 0.01;
+      silent.play().then(() => silent.pause()).catch(() => {});
+    }
   } catch {
     /* ignore */
   }
@@ -329,7 +336,7 @@ export function speakWithRate(
     );
 
   if (wantsSpecificBrowserVoice) {
-    return speakWithNativeSpeechSynthesis(clean, requestedRate, preferredVoiceName, undefined, undefined, targetLang);
+    return speakWithNativeSpeechSynthesis(clean, requestedRate, preferredVoiceName, undefined, undefined, normalizedLang);
   }
 
   const defaultLang = targetLang || (isArabic ? 'ar-EG' : 'en-US');

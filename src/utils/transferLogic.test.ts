@@ -4,6 +4,7 @@ import {
   normalizeSentence,
   checkAnswerMatch,
   diagnoseArabicInterference,
+  diagnoseL1TransferHint,
   calculateUpdatedStreak,
   calculatePhaseCompletion
 } from './transferLogic';
@@ -109,3 +110,40 @@ test('scoreEnglishVoice ranks natural US voices highest', () => {
   assert.ok(naturalUs > basicGb);
   assert.equal(naturalUs, 50 + 20 + 10);
 });
+
+test('diagnoseL1TransferHint catches English L1 errors in Arabic and English', () => {
+  const copulaAr = diagnoseL1TransferHint('I a student', 'I am a student', 'en', true);
+  assert.match(copulaAr || '', /am \/ is \/ are|الجملة الاسمية/);
+
+  const copulaEn = diagnoseL1TransferHint('I a student', 'I am a student', 'en', false);
+  assert.match(copulaEn || '', /linking verb/i);
+
+  const articleAr = diagnoseL1TransferHint('I am student', 'I am a student', 'en', true);
+  assert.match(articleAr || '', /a.*an/i);
+
+  const auxEn = diagnoseL1TransferHint('Where you live', 'Where do you live', 'en', false);
+  assert.match(auxEn || '', /do \/ does \/ did/i);
+
+  const prepAr = diagnoseL1TransferHint('I am afraid from dogs', 'I am afraid of dogs', 'en', true);
+  assert.match(prepAr || '', /afraid of|of/);
+
+  const orderEn = diagnoseL1TransferHint('This is car red', 'This is red car', 'en', false);
+  assert.match(orderEn || '', /adjectives before nouns|Subject/i);
+
+  assert.equal(diagnoseL1TransferHint('I am a student', 'I am a student', 'en', true), null);
+});
+
+test('diagnoseL1TransferHint catches German V2 and Turkish SOV word-order errors', () => {
+  const deHint = diagnoseL1TransferHint('Heute ich lerne Deutsch', 'Heute lerne ich Deutsch', 'de', true);
+  assert.match(deHint || '', /V2|المركز الثاني/);
+
+  const deHintEn = diagnoseL1TransferHint('Heute ich lerne Deutsch', 'Heute lerne ich Deutsch', 'de', false);
+  assert.match(deHintEn || '', /V2|second position/i);
+
+  const trHint = diagnoseL1TransferHint('Ben öğreniyorum Türkçe', 'Ben Türkçe öğreniyorum', 'tr', true);
+  assert.match(trHint || '', /SOV|نهاية الجملة/);
+
+  const trHintEn = diagnoseL1TransferHint('Ben öğreniyorum Türkçe', 'Ben Türkçe öğreniyorum', 'tr', false);
+  assert.match(trHintEn || '', /SOV|end of the sentence/i);
+});
+

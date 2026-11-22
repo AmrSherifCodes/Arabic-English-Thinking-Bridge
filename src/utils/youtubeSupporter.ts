@@ -1,10 +1,12 @@
 /**
  * Shared YouTube Subscription & Supporter Mode utility
- * Synchronizes 'tb.yt_subscribed' and 'te_exam_supporter_mode'
+ * Synchronizes 'tb.yt_subscribed', 'te_exam_supporter_mode', and 'tb.yt_nudge_dismissed_v1'.
+ * The UI is always crisp and bright — never dimmed or desaturated.
  */
 
 const YT_SUB_KEY = 'tb.yt_subscribed';
 const SUPPORTER_MODE_KEY = 'te_exam_supporter_mode';
+export const YT_NUDGE_DISMISSED_KEY = 'tb.yt_nudge_dismissed_v1';
 
 export function isYouTubeSubscribed(): boolean {
   try {
@@ -17,6 +19,20 @@ export function isYouTubeSubscribed(): boolean {
   }
 }
 
+export function isSupporterPopupDismissed(): boolean {
+  try {
+    if (typeof window === 'undefined') return false;
+    return window.localStorage.getItem(YT_NUDGE_DISMISSED_KEY) === 'true';
+  } catch {
+    return false;
+  }
+}
+
+export function shouldShowSupporterPopup(): boolean {
+  if (typeof window === 'undefined') return false;
+  return !isYouTubeSubscribed() && !isSupporterPopupDismissed();
+}
+
 export function setYouTubeSubscribed(subscribed: boolean): void {
   try {
     if (typeof window === 'undefined') return;
@@ -25,10 +41,8 @@ export function setYouTubeSubscribed(subscribed: boolean): void {
     window.localStorage.setItem(YT_SUB_KEY, val);
     window.localStorage.setItem(SUPPORTER_MODE_KEY, supVal);
 
-    if (subscribed) {
+    if (typeof document !== 'undefined') {
       document.documentElement.classList.remove('tb-sad-mode');
-    } else {
-      document.documentElement.classList.add('tb-sad-mode');
     }
 
     window.dispatchEvent(
@@ -39,14 +53,32 @@ export function setYouTubeSubscribed(subscribed: boolean): void {
   }
 }
 
+export function dismissSupporterPopupWithPromise(): void {
+  try {
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(YT_NUDGE_DISMISSED_KEY, 'true');
+    }
+  } catch {
+    // Ignore storage errors
+  }
+  setYouTubeSubscribed(true);
+}
+
+export function markSupporterSubscribed(): void {
+  try {
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(YT_NUDGE_DISMISSED_KEY, 'true');
+    }
+  } catch {
+    // Ignore storage errors
+  }
+  setYouTubeSubscribed(true);
+}
+
 export function initYouTubeSupporter(): void {
   try {
-    if (typeof window === 'undefined') return;
-    const subscribed = isYouTubeSubscribed();
-    if (subscribed) {
+    if (typeof document !== 'undefined') {
       document.documentElement.classList.remove('tb-sad-mode');
-    } else {
-      document.documentElement.classList.add('tb-sad-mode');
     }
   } catch {}
 }

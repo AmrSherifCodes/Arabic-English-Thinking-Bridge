@@ -1,5 +1,17 @@
 # Changelog
 
+## [5.0.0] - First Official Stable Release
+
+### Official Stable Release & UX Rescue
+- **Default Bright UI + One-Time Big `X` Supporter Popup:** Removed gloomy desaturated `tb-sad-mode` filter completely so the UI launches crisp and bright by default, backed by a one-time dismissible `@sciamrsherif` YouTube supporter popup (`YouTubeSupporterPopup.tsx`).
+- **Guaranteed Word-Bank Completeness Across All 14 Languages:** Fixed punctuation-stripping and Hard-mode required-token drops (`sentenceBuilderHelper.ts`, `adaptiveCurriculum.ts`, `LessonRunner.tsx`, `courseData.ts`), fixed Turkish gloss mapping (`glossHelper.ts`) and multilingual curriculum entries, and added a 100%-curriculum word-bank integrity test (`wordBankIntegrity.test.ts`).
+- **Unclipped Non-Leaking Scene Banner:** Fixed `LevelVisualIllustration` / `localLevelImageGenerator.ts` SVG aspect ratio (`400x220` `viewBox`) and suppressed target sentence rendering while the learner is answering (`revealTarget`).
+- **Better-Than-Duolingo Pedagogical Upgrades (100% Offline):**
+  - **Unlimited Free Hearts (`❤️ ∞`)** & **Automatic Mistake Repair Queue**: Wrong answers re-queue cleanly in-session until mastered—zero energy walls, zero ads.
+  - **Free Offline L1 Cognitive Interference Coach & Word-by-Word Visual Diff (`computeSentenceDiff`, `diagnoseL1TransferHint`)**: Highlights missing/swapped words and explains English/German/Turkish L1 transfer mistakes in Arabic and English without any paid subscription.
+  - **Interactive Sentence Map & Universal Keyboard Mode**: Every completed exercise reveals tap-to-hear word chips with localized glosses, contraction/umlaut-tolerant grading (`checkAnswerMatch`), Backspace/Clear controls, and Keyboard mode across both Simple and Pro layouts.
+- **PayPal QR Support & Unified Cross-Platform Versioning:** Installed `public/paypal-qr.png` and synchronized `5.0.0` Official Stable across Web/PWA, Capacitor Android (`versionCode 5000`, `ThinkingBridge-v5.0.0.apk`), and Tauri Desktop (`5.0.0`).
+
 ## [4.0.2] - 2026-11-06
 
 ### Claim Truth & Release Alignment Pass

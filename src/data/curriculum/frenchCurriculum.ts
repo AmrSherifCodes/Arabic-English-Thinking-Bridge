@@ -865,7 +865,7 @@ export function getFrenchPhases(source: SourceLanguage = 'ar'): Phase[] {
               sourceThought: sourceThought(source, 'بينما كنت أدرس، اتصل بي صديقي', 'While I was studying, my friend called me'),
               targetSentence: 'Pendant que j’étudiais, mon ami m’a téléphoné',
               acceptableAlternatives: ['Mon ami m’a téléphoné pendant que j’étudiais'],
-              wordChips: ['Pendant que', 'j’étudiais', 'mon', 'ami', 'm’a', 'téléphoné', 'ai étudié'],
+              wordChips: ['Pendant', 'que', 'j’étudiais', 'mon', 'ami', 'm’a', 'téléphoné', 'ai étudié'],
               breakdownChunks: [
                 {
                   arabicText: 'Pendant que j’étudiais',
@@ -1131,7 +1131,7 @@ export function getFrenchPhases(source: SourceLanguage = 'ar'): Phase[] {
               sourceThought: sourceThought(source, 'أتعلم الفرنسية لأنني أعيش في فرنسا', 'I am learning French because I live in France'),
               targetSentence: 'J’apprends le français parce que j’habite en France',
               acceptableAlternatives: ['J’apprends le français car j’habite en France'],
-              wordChips: ['J’apprends', 'le', 'français', 'parce que', 'j’habite', 'en', 'France', 'pourquoi'],
+              wordChips: ['J’apprends', 'le', 'français', 'parce', 'que', 'j’habite', 'en', 'France', 'pourquoi'],
               breakdownChunks: [
                 {
                   arabicText: 'J’apprends le français',
@@ -1354,7 +1354,7 @@ export function getFrenchPhases(source: SourceLanguage = 'ar'): Phase[] {
               sourceThought: sourceThought(source, 'أود الحصول على فنجان قهوة لو سمحت', 'I would like a cup of coffee please'),
               targetSentence: 'Je voudrais une tasse de café s’il vous plaît',
               acceptableAlternatives: ['Je voudrais un café s’il vous plaît'],
-              wordChips: ['Je', 'voudrais', 'une', 'tasse', 'de', 'café', 's’il vous plaît', 'veux'],
+              wordChips: ['Je', 'voudrais', 'une', 'tasse', 'de', 'café', 's’il', 'vous', 'plaît', 'veux'],
               breakdownChunks: [
                 {
                   arabicText: 'Je voudrais',
@@ -1566,7 +1566,7 @@ export function getFrenchPhases(source: SourceLanguage = 'ar'): Phase[] {
               sourceThought: sourceThought(source, 'على الرغم من أن الوقت متأخر، إلا أنني أواصل العمل', 'Although it is late, I continue to work'),
               targetSentence: 'Bien qu’il soit tard, je continue à travailler',
               acceptableAlternatives: ['Bien qu’il soit tard, je continue de travailler'],
-              wordChips: ['Bien qu’il', 'soit', 'tard', 'je', 'continue', 'à', 'travailler', 'est', 'mais'],
+              wordChips: ['Bien', 'qu’il', 'soit', 'tard', 'je', 'continue', 'à', 'travailler', 'est', 'mais'],
               breakdownChunks: [
                 {
                   arabicText: 'Bien qu’il soit tard',
@@ -1626,7 +1626,7 @@ export function getFrenchPhases(source: SourceLanguage = 'ar'): Phase[] {
               sourceThought: sourceThought(source, 'بناءً على ذلك، سنعقد اجتماعاً طارئاً', 'Consequently, we will hold an urgent meeting'),
               targetSentence: 'Par conséquent, nous tiendrons une réunion urgente',
               acceptableAlternatives: ['C’est pourquoi nous allons tenir une réunion urgente'],
-              wordChips: ['Par conséquent', 'nous', 'tiendrons', 'une', 'réunion', 'urgente', 'parce que'],
+              wordChips: ['Par', 'conséquent', 'nous', 'tiendrons', 'une', 'réunion', 'urgente', 'parce que'],
               breakdownChunks: [
                 {
                   arabicText: 'Par conséquent',

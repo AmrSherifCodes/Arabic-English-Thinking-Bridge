@@ -62,7 +62,8 @@ function sanitizeDescriptionAr(descAr: string, targetLang: TargetLanguage): stri
 const poolCache: Record<string, any[]> = {};
 function getPoolForLang(targetLang: TargetLanguage) {
   if (poolCache[targetLang]) return poolCache[targetLang];
-  const phases = getCurriculum('ar', targetLang);
+  const sourceLang = targetLang === 'ar' ? 'en' : 'ar';
+  const phases = getCurriculum(sourceLang, targetLang);
   const pool = phases.flatMap((p) => p.lessons).flatMap((l) => l.exercises);
   poolCache[targetLang] = pool;
   return pool;
@@ -95,11 +96,21 @@ function createExercisesForUnit(
       ? rawItem.wordChips
       : targetSentence.split(/\s+/).filter(Boolean);
 
+    const resolvedPromptAr = targetLang === 'ar'
+      ? (rawItem?.promptEn || rawItem?.sourceThought || rawItem?.englishTarget || `Practice ${unitTitleEn} #${i + 1}`)
+      : (rawItem?.arabicThought || rawItem?.sourceThought || `تمرين ${unitTitleAr} - الجزء ${i + 1}`);
+
+    const candidatePromptEn = rawItem?.promptEn || rawItem?.sourceThought || '';
+    const resolvedPromptEn =
+      candidatePromptEn && candidatePromptEn !== targetSentence
+        ? candidatePromptEn
+        : resolvedPromptAr;
+
     items.push({
       id: `${unitId}-ex-${i + 1}`,
       type: i % 2 === 0 ? 'structure_builder' : 'translate_thought',
-      promptAr: rawItem?.arabicThought || rawItem?.sourceThought || `تمرين ${unitTitleAr} - الجزء ${i + 1}`,
-      promptEn: rawItem?.englishTarget ? `Express: ${rawItem.englishTarget}` : `Practice ${unitTitleEn} #${i + 1}`,
+      promptAr: resolvedPromptAr,
+      promptEn: resolvedPromptEn,
       targetSentence,
       acceptableAlternatives: rawItem?.acceptableAlternatives || [targetSentence],
       wordChips: wordChips.length > 0 ? wordChips : [targetSentence],

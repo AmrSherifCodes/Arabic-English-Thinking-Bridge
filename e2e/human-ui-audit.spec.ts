@@ -1,7 +1,8 @@
 import { test, expect, Page } from '@playwright/test';
 
-async function seedStorage(page: Page) {
-  await page.addInitScript(() => {
+async function seedStorage(page: Page, options?: { keepSupporterPopupOpen?: boolean }) {
+  const keepOpen = Boolean(options?.keepSupporterPopupOpen);
+  await page.addInitScript((dismissSupporter) => {
     window.localStorage.setItem('tb.learner_mode', 'regular');
     window.localStorage.setItem('tb.learnerMode', 'regular');
     window.localStorage.setItem('tb.ui_mode', 'pro');
@@ -12,6 +13,13 @@ async function seedStorage(page: Page) {
     window.localStorage.setItem('tb.ageTrack', 'street_starter');
     window.localStorage.setItem('tb.ageBand', '18-30');
     window.localStorage.setItem('hide_download_banner', 'true');
+    if (dismissSupporter) {
+      window.localStorage.setItem('tb.yt_nudge_dismissed_v1', 'true');
+    } else if (!window.sessionStorage.getItem('__e2e_popup_unseeded')) {
+      window.sessionStorage.setItem('__e2e_popup_unseeded', 'true');
+      window.localStorage.removeItem('tb.yt_nudge_dismissed_v1');
+      window.localStorage.removeItem('tb.yt_subscribed');
+    }
     window.localStorage.setItem('tb.progressionState', JSON.stringify({
       xp: 100,
       streak: 1,
@@ -20,7 +28,7 @@ async function seedStorage(page: Page) {
       currentPhaseId: 'A1.1'
     }));
     window.sessionStorage.setItem('tb.audioUnlocked', 'true');
-  });
+  }, !keepOpen);
 }
 
 const viewports = [
@@ -66,7 +74,7 @@ for (const vp of viewports) {
 
     test('2. Interactive UI Geometry & Touch Target Heights', async ({ page }) => {
       await page.goto('/?app=true');
-      await page.waitForSelector('button', { timeout: 10000 });
+      await page.locator('button:visible').first().waitFor({ state: 'visible', timeout: 10000 });
 
       // Check visible buttons on PathView/AppShell
       const buttons = await page.locator('button:visible').all();
@@ -174,3 +182,275 @@ for (const vp of viewports) {
     });
   });
 }
+
+test.describe('v5.0.0 Official Stable Self-Scan & Regression Fixes', () => {
+  test.use({ viewport: { width: 1280, height: 800 } });
+
+  test('A. Bright default UI + one-time dismissible YouTube popup with big X button', async ({ page }) => {
+    await seedStorage(page, { keepSupporterPopupOpen: true });
+    await page.goto('/?app=true');
+    await page.waitForLoadState('domcontentloaded');
+
+    // UI must be crisp and bright (never dimmed/sad)
+    const brightCheck = await page.evaluate(() => ({
+      hasSadClass: document.documentElement.classList.contains('tb-sad-mode'),
+      filter: window.getComputedStyle(document.documentElement).filter,
+    }));
+    expect(brightCheck.hasSadClass).toBe(false);
+    expect(brightCheck.filter).toBe('none');
+
+    // Friendly one-time popup must be visible with exact copy and big X
+    const closeX = page.getByTestId('yt-popup-close-x');
+    const subscribeBtn = page.getByTestId('yt-popup-subscribe-btn');
+    const promiseBtn = page.getByTestId('yt-popup-promise-btn');
+
+    await expect(closeX).toBeVisible({ timeout: 10000 });
+    await expect(subscribeBtn).toBeVisible();
+    await expect(promiseBtn).toBeVisible();
+    await expect(page.locator('text=عايز التطبيق ينوّر ويكمل مجاناً؟')).toBeVisible();
+    await expect(page.locator('text=@sciamrsherif').first()).toBeVisible();
+
+    const closeBox = await closeX.boundingBox();
+    expect(closeBox).not.toBeNull();
+    if (closeBox) {
+      expect(closeBox.width).toBeGreaterThanOrEqual(44);
+      expect(closeBox.height).toBeGreaterThanOrEqual(44);
+    }
+
+    // Dismiss via big X and ensure permanent persistence across reload
+    await closeX.click();
+    await expect(closeX).toHaveCount(0);
+    expect(await page.evaluate(() => window.localStorage.getItem('tb.yt_nudge_dismissed_v1'))).toBe('true');
+
+    await page.reload();
+    await page.waitForLoadState('domcontentloaded');
+    await expect(page.getByTestId('yt-popup-close-x')).toHaveCount(0);
+  });
+
+  test('B. Hard-mode "Hello, how are you?" word bank completeness + unclipped non-leaking banner', async ({ page }) => {
+    await seedStorage(page);
+    await page.addInitScript(() => {
+      window.localStorage.setItem('tb.cognitiveProfile', JSON.stringify({
+        difficultyLevel: 'Hard',
+        difficultyScore: 95,
+        streak: 5,
+        speedScore: 95,
+        accuracyScore: 98,
+      }));
+    });
+
+    await page.goto('/?app=true');
+    const startBtn = page.locator('button:has-text("ابدأ الدرس"), button:has-text("كمّل الدرس"), button:has-text("Start First")').first();
+    await expect(startBtn).toBeVisible({ timeout: 10000 });
+    await startBtn.click();
+
+    await expect(page.getByTestId('unlimited-hearts-badge')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByTestId('toggle-input-mode')).toBeVisible();
+
+    // Locate "أهلاً، إزيك؟" (Lesson 1 exercises are shuffled at launch)
+    let foundHelloExercise = false;
+    for (let step = 0; step < 8; step++) {
+      const targetPrompt = page.locator('text=أهلاً، إزيك؟').first();
+      if (await targetPrompt.isVisible().catch(() => false)) {
+        foundHelloExercise = true;
+        break;
+      }
+      const chips = page.locator('[data-testid="word-chip"]');
+      if ((await chips.count()) > 0) {
+        await chips.first().click();
+      }
+      const checkBtn = page.locator('button[aria-label*="تحقق"], button:has-text("تحقق"), button:has-text("Check")').first();
+      await checkBtn.click();
+      const nextBtn = page.locator('button[aria-label*="السؤال التالي"], button:has-text("السؤال التالي"), button:has-text("Next Question")').first();
+      if (await nextBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
+        await nextBtn.click();
+      } else {
+        break;
+      }
+    }
+    expect(foundHelloExercise).toBe(true);
+
+    // 1. Check top illustration banner BEFORE answering: must load, be unclipped, and NOT leak target sentence
+    const bannerImg = page.locator('img[alt*="Visual illustration"]').first();
+    await expect(bannerImg).toBeVisible({ timeout: 5000 });
+    const preBannerMeta = await bannerImg.evaluate((el) => {
+      const img = el as HTMLImageElement;
+      const rect = img.getBoundingClientRect();
+      const rawSrc = img.getAttribute('src') || '';
+      const decodedSvg = rawSrc.includes(',') ? decodeURIComponent(rawSrc.split(',').slice(1).join(',')) : rawSrc;
+      return {
+        naturalWidth: img.naturalWidth,
+        width: rect.width,
+        height: rect.height,
+        decodedSvg,
+      };
+    });
+    expect(preBannerMeta.naturalWidth).toBeGreaterThan(0);
+    expect(preBannerMeta.height).toBeGreaterThanOrEqual(120);
+    expect(preBannerMeta.decodedSvg).toContain('width="400"');
+    expect(preBannerMeta.decodedSvg).toContain('height="220"');
+    expect(preBannerMeta.decodedSvg).toContain('viewBox="0 0 400 220"');
+    expect(preBannerMeta.decodedSvg).not.toContain('Hello, how are you?');
+
+    // 2. Verify every required token for "Hello, how are you?" is present even in Hard mode
+    for (const token of ['Hello', 'how', 'are', 'you']) {
+      const chip = page.locator(`[data-testid="word-chip"][data-word="${token}"]`).first();
+      await expect(chip).toBeVisible();
+      await chip.click();
+    }
+
+    const checkBtn = page.locator('button[aria-label*="تحقق"], button:has-text("تحقق"), button:has-text("Check")').first();
+    await checkBtn.click();
+
+    const feedback = page.locator('text=/إجابة ممتازة|إجابة صحيحة|عاش|Great Job|ممتاز/i').first();
+    await expect(feedback).toBeVisible({ timeout: 5000 });
+    await expect(page.getByTestId('sentence-map')).toBeVisible();
+
+    // Post-answer banner still remains unclipped 400x220
+    const postBox = await bannerImg.boundingBox();
+    expect(postBox).not.toBeNull();
+    if (postBox) {
+      expect(postBox.height).toBeGreaterThanOrEqual(120);
+    }
+  });
+
+  test('C. Full Route, Modal & Pair Self-Scan (/, /app, /exam, Practice Views, Preferences, Support Modal, ar->de, ar->tr)', async ({ page }) => {
+    await seedStorage(page);
+    const pageErrors: string[] = [];
+    const fatalConsoleErrors: string[] = [];
+
+    page.on('pageerror', (err) => pageErrors.push(err.message));
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') {
+        const text = msg.text();
+        if (text.includes('TypeError') || text.includes('ReferenceError') || text.includes('Uncaught')) {
+          fatalConsoleErrors.push(text);
+        }
+      }
+    });
+
+    const assertNoOverflow = async () => {
+      const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+      expect(overflow).toBe(false);
+    };
+
+    // 1. Landing /
+    await page.goto('/');
+    await page.waitForLoadState('domcontentloaded');
+    await expect(page.locator('text=5.0.0').first()).toBeVisible({ timeout: 10000 });
+    await assertNoOverflow();
+
+    // 2. Exam /exam
+    await page.goto('/exam');
+    await page.waitForLoadState('domcontentloaded');
+    await expect(page.locator('button').first()).toBeVisible({ timeout: 10000 });
+    await assertNoOverflow();
+
+    // 3. App /app + Support Modal + PayPal QR image
+    await page.goto('/app');
+    await page.waitForLoadState('domcontentloaded');
+    await assertNoOverflow();
+
+    const supportBtn = page.locator('button:has-text("ادعم التطبيق")').first();
+    await expect(supportBtn).toBeVisible({ timeout: 10000 });
+    await supportBtn.click();
+
+    const paypalQr = page.locator('img[src*="paypal-qr.png"]').first();
+    await expect(paypalQr).toBeVisible({ timeout: 5000 });
+    const qrWidth = await paypalQr.evaluate((el) => (el as HTMLImageElement).naturalWidth);
+    expect(qrWidth).toBeGreaterThan(0);
+    await page.keyboard.press('Escape').catch(() => {});
+    const closeSupportBtn = page.locator('button[aria-label*="إغلاق"], button:has-text("✕"), button:has-text("إغلاق")').first();
+    if (await closeSupportBtn.isVisible().catch(() => false)) {
+      await closeSupportBtn.click();
+    }
+
+    // 4. Practice Hub sub-views: Dictionary, Flashcards, Local Recorder
+    const openPracticeTab = async () => {
+      await page.goto('/?app=true');
+      const practiceTab = page.locator('button:has-text("التدريب")').first();
+      await expect(practiceTab).toBeVisible({ timeout: 10000 });
+      await practiceTab.click();
+    };
+
+    await openPracticeTab();
+    await page.locator('text=القاموس الذكي التفاعلي').first().click();
+    await page.waitForTimeout(300);
+    await assertNoOverflow();
+
+    await openPracticeTab();
+    await page.locator('text=المراجعة الذكية اليومية').first().click();
+    await page.waitForTimeout(300);
+    await assertNoOverflow();
+
+    await openPracticeTab();
+    await page.locator('text=مُسجّل النطق المحلّي').first().click();
+    await page.waitForTimeout(300);
+    await assertNoOverflow();
+
+    // 5. Profile -> Preferences
+    await page.goto('/?app=true');
+    const profileTab = page.locator('button:has-text("الملف")').first();
+    await expect(profileTab).toBeVisible({ timeout: 10000 });
+    await profileTab.click();
+    const prefsBtn = page.locator('button:has-text("الإعدادات")').first();
+    await expect(prefsBtn).toBeVisible({ timeout: 5000 });
+    await prefsBtn.click();
+    await page.waitForTimeout(300);
+    await assertNoOverflow();
+
+    // 6. Language pairs ar->de and ar->tr
+    for (const pairUrl of ['/?app=true&from=arz&to=de', '/?app=true&from=arz&to=tr']) {
+      await page.goto(pairUrl);
+      await page.waitForLoadState('domcontentloaded');
+      await expect(page.locator('button:has-text("ابدأ الدرس"), button:has-text("كمّل الدرس")').first()).toBeVisible({ timeout: 10000 });
+      await assertNoOverflow();
+    }
+
+    expect(pageErrors).toEqual([]);
+    expect(fatalConsoleErrors).toEqual([]);
+  });
+
+  test('D. Offline Mistake Diff, Sentence Map, Advantage Strip & Mistake Repair Queue', async ({ page }) => {
+    await seedStorage(page);
+    await page.goto('/?app=true');
+    await expect(page.getByTestId('path-advantage-strip')).toBeVisible({ timeout: 10000 });
+
+    const startBtn = page.locator('button:has-text("ابدأ الدرس"), button:has-text("كمّل الدرس"), button:has-text("Start First")').first();
+    await startBtn.click();
+
+    // Submit only a single chip to guarantee a mismatch and verify offline diff + retry re-queue
+    const firstChip = page.locator('[data-testid="word-chip"]').first();
+    await expect(firstChip).toBeVisible({ timeout: 10000 });
+    await firstChip.click();
+
+    const checkBtn = page.locator('button[aria-label*="تحقق"], button:has-text("تحقق"), button:has-text("Check")').first();
+    await checkBtn.click();
+
+    await expect(page.getByTestId('mistake-diff')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByTestId('sentence-map')).toBeVisible();
+
+    // Step forward until the queued Mistake Repair badge appears
+    let sawRepairBadge = false;
+    for (let step = 0; step < 8; step++) {
+      const nextBtn = page.locator('button[aria-label*="السؤال التالي"], button:has-text("السؤال التالي"), button:has-text("Next Question")').first();
+      if (!(await nextBtn.isVisible({ timeout: 2000 }).catch(() => false))) break;
+      await nextBtn.click();
+
+      if (await page.getByTestId('mistake-repair-badge').isVisible().catch(() => false)) {
+        sawRepairBadge = true;
+        break;
+      }
+
+      const chip = page.locator('[data-testid="word-chip"]').first();
+      if (await chip.isVisible().catch(() => false)) {
+        await chip.click();
+      }
+      if (await checkBtn.isVisible().catch(() => false)) {
+        await checkBtn.click();
+      }
+    }
+    expect(sawRepairBadge).toBe(true);
+  });
+});
+

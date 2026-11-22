@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   appendPlacedTileId,
+  computeSentenceDiff,
   createWordBankTiles,
   selectNextHintTile,
   tokenizeTargetSentence,
@@ -74,3 +75,46 @@ test('sentenceBuilderHelper: aborts when user already placed a wrong tile and "i
   assert.ok(placedIds.length <= targetTokens.length);
   assert.equal(new Set(placedIds).size, placedIds.length);
 });
+
+test('computeSentenceDiff: exact match ignoring punctuation and case marks all tokens match', () => {
+  const diff = computeSentenceDiff('hello how are you', 'Hello, how are you?');
+  assert.deepEqual(diff, [
+    { word: 'Hello', status: 'match' },
+    { word: 'how', status: 'match' },
+    { word: 'are', status: 'match' },
+    { word: 'you', status: 'match' },
+  ]);
+});
+
+test('computeSentenceDiff: detects omitted copula without shifting later matches', () => {
+  const diff = computeSentenceDiff('I a student', 'I am a student');
+  assert.deepEqual(diff, [
+    { word: 'I', status: 'match' },
+    { word: 'am', status: 'missing' },
+    { word: 'a', status: 'match' },
+    { word: 'student', status: 'match' },
+  ]);
+});
+
+test('computeSentenceDiff: flags wrong substituted word with userWord', () => {
+  const diff = computeSentenceDiff('Hello how is you', 'Hello, how are you?');
+  assert.deepEqual(diff, [
+    { word: 'Hello', status: 'match' },
+    { word: 'how', status: 'match' },
+    { word: 'are', status: 'wrong', userWord: 'is' },
+    { word: 'you', status: 'match' },
+  ]);
+});
+
+test('computeSentenceDiff: aligns CJK characters cleanly', () => {
+  const diff = computeSentenceDiff('私はです', '私は学生です');
+  assert.deepEqual(diff, [
+    { word: '私', status: 'match' },
+    { word: 'は', status: 'match' },
+    { word: '学', status: 'missing' },
+    { word: '生', status: 'missing' },
+    { word: 'で', status: 'match' },
+    { word: 'す', status: 'match' },
+  ]);
+});
+

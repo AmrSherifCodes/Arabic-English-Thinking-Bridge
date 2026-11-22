@@ -5,6 +5,7 @@ import { CATEGORY_LABELS, CATEGORY_LABELS_AR, PreferenceCategory } from './setti
 import { usePreferences } from './usePreferences';
 import { FieldRenderer } from './FieldRenderer';
 import { UserProfile, UserProgress, SourceLanguage, TargetLanguage } from '../../types';
+import { SOURCE_LANGUAGES, TARGET_LANGUAGE_META } from '../../data/languages';
 import { downloadProgressBackup, importUserProgressJson, getVaultAuditSnapshot } from '../../utils/storage';
 import { API_BASE_URL } from '../../utils/api';
 import { consumeDailyApiQuota } from '../../utils/apiQuota';
@@ -306,7 +307,11 @@ export function PreferencesView({
         <div className="pref-header__title-group">
           <h1 className="pref-header__title">{isArabic ? 'إعدادات التجربة والتفكير' : 'Preferences'}</h1>
           <span className="pref-header__badge">
-            {sourceLang === 'ar' ? '🇪🇬' : '🇬🇧'} ➔ {targetLang === 'de' ? '🇩🇪 Deutsch' : targetLang === 'ja' ? '🇯🇵 日本語' : '🇬🇧 English'}
+            {(SOURCE_LANGUAGES[sourceLang]?.flag || (sourceLang.startsWith('ar') ? '🇪🇬' : '🇬🇧'))}{' '}
+            ➔{' '}
+            {TARGET_LANGUAGE_META[targetLang]
+              ? `${TARGET_LANGUAGE_META[targetLang].flag} ${TARGET_LANGUAGE_META[targetLang].nameNative}`
+              : targetLang.toUpperCase()}
           </span>
         </div>
 

@@ -123,7 +123,10 @@ export function buildDictionaryPhases(
           .slice(0, 4)
           .map(e => extractWord(e));
 
-        const allChips = Array.from(new Set([...primaryChips, ...distractorEntries]));
+        const allChips = [
+          ...primaryChips,
+          ...Array.from(new Set(distractorEntries)).filter((d) => !primaryChips.includes(d)),
+        ];
 
         const promptAr = isArabicSource ? `عبر عن المعنى: "${promptText}"` : `Express: "${promptText}"`;
 

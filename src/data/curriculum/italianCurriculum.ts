@@ -1232,7 +1232,7 @@ export function getItalianPhases(source: SourceLanguage = 'ar'): Phase[] {
               sourceThought: sourceThought(source, 'يجب أن تأتي إلى الاجتماع في الوقت المحدد', 'It is necessary that you come to the meeting on time'),
               targetSentence: 'È necessario che tu venga alla riunione in orario',
               acceptableAlternatives: ['Bisogna che tu venga alla riunione in orario'],
-              wordChips: ['È necessario che', 'tu', 'venga', 'alla', 'riunione', 'in', 'orario', 'vieni'],
+              wordChips: ['È', 'necessario', 'che', 'tu', 'venga', 'alla', 'riunione', 'in', 'orario', 'vieni'],
               breakdownChunks: [
                 {
                   arabicText: 'È necessario che tu venga',
@@ -1610,7 +1610,7 @@ export function getItalianPhases(source: SourceLanguage = 'ar'): Phase[] {
               sourceThought: sourceThought(source, 'بناءً على ذلك، سنعقد اجتماعاً طارئاً', 'Consequently, we will hold an urgent meeting'),
               targetSentence: 'Di conseguenza, terremo una riunione urgente',
               acceptableAlternatives: ['Pertanto, terremo una riunione urgente'],
-              wordChips: ['Di conseguenza', 'terremo', 'una', 'riunione', 'urgente', 'perché'],
+              wordChips: ['Di', 'conseguenza', 'terremo', 'una', 'riunione', 'urgente', 'perché'],
               breakdownChunks: [
                 {
                   arabicText: 'Di conseguenza',

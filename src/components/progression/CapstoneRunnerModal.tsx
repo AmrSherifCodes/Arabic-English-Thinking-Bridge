@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { CefrLevelId, PhaseId, ProgressionState, LessonNode } from '../../progression/types';
+import React, { useEffect, useMemo, useState } from 'react';
+import { CefrLevelId, PhaseId, ProgressionState, LessonNode, ExerciseItem } from '../../progression/types';
 import { generateCapstoneLesson, generatePhaseMasteryCheck } from '../../progression/cefrHierarchy';
-import { X, Crown, CheckCircle2, XCircle, ArrowLeft, ArrowRight, Award, Sparkles } from 'lucide-react';
+import { X, Crown, CheckCircle2, XCircle, ArrowLeft, ArrowRight, Award } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 
@@ -15,12 +15,30 @@ interface CapstoneRunnerModalProps {
   isArabic?: boolean;
 }
 
+function buildSentenceChoices(exercises: ExerciseItem[]): string[][] {
+  return exercises.map((ex, idx) => {
+    const distractors: string[] = [];
+    for (let offset = 1; offset < exercises.length && distractors.length < 3; offset++) {
+      const candidate = exercises[(idx + offset) % exercises.length]?.targetSentence;
+      if (candidate && candidate !== ex.targetSentence && !distractors.includes(candidate)) {
+        distractors.push(candidate);
+      }
+    }
+    const choices = [ex.targetSentence, ...distractors];
+    for (let i = choices.length - 1; i > 0; i--) {
+      const j = (idx * 7 + i * 3) % (i + 1);
+      [choices[i], choices[j]] = [choices[j], choices[i]];
+    }
+    return choices;
+  });
+}
+
 export function CapstoneRunnerModal({
   isOpen,
   onClose,
   levelId,
   phaseId,
-  state,
+  state: _state,
   onCompleteCapstone,
   isArabic = true,
 }: CapstoneRunnerModalProps) {
@@ -28,17 +46,31 @@ export function CapstoneRunnerModal({
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, string>>({});
   const [result, setResult] = useState<{ passed: boolean; score: number; xp: number } | null>(null);
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    if (!isOpen) return;
+    setCurrentIndex(0);
+    setSelectedAnswers({});
+    setResult(null);
+  }, [isOpen, levelId, phaseId]);
 
   const targetId = levelId || phaseId || 'A1';
   const isLevelCapstone = !!levelId;
 
-  const testLesson: LessonNode = isLevelCapstone
-    ? generateCapstoneLesson(levelId as CefrLevelId)
-    : generatePhaseMasteryCheck(phaseId as PhaseId);
+  const testLesson: LessonNode = useMemo(
+    () =>
+      isLevelCapstone
+        ? generateCapstoneLesson(levelId as CefrLevelId)
+        : generatePhaseMasteryCheck((phaseId || 'A1.1') as PhaseId),
+    [isOpen, isLevelCapstone, levelId, phaseId]
+  );
 
   const exercises = testLesson.exercises;
+  const choiceListByIndex = useMemo(() => buildSentenceChoices(exercises), [exercises]);
+
+  if (!isOpen) return null;
+
   const currentEx = exercises[currentIndex];
+  const currentChoices = choiceListByIndex[currentIndex] || [currentEx.targetSentence];
   const passingScorePct = isLevelCapstone ? 75 : 70;
 
   const handleOptionSelect = (option: string) => {
@@ -107,9 +139,10 @@ export function CapstoneRunnerModal({
               </div>
             </div>
             <button
+              type="button"
               onClick={onClose}
               aria-label={isArabic ? 'إغلاق' : 'Close'}
-              className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 text-stone-400 hover:text-white hover:bg-stone-800 rounded-full transition-colors"
+              className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 text-stone-400 hover:text-white hover:bg-stone-800 rounded-full transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -136,20 +169,17 @@ export function CapstoneRunnerModal({
                   </h4>
                 </div>
 
-                {/* Multiple choice chips */}
+                {/* Multiple choice full sentences */}
                 <div className="space-y-3">
-                  {(currentEx.wordChips || [
-                    currentEx.targetSentence,
-                    currentEx.acceptableAlternatives?.[0] || 'I practice English.',
-                    'She is practicing daily.',
-                    'They have practiced yesterday.',
-                  ]).map((opt, i) => {
+                  {currentChoices.map((opt, i) => {
                     const isSelected = selectedAnswers[currentIndex] === opt;
                     return (
                       <button
+                        type="button"
                         key={i}
                         onClick={() => handleOptionSelect(opt)}
-                        className={`w-full text-right p-4 rounded-2xl border text-sm font-bold transition-all flex items-center justify-between ${
+                        dir="ltr"
+                        className={`w-full text-start p-4 min-h-[48px] rounded-2xl border text-sm font-bold transition-all flex items-center justify-between cursor-pointer ${
                           isSelected
                             ? 'bg-amber-500/20 border-amber-400 text-amber-200 ring-1 ring-amber-400/30'
                             : 'bg-stone-800/40 border-stone-800 text-stone-300 hover:border-stone-700 hover:bg-stone-800'
@@ -166,18 +196,20 @@ export function CapstoneRunnerModal({
               {/* Footer */}
               <div className="p-4 border-t border-stone-800 bg-stone-950/80 flex items-center justify-between">
                 <button
+                  type="button"
                   disabled={currentIndex === 0}
                   onClick={() => setCurrentIndex((prev) => prev - 1)}
-                  className="px-4 py-2.5 text-xs font-bold text-stone-400 hover:text-white disabled:opacity-30 transition-all flex items-center gap-1.5"
+                  className="min-h-[44px] px-4 py-2.5 text-xs font-bold text-stone-400 hover:text-white disabled:opacity-30 transition-all flex items-center gap-1.5 cursor-pointer"
                 >
                   <ArrowRight className="w-4 h-4" />
                   <span>{isArabic ? 'السابق' : 'Previous'}</span>
                 </button>
 
                 <button
+                  type="button"
                   disabled={!selectedAnswers[currentIndex]}
                   onClick={handleNext}
-                  className="px-6 py-3 text-sm font-bold text-stone-900 bg-amber-400 hover:bg-amber-300 disabled:opacity-40 rounded-2xl transition-all shadow-lg shadow-amber-500/20 flex items-center gap-2"
+                  className="min-h-[44px] px-6 py-3 text-sm font-bold text-stone-900 bg-amber-400 hover:bg-amber-300 disabled:opacity-40 rounded-2xl transition-all shadow-lg shadow-amber-500/20 flex items-center gap-2 cursor-pointer"
                 >
                   <span>{currentIndex === exercises.length - 1 ? (isArabic ? 'إنهاء وحساب النتيجة' : 'Submit Exam') : (isArabic ? 'التالي' : 'Next')}</span>
                   <ArrowLeft className="w-4 h-4" />
@@ -221,8 +253,9 @@ export function CapstoneRunnerModal({
               </div>
 
               <button
+                type="button"
                 onClick={handleFinish}
-                className={`w-full max-w-sm py-3.5 text-sm font-bold rounded-2xl transition-all shadow-lg ${
+                className={`w-full max-w-sm min-h-[48px] py-3.5 text-sm font-bold rounded-2xl transition-all shadow-lg cursor-pointer ${
                   result.passed
                     ? 'text-stone-900 bg-amber-400 hover:bg-amber-300 shadow-amber-500/20'
                     : 'text-white bg-stone-800 hover:bg-stone-700 shadow-stone-800/20'

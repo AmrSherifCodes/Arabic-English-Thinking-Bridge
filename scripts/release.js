@@ -76,11 +76,11 @@ if (fs.existsSync(menuPath)) {
   let menuContent = fs.readFileSync(menuPath, 'utf8');
   menuContent = menuContent.replace(
     /releases\/download\/v[0-9.]+\/Thinking-Bridge-.*\.apk/g,
-    `releases/download/${tag}/Thinking-Bridge-v1.0.0-stable.apk`
+    `releases/download/${tag}/ThinkingBridge-${tag}.apk`
   );
   menuContent = menuContent.replace(
     /download="Thinking-Bridge-.*\.apk"/g,
-    `download="Thinking-Bridge-v1.0.0-stable.apk"`
+    `download="ThinkingBridge-${tag}.apk"`
   );
   menuContent = menuContent.replace(
     /v[0-9.]+\s*·\s*APK/g,
