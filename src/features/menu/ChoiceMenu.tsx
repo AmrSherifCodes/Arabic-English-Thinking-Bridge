@@ -339,8 +339,8 @@ export function ChoiceMenu({
               </span>
               <span className="menu__download-sub">
                 {isArabic
-                  ? 'يعمل 100% بدون إنترنت · 97.5 MB'
-                  : '100% Offline Signed APK · 97.5 MB'}
+                  ? 'يعمل 100% بدون إنترنت · 40.5 MB'
+                  : '100% Offline Signed APK · 40.5 MB'}
               </span>
             </div>
           </div>

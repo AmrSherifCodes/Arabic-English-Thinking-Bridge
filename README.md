@@ -19,9 +19,9 @@
 
 - **Live Web PWA:** [https://tb-eg.vercel.app](https://tb-eg.vercel.app) (100% offline installable Web App)
 - **Quick Download Portal:** [https://tb-eg.vercel.app/apk](https://tb-eg.vercel.app/apk)
-- **Direct Signed Android APK (`versionCode 6000`):** [ThinkingBridge-v6.0.0.apk](https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v6.0.0/ThinkingBridge-v6.0.0.apk) (`97.50 MB` / `102,235,429 bytes`)
+- **Direct Signed Android APK (`versionCode 6000`):** [ThinkingBridge-v6.0.0.apk](https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v6.0.0/ThinkingBridge-v6.0.0.apk) (`40.51 MB` / `42,480,169 bytes`)
 - **GitHub Release & Release Notes:** [v6.0.0](https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/tag/v6.0.0)
-- **SHA-256:** `7587c2dd60872cad57939105e52e51b79d5c28a41e748c9cc3f5014b9ada4b09`
+- **SHA-256:** `8722807507461fb96ec06d3a58173772d19b1616fca2674c1b47b792ada5c181`
 
 ---
 

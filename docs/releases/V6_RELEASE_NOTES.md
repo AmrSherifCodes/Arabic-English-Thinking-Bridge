@@ -76,7 +76,7 @@ Language apps today are sluggish, cloud-gated 3-cylinder commuters choked with a
 
 | Platform | Target | Integrity / Notes |
 | :--- | :--- | :--- |
-| **Android APK (Signed Release)** | `ThinkingBridge-v6.0.0.apk` (`versionCode 6000`) | Size: `97.50 MB` (`102,235,429 bytes`) · **SHA-256:** `7587C2DD60872CAD57939105E52E51B79D5C28A41E748C9CC3F5014B9ADA4B09` |
+| **Android APK (Signed Release)** | `ThinkingBridge-v6.0.0.apk` (`versionCode 6000`) | Size: `40.51 MB` (`42,480,169 bytes`) · **SHA-256:** `8722807507461FB96EC06D3A58173772D19B1616FCA2674C1B47B792ADA5C181` |
 | **Web App / Offline PWA** | [https://tb-eg.vercel.app](https://tb-eg.vercel.app) | Installable via Chrome / Safari / Edge "Add to Home Screen" |
 | **Quick Download Portal** | [https://tb-eg.vercel.app/apk](https://tb-eg.vercel.app/apk) | 30-second bilingual onboarding guide |
 

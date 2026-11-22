@@ -19,6 +19,9 @@ android {
         versionCode 6000
         versionName "6.0.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        ndk {
+            abiFilters 'arm64-v8a', 'armeabi-v7a'
+        }
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
              // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
@@ -36,12 +39,15 @@ android {
     }
     signingConfigs {
         release {
-            if (keystorePropertiesFile.exists()) {
-                storeFile file(keystoreProperties['storeFile'])
-                storePassword keystoreProperties['storePassword']
-                keyAlias keystoreProperties['keyAlias']
-                keyPassword keystoreProperties['keyPassword']
+            def ksFile = keystoreProperties['storeFile'] ?: System.getenv('ANDROID_KEYSTORE_PATH')
+            if (ksFile) {
+                storeFile file(ksFile)
+                storePassword keystoreProperties['storePassword'] ?: System.getenv('ANDROID_KEYSTORE_PASSWORD')
+                keyAlias keystoreProperties['keyAlias'] ?: System.getenv('ANDROID_KEY_ALIAS')
+                keyPassword keystoreProperties['keyPassword'] ?: System.getenv('ANDROID_KEY_PASSWORD')
             }
+            enableV2Signing true
+            enableV3Signing true
         }
     }
     buildTypes {
@@ -75,10 +81,6 @@ dependencies {
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
     implementation project(':capacitor-cordova-android-plugins')
-    
-    // Vosk Offline STT
-    implementation 'com.alphacephei:vosk-android:0.3.47@aar'
-    implementation 'net.java.dev.jna:jna:5.13.0@aar'
 }
 
 apply from: 'capacitor.build.gradle'

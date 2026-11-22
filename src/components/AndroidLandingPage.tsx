@@ -56,7 +56,7 @@ const FEATURES = [
 
 const QUICK_SPECS = [
   { label: 'إصدار الأندرويد', value: 'Android 8.0+' },
-  { label: 'حجم التطبيق', value: '97.5 MB' },
+  { label: 'حجم التطبيق', value: '40.5 MB' },
   { label: 'استهلاك البيانات', value: '0 MB' },
   { label: 'التراخيص', value: 'AGPLv3 / CC BY-NC-SA' },
 ];
@@ -147,7 +147,7 @@ export function AndroidLandingPage() {
               aria-label="تحميل تطبيق الأندرويد المباشر APK"
             >
               <Download size={18} aria-hidden="true" />
-              <span>تحميل تطبيق APK (V6 · v6.0.0 · 97.5 MB)</span>
+              <span>تحميل تطبيق APK (V6 · v6.0.0 · 40.5 MB)</span>
             </a>
           </div>
 
@@ -195,7 +195,7 @@ export function AndroidLandingPage() {
                 maxWidth: '100%',
               }}
             >
-              SHA-256: 7587c2dd60872cad57939105e52e51b79d5c28a41e748c9cc3f5014b9ada4b09
+              SHA-256: 8722807507461fb96ec06d3a58173772d19b1616fca2674c1b47b792ada5c181
             </code>
           </div>
         </div>

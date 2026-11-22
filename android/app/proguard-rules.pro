@@ -15,10 +15,5 @@
 # App Native Classes & Local Plugins
 -keep class com.amrsherif.thinkingenglish.** { *; }
 
-# Vosk / JNA native bindings
--keep class com.alphacephei.** { *; }
--keep class com.sun.jna.** { *; }
--keep class net.java.dev.jna.** { *; }
-
 -dontwarn java.awt.**
 -dontwarn com.google.errorprone.annotations.**

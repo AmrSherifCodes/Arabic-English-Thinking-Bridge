@@ -5,7 +5,7 @@ Everything ready to copy, paste, or fire directly via the built-in CLI (`npm run
 - **Web / PWA URL:** `https://tb-eg.vercel.app`
 - **Direct Download / 30s Page:** `https://tb-eg.vercel.app/apk`
 - **GitHub Release Tag:** `https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/tag/v6.0.0`
-- **Release APK Asset:** `ThinkingBridge-v6.0.0.apk` (`97.50 MB` / `102,235,429 bytes`, SHA-256: `7587C2DD60872CAD57939105E52E51B79D5C28A41E748C9CC3F5014B9ADA4B09`)
+- **Release APK Asset:** `ThinkingBridge-v6.0.0.apk` (`40.51 MB` / `42,480,169 bytes`, SHA-256: `8722807507461FB96EC06D3A58173772D19B1616FCA2674C1B47B792ADA5C181`)
 - **Creator Handles:** YouTube `@SciAmrSherif` · GitHub `AmrSherifCodes` · LinkedIn `sciamrsherif-abdelaal`
 
 ---
@@ -365,7 +365,7 @@ https://tb-eg.vercel.app
 ## 12. Visual Assets, GitHub Release & VirusTotal Launch Checklist
 
 1. **Vercel Web Production (`tb-eg.vercel.app`):** Auto-deploys right after `git push origin main`. Confirm `https://tb-eg.vercel.app/api/health` returns `"version":"v6.0.0"`.
-2. **VirusTotal Clean Scan Badge:** Upload `android/app/build/outputs/apk/release/ThinkingBridge-v6.0.0.apk` to [virustotal.com](https://www.virustotal.com), wait for scan completion, verify SHA-256 matches `7587C2DD60872CAD57939105E52E51B79D5C28A41E748C9CC3F5014B9ADA4B09`, and copy the permanent VirusTotal analysis URL into the GitHub Release footer if desired.
+2. **VirusTotal Clean Scan Badge:** Upload `android/app/build/outputs/apk/release/ThinkingBridge-v6.0.0.apk` to [virustotal.com](https://www.virustotal.com), wait for scan completion, verify SHA-256 matches `8722807507461FB96EC06D3A58173772D19B1616FCA2674C1B47B792ADA5C181`, and copy the permanent VirusTotal analysis URL into the GitHub Release footer if desired.
 3. **Publish GitHub Release `v6.0.0` (Keep Custom V6 Release Notes!):**
    > Note: Pushing tag `v6.0.0` triggers `.github/workflows/ci-release.yml`. Using GitHub web UI (or `gh release create` / editing the release afterwards) ensures our custom `docs/releases/V6_RELEASE_NOTES.md` and local keystore-signed `ThinkingBridge-v6.0.0.apk` are what visitors see:
    - Go to **GitHub → Releases → Draft a new release**

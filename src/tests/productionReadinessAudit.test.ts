@@ -94,7 +94,7 @@ describe('Production Readiness & Human-Use Audit Regressions (v6.0.0 V6 Edition)
       );
     }
 
-    const verifiedSha256 = '7587c2dd60872cad57939105e52e51b79d5c28a41e748c9cc3f5014b9ada4b09';
+    const verifiedSha256 = '8722807507461fb96ec06d3a58173772d19b1616fca2674c1b47b792ada5c181';
     for (const relPath of [
       'index.html',
       'public/download.html',

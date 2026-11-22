@@ -210,7 +210,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
                     className="btn bg-amber-400/15 text-amber-200 border border-amber-400/40 hover:bg-amber-400/25 transition flex items-center gap-2 cursor-pointer font-bold whitespace-normal text-center"
                   >
                     <Download size={18} />
-                    <span>{isAr ? 'تحميل APK للأندرويد (97.5 MB)' : 'Download Android APK (97.5 MB)'}</span>
+                    <span>{isAr ? 'تحميل APK للأندرويد (40.5 MB)' : 'Download Android APK (40.5 MB)'}</span>
                   </a>
                 )}
                 <a
@@ -354,7 +354,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
               <Smartphone size={32} />
               <div className="mb-4 text-center">
                 <span className="font-bold text-lg block text-[var(--navy)]">Android</span>
-                <span className="text-sm text-[var(--ink-soft)] block">V6 (v6.0.0) · 97.5 MB APK</span>
+                <span className="text-sm text-[var(--ink-soft)] block">V6 (v6.0.0) · 40.5 MB APK</span>
               </div>
               <a
                 href="/app"
@@ -371,7 +371,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
                     download="ThinkingBridge-v6.0.0.apk"
                     className="btn btn-gold btn-sm w-full mt-1"
                   >
-                    <span>{isAr ? 'تحميل APK (V6 · v6.0.0 · 97.5 MB)' : 'Download APK (V6 · v6.0.0 · 97.5 MB)'}</span>
+                    <span>{isAr ? 'تحميل APK (V6 · v6.0.0 · 40.5 MB)' : 'Download APK (V6 · v6.0.0 · 40.5 MB)'}</span>
                   </a>
                   <a
                     href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/tag/v6.0.0"
@@ -385,7 +385,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
                     dir="ltr"
                     className="w-full max-w-full rounded-lg bg-black/10 px-2 py-1.5 text-[10px] font-mono text-[var(--ink-soft)] break-all select-all text-center mt-1"
                   >
-                    SHA-256: 7587c2dd60872cad57939105e52e51b79d5c28a41e748c9cc3f5014b9ada4b09
+                    SHA-256: 8722807507461fb96ec06d3a58173772d19b1616fca2674c1b47b792ada5c181
                   </div>
                 </>
               )}

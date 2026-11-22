@@ -904,7 +904,7 @@ export default function App() {
             </div>
             <div className="flex flex-col min-w-0">
               <span className="text-sm font-black text-text truncate">حمّل تطبيق فكّر إنجليزي</span>
-              <span className="text-[10px] text-muted font-bold truncate">يعمل بدون إنترنت · V6 (97.5 MB APK)</span>
+              <span className="text-[10px] text-muted font-bold truncate">يعمل بدون إنترنت · V6 (40.5 MB APK)</span>
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
