@@ -91,7 +91,7 @@ export function LandingPhoneMockup({ isArabic = true }: { isArabic?: boolean }) 
       {/* Screen Content */}
       <div className="pt-6 pb-2 space-y-4">
         {/* App Title & Level */}
-        <div className="flex items-center justify-between border-b border-stone-800 pb-2 px-1 text-xs">
+        <div className="flex flex-wrap items-center justify-between gap-1.5 border-b border-stone-800 pb-2 px-1 text-xs">
           <div className="flex items-center gap-1.5 text-teal-400 font-bold">
             <Sparkles size={14} />
             <span>{isArabic ? 'فكّر بالإنجليزي · معاينة حية' : 'Thinking Bridge · Live Demo'}</span>

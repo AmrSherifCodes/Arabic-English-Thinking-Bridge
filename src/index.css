@@ -3,7 +3,7 @@
 html {
   color-scheme: dark;
   width: 100%;
-  overflow-x: hidden;
+  overflow-x: clip;
   overscroll-behavior-y: none;
   -webkit-tap-highlight-color: transparent;
   font-size: calc(100% * var(--font-scale, 1));
@@ -44,8 +44,7 @@ html.light {
 body {
   width: 100%;
   max-width: 100%;
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow-x: clip;
   overscroll-behavior-y: none;
   touch-action: pan-y;
   -webkit-overflow-scrolling: touch;
@@ -65,8 +64,9 @@ body {
 .landing-shell {
   min-height: 100dvh;
   width: 100%;
-  overflow-y: auto;
-  touch-action: pan-y;
+  overflow-x: clip;
+  overflow-y: visible;
+  touch-action: auto;
   background: #060E18;
   color: #F8FAFC;
   color-scheme: dark;

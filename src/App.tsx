@@ -106,6 +106,10 @@ type View =
   | { name: 'exam' }
   | { name: 'dictionary' };
 
+function normalizePath(pathname: string): string {
+  return pathname.toLowerCase().replace(/\/+$/, '') || '/';
+}
+
 export default function App() {
   const [audioUnlocked, setAudioUnlocked] = useState(() => {
     try {
@@ -118,7 +122,7 @@ export default function App() {
   const [view, setView] = useState<View>(() => {
     try {
       if (typeof window !== 'undefined') {
-        const path = window.location.pathname.toLowerCase();
+        const path = normalizePath(window.location.pathname);
         const urlParams = new URLSearchParams(window.location.search);
 
         if (path === '/exam') return { name: 'exam' };
@@ -140,11 +144,28 @@ export default function App() {
 
   const launchApp = () => {
     try {
-      if (typeof window !== 'undefined' && window.history) {
-        window.history.pushState({}, '', '/app');
+      if (typeof window !== 'undefined') {
+        if (window.history && normalizePath(window.location.pathname) !== '/app') {
+          window.history.pushState({}, '', '/app');
+        }
+        window.scrollTo(0, 0);
       }
     } catch {}
     setView({ name: 'shell' });
+  };
+
+  const openLanding = () => {
+    try {
+      if (typeof window !== 'undefined') {
+        const lang = new URLSearchParams(window.location.search).get('lang');
+        const targetUrl = lang ? '/?lang=' + encodeURIComponent(lang) : '/';
+        if (window.history && normalizePath(window.location.pathname) !== '/') {
+          window.history.pushState({}, '', targetUrl);
+        }
+        window.scrollTo(0, 0);
+      }
+    } catch {}
+    setView({ name: 'landing' });
   };
 
   const {
@@ -273,7 +294,7 @@ export default function App() {
   useEffect(() => {
     const syncViewFromLocation = () => {
       try {
-        const path = window.location.pathname.toLowerCase();
+        const path = normalizePath(window.location.pathname);
         const urlParams = new URLSearchParams(window.location.search);
         if (path === '/exam') setView({ name: 'exam' });
         else if (path === '/android') setView({ name: 'android' });
@@ -469,7 +490,7 @@ export default function App() {
           state={progression}
           targetLang={targetLang}
           isArabic={isArabic}
-          onOpenLanding={() => setView({ name: 'landing' })}
+          onOpenLanding={openLanding}
           onOpenLanguageSelector={() => setLangSelectorOpen(true)}
           onOpenAgeGate={() => setShowAgeGate(true)}
           onOpenSupporterPopup={() => setShowSupporterPopup(true)}

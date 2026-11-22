@@ -12,10 +12,10 @@ export function CreatorCard() {
         dir="rtl"
         aria-label="بطاقة مؤسس المشروع - Founder Card"
       >
-        <div className="relative overflow-hidden rounded-3xl border-2 border-cyan-500/40 bg-gradient-to-br from-[#0B1C33]/95 via-[#0E2746]/90 to-[#071325]/95 p-6 sm:p-7 shadow-[0_0_40px_rgba(6,182,212,0.18)] backdrop-blur-xl transition-all hover:border-cyan-400/60">
+        <div className="relative overflow-hidden rounded-3xl border-2 border-cyan-500/40 bg-gradient-to-br from-[#0B1C33]/95 via-[#0E2746]/90 to-[#071325]/95 px-6 pb-6 pt-14 sm:px-7 sm:pb-7 sm:pt-12 shadow-[0_0_40px_rgba(6,182,212,0.18)] backdrop-blur-xl transition-all hover:border-cyan-400/60">
           <div className="flex flex-col sm:flex-row items-center gap-6 text-center sm:text-right">
             {/* Portrait Opens Interactive CV Modal */}
-            <div className="relative group cursor-pointer flex-shrink-0" onClick={() => setIsCVOpen(true)}>
+            <div className="relative group cursor-pointer flex-shrink-0 mt-2 sm:mt-0" onClick={() => setIsCVOpen(true)}>
               <div className="absolute -top-12 left-1/2 -translate-x-1/2 flex flex-col items-center animate-bounce z-10 w-max">
                 <span className="text-xs font-black text-amber-300 bg-amber-950/90 px-3 py-1 rounded-full shadow-lg border border-amber-500/40 font-arabic whitespace-nowrap">
                   👇 اضغط على صورتي (السيرة الذاتية 📄)

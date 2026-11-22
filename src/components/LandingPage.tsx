@@ -49,6 +49,12 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
     else setDetectedOs('other');
   }, []);
 
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    document.documentElement.dir = isAr ? 'rtl' : 'ltr';
+    document.documentElement.lang = isAr ? 'ar' : 'en';
+  }, [isAr]);
+
   const handleLaunchApp = useCallback(() => {
     onLaunchApp();
   }, [onLaunchApp]);
@@ -95,7 +101,15 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
       {/* ================= NAV ================= */}
       <header className="nav">
         <div className="el-container nav-inner">
-          <a href="#" className="brand" aria-label="جسر التفكير — الرئيسية">
+          <a
+            href="#top"
+            className="brand"
+            aria-label={isAr ? 'جسر التفكير — الرئيسية' : 'Thinking Bridge — Home'}
+            onClick={(e) => {
+              e.preventDefault();
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+          >
             <span className="brand-mark" aria-hidden="true">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M3 17h18M5 17V9l7-5 7 5v8"/>
@@ -105,7 +119,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
             <span>{isAr ? 'جسر التفكير' : 'Thinking Bridge'}</span>
           </a>
 
-          <nav>
+          <nav className="nav-desktop">
             <ul className="nav-links">
               <li><a href="#why">{isAr ? 'المميزات' : 'Features'}</a></li>
               <li><a href="#how">{isAr ? 'إزاي بنشتغل' : 'How it works'}</a></li>
@@ -115,26 +129,34 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
             </ul>
           </nav>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 sm:gap-2.5 shrink-0">
             <button
+              type="button"
               onClick={() => {
                 triggerHapticImpact();
                 setStreetDemoOpen(true);
               }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-xs font-bold hover:bg-emerald-500/30 transition cursor-pointer"
+              aria-label={isAr ? 'عرض الشارع' : 'Street Mode'}
+              className="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 min-h-[38px] sm:min-h-[40px] rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-xs font-bold hover:bg-emerald-500/30 transition cursor-pointer whitespace-nowrap shrink-0"
             >
-              <Zap size={14} className="text-emerald-400" />
-              <span>{isAr ? 'عرض الشارع 🚶‍♂️' : 'Street Mode 🚶‍♂️'}</span>
+              <Zap size={15} className="text-emerald-400 shrink-0" />
+              <span className="hidden min-[460px]:inline">{isAr ? 'عرض الشارع 🚶‍♂️' : 'Street Mode 🚶‍♂️'}</span>
             </button>
             <button
+              type="button"
               onClick={() => i18n.changeLanguage(isAr ? 'en' : 'ar')}
-              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[var(--nile)] text-[var(--nile)] text-xs font-bold hover:bg-[var(--nile)] hover:text-white transition"
+              className="flex items-center gap-1 px-1.5 sm:px-3 py-1.5 min-h-[38px] sm:min-h-[40px] rounded-xl border border-[var(--nile)] text-[var(--nile)] text-xs font-bold hover:bg-[var(--nile)] hover:text-white transition whitespace-nowrap shrink-0"
               aria-label={t('landing2.switch_to_arabic')}
             >
-              <Globe size={14} />
-              <span>{isAr ? 'English' : 'عربي'}</span>
+              <Globe size={14} className="shrink-0" />
+              <span className="sm:hidden">{isAr ? 'EN' : 'عربي'}</span>
+              <span className="hidden sm:inline">{isAr ? 'English' : 'عربي'}</span>
             </button>
-            <button onClick={handleLaunchApp} className="btn btn-primary btn-sm">
+            <button
+              type="button"
+              onClick={handleLaunchApp}
+              className="btn btn-primary btn-sm !px-2.5 sm:!px-5 !py-1.5 sm:!py-2 !min-h-[38px] sm:!min-h-[40px] !text-xs sm:!text-sm whitespace-nowrap shrink-0"
+            >
               {isAr ? 'ابدأ دلوقتي' : 'Start Now'}
             </button>
           </div>
@@ -148,10 +170,10 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
           <div className="hero-grid">
             {/* Hero Left Column: Main Headlines & Call To Action */}
             <motion.div
-              initial={{ opacity: 0, x: isAr ? 30 : -30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, ease: 'easeOut' }}
-              className="hero-copy text-start space-y-6"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, ease: 'easeOut' }}
+              className="hero-copy text-start space-y-4 sm:space-y-6 min-w-0"
             >
               <div className="flex flex-wrap items-center gap-2">
                 <div className="hero-badge m-0">
@@ -170,7 +192,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
                 {isAr ? '— مش بترجمة حرفية' : '— no literal translation'}
               </h1>
 
-              <p className="text-slate-100 font-semibold text-lg leading-relaxed">
+              <p className="text-slate-100 font-semibold text-base sm:text-lg leading-relaxed">
                 {isAr
                   ? 'بطل تترجم الكلمة بكلمتها فدماغك. هنا هنفهمك تركيب الجملة بالإنجليزي بطريقة منطقية عشان تتكلم بطلاقة وعلى طبيعتك، من قلب إسكندرية للمصريين كلهم.'
                   : 'Stop translating word-for-word in your head. Grasp the logical structure of English to speak fluently and naturally, straight from Alexandria to the world.'}
@@ -462,7 +484,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
           {/* Secret Feature Vault (Revealed when Subscribed) */}
           {subscribed && (
             <div className="mt-10 p-6 sm:p-8 rounded-3xl bg-[#0F172A] border-2 border-cyan-500/60 shadow-2xl text-start text-white space-y-6 animate-in fade-in duration-300">
-              <div className="flex items-center justify-between border-b border-stone-800 pb-4">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-stone-800 pb-4">
                 <div className="flex items-center gap-2">
                   <Sparkles className="text-cyan-400" size={24} />
                   <h3 className="font-black text-lg sm:text-xl text-cyan-300">
