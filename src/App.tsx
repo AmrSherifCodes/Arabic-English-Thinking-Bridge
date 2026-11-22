@@ -7,8 +7,6 @@ import { Download } from 'lucide-react';
 
 import { AppTab } from './components/navigation/AppShell';
 import { LandingPage } from './components/LandingPage';
-import { OnboardingFlow } from './components/Onboarding/OnboardingFlow';
-import { Onboarding } from './components/Onboarding';
 import { PwaInstallBanner } from './components/PwaInstallBanner';
 import { useUserProfile } from './hooks/useUserProfile';
 import { loadUserProgress, saveUserProgress } from './utils/storage';
@@ -34,7 +32,6 @@ import { AgeGateModal } from './components/AgeGateModal';
 import { CefrStage, ProgressionState, LessonNode } from './progression/types';
 import { migrateLegacyStorageToProgression } from './progression/migration';
 import { updateStreakAndShields } from './progression/engine';
-import { getNextStageAfterLessonCompletion, isLessonUnlocked } from './progression/courseData';
 
 function getProfileStartingStage(): CefrStage | null {
   try {
@@ -61,6 +58,8 @@ function hasSavedProgression(): boolean {
 
 // Lazy loading heavy view components for instant Landing Page loading & code-splitting
 const AppShell = lazy(() => import('./components/navigation/AppShell').then((m) => ({ default: m.AppShell })));
+const OnboardingFlow = lazy(() => import('./components/Onboarding/OnboardingFlow').then((m) => ({ default: m.OnboardingFlow })));
+const Onboarding = lazy(() => import('./components/Onboarding').then((m) => ({ default: m.Onboarding })));
 const AndroidLandingPage = lazy(() => import('./components/AndroidLandingPage').then((m) => ({ default: m.AndroidLandingPage })));
 const PathView = lazy(() => import('./components/progression/PathView').then((m) => ({ default: m.PathView })));
 const PracticeHubView = lazy(() => import('./components/progression/PracticeHubView').then((m) => ({ default: m.PracticeHubView })));
@@ -207,7 +206,7 @@ export default function App() {
 
   const { profile, saveProfile } = useUserProfile();
   const { sourceLang, targetLang, setPair } = useLanguagePair();
-  const [progress, setProgress] = useState<UserProgress>(loadUserProgress());
+  const [progress, setProgress] = useState<UserProgress>(() => loadUserProgress());
 
   useEffect(() => {
     if (typeof document === 'undefined') return;
@@ -391,10 +390,12 @@ export default function App() {
 
   const goHome = () => setView({ name: 'shell' });
 
-  const handleLessonSessionComplete = (earnedXp: number, _accuracyPercent: number) => {
-    const nextStage = activeLessonNode
-      ? getNextStageAfterLessonCompletion(progression, activeLessonNode.id)
-      : undefined;
+  const handleLessonSessionComplete = async (earnedXp: number, _accuracyPercent: number) => {
+    let nextStage: CefrStage | undefined;
+    if (activeLessonNode) {
+      const { getNextStageAfterLessonCompletion } = await import('./progression/courseData');
+      nextStage = getNextStageAfterLessonCompletion(progression, activeLessonNode.id);
+    }
 
     const stageCompleted = Boolean(nextStage);
 
@@ -919,26 +920,48 @@ function DictionaryView({ onBack, isArabic, targetLang }: { onBack: () => void; 
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
+  // Warm dictionary chunk once when entering Smart Dictionary or switching language
   useEffect(() => {
     let active = true;
-    setLoading(true);
     import('./data/dictionaries')
-      .then(({ getTargetDictionaryAsync, searchTargetDictionary }) =>
-        getTargetDictionaryAsync(targetLang).then(() => {
-          if (!active) return;
-          const res = searchTargetDictionary(query, targetLang as any, 'ar');
-          setResults(res.slice(0, 15));
-          setLoading(false);
-        })
-      )
+      .then(({ getTargetDictionaryAsync }) => getTargetDictionaryAsync(targetLang))
       .catch(() => {
-        if (active) {
-          setResults([]);
-          setLoading(false);
-        }
+        if (active) setResults([]);
       });
     return () => {
       active = false;
+    };
+  }, [targetLang]);
+
+  useEffect(() => {
+    let active = true;
+    if (!query.trim()) {
+      setResults([]);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    const timer = window.setTimeout(() => {
+      import('./data/dictionaries')
+        .then(({ searchTargetDictionaryAsync }) =>
+          searchTargetDictionaryAsync(query, targetLang as any, 'ar', 15).then((res) => {
+            if (!active) return;
+            setResults(res.slice(0, 15));
+            setLoading(false);
+          })
+        )
+        .catch(() => {
+          if (active) {
+            setResults([]);
+            setLoading(false);
+          }
+        });
+    }, 150);
+
+    return () => {
+      active = false;
+      window.clearTimeout(timer);
     };
   }, [query, targetLang]);
 

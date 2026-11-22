@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { UserProfile, UserProgress } from '../../types';
 import { DeckListView, ReviewView } from '../../components/CardsView';
 import { useMasterDictionary } from '../../services/dictionaryLoader';
@@ -274,6 +274,12 @@ export function FlashcardsView({
     return deck;
   });
 
+  const activeCardKey = (engine.reviewQueue || [])[0] || '';
+  const currentCardData = useMemo(
+    () => (activeCardKey ? engine.getCardData(activeCardKey) : null),
+    [activeCardKey, engine.getCardData]
+  );
+
   const activeDeckTitle =
     engine.activeDeckId === 'all'
       ? t('All Due Cards', 'كل البطاقات المستحقة')
@@ -315,12 +321,8 @@ export function FlashcardsView({
           deckName={activeDeckTitle}
           deckStats={engine.getDeckStats(engine.activeDeckId)}
           activeQueue={engine.reviewQueue || []}
-          currentCardData={
-            (engine.reviewQueue || [])[0] ? engine.getCardData((engine.reviewQueue || [])[0]) : null
-          }
-          currentCardSchedule={
-            (engine.reviewQueue || [])[0] ? progress.cards?.[(engine.reviewQueue || [])[0]] : undefined
-          }
+          currentCardData={currentCardData}
+          currentCardSchedule={activeCardKey ? progress.cards?.[activeCardKey] : undefined}
           cardAnswerShown={engine.cardAnswerShown}
           canUndo={engine.undoSnapshot !== null}
           isStruggling={engine.isStruggling}

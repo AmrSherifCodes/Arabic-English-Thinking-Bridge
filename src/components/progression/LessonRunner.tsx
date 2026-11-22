@@ -794,42 +794,6 @@ export function LessonRunner({
                   </button>
                 )}
               </div>
-
-              {/* Available Word Chips Bank */}
-              <div className="flex flex-wrap gap-2 justify-center pt-2" dir={isTargetRtl ? 'rtl' : 'ltr'}>
-                {wordBankTiles.map((tile) => {
-                  const isPlaced = placedTileIds.includes(tile.id);
-                  const chip = tile.word;
-                  const gloss = getGlossForWord(chip, currentExercise.breakdownChunks || [], activeTargetLang, activeSourceLang);
-                  const deGenderClass = activeTargetLang === 'de' ? getGermanGenderClass(chip, activeTargetLang) : '';
-                  return (
-                    <button
-                      key={tile.id}
-                      disabled={isPlaced || isAnswered}
-                      data-testid="word-chip"
-                      data-word={chip}
-                      onClick={() => {
-                        soundFX.playChipSelect();
-                        speakWithRate(chip, 1.0, undefined, activeTargetLang);
-                        setPlacedTileIds((prev) => [...prev, tile.id]);
-                      }}
-                      dir={isTargetRtl ? 'rtl' : 'ltr'}
-                      style={{ unicodeBidi: 'isolate', touchAction: 'manipulation' }}
-                      className={`px-4 py-2.5 min-h-[48px] rounded-xl font-bold text-sm flex flex-col items-center justify-center transition cursor-pointer ${
-                        isPlaced
-                          ? 'opacity-30 bg-surface border border-border text-muted cursor-not-allowed'
-                          : deGenderClass
-                          ? `${deGenderClass} hover:opacity-90 active:scale-95`
-                          : 'bg-surface border border-border text-text hover:bg-surface-2 active:scale-95 shadow-sm'
-                      }`}
-                    >
-                      <span>{chip}</span>
-                      {showGlosses && gloss && <span className="text-[11px] sm:text-xs font-medium text-slate-300 dark:text-slate-300 opacity-85 mt-0.5 leading-none" dir={!isTargetRtl ? 'rtl' : 'ltr'}>{gloss}</span>}
-                    </button>
-                  );
-                })}
-              </div>
-              </div>
             </div>
           )}
 
@@ -990,6 +954,7 @@ export function LessonRunner({
                 const chip = tile.word;
                 const isSelected = placedTileIds.includes(tile.id);
                 const gloss = getGlossForWord(chip, currentExercise.breakdownChunks || [], activeTargetLang, activeSourceLang);
+                const deGenderClass = activeTargetLang === 'de' ? getGermanGenderClass(chip, activeTargetLang) : '';
                 return (
                   <button
                     key={tile.id}
@@ -1008,6 +973,8 @@ export function LessonRunner({
                     className={`px-4 py-2.5 min-h-[48px] rounded-xl font-bold text-sm flex flex-col items-center justify-center transition cursor-pointer ${
                       isSelected
                         ? 'opacity-30 bg-surface border border-border text-muted cursor-not-allowed'
+                        : deGenderClass
+                        ? `${deGenderClass} hover:opacity-90 active:scale-95`
                         : 'bg-surface border border-border text-text hover:bg-surface-2 active:scale-95 shadow-sm'
                     }`}
                   >

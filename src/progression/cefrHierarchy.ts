@@ -17,6 +17,11 @@ import { PHASES_DATA } from '../data/lessons';
 import type { TargetLanguage } from '../types';
 import { getCurriculum } from '../data/curriculumRegistry';
 import { TARGET_LANGUAGE_META } from '../data/languages';
+import { getTargetDictionary } from '../data/dictionaries';
+
+function dictLoadedKey(targetLang: TargetLanguage): string {
+  return `${targetLang}:${getTargetDictionary(targetLang).length > 0 ? '1' : '0'}`;
+}
 
 /**
  * Skill Branch Definitions & Helper Maps
@@ -61,11 +66,12 @@ function sanitizeDescriptionAr(descAr: string, targetLang: TargetLanguage): stri
 
 const poolCache: Record<string, any[]> = {};
 function getPoolForLang(targetLang: TargetLanguage) {
-  if (poolCache[targetLang]) return poolCache[targetLang];
+  const key = dictLoadedKey(targetLang);
+  if (poolCache[key]) return poolCache[key];
   const sourceLang = targetLang === 'ar' ? 'en' : 'ar';
   const phases = getCurriculum(sourceLang, targetLang);
   const pool = phases.flatMap((p) => p.lessons).flatMap((l) => l.exercises);
-  poolCache[targetLang] = pool;
+  poolCache[key] = pool;
   return pool;
 }
 
@@ -2103,11 +2109,12 @@ export const CEFR_LEVELS_MASTER: LevelNode[] = [
   },
 ];
 
-// Initialize all unit lesson nodes cached per target language
+// Initialize all unit lesson nodes cached per (target language, dictionary-loaded state)
 const _cachedTreesByLang: Record<string, LevelNode[]> = {};
 
 export function getCefrLevelHierarchy(targetLang: TargetLanguage = 'en'): LevelNode[] {
-  if (_cachedTreesByLang[targetLang]) return _cachedTreesByLang[targetLang];
+  const cacheKey = dictLoadedKey(targetLang);
+  if (_cachedTreesByLang[cacheKey]) return _cachedTreesByLang[cacheKey];
 
   // Deep clone master definition and scaffold lesson nodes for each unit
   const levels: LevelNode[] = JSON.parse(JSON.stringify(CEFR_LEVELS_MASTER));
@@ -2156,7 +2163,7 @@ export function getCefrLevelHierarchy(targetLang: TargetLanguage = 'en'): LevelN
     });
   });
 
-  _cachedTreesByLang[targetLang] = levels;
+  _cachedTreesByLang[cacheKey] = levels;
   return levels;
 }
 

@@ -199,8 +199,10 @@ export default defineConfig(async ({ command, mode }) => {
               if (normId.includes('index.ts') || normId.includes('types.ts')) {
                 return undefined;
               }
+              if (normId.includes('arabicDictionary')) {
+                return 'dict-arabic-core';
+              }
               if (
-                normId.includes('arabicDictionary') ||
                 normId.includes('egyptian') ||
                 normId.includes('levantine') ||
                 normId.includes('gulf') ||

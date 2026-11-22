@@ -1,6 +1,6 @@
 import { Capacitor } from '@capacitor/core';
 import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
-import { useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { CardSchedule, UserProgress, UserProfile, SourceLanguage, TargetLanguage } from '../../types';
 import { calculateSM2 } from '../../utils/sm2';
 import { applyHabitWin } from '../../utils/habitPsychology';
@@ -41,7 +41,9 @@ export function useDeckEngine(
     const cardsMap = currentProgress.cards || {};
     const now = Date.now();
 
-    const validKeys = keys.filter(k => !!getCardData(k, currentProgress, dictionaryEntries, profile, sourceLang, targetLang));
+    const validKeys = keys.filter(
+      k => !!getCardData(k, currentProgress, dictionaryEntries, profile, sourceLang, targetLang, { enrich: false })
+    );
 
     const learningCards: string[] = [];
     const reviewCards: string[] = [];
@@ -205,6 +207,21 @@ export function useDeckEngine(
     onAskAIAboutCard(card);
   };
 
+  const getStatsForDeck = useCallback(
+    (id: string) => getDeckStats(id, progress, dictionaryEntries, profile, sourceLang, targetLang),
+    [progress, dictionaryEntries, profile, sourceLang, targetLang]
+  );
+
+  const getCardForKey = useCallback(
+    (id: string) => getCardData(id, progress, dictionaryEntries, profile, sourceLang, targetLang),
+    [progress, dictionaryEntries, profile, sourceLang, targetLang]
+  );
+
+  const totalDueOrNew = useMemo(
+    () => getDeckStats('all', progress, dictionaryEntries, profile, sourceLang, targetLang).cappedTotal,
+    [progress, dictionaryEntries, profile, sourceLang, targetLang]
+  );
+
   return {
     activeDeckId,
     setActiveDeckId,
@@ -214,12 +231,12 @@ export function useDeckEngine(
     setCardAnswerShown,
     undoSnapshot,
     isStruggling,
-    getDeckStats: (id: string) => getDeckStats(id, progress, dictionaryEntries, profile, sourceLang, targetLang),
+    getDeckStats: getStatsForDeck,
     handleSelectDeck,
     handleCardGrade,
     handleUndoLastGrade,
     handleAskAIAboutCard,
-    getCardData: (id: string) => getCardData(id, progress, dictionaryEntries, profile, sourceLang, targetLang),
-    totalDueOrNew: getDeckStats('all', progress, dictionaryEntries, profile, sourceLang, targetLang).cappedTotal
+    getCardData: getCardForKey,
+    totalDueOrNew
   };
 }

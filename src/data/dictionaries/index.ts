@@ -3,9 +3,9 @@ import { normalizeTtsLang } from '../../utils/offlineTts';
 
 export * from './types';
 import { DictWordEntry } from './types';
-import { ARABIC_DICTIONARY } from './arabicDictionary';
 
 const loadedDictionaryCache: Record<string, DictWordEntry[]> = {};
+const inFlightDictionaryLoads: Record<string, Promise<DictWordEntry[]> | undefined> = {};
 
 const CORE_TOP5_DICTIONARY_ENTRIES: Record<string, Array<{
   word: string;
@@ -393,36 +393,42 @@ export const DICTIONARY_LOADERS: Record<string, () => Promise<DictWordEntry[]>> 
   el: async () => ((await import('./greekDictionary')).GREEK_DICTIONARY as unknown as DictWordEntry[]).map((e, idx) => normalizeDictEntry(e, 'el', idx)),
   tr: async () => ((await import('./trDictionary')).trDictionary as unknown as DictWordEntry[]).map((e, idx) => normalizeDictEntry(e, 'tr', idx)),
   he: async () => ((await import('./hebrewDictionary')).HEBREW_DICTIONARY as unknown as DictWordEntry[]).map((e, idx) => normalizeDictEntry(e, 'he', idx)),
-  en: async () => ((await import('./arabicDictionary')).ARABIC_DICTIONARY as unknown as DictWordEntry[]).map((e, idx) => normalizeDictEntry(e, 'en', idx)),
-  ar: async () => ((await import('./arabicDictionary')).ARABIC_DICTIONARY as unknown as DictWordEntry[]).map((e, idx) => normalizeDictEntry(e, 'ar', idx)),
+  en: async () => ((await import('./arabicDictionary')).ARABIC_DICTIONARY as unknown as DictWordEntry[]).map((e, idx) => normalizeDictEntry(e, 'en', idx + 10)),
+  ar: async () => ((await import('./arabicDictionary')).ARABIC_DICTIONARY as unknown as DictWordEntry[]).map((e, idx) => normalizeDictEntry(e, 'ar', idx + 10)),
   arz: async () => ((await import('./egyptianArabicDictionary')).EGYPTIANARABIC_DICTIONARY as unknown as DictWordEntry[]).map((e, idx) => normalizeDictEntry(e, 'arz', idx)),
   apc: async () => ((await import('./levantineArabicDictionary')).LEVANTINEARABIC_DICTIONARY as unknown as DictWordEntry[]).map((e, idx) => normalizeDictEntry(e, 'apc', idx)),
   afb: async () => ((await import('./gulfArabicDictionary')).GULFARABIC_DICTIONARY as unknown as DictWordEntry[]).map((e, idx) => normalizeDictEntry(e, 'afb', idx)),
   ary: async () => ((await import('./moroccanArabicDictionary')).MOROCCANARABIC_DICTIONARY as unknown as DictWordEntry[]).map((e, idx) => normalizeDictEntry(e, 'ary', idx)),
 };
 
+export function getCachedTargetDictionary(targetLang: string): DictWordEntry[] {
+  return loadedDictionaryCache[targetLang] ?? [];
+}
+
 export async function getTargetDictionaryAsync(targetLang: string): Promise<DictWordEntry[]> {
   const match = loadedDictionaryCache[targetLang];
   if (match) return match;
+  const inFlight = inFlightDictionaryLoads[targetLang];
+  if (inFlight) return inFlight;
+
   const coreEntries = getCoreEntriesForLang(targetLang);
-  if (targetLang === 'en' || targetLang === 'ar') {
-    const dict = [
-      ...coreEntries,
-      ...ARABIC_DICTIONARY.map((e, idx) => normalizeDictEntry(e, targetLang, idx + coreEntries.length)),
-    ];
-    loadedDictionaryCache[targetLang] = dict;
-    return dict;
-  }
   const loader = DICTIONARY_LOADERS[targetLang];
   if (loader) {
-    try {
-      const loaded = await loader();
-      const dict = [...coreEntries, ...loaded];
-      loadedDictionaryCache[targetLang] = dict;
-      return dict;
-    } catch (err) {
-      console.warn(`[DictionaryLoader] Failed to load dictionary for ${targetLang}`, err);
-    }
+    const loadPromise = (async () => {
+      try {
+        const loaded = await loader();
+        const dict = [...coreEntries, ...loaded];
+        loadedDictionaryCache[targetLang] = dict;
+        return dict;
+      } catch (err) {
+        console.warn(`[DictionaryLoader] Failed to load dictionary for ${targetLang}`, err);
+        return coreEntries;
+      } finally {
+        delete inFlightDictionaryLoads[targetLang];
+      }
+    })();
+    inFlightDictionaryLoads[targetLang] = loadPromise;
+    return loadPromise;
   }
   return coreEntries;
 }
@@ -576,40 +582,53 @@ function entryMatchesSearch(entry: any, clean: string, sourceLang: string): bool
   );
 }
 
+function runScoredDictionarySearch(
+  dict: DictWordEntry[],
+  query: string,
+  sourceLang: SourceLanguage,
+  limit?: number
+): DictWordEntry[] {
+  if (!query || !query.trim() || !dict || dict.length === 0) return [];
+  const clean = query.trim().toLowerCase();
+
+  // Decorate-sort-undecorate: compute scoreDictionaryMatch once per matching entry
+  const scored: Array<{ entry: DictWordEntry; score: number }> = [];
+  for (let i = 0; i < dict.length; i++) {
+    const entry = dict[i];
+    if (!entryMatchesSearch(entry, clean, sourceLang)) continue;
+    const score = scoreDictionaryMatch(
+      extractEntryWord(entry),
+      extractEntryTranslation(entry, sourceLang),
+      clean,
+      entry
+    );
+    scored.push({ entry, score });
+  }
+
+  scored.sort((a, b) => b.score - a.score);
+  const bounded = typeof limit === 'number' && limit > 0 ? scored.slice(0, limit) : scored;
+  return bounded.map((item) => item.entry);
+}
+
 export async function searchTargetDictionaryAsync(
   query: string,
   targetLang: TargetLanguage,
-  sourceLang: SourceLanguage = 'ar'
+  sourceLang: SourceLanguage = 'ar',
+  limit?: number
 ): Promise<DictWordEntry[]> {
   const dict = await getTargetDictionaryAsync(targetLang);
-  if (!query || !query.trim()) return [];
-  const clean = query.trim().toLowerCase();
-
-  return dict
-    .filter((entry) => entryMatchesSearch(entry, clean, sourceLang))
-    .sort((a, b) => {
-      const scoreA = scoreDictionaryMatch(extractEntryWord(a), extractEntryTranslation(a, sourceLang), clean, a);
-      const scoreB = scoreDictionaryMatch(extractEntryWord(b), extractEntryTranslation(b, sourceLang), clean, b);
-      return scoreB - scoreA;
-    });
+  return runScoredDictionarySearch(dict, query, sourceLang, limit);
 }
 
 export function searchTargetDictionary(
   query: string,
   targetLang: TargetLanguage,
-  sourceLang: SourceLanguage = 'ar'
+  sourceLang: SourceLanguage = 'ar',
+  limit?: number
 ): DictWordEntry[] {
   if (!query || !query.trim()) return [];
-  const clean = query.trim().toLowerCase();
   const dict = getTargetDictionary(targetLang);
-
-  return dict
-    .filter((entry) => entryMatchesSearch(entry, clean, sourceLang))
-    .sort((a, b) => {
-      const scoreA = scoreDictionaryMatch(extractEntryWord(a), extractEntryTranslation(a, sourceLang), clean, a);
-      const scoreB = scoreDictionaryMatch(extractEntryWord(b), extractEntryTranslation(b, sourceLang), clean, b);
-      return scoreB - scoreA;
-    });
+  return runScoredDictionarySearch(dict, query, sourceLang, limit);
 }
 
 export function lookupTargetTerm(

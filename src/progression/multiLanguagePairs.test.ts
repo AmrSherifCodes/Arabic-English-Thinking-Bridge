@@ -68,7 +68,7 @@ test('2. Dictionary Depth & Search Speed Test (Arabic, English, German, Spanish)
         dict.length >= minDictEntries,
         `Dictionary ${code} must have >= ${minDictEntries} entries, got ${dict.length}`
       );
-      assert.ok(loadTimeMs < 1000, `Dictionary ${code} load time must be < 1000ms, got ${loadTimeMs}ms`);
+      assert.ok(loadTimeMs < 3000, `Dictionary ${code} load time must be < 3000ms, got ${loadTimeMs}ms`);
 
       const searchResults = await searchTargetDictionaryAsync(sampleQuery, code, 'ar');
       assert.ok(

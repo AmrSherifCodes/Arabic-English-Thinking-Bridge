@@ -1,11 +1,5 @@
 import { Phase, Lesson, Exercise, SourceLanguage, TargetLanguage, ChunkRole } from '../../types';
 import { DictWordEntry, normalizeDictEntry } from '../dictionaries';
-import { trDictionary } from '../dictionaries/trDictionary';
-import { HEBREW_DICTIONARY } from '../dictionaries/hebrewDictionary';
-import { RUSSIAN_DICTIONARY } from '../dictionaries/russianDictionary';
-import { CHINESE_DICTIONARY } from '../dictionaries/chineseDictionary';
-import { HINDI_DICTIONARY } from '../dictionaries/hindiDictionary';
-import { GREEK_DICTIONARY } from '../dictionaries/greekDictionary';
 
 function extractWord(entry: any): string {
   const raw = entry.word || entry.term || entry.germanWord || entry.tr || entry.kanji || entry.romaji || '';
@@ -215,21 +209,6 @@ export function buildDictionaryPhases(
   return phases;
 }
 
-export function getStaticDictionaryEntries(target: TargetLanguage): DictWordEntry[] {
-  switch (target) {
-    case 'tr':
-      return trDictionary;
-    case 'he':
-      return HEBREW_DICTIONARY;
-    case 'ru':
-      return RUSSIAN_DICTIONARY as unknown as DictWordEntry[];
-    case 'zh':
-      return CHINESE_DICTIONARY as unknown as DictWordEntry[];
-    case 'hi':
-      return HINDI_DICTIONARY as unknown as DictWordEntry[];
-    case 'el':
-      return GREEK_DICTIONARY as unknown as DictWordEntry[];
-    default:
-      return [];
-  }
+export function getStaticDictionaryEntries(_target: TargetLanguage): DictWordEntry[] {
+  return [];
 }

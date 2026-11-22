@@ -61,3 +61,30 @@ test('6. getDeckStats phase-1 ja totalCards > 0', () => {
   const stats = getDeckStats('phase-1', emptyProgress, [], null, 'ar', 'ja');
   assert.ok(stats.totalCards > 0);
 });
+
+test('7. Master Dictionary (4,090 entries) stats, sort, and O(1) lookup complete under 250ms', () => {
+  const syntheticEntries = Array.from({ length: 4090 }, (_, i) => ({
+    arabicWord: `كلمة-${i}`,
+    englishTranslation: `word-${i}`,
+    dialect: 'msa' as const,
+    cefrLevel: i % 2 === 0 ? 'A1' : 'A2',
+    situation: 'general',
+    egyptianExample: `مثال ${i}`,
+    englishExample: `Example ${i}`,
+  }));
+
+  const start = performance.now();
+  const stats = getDeckStats('master-dictionary', emptyProgress, syntheticEntries as any, null, 'ar', 'en');
+  const keys = getDeckCardKeys('master-dictionary', emptyProgress, syntheticEntries as any, null, 'ar', 'en');
+  const valid = keys.filter(
+    k => !!getCardData(k, emptyProgress, syntheticEntries as any, null, 'ar', 'en', { enrich: false })
+  );
+  const firstEnriched = getCardData(valid[0], emptyProgress, syntheticEntries as any, null, 'ar', 'en', { enrich: true });
+  const elapsedMs = performance.now() - start;
+
+  assert.equal(stats.totalCards, 4090);
+  assert.equal(keys.length, 4090);
+  assert.equal(valid.length, 4090);
+  assert.ok(firstEnriched && firstEnriched.en.startsWith('word-'));
+  assert.ok(elapsedMs < 250, `Expected Master Dictionary pipeline < 250ms, got ${elapsedMs.toFixed(1)}ms`);
+});

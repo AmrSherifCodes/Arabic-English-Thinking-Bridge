@@ -48,6 +48,11 @@ Language apps today are sluggish, cloud-gated 3-cylinder commuters choked with a
 - Synchronized `v6.0.0` across Web/PWA (`package.json`, `api/health.js`, `index.html`, `public/download.html`), Capacitor Android (`versionCode 6000`, `ThinkingBridge-v6.0.0.apk`), Tauri Desktop (`Cargo.toml`, `tauri.conf.json`), and the V6 All-Socials Launch Kit (`scripts/social-posts.json`, `scripts/social-autoposter.mjs`, `src/utils/socialAutoPoster.ts`).
 - Confirmed release APK cold-launch on Honor 400 with `0` crashes in `logcat` (`AndroidRuntime:E Chromium:E Capacitor:E`) and `0` open `webview_devtools_remote` sockets.
 
+### Cylinder 7 — German V6 Immersion & Webapp Zero-Freeze Overhaul
+- **German (`de-DE`) Pedagogy & Gender Cues:** Added native `de-DE` TTS routing across German lessons/flashcards, color-coded visual gender cues for German articles (`der`/`den`/`dem` sky blue, `die`/`eine`/`diese` rose, `das`/`ein`/`dieses` emerald), non-self-echoing German glosses (`glossHelper.ts`), expanded German Phase 1 Satzbau/V2/Perfekt lessons, and fixed English breakdown chunk bleed in `LessonRunner.tsx`.
+- **Zero-Freeze Startup & Core Shell PWA:** Removed eager static imports of `ARABIC_DICTIONARY` (`src/data/dictionaries/index.ts`), 6 large secondary dictionaries (`src/data/curriculum/dictionaryCurriculum.ts`), and `courseData` (`src/App.tsx`), and split `dict-arabic-core` from `dict-arabic-dialects` (`vite.config.ts`). Eliminated 15.5 MB of critical-path dictionary parsing on `/` and `/app`, shrank oversized PWA icons by ~8.9 MB (`1143 KiB` precache shell), and removed Unsplash CSS URLs (`LandingPage.css`) for 0 CSP console errors.
+- **`O(1)` Flashcards & Debounced Smart Dictionary:** Added `WeakMap` indexes and deferred cross-language card enrichment in `deckUtils.ts` / `useDeckEngine.ts` (eliminating >30s Master Dictionary freezes on 4,090 cards), and switched `searchTargetDictionary` / `searchTargetDictionaryAsync` to Schwartzian O(N) single-pass scoring with 150ms input debouncing in `DictionaryView`.
+
 ---
 
 ## 📊 Dyno Sheet — Verified Top-5 Language Scorecard (Honor 400 `DNY-NX9`)
@@ -71,7 +76,7 @@ Language apps today are sluggish, cloud-gated 3-cylinder commuters choked with a
 
 | Platform | Target | Integrity / Notes |
 | :--- | :--- | :--- |
-| **Android APK (Signed Release)** | `ThinkingBridge-v6.0.0.apk` (`versionCode 6000`) | Size: `105.95 MB` (`111,097,923 bytes`) · **SHA-256:** `F0B10543E9B192FE28594BE3717F2CA7D18E1B29614A8CF933C8F7D9067F0A2A` |
+| **Android APK (Signed Release)** | `ThinkingBridge-v6.0.0.apk` (`versionCode 6000`) | Size: `97.50 MB` (`102,235,429 bytes`) · **SHA-256:** `7587C2DD60872CAD57939105E52E51B79D5C28A41E748C9CC3F5014B9ADA4B09` |
 | **Web App / Offline PWA** | [https://tb-eg.vercel.app](https://tb-eg.vercel.app) | Installable via Chrome / Safari / Edge "Add to Home Screen" |
 | **Quick Download Portal** | [https://tb-eg.vercel.app/apk](https://tb-eg.vercel.app/apk) | 30-second bilingual onboarding guide |
 
