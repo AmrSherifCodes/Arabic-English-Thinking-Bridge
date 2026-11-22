@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   X,
   MapPin,
   Mail,
-  GraduationCap,
   Briefcase,
   Languages,
   Award,
@@ -18,10 +17,18 @@ import {
   SlidersHorizontal,
   Copy,
   Check,
-  Download,
-  ExternalLink,
 } from 'lucide-react';
 import { SocialLinks } from './SocialLinks';
+import { DevModeModal } from './DevModeModal';
+import { MutahEasterEggModal } from './MutahEasterEggModal';
+import {
+  CV_DEV_MODE_CLICKS,
+  CV_GAME_START_CLICKS,
+  CV_POEM_CLICKS,
+  advanceCvClickState,
+  getCvGameMilestone,
+  setDevModeEnabled,
+} from '../utils/cvEasterEgg';
 
 export interface CVModalProps {
   isOpen: boolean;
@@ -42,6 +49,12 @@ interface Dimension {
 
 export function CVModal({ isOpen, onClose }: CVModalProps) {
   const [copiedEmail, setCopiedEmail] = useState(false);
+  const [tapCount, setTapCount] = useState(0);
+  const [cps, setCps] = useState(0);
+  const [isDevModeOpen, setIsDevModeOpen] = useState(false);
+  const [isPoemOpen, setIsPoemOpen] = useState(false);
+  const tapCountRef = useRef(0);
+  const recentTapsRef = useRef<number[]>([]);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     ai: true,
     software: true,
@@ -53,15 +66,38 @@ export function CVModal({ isOpen, onClose }: CVModalProps) {
   useEffect(() => {
     if (!isOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape' && !isDevModeOpen && !isPoemOpen) onClose();
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+  }, [isOpen, isDevModeOpen, isPoemOpen, onClose]);
+
+  const handleCvTap = useCallback(() => {
+    const nextState = advanceCvClickState(tapCountRef.current);
+    tapCountRef.current = nextState.count;
+    setTapCount(nextState.count);
+
+    if (nextState.count >= CV_GAME_START_CLICKS) {
+      const now = performance.now();
+      const kept = recentTapsRef.current.filter((t) => now - t <= 1000);
+      kept.push(now);
+      recentTapsRef.current = kept;
+      setCps(kept.length);
+    }
+
+    if (nextState.enteredDevMode) {
+      setDevModeEnabled(true);
+      setIsDevModeOpen(true);
+    } else if (nextState.unlockedPoem) {
+      setIsDevModeOpen(false);
+      setIsPoemOpen(true);
+    }
+  }, []);
 
   if (!isOpen) return null;
 
-  const handleCopyEmail = () => {
+  const handleCopyEmail = (e: React.MouseEvent) => {
+    e.stopPropagation();
     navigator.clipboard.writeText('amrsherifwork@gmail.com');
     setCopiedEmail(true);
     setTimeout(() => setCopiedEmail(false), 2000);
@@ -173,29 +209,42 @@ export function CVModal({ isOpen, onClose }: CVModalProps) {
     },
   ];
 
-  return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="cv-modal-title"
-      className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-5 pt-safe pb-safe bg-[#060E1A]/90 backdrop-blur-xl animate-fade-in"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
-      <div className="relative w-full max-w-2xl max-h-[92dvh] overflow-y-auto rounded-3xl bg-gradient-to-br from-[#0B1C33]/98 via-[#0E2746]/95 to-[#060E1A]/98 border border-cyan-500/30 text-slate-100 shadow-[0_0_60px_rgba(6,182,212,0.2)] p-5 sm:p-8 space-y-6 scrollbar-thin">
-        {/* Close Button */}
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close CV modal"
-          className="absolute top-5 right-5 min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-2xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 transition shadow-sm"
-        >
-          <X className="w-5 h-5" />
-        </button>
+  const progressPct = Math.min(100, Math.round((Math.min(tapCount, CV_DEV_MODE_CLICKS) / CV_DEV_MODE_CLICKS) * 100));
+  const showTapGame = tapCount >= CV_GAME_START_CLICKS;
 
-        {/* Header Profile with Alexandrian Ocean Style */}
-        <header className="flex flex-col sm:flex-row items-start sm:items-center gap-5 pr-8">
+  return (
+    <>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="cv-modal-title"
+        data-cv-modal="true"
+        className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-5 pt-safe pb-safe bg-[#060E1A]/95"
+        onClick={(e) => {
+          if (e.target === e.currentTarget) onClose();
+        }}
+      >
+        <div className="relative w-full max-w-2xl max-h-[92dvh] overflow-y-auto rounded-3xl bg-[#0A172A] border border-cyan-500/30 text-slate-100 shadow-2xl p-5 sm:p-8 space-y-6 scrollbar-thin">
+          {/* Close Button */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onClose();
+            }}
+            aria-label="Close CV modal"
+            className="absolute top-5 right-5 min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-2xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 shadow-sm cursor-pointer"
+          >
+            <X className="w-5 h-5" />
+          </button>
+
+          {/* Header Profile (normal clicks 1-2; click 3 turns into smooth tap game -> 110 Dev Mode -> 111 Pure Poem) */}
+          <header
+            data-testid="cv-click-surface"
+            onClick={handleCvTap}
+            style={{ touchAction: 'manipulation' }}
+            className="flex flex-col sm:flex-row items-start sm:items-center gap-5 pr-8 select-none cursor-pointer rounded-2xl active:opacity-95"
+          >
           <div className="relative group shrink-0">
             <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl p-1 bg-gradient-to-br from-cyan-400 via-teal-400 to-amber-400 shadow-lg shadow-cyan-500/20">
               <img
@@ -241,7 +290,11 @@ export function CVModal({ isOpen, onClose }: CVModalProps) {
         </header>
 
         {/* Quick Skill Badges Strip */}
-        <div className="flex flex-wrap gap-1.5 pt-1">
+        <div
+          onClick={handleCvTap}
+          style={{ touchAction: 'manipulation' }}
+          className="flex flex-wrap gap-1.5 pt-1 select-none cursor-pointer"
+        >
           {['Scientist 🔬', 'Floor Coach 🎧', 'Chemist ⚗️', 'Full-Stack Dev 💻', 'AI Tools Expert 🤖', 'Linguist 🗣️'].map((role) => (
             <span
               key={role}
@@ -252,8 +305,59 @@ export function CVModal({ isOpen, onClose }: CVModalProps) {
           ))}
         </div>
 
+        {/* Interactive Smooth Tap Game (Unlocks after Click 3 -> 110 Dev Mode -> 111 Pure Poem) */}
+        {showTapGame && (
+          <section
+            data-testid="cv-tap-game"
+            className="rounded-2xl border border-amber-400/50 bg-[#071120] p-4 space-y-3 select-none"
+          >
+            <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-black">
+              <span className="text-amber-300">{getCvGameMilestone(tapCount)}</span>
+              <span className="font-mono text-cyan-300">
+                {tapCount}/{tapCount < CV_DEV_MODE_CLICKS ? CV_DEV_MODE_CLICKS : CV_POEM_CLICKS} · {cps} taps/s
+              </span>
+            </div>
+
+            <div className="w-full h-3 rounded-full bg-slate-900 border border-slate-700 overflow-hidden">
+              <div
+                className="h-full bg-emerald-400 transition-[width] duration-75"
+                style={{ width: `${progressPct}%` }}
+              />
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                data-testid="cv-game-tap-btn"
+                onClick={handleCvTap}
+                style={{ touchAction: 'manipulation' }}
+                className="flex-1 min-h-[52px] px-4 py-3 rounded-xl bg-amber-400 hover:bg-amber-300 active:scale-[0.98] text-slate-950 font-black text-sm cursor-pointer select-none"
+              >
+                {tapCount < CV_DEV_MODE_CLICKS
+                  ? `⚡ TAP FAST (${CV_DEV_MODE_CLICKS - tapCount} left for Dev Mode)`
+                  : tapCount === CV_DEV_MODE_CLICKS
+                    ? '📜 TAP ONCE MORE (110 → 111 Pure Poem)'
+                    : '📜 Tap Again for Poem (#111+)'}
+              </button>
+              {tapCount >= CV_DEV_MODE_CLICKS && (
+                <button
+                  type="button"
+                  onClick={() => setIsDevModeOpen(true)}
+                  className="min-h-[52px] px-4 py-3 rounded-xl bg-cyan-500/15 border border-cyan-400/40 text-cyan-200 font-black text-xs cursor-pointer"
+                >
+                  🛠️ Open Dev Mode
+                </button>
+              )}
+            </div>
+          </section>
+        )}
+
         {/* Executive Summary / About */}
-        <section className="rounded-3xl bg-[#061224]/90 border border-cyan-500/25 p-4 sm:p-5 shadow-inner space-y-2">
+        <section
+          onClick={handleCvTap}
+          style={{ touchAction: 'manipulation' }}
+          className="rounded-3xl bg-[#061224]/90 border border-cyan-500/25 p-4 sm:p-5 shadow-inner space-y-2 select-none cursor-pointer"
+        >
           <h3 className="text-xs font-black uppercase tracking-wider text-cyan-400 flex items-center gap-2">
             <Award className="w-4 h-4 text-amber-400" />
             <span>Executive Summary & Profile</span>
@@ -358,6 +462,10 @@ export function CVModal({ isOpen, onClose }: CVModalProps) {
           <SocialLinks />
         </div>
 
+        <p className="text-[11px] text-center text-slate-400 font-semibold">
+          © 2026 Amr Sherif — All Rights Reserved · جميع الحقوق محفوظة لعمرو شريف
+        </p>
+
         {/* Footer Actions */}
         <footer className="pt-3 border-t border-cyan-500/20 flex flex-col sm:flex-row items-center gap-3">
           <button
@@ -371,12 +479,28 @@ export function CVModal({ isOpen, onClose }: CVModalProps) {
           <button
             type="button"
             onClick={onClose}
-            className="w-full sm:w-1/2 py-3 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 hover:from-amber-300 hover:to-amber-500 transition font-black text-xs text-slate-950 shadow-lg shadow-amber-500/20 cursor-pointer border border-amber-300"
+            className="w-full sm:w-1/2 py-3 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 hover:from-amber-300 hover:to-amber-500 font-black text-xs text-slate-950 shadow-lg cursor-pointer border border-amber-300"
           >
             Close CV Window ✕
           </button>
         </footer>
       </div>
     </div>
+
+    <DevModeModal
+      isOpen={isDevModeOpen}
+      onClose={() => setIsDevModeOpen(false)}
+      cvClickCount={tapCount}
+      onTriggerPoemClick={() => {
+        setIsDevModeOpen(false);
+        handleCvTap();
+      }}
+    />
+
+    <MutahEasterEggModal
+      isOpen={isPoemOpen}
+      onClose={() => setIsPoemOpen(false)}
+    />
+  </>
   );
 }

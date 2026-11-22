@@ -97,7 +97,7 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
       <div className="absolute top-0 inset-x-0 h-64 bg-gradient-to-b from-[var(--color-primary)]/10 to-transparent pointer-events-none" />
       <div className="absolute bottom-0 inset-x-0 h-64 bg-gradient-to-t from-[var(--color-surface-2)]/20 to-transparent pointer-events-none" />
 
-      <div className="relative z-10 flex-1 overflow-y-auto pt-safe pt-12 pb-8 px-6 flex flex-col items-center justify-center">
+      <div className="relative z-10 flex-1 overflow-y-auto pt-safe py-6 px-6 flex flex-col items-center">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentStep.id}
@@ -105,7 +105,7 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.95 }}
             transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-            className="max-w-md w-full text-center"
+            className="max-w-md w-full my-auto text-center"
           >
             {currentStep.icon}
 
@@ -137,7 +137,7 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
 
           <button
             onClick={handleNext}
-            className="w-full py-4 rounded-2xl bg-[var(--color-primary)] hover:opacity-90 active:scale-95 text-[var(--color-on-primary)] font-arabic font-bold text-xl flex items-center justify-center gap-3 transition-all shadow-lg"
+            className="w-full min-h-[52px] py-3.5 rounded-2xl bg-[var(--color-primary)] hover:opacity-90 active:scale-95 text-[var(--color-on-primary)] font-arabic font-bold text-xl flex items-center justify-center gap-3 transition-all shadow-lg cursor-pointer"
           >
             {step === steps.length - 1 ? (
               <>
@@ -155,7 +155,7 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
           {step < steps.length - 1 && (
             <button
               onClick={handleSkip}
-              className="w-full py-3 rounded-xl bg-transparent text-[var(--color-muted)] hover:text-[var(--color-text)] font-arabic text-base transition-colors"
+              className="w-full min-h-[48px] py-3 rounded-xl bg-transparent text-[var(--color-muted)] hover:text-[var(--color-text)] font-arabic text-base transition-colors cursor-pointer"
             >
               تخطي المقدمة
             </button>

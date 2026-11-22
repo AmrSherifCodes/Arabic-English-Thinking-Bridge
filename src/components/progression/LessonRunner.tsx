@@ -29,7 +29,7 @@ import { useUiMode } from '../../utils/uiMode';
 
 function getSmartGrammarClue(exercise: ExerciseItem, isArabic: boolean, targetLang: string = 'en'): string {
   const arExplanation = exercise.explanationAr || (exercise as any).hintAr || '';
-  if (isArabic && arExplanation) return arExplanation;
+  if (isArabic && arExplanation && /[\u0600-\u06FF]/.test(arExplanation)) return arExplanation;
   if (!isArabic && exercise.explanationEn) return exercise.explanationEn;
 
   if (targetLang === 'de') {
@@ -64,6 +64,11 @@ function getSmartGrammarClue(exercise: ExerciseItem, isArabic: boolean, targetLa
     return isArabic
       ? 'الإنجليزي بيحتاج فعل ربط (am / is / are) بين الفاعل والصفة أو الاسم — زي: I am a student.'
       : 'English requires a linking verb (am / is / are) between subject and adjective or noun.';
+  }
+  if (/\b(do not|don't|does not|doesn't|did not|didn't)\b/.test(target)) {
+    return isArabic
+      ? 'في النفي بالإنجليزي بنستعمل فعل مساعد (do not / does not / did not) قبل الفعل الأساسي بدل النفي المباشر.'
+      : 'In English negation, place an auxiliary verb (do not / does not / did not) before the main verb.';
   }
   if (/\b(bought|went|ate|saw|took|made|was|were|did)\b|\w+ed\b/.test(target)) {
     return isArabic
@@ -573,8 +578,8 @@ export function LessonRunner({
   const progressPercent = Math.round(((currentIndex + 1) / exercises.length) * 100);
 
   return (
-    <div className="fixed inset-0 z-50 bg-bg/90 backdrop-blur-xl flex items-center justify-center p-0 pt-safe pb-safe sm:p-4 md:p-6" dir={isArabic ? 'rtl' : 'ltr'}>
-      <div className="w-full h-[100dvh] flex flex-col sm:h-auto sm:max-h-[88dvh] sm:max-w-xl md:max-w-2xl lg:max-w-4xl sm:rounded-3xl bg-bg border border-border shadow-2xl overflow-hidden relative">
+    <div className="fixed inset-0 z-50 bg-bg/90 backdrop-blur-xl flex items-center justify-center p-0 sm:p-4 md:p-6" dir={isArabic ? 'rtl' : 'ltr'}>
+      <div className="w-full h-full flex flex-col sm:h-auto sm:max-h-[88dvh] sm:max-w-xl md:max-w-2xl lg:max-w-4xl sm:rounded-3xl bg-bg border border-border shadow-2xl overflow-hidden relative">
         {/* Top Header Progress Bar */}
         <div className="sticky top-0 z-40 px-3 sm:px-4 pb-3 pt-safe border-b border-border flex items-center gap-2 sm:gap-3 bg-[#06101c]/95 backdrop-blur-md shrink-0">
           <button
@@ -702,7 +707,7 @@ export function LessonRunner({
                 <button
                   type="button"
                   onClick={() => setShowGlosses((v) => !v)}
-                  className="px-2.5 py-1.5 min-h-[44px] rounded-xl bg-surface-2 text-text text-xs font-bold border border-border flex items-center gap-1 cursor-pointer"
+                  className="px-2.5 py-1.5 min-h-[48px] min-w-[48px] justify-center rounded-xl bg-surface-2 text-text text-xs font-bold border border-border flex items-center gap-1 cursor-pointer"
                   title={showGlosses ? (isArabic ? 'إخفاء المعاني' : 'Hide Glosses') : (isArabic ? 'إظهار المعاني' : 'Show Glosses')}
                 >
                   {showGlosses ? <EyeOff size={14} /> : <Eye size={14} />}
@@ -713,7 +718,7 @@ export function LessonRunner({
                 type="button"
                 data-testid="toggle-input-mode"
                 onClick={() => setInputMode((m) => (m === 'tiles' ? 'keyboard' : 'tiles'))}
-                className="px-3 py-1.5 min-h-[44px] rounded-xl bg-surface-2 text-text text-xs font-bold border border-border shrink-0 cursor-pointer"
+                className="px-3 py-1.5 min-h-[48px] rounded-xl bg-surface-2 text-text text-xs font-bold border border-border shrink-0 cursor-pointer"
               >
                 {inputMode === 'tiles' ? (isArabic ? '⌨️ كيبورد' : 'Keyboard') : (isArabic ? '🧩 كلمات' : 'Word Tiles')}
               </button>
@@ -774,40 +779,6 @@ export function LessonRunner({
                   </button>
                 )}
               </div>
-
-              {/* Available Word Chips Bank */}
-              <div className="flex flex-wrap gap-2 justify-center pt-2" dir={isTargetRtl ? 'rtl' : 'ltr'}>
-                {wordBankTiles.map((tile) => {
-                  const chip = tile.word;
-                  const isSelected = placedTileIds.includes(tile.id);
-                  const gloss = getGlossForWord(chip, currentExercise.breakdownChunks || [], activeTargetLang, activeSourceLang);
-                  return (
-                    <button
-                      key={tile.id}
-                      disabled={isSelected || isAnswered}
-                      data-testid="word-chip"
-                      data-word={chip}
-                      onClick={() => {
-                        soundFX.playChipSelect();
-                        speakWithRate(chip, 1.0, undefined, activeTargetLang);
-                        setPlacedTileIds((prev) =>
-                          prev.includes(tile.id) ? prev : [...prev, tile.id]
-                        );
-                      }}
-                      dir={isTargetRtl ? 'rtl' : 'ltr'}
-                      style={{ unicodeBidi: 'isolate', touchAction: 'manipulation' }}
-                      className={`px-4 py-2.5 min-h-[48px] rounded-xl font-bold text-sm flex flex-col items-center justify-center transition cursor-pointer ${
-                        isSelected
-                          ? 'opacity-30 bg-surface border border-border text-muted cursor-not-allowed'
-                          : 'bg-surface border border-border text-text hover:bg-surface-2 active:scale-95 shadow-sm'
-                      }`}
-                    >
-                      <span>{chip}</span>
-                      {showGlosses && gloss && <span className="text-[11px] sm:text-xs font-medium text-slate-300 dark:text-slate-300 opacity-85 mt-0.5 leading-none" dir={!isTargetRtl ? 'rtl' : 'ltr'}>{gloss}</span>}
-                    </button>
-                  );
-                })}
-              </div>
             </div>
           )}
 
@@ -828,6 +799,11 @@ export function LessonRunner({
           {/* Rule Explanation "WHY" Feedback Card + Word-by-Word Diff + Interactive Sentence Map */}
           {isAnswered && (
             <div
+              ref={(el) => {
+                if (el && typeof el.scrollIntoView === 'function') {
+                  el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+              }}
               className={`p-4 rounded-2xl border text-start pb-3 space-y-3 ${
                 isCorrect
                   ? 'bg-success/15 border-success text-text'
@@ -852,7 +828,7 @@ export function LessonRunner({
                 <button
                   type="button"
                   onClick={() => speakWithRate(currentExercise.targetSentence, 1.0, undefined, activeTargetLang)}
-                  className="px-3 py-1.5 min-h-[36px] rounded-xl bg-surface-2 border border-border text-text hover:bg-surface text-xs font-black flex items-center gap-1.5 cursor-pointer shrink-0"
+                  className="px-3 py-2 min-h-[48px] min-w-[48px] rounded-xl bg-surface-2 border border-border text-text hover:bg-surface text-xs font-black flex items-center justify-center gap-1.5 cursor-pointer shrink-0"
                   aria-label={isArabic ? 'استمع للجملة الصحيحة' : 'Listen to target sentence'}
                 >
                   <Volume2 size={14} className="text-cyan-400" />
@@ -924,7 +900,7 @@ export function LessonRunner({
                             key={`${tok}-${idx}`}
                             type="button"
                             onClick={() => speakWithRate(tok, 1.0, undefined, activeTargetLang)}
-                            className="px-2.5 py-1.5 min-h-[38px] rounded-xl bg-surface-2 border border-border hover:border-cyan-400/60 text-text text-xs font-bold flex flex-col items-center justify-center cursor-pointer active:scale-95 transition"
+                            className="px-3 py-2 min-h-[48px] min-w-[48px] rounded-xl bg-surface-2 border border-border hover:border-cyan-400/60 text-text text-xs font-bold flex flex-col items-center justify-center cursor-pointer active:scale-95 transition"
                           >
                             <span>{tok}</span>
                             {gloss && (
@@ -953,6 +929,42 @@ export function LessonRunner({
                   </p>
                 );
               })()}
+            </div>
+          )}
+
+          {/* Available Word Chips Bank */}
+          {inputMode === 'tiles' && (
+            <div className="flex flex-wrap gap-2 justify-center pt-1" dir={isTargetRtl ? 'rtl' : 'ltr'}>
+              {wordBankTiles.map((tile) => {
+                const chip = tile.word;
+                const isSelected = placedTileIds.includes(tile.id);
+                const gloss = getGlossForWord(chip, currentExercise.breakdownChunks || [], activeTargetLang, activeSourceLang);
+                return (
+                  <button
+                    key={tile.id}
+                    disabled={isSelected || isAnswered}
+                    data-testid="word-chip"
+                    data-word={chip}
+                    onClick={() => {
+                      soundFX.playChipSelect();
+                      speakWithRate(chip, 1.0, undefined, activeTargetLang);
+                      setPlacedTileIds((prev) =>
+                        prev.includes(tile.id) ? prev : [...prev, tile.id]
+                      );
+                    }}
+                    dir={isTargetRtl ? 'rtl' : 'ltr'}
+                    style={{ unicodeBidi: 'isolate', touchAction: 'manipulation' }}
+                    className={`px-4 py-2.5 min-h-[48px] rounded-xl font-bold text-sm flex flex-col items-center justify-center transition cursor-pointer ${
+                      isSelected
+                        ? 'opacity-30 bg-surface border border-border text-muted cursor-not-allowed'
+                        : 'bg-surface border border-border text-text hover:bg-surface-2 active:scale-95 shadow-sm'
+                    }`}
+                  >
+                    <span>{chip}</span>
+                    {showGlosses && gloss && <span className="text-[11px] sm:text-xs font-medium text-slate-300 dark:text-slate-300 opacity-85 mt-0.5 leading-none" dir={!isTargetRtl ? 'rtl' : 'ltr'}>{gloss}</span>}
+                  </button>
+                );
+              })}
             </div>
           )}
         </motion.div>

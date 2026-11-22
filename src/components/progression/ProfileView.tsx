@@ -203,11 +203,16 @@ export function ProfileView({
           <h4 className="text-sm font-black text-white">{isArabic ? 'حفظ واستعادة تقدمك' : 'Save & Restore Progress'}</h4>
           <div className="flex flex-wrap gap-3">
             {onExportData && (
-              <button onClick={onExportData} className="px-4 py-2 rounded-xl bg-stone-800 text-stone-200 text-xs font-bold flex items-center gap-2 cursor-pointer">
+              <button onClick={onExportData} className="px-4 py-2 min-h-[48px] rounded-xl bg-stone-800 text-stone-200 text-xs font-bold flex items-center gap-2 cursor-pointer">
                 <Download size={14} /> {isArabic ? 'تصدير التقدم (JSON)' : 'Export Progress (JSON)'}
               </button>
             )}
-            <button onClick={() => setUiMode('pro')} className="px-4 py-2 rounded-xl bg-cyan-500/20 text-cyan-300 text-xs font-bold cursor-pointer border border-cyan-500/30">
+            {onOpenPrivacyPolicy && (
+              <button onClick={onOpenPrivacyPolicy} className="px-4 py-2 min-h-[48px] rounded-xl bg-stone-800 text-stone-200 text-xs font-bold flex items-center gap-2 cursor-pointer">
+                <Shield size={14} /> {isArabic ? 'عن التطبيق والخصوصية' : 'About & Privacy'}
+              </button>
+            )}
+            <button onClick={() => setUiMode('pro')} className="px-4 py-2 min-h-[48px] rounded-xl bg-cyan-500/20 text-cyan-300 text-xs font-bold cursor-pointer border border-cyan-500/30">
               ⚡ {isArabic ? 'عرض كل أدوات الوضع المتقدم' : 'Show All Pro Tools'}
             </button>
           </div>
@@ -227,7 +232,7 @@ export function ProfileView({
           {onOpenPreferences && (
             <button
               onClick={onOpenPreferences}
-              className="px-3.5 py-2 rounded-xl bg-teal-500/20 text-teal-300 border border-teal-500/30 text-xs font-bold flex items-center gap-1.5 transition hover:bg-teal-500/30 cursor-pointer"
+              className="px-3.5 py-2 min-h-[48px] rounded-xl bg-teal-500/20 text-teal-300 border border-teal-500/30 text-xs font-bold flex items-center gap-1.5 transition hover:bg-teal-500/30 cursor-pointer"
             >
               <Settings size={14} />
               <span>{isArabic ? 'الإعدادات' : 'Preferences'}</span>
@@ -244,14 +249,14 @@ export function ProfileView({
           {onExportData && (
             <button
               onClick={onExportData}
-              className="px-4 py-2.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs font-bold flex items-center gap-2 transition cursor-pointer"
+              className="px-4 py-2.5 min-h-[48px] rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs font-bold flex items-center gap-2 transition cursor-pointer"
             >
               <Download size={14} />
               <span>{isArabic ? 'تصدير التقدم (JSON)' : 'Export Progress'}</span>
             </button>
           )}
 
-          <label className="px-4 py-2.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs font-bold flex items-center gap-2 transition cursor-pointer">
+          <label className="px-4 py-2.5 min-h-[48px] rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs font-bold flex items-center gap-2 transition cursor-pointer">
             <Upload size={14} />
             <span>{isArabic ? 'استعادة ملف JSON' : 'Import JSON Backup'}</span>
             <input
@@ -291,7 +296,7 @@ export function ProfileView({
                 onToast?.('Failed to export Anki deck');
               }
             }}
-            className="px-4 py-2.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 text-xs font-bold flex items-center gap-2 transition cursor-pointer"
+            className="px-4 py-2.5 min-h-[48px] rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 text-xs font-bold flex items-center gap-2 transition cursor-pointer"
           >
             <Download size={14} />
             <span>{isArabic ? 'تصدير بطاقات Anki (10k)' : 'Export Anki Deck'}</span>
@@ -300,7 +305,7 @@ export function ProfileView({
           {onOpenPrivacyPolicy && (
             <button
               onClick={onOpenPrivacyPolicy}
-              className="px-4 py-2.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs font-bold flex items-center gap-2 transition cursor-pointer"
+              className="px-4 py-2.5 min-h-[48px] rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs font-bold flex items-center gap-2 transition cursor-pointer"
             >
               <Shield size={14} />
               <span>{isArabic ? 'سياسة الخصوصية' : 'Privacy Policy'}</span>
@@ -313,7 +318,7 @@ export function ProfileView({
                   onDeleteData();
                 }
               }}
-              className="px-4 py-2.5 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-500/30 text-xs font-bold flex items-center gap-2 transition cursor-pointer"
+              className="px-4 py-2.5 min-h-[48px] rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-500/30 text-xs font-bold flex items-center gap-2 transition cursor-pointer"
             >
               <Trash2 size={14} />
               <span>{isArabic ? 'مسح البيانات محلياً' : 'Clear Local Data'}</span>

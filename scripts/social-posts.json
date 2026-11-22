@@ -1,0 +1,25 @@
+{
+  "defaultUrl": "https://tb-eg.vercel.app",
+  "presets": {
+    "linkedin-en": {
+      "title": "Thinking Bridge v5.0.0 — Free Offline Cognitive Transfer App (14 Languages)",
+      "text": "Just shipped Thinking Bridge v5.0.0 — First Official Stable Release.\n\nBuilt in Alexandria, Egypt for Arabic-speaking STEM students & language learners:\n• 100% Offline-First (PWA + Capacitor Android APK + Desktop)\n• Zero ads, zero paywalls, unlimited free hearts\n• Offline L1 Cognitive Coach + Word-by-Word Diff in Egyptian Arabic & English\n• 14 languages, SM-2 spaced repetition, 356 automated tests + 19 E2E checks\n\nTry it live or grab the v5.0.0 APK: https://tb-eg.vercel.app\nGitHub: https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/tag/v5.0.0\n\n#OpenSource #EdTech #OfflineFirst #PWA #Android"
+    },
+    "linkedin-ar": {
+      "title": "إطلاق النسخة الرسمية v5.0.0 من Thinking Bridge",
+      "text": "تم إطلاق النسخة الرسمية المستقرة الأولى v5.0.0 من تطبيق Thinking Bridge (جسر التفكير)! 🎉🇪🇬\n\nمشروع مجاني 100% ومفتوح المصدر صُمم في الإسكندرية لتدريب العقل العربي على التفكير بالإنجليزية والألمانية و14 لغة بدون ترجمة حرفية.\n• يعمل 100% بدون إنترنت (Web PWA + Android APK + Desktop)\n• بدون إعلانات، بدون اشتراكات، وقلوب لا محدودة (∞)\n• مدرب أخطاء ذكي مجاني بالمصري + مقارنة كلمة بكلمة\n\nجربه الآن: https://tb-eg.vercel.app"
+    },
+    "x-en": {
+      "title": "Thinking Bridge v5.0.0 Official Stable",
+      "text": "Shipped Thinking Bridge v5.0.0 — Duolingo without hearts, ads, or internet.\n14 languages, offline L1 Egyptian Arabic mistake coach + word diff, Android APK + PWA.\n100% free & open source: https://tb-eg.vercel.app"
+    },
+    "campus-ar": {
+      "title": "جسر التفكير v5.0.0 — تطبيق مجاني بدون نت",
+      "text": "يا جماعة عملت تطبيق مجاني 100% ومفتوح المصدر اسمه Thinking Bridge (جسر التفكير — v5.0.0) لتعليم الإنجليزي والألماني و14 لغة.\nشغال بدون نت جوه المدرجات، بدون إعلانات، وبدون قلوب أو اشتراكات — ولما تغلط بيشرحلك السبب بالمصري ويخليك تصلح الغلطة فوراً.\nجربوه من المتصفح أو حملوا نسخة الأندرويد APK: https://tb-eg.vercel.app"
+    },
+    "youtube-ar": {
+      "title": "Thinking Bridge v5.0.0 على قناة @SciAmrSherif",
+      "text": "النسخة الرسمية الأولى v5.0.0 من تطبيق جسر التفكير (Thinking Bridge) متاحة دلوقتي مجاناً وبدون إنترنت! 🔥\n14 لغة + مدرب تفكير بالمصري + مقارنة كلمة بكلمة + قلوب لا محدودة.\nجربه حالاً من هنا: https://tb-eg.vercel.app"
+    }
+  }
+}

@@ -136,7 +136,7 @@ export function LanguageSelectorModal({
           <button
             type="button"
             onClick={onClose}
-            className="p-2.5 rounded-2xl text-muted hover:text-text hover:bg-surface-2 transition-colors shrink-0"
+            className="min-h-[48px] min-w-[48px] flex items-center justify-center p-2.5 rounded-2xl text-muted hover:text-text hover:bg-surface-2 transition-colors shrink-0 cursor-pointer"
             aria-label="إغلاق"
           >
             <X className="w-5 h-5" />
@@ -263,25 +263,23 @@ export function LanguageSelectorModal({
         </div>
 
         {/* Footer Actions */}
-        <div className="flex items-center justify-between border-t border-border p-4 sm:p-5 bg-surface-2/50 shrink-0">
-          {step === 2 ? (
+        <div className="flex items-center justify-between gap-3 border-t border-border p-4 sm:p-5 bg-surface-2/50 shrink-0">
+          {step === 2 && (
             <button
               type="button"
               onClick={() => setStep(1)}
-              className="px-4 py-2.5 rounded-xl text-xs font-bold bg-surface border border-border text-text hover:bg-surface-2 transition-colors flex items-center gap-1.5 min-h-[44px] cursor-pointer"
+              className="px-4 py-2.5 rounded-xl text-xs font-bold bg-surface border border-border text-text hover:bg-surface-2 transition-colors flex items-center justify-center gap-1.5 min-h-[48px] cursor-pointer shrink-0"
             >
               <ArrowRight size={14} />
               <span>العودة للخطوة ١</span>
             </button>
-          ) : (
-            <div />
           )}
 
           {step === 1 ? (
             <button
               type="button"
               onClick={() => setStep(2)}
-              className="px-5 py-2.5 rounded-xl text-xs font-black bg-primary text-on-primary shadow-md hover:opacity-90 transition-all flex items-center gap-1.5 min-h-[44px] cursor-pointer"
+              className="w-full px-5 py-3 rounded-xl text-xs font-black bg-primary text-on-primary shadow-md hover:opacity-90 transition-all flex items-center justify-center gap-1.5 min-h-[48px] cursor-pointer"
             >
               <span>التالي: اختر اللغة الهدف ←</span>
             </button>
@@ -289,7 +287,7 @@ export function LanguageSelectorModal({
             <button
               type="button"
               onClick={handleApply}
-              className="px-6 py-2.5 rounded-xl text-xs font-black bg-amber-500 hover:bg-amber-400 text-stone-950 shadow-md hover:shadow-lg transition-all flex items-center gap-1.5 active:scale-95 min-h-[44px] cursor-pointer"
+              className="flex-1 px-5 py-3 rounded-xl text-xs font-black bg-amber-500 hover:bg-amber-400 text-stone-950 shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-1.5 active:scale-95 min-h-[48px] cursor-pointer"
             >
               <span>تأكيد وبدء التعلّم 🚀</span>
             </button>

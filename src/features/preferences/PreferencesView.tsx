@@ -760,6 +760,11 @@ export function PreferencesView({
               <span>YouTube @SciAmrSherif</span>
             </a>
           </div>
+          <p className="text-[11px] text-muted pt-3 mt-3 border-t border-border font-semibold">
+            {isArabic
+              ? '© 2026 Amr Sherif — All Rights Reserved · جميع الحقوق محفوظة لعمرو شريف (مجاني للاستخدام الشخصي والتعليمي).'
+              : '© 2026 Amr Sherif — All Rights Reserved · Free for personal and educational use.'}
+          </p>
         </div>
       </div>
 

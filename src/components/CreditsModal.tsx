@@ -65,10 +65,13 @@ export function CreditsModal({ isOpen, onClose }: CreditsModalProps) {
           <div className="p-3.5 rounded-2xl bg-stone-50 dark:bg-stone-800/60 border border-stone-200 dark:border-stone-700/60 space-y-2">
             <p className="font-bold text-stone-900 dark:text-white text-sm flex items-center gap-1.5">
               <Scale size={16} />
-              <span>المحتوى والتراخيص مفتوحة المصدر</span>
+              <span>حقوق الملكية وشروط الاستخدام</span>
+            </p>
+            <p className="font-bold text-teal-700 dark:text-teal-300 text-xs" dir="ltr">
+              © 2026 Amr Sherif — All Rights Reserved
             </p>
             <p className="text-stone-600 dark:text-stone-300">
-              🛡️ كود البرمجيات محمي بترخيص <strong>GNU AGPLv3</strong> (مفتوح المصدر وحافظ لحقوق النسب النسخي)، والدروس والمناهج الأصلية مرخصة تحت <strong>CC BY-NC-SA 4.0</strong> (متاحة مجاناً للتعليم ويُحظر استغلالها تجارياً). العلامات التجارية مملوكة لـ <strong>عمرو شريف</strong>.
+              🛡️ جميع الحقوق محفوظة لـ <strong>عمرو شريف (Amr Sherif)</strong>. التطبيق متاح مجاناً للاستخدام الشخصي والتعليمي، ويُحظر إعادة توزيعه أو استغلاله تجارياً أو نسخ محتواه دون إذن.
             </p>
             <p className="text-stone-600 dark:text-stone-300">
               📖 بيانات القواميس والمفردات تتضمن مساهمات من ويكيبيديا وقاموس <strong>Wiktionary</strong> (عبر Kaikki.org) مرخصة تحت CC BY-SA 4.0، ومجموعة بيانات oddadmix/egyptian-arabic-english-50k على Hugging Face (ترخيص Apache-2.0).

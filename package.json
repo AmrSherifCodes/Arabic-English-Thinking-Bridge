@@ -31,6 +31,8 @@
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
     "e2e": "playwright test",
+    "social:dry": "node scripts/social-autoposter.mjs --dry-run",
+    "social:post": "node scripts/social-autoposter.mjs --live",
     "vercel:env": "node scripts/setup-vercel-env.mjs",
     "dev:windows": "tauri dev",
     "build:windows": "tauri build"

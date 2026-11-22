@@ -23,7 +23,7 @@ export function LeagueView({ state, onToggleOptOut, isArabic = true }: LeagueVie
         </p>
         <button
           onClick={onToggleOptOut}
-          className="px-4 py-2 rounded-xl bg-teal-500 text-stone-950 font-black text-xs transition hover:bg-teal-400"
+          className="px-4 py-2.5 min-h-[48px] rounded-xl bg-teal-500 text-stone-950 font-black text-xs transition hover:bg-teal-400 cursor-pointer"
         >
           {isArabic ? 'تفعيل الدوري الأسبوعي' : 'Enable Weekly League'}
         </button>
@@ -74,11 +74,13 @@ export function LeagueView({ state, onToggleOptOut, isArabic = true }: LeagueVie
         </div>
 
         <button
+          type="button"
           onClick={onToggleOptOut}
-          className="p-2 rounded-xl bg-stone-800 text-stone-400 hover:text-white text-xs font-bold"
+          aria-label={isArabic ? 'إخفاء الخصوصية' : 'Privacy Opt-Out'}
+          className="p-2 min-h-[48px] min-w-[48px] flex items-center justify-center rounded-xl bg-stone-800 text-stone-400 hover:text-white text-xs font-bold cursor-pointer shrink-0"
           title={isArabic ? 'إخفاء الخصوصية' : 'Privacy Opt-Out'}
         >
-          <Shield size={16} />
+          <Shield size={18} />
         </button>
       </div>
 

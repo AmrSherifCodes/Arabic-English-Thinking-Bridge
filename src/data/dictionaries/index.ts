@@ -317,6 +317,26 @@ function extractEntryTranslation(entry: any, sourceLang: string): string {
   );
 }
 
+function scoreDictionaryMatch(word: string, translation: string, clean: string): number {
+  const w = word.toLowerCase().trim();
+  const t = translation.toLowerCase().trim();
+  if (!w && !t) return 0;
+  if (w === clean || t === clean) return 100;
+
+  const senses = t
+    .split(/[;,]/)
+    .map((s) => s.replace(/^\([^)]*\)\s*/, '').replace(/^to\s+/, '').trim())
+    .filter(Boolean);
+
+  if (senses[0] === clean) return 95;
+  if (senses.includes(clean)) return 85 - Math.min(20, Math.floor(t.length / 20));
+  if (w.startsWith(clean)) return 75;
+  if (senses.some((s) => s.startsWith(clean))) return 65 - Math.min(20, Math.floor(t.length / 20));
+  if (w.includes(clean)) return 50;
+  if (t.includes(clean)) return 30 - Math.min(20, Math.floor(t.length / 15));
+  return 0;
+}
+
 export async function searchTargetDictionaryAsync(
   query: string,
   targetLang: TargetLanguage,
@@ -326,13 +346,17 @@ export async function searchTargetDictionaryAsync(
   if (!query || !query.trim()) return [];
   const clean = query.trim().toLowerCase();
 
-  return dict.filter((entry) => {
-    const word = extractEntryWord(entry);
-    const translation = extractEntryTranslation(entry, sourceLang);
-    if (word.toLowerCase().includes(clean)) return true;
-    if (translation.toLowerCase().includes(clean)) return true;
-    return false;
-  });
+  return dict
+    .filter((entry) => {
+      const word = extractEntryWord(entry);
+      const translation = extractEntryTranslation(entry, sourceLang);
+      return word.toLowerCase().includes(clean) || translation.toLowerCase().includes(clean);
+    })
+    .sort((a, b) => {
+      const scoreA = scoreDictionaryMatch(extractEntryWord(a), extractEntryTranslation(a, sourceLang), clean);
+      const scoreB = scoreDictionaryMatch(extractEntryWord(b), extractEntryTranslation(b, sourceLang), clean);
+      return scoreB - scoreA;
+    });
 }
 
 export function searchTargetDictionary(
@@ -344,13 +368,17 @@ export function searchTargetDictionary(
   const clean = query.trim().toLowerCase();
   const dict = getTargetDictionary(targetLang);
 
-  return dict.filter((entry) => {
-    const word = extractEntryWord(entry);
-    const translation = extractEntryTranslation(entry, sourceLang);
-    if (word.toLowerCase().includes(clean)) return true;
-    if (translation.toLowerCase().includes(clean)) return true;
-    return false;
-  });
+  return dict
+    .filter((entry) => {
+      const word = extractEntryWord(entry);
+      const translation = extractEntryTranslation(entry, sourceLang);
+      return word.toLowerCase().includes(clean) || translation.toLowerCase().includes(clean);
+    })
+    .sort((a, b) => {
+      const scoreA = scoreDictionaryMatch(extractEntryWord(a), extractEntryTranslation(a, sourceLang), clean);
+      const scoreB = scoreDictionaryMatch(extractEntryWord(b), extractEntryTranslation(b, sourceLang), clean);
+      return scoreB - scoreA;
+    });
 }
 
 export function lookupTargetTerm(

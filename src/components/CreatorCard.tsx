@@ -1,22 +1,9 @@
 import React, { useState } from 'react';
-import { MutahEasterEggModal } from './MutahEasterEggModal';
 import { CVModal } from './CVModal';
-import { Github, Linkedin, Youtube, Twitter, Mail, MapPin, FileText, Sparkles, Swords } from 'lucide-react';
+import { Github, Linkedin, Youtube, Mail, MapPin, FileText, Sparkles } from 'lucide-react';
 
 export function CreatorCard() {
-  const [tapCount, setTapCount] = useState(0);
-  const [isPoemOpen, setIsPoemOpen] = useState(false);
   const [isCVOpen, setIsCVOpen] = useState(false);
-
-  const handlePhotoClick = () => {
-    const nextCount = tapCount + 1;
-    setTapCount(nextCount);
-    if (nextCount === 3 || nextCount === 8) {
-      setIsPoemOpen(true);
-    } else if (nextCount === 1) {
-      setIsCVOpen(true);
-    }
-  };
 
   return (
     <>
@@ -27,11 +14,11 @@ export function CreatorCard() {
       >
         <div className="relative overflow-hidden rounded-3xl border-2 border-cyan-500/40 bg-gradient-to-br from-[#0B1C33]/95 via-[#0E2746]/90 to-[#071325]/95 p-6 sm:p-7 shadow-[0_0_40px_rgba(6,182,212,0.18)] backdrop-blur-xl transition-all hover:border-cyan-400/60">
           <div className="flex flex-col sm:flex-row items-center gap-6 text-center sm:text-right">
-            {/* Interactive Portrait with Easter Egg Tap Counter */}
-            <div className="relative group cursor-pointer flex-shrink-0" onClick={handlePhotoClick}>
+            {/* Portrait Opens Interactive CV Modal */}
+            <div className="relative group cursor-pointer flex-shrink-0" onClick={() => setIsCVOpen(true)}>
               <div className="absolute -top-12 left-1/2 -translate-x-1/2 flex flex-col items-center animate-bounce z-10 w-max">
                 <span className="text-xs font-black text-amber-300 bg-amber-950/90 px-3 py-1 rounded-full shadow-lg border border-amber-500/40 font-arabic whitespace-nowrap">
-                  👇 اضغط على صورتي (السيرة الذاتية 📄 / أسرار ⚡)
+                  👇 اضغط على صورتي (السيرة الذاتية 📄)
                 </span>
               </div>
               <div className="absolute -inset-1 rounded-full bg-gradient-to-tr from-cyan-400 via-teal-400 to-amber-400 opacity-80 blur-sm group-hover:opacity-100 transition duration-300" />
@@ -43,13 +30,8 @@ export function CreatorCard() {
                 }}
                 alt="عمرو شريف عبد العال - Amr Sherif Abdelaal"
                 className="relative h-24 w-24 sm:h-28 sm:w-28 rounded-full object-cover border-2 border-cyan-400 shadow-xl select-none active:scale-95 transition-transform"
-                title="عمرو شريف عبد العال · اضغط للتعرف على المزيد"
+                title="عمرو شريف عبد العال · اضغط لفتح السيرة الذاتية"
               />
-              {tapCount > 0 && (
-                <span className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-amber-400 font-black text-[11px] text-slate-950 shadow-lg animate-pulse border border-amber-200">
-                  {tapCount}
-                </span>
-              )}
             </div>
 
             {/* Creator Info */}
@@ -76,23 +58,15 @@ export function CreatorCard() {
                 بنى الفكرة على منهج التفكير (Thinking Method) لميهاليس إليفثريو. مشروع مفتوح المصدر بالكامل (CC0 1.0).
               </p>
 
-              {/* Action Buttons: CV Modal, Mutah Poem & Social Links */}
+              {/* Action Buttons: CV Modal & Social Links */}
               <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setIsCVOpen(true)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 hover:from-amber-300 hover:to-amber-500 text-slate-950 font-black text-xs shadow-md transition active:scale-95 border border-amber-300"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 hover:from-amber-300 hover:to-amber-500 text-slate-950 font-black text-xs shadow-md transition active:scale-95 border border-amber-300 cursor-pointer"
                 >
                   <FileText size={14} />
                   <span>السيرة الذاتية (CV) 📄</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsPoemOpen(true)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-rose-900/60 to-rose-950/80 hover:from-rose-800/80 hover:to-rose-900 border border-rose-500/40 text-amber-300 font-black text-xs shadow-md transition active:scale-95"
-                >
-                  <Swords size={14} className="text-amber-400" />
-                  <span>قصيدة غزوة مؤتة ⚔️</span>
                 </button>
                 <a
                   href="https://github.com/AmrSherifCodes"
@@ -142,15 +116,6 @@ export function CreatorCard() {
           </div>
         </div>
       </section>
-
-      {/* 8-Tap Battle of Mu'tah Easter Egg Modal */}
-      <MutahEasterEggModal
-        isOpen={isPoemOpen}
-        onClose={() => {
-          setIsPoemOpen(false);
-          setTapCount(0);
-        }}
-      />
 
       <CVModal isOpen={isCVOpen} onClose={() => setIsCVOpen(false)} />
     </>

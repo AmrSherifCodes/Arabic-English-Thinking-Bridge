@@ -343,7 +343,7 @@ export function PathView({
                       <span className="text-[11px] text-slate-400">~{lesson.estimatedMinutes || 5} {isArabic ? 'دقائق' : 'mins'}</span>
                     </div>
                   </div>
-                  <button className="px-4 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 text-xs font-black border border-emerald-500/40 transition">
+                  <button className="px-4 py-2 min-h-[48px] min-w-[64px] flex items-center justify-center rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 text-xs font-black border border-emerald-500/40 transition cursor-pointer">
                     {isCompleted ? (isArabic ? 'راجع' : 'Review') : (isArabic ? 'ابدأ' : 'Start')}
                   </button>
                 </div>
@@ -374,7 +374,7 @@ export function PathView({
         <h2 className="text-xl font-black text-white">
           {hasCompletedAny
             ? (isArabic ? 'كمّل من مكان ما وقفت 🚀' : 'Continue Where You Left Off 🚀')
-            : (isArabic ? `جاهز لأول جملة ${targetNameAr}؟ 🎯` : `Ready for Your First ${targetNameEn} Sentence? 🎯`)}
+            : (isArabic ? `جاهز لأول جملة باللغة ${targetNameAr}؟ 🎯` : `Ready for Your First ${targetNameEn} Sentence? 🎯`)}
         </h2>
         <div className="flex flex-wrap gap-1.5" data-testid="path-advantage-strip">
           <span className="px-2.5 py-1 rounded-full bg-rose-500/15 border border-rose-500/30 text-rose-200 text-[11px] font-bold">

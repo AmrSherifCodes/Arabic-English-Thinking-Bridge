@@ -348,8 +348,14 @@ export default function App() {
       StatusBar.setOverlaysWebView({ overlay: false }).catch(() => {});
       StatusBar.setStyle({ style: Style.Dark }).catch(() => {});
       StatusBar.setBackgroundColor({ color: '#06101c' }).catch(() => {});
-      Keyboard.setResizeMode({ mode: KeyboardResize.Body }).catch(() => {});
+      if (Capacitor.getPlatform() === 'ios') {
+        Keyboard.setResizeMode({ mode: KeyboardResize.Body }).catch(() => {});
+      }
+    }
+  }, []);
 
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) {
       const backListener = CapApp.addListener('backButton', () => {
         if (activeLessonNode) {
           setActiveLessonNode(null);
@@ -968,19 +974,25 @@ function DictionaryView({ onBack, isArabic, targetLang }: { onBack: () => void; 
               {results.map((entry, idx) => {
                 const word = entry.word || entry.term || entry.germanWord || entry.arabicWord || '';
                 const translation = entry.translation || entry.arabicWord || entry.englishTranslation || '';
-                const phonetic = entry.phoneticAr || entry.reading || entry.romaji || entry.exampleAr || entry.exampleDe || '';
+                const rawPhonetic = entry.phoneticAr || entry.reading || entry.romaji || '';
+                const phonetic = rawPhonetic && rawPhonetic !== `[${word}]` && rawPhonetic !== word ? rawPhonetic : '';
+                const isWordArabic = /[\u0600-\u06FF]/.test(word);
+                const audioText =
+                  targetLang === 'en' && isWordArabic && translation
+                    ? translation.split(/[;,()]/)[0].replace(/^to\s+/i, '').trim() || word
+                    : word;
 
                 return (
                   <div key={idx} className="p-4 rounded-2xl bg-[#0B1C33]/90 border border-cyan-500/20 shadow-md flex items-center justify-between gap-4">
                     <div className="space-y-1 text-start min-w-0">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-black text-base text-cyan-300 font-sans">{word}</span>
                         {phonetic && <span className="text-xs text-amber-300/80 font-medium">({phonetic})</span>}
                       </div>
-                      <p className="text-xs text-slate-200 font-medium">{translation}</p>
+                      <p className="text-xs text-slate-200 font-medium leading-relaxed">{translation}</p>
                     </div>
                     <div className="shrink-0">
-                      <DualSpeedAudio text={word} showLabels={false} targetLang={targetLang} />
+                      <DualSpeedAudio text={audioText} showLabels={false} targetLang={targetLang} />
                     </div>
                   </div>
                 );

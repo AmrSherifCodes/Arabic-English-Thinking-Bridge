@@ -46,10 +46,7 @@ export function useAmrClickEasterEgg() {
         }
       } catch {}
 
-      if (next === 3 || next === 8) {
-        // 3 or 8 click poem checkpoint (Battle of Mu'tah)
-        setShowPoemModal(true);
-      } else if (next === 99 || (next > 99 && next % 99 === 0)) {
+      if (next === 99 || (next > 99 && next % 99 === 0)) {
         // 99-click Captain Erwin video checkpoint
         setShowErwinModal(true);
       } else if (next === 7 || next === 21) {
@@ -61,7 +58,7 @@ export function useAmrClickEasterEgg() {
     });
   }, [resetInactivityTimer]);
 
-  // Global listener for photo clicks and mobile touch taps
+  // Global listener for portrait clicks outside CV/Dev modals
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
@@ -69,6 +66,9 @@ export function useAmrClickEasterEgg() {
 
     const isAmrTarget = (target: HTMLElement | null): boolean => {
       if (!target) return false;
+      if (target.closest('[data-cv-modal="true"]') || target.closest('[data-dev-modal="true"]')) {
+        return false;
+      }
       const src = (target as HTMLImageElement).src || '';
       const alt = (target as HTMLImageElement).alt || '';
       return (
@@ -79,11 +79,10 @@ export function useAmrClickEasterEgg() {
       );
     };
 
-    const handlePointerDown = (e: Event) => {
+    const handleClick = (e: Event) => {
       const target = e.target as HTMLElement | null;
       if (isAmrTarget(target)) {
         const now = Date.now();
-        // Avoid duplicate event triggers within 40ms on mobile touchscreens
         if (now - lastTapTime > 40) {
           lastTapTime = now;
           registerClick();
@@ -91,12 +90,10 @@ export function useAmrClickEasterEgg() {
       }
     };
 
-    window.addEventListener('pointerdown', handlePointerDown, { passive: true });
-    window.addEventListener('click', handlePointerDown, { passive: true });
+    window.addEventListener('click', handleClick, { passive: true });
 
     return () => {
-      window.removeEventListener('pointerdown', handlePointerDown);
-      window.removeEventListener('click', handlePointerDown);
+      window.removeEventListener('click', handleClick);
       if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
     };
   }, [registerClick]);

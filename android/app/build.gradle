@@ -9,6 +9,9 @@ if (keystorePropertiesFile.exists()) {
 android {
     namespace = "com.amrsherif.thinkingenglish"
     compileSdk = rootProject.ext.compileSdkVersion
+    buildFeatures {
+        buildConfig true
+    }
     defaultConfig {
         applicationId "com.amrsherif.thinkingenglish"
         minSdkVersion rootProject.ext.minSdkVersion
@@ -46,6 +49,8 @@ android {
             def hasKey = keystoreProperties['storeFile'] || System.getenv('ANDROID_KEYSTORE_PATH')
             if (hasKey) {
                 signingConfig signingConfigs.release
+            } else {
+                signingConfig signingConfigs.debug
             }
             minifyEnabled true
             shrinkResources true

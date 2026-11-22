@@ -7,6 +7,8 @@ import { Map, Zap, Award, Trophy, User, Home, Waves, Anchor, Baby } from 'lucide
 import { PrivacyPolicyModal } from '../progression/PrivacyPolicyModal';
 import { StreetDemoModal } from '../StreetDemoModal';
 import { SupportModal } from '../SupportModal';
+import { DevModeModal } from '../DevModeModal';
+import { isDevModeEnabled } from '../../utils/cvEasterEgg';
 import { triggerHapticImpact } from '../../utils/fx';
 import { isYouTubeSubscribed } from '../../utils/youtubeSupporter';
 import { openSafeExternalUrl } from '../../utils/safeExternalUrl';
@@ -89,8 +91,20 @@ export function AppShell({
   const [privacyOpen, setPrivacyOpen] = useState(false);
   const [supportOpen, setSupportOpen] = useState(false);
   const [streetDemoOpen, setStreetDemoOpen] = useState(false);
+  const [devModalOpen, setDevModalOpen] = useState(false);
+  const [devModeActive, setDevModeActive] = useState(() => isDevModeEnabled());
   const [uiMode, setUiMode] = useUiMode();
   const [learnerMode, setLearnerMode] = useLearnerMode();
+
+  useEffect(() => {
+    const syncDevMode = () => setDevModeActive(isDevModeEnabled());
+    window.addEventListener('tb-dev-mode-change', syncDevMode);
+    window.addEventListener('storage', syncDevMode);
+    return () => {
+      window.removeEventListener('tb-dev-mode-change', syncDevMode);
+      window.removeEventListener('storage', syncDevMode);
+    };
+  }, []);
 
   const isKids = learnerMode === 'kids';
 
@@ -232,7 +246,7 @@ export function AppShell({
                     triggerHapticImpact();
                     setStreetDemoOpen(true);
                   }}
-                  className="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 min-h-[44px] rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-500/30 text-xs font-black transition active:scale-95 shrink-0 shadow-sm cursor-pointer"
+                  className="flex items-center justify-center gap-1.5 px-2.5 sm:px-3 py-2 min-h-[48px] min-w-[48px] rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-500/30 text-xs font-black transition active:scale-95 shrink-0 shadow-sm cursor-pointer"
                   title={isArabic ? 'عرض الشارع' : 'Street Mode'}
                 >
                   <Zap size={14} className="text-cyan-400 shrink-0" />
@@ -373,6 +387,16 @@ export function AppShell({
               >
                 {isArabic ? 'الخصوصية والقوانين' : 'Privacy & Legal'}
               </button>
+              {devModeActive && (
+                <button
+                  type="button"
+                  data-testid="appshell-dev-btn"
+                  onClick={() => setDevModalOpen(true)}
+                  className="text-xs text-cyan-300 hover:text-cyan-200 transition-colors cursor-pointer min-h-[44px] px-3 inline-flex items-center justify-center rounded-xl border border-cyan-500/30 bg-cyan-500/10 font-bold"
+                >
+                  🛠️ Dev
+                </button>
+              )}
             </div>
           </footer>
         </main>
@@ -424,6 +448,10 @@ export function AppShell({
           onTabChange('path');
         }}
         isArabic={isArabic}
+      />
+      <DevModeModal
+        isOpen={devModalOpen}
+        onClose={() => setDevModalOpen(false)}
       />
     </div>
   );

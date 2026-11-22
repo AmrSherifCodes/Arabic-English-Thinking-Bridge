@@ -153,6 +153,11 @@ export default defineConfig(async ({ command, mode }) => {
       sourcemap: false,
       chunkSizeWarningLimit: 8000,
       rollupOptions: {
+        treeshake: !isDev
+          ? {
+              manualPureFunctions: ['console.log', 'console.debug', 'console.info'],
+            }
+          : undefined,
         output: {
           manualChunks(id: string) {
             const normId = id.replace(/\\/g, '/');

@@ -452,5 +452,46 @@ test.describe('v5.0.0 Official Stable Self-Scan & Regression Fixes', () => {
     }
     expect(sawRepairBadge).toBe(true);
   });
+
+  test('E. CV Click Flow (1-2 normal, 3 tap game, 110 Dev Mode + All-Socials Auto-Poster, 111 pure text Poem)', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForLoadState('domcontentloaded');
+
+    const openCvBtn = page.locator('button:has-text("السيرة الذاتية (CV)")').first();
+    await openCvBtn.scrollIntoViewIfNeeded();
+    await expect(openCvBtn).toBeVisible({ timeout: 10000 });
+    await openCvBtn.click();
+
+    const cvSurface = page.getByTestId('cv-click-surface');
+    await expect(cvSurface).toBeVisible({ timeout: 5000 });
+
+    // Clicks 1-2 stay normal without revealing the game
+    await cvSurface.click();
+    await cvSurface.click();
+    await expect(page.getByTestId('cv-tap-game')).toHaveCount(0);
+
+    // Click 3 activates the repeatable tap game
+    await cvSurface.click();
+    await expect(page.getByTestId('cv-tap-game')).toBeVisible();
+    const tapBtn = page.getByTestId('cv-game-tap-btn');
+    await expect(tapBtn).toBeVisible();
+
+    // Reach 110 cleanly without lag (clicks 4..110 = 107 clicks)
+    for (let i = 0; i < 107; i++) {
+      await tapBtn.click();
+    }
+
+    const devModal = page.getByTestId('dev-mode-modal');
+    await expect(devModal).toBeVisible({ timeout: 5000 });
+    await expect(devModal.locator('a[href*="x.com/intent/tweet"]')).toBeVisible();
+    expect(await page.evaluate(() => window.localStorage.getItem('tb.devMode'))).toBe('true');
+
+    // Click #111 transitions straight to the visuals-free pure text poem
+    await page.getByTestId('dev-to-poem-btn').click();
+    const poemModal = page.getByTestId('mutah-poem-modal');
+    await expect(poemModal).toBeVisible({ timeout: 5000 });
+    await expect(poemModal).toContainText('أَقْسَمْتُ يَا نَفْسُ لَتَنْزِلِنَّهْ');
+    await expect(poemModal.locator('svg')).toHaveCount(0);
+  });
 });
 

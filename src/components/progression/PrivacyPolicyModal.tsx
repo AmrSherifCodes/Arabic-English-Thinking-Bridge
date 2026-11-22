@@ -19,13 +19,13 @@ export function PrivacyPolicyModal({ isOpen, onClose, isArabic = true }: Privacy
         <div className="flex items-center justify-between border-b border-stone-800 pb-3">
           <div className="flex items-center gap-2 text-teal-400 font-black text-sm">
             <Shield size={18} />
-            <span>{isArabic ? 'سياسة الخصوصية وتأمين البيانات' : 'Privacy Policy & Plain Summary'}</span>
+            <span>{isArabic ? 'عن التطبيق والخصوصية والشروط' : 'About, Privacy & Terms'}</span>
           </div>
           <button
             type="button"
             onClick={onClose}
             aria-label={isArabic ? 'إغلاق' : 'Close'}
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full text-stone-400 hover:text-white hover:bg-white/10 font-bold text-xs"
+            className="min-h-[48px] min-w-[48px] flex items-center justify-center rounded-full text-stone-400 hover:text-white hover:bg-white/10 font-bold text-xs cursor-pointer"
           >
             <X size={18} />
           </button>
@@ -51,9 +51,17 @@ export function PrivacyPolicyModal({ isOpen, onClose, isArabic = true }: Privacy
             </ul>
           </div>
 
-          <p className="text-[11px] text-stone-400">
-            Copyright (c) 2024-Present Amr Sherif Abdelaal. All Rights Reserved.
-          </p>
+          <div className="space-y-1.5 p-3 rounded-2xl bg-stone-900/90 border border-teal-500/25">
+            <p className="font-black text-teal-300 text-xs flex items-center gap-1.5">
+              <Lock size={13} className="shrink-0" />
+              <span dir="ltr">© 2026 Amr Sherif — All Rights Reserved</span>
+            </p>
+            <p className="text-[11px] text-stone-300 leading-relaxed">
+              {isArabic
+                ? '© 2026 عمرو شريف — جميع الحقوق محفوظة. التطبيق متاح مجاناً للاستخدام الشخصي والتعليمي، ويُحظر إعادة توزيعه أو استغلاله تجارياً أو نسخ محتواه.'
+                : 'Free for personal and educational use. Unauthorized redistribution, commercial reuse, or reverse engineering is prohibited.'}
+            </p>
+          </div>
         </div>
       </div>
     </div>

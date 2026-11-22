@@ -65,6 +65,7 @@ const ENGLISH_COMMON_WORD_GLOSSES: Record<string, string> = {
   'thanks': 'شكراً',
   'very': 'جداً',
   'much': 'كثيراً',
+  'enough': 'كافٍ / كفاية',
   'a': 'واحد / مفرد',
   'an': 'واحد / مفرد',
   'the': 'الـ',
@@ -2236,9 +2237,12 @@ export function getGlossForWord(
       }
 
       if (matchedEntry) {
+        const hasArabicWord = /[\u0600-\u06FF]/.test(matchedEntry.word || '');
         const candidate = isSourceEnglish
           ? matchedEntry.englishTranslation || matchedEntry.word || matchedEntry.term || ''
-          : matchedEntry.arabicWord || matchedEntry.translation || matchedEntry.arabicTranslation || matchedEntry.word || '';
+          : (targetLang === 'en' && hasArabicWord)
+            ? matchedEntry.word
+            : matchedEntry.arabicWord || matchedEntry.translation || matchedEntry.arabicTranslation || matchedEntry.word || '';
 
         if (isValidGloss(candidate, word, targetLang, sourceLang)) {
           return sanitizeGloss(candidate);

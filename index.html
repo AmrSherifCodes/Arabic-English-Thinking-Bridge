@@ -15,7 +15,7 @@
     <meta name="apple-mobile-web-app-title" content="فكّر إنجليزي" />
     <meta name="application-name" content="فكّر إنجليزي" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https://flagcdn.com; media-src 'self' data: blob:; connect-src 'self' capacitor: http://localhost https://localhost https://tb-eg.vercel.app https://arabicenglishthinkingbridge.vercel.app https://generativelanguage.googleapis.com https://api.mymemory.translated.net; frame-src https://www.youtube-nocookie.com https://www.youtube.com; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https://flagcdn.com; media-src 'self' data: blob:; connect-src 'self' capacitor: http://localhost https://localhost https://tb-eg.vercel.app https://arabicenglishthinkingbridge.vercel.app https://generativelanguage.googleapis.com https://api.mymemory.translated.net; frame-src https://www.youtube-nocookie.com https://www.youtube.com; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';" />
     <script src="/theme-init.js"></script>
 
     <!-- SEO & Hreflang Tags -->
@@ -68,6 +68,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Tajawal:wght@700;800;900&family=Readex+Pro:wght@400;600;700&display=swap" rel="stylesheet" />
 
     <style>
+      @layer base {
       :root {
         --sand-light: #F7F0E0;
         --sand: #EBD9B4;
@@ -91,8 +92,6 @@
 
       * {
         box-sizing: border-box;
-        margin: 0;
-        padding: 0;
       }
 
       html {
@@ -1037,6 +1036,7 @@
 
       [data-app-ready="true"] #static-landing-content {
         display: none !important;
+      }
       }
     </style>
   </head>

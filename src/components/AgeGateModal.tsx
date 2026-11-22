@@ -56,7 +56,10 @@ export function AgeGateModal({
   return (
     <AnimatePresence>
       <div
-        className="fixed inset-0 z-[100000] flex items-center justify-center p-3 sm:p-5 bg-black/85 backdrop-blur-xl overflow-y-auto"
+        role="dialog"
+        aria-modal="true"
+        data-testid="age-gate-modal"
+        className="fixed inset-0 z-[100000] flex items-start justify-center p-3 sm:p-5 pt-safe pb-safe bg-black/85 backdrop-blur-xl overflow-y-auto"
         dir={isArabic ? 'rtl' : 'ltr'}
       >
         <motion.div
@@ -64,15 +67,15 @@ export function AgeGateModal({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.92, y: 16 }}
           transition={{ type: 'spring', stiffness: 320, damping: 28 }}
-          className="w-full max-w-2xl bg-[#091526] border-2 border-cyan-500/40 rounded-3xl p-5 sm:p-7 shadow-[0_0_50px_rgba(6,182,212,0.25)] space-y-6 text-start"
+          className="w-full max-w-2xl my-auto bg-[#091526] border-2 border-cyan-500/40 rounded-3xl p-4 sm:p-7 shadow-[0_0_50px_rgba(6,182,212,0.25)] space-y-4 sm:space-y-6 text-start"
         >
           {/* Header Banner */}
-          <div className="text-center space-y-2">
+          <div className="text-center space-y-1.5 sm:space-y-2">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-amber-500/20 via-cyan-500/20 to-teal-500/20 border border-cyan-400/40 text-cyan-300 text-xs font-black shadow-sm">
               <Sparkles size={16} className="text-amber-400 animate-pulse" />
               <span>{isArabic ? 'اختر وضع التعلم المناسب لك' : 'Choose Your Learner Mode'}</span>
             </div>
-            <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+            <h2 className="text-xl sm:text-3xl font-black text-white tracking-tight">
               {isArabic ? 'مرحباً بك في "فكّر إنجليزي" ⚓' : 'Welcome to Thinking Bridge ⚓'}
             </h2>
             <p className="text-xs sm:text-sm text-slate-300 max-w-lg mx-auto font-bold leading-relaxed">
@@ -83,16 +86,17 @@ export function AgeGateModal({
           </div>
 
           {/* Selector Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 pt-1">
             {/* 1. Kids Mode Card */}
             <div
               role="button"
               tabIndex={0}
+              data-testid="age-gate-kids-btn"
               onClick={() => handleSelect('kids')}
               onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSelect('kids'); }}
-              className="group relative flex flex-col justify-between p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-pink-950/40 via-purple-950/30 to-[#0C1B30] border-2 border-pink-500/50 hover:border-pink-400 text-white transition-all duration-200 cursor-pointer shadow-lg hover:shadow-pink-500/20 active:scale-98 min-h-[260px]"
+              className="group relative flex flex-col justify-between p-4 sm:p-6 rounded-2xl bg-gradient-to-br from-pink-950/40 via-purple-950/30 to-[#0C1B30] border-2 border-pink-500/50 hover:border-pink-400 text-white transition-all duration-200 cursor-pointer shadow-lg hover:shadow-pink-500/20 active:scale-98 min-h-0 md:min-h-[260px]"
             >
-              <div className="space-y-3">
+              <div className="space-y-2.5">
                 <div className="flex items-center justify-between">
                   <span className="px-3 py-1 rounded-xl text-[11px] font-black bg-pink-500/20 text-pink-300 border border-pink-500/40">
                     {isArabic ? 'الأعمار ٤ – ١٢ سنة' : 'Ages 4–12'}
@@ -100,7 +104,7 @@ export function AgeGateModal({
                   <button
                     type="button"
                     onClick={(e) => playSampleAudio(e, 'kids')}
-                    className="p-2 rounded-xl bg-pink-500/20 hover:bg-pink-500/40 text-pink-300 border border-pink-500/40 transition active:scale-90 min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer"
+                    className="p-2 rounded-xl bg-pink-500/20 hover:bg-pink-500/40 text-pink-300 border border-pink-500/40 transition active:scale-90 min-w-[48px] min-h-[48px] flex items-center justify-center cursor-pointer"
                     title={isArabic ? 'اسمع عيّنة صوتية' : 'Listen to audio sample'}
                   >
                     <Volume2 size={18} />
@@ -108,11 +112,11 @@ export function AgeGateModal({
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-2xl bg-pink-500/20 border border-pink-500/40 flex items-center justify-center text-2xl shadow-inner shrink-0">
+                  <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-pink-500/20 border border-pink-500/40 flex items-center justify-center text-2xl shadow-inner shrink-0">
                     🎈
                   </div>
                   <div>
-                    <h3 className="font-black text-lg text-white group-hover:text-pink-300 transition">
+                    <h3 className="font-black text-base sm:text-lg text-white group-hover:text-pink-300 transition">
                       {isArabic ? 'نسخة الأطفال (Ages 4–12)' : 'Kids Mode (Ages 4–12)'}
                     </h3>
                     <span className="text-[11px] text-pink-300/80 font-bold block">
@@ -127,10 +131,10 @@ export function AgeGateModal({
                     : 'Tailored for young learners: auto-play audio, Name Forge, animals, colors, and zero academic grammar jargon!'}
                 </p>
 
-                <ul className="space-y-1.5 pt-1 text-[11px] text-pink-200 font-extrabold">
+                <ul className="space-y-1 pt-0.5 text-[11px] text-pink-200 font-extrabold">
                   <li className="flex items-center gap-1.5">
                     <CheckCircle2 size={14} className="text-pink-400 shrink-0" />
-                    <span>{isArabic ? 'أزرار لمس كبيرة وحماية من التشتت' : 'Oversized touch targets (min 44px)'}</span>
+                    <span>{isArabic ? 'أزرار لمس كبيرة وحماية من التشتت' : 'Oversized touch targets (min 48px)'}</span>
                   </li>
                   <li className="flex items-center gap-1.5">
                     <CheckCircle2 size={14} className="text-pink-400 shrink-0" />
@@ -139,7 +143,7 @@ export function AgeGateModal({
                 </ul>
               </div>
 
-              <div className="pt-4 mt-2 border-t border-pink-500/20 flex items-center justify-between text-xs font-black text-pink-300">
+              <div className="pt-3 mt-2 border-t border-pink-500/20 flex items-center justify-between text-xs font-black text-pink-300">
                 <span>{isArabic ? 'اختر وضع الأطفال 🎈' : 'Select Kids Mode 🎈'}</span>
                 {isArabic ? <ArrowLeft size={16} /> : <ArrowRight size={16} />}
               </div>
@@ -149,11 +153,12 @@ export function AgeGateModal({
             <div
               role="button"
               tabIndex={0}
+              data-testid="age-gate-regular-btn"
               onClick={() => handleSelect('regular')}
               onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSelect('regular'); }}
-              className="group relative flex flex-col justify-between p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-cyan-950/40 via-teal-950/30 to-[#0C1B30] border-2 border-cyan-500/50 hover:border-cyan-400 text-white transition-all duration-200 cursor-pointer shadow-lg hover:shadow-cyan-500/20 active:scale-98 min-h-[260px]"
+              className="group relative flex flex-col justify-between p-4 sm:p-6 rounded-2xl bg-gradient-to-br from-cyan-950/40 via-teal-950/30 to-[#0C1B30] border-2 border-cyan-500/50 hover:border-cyan-400 text-white transition-all duration-200 cursor-pointer shadow-lg hover:shadow-cyan-500/20 active:scale-98 min-h-0 md:min-h-[260px]"
             >
-              <div className="space-y-3">
+              <div className="space-y-2.5">
                 <div className="flex items-center justify-between">
                   <span className="px-3 py-1 rounded-xl text-[11px] font-black bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
                     {isArabic ? 'الأعمار ١٣ سنة فما فوق' : 'Ages 13+ & Adults'}
@@ -161,7 +166,7 @@ export function AgeGateModal({
                   <button
                     type="button"
                     onClick={(e) => playSampleAudio(e, 'regular')}
-                    className="p-2 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/40 text-cyan-300 border border-cyan-500/40 transition active:scale-90 min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer"
+                    className="p-2 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/40 text-cyan-300 border border-cyan-500/40 transition active:scale-90 min-w-[48px] min-h-[48px] flex items-center justify-center cursor-pointer"
                     title={isArabic ? 'اسمع عيّنة صوتية' : 'Listen to audio sample'}
                   >
                     <Volume2 size={18} />
@@ -169,11 +174,11 @@ export function AgeGateModal({
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-2xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-2xl shadow-inner shrink-0">
+                  <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-2xl shadow-inner shrink-0">
                     👤
                   </div>
                   <div>
-                    <h3 className="font-black text-lg text-white group-hover:text-cyan-300 transition">
+                    <h3 className="font-black text-base sm:text-lg text-white group-hover:text-cyan-300 transition">
                       {isArabic ? 'النسخة العادية (Ages 13+)' : 'Regular Mode (Ages 13+)'}
                     </h3>
                     <span className="text-[11px] text-cyan-300/80 font-bold block">
@@ -188,7 +193,7 @@ export function AgeGateModal({
                     : 'Full Thinking Bridge experience: CEFR progression, Smart Trainer, Street Mode, and 1-tap Simple/Pro UI toggle.'}
                 </p>
 
-                <ul className="space-y-1.5 pt-1 text-[11px] text-cyan-200 font-extrabold">
+                <ul className="space-y-1 pt-0.5 text-[11px] text-cyan-200 font-extrabold">
                   <li className="flex items-center gap-1.5">
                     <CheckCircle2 size={14} className="text-cyan-400 shrink-0" />
                     <span>{isArabic ? 'جميع المستويات والتخطي والاختبارات' : 'Full CEFR levels & placement tests'}</span>
@@ -200,7 +205,7 @@ export function AgeGateModal({
                 </ul>
               </div>
 
-              <div className="pt-4 mt-2 border-t border-cyan-500/20 flex items-center justify-between text-xs font-black text-cyan-300">
+              <div className="pt-3 mt-2 border-t border-cyan-500/20 flex items-center justify-between text-xs font-black text-cyan-300">
                 <span>{isArabic ? 'اختر النسخة العادية 👤' : 'Select Regular Mode 👤'}</span>
                 {isArabic ? <ArrowLeft size={16} /> : <ArrowRight size={16} />}
               </div>

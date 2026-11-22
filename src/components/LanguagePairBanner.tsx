@@ -28,22 +28,22 @@ export function LanguagePairBanner({
 
   return (
     <section
-      className={`flex items-center justify-between p-2 sm:p-2.5 px-3 sm:px-4 rounded-2xl bg-gradient-to-r from-[#0B1C33] via-[#0E2746] to-[#081527] border border-cyan-500/30 shadow-md text-white ${className}`}
+      className={`flex items-center justify-between p-2 sm:p-2.5 px-2.5 sm:px-4 rounded-2xl bg-gradient-to-r from-[#0B1C33] via-[#0E2746] to-[#081527] border border-cyan-500/30 shadow-md text-white ${className}`}
       dir={isArUI ? 'rtl' : 'ltr'}
       aria-label="مسار التعلم النشط"
     >
       {/* Single-row Language Selector Display */}
-      <div className="flex items-center gap-2 text-xs font-bold text-white min-w-0">
-        <div className="flex items-center gap-1.5 shrink-0 max-w-[110px] sm:max-w-none">
-          <LanguageFlag code={sourceLang} size={18} />
+      <div className="flex items-center gap-1 sm:gap-2 text-xs font-bold text-white min-w-0">
+        <div className="flex items-center gap-1 min-w-0">
+          <LanguageFlag code={sourceLang} size={16} />
           <span className="truncate text-slate-200 font-bold">{sourceName}</span>
         </div>
 
-        <ArrowRight size={14} className="text-amber-400 shrink-0" />
+        <ArrowRight size={13} className={`text-amber-400 shrink-0 ${isArUI ? 'rotate-180' : ''}`} />
 
-        <div className="flex items-center gap-1.5 min-w-0 max-w-[140px] sm:max-w-none">
-          <LanguageFlag code={targetLang} size={18} />
-          <span className="truncate text-cyan-300 font-extrabold">{targetName}</span>
+        <div className="flex items-center gap-1 shrink-0">
+          <LanguageFlag code={targetLang} size={16} />
+          <span className="text-cyan-300 font-extrabold whitespace-nowrap">{targetName}</span>
         </div>
       </div>
 
@@ -51,7 +51,7 @@ export function LanguagePairBanner({
       <button
         type="button"
         onClick={onOpenSelector}
-        className="px-3 py-1.5 rounded-xl text-xs font-black bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/40 text-cyan-300 transition flex items-center gap-1.5 shrink-0 ms-2 shadow-sm active:scale-95 cursor-pointer"
+        className="px-2.5 sm:px-3 py-2 min-h-[48px] rounded-xl text-xs font-black bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/40 text-cyan-300 transition flex items-center gap-1 shrink-0 ms-1.5 shadow-sm active:scale-95 cursor-pointer"
         title={isArUI ? 'تغيير لغة المسار التعليمي' : 'Change Learning Language'}
       >
         <Globe size={14} className="text-cyan-400 shrink-0" />
