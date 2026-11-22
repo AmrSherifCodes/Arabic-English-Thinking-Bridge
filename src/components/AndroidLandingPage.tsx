@@ -195,7 +195,7 @@ export function AndroidLandingPage() {
                 maxWidth: '100%',
               }}
             >
-              SHA-256: 8722807507461fb96ec06d3a58173772d19b1616fca2674c1b47b792ada5c181
+              SHA-256: 8ad98dde6fb5c3c8f7e65008e4794ae21d663de892473e8ac1eb3f85417c23f6
             </code>
           </div>
         </div>
