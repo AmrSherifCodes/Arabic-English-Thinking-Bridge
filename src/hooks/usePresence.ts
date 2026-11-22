@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { API_BASE_URL } from '../utils/api';
 
+const PRESENCE_POLL_INTERVAL_MS = 60_000;
+
 /**
  * Hook to manage concurrent presence (live visitors) counting.
- * Zen of Python: Flat is better than nested. Simple is better than complex.
+ * Pauses polling when the document tab is hidden to conserve serverless quota.
  */
 export function usePresence() {
   const [liveCount, setLiveCount] = useState<number>(1);
@@ -17,9 +19,17 @@ export function usePresence() {
 
     let isMounted = true;
     let timer: number | null = null;
+    const isDocumentHidden = () => typeof document !== 'undefined' && document.hidden;
+
+    const clearTimer = () => {
+      if (timer !== null) {
+        window.clearTimeout(timer);
+        timer = null;
+      }
+    };
 
     const pingPresence = async () => {
-      if (!isMounted) return;
+      if (!isMounted || isDocumentHidden()) return;
       try {
         const res = await fetch(`${API_BASE_URL}/api/presence`, {
           method: 'POST',
@@ -38,16 +48,39 @@ export function usePresence() {
         console.warn('Live visitor ping failed:', err);
       }
 
-      if (isMounted) {
-        timer = window.setTimeout(pingPresence, 25000); // Ping every 25 seconds
+      if (isMounted && !isDocumentHidden()) {
+        clearTimer();
+        timer = window.setTimeout(() => {
+          void pingPresence();
+        }, PRESENCE_POLL_INTERVAL_MS);
       }
     };
 
-    pingPresence();
+    const handleVisibilityChange = () => {
+      if (isDocumentHidden()) {
+        clearTimer();
+        return;
+      }
+      if (isMounted) {
+        clearTimer();
+        void pingPresence();
+      }
+    };
+
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+    }
+
+    if (!isDocumentHidden()) {
+      void pingPresence();
+    }
 
     return () => {
       isMounted = false;
-      if (timer) window.clearTimeout(timer);
+      clearTimer();
+      if (typeof document !== 'undefined') {
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+      }
     };
   }, []);
 

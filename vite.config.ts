@@ -82,16 +82,23 @@ export default defineConfig(async ({ command, mode }) => {
           maximumFileSizeToCacheInBytes: 35 * 1024 * 1024,
           manifestTransforms: [
             async (entries) => {
-              const manifest = entries.filter(
-                (entry) =>
-                  !entry.url.includes('dict-') &&
-                  !entry.url.includes('curriculum-core-') &&
-                  !entry.url.includes('app-data-') &&
-                  !entry.url.includes('wasm') &&
-                  !entry.url.includes('ort-wasm') &&
-                  !entry.url.includes('dictionary.json') &&
-                  !entry.url.includes('aistudio/')
-              );
+              const coreShellFiles = new Set([
+                'index.html',
+                'theme-init.js',
+                'landing-interactions.js',
+                'manifest.webmanifest',
+                'favicon.ico',
+                'apple-touch-icon-180x180.png',
+                'pwa-64x64.png',
+                'pwa-192x192.png',
+                'pwa-512x512.png',
+                'maskable-icon-512x512.png',
+              ]);
+              const coreAssetRe = /^assets\/(index|react-vendor|rolldown-runtime|icons-vendor)-.*\.(js|css)$/;
+              const manifest = entries.filter((entry) => {
+                const normalized = entry.url.replace(/^(?:\.\/|\/)+/, '');
+                return coreShellFiles.has(normalized) || coreAssetRe.test(normalized);
+              });
               return { manifest, warnings: [] };
             },
           ],
@@ -123,6 +130,16 @@ export default defineConfig(async ({ command, mode }) => {
               options: {
                 cacheName: 'dictionaries',
                 expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              },
+            },
+            {
+              urlPattern: ({ url, sameOrigin }) =>
+                sameOrigin && /^\/assets\/.*\.(js|css)$/.test(url.pathname),
+              handler: 'CacheFirst',
+              options: {
+                cacheName: 'app-chunks-cache',
+                expiration: { maxEntries: 120, maxAgeSeconds: 60 * 60 * 24 * 30 },
+                cacheableResponse: { statuses: [0, 200] },
               },
             },
             {
