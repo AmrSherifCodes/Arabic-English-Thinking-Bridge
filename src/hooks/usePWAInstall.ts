@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Capacitor } from '@capacitor/core';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -14,16 +15,20 @@ export function usePwaInstall() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    // Check if running as installed standalone PWA
+    const isNative = Capacitor.isNativePlatform();
+    const ua = window.navigator.userAgent.toLowerCase();
+    const isAndroidDevice = /android/i.test(ua);
+
+    // Check if running as installed standalone PWA or native Capacitor app
     const isStandaloneMode =
+      isNative ||
       window.matchMedia('(display-mode: standalone)').matches ||
       (window.navigator as any).standalone === true;
 
     setIsStandalone(isStandaloneMode);
 
-    // Detect iOS
-    const ua = window.navigator.userAgent.toLowerCase();
-    const isIosDevice = /iphone|ipad|ipod/i.test(ua);
+    // Detect iOS (never true on Android or native Capacitor builds)
+    const isIosDevice = !isNative && !isAndroidDevice && /iphone|ipad|ipod/i.test(ua);
     setIsIos(isIosDevice);
 
     // Listen for beforeinstallprompt event on Android/Chrome/Edge

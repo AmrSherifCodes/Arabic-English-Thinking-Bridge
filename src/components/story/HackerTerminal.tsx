@@ -92,7 +92,7 @@ assess_level()
   };
 
   return (
-    <div className="min-h-screen bg-black text-green-500 font-mono p-4 flex flex-col" dir="ltr">
+    <div className="min-h-[100dvh] bg-black text-green-500 font-mono p-4 pt-safe pb-safe flex flex-col" dir="ltr">
       <div className="flex justify-between items-center mb-4 border-b border-green-900 pb-2">
         <h1 className="text-xl font-bold tracking-widest text-green-400">THINKING BRIDGE :: TERMINAL</h1>
         <button onClick={onComplete} className="px-4 py-1 border border-green-500 text-green-500 hover:bg-green-500 hover:text-black transition-colors font-bold rounded-sm uppercase tracking-wider text-sm">

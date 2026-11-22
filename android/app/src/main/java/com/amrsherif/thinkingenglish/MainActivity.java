@@ -1,9 +1,11 @@
 package com.amrsherif.thinkingenglish;
 
 import android.Manifest;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.webkit.WebSettings;
+import android.webkit.WebView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import com.getcapacitor.BridgeActivity;
@@ -16,6 +18,9 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(OfflineSTTPlugin.class);
         super.onCreate(savedInstanceState);
 
+        boolean isDebuggable = (getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0;
+        WebView.setWebContentsDebuggingEnabled(isDebuggable);
+
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO}, REQUEST_RECORD_AUDIO_PERMISSION);
         }
@@ -27,6 +32,9 @@ public class MainActivity extends BridgeActivity {
             settings.setAllowFileAccess(false);
             settings.setAllowFileAccessFromFileURLs(false);
             settings.setAllowUniversalAccessFromFileURLs(false);
+            settings.setAllowContentAccess(false);
+            settings.setGeolocationEnabled(false);
+            settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
         }
     }
 }

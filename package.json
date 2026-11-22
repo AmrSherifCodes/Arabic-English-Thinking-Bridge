@@ -2,7 +2,7 @@
   "name": "arabic-english-thinking-bridge",
   "private": true,
   "license": "MIT",
-  "version": "4.4.1",
+  "version": "4.4.2",
   "type": "module",
   "trustedDependencies": [
     "esbuild",
@@ -38,6 +38,7 @@
   "dependencies": {
     "@ai-sdk/google": "^4.0.111",
     "@capacitor-community/speech-recognition": "^7.0.1",
+    "@capacitor-community/text-to-speech": "^8.0.2",
     "@capacitor/android": "^8.6.0",
     "@capacitor/app": "^8.1.2",
     "@capacitor/cli": "^8.6.0",

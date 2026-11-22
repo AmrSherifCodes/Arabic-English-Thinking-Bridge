@@ -184,7 +184,7 @@ export function useLanguagePair() {
     setPair,
     setSourceLang,
     setTargetLang,
-    isArabicUI: pair.source === 'ar',
+    isArabicUI: isArabicSource(pair.source),
     isJapaneseTarget: pair.target === 'ja',
     isGermanTarget: pair.target === 'de',
     isEnglishTarget: pair.target === 'en',

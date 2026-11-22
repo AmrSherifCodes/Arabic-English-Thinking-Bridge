@@ -144,3 +144,89 @@ test('6. index.html meta CSP equals vercel.json Content-Security-Policy header v
   );
 });
 
+test('7. vercel.json enforces strict CSP directives, security headers, and zero external PayPal scripts', () => {
+  const vercelConfig = JSON.parse(fs.readFileSync(path.join(ROOT_DIR, 'vercel.json'), 'utf8'));
+  const globalHeaderRule = vercelConfig.headers?.find((h: any) => h.source === '/(.*)');
+  assert.ok(globalHeaderRule);
+
+  const headersMap = new Map<string, string>(
+    (globalHeaderRule.headers || []).map((h: any) => [h.key, h.value]),
+  );
+
+  assert.equal(headersMap.get('X-Content-Type-Options'), 'nosniff');
+  assert.equal(headersMap.get('X-Frame-Options'), 'DENY');
+  assert.equal(headersMap.get('Referrer-Policy'), 'strict-origin-when-cross-origin');
+  const perms = headersMap.get('Permissions-Policy') || '';
+  assert.ok(perms.includes('microphone=(self)'), 'Permissions-Policy must allow microphone=(self)');
+  assert.ok(perms.includes('camera=()'), 'Permissions-Policy must block camera=()');
+
+  const csp = headersMap.get('Content-Security-Policy') || '';
+  assert.ok(csp.includes("default-src 'self';"), 'CSP must lock default-src to self');
+  assert.ok(csp.includes("script-src 'self';"), 'CSP must lock script-src to self');
+  assert.ok(!csp.includes("'unsafe-eval'"), 'CSP must forbid unsafe-eval');
+  assert.ok(csp.includes("object-src 'none';"), 'CSP must include object-src none');
+  assert.ok(csp.includes("base-uri 'self';"), 'CSP must include base-uri self');
+  assert.ok(csp.includes("frame-ancestors 'none';"), 'CSP must include frame-ancestors none');
+
+  const indexHtml = fs.readFileSync(path.join(ROOT_DIR, 'index.html'), 'utf8');
+  assert.equal(indexHtml.includes('paypal.com/sdk/js'), false);
+  assert.equal(indexHtml.includes('paypalobjects.com'), false);
+});
+
+test('8. Android native config and ProGuard rules enforce production hardening', () => {
+  const manifest = fs.readFileSync(
+    path.join(ROOT_DIR, 'android/app/src/main/AndroidManifest.xml'),
+    'utf8',
+  );
+  assert.ok(manifest.includes('android:allowBackup="false"'));
+  assert.ok(manifest.includes('android:usesCleartextTraffic="false"'));
+
+  const capConfig = fs.readFileSync(path.join(ROOT_DIR, 'capacitor.config.ts'), 'utf8');
+  assert.ok(capConfig.includes('webContentsDebuggingEnabled: isLiveReload'));
+
+  const gradle = fs.readFileSync(path.join(ROOT_DIR, 'android/app/build.gradle'), 'utf8');
+  assert.ok(gradle.includes('minifyEnabled true'));
+  assert.ok(gradle.includes('shrinkResources true'));
+
+  const proguard = fs.readFileSync(path.join(ROOT_DIR, 'android/app/proguard-rules.pro'), 'utf8');
+  assert.ok(proguard.includes('com.getcapacitor.community.tts.**'));
+  assert.ok(proguard.includes('com.capacitorjs.plugins.**'));
+});
+
+test('9. src/ and public/theme-init.js contain zero dangerouslySetInnerHTML, eval, new Function, or theme-init innerHTML', () => {
+  const srcRoot = path.join(ROOT_DIR, 'src');
+  const violations: string[] = [];
+
+  function walk(dir: string) {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        walk(fullPath);
+      } else if (
+        /\.(ts|tsx|js|mjs)$/.test(entry.name) &&
+        !/\.(test|spec)\./.test(entry.name)
+      ) {
+        const content = fs.readFileSync(fullPath, 'utf8');
+        if (/dangerouslySetInnerHTML\s*[=:]/.test(content)) {
+          violations.push(`${path.relative(ROOT_DIR, fullPath)}: dangerouslySetInnerHTML`);
+        }
+        if (/\beval\s*\(/.test(content)) {
+          violations.push(`${path.relative(ROOT_DIR, fullPath)}: eval(`);
+        }
+        if (/new\s+Function\s*\(/.test(content)) {
+          violations.push(`${path.relative(ROOT_DIR, fullPath)}: new Function(`);
+        }
+      }
+    }
+  }
+
+  walk(srcRoot);
+  const themeInit = fs.readFileSync(path.join(ROOT_DIR, 'public/theme-init.js'), 'utf8');
+  if (themeInit.includes('innerHTML')) {
+    violations.push('public/theme-init.js: innerHTML');
+  }
+
+  assert.deepEqual(violations, [], `Security violations found:\n${violations.join('\n')}`);
+});
+
+

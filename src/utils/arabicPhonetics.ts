@@ -413,14 +413,270 @@ function transliterateWordToPhonetics(word: string): string {
 }
 
 /**
- * Converts any English text (word, phrase, or sentence) into its literal Arabic pronunciation.
- * E.g., "Hello! How are you?" -> "هيلو! هاو آر يو؟"
+ * Curated German -> Authentic Arabic Phonetic Dictionary
+ * Follows standard German pronunciation:
+ *   ch (after e/i/ä/ö/ü/consonants) -> ش, ch (after a/o/u/au) -> خ
+ *   eu/äu -> وي, sch -> ش, ei -> اي, ie -> ي, w/v -> ف, z -> تس, j -> ي
  */
-export function getArabicPhoneticSpelling(englishText: string): string {
-  if (!englishText || !englishText.trim()) return '';
+export const GERMAN_TO_ARABIC_PHONETICS: Record<string, string> = {
+  ich: 'إيش',
+  du: 'دو',
+  er: 'إير',
+  sie: 'زي',
+  es: 'إس',
+  wir: 'فير',
+  ihr: 'إير',
+  mein: 'ماين',
+  meine: 'ماينه',
+  meinen: 'ماينن',
+  dein: 'داين',
+  deine: 'داينه',
+  sein: 'زاين',
+  seine: 'زاينه',
+  unser: 'أونزر',
+  der: 'دير',
+  die: 'دي',
+  das: 'داس',
+  den: 'دين',
+  dem: 'ديم',
+  ein: 'أين',
+  eine: 'أينه',
+  einen: 'أينن',
+  einer: 'أينر',
+  einem: 'أينم',
+  ist: 'إست',
+  bin: 'بين',
+  bist: 'بيست',
+  sind: 'زيند',
+  war: 'فار',
+  haben: 'هابن',
+  habe: 'هابه',
+  hat: 'هات',
+  lerne: 'ليرنه',
+  lernen: 'ليرنن',
+  deutsch: 'دويتش',
+  deutschland: 'دويتشلاند',
+  hallo: 'هالو',
+  guten: 'جوتن',
+  morgen: 'مورجن',
+  abend: 'أبند',
+  tag: 'تاج',
+  nacht: 'ناخت',
+  danke: 'دانكه',
+  vielen: 'فيلن',
+  dank: 'دانك',
+  bitte: 'بيته',
+  ja: 'يا',
+  nein: 'ناين',
+  nicht: 'نيشت',
+  und: 'أوند',
+  aber: 'أبر',
+  oder: 'أودر',
+  weil: 'فايل',
+  dass: 'داس',
+  auch: 'أوخ',
+  sehr: 'زير',
+  gut: 'جوت',
+  gute: 'جوته',
+  gutes: 'جوتس',
+  schön: 'شون',
+  schöne: 'شونه',
+  schöner: 'شونر',
+  schönen: 'شونن',
+  schönes: 'شونس',
+  heute: 'هويته',
+  jetzt: 'يتست',
+  hier: 'هير',
+  dort: 'دورت',
+  wie: 'في',
+  wo: 'فو',
+  was: 'فاس',
+  wer: 'فير',
+  wann: 'فان',
+  warum: 'فاروم',
+  geht: 'جيت',
+  dir: 'دير',
+  mir: 'مير',
+  dich: 'ديش',
+  mich: 'ميش',
+  wohne: 'فونه',
+  wohnt: 'فونت',
+  wohnen: 'فونن',
+  berlin: 'برلين',
+  wetter: 'فيتر',
+  bahnhof: 'بانهوف',
+  brauche: 'براوخه',
+  hilfe: 'هيلفه',
+  viel: 'فيل',
+  kostet: 'كوستت',
+  trinke: 'ترينكه',
+  trinken: 'ترينكن',
+  wasser: 'فاسر',
+  kaffee: 'كافيه',
+  tee: 'تي',
+  brot: 'بروت',
+  essen: 'إسن',
+  frisches: 'فريشس',
+  leckeres: 'ليكرس',
+  restaurant: 'ريستوران',
+  bietet: 'بيتت',
+  freund: 'فرويند',
+  familie: 'فاميليا',
+  bruder: 'برودر',
+  mann: 'مان',
+  frau: 'فراو',
+  kind: 'كيند',
+  haus: 'هاوس',
+  auto: 'أوتو',
+  buch: 'بوخ',
+  stadt: 'شتات',
+  schule: 'شوله',
+  arbeit: 'أربايت',
+  straße: 'شتراسه',
+  strasse: 'شتراسه',
+  heiße: 'هايسه',
+  heisse: 'هايسه',
+  auf: 'أوف',
+  wiedersehen: 'فيدرزين',
+  tschüss: 'تشوس',
+  entschuldigung: 'إنتشولديجونج',
+  sprechen: 'شبريشن',
+  langsam: 'لانجزام',
+  verstehe: 'فرشتيهه',
+  können: 'كونن',
+  kann: 'كان',
+  möchte: 'موشته',
+  helfen: 'هيلفن',
+  rechnung: 'ريشنونج',
+  tisch: 'تيش',
+  zug: 'تسوج',
+  ticket: 'تيكت',
+  kaufen: 'كاوفن',
+  reise: 'رايزه',
+  groß: 'جروس',
+  nett: 'نيت',
+  warm: 'فارم',
+  kalt: 'كالت',
+  nah: 'ناه',
+  pünktlich: 'بونكتليش',
+  rufe: 'روفه',
+  an: 'أن',
+  lieben: 'ليبن',
+  in: 'إن',
+  mit: 'ميت',
+  für: 'فور',
+  nach: 'ناخ',
+  zu: 'تسو',
+  von: 'فون',
+};
 
-  // Preserve punctuation while transliterating words
-  return englishText.replace(/[a-zA-Z0-9']+/g, (matched) => {
+const GERMAN_DETECTION_RE =
+  /[äöüßÄÖÜ]|\b(ich|deutsch|lerne|heute|wohne|wohnt|freund|schön|schöner|schöne|schönen|vielen|dank|guten|morgen|abend|bahnhof|brauche|hilfe|kostet|trinke|wasser|kaffee|restaurant|bietet|leckeres|essen|wetter|wie|geht|bitte|danke|hallo|heiße|wiedersehen|entschuldigung|sprechen|verstehe|können|möchte|rechnung|nicht|weil|dass|auch|mein|meine|der|die|das|den|dem|einen|einer|wir|sie)\b/i;
+
+/**
+ * Phonetically transliterates a single German word into Arabic letters.
+ */
+function transliterateGermanWordToPhonetics(word: string): string {
+  const clean = word.toLowerCase().trim();
+  if (!clean) return '';
+
+  if (GERMAN_TO_ARABIC_PHONETICS[clean]) {
+    return GERMAN_TO_ARABIC_PHONETICS[clean];
+  }
+
+  let str = clean;
+
+  // Multi-letter German digraphs/trigraphs (order matters!)
+  str = str.replace(/tsch/g, 'تش');
+  str = str.replace(/sch/g, 'ش');
+  str = str.replace(/^sp/g, 'شب');
+  str = str.replace(/^st/g, 'شت');
+  str = str.replace(/tion$/g, 'تسيون');
+  str = str.replace(/([aou]|au)ch/g, '$1خ');
+  str = str.replace(/ch/g, 'ش');
+  str = str.replace(/ck/g, 'ك');
+  str = str.replace(/ph/g, 'ف');
+  str = str.replace(/qu/g, 'كف');
+  str = str.replace(/eu|äu/g, 'وي');
+  str = str.replace(/ei|ai/g, 'اي');
+  str = str.replace(/ie/g, 'ي');
+  str = str.replace(/au/g, 'او');
+  str = str.replace(/ß/g, 'س');
+  str = str.replace(/e$/g, 'ه');
+
+  // Initial vowels
+  str = str.replace(/^a/g, 'أ');
+  str = str.replace(/^e/g, 'إ');
+  str = str.replace(/^i/g, 'إ');
+  str = str.replace(/^o/g, 'أو');
+  str = str.replace(/^u/g, 'أو');
+  str = str.replace(/^ä/g, 'إي');
+  str = str.replace(/^ö/g, 'أو');
+  str = str.replace(/^ü/g, 'أو');
+
+  const germanMap: Record<string, string> = {
+    b: 'ب',
+    c: 'ك',
+    d: 'د',
+    f: 'ف',
+    g: 'ج',
+    h: 'ه',
+    j: 'ي',
+    k: 'ك',
+    l: 'ل',
+    m: 'م',
+    n: 'ن',
+    p: 'ب',
+    q: 'ك',
+    r: 'ر',
+    s: 'س',
+    t: 'ت',
+    v: 'ف',
+    w: 'ف',
+    x: 'كس',
+    y: 'ي',
+    z: 'تس',
+    a: 'ا',
+    e: 'ي',
+    i: 'ي',
+    o: 'و',
+    u: 'و',
+    ä: 'ي',
+    ö: 'و',
+    ü: 'و',
+  };
+
+  let out = '';
+  for (let i = 0; i < str.length; i++) {
+    const ch = str[i];
+    out += germanMap[ch] ?? ch;
+  }
+
+  return out.replace(/ي{2,}/g, 'ي').replace(/و{2,}/g, 'و').replace(/ا{2,}/g, 'ا');
+}
+
+/**
+ * Converts text (word, phrase, or sentence) into its literal Arabic pronunciation.
+ * Supports English (default) and accurate German-to-Arabic phonetics when
+ * targetLang === 'de' or German text is detected.
+ * E.g., "Hello! How are you?" -> "هيلو! هاو آر يو?"
+ * E.g., "Ich lerne Deutsch" -> "إيش ليرنه دويتش"
+ */
+export function getArabicPhoneticSpelling(text: string, targetLang?: string): string {
+  if (!text || !text.trim()) return '';
+
+  const isGerman =
+    targetLang?.toLowerCase().startsWith('de') ||
+    (!targetLang && GERMAN_DETECTION_RE.test(text));
+
+  if (isGerman) {
+    return text.replace(/[a-zA-ZäöüßÄÖÜ0-9']+/g, (matched) => {
+      return transliterateGermanWordToPhonetics(matched);
+    });
+  }
+
+  // Preserve punctuation while transliterating English words
+  return text.replace(/[a-zA-Z0-9']+/g, (matched) => {
     return transliterateWordToPhonetics(matched);
   });
 }

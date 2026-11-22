@@ -33,7 +33,7 @@ export const ExamPage: React.FC<ExamPageProps> = ({ onBack }) => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0E13] text-[#EEF2F5] py-8 px-4 flex flex-col items-center justify-center font-arabic">
+    <div className="min-h-[100dvh] bg-[#0A0E13] text-[#EEF2F5] py-8 px-4 pt-safe pb-safe flex flex-col items-center justify-center font-arabic">
       {step === 'start' && (
         <ExamStartScreen
           onStartSession={handleStartSession}

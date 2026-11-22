@@ -4,6 +4,13 @@ import confetti from 'canvas-confetti';
 import { LessonNode, ExerciseItem } from '../../progression/types';
 import { CheckCircle2, XCircle, ArrowRight, Zap, Timer, Sparkles, Brain, Shuffle, X, Eye, EyeOff } from 'lucide-react';
 import { computeNextHintWord } from '../../utils/habitPsychology';
+import {
+  WordBankTile,
+  appendPlacedTileId,
+  createWordBankTiles,
+  selectNextHintTile,
+  tokenizeTargetSentence,
+} from '../../utils/sentenceBuilderHelper';
 import { soundFX } from '../../utils/soundFX';
 import { updateCognitiveProfile, runLocalTrainingStep, getDifficultyKnob } from '../../utils/OnlineLearningEngine';
 import { getDynamicExerciseOptions } from '../../utils/adaptiveCurriculum';
@@ -132,9 +139,11 @@ export function LessonRunner({
   });
 
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [selectedOptionIndices, setSelectedOptionIndices] = useState<number[]>([]);
-  const [shuffledOptions, setShuffledOptions] = useState<string[]>([]);
-  const selectedChips = selectedOptionIndices.map((idx) => shuffledOptions[idx] || '').filter(Boolean);
+  const [placedTileIds, setPlacedTileIds] = useState<string[]>([]);
+  const [wordBankTiles, setWordBankTiles] = useState<WordBankTile[]>([]);
+  const selectedChips = placedTileIds
+    .map((id) => wordBankTiles.find((tile) => tile.id === id)?.word || '')
+    .filter(Boolean);
 
   const handleShuffleExercises = () => {
     const list = [...exercises];
@@ -144,7 +153,7 @@ export function LessonRunner({
     }
     setExercises(list);
     setCurrentIndex(0);
-    setSelectedOptionIndices([]);
+    setPlacedTileIds([]);
     setUserInput('');
     setIsAnswered(false);
     setAutoHintPill(isArabic ? '🔀 تم خلط التمارين بنجاح!' : '🔀 Exercises shuffled!');
@@ -214,11 +223,12 @@ export function LessonRunner({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isAnswered, selectedChips, userInput, inputMode, showSummary, showExitConfirm]);
 
-  const currentExercise: ExerciseItem = exercises[currentIndex] || exercises[0];
-  const isJapaneseExercise = /[\u3040-\u30ff\u3400-\u9fff]/u.test(currentExercise.targetSentence);
+  const currentExercise: ExerciseItem | undefined = exercises[currentIndex] || exercises[0];
+  const isJapaneseExercise = /[\u3040-\u30ff\u3400-\u9fff]/u.test(currentExercise?.targetSentence || '');
   const isTargetRtl = /[\u0600-\u06FF]/u.test(currentExercise?.targetSentence || '');
 
   useEffect(() => {
+    if (!currentExercise) return;
     const rawOptions = currentExercise.options && currentExercise.options.length > 0
       ? currentExercise.options
       : currentExercise.wordChips && currentExercise.wordChips.length > 0
@@ -237,58 +247,42 @@ export function LessonRunner({
       const swapIndex = Math.floor(Math.random() * (index + 1));
       [options[index], options[swapIndex]] = [options[swapIndex], options[index]];
     }
-    setShuffledOptions(options);
-    setSelectedOptionIndices([]);
-  }, [currentExercise.id, currentIndex]);
+    setWordBankTiles(createWordBankTiles(`${currentExercise.id}-${currentIndex}`, options));
+    setPlacedTileIds([]);
+  }, [currentExercise?.id, currentIndex]);
 
   useEffect(() => {
     exerciseStartTimeRef.current = Date.now();
   }, [currentIndex]);
 
+  const currentTargetTokens = tokenizeTargetSentence(currentExercise?.targetSentence || '');
+  const isSentenceSlotsFull = inputMode === 'tiles' && placedTileIds.length >= currentTargetTokens.length;
+
   const triggerAutoHelper = useCallback((customPillMessage?: string): string | null => {
-    if (isAnswered || showSummary) return null;
+    if (isAnswered || showSummary || !currentExercise) return null;
 
     const targetSentence = currentExercise.targetSentence || '';
-    const targetTokens = targetSentence.replace(/[.,?!。、「」]/g, '').split(/\s+/).filter(Boolean);
+    const targetTokens = tokenizeTargetSentence(targetSentence);
 
     if (inputMode === 'tiles') {
-      const currentChoice = selectedChips.join(' ');
-      const { nextWord } = computeNextHintWord(targetSentence, currentChoice);
-
-      let candidateOption: string | undefined = undefined;
-      const availablePool = [...shuffledOptions, ...(currentExercise.options || [])];
-      if (nextWord) {
-        candidateOption = availablePool.find(
-          (opt) => opt.toLowerCase() === nextWord.toLowerCase()
-        );
+      if (placedTileIds.length >= targetTokens.length) {
+        return null;
       }
 
-      if (!candidateOption && targetTokens[selectedOptionIndices.length]) {
-        candidateOption = targetTokens[selectedOptionIndices.length];
+      const nextTile = selectNextHintTile(targetSentence, placedTileIds, wordBankTiles);
+      if (!nextTile) {
+        return null;
       }
 
-      if (candidateOption) {
-        let optIdx = shuffledOptions.findIndex(
-          (opt, idx) => opt.toLowerCase() === candidateOption!.toLowerCase() && !selectedOptionIndices.includes(idx)
-        );
-
-        if (optIdx !== -1) {
-          setSelectedOptionIndices((prev) => [...prev, optIdx]);
-        } else {
-          const newIdx = shuffledOptions.length;
-          setShuffledOptions((prev) => [...prev, candidateOption!]);
-          setSelectedOptionIndices((prev) => [...prev, newIdx]);
-        }
-
-        setAutoHintPill(
-          customPillMessage ?? (
-            isArabic
-              ? `💡 أضفنا الكلمة: "${candidateOption}"`
-              : `💡 Added word: "${candidateOption}"`
-          )
-        );
-        return candidateOption;
-      }
+      setPlacedTileIds((prev) => appendPlacedTileId(prev, nextTile.id, targetTokens.length));
+      setAutoHintPill(
+        customPillMessage ?? (
+          isArabic
+            ? `💡 أضفنا الكلمة: "${nextTile.word}"`
+            : `💡 Added word: "${nextTile.word}"`
+        )
+      );
+      return nextTile.word;
     } else {
       const { nextWord } = computeNextHintWord(targetSentence, userInput);
       if (nextWord) {
@@ -305,7 +299,7 @@ export function LessonRunner({
       }
     }
     return null;
-  }, [isAnswered, showSummary, currentExercise, selectedChips, selectedOptionIndices, userInput, shuffledOptions, isArabic, inputMode]);
+  }, [isAnswered, showSummary, currentExercise, placedTileIds, wordBankTiles, userInput, isArabic, inputMode]);
 
   // Automatic 30-second Idle Guard
   useEffect(() => {
@@ -327,7 +321,7 @@ export function LessonRunner({
   }, [autoHintPill]);
 
   const handleCheckAnswer = () => {
-    if (isAnswered) return;
+    if (isAnswered || !currentExercise) return;
 
     const rawTimeSpentMs = Math.max(1000, Date.now() - exerciseStartTimeRef.current);
     const timeSpentMs = Math.min(30000, rawTimeSpentMs);
@@ -418,10 +412,11 @@ export function LessonRunner({
   const handleNextExercise = () => {
     setIsAnswered(false);
     setIsCorrect(false);
-    setSelectedOptionIndices([]);
+    setPlacedTileIds([]);
     setUserInput('');
     setAutoHintPill(null);
     setHintDrawerOpen(false);
+    setLastAddedHintWord(null);
 
     if (currentIndex + 1 < exercises.length) {
       const nextIdx = currentIndex + 1;
@@ -445,13 +440,32 @@ export function LessonRunner({
           const swapIndex = Math.floor(Math.random() * (index + 1));
           [options[index], options[swapIndex]] = [options[swapIndex], options[index]];
         }
-        setShuffledOptions(options);
+        setWordBankTiles(createWordBankTiles(`${nextExercise.id}-${nextIdx}`, options));
       }
       setCurrentIndex(nextIdx);
     } else {
       setShowSummary(true);
     }
   };
+
+  if (!currentExercise) {
+    return (
+      <div className="fixed inset-0 z-50 bg-bg/95 backdrop-blur-xl flex items-center justify-center p-4" dir={isArabic ? 'rtl' : 'ltr'}>
+        <div className="w-full max-w-md rounded-3xl bg-surface border border-border p-6 text-center space-y-4 shadow-2xl">
+          <p className="text-base font-black text-text">
+            {isArabic ? '🚧 جاري بناء تمارين هذا الدرس يومياً' : '🚧 Exercises for this lesson are being built daily'}
+          </p>
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-full py-3 min-h-[44px] rounded-2xl bg-primary text-on-primary font-black text-sm cursor-pointer"
+          >
+            {isArabic ? '← العودة للمسار' : '← Back to Path'}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (showNameForge) {
     return (
@@ -478,8 +492,8 @@ export function LessonRunner({
     const earnedXp = sessionXpEarned + (accuracy > 80 ? 20 : 0);
 
     return (
-      <div className="fixed inset-0 z-50 bg-bg/90 backdrop-blur-xl flex items-center justify-center p-2 sm:p-6" dir={isArabic ? 'rtl' : 'ltr'}>
-        <div className="w-full h-full sm:h-auto sm:max-h-[88vh] sm:max-w-[520px] md:max-w-xl sm:rounded-3xl bg-bg border border-border shadow-2xl flex flex-col items-center justify-center p-6 text-center">
+      <div className="fixed inset-0 z-50 bg-bg/90 backdrop-blur-xl flex items-center justify-center p-2 pt-safe pb-safe sm:p-6" dir={isArabic ? 'rtl' : 'ltr'}>
+        <div className="w-full h-full sm:h-auto sm:max-h-[88dvh] sm:max-w-[520px] md:max-w-xl sm:rounded-3xl bg-bg border border-border shadow-2xl flex flex-col items-center justify-center p-6 text-center">
           <div className="space-y-6 w-full max-w-sm">
             <div className="w-20 h-20 rounded-3xl bg-primary/20 border border-primary/40 text-primary flex items-center justify-center text-4xl mx-auto shadow-2xl">
               🏆
@@ -542,10 +556,10 @@ export function LessonRunner({
   const progressPercent = Math.round(((currentIndex + 1) / exercises.length) * 100);
 
   return (
-    <div className="fixed inset-0 z-50 bg-bg/90 backdrop-blur-xl flex items-center justify-center p-0 sm:p-4 md:p-6" dir={isArabic ? 'rtl' : 'ltr'}>
-      <div className="w-full h-[100dvh] flex flex-col sm:h-auto sm:max-h-[88vh] sm:max-w-xl md:max-w-2xl lg:max-w-4xl sm:rounded-3xl bg-bg border border-border shadow-2xl overflow-hidden relative">
+    <div className="fixed inset-0 z-50 bg-bg/90 backdrop-blur-xl flex items-center justify-center p-0 pt-safe pb-safe sm:p-4 md:p-6" dir={isArabic ? 'rtl' : 'ltr'}>
+      <div className="w-full h-[100dvh] flex flex-col sm:h-auto sm:max-h-[88dvh] sm:max-w-xl md:max-w-2xl lg:max-w-4xl sm:rounded-3xl bg-bg border border-border shadow-2xl overflow-hidden relative">
         {/* Top Header Progress Bar */}
-        <div className="p-4 border-b border-border flex items-center gap-3 bg-surface/50">
+        <div className="sticky top-0 z-40 px-4 pb-3 pt-safe border-b border-border flex items-center gap-3 bg-[#06101c]/95 backdrop-blur-md shrink-0">
           <button
             onClick={() => setShowExitConfirm(true)}
             className="p-2 min-h-[48px] min-w-[48px] flex items-center justify-center rounded-xl bg-surface-2 text-muted hover:text-text font-bold transition cursor-pointer"
@@ -583,62 +597,12 @@ export function LessonRunner({
             >
               <Shuffle size={16} />
             </button>
-            <div className="flex items-center gap-1 text-xs font-black text-muted">
-              <Timer size={14} className="text-primary" />
+            <div className="flex items-center gap-1 text-xs font-black text-muted whitespace-nowrap" dir="ltr">
+              <Timer size={14} className="text-primary shrink-0" />
               <span>{currentIndex + 1}/{exercises.length}</span>
             </div>
           </div>
         </div>
-
-        {/* Floating Side-Popup Smart Hint Drawer */}
-        {hintDrawerOpen && (
-          <div className="fixed top-20 end-4 z-50 w-80 max-w-[calc(100vw-2rem)] rounded-3xl bg-[#0B1C33] border-2 border-cyan-500/50 shadow-2xl p-4 space-y-3 text-start animate-in fade-in slide-in-from-top-2" dir={isArabic ? 'rtl' : 'ltr'}>
-            <div className="flex items-center justify-between border-b border-cyan-500/20 pb-2">
-              <div className="flex items-center gap-2">
-                <span className="text-base">💡</span>
-                <h3 className="text-sm font-black text-white">{isArabic ? 'المساعد الذكي' : 'Smart Hint Assistant'}</h3>
-              </div>
-              <button
-                onClick={() => setHintDrawerOpen(false)}
-                className="p-1.5 rounded-xl bg-slate-800 text-slate-300 hover:text-white cursor-pointer text-xs"
-              >
-                ✕
-              </button>
-            </div>
-
-            {lastAddedHintWord && (
-              <div className="flex items-center justify-between bg-slate-950 p-2.5 rounded-xl border border-cyan-500/30">
-                <span className="text-xs font-bold text-emerald-300">✅ أضفنا الكلمة:</span>
-                <div className="flex items-center gap-2">
-                  <span className="font-mono font-black text-amber-300 text-sm px-2 py-0.5 bg-amber-500/15 rounded-lg">
-                    {lastAddedHintWord}
-                  </span>
-                  <DualSpeedAudio text={lastAddedHintWord} showLabels={false} targetLang={activeTargetLang} />
-                </div>
-              </div>
-            )}
-
-            <div className="space-y-2 text-xs">
-              <div className="flex items-center gap-1.5 text-cyan-300 font-bold">
-                <span>🧠 القاعدة وسر التركيب:</span>
-              </div>
-              <p className="text-slate-200 leading-relaxed font-medium">
-                {getSmartGrammarClue(currentExercise, isArabic, activeTargetLang)}
-              </p>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => {
-                const nextAdded = triggerAutoHelper();
-                if (nextAdded) setLastAddedHintWord(nextAdded);
-              }}
-              className="w-full py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs transition cursor-pointer shadow-md flex items-center justify-center gap-1.5"
-            >
-              <span>➕ ضيف الكلمة الجاية</span>
-            </button>
-          </div>
-        )}
 
         {/* Exercise Body */}
         <motion.div
@@ -726,21 +690,22 @@ export function LessonRunner({
                 style={{ direction: isTargetRtl ? 'rtl' : 'ltr', textAlign: isTargetRtl ? 'right' : 'left', justifyContent: isTargetRtl ? 'flex-end' : 'flex-start' }}
                 className="p-4 rounded-2xl bg-surface-2 border border-border min-h-[72px] flex flex-wrap flex-row items-center gap-2"
               >
-                {selectedOptionIndices.length === 0 ? (
+                {placedTileIds.length === 0 ? (
                   <span className="text-xs text-muted font-bold" dir={isArabic ? 'rtl' : 'ltr'}>
                     {isArabic ? 'اضغط الكلمات أدناه للترتيب الصحيح' : 'Tap words below to arrange'}
                   </span>
                 ) : (
-                  selectedOptionIndices.map((optionIdx, selectedIdx) => {
-                    const chip = shuffledOptions[optionIdx] || '';
+                  placedTileIds.map((tileId) => {
+                    const tile = wordBankTiles.find((t) => t.id === tileId);
+                    const chip = tile?.word || '';
                     const gloss = getGlossForWord(chip, currentExercise.breakdownChunks || [], activeTargetLang, activeSourceLang);
                     return (
                       <button
-                        key={selectedIdx}
+                        key={tileId}
                         onClick={() => {
                           if (!isAnswered) {
                             speakWithRate(chip, 1.0, undefined, activeTargetLang);
-                            setSelectedOptionIndices((prev) => prev.filter((_, i) => i !== selectedIdx));
+                            setPlacedTileIds((prev) => prev.filter((id) => id !== tileId));
                           }
                         }}
                         dir={isTargetRtl ? 'rtl' : 'ltr'}
@@ -757,19 +722,22 @@ export function LessonRunner({
 
               {/* Available Word Chips Bank */}
               <div className="flex flex-wrap gap-2 justify-center pt-2" dir={isTargetRtl ? 'rtl' : 'ltr'}>
-                {shuffledOptions.map((chip, idx) => {
-                  const isSelected = selectedOptionIndices.includes(idx);
+                {wordBankTiles.map((tile) => {
+                  const chip = tile.word;
+                  const isSelected = placedTileIds.includes(tile.id);
                   const gloss = getGlossForWord(chip, currentExercise.breakdownChunks || [], activeTargetLang, activeSourceLang);
                   return (
                     <button
-                      key={idx}
+                      key={tile.id}
                       disabled={isSelected || isAnswered}
                       data-testid="word-chip"
                       data-word={chip}
                       onClick={() => {
                         soundFX.playChipSelect();
                         speakWithRate(chip, 1.0, undefined, activeTargetLang);
-                        setSelectedOptionIndices((prev) => [...prev, idx]);
+                        setPlacedTileIds((prev) =>
+                          prev.includes(tile.id) ? prev : [...prev, tile.id]
+                        );
                       }}
                       dir={isTargetRtl ? 'rtl' : 'ltr'}
                       style={{ unicodeBidi: 'isolate', touchAction: 'manipulation' }}
@@ -848,8 +816,66 @@ export function LessonRunner({
           )}
         </motion.div>
 
+        {/* Docked Non-Overlapping Smart Assistant Bottom Sheet */}
+        {hintDrawerOpen && (
+          <div
+            role="region"
+            aria-label={isArabic ? 'المساعد الذكي' : 'Smart Hint Assistant'}
+            className="shrink-0 max-h-[42dvh] overflow-y-auto bg-[#0B1C33] border-t-2 border-cyan-500/50 shadow-[0_-8px_28px_rgba(0,0,0,0.45)] px-4 py-3 space-y-2.5 text-start"
+            dir={isArabic ? 'rtl' : 'ltr'}
+          >
+            <div className="flex items-center justify-between gap-2 border-b border-cyan-500/20 pb-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="text-base shrink-0">💡</span>
+                <h3 className="text-sm font-black text-white">{isArabic ? 'المساعد الذكي' : 'Smart Hint Assistant'}</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setHintDrawerOpen(false)}
+                aria-label={isArabic ? 'إغلاق المساعد الذكي' : 'Close Smart Assistant'}
+                className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl bg-slate-800 text-slate-200 hover:text-white hover:bg-slate-700 cursor-pointer text-sm font-black shrink-0"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {lastAddedHintWord && (
+              <div className="flex items-center justify-between gap-2 bg-slate-950/90 p-2.5 rounded-xl border border-cyan-500/30">
+                <span className="text-xs font-bold text-emerald-300 shrink-0">✅ أضفنا الكلمة:</span>
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="font-mono font-black text-amber-300 text-sm px-2 py-0.5 bg-amber-500/15 rounded-lg" dir="ltr">
+                    {lastAddedHintWord}
+                  </span>
+                  <DualSpeedAudio text={lastAddedHintWord} showLabels={false} targetLang={activeTargetLang} className="flex items-center gap-1.5" />
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-1 text-xs">
+              <div className="flex items-center gap-1.5 text-cyan-300 font-bold">
+                <span>🧠 القاعدة وسر التركيب:</span>
+              </div>
+              <p className="text-slate-200 leading-relaxed font-medium">
+                {getSmartGrammarClue(currentExercise, isArabic, activeTargetLang)}
+              </p>
+            </div>
+
+            <button
+              type="button"
+              disabled={isAnswered || isSentenceSlotsFull}
+              onClick={() => {
+                const nextAdded = triggerAutoHelper();
+                if (nextAdded) setLastAddedHintWord(nextAdded);
+              }}
+              className="w-full py-2.5 min-h-[44px] rounded-xl bg-cyan-500 hover:bg-cyan-400 disabled:opacity-45 disabled:cursor-not-allowed text-slate-950 font-black text-xs transition cursor-pointer shadow-md flex items-center justify-center gap-1.5"
+            >
+              <span>{isSentenceSlotsFull ? (isArabic ? '✅ اكتملت كلمات الجملة' : '✅ All words placed') : '➕ ضيف الكلمة الجاية'}</span>
+            </button>
+          </div>
+        )}
+
         {/* Sticky Bottom Action Bar (60px Height, High Contrast) */}
-        <div className="sticky bottom-0 bg-stone-950 p-4 border-t border-stone-800 z-10 shrink-0 pb-[max(1rem,env(safe-area-inset-bottom))]">
+        <div className="sticky bottom-0 bg-stone-950 p-4 border-t border-stone-800 z-10 shrink-0 pb-safe">
           {!isAnswered ? (
             <button
               onClick={handleCheckAnswer}

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Capacitor } from '@capacitor/core';
 import { useTranslation } from 'react-i18next';
 import {
   Sparkles,
@@ -104,7 +105,7 @@ export function LandingView({ onStartWebApp, isArabic = true }: LandingViewProps
 
   return (
     <div
-      className="landing-shell min-h-screen text-[var(--landing-text)] bg-[var(--landing-bg)] transition-colors duration-300"
+      className="landing-shell min-h-[100dvh] text-[var(--landing-text)] bg-[var(--landing-bg)] transition-colors duration-300"
       lang={lang}
       dir={isAr ? 'rtl' : 'ltr'}
       style={{ fontFamily: 'var(--landing-font)' }}
@@ -483,35 +484,37 @@ export function LandingView({ onStartWebApp, isArabic = true }: LandingViewProps
               )}
             </div>
 
-            {/* iOS / PWA */}
-            <div className={`p-5 rounded-[var(--landing-radius-md)] border text-center space-y-3 ${detectedOs === 'ios' ? 'bg-[var(--landing-surface)] border-[var(--landing-accent-teal)] ring-2 ring-[var(--landing-accent-teal)]/30' : 'bg-[var(--landing-bg)] border-[var(--landing-border)]'}`}>
-              <Apple className="mx-auto text-[var(--landing-text)]" size={28} />
-              <div>
-                <span className="font-bold text-sm text-[var(--landing-text)] block">iOS / iPhone</span>
-                <span className="text-[10px] text-[var(--landing-muted)] block">PWA / Web App</span>
-              </div>
-              <button
-                onClick={() => {
-                  if (showIosHint) setShowIosGuide(value => !value);
-                  else if (isInstallable) void triggerInstall();
-                  else onStartWebApp();
-                }}
-                className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-[var(--landing-surface)] border border-[var(--landing-border)] text-[var(--landing-text)] font-bold text-xs w-full hover:border-[var(--landing-accent-teal)] transition"
-              >
-                <ExternalLink size={13} />
-                <span>{showIosHint ? (t('landing2.install_guide')) : isInstallable ? (t('landing2.install_app')) : (t('landing2.open_web_app'))}</span>
-              </button>
-              {showIosGuide && showIosHint && (
-                <p role="status" className="text-[11px] leading-relaxed text-[var(--landing-muted)]">
-                  {t('landing2.in_safari__tap_share__then_cho_1')}
-                </p>
-              )}
-              {showIosHint && (
-                <button onClick={onStartWebApp} className="text-xs font-bold text-[var(--landing-accent-teal)] underline underline-offset-2">
-                  {t('landing2.open_web_app_1')}
+            {/* iOS / PWA (hidden on native Capacitor and Android devices) */}
+            {!Capacitor.isNativePlatform() && detectedOs !== 'android' && (
+              <div className={`p-5 rounded-[var(--landing-radius-md)] border text-center space-y-3 ${detectedOs === 'ios' ? 'bg-[var(--landing-surface)] border-[var(--landing-accent-teal)] ring-2 ring-[var(--landing-accent-teal)]/30' : 'bg-[var(--landing-bg)] border-[var(--landing-border)]'}`}>
+                <Apple className="mx-auto text-[var(--landing-text)]" size={28} />
+                <div>
+                  <span className="font-bold text-sm text-[var(--landing-text)] block">iOS / iPhone</span>
+                  <span className="text-[10px] text-[var(--landing-muted)] block">PWA / Web App</span>
+                </div>
+                <button
+                  onClick={() => {
+                    if (showIosHint) setShowIosGuide(value => !value);
+                    else if (isInstallable) void triggerInstall();
+                    else onStartWebApp();
+                  }}
+                  className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-[var(--landing-surface)] border border-[var(--landing-border)] text-[var(--landing-text)] font-bold text-xs w-full hover:border-[var(--landing-accent-teal)] transition"
+                >
+                  <ExternalLink size={13} />
+                  <span>{showIosHint ? (t('landing2.install_guide')) : isInstallable ? (t('landing2.install_app')) : (t('landing2.open_web_app'))}</span>
                 </button>
-              )}
-            </div>
+                {showIosGuide && showIosHint && (
+                  <p role="status" className="text-[11px] leading-relaxed text-[var(--landing-muted)]">
+                    {t('landing2.in_safari__tap_share__then_cho_1')}
+                  </p>
+                )}
+                {showIosHint && (
+                  <button onClick={onStartWebApp} className="text-xs font-bold text-[var(--landing-accent-teal)] underline underline-offset-2">
+                    {t('landing2.open_web_app_1')}
+                  </button>
+                )}
+              </div>
+            )}
 
             {/* Windows */}
             <div className={`p-5 rounded-[var(--landing-radius-md)] border text-center space-y-3 ${detectedOs === 'windows' ? 'bg-[var(--landing-surface)] border-[var(--landing-accent-teal)] ring-2 ring-[var(--landing-accent-teal)]/30' : 'bg-[var(--landing-bg)] border-[var(--landing-border)]'}`}>

@@ -20,7 +20,7 @@ import './android-landing-page.css';
 
 const WEB_APP_URL = '/app';
 const GITHUB_URL = 'https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge';
-const APK_URL = 'https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v4.4.1/ThinkingBridge-v4.4.1.apk';
+const APK_URL = 'https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v4.4.2/ThinkingBridge-v4.4.2.apk';
 const X_URL = 'https://x.com/SciAmrSherif';
 
 const FEATURES = [
@@ -143,11 +143,11 @@ export function AndroidLandingPage() {
             <a
               className="android-btn android-btn-secondary"
               href={APK_URL}
-              download="Thinking-Bridge-v1.0.0-stable.apk"
+              download="ThinkingBridge-v4.4.2.apk"
               aria-label="تحميل تطبيق الأندرويد المباشر APK"
             >
               <Download size={18} aria-hidden="true" />
-              <span>تحميل تطبيق APK (v4.4.1 · 112 MB)</span>
+              <span>تحميل تطبيق APK (v4.4.2 · 112 MB)</span>
             </a>
           </div>
 

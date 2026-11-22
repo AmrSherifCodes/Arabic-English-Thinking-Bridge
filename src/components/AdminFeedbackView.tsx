@@ -116,7 +116,7 @@ export function AdminFeedbackView({ onBack, isArabic = true }: AdminFeedbackView
     ));
 
   return (
-    <main className="mx-auto min-h-screen max-w-4xl space-y-6 bg-stone-950 p-4 text-start text-stone-100 sm:p-6" dir={isArabic ? 'rtl' : 'ltr'}>
+    <main className="mx-auto min-h-[100dvh] max-w-4xl space-y-6 bg-stone-950 p-4 pt-safe pb-safe text-start text-stone-100 sm:p-6" dir={isArabic ? 'rtl' : 'ltr'}>
       <header className="flex items-center justify-between border-b border-stone-800 pb-4">
         <div className="flex items-center gap-3">
           <button type="button" onClick={onBack} aria-label={isArabic ? 'رجوع' : 'Back'} className="rounded-xl border border-stone-800 bg-stone-900 p-2.5 text-stone-300 hover:text-white">

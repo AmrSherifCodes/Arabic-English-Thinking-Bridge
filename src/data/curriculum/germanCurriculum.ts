@@ -11,21 +11,20 @@ export function getGermanPhases(source: SourceLanguage): Phase[] {
   const p1l1Exercises: Exercise[] = [
     {
       id: 'de-ex-1-1-1',
-      arabicThought: 'أنا أشرب قهوة اليوم',
+      arabicThought: 'اليوم أشرب قهوة',
       englishTarget: 'Heute trinke ich Kaffee',
-      sourceThought: sourceThought(source, 'أنا أشرب قهوة اليوم', 'Today I am drinking coffee'),
+      sourceThought: sourceThought(source, 'اليوم أشرب قهوة', 'Today I am drinking coffee'),
       targetSentence: 'Heute trinke ich Kaffee',
-      acceptableAlternatives: ['heute trinke ich kaffee'],
-      wordChips: ['Heute', 'trinke', 'ich', 'Kaffee', 'Wasser', 'und', 'du', 'Tee'],
+      acceptableAlternatives: ['heute trinke ich kaffee', 'ich trinke heute kaffee', 'ich trinke kaffee heute'],
+      wordChips: ['Heute', 'trinke', 'ich', 'Kaffee', 'und', 'du', 'Tee'],
       breakdownChunks: [
-        { arabicText: 'Heute', englishText: 'today', sourceText: isAr ? 'اليوم' : 'today', targetText: 'Heute', role: 'connector' as ChunkRole, explanation: 'Adverb' },
-        { arabicText: 'trinke', englishText: 'drink', sourceText: isAr ? 'أشرب' : 'drink', targetText: 'trinke', role: 'verb' as ChunkRole, explanation: 'Verb V2' },
-        { arabicText: 'ich', englishText: 'I', sourceText: isAr ? 'أنا' : 'I', targetText: 'ich', role: 'subject' as ChunkRole, explanation: 'Subject pronoun' },
-        { arabicText: 'Kaffee', englishText: 'coffee', sourceText: isAr ? 'قهوة' : 'coffee', targetText: 'Kaffee', role: 'object' as ChunkRole, explanation: 'Noun' },
-        { arabicText: 'Wasser', englishText: 'water', sourceText: isAr ? 'ماء' : 'water', targetText: 'Wasser', role: 'object' as ChunkRole, explanation: 'Noun' },
-        { arabicText: 'und', englishText: 'and', sourceText: isAr ? 'و' : 'and', targetText: 'und', role: 'connector' as ChunkRole, explanation: 'Conjunction' },
-        { arabicText: 'du', englishText: 'you', sourceText: isAr ? 'أنت' : 'you', targetText: 'du', role: 'subject' as ChunkRole, explanation: 'Pronoun' },
-        { arabicText: 'Tee', englishText: 'tea', sourceText: isAr ? 'شاي' : 'tea', targetText: 'Tee', role: 'object' as ChunkRole, explanation: 'Noun' }
+        { arabicText: 'اليوم', englishText: 'today', sourceText: isAr ? 'اليوم' : 'today', targetText: 'Heute', role: 'connector' as ChunkRole, explanation: 'Adverb' },
+        { arabicText: 'أشرب', englishText: 'drink', sourceText: isAr ? 'أشرب' : 'drink', targetText: 'trinke', role: 'verb' as ChunkRole, explanation: 'Verb V2' },
+        { arabicText: 'أنا', englishText: 'I', sourceText: isAr ? 'أنا' : 'I', targetText: 'ich', role: 'subject' as ChunkRole, explanation: 'Subject pronoun' },
+        { arabicText: 'قهوة', englishText: 'coffee', sourceText: isAr ? 'قهوة' : 'coffee', targetText: 'Kaffee', role: 'object' as ChunkRole, explanation: 'Noun' },
+        { arabicText: 'و', englishText: 'and', sourceText: isAr ? 'و' : 'and', targetText: 'und', role: 'connector' as ChunkRole, explanation: 'Conjunction' },
+        { arabicText: 'أنت', englishText: 'you', sourceText: isAr ? 'أنت' : 'you', targetText: 'du', role: 'subject' as ChunkRole, explanation: 'Pronoun' },
+        { arabicText: 'شاي', englishText: 'tea', sourceText: isAr ? 'شاي' : 'tea', targetText: 'Tee', role: 'object' as ChunkRole, explanation: 'Noun' }
       ],
       habitHint: 'قاعدة V2 بالألمانية.',
       explanationAr: 'عند البدء بظرف مثل Heute (اليوم)، يأتي الفعل trinke مباشرة في المركز الثاني (V2)، ثم الفاعل ich.',
@@ -111,9 +110,9 @@ export function getGermanPhases(source: SourceLanguage): Phase[] {
     { title: 'Shopping & Prices', titleAr: 'التسوق والأسعار' }
   ];
 
-  const GermanPrompts = [
+  const GermanPrompts: Array<Array<{ ar: string; en: string; sentence: string; chips: string[]; alternatives?: string[] }>> = [
     [
-      { ar: 'اليوم هو يوم مشرق', en: 'Heute ist ein schöner Tag', sentence: 'Heute ist ein schöner Tag', chips: ['Heute', 'ist', 'ein', 'schöner', 'Tag', 'gut', 'sehr', 'kalt'] },
+      { ar: 'اليوم هو يوم مشرق', en: 'Heute ist ein schöner Tag', sentence: 'Heute ist ein schöner Tag', chips: ['Heute', 'ist', 'ein', 'schöner', 'Tag', 'gut', 'sehr', 'kalt'], alternatives: ['heute ist ein schöner tag', 'heute ist auch ein schöner tag'] },
       { ar: 'أنا أعيش في مدينة جميلة', en: 'Ich wohne in einer schönen Stadt', sentence: 'Ich wohne in einer schönen Stadt', chips: ['Ich', 'wohne', 'in', 'einer', 'schönen', 'Stadt', 'Dorf', 'Haus', 'kleinen'] },
       { ar: 'نحن نأكل الخبز الطازج', en: 'Wir essen frisches Brot', sentence: 'Wir essen frisches Brot', chips: ['Wir', 'essen', 'frisches', 'Brot', 'Kaffee', 'Wasser', 'heute'] },
       { ar: 'الطقس دافئ للغاية اليوم', en: 'Das Wetter ist heute sehr warm', sentence: 'Das Wetter ist heute sehr warm', chips: ['Das', 'Wetter', 'ist', 'heute', 'sehr', 'warm', 'kalt', 'gut'] }
@@ -137,7 +136,7 @@ export function getGermanPhases(source: SourceLanguage): Phase[] {
       { ar: 'نحن ننهي العمل على الموعد', en: 'Wir beenden die Arbeit pünktlich', sentence: 'Wir beenden die Arbeit pünktlich', chips: ['Wir', 'beenden', 'die', 'Arbeit', 'pünktlich', 'heute', 'früh', 'jetzt'] }
     ],
     [
-      { ar: 'المطعم يقدم طعاماً لذيذاً', en: 'Das Restaurant bietet leckeres Essen', sentence: 'Das Restaurant bietet leckeres Essen', chips: ['Das', 'Restaurant', 'bietet', 'leckeres', 'Essen', 'Kaffee', 'Garten', 'gut'] },
+      { ar: 'المطعم يقدم طعاماً لذيذاً', en: 'Das Restaurant bietet leckeres Essen', sentence: 'Das Restaurant bietet leckeres Essen', chips: ['Das', 'Restaurant', 'bietet', 'leckeres', 'Essen', 'Kaffee', 'Garten', 'gut'], alternatives: ['das restaurant bietet leckeres essen', 'das restaurant bietet gutes essen'] },
       { ar: 'أريد حجز طاولة لشخصين', en: 'Ich möchte einen Tisch für zwei reservieren', sentence: 'Ich möchte einen Tisch für zwei reservieren', chips: ['Ich', 'möchte', 'einen', 'Tisch', 'für', 'zwei', 'reservieren', 'heute'] },
       { ar: 'الفاتورة من فضلك', en: 'Die Rechnung bitte', sentence: 'Die Rechnung bitte', chips: ['Die', 'Rechnung', 'bitte', 'danke', 'Karte', 'Geld', 'hier'] },
       { ar: 'الطعام كان ممتازاً جداً', en: 'Das Essen war sehr gut', sentence: 'Das Essen war sehr gut', chips: ['Das', 'Essen', 'war', 'sehr', 'gut', 'lecker', 'warm', 'heute'] }
@@ -160,7 +159,7 @@ export function getGermanPhases(source: SourceLanguage): Phase[] {
         englishTarget: item.en,
         sourceThought: sourceThought(source, item.ar, item.en),
         targetSentence: item.sentence,
-        acceptableAlternatives: [item.sentence.toLowerCase()],
+        acceptableAlternatives: item.alternatives ?? [item.sentence.toLowerCase()],
         wordChips: item.chips,
         breakdownChunks: item.chips.map(c => ({
           arabicText: c,

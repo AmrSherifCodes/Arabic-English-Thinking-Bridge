@@ -57,7 +57,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
       return (
         <div
-          className="min-h-screen bg-gradient-to-br from-[#0A0E13] via-[#0F151C] to-[#102b2b] text-[#EEF2F5] flex flex-col items-center justify-center p-6 text-center space-y-6 font-sans"
+          className="min-h-[100dvh] bg-gradient-to-br from-[#0A0E13] via-[#0F151C] to-[#102b2b] text-[#EEF2F5] flex flex-col items-center justify-center p-6 pt-safe pb-safe text-center space-y-6 font-sans"
           dir={isArabic ? 'rtl' : 'ltr'}
           role="alert"
           aria-live="assertive"

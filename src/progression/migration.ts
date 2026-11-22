@@ -33,19 +33,34 @@ export function migrateProgressionState(rawState: any): ProgressionState {
     const currentPhaseId: PhaseId = rawState.currentPhaseId || mapped.phaseId;
     const currentModuleId: string = rawState.currentModuleId || mapped.moduleId;
 
+    const safeNumber = (val: unknown, fallback: number): number =>
+      typeof val === 'number' && Number.isFinite(val) && val >= 0 ? val : fallback;
+    const safeObject = <T extends Record<string, any>>(val: unknown, fallback: T): T =>
+      val && typeof val === 'object' && !Array.isArray(val) ? (val as T) : fallback;
+
     return {
       ...base,
       ...rawState,
       version: 2,
+      xp: safeNumber(rawState.xp, base.xp),
+      overallLevel: Math.max(1, Math.floor(safeNumber(rawState.overallLevel, base.overallLevel))),
+      streak: Math.floor(safeNumber(rawState.streak, base.streak)),
+      streakShields: Math.floor(safeNumber(rawState.streakShields, base.streakShields)),
+      dailyCardsCap: Math.max(1, Math.floor(safeNumber(rawState.dailyCardsCap, base.dailyCardsCap))),
+      currentStage: stage,
       currentLevelId,
       currentPhaseId,
       currentModuleId,
-      skillTree: rawState.skillTree || base.skillTree || {},
-      canDoProgress: rawState.canDoProgress || base.canDoProgress || {},
-      capstoneResults: rawState.capstoneResults || base.capstoneResults || {},
-      completedLessonIds: Array.isArray(rawState.completedLessonIds) ? rawState.completedLessonIds : [],
-      lessonCrowns: rawState.lessonCrowns || {},
-      srsItems: rawState.srsItems || {},
+      skills: safeObject(rawState.skills, base.skills),
+      quests: Array.isArray(rawState.quests) ? rawState.quests : base.quests,
+      skillTree: safeObject(rawState.skillTree, base.skillTree || {}),
+      canDoProgress: safeObject(rawState.canDoProgress, base.canDoProgress || {}),
+      capstoneResults: safeObject(rawState.capstoneResults, base.capstoneResults || {}),
+      completedLessonIds: Array.isArray(rawState.completedLessonIds)
+        ? rawState.completedLessonIds.filter((id: unknown): id is string => typeof id === 'string')
+        : [],
+      lessonCrowns: safeObject(rawState.lessonCrowns, {}),
+      srsItems: safeObject(rawState.srsItems, {}),
     };
   } catch (err) {
     console.warn('[ProgressionMigration] Migration error, returning fallback:', err);

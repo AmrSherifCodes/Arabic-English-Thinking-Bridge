@@ -228,7 +228,7 @@ export function PathView({
               <button
                 type="button"
                 onClick={() => setUiMode('simple')}
-                className={`px-3 py-1.5 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 ${
+                className={`min-h-[44px] px-3 py-1.5 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 ${
                   uiMode === 'simple'
                     ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20'
                     : 'text-slate-400 hover:text-white'
@@ -240,7 +240,7 @@ export function PathView({
               <button
                 type="button"
                 onClick={() => setUiMode('pro')}
-                className={`px-3 py-1.5 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 ${
+                className={`min-h-[44px] px-3 py-1.5 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 ${
                   (uiMode as string) === 'pro'
                     ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20'
                     : 'text-slate-400 hover:text-white'
@@ -271,7 +271,7 @@ export function PathView({
             </button>
             <button
               onClick={() => setNameForgeOpen(true)}
-              className="px-4 py-3 rounded-2xl bg-[#0B1C33] border border-cyan-500/40 text-cyan-300 hover:bg-cyan-500/20 font-bold text-xs transition cursor-pointer text-center"
+              className="min-h-[44px] px-4 py-3 rounded-2xl bg-[#0B1C33] border border-cyan-500/40 text-cyan-300 hover:bg-cyan-500/20 font-bold text-xs transition cursor-pointer text-center"
             >
               ✨ {nameForgeBtnLabel}
             </button>
@@ -279,11 +279,12 @@ export function PathView({
         </div>
 
         {nameForgeOpen && (
-          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4" dir="rtl">
+          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 pt-safe pb-safe" dir="rtl">
             <div className="relative w-full max-w-lg">
               <button
                 onClick={() => setNameForgeOpen(false)}
-                className="absolute top-3 end-3 p-2 rounded-xl bg-stone-800 text-stone-300 hover:text-white z-10 cursor-pointer"
+                aria-label={isArabic ? 'إغلاق' : 'Close'}
+                className="absolute top-3 end-3 min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-xl bg-stone-800 text-stone-300 hover:text-white z-10 cursor-pointer"
               >
                 ✕
               </button>
@@ -350,7 +351,7 @@ export function PathView({
           </span>
           <button
             onClick={() => setLevelMapOpen(true)}
-            className="text-xs font-bold text-cyan-300 hover:underline flex items-center gap-1 cursor-pointer"
+            className="min-h-[44px] px-2 text-xs font-bold text-cyan-300 hover:underline flex items-center gap-1 cursor-pointer"
           >
             <Map size={14} />
             <span>{isArabic ? 'خريطة المستويات' : 'Level Map'}</span>
@@ -372,7 +373,7 @@ export function PathView({
           </button>
           <button
             onClick={() => setNameForgeOpen(true)}
-            className="px-4 py-3 rounded-2xl bg-[#0B1C33] border border-cyan-500/40 text-cyan-300 hover:bg-cyan-500/20 font-bold text-xs transition cursor-pointer"
+            className="min-h-[44px] px-4 py-3 rounded-2xl bg-[#0B1C33] border border-cyan-500/40 text-cyan-300 hover:bg-cyan-500/20 font-bold text-xs transition cursor-pointer"
           >
             ✨ {nameForgeBtnLabel}
           </button>
@@ -380,11 +381,12 @@ export function PathView({
       </div>
 
       {nameForgeOpen && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4" dir="rtl">
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 pt-safe pb-safe" dir="rtl">
           <div className="relative w-full max-w-lg">
             <button
               onClick={() => setNameForgeOpen(false)}
-              className="absolute top-3 end-3 p-2 rounded-xl bg-stone-800 text-stone-300 hover:text-white z-10 cursor-pointer"
+              aria-label={isArabic ? 'إغلاق' : 'Close'}
+              className="absolute top-3 end-3 min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-xl bg-stone-800 text-stone-300 hover:text-white z-10 cursor-pointer"
             >
               ✕
             </button>
@@ -425,7 +427,7 @@ export function PathView({
         <div className="bg-[#061224]/80 rounded-2xl border border-cyan-500/30 overflow-hidden">
           <button
             onClick={() => setStatsExpanded(!statsExpanded)}
-            className="w-full p-3 px-4 flex items-center justify-between text-xs font-black text-cyan-300 hover:bg-cyan-500/10 transition cursor-pointer"
+            className="w-full min-h-[44px] p-3 px-4 flex items-center justify-between text-xs font-black text-cyan-300 hover:bg-cyan-500/10 transition cursor-pointer"
           >
             <span>📊 {isArabic ? 'تفاصيل مستواك وخريطة المهارات' : 'Your Level Details & Skill Map'}</span>
             <span>{statsExpanded ? '▴' : '▾'}</span>
@@ -454,13 +456,13 @@ export function PathView({
               <div className="flex items-center justify-end gap-2 pt-2">
                 <button
                   onClick={() => setCanDoOpen(true)}
-                  className="px-3 py-1.5 text-xs font-bold text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-xl cursor-pointer"
+                  className="min-h-[44px] px-3 py-1.5 text-xs font-bold text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-xl cursor-pointer"
                 >
                   {isArabic ? 'أقدر أعمل إيه؟ (5/5)' : 'Can-Do Statements'}
                 </button>
                 <button
                   onClick={() => setPlacementOpen(true)}
-                  className="px-3 py-1.5 text-xs font-bold text-cyan-300 bg-cyan-500/10 border border-cyan-500/30 rounded-xl cursor-pointer"
+                  className="min-h-[44px] px-3 py-1.5 text-xs font-bold text-cyan-300 bg-cyan-500/10 border border-cyan-500/30 rounded-xl cursor-pointer"
                 >
                   {isArabic ? 'تحديد المستوى' : 'Placement Test'}
                 </button>
@@ -482,14 +484,14 @@ export function PathView({
               onClick={() => {
                 if (isPhaseUnlocked) setSelectedPhaseId(phase.id);
               }}
-              className={`px-4 py-2.5 rounded-2xl text-xs font-extrabold transition-all shrink-0 flex items-center gap-2 border ${
+              className={`min-h-[44px] px-4 py-2.5 rounded-2xl text-xs font-extrabold transition-all shrink-0 flex items-center gap-2 border ${
                 isSelected
                   ? 'bg-gradient-to-r from-cyan-500 via-teal-400 to-cyan-500 text-slate-950 border-cyan-300 font-black shadow-lg shadow-cyan-500/30'
                   : 'bg-[#0B1C33] text-slate-300 border-[#1E3A5F] hover:border-cyan-500/40 hover:bg-[#122846]'
               }`}
             >
               <span>{phase.id}</span>
-              <span className="truncate max-w-[120px]">{isArabic ? phase.titleAr : phase.titleEn}</span>
+              <span className="whitespace-nowrap">{isArabic ? phase.titleAr : phase.titleEn}</span>
             </button>
           );
         })}
@@ -579,7 +581,7 @@ export function PathView({
                                     {isCompleted ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : isUnlocked ? <Crown className="w-4 h-4" /> : <LockKeyhole className="w-4 h-4" />}
                                   </div>
                                   <div>
-                                    <h5 className="text-xs font-black text-white line-clamp-2 leading-snug">
+                                    <h5 className="text-xs font-black text-white break-words whitespace-normal leading-snug">
                                       {isArabic ? lesson.titleAr : lesson.titleEn}
                                     </h5>
                                     <span className="text-[10px] text-slate-400">
@@ -589,7 +591,11 @@ export function PathView({
                                 </div>
 
                                 {isUnlocked && (
-                                  <button className="p-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 transition-colors border border-amber-500/30">
+                                  <button
+                                    type="button"
+                                    aria-label={isArabic ? `ابدأ ${lesson.titleAr}` : `Start ${lesson.titleEn}`}
+                                    className="min-h-[44px] min-w-[44px] flex items-center justify-center shrink-0 p-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 transition-colors border border-amber-500/30"
+                                  >
                                     <Play className="w-3.5 h-3.5 fill-current" />
                                   </button>
                                 )}

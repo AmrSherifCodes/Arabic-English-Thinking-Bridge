@@ -75,13 +75,17 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
       triggerHapticNotification(NotificationType.Success);
       confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#F0B84C', '#6FCF97', '#56CCF2'] });
 
-      localStorage.setItem('tb.onboardingComplete', 'true');
+      try {
+        localStorage.setItem('tb.onboardingComplete', 'true');
+      } catch {}
       setTimeout(() => onComplete(), 1500); // Wait a moment for the fanfare before closing
     }
   };
 
   const handleSkip = () => {
-    localStorage.setItem('tb.onboardingComplete', 'true');
+    try {
+      localStorage.setItem('tb.onboardingComplete', 'true');
+    } catch {}
     onComplete();
   };
 
@@ -93,7 +97,7 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
       <div className="absolute top-0 inset-x-0 h-64 bg-gradient-to-b from-[var(--color-primary)]/10 to-transparent pointer-events-none" />
       <div className="absolute bottom-0 inset-x-0 h-64 bg-gradient-to-t from-[var(--color-surface-2)]/20 to-transparent pointer-events-none" />
 
-      <div className="relative z-10 flex-1 overflow-y-auto pt-16 pb-8 px-6 flex flex-col items-center justify-center">
+      <div className="relative z-10 flex-1 overflow-y-auto pt-safe pt-12 pb-8 px-6 flex flex-col items-center justify-center">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentStep.id}
@@ -118,7 +122,7 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
         </AnimatePresence>
       </div>
 
-      <div className="relative z-20 bg-[var(--color-surface)] border-t border-[var(--color-border)] p-6 safe-area-bottom shadow-[0_-8px_30px_rgba(0,0,0,0.12)]">
+      <div className="relative z-20 bg-[var(--color-surface)] border-t border-[var(--color-border)] p-6 pb-safe shadow-[0_-8px_30px_rgba(0,0,0,0.12)]">
         <div className="max-w-md w-full mx-auto flex flex-col gap-4">
           <div className="flex justify-center gap-3 mb-4">
             {steps.map((_, i) => (

@@ -21,7 +21,7 @@ export const StoryEngineLoader: React.FC<{
   if (!chapter) return null;
 
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#0A0E13] text-[#EEF2F5] flex items-center justify-center">جاري تحميل القصة...</div>}>
+    <Suspense fallback={<div className="min-h-[100dvh] bg-[#0A0E13] text-[#EEF2F5] flex items-center justify-center">جاري تحميل القصة...</div>}>
       <StoryEngine {...props} chapter={chapter} />
     </Suspense>
   );

@@ -131,10 +131,10 @@ export function OnboardingPlacementModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-bg/95 backdrop-blur-2xl flex items-center justify-center p-3 sm:p-4 md:p-6"
+      className="fixed inset-0 z-50 bg-bg/95 backdrop-blur-2xl flex items-center justify-center p-3 pt-safe pb-safe sm:p-4 md:p-6"
       dir={isArabic ? 'rtl' : 'ltr'}
     >
-      <div className="w-full h-[100dvh] flex flex-col sm:h-auto sm:max-h-[92vh] max-w-[95vw] md:max-w-[720px] lg:max-w-[860px] sm:rounded-3xl bg-surface/95 border border-border p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-5 text-start shadow-2xl overflow-hidden">
+      <div className="w-full h-[100dvh] flex flex-col sm:h-auto sm:max-h-[92dvh] max-w-[95vw] md:max-w-[720px] lg:max-w-[860px] sm:rounded-3xl bg-surface/95 border border-border p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-5 text-start shadow-2xl overflow-hidden">
         {profileCreated ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-5 py-10 text-center" role="status" aria-live="polite">
             <div className="w-16 h-16 rounded-full bg-teal-500/20 border border-teal-400 text-teal-400 flex items-center justify-center text-3xl">

@@ -28,8 +28,7 @@ export function BottomNav({ activeTab, onTabChange, language }: BottomNavProps) 
     <nav
       dir={rtl ? 'rtl' : 'ltr'}
       aria-label={t('nav.main', 'Main navigation')}
-      className="fixed inset-x-0 bottom-0 sm:left-1/2 sm:-translate-x-1/2 sm:max-w-md sm:border-x sm:border-stone-200/90 dark:sm:border-stone-800 z-30 border-t border-stone-200 dark:border-stone-800 bg-white/95 dark:bg-stone-900/95 backdrop-blur-md"
-      style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+      className="fixed inset-x-0 bottom-0 sm:left-1/2 sm:-translate-x-1/2 sm:max-w-md sm:border-x sm:border-stone-200/90 dark:sm:border-stone-800 z-40 border-t border-stone-200 dark:border-stone-800 bg-[#06101c]/95 backdrop-blur-md pb-safe"
     >
       <div className="mx-auto flex max-w-md">
         {TABS.map(({ id, labelKey, Icon }) => {
@@ -58,7 +57,7 @@ export function BottomNav({ activeTab, onTabChange, language }: BottomNavProps) 
               >
                 <Icon size={20} strokeWidth={isActive ? 2.6 : 2} aria-hidden="true" />
               </motion.span>
-              <span className="truncate max-w-[68px] sm:max-w-none text-[11px] sm:text-xs">
+              <span className="leading-tight text-center text-[11px] sm:text-xs">
                 {t(labelKey)}
               </span>
             </motion.button>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 interface LanguageFlagProps {
   code: string;
@@ -13,6 +13,9 @@ const ISO_MAP: Record<string, string> = {
   ja: 'jp',
   es: 'es',
   fr: 'fr',
+  tr: 'tr',
+  el: 'gr',
+  ko: 'kr',
   zh: 'cn',
   hi: 'in',
   ru: 'ru',
@@ -20,6 +23,9 @@ const ISO_MAP: Record<string, string> = {
   it: 'it',
   ar: 'eg',
   arz: 'eg',
+  apc: 'lb',
+  afb: 'sa',
+  ary: 'ma',
   'ar-eg': 'eg',
   egyptian: 'eg',
   msa: 'un',
@@ -32,6 +38,9 @@ const LANG_COLORS: Record<string, string> = {
   ja: 'bg-red-600 text-white',
   es: 'bg-yellow-600 text-stone-950',
   fr: 'bg-blue-600 text-white',
+  tr: 'bg-red-700 text-white',
+  el: 'bg-sky-700 text-white',
+  ko: 'bg-indigo-700 text-white',
   zh: 'bg-rose-600 text-white',
   hi: 'bg-orange-600 text-white',
   ru: 'bg-sky-600 text-white',
@@ -39,12 +48,20 @@ const LANG_COLORS: Record<string, string> = {
   it: 'bg-green-600 text-white',
   ar: 'bg-teal-600 text-white',
   arz: 'bg-teal-600 text-white',
+  apc: 'bg-teal-700 text-white',
+  afb: 'bg-emerald-700 text-white',
+  ary: 'bg-red-700 text-white',
   he: 'bg-emerald-800 text-white',
 };
 
 export function LanguageFlag({ code, size = 20, className = '', showCodePill = false }: LanguageFlagProps) {
-  const [failed, setFailed] = useState(false);
+  const isOffline = typeof navigator !== 'undefined' && navigator.onLine === false;
+  const [failed, setFailed] = useState(isOffline);
   const cleanCode = (code || 'ar').toLowerCase();
+
+  useEffect(() => {
+    setFailed(typeof navigator !== 'undefined' && navigator.onLine === false);
+  }, [cleanCode]);
 
   if (cleanCode === 'he') {
     return (

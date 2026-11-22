@@ -10,6 +10,7 @@ import { API_BASE_URL } from '../../utils/api';
 import { consumeDailyApiQuota } from '../../utils/apiQuota';
 import { getUserGeminiKey, setUserGeminiKey } from '../../services/geminiLexicon';
 import { AgeTrackSlider } from '../../components/AgeTrack';
+import { SupportModal } from '../../components/SupportModal';
 import type { HighSchoolTrack } from './usePreferences';
 import './preferences.css';
 
@@ -39,6 +40,7 @@ export function PreferencesView({
   onOpenLanguageSelector,
 }: PreferencesViewProps) {
   const [showGuide, setShowGuide] = useState(false);
+  const [supportOpen, setSupportOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { values, set, schema } = usePreferences();
   const isArabic = profile?.language === 'arabic';
@@ -46,9 +48,14 @@ export function PreferencesView({
   type ThemeChoice = 'dark' | 'emerald' | 'sapphire' | 'light';
 
   const [theme, setTheme] = useState<ThemeChoice>(() => {
-    if (typeof localStorage !== 'undefined') {
-      return (localStorage.getItem('tb.theme') as ThemeChoice) || 'dark';
-    }
+    try {
+      if (typeof localStorage !== 'undefined') {
+        const saved = localStorage.getItem('tb.theme');
+        if (saved === 'dark' || saved === 'emerald' || saved === 'sapphire' || saved === 'light') {
+          return saved;
+        }
+      }
+    } catch {}
     return 'dark';
   });
 
@@ -61,9 +68,11 @@ export function PreferencesView({
 
   const handleThemeChange = (newTheme: ThemeChoice) => {
     setTheme(newTheme);
-    if (typeof localStorage !== 'undefined') {
-      localStorage.setItem('tb.theme', newTheme);
-    }
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('tb.theme', newTheme);
+      }
+    } catch {}
     document.documentElement.classList.remove('dark', 'light', 'theme-emerald', 'theme-sapphire');
     if (newTheme === 'light') {
       document.documentElement.classList.add('light');
@@ -285,7 +294,7 @@ export function PreferencesView({
 
   return (
     <div className="pref-page" dir={isArabic ? 'rtl' : 'ltr'}>
-      <header className="pref-header">
+      <header className="pref-header sticky top-0 z-40 bg-[#06101c]/95 backdrop-blur-md pt-safe">
         <button
           onClick={onBack}
           className="pref-header__back-btn"
@@ -686,6 +695,33 @@ export function PreferencesView({
           </section>
         )}
 
+        {/* Voluntary InstaPay Support Card */}
+        <section
+          className="p-4 rounded-3xl bg-surface-2 border border-amber-500/30 space-y-3"
+          aria-labelledby="pref-support-title"
+        >
+          <div className="flex items-center justify-between gap-2">
+            <h3 id="pref-support-title" className="font-bold text-sm text-text">
+              ☕ {isArabic ? 'ادعم التطبيق' : 'Support the app'}
+            </h3>
+            <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-success/20 text-success shrink-0">
+              {isArabic ? 'اختياري 100%' : '100% optional'}
+            </span>
+          </div>
+          <p className="text-xs text-muted leading-relaxed">
+            {isArabic
+              ? 'التطبيق مجاني ومفتوح المصدر لكل الناس ومفيش أي حاجة مقفولة. لو حابب تساعده يكمّل، تقدر تدعم عبر InstaPay أو PayPal.'
+              : 'The app is free and open-source for everyone with nothing locked. If you would like to help keep it going, you can support via InstaPay or PayPal.'}
+          </p>
+          <button
+            type="button"
+            onClick={() => setSupportOpen(true)}
+            className="w-full min-h-[44px] rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-300 font-black text-xs hover:bg-amber-500/25 active:scale-95 transition cursor-pointer touch-manipulation"
+          >
+            {isArabic ? '☕ ادعم استمرار التطبيق' : '☕ Support the app'}
+          </button>
+        </section>
+
         {/* Creator & Socials Card */}
         <div className="pref-creator-card">
           <div className="pref-creator-card__header">
@@ -727,6 +763,11 @@ export function PreferencesView({
         onClose={() => setShowGuide(false)}
         language={profile?.language ?? 'english'}
         initialTab="preferences"
+      />
+      <SupportModal
+        isOpen={supportOpen}
+        onClose={() => setSupportOpen(false)}
+        isArabic={isArabic}
       />
     </div>
   );

@@ -178,18 +178,18 @@ export function CVModal({ isOpen, onClose }: CVModalProps) {
       role="dialog"
       aria-modal="true"
       aria-labelledby="cv-modal-title"
-      className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-5 bg-[#060E1A]/90 backdrop-blur-xl animate-fade-in"
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-5 pt-safe pb-safe bg-[#060E1A]/90 backdrop-blur-xl animate-fade-in"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="relative w-full max-w-2xl max-h-[92vh] overflow-y-auto rounded-3xl bg-gradient-to-br from-[#0B1C33]/98 via-[#0E2746]/95 to-[#060E1A]/98 border border-cyan-500/30 text-slate-100 shadow-[0_0_60px_rgba(6,182,212,0.2)] p-5 sm:p-8 space-y-6 scrollbar-thin">
+      <div className="relative w-full max-w-2xl max-h-[92dvh] overflow-y-auto rounded-3xl bg-gradient-to-br from-[#0B1C33]/98 via-[#0E2746]/95 to-[#060E1A]/98 border border-cyan-500/30 text-slate-100 shadow-[0_0_60px_rgba(6,182,212,0.2)] p-5 sm:p-8 space-y-6 scrollbar-thin">
         {/* Close Button */}
         <button
           type="button"
           onClick={onClose}
           aria-label="Close CV modal"
-          className="absolute top-5 right-5 p-2 rounded-2xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 transition shadow-sm"
+          className="absolute top-5 right-5 min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-2xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 transition shadow-sm"
         >
           <X className="w-5 h-5" />
         </button>

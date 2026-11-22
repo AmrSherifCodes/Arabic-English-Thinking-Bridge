@@ -17,6 +17,14 @@ const config: CapacitorConfig = {
       },
   android: {
     allowMixedContent: isLiveReload,
+    webContentsDebuggingEnabled: isLiveReload,
+  },
+  plugins: {
+    StatusBar: {
+      overlaysWebView: false,
+      style: 'DARK',
+      backgroundColor: '#06101c',
+    },
   },
 };
 

@@ -77,6 +77,8 @@ export function FlashcardsView({
   const isFrench = targetLang === 'fr';
   const isItalian = targetLang === 'it';
   const isPortuguese = targetLang === 'pt';
+  const isTurkish = targetLang === 'tr';
+  const isNonEnglishTarget = isGerman || isJapanese || isSpanish || isFrench || isItalian || isPortuguese || isTurkish;
   const t = (en: string, ar: string) => uiText(profile?.language, en, ar);
 
   const localizedCoreDecks: DeckDefinition[] = CORE_DECKS.map((deck) => {
@@ -169,6 +171,11 @@ export function FlashcardsView({
         { id: 'phase-3', name: 'Phase 3: Domínio e Registro', subtitle: 'Subjuntivo, condicional & corporate register' },
         { id: 'custom', name: 'My Custom Portuguese Cards', subtitle: 'Saved words and practice sentences' }
       ]
+    : isTurkish
+    ? [
+        { id: 'phase-1', name: t('Phase 1: Turkish Foundations', 'المرحلة ١: أساسات التركية'), subtitle: t('SOV word order, vowel harmony & essential suffixes', 'ترتيب الجملة SOV وتوافق الحروف واللاحقات الأساسية') },
+        { id: 'custom', name: t('My Custom Turkish Cards', 'بطاقاتي التركية الخاصة'), subtitle: t('Saved words and practice sentences', 'كلمات وجمل تدريبية محفوظة') }
+      ]
     : localizedCoreDecks;
 
   const activePrebuiltDecks = isGerman
@@ -183,9 +190,11 @@ export function FlashcardsView({
     ? ITALIAN_PREBUILT_DECKS
     : isPortuguese
     ? PORTUGUESE_PREBUILT_DECKS
+    : isTurkish
+    ? []
     : PREBUILT_DECKS;
 
-  const activeExpandedDecks = (isGerman || isJapanese || isSpanish || isFrench || isItalian || isPortuguese) ? [] : EXPANDED_DECKS;
+  const activeExpandedDecks = isNonEnglishTarget ? [] : EXPANDED_DECKS;
   const { entries: dictionaryEntries } = useMasterDictionary();
   const [attributionDeck, setAttributionDeck] = useState<PrebuiltDeck | null>(null);
 
@@ -229,8 +238,22 @@ export function FlashcardsView({
     onToast(t('Downloaded all 4 Master Decks!', 'تم تنزيل المجموعات الأربع كاملة!'));
   };
 
-  const isEgyptianOnly = profile?.dialect === 'egyptian';
-  const visibleCoreDecks = isEgyptianOnly
+  // Reset open deck if target language switches so stale cards never stay on screen
+  const prevTargetLangRef = useRef(targetLang);
+  useEffect(() => {
+    if (prevTargetLangRef.current !== targetLang) {
+      prevTargetLangRef.current = targetLang;
+      engine.setActiveDeckId(null);
+      engine.setReviewQueue(null);
+      engine.setCardAnswerShown(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [targetLang]);
+
+  const isEgyptianOnly = !isNonEnglishTarget && profile?.dialect === 'egyptian';
+  const visibleCoreDecks = isNonEnglishTarget
+    ? activeCoreDecks
+    : isEgyptianOnly
     ? localizedCoreDecks.filter(d => d.id === 'master-dictionary' || d.id === 'custom').sort((a, b) =>
         a.id === 'master-dictionary' ? -1 : b.id === 'master-dictionary' ? 1 : 0
       )
@@ -262,7 +285,7 @@ export function FlashcardsView({
         t('Review', 'مراجعة');
 
   return (
-    <div className="p-3 sm:p-5 md:p-6 min-h-[100dvh] bg-[var(--bg,#0b0d10)] text-[var(--fg,#e9ecf1)]">
+    <div className="px-3 sm:px-5 md:px-6 pt-safe pb-safe min-h-[100dvh] bg-[var(--bg,#0b0d10)] text-[var(--fg,#e9ecf1)]">
       <div className="max-w-4xl mx-auto w-full">
       
         <button onClick={onBack} style={{ minHeight: 48, padding: '8px 16px', borderRadius: 8, background: '#ffffff1a', color: 'inherit', border: 0, cursor: 'pointer', marginBottom: 16 }}>

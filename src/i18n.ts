@@ -69,11 +69,14 @@ i18n.on('languageChanged', (lng) => {
   if (typeof document !== 'undefined') {
     document.documentElement.dir = lng === 'ar' ? 'rtl' : 'ltr';
     document.documentElement.lang = lng;
-    window.localStorage.setItem('tb.language', lng);
-
-    const url = new URL(window.location.href);
-    url.searchParams.set('lang', lng);
-    window.history.replaceState({}, '', url);
+    try {
+      window.localStorage.setItem('tb.language', lng);
+    } catch {}
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set('lang', lng);
+      window.history.replaceState({}, '', url);
+    } catch {}
   }
 });
 

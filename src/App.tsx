@@ -11,7 +11,7 @@ import { OnboardingFlow } from './components/Onboarding/OnboardingFlow';
 import { Onboarding } from './components/Onboarding';
 import { PwaInstallBanner } from './components/PwaInstallBanner';
 import { useUserProfile } from './hooks/useUserProfile';
-import { loadUserProgress } from './utils/storage';
+import { loadUserProgress, saveUserProgress } from './utils/storage';
 import { UserProgress, LearningGoal } from './types';
 import { useLanguagePair } from './hooks/useLanguagePair';
 import { LanguagePairBanner } from './components/LanguagePairBanner';
@@ -210,11 +210,7 @@ export default function App() {
   const updateAndSaveProgress = (updater: (prev: UserProgress) => UserProgress) => {
     setProgress((prev) => {
       const next = updater(prev);
-      try {
-        localStorage.setItem('tb_user_progress', JSON.stringify(next));
-      } catch (err) {
-        console.warn('Unable to persist user progress locally.', err);
-      }
+      saveUserProgress(next);
       return next;
     });
   };
@@ -254,6 +250,27 @@ export default function App() {
       window.removeEventListener('pointerdown', handleUnlock);
       window.removeEventListener('keydown', handleUnlock);
     };
+  }, []);
+
+  useEffect(() => {
+    const syncViewFromLocation = () => {
+      try {
+        const path = window.location.pathname.toLowerCase();
+        const urlParams = new URLSearchParams(window.location.search);
+        if (path === '/exam') setView({ name: 'exam' });
+        else if (path === '/android') setView({ name: 'android' });
+        else if (path === '/language-game') setView({ name: 'language-game' });
+        else if (path === '/teacher') setView({ name: 'teacher' });
+        else if (urlParams.get('admin') === 'true') setView({ name: 'studio' });
+        else if (urlParams.get('app') === 'true' || path === '/app' || Capacitor.isNativePlatform()) {
+          setView({ name: 'shell' });
+        } else {
+          setView({ name: 'landing' });
+        }
+      } catch {}
+    };
+    window.addEventListener('popstate', syncViewFromLocation);
+    return () => window.removeEventListener('popstate', syncViewFromLocation);
   }, []);
 
   useEffect(() => {
@@ -320,7 +337,7 @@ export default function App() {
     if (Capacitor.isNativePlatform()) {
       StatusBar.setOverlaysWebView({ overlay: false }).catch(() => {});
       StatusBar.setStyle({ style: Style.Dark }).catch(() => {});
-      StatusBar.setBackgroundColor({ color: '#090D16' }).catch(() => {});
+      StatusBar.setBackgroundColor({ color: '#06101c' }).catch(() => {});
       Keyboard.setResizeMode({ mode: KeyboardResize.Body }).catch(() => {});
 
       const backListener = CapApp.addListener('backButton', () => {
@@ -384,7 +401,7 @@ export default function App() {
   if (view.name === 'android') {
     return (
       <ErrorBoundary>
-        <Suspense fallback={<main className="android-landing min-h-screen" aria-busy="true">Loading Thinking Bridge…</main>}>
+        <Suspense fallback={<main className="android-landing min-h-[100dvh]" aria-busy="true">Loading Thinking Bridge…</main>}>
           <AndroidLandingPage />
         </Suspense>
       </ErrorBoundary>
@@ -396,7 +413,7 @@ export default function App() {
         <Suspense
           fallback={
             <main
-              className="min-h-screen flex flex-col items-center justify-center gap-6 bg-gradient-to-br from-[#0A0E13] via-[#101b24] to-[#0d302e] px-6 text-center text-[#EEF2F5]"
+              className="min-h-[100dvh] flex flex-col items-center justify-center gap-6 bg-gradient-to-br from-[#0A0E13] via-[#101b24] to-[#0d302e] px-6 text-center text-[#EEF2F5]"
               dir={isArabic ? 'rtl' : 'ltr'}
               aria-live="polite"
               aria-busy="true"
@@ -550,8 +567,8 @@ export default function App() {
       )}
 
       {view.name === 'clarifying' && (
-        <div className="min-h-screen bg-[#0A0E13] text-[#EEF2F5] p-4 flex flex-col" dir={isArabic ? 'rtl' : 'ltr'}>
-          <button onClick={goHome} className="mb-4 px-4 py-2 bg-stone-800 rounded-xl text-sm font-bold self-start">
+        <div className="min-h-[100dvh] bg-[#0A0E13] text-[#EEF2F5] px-4 pt-safe pb-safe flex flex-col" dir={isArabic ? 'rtl' : 'ltr'}>
+          <button onClick={goHome} className="mb-4 px-4 py-2 min-h-[44px] bg-stone-800 rounded-xl text-sm font-bold self-start">
             {isArabic ? '← العودة' : '← Back'}
           </button>
           <ClarifyingCoachView onClose={goHome} />
@@ -563,8 +580,8 @@ export default function App() {
       )}
 
       {view.name === 'maintenance' && (
-        <div className="min-h-screen bg-[#0A0E13] text-[#EEF2F5] p-4" dir={isArabic ? 'rtl' : 'ltr'}>
-          <button onClick={goHome} className="mb-4 px-4 py-2 bg-stone-800 rounded-xl text-sm font-bold">
+        <div className="min-h-[100dvh] bg-[#0A0E13] text-[#EEF2F5] px-4 pt-safe pb-safe" dir={isArabic ? 'rtl' : 'ltr'}>
+          <button onClick={goHome} className="mb-4 px-4 py-2 min-h-[44px] bg-stone-800 rounded-xl text-sm font-bold">
             {isArabic ? '← العودة' : '← Back'}
           </button>
           <MaintenanceGuide />
@@ -572,11 +589,11 @@ export default function App() {
       )}
 
       {view.name === 'pronunciation' && (
-        <div className="min-h-screen bg-[#0A0E13] text-[#EEF2F5] p-4 flex flex-col items-center justify-center" dir={isArabic ? 'rtl' : 'ltr'}>
-          <button onClick={goHome} className="mb-4 px-4 py-2 bg-stone-800 rounded-xl text-sm font-bold self-start">
+        <div className="min-h-[100dvh] bg-[#0A0E13] text-[#EEF2F5] px-4 pt-safe pb-safe flex flex-col items-center justify-start gap-4" dir={isArabic ? 'rtl' : 'ltr'}>
+          <button onClick={goHome} className="px-4 py-2 min-h-[44px] bg-stone-800 rounded-xl text-sm font-bold self-start">
             {isArabic ? '← العودة' : '← Back'}
           </button>
-          <PronunciationRecorder />
+          <PronunciationRecorder targetLang={targetLang} />
         </div>
       )}
 
@@ -601,7 +618,7 @@ export default function App() {
       )}
 
       {view.name === 'language-game' && (
-        <Suspense fallback={<div className="min-h-screen bg-[#0A1E3F] text-[#F5F0E6] flex items-center justify-center font-arabic">جاري التحميل...</div>}>
+        <Suspense fallback={<div className="min-h-[100dvh] bg-[#0A1E3F] text-[#F5F0E6] flex items-center justify-center font-arabic">جاري التحميل...</div>}>
           <LanguageGame
             targetLang={targetLang}
             sourceLang={sourceLang}
@@ -616,7 +633,7 @@ export default function App() {
       )}
 
       {view.name === 'story' && (
-        <Suspense fallback={<div className="min-h-screen bg-[#0A0E13] text-[#EEF2F5] flex items-center justify-center font-arabic">جاري تحميل القصة...</div>}>
+        <Suspense fallback={<div className="min-h-[100dvh] bg-[#0A0E13] text-[#EEF2F5] flex items-center justify-center font-arabic">جاري تحميل القصة...</div>}>
           <StoryEngineLoader
             sourceLang={sourceLang as import('./types/story').LanguageCode}
             targetLang={targetLang as import('./types/story').LanguageCode}
@@ -630,19 +647,19 @@ export default function App() {
       )}
 
       {view.name === 'hacker-terminal' && (
-        <Suspense fallback={<div className="min-h-screen bg-black text-green-500 font-mono flex items-center justify-center">INITIALIZING TERMINAL...</div>}>
+        <Suspense fallback={<div className="min-h-[100dvh] bg-black text-green-500 font-mono flex items-center justify-center">INITIALIZING TERMINAL...</div>}>
           <HackerTerminal onComplete={() => setView({ name: 'shell' })} />
         </Suspense>
       )}
 
       {view.name === 'teacher' && (
-        <Suspense fallback={<div className="min-h-screen bg-black text-teal-500 flex items-center justify-center">Loading Teacher Mode...</div>}>
+        <Suspense fallback={<div className="min-h-[100dvh] bg-black text-teal-500 flex items-center justify-center">Loading Teacher Mode...</div>}>
           <TeacherView onBack={() => setView({ name: 'shell' })} />
         </Suspense>
       )}
 
       {view.name === 'exam' && (
-        <Suspense fallback={<div className="min-h-screen bg-[#0A0E13] text-amber-400 flex items-center justify-center font-arabic">جاري تحميل اختبار يا باشا...</div>}>
+        <Suspense fallback={<div className="min-h-[100dvh] bg-[#0A0E13] text-amber-400 flex items-center justify-center font-arabic">جاري تحميل اختبار يا باشا...</div>}>
           <ExamPage onBack={() => setView({ name: 'shell' })} />
         </Suspense>
       )}
@@ -658,11 +675,13 @@ export default function App() {
           onCompleteSession={handleLessonSessionComplete}
           onClose={() => setActiveLessonNode(null)}
           isArabic={isArabic}
+          targetLang={targetLang}
+          sourceLang={sourceLang}
         />
       )}
 
       {/* Game-Style Diagnostic Onboarding Modal */}
-      {newOnboardingOpen && (
+      {!showAgeGate && newOnboardingOpen && (
         <OnboardingFlow onComplete={() => {
           setNewOnboardingOpen(false);
           try {
@@ -672,7 +691,7 @@ export default function App() {
         }} />
       )}
 
-      {!newOnboardingOpen && onboardingOpen && (
+      {!showAgeGate && !newOnboardingOpen && onboardingOpen && (
         <Onboarding
           initialProfile={profile}
           onComplete={(newProfile, extraData) => {
@@ -810,9 +829,9 @@ export default function App() {
       )}
 
       {/* Smart Android APK Download Banner */}
-      {showApkBanner && (
+      {showApkBanner && !Capacitor.isNativePlatform() && (
         <div
-          className="fixed bottom-0 left-0 right-0 z-[60] p-4 bg-surface border-t border-border shadow-[0_-4px_20px_rgba(0,0,0,0.3)] flex items-center justify-between gap-3 animate-in slide-in-from-bottom"
+          className="fixed bottom-0 left-0 right-0 z-[60] p-4 pb-safe bg-surface border-t border-border shadow-[0_-4px_20px_rgba(0,0,0,0.3)] flex items-center justify-between gap-3 animate-in slide-in-from-bottom"
           dir="rtl"
           lang="ar"
         >
@@ -862,33 +881,44 @@ function DictionaryView({ onBack, isArabic, targetLang }: { onBack: () => void; 
   useEffect(() => {
     let active = true;
     setLoading(true);
-    import('./data/dictionaries').then(({ getTargetDictionaryAsync, searchTargetDictionary }) => {
-      getTargetDictionaryAsync(targetLang).then(() => {
-        if (!active) return;
-        const res = searchTargetDictionary(query, targetLang as any, 'ar');
-        setResults(res.slice(0, 15));
-        setLoading(false);
+    import('./data/dictionaries')
+      .then(({ getTargetDictionaryAsync, searchTargetDictionary }) =>
+        getTargetDictionaryAsync(targetLang).then(() => {
+          if (!active) return;
+          const res = searchTargetDictionary(query, targetLang as any, 'ar');
+          setResults(res.slice(0, 15));
+          setLoading(false);
+        })
+      )
+      .catch(() => {
+        if (active) {
+          setResults([]);
+          setLoading(false);
+        }
       });
-    });
     return () => {
       active = false;
     };
   }, [query, targetLang]);
 
   return (
-    <div className="min-h-screen bg-[#060E1A] text-slate-100 p-4 sm:p-6" dir={isArabic ? 'rtl' : 'ltr'}>
-      <div className="max-w-2xl mx-auto space-y-6">
-        <div className="flex items-center justify-between">
-          <button onClick={onBack} className="px-4 py-2 rounded-2xl bg-[#0B1C33] border border-cyan-500/40 text-cyan-300 font-black text-xs cursor-pointer">
+    <div className="min-h-[100dvh] bg-[#060E1A] text-slate-100 pb-safe" dir={isArabic ? 'rtl' : 'ltr'}>
+      <header className="sticky top-0 z-40 bg-[#06101c]/95 backdrop-blur-md border-b border-cyan-500/20 px-4 sm:px-6 pb-3 pt-safe">
+        <div className="max-w-2xl mx-auto flex items-center justify-between gap-2">
+          <button onClick={onBack} className="px-4 py-2 min-h-[44px] rounded-2xl bg-[#0B1C33] border border-cyan-500/40 text-cyan-300 font-black text-xs cursor-pointer shrink-0">
             ← {isArabic ? 'العودة' : 'Back'}
           </button>
-          <h2 className="text-base font-black text-white">{isArabic ? '📖 القاموس الذكي التفاعلي' : 'Interactive Smart Dictionary'}</h2>
+          <h2 className="text-base font-black text-white leading-snug break-words">{isArabic ? '📖 القاموس الذكي التفاعلي' : 'Interactive Smart Dictionary'}</h2>
         </div>
+      </header>
+      <div className="max-w-2xl mx-auto p-4 sm:p-6 space-y-6">
 
         {/* Live Search Bar */}
         <div className="p-4 rounded-3xl bg-[#0B1C33] border border-cyan-500/30 space-y-3 shadow-xl">
           <label className="text-xs font-bold text-cyan-300 block">
-            {isArabic ? 'ابحث عن أي كلمة إنجليزية أو عربية في القاموس المحلي (بدون إنترنت):' : 'Search offline dictionary (instant, zero internet):'}
+            {isArabic
+              ? `ابحث عن أي كلمة (${TARGET_LANGUAGE_META[targetLang as keyof typeof TARGET_LANGUAGE_META]?.nameAr || targetLang} أو عربي) في القاموس المحلي (بدون إنترنت):`
+              : 'Search offline dictionary (instant, zero internet):'}
           </label>
           <div className="relative">
             <input
@@ -900,8 +930,10 @@ function DictionaryView({ onBack, isArabic, targetLang }: { onBack: () => void; 
             />
             {query && (
               <button
+                type="button"
                 onClick={() => setQuery('')}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs px-2 py-1"
+                aria-label={isArabic ? 'مسح البحث' : 'Clear search'}
+                className="absolute end-1 top-1/2 -translate-y-1/2 min-h-[44px] min-w-[44px] flex items-center justify-center text-slate-400 hover:text-white text-xs"
               >
                 ✕
               </button>
@@ -930,7 +962,7 @@ function DictionaryView({ onBack, isArabic, targetLang }: { onBack: () => void; 
                       <p className="text-xs text-slate-200 font-medium">{translation}</p>
                     </div>
                     <div className="shrink-0">
-                      <DualSpeedAudio text={word} showLabels={false} />
+                      <DualSpeedAudio text={word} showLabels={false} targetLang={targetLang} />
                     </div>
                   </div>
                 );

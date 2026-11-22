@@ -44,7 +44,7 @@ export function VerticalRoadMap({ currentLevelId, isArabic, state }: VerticalRoa
             )}
 
             {/* Circular node with line */}
-            <div className="relative flex justify-center items-center overflow-visible p-3 my-1">
+            <div className="relative flex justify-center items-center overflow-visible p-4 my-1">
               <div
                 className={`w-14 h-14 rounded-full flex items-center justify-center font-black text-xl border-4 transition-all duration-300 ${
                   isCurrent
@@ -73,7 +73,7 @@ export function VerticalRoadMap({ currentLevelId, isArabic, state }: VerticalRoa
                 <h3 className={`text-base font-black ${isCurrent ? 'text-white' : isCompleted ? 'text-emerald-50' : 'text-stone-300'} break-words whitespace-normal`}>
                   {level.titleAr}
                 </h3>
-                <span className="px-2 py-0.5 text-[10px] font-black text-cyan-300 bg-cyan-500/15 border border-cyan-500/30 rounded-full shrink-0 ml-2">
+                <span className="px-2 py-0.5 text-[10px] font-black text-cyan-300 bg-cyan-500/15 border border-cyan-500/30 rounded-full shrink-0 ms-2">
                   {level.cefr}
                 </span>
               </div>

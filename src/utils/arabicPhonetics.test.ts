@@ -22,3 +22,12 @@ test('arabicPhonetics: handles unknown words gracefully with phonetic rules', ()
   assert.ok(result.includes('شن'), 'Should convert tion to شن');
 });
 
+test('arabicPhonetics: converts German sentences with authentic German-to-Arabic phonetics', () => {
+  assert.equal(getArabicPhoneticSpelling('Ich lerne Deutsch', 'de'), 'إيش ليرنه دويتش');
+  assert.equal(getArabicPhoneticSpelling('Ich lerne Deutsch'), 'إيش ليرنه دويتش');
+  assert.equal(getArabicPhoneticSpelling('Mein Freund wohnt hier', 'de'), 'ماين فرويند فونت هير');
+  assert.equal(getArabicPhoneticSpelling('Heute ist ein schöner Tag', 'de'), 'هويته إست أين شونر تاج');
+  assert.equal(getArabicPhoneticSpelling('Das Restaurant bietet leckeres Essen', 'de'), 'داس ريستوران بيتت ليكرس إسن');
+  assert.equal(getArabicPhoneticSpelling('Vielen Dank', 'de'), 'فيلن دانك');
+});
+

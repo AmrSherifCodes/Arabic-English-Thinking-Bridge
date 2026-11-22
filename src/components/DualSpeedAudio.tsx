@@ -1,6 +1,7 @@
 import React from 'react';
 import { Volume2, Turtle } from 'lucide-react';
-import { speakWithRate, unlockAudio } from '../utils/audio';
+import { unlockAudio } from '../utils/audio';
+import { speakUnified } from '../utils/offlineTts';
 
 interface DualSpeedAudioProps {
   text: string;
@@ -24,13 +25,23 @@ export function DualSpeedAudio({
   const handleNormal = (e: React.MouseEvent) => {
     e.stopPropagation();
     unlockAudio();
-    speakWithRate(text, 1.0, preferredVoice, targetLang);
+    void speakUnified({
+      text,
+      lang: targetLang,
+      rate: 1.0,
+      preferredVoiceName: preferredVoice,
+    });
   };
 
   const handleSlow = (e: React.MouseEvent) => {
     e.stopPropagation();
     unlockAudio();
-    speakWithRate(text, 0.75, preferredVoice, targetLang);
+    void speakUnified({
+      text,
+      lang: targetLang,
+      rate: 0.75,
+      preferredVoiceName: preferredVoice,
+    });
   };
 
   return (

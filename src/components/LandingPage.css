@@ -239,7 +239,7 @@ body:has(.egyptian-landing) {
 /* --- Hero --- */
 .egyptian-landing .hero {
   position: relative;
-  min-height: min(92vh, 840px);
+  min-height: min(92dvh, 840px);
   display: flex;
   align-items: center;
   overflow: hidden;
@@ -679,7 +679,7 @@ body:has(.egyptian-landing) {
 
 @media (max-width: 600px) {
   .egyptian-landing .el-container { padding: 0 18px; }
-  .egyptian-landing .hero { min-height: 88vh; }
+  .egyptian-landing .hero { min-height: 88dvh; }
   .egyptian-landing .hero-cta { flex-direction: column; align-items: stretch; }
   .egyptian-landing .hero-cta .btn { width: 100%; }
   .egyptian-landing .cards-grid, .egyptian-landing .steps { gap: 20px; }

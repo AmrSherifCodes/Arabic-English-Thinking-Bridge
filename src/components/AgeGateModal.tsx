@@ -4,6 +4,7 @@ import { Baby, User, Sparkles, Volume2, ShieldCheck, Zap, ArrowLeft, ArrowRight,
 import { setLearnerMode, LearnerMode } from '../utils/learnerMode';
 import { soundFX } from '../utils/soundFX';
 import { triggerHapticImpact } from '../utils/fx';
+import { speakUnified } from '../utils/offlineTts';
 
 interface AgeGateModalProps {
   isOpen: boolean;
@@ -42,16 +43,14 @@ export function AgeGateModal({
   const playSampleAudio = (e: React.MouseEvent, type: 'kids' | 'regular') => {
     e.stopPropagation();
     soundFX.playChipSelect();
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      const text = type === 'kids'
-        ? (isArabic ? 'أهلاً بك في عالم الأطفال السريع والممتع!' : 'Welcome to the fun kids learning adventure!')
-        : (isArabic ? 'أهلاً بك في فكّر إنجليزي! التفكير المباشر بدون ترجمة.' : 'Welcome to Thinking Bridge! Think directly in English.');
-      const msg = new SpeechSynthesisUtterance(text);
-      msg.lang = isArabic ? 'ar-EG' : 'en-US';
-      msg.rate = type === 'kids' ? 0.9 : 1.0;
-      window.speechSynthesis.speak(msg);
-    }
+    const text = type === 'kids'
+      ? (isArabic ? 'أهلاً بك في عالم الأطفال السريع والممتع!' : 'Welcome to the fun kids learning adventure!')
+      : (isArabic ? 'أهلاً بك في فكّر إنجليزي! التفكير المباشر بدون ترجمة.' : 'Welcome to Thinking Bridge! Think directly in English.');
+    void speakUnified({
+      text,
+      lang: isArabic ? 'ar-EG' : 'en-US',
+      rate: type === 'kids' ? 0.9 : 1.0,
+    });
   };
 
   return (

@@ -616,12 +616,12 @@ export function LessonView({
                       exercise.targetSentence || exercise.englishTarget
                     )}
                   </div>
-                  {/* Arabic Literal Phonetic Pronunciation (for English target) */}
-                  {target === 'en' && (
+                  {/* Arabic Literal Phonetic Pronunciation (for English & German targets) */}
+                  {(target === 'en' || target === 'de') && (
                     <div className="mt-1.5 text-xs text-teal-400/90 font-medium flex items-center gap-1.5" dir="rtl">
                       <span className="text-stone-400 text-[11px]">النطق الصوتي بالعربي:</span>
                       <span className="font-bold text-teal-200 bg-stone-900/90 px-2 py-0.5 rounded-md border border-stone-800">
-                        {getArabicPhoneticSpelling(exercise.englishTarget)}
+                        {getArabicPhoneticSpelling(exercise.targetSentence || exercise.englishTarget, target)}
                       </span>
                     </div>
                   )}

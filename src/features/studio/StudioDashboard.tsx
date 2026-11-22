@@ -52,7 +52,7 @@ export function StudioDashboard({ onBack, isArabic }: StudioDashboardProps) {
 
   return (
     <div
-      className="min-h-screen bg-[var(--bg)] text-[var(--text)] p-4 sm:p-8"
+      className="min-h-[100dvh] bg-[var(--bg)] text-[var(--text)] p-4 pt-safe pb-safe sm:p-8"
       dir={isArabic ? 'rtl' : 'ltr'}
     >
       <div className="max-w-5xl mx-auto space-y-6">

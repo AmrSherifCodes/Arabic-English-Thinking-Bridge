@@ -40,15 +40,31 @@
   }
 
   document.addEventListener('DOMContentLoaded', function() {
+    var ua = (navigator.userAgent || '').toLowerCase();
+    var isAndroidOrNative =
+      /android/.test(ua) ||
+      Boolean(window.Capacitor && typeof window.Capacitor.isNativePlatform === 'function' && window.Capacitor.isNativePlatform());
+
+    if (isAndroidOrNative) {
+      var iosModal = document.getElementById('ios-modal');
+      if (iosModal && iosModal.parentNode) iosModal.parentNode.removeChild(iosModal);
+      var iosButtons = document.querySelectorAll('.toggle-ios-guide');
+      iosButtons.forEach(function(el) {
+        el.style.display = 'none';
+      });
+    }
+
     var toggleLanguageBtn = document.getElementById('btn-toggle-language');
     if (toggleLanguageBtn) {
       toggleLanguageBtn.addEventListener('click', toggleLanguage);
     }
 
-    var iosGuideTriggers = document.querySelectorAll('.toggle-ios-guide');
-    iosGuideTriggers.forEach(function(el) {
-      el.addEventListener('click', toggleIosGuide);
-    });
+    if (!isAndroidOrNative) {
+      var iosGuideTriggers = document.querySelectorAll('.toggle-ios-guide');
+      iosGuideTriggers.forEach(function(el) {
+        el.addEventListener('click', toggleIosGuide);
+      });
+    }
 
     var iosModalContent = document.getElementById('ios-modal-content');
     if (iosModalContent) {

@@ -1,8 +1,24 @@
+# Capacitor Core & Plugin Annotations
+-keep class com.getcapacitor.** { *; }
+-keep @com.getcapacitor.annotation.CapacitorPlugin class * { *; }
+-keep @com.getcapacitor.Plugin class * { *; }
+-keepclassmembers class * {
+    @com.getcapacitor.PluginMethod <methods>;
+}
+
+# Official & Community Capacitor Plugins (StatusBar, TextToSpeech, SpeechRecognition, etc.)
+-keep class com.capacitorjs.plugins.** { *; }
+-keep class com.getcapacitor.community.tts.** { *; }
+-keep class com.getcapacitor.community.speechrecognition.** { *; }
+-keep class com.chefmate.plugins.gemma3n.** { *; }
+
+# App Native Classes & Local Plugins
+-keep class com.amrsherif.thinkingenglish.** { *; }
+
+# Vosk / JNA native bindings
 -keep class com.alphacephei.** { *; }
 -keep class com.sun.jna.** { *; }
 -keep class net.java.dev.jna.** { *; }
--keep class com.getcapacitor.** { *; }
--keep @com.getcapacitor.Plugin class * { *; }
--keep class com.amrsherif.thinkingenglish.** { *; }
+
 -dontwarn java.awt.**
--dontwarn **
+-dontwarn com.google.errorprone.annotations.**

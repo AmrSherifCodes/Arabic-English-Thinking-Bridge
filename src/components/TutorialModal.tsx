@@ -17,6 +17,7 @@ import {
   Shield,
   Layers,
 } from 'lucide-react';
+import { openSafeExternalUrl } from '../utils/safeExternalUrl';
 
 export interface TutorialModalProps {
   isOpen: boolean;
@@ -215,7 +216,7 @@ export function TutorialModal({ isOpen, onClose, language }: TutorialModalProps)
   };
 
   const handleSubscribeClick = () => {
-    window.open('https://www.youtube.com/watch?v=ZJwNhBbCED8', '_blank', 'noopener,noreferrer');
+    openSafeExternalUrl('https://www.youtube.com/watch?v=ZJwNhBbCED8');
     setIsSubscribed(true);
     setMode('aot');
     setCurrentStep(0);
@@ -241,7 +242,7 @@ export function TutorialModal({ isOpen, onClose, language }: TutorialModalProps)
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-stone-950/90 backdrop-blur-md animate-fadeIn"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 pt-safe pb-safe bg-stone-950/90 backdrop-blur-md animate-fadeIn"
       role="dialog"
       aria-modal="true"
       aria-label={isArabic ? 'دليل الاستخدام' : 'App Tutorial'}
@@ -297,7 +298,7 @@ export function TutorialModal({ isOpen, onClose, language }: TutorialModalProps)
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-stone-400 hover:text-stone-100 hover:bg-stone-800/80 rounded-lg transition-colors"
+            className="min-h-[44px] inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-stone-400 hover:text-stone-100 hover:bg-stone-800/80 rounded-lg transition-colors"
             aria-label={isArabic ? 'إغلاق الشرح' : 'Close tutorial'}
           >
             <span>{isArabic ? 'تخطي' : 'Skip'}</span>
@@ -466,7 +467,7 @@ export function TutorialModal({ isOpen, onClose, language }: TutorialModalProps)
               <button
                 type="button"
                 onClick={handlePrev}
-                className="px-4 py-2.5 rounded-xl border border-stone-700 bg-stone-800/80 text-stone-200 hover:bg-stone-700 hover:text-white text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-all"
+                className="min-h-[44px] px-4 py-2.5 rounded-xl border border-stone-700 bg-stone-800/80 text-stone-200 hover:bg-stone-700 hover:text-white text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-all"
               >
                 {isArabic ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
                 <span>{isArabic ? 'السابق' : 'Back'}</span>
@@ -478,7 +479,7 @@ export function TutorialModal({ isOpen, onClose, language }: TutorialModalProps)
             <button
               type="button"
               onClick={handleNext}
-              className={`flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-extrabold flex items-center justify-center gap-2 shadow-lg transition-all active:scale-[0.98] ${
+              className={`flex-1 min-h-[44px] py-2.5 px-4 rounded-xl text-xs sm:text-sm font-extrabold flex items-center justify-center gap-2 shadow-lg transition-all active:scale-[0.98] ${
                 mode === 'aot'
                   ? isLastStep
                     ? 'bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 text-stone-950 hover:brightness-110 shadow-emerald-500/25'

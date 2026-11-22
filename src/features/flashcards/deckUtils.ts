@@ -107,7 +107,7 @@ export const getDeckCardKeys = (
       .map(c => 'c:' + c.id);
   }
 
-  if (profile?.dialect === 'egyptian') {
+  if (targetLang === 'en' && profile?.dialect === 'egyptian') {
     if (deckId === 'all' || deckId === null) {
       const masterDictionaryIds = [...dictionaryEntries]
         .sort((a, b) => (a.cefrLevel === detectDynamicCefrLevel(currentProgress) ? -1 : 1))
@@ -197,7 +197,7 @@ export const getCardData = (
         nextReviewDate: currentProgress.cards?.[k]?.nextReviewDate ?? Date.now()
       }, targetLang);
     }
-    if (profile?.dialect === 'egyptian') return null;
+    if (targetLang === 'en' && profile?.dialect === 'egyptian') return null;
     for (const deck of ALL_PREBUILT_DECKS) {
       const idxMatch = k.replace(`c:${deck.id}-`, '');
       const idx = Number(idxMatch);
@@ -213,7 +213,7 @@ export const getCardData = (
     return null;
   }
 
-  if (profile?.dialect === 'egyptian') return null;
+  if (targetLang === 'en' && profile?.dialect === 'egyptian') return null;
 
   const { allExercises, phases } = getExerciseIndex(sourceLang, targetLang);
   const exById = allExercises.find(x => x.id === k);

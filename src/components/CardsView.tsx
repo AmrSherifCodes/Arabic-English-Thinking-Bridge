@@ -288,10 +288,10 @@ export function DeckListView({
                       ➕
                     </div>
                     <div className="min-w-0">
-                      <div className="font-bold text-sm text-stone-900 dark:text-white group-hover:text-teal-700 dark:group-hover:text-teal-400 transition-colors">
+                      <div className="font-bold text-sm text-stone-900 dark:text-white group-hover:text-teal-700 dark:group-hover:text-teal-400 transition-colors leading-snug break-words">
                         {t('Tap here to create your first flashcard', 'اضغط هنا لإنشاء بطاقتك الأولى')}
                       </div>
-                      <div className="text-xs text-stone-600 dark:text-stone-300 mt-0.5 truncate">
+                      <div className="text-xs text-stone-600 dark:text-stone-300 mt-0.5 leading-snug break-words">
                         {t('Save words or phrases from the Translate tab', 'احفظ أي عبارة من تبويب الترجمة لتظهر هنا')}
                       </div>
                     </div>
@@ -316,11 +316,11 @@ export function DeckListView({
                   <div className="w-11 h-11 rounded-2xl bg-teal-50 dark:bg-stone-800 text-teal-700 dark:text-teal-300 flex items-center justify-center text-xl shrink-0 group-hover:scale-105 transition-transform border border-teal-100 dark:border-stone-700">
                     {isMaster ? '📚' : '📝'}
                   </div>
-                  <div className="min-w-0">
-                    <div className="font-bold text-base text-stone-900 dark:text-white truncate group-hover:text-teal-700 dark:group-hover:text-teal-400 transition-colors flex items-center gap-2">
+                  <div className="min-w-0 flex-1">
+                    <div className="font-bold text-base text-stone-900 dark:text-white leading-snug break-words group-hover:text-teal-700 dark:group-hover:text-teal-400 transition-colors">
                       <span>{deck.name}</span>
                     </div>
-                    <div className="text-xs font-medium text-stone-600 dark:text-stone-300 truncate mt-0.5">
+                    <div className="text-xs font-medium text-stone-600 dark:text-stone-300 leading-snug break-words mt-0.5">
                       {deck.subtitle}
                     </div>
                   </div>
@@ -486,7 +486,7 @@ export function ReviewView({
     onShowAnswer();
     if (currentCardData?.en) {
       try {
-        speakWithRate(currentCardData.en, 1.0, preferredVoice);
+        speakWithRate(currentCardData.en, 1.0, preferredVoice, targetLang);
       } catch {}
     }
   };
@@ -506,7 +506,7 @@ export function ReviewView({
             {t('← Decks', '→ المجموعات')}
           </button>
           <div className="min-w-0">
-            <div className="font-semibold text-sm truncate">{deckName}</div>
+            <div className="font-semibold text-sm leading-snug break-words">{deckName}</div>
             <div className="text-xs font-bold tabular-nums flex items-center gap-1.5">
               <span className="text-sky-700 dark:text-sky-400" title={t('New cards', 'بطاقات جديدة')}>
                 {deckStats.newCount}
@@ -691,7 +691,7 @@ export function ReviewView({
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
-                        speakWithRate(w, 0.9, preferredVoice);
+                        speakWithRate(w, 0.9, preferredVoice, targetLang);
                       }}
                       className="px-2.5 py-1 rounded-xl bg-teal-500/15 hover:bg-teal-500/30 text-teal-300 font-extrabold active:scale-110 active:-translate-y-1 transition-all cursor-pointer shadow-sm border border-teal-500/20"
                       title="اضغط لسماع الكلمة لوحدها"
@@ -719,7 +719,7 @@ export function ReviewView({
                 {/* Arabic Phonetic Guide */}
                 <div dir="rtl" className="my-2 inline-flex items-center gap-2 rounded-xl border border-amber-500/40 bg-amber-950/40 px-3 py-1 text-sm font-bold text-amber-300 shadow-sm">
                   <span className="text-xs text-amber-400/80 font-normal">نطقها بحروف عربي:</span>
-                  <span>{getArabicPhoneticSpelling(currentCardData.en)}</span>
+                  <span>{getArabicPhoneticSpelling(currentCardData.en, targetLang)}</span>
                 </div>
 
                 {currentCardData.breakdownChunks && (
@@ -738,7 +738,7 @@ export function ReviewView({
                 )}
 
                 {/* Dual Speed Audio */}
-                <DualSpeedAudio text={currentCardData.en} preferredVoice={preferredVoice} />
+                <DualSpeedAudio text={currentCardData.en} preferredVoice={preferredVoice} targetLang={targetLang} />
               </div>
             }
           />
@@ -761,7 +761,7 @@ export function ReviewView({
                   type="button"
                   id="grade-btn-slow"
                   onClick={() => {
-                    try { speakWithRate(currentCardData.en, 0.65, preferredVoice); } catch {}
+                    try { speakWithRate(currentCardData.en, 0.75, preferredVoice, targetLang); } catch {}
                     onGradeCard(0);
                   }}
                   className="w-full py-4 px-4 rounded-2xl bg-gradient-to-r from-amber-700/80 to-amber-600/90 hover:from-amber-600 hover:to-amber-500 text-white font-black text-sm sm:text-base border-2 border-amber-400/40 shadow-lg active:scale-95 active:translate-y-1 transition-all flex items-center justify-center gap-2 cursor-pointer"

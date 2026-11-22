@@ -26,7 +26,19 @@
       msg.dir = 'rtl';
       msg.lang = 'ar';
       msg.style.cssText = 'padding:2rem;text-align:center;font-family:Cairo,sans-serif;color:#f9fafb;';
-      msg.innerHTML = '<p>التطبيق مش بيفتح على جهازك. جرّب تقفله وتفتحه تاني.</p><p>لو المشكلة كملت، ابعتلنا على <a href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/issues" style="color:#0d9488;font-weight:bold" target="_blank" rel="noopener">الدعم الفني على GitHub</a></p>';
+      var p1 = document.createElement('p');
+      p1.textContent = 'التطبيق مش بيفتح على جهازك. جرّب تقفله وتفتحه تاني.';
+      var p2 = document.createElement('p');
+      p2.appendChild(document.createTextNode('لو المشكلة كملت، ابعتلنا على '));
+      var link = document.createElement('a');
+      link.href = 'https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/issues';
+      link.style.cssText = 'color:#0d9488;font-weight:bold';
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      link.textContent = 'الدعم الفني على GitHub';
+      p2.appendChild(link);
+      msg.appendChild(p1);
+      msg.appendChild(p2);
       root.appendChild(msg);
     }
   }, 3000);

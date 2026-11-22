@@ -70,12 +70,20 @@ export function useUserProfile() {
   const [profile, setProfile] = useState<UserProfile | null>(readUserProfile);
 
   const saveProfile = useCallback((nextProfile: UserProfile) => {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(nextProfile));
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(nextProfile));
+    } catch {
+      // Gracefully keep profile in React state if storage is unavailable
+    }
     setProfile(nextProfile);
   }, []);
 
   const clearProfile = useCallback(() => {
-    window.localStorage.removeItem(STORAGE_KEY);
+    try {
+      window.localStorage.removeItem(STORAGE_KEY);
+    } catch {
+      // Ignore storage errors
+    }
     setProfile(null);
   }, []);
 

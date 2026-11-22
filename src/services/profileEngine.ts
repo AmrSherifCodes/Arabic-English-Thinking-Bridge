@@ -28,9 +28,11 @@ export function generateSmartProfile(
     domainFocus,
   };
 
-  if (typeof localStorage !== 'undefined') {
-    localStorage.setItem('tb.activeProfileConfig', JSON.stringify(config));
-  }
+  try {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('tb.activeProfileConfig', JSON.stringify(config));
+    }
+  } catch {}
 
   return config;
 }

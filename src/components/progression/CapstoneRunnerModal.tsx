@@ -81,12 +81,12 @@ export function CapstoneRunnerModal({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pt-safe pb-safe bg-black/85 backdrop-blur-md">
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="relative w-full max-w-xl overflow-hidden bg-stone-900 border border-stone-800 rounded-3xl shadow-2xl flex flex-col max-h-[85vh]"
+          className="relative w-full max-w-xl overflow-hidden bg-stone-900 border border-stone-800 rounded-3xl shadow-2xl flex flex-col max-h-[85dvh]"
           dir={isArabic ? 'rtl' : 'ltr'}
         >
           {/* Header */}
@@ -108,7 +108,8 @@ export function CapstoneRunnerModal({
             </div>
             <button
               onClick={onClose}
-              className="p-2 text-stone-400 hover:text-white hover:bg-stone-800 rounded-full transition-colors"
+              aria-label={isArabic ? 'إغلاق' : 'Close'}
+              className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 text-stone-400 hover:text-white hover:bg-stone-800 rounded-full transition-colors"
             >
               <X className="w-5 h-5" />
             </button>

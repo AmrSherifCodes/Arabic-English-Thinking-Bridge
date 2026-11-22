@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { speakUnified, stopUnifiedTts } from '../utils/offlineTts';
 
 export type AnkiGrade = 'review' | 'good' | 'easy';
 
@@ -83,35 +84,20 @@ export const AnkiFlashcardDeck: React.FC<AnkiFlashcardDeckProps> = ({
   }, [cards]);
 
   const stopSpeech = useCallback(() => {
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-    }
+    void stopUnifiedTts();
     setSpeakingRate(null);
   }, []);
 
   const speakEnglish = useCallback(
     (text: string, rate: 1 | 0.75) => {
-      if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'en-US';
-      utterance.rate = rate;
-      utterance.pitch = 1.0;
-
-      const voices = window.speechSynthesis.getVoices();
-      const preferredVoice =
-        voices.find((v) => v.lang === 'en-US' && /natural|google|samantha|aria/i.test(v.name)) ||
-        voices.find((v) => v.lang.startsWith('en-'));
-      if (preferredVoice) {
-        utterance.voice = preferredVoice;
-      }
-
-      utterance.onstart = () => setSpeakingRate(rate);
-      utterance.onend = () => setSpeakingRate(null);
-      utterance.onerror = () => setSpeakingRate(null);
-
-      window.speechSynthesis.speak(utterance);
+      setSpeakingRate(rate);
+      void speakUnified({
+        text,
+        lang: 'en-US',
+        rate,
+        pitch: 1.0,
+        onEnd: () => setSpeakingRate(null),
+      });
     },
     []
   );

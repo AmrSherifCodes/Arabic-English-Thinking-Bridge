@@ -51,9 +51,16 @@ export const MaintenanceGuide: React.FC = () => {
   const [completed, setCompleted] = useState<string[]>([]);
 
   useEffect(() => {
-    const saved = localStorage.getItem('tb_maintenance_completed');
-    if (saved) {
-      setCompleted(JSON.parse(saved));
+    try {
+      const saved = localStorage.getItem('tb_maintenance_completed');
+      if (saved) {
+        const parsed: unknown = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          setCompleted(parsed.filter((item): item is string => typeof item === 'string'));
+        }
+      }
+    } catch {
+      // Ignore corrupted local storage
     }
   }, []);
 
@@ -62,7 +69,11 @@ export const MaintenanceGuide: React.FC = () => {
       ? completed.filter(s => s !== id)
       : [...completed, id];
     setCompleted(newCompleted);
-    localStorage.setItem('tb_maintenance_completed', JSON.stringify(newCompleted));
+    try {
+      localStorage.setItem('tb_maintenance_completed', JSON.stringify(newCompleted));
+    } catch {
+      // Ignore storage quota errors
+    }
   };
 
   const progress = Math.round((completed.length / MAINTENANCE_STEPS.length) * 100);

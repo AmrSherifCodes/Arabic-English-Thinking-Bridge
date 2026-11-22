@@ -3,7 +3,6 @@ name: CI/CD Pipeline
 on:
   push:
     branches: [ main, landing-redesign ]
-    tags: [ 'v*' ]
   pull_request:
     branches: [ main ]
 
@@ -41,11 +40,11 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Java 17 (JDK)
+      - name: Setup Java 21 (JDK)
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
-          java-version: '17'
+          java-version: '21'
 
       - name: Setup Node.js 22
         uses: actions/setup-node@v4
@@ -77,13 +76,3 @@ jobs:
         with:
           name: Thinking-Bridge-Release-APK
           path: android/app/build/outputs/apk/release/app-release-unsigned.apk
-
-      - name: Create GitHub Release and Attach APK
-        uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/v')
-        with:
-          files: android/app/build/outputs/apk/release/app-release-unsigned.apk
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

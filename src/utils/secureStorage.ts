@@ -18,8 +18,10 @@ async function getOrCreateKey(): Promise<CryptoKey> {
 }
 
 export async function secureSet(key: string, value: string): Promise<void> {
-  if (typeof window === 'undefined' || !window.crypto) {
-    localStorage.setItem(key, value);
+  if (typeof window === 'undefined' || !window.crypto?.subtle) {
+    try {
+      localStorage.setItem(key, value);
+    } catch {}
     return;
   }
   try {
@@ -31,14 +33,21 @@ export async function secureSet(key: string, value: string): Promise<void> {
     const ivBase64 = btoa(String.fromCharCode(...iv));
     const encryptedBase64 = btoa(String.fromCharCode(...new Uint8Array(encrypted)));
     localStorage.setItem(key, `${ivBase64}:${encryptedBase64}`);
-  } catch (e) {
-    localStorage.setItem(key, value); // fallback
+  } catch {
+    try {
+      localStorage.setItem(key, value); // fallback
+    } catch {}
   }
 }
 
 export async function secureGet(key: string): Promise<string | null> {
-  const data = localStorage.getItem(key);
-  if (!data || typeof window === 'undefined' || !window.crypto || !data.includes(':')) {
+  let data: string | null = null;
+  try {
+    data = localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+  if (!data || typeof window === 'undefined' || !window.crypto?.subtle || !data.includes(':')) {
     return data;
   }
   try {
@@ -48,7 +57,7 @@ export async function secureGet(key: string): Promise<string | null> {
     const encrypted = Uint8Array.from(atob(encryptedBase64), c => c.charCodeAt(0));
     const decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, cryptoKey, encrypted);
     return new TextDecoder().decode(decrypted);
-  } catch (e) {
+  } catch {
     return data; // Return raw data as fallback in case it was stored unencrypted
   }
 }

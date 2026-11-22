@@ -30,7 +30,7 @@ export function ErwinChargeModal({ isOpen, onClose, clickCount = 99 }: ErwinChar
   return (
     <AnimatePresence>
       <div
-        className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl text-white font-arabic"
+        className="fixed inset-0 z-[100] flex items-center justify-center p-4 pt-safe pb-safe bg-black/90 backdrop-blur-xl text-white font-arabic"
         role="dialog"
         aria-modal="true"
         aria-label="Erwin Charge 2nd Checkpoint Modal"
@@ -40,7 +40,7 @@ export function ErwinChargeModal({ isOpen, onClose, clickCount = 99 }: ErwinChar
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.85, y: 20 }}
           transition={{ duration: 0.35, type: 'spring' }}
-          className="relative w-full max-w-2xl rounded-3xl border-2 border-amber-500 bg-stone-950 p-5 sm:p-7 shadow-[0_0_60px_rgba(245,158,11,0.5)] overflow-hidden text-center space-y-4"
+          className="relative w-full max-w-2xl max-h-[92dvh] overflow-y-auto rounded-3xl border-2 border-amber-500 bg-stone-950 p-5 sm:p-7 shadow-[0_0_60px_rgba(245,158,11,0.5)] text-center space-y-4"
         >
           {/* Background Fiery Ambient Glow */}
           <div className="absolute -top-24 -left-24 w-64 h-64 bg-amber-600/30 rounded-full blur-3xl pointer-events-none" />
@@ -49,7 +49,7 @@ export function ErwinChargeModal({ isOpen, onClose, clickCount = 99 }: ErwinChar
           {/* Close Button */}
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 z-10 p-2 rounded-xl bg-stone-900/90 border border-stone-800 text-stone-400 hover:text-white transition"
+            className="absolute top-4 right-4 z-10 min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-xl bg-stone-900/90 border border-stone-800 text-stone-400 hover:text-white transition"
             aria-label="Close Erwin Charge Modal"
           >
             <X size={20} />
@@ -64,9 +64,10 @@ export function ErwinChargeModal({ isOpen, onClose, clickCount = 99 }: ErwinChar
           {/* Video Embed Player */}
           <div className="relative aspect-video w-full rounded-2xl overflow-hidden border border-amber-500/40 bg-black shadow-2xl">
             <iframe
-              src="https://www.youtube.com/embed/RCHJNffHrKY?autoplay=1&rel=0&enablejsapi=1"
+              src="https://www.youtube-nocookie.com/embed/RCHJNffHrKY?autoplay=1&rel=0"
               title="MY SOLDIERS RAGE - Attack on Titan Motivational Video"
               className="w-full h-full border-0"
+              referrerPolicy="strict-origin-when-cross-origin"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
             />
@@ -90,7 +91,7 @@ export function ErwinChargeModal({ isOpen, onClose, clickCount = 99 }: ErwinChar
 
           <button
             onClick={onClose}
-            className="w-full py-3 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 text-stone-950 font-black text-xs shadow-xl hover:opacity-95 transition active:scale-95 flex items-center justify-center gap-2"
+            className="w-full min-h-[44px] py-3 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 text-stone-950 font-black text-xs shadow-xl hover:opacity-95 transition active:scale-95 flex items-center justify-center gap-2"
           >
             <Shield size={16} />
             <span>واصل المسيرة يا بطل! (SHINZO WO SASAGEYO ⚔️)</span>

@@ -19,17 +19,25 @@ export const ClarifyingCoachView: React.FC<Props> = ({ onClose }) => {
 
     useEffect(() => {
         if (diagnosis && selectedSkill) {
-            const savedLevels = JSON.parse(localStorage.getItem('tb.skillLevels') || '{}');
-            savedLevels[selectedSkill] = diagnosis.estimated_level;
-            localStorage.setItem('tb.skillLevels', JSON.stringify(savedLevels));
+            try {
+                const rawLevels = localStorage.getItem('tb.skillLevels');
+                const parsedLevels = rawLevels ? JSON.parse(rawLevels) : {};
+                const savedLevels = parsedLevels && typeof parsedLevels === 'object' && !Array.isArray(parsedLevels)
+                    ? parsedLevels
+                    : {};
+                savedLevels[selectedSkill] = diagnosis.estimated_level;
+                localStorage.setItem('tb.skillLevels', JSON.stringify(savedLevels));
 
-            const lastDiag = {
-                skill: selectedSkill,
-                level: diagnosis.estimated_level,
-                gaps: diagnosis.gaps,
-                timestamp: Date.now()
-            };
-            localStorage.setItem('tb.lastDiagnosis', JSON.stringify(lastDiag));
+                const lastDiag = {
+                    skill: selectedSkill,
+                    level: diagnosis.estimated_level,
+                    gaps: diagnosis.gaps,
+                    timestamp: Date.now()
+                };
+                localStorage.setItem('tb.lastDiagnosis', JSON.stringify(lastDiag));
+            } catch (e) {
+                console.warn('Failed to persist skill diagnosis locally:', e);
+            }
 
             try {
                 const profileRaw = localStorage.getItem('tb.activeProfileConfig');

@@ -1,31 +1,27 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback } from 'react';
+import { speakUnified, stopUnifiedTts } from '../utils/offlineTts';
 
 export function useWebSpeech() {
   const [isSpeaking, setIsSpeaking] = useState(false);
-  const synth = window.speechSynthesis;
-  const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+  const SpeechRecognition = typeof window !== 'undefined'
+    ? (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+    : null;
   const recognition = SpeechRecognition ? new SpeechRecognition() : null;
 
   const speak = useCallback((text: string, lang: string = 'en-US') => {
-    if (!synth) return;
-
-    synth.cancel(); // Cancel any ongoing speech
-
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = lang;
-    utterance.onstart = () => setIsSpeaking(true);
-    utterance.onend = () => setIsSpeaking(false);
-    utterance.onerror = () => setIsSpeaking(false);
-
-    synth.speak(utterance);
-  }, [synth]);
+    setIsSpeaking(true);
+    void speakUnified({
+      text,
+      lang,
+      rate: 1.0,
+      onEnd: () => setIsSpeaking(false),
+    });
+  }, []);
 
   const stopSpeaking = useCallback(() => {
-    if (synth && isSpeaking) {
-      synth.cancel();
-      setIsSpeaking(false);
-    }
-  }, [synth, isSpeaking]);
+    void stopUnifiedTts();
+    setIsSpeaking(false);
+  }, []);
 
   const listen = useCallback((lang: string = 'en-US'): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -51,5 +47,5 @@ export function useWebSpeech() {
     });
   }, [recognition]);
 
-  return { speak, stopSpeaking, isSpeaking, listen, isSupported: !!synth && !!recognition };
+  return { speak, stopSpeaking, isSpeaking, listen, isSupported: true };
 }

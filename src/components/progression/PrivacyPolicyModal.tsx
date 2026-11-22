@@ -12,16 +12,21 @@ export function PrivacyPolicyModal({ isOpen, onClose, isArabic = true }: Privacy
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 pt-safe pb-safe bg-black/80 backdrop-blur-md"
       dir={isArabic ? 'rtl' : 'ltr'}
     >
-      <div className="w-full max-w-lg rounded-3xl bg-[#0F151C] border border-[#1E2933] p-6 space-y-4 text-start max-h-[85vh] overflow-y-auto shadow-2xl">
+      <div className="w-full max-w-lg rounded-3xl bg-[#0F151C] border border-[#1E2933] p-6 space-y-4 text-start max-h-[85dvh] overflow-y-auto shadow-2xl">
         <div className="flex items-center justify-between border-b border-stone-800 pb-3">
           <div className="flex items-center gap-2 text-teal-400 font-black text-sm">
             <Shield size={18} />
             <span>{isArabic ? 'سياسة الخصوصية وتأمين البيانات' : 'Privacy Policy & Plain Summary'}</span>
           </div>
-          <button onClick={onClose} className="text-stone-400 hover:text-white font-bold text-xs">
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label={isArabic ? 'إغلاق' : 'Close'}
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full text-stone-400 hover:text-white hover:bg-white/10 font-bold text-xs"
+          >
             <X size={18} />
           </button>
         </div>

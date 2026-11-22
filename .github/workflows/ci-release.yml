@@ -87,7 +87,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: '21'
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3.2.16
@@ -132,8 +132,15 @@ jobs:
         run: |
           mkdir -p release-apks
           cp android/app/build/outputs/apk/debug/*.apk release-apks/
-          if compgen -G 'android/app/build/outputs/apk/release/*.apk' > /dev/null; then
-            cp android/app/build/outputs/apk/release/*.apk release-apks/
+          if [ -f android/app/build/outputs/apk/release/app-release.apk ]; then
+            cp android/app/build/outputs/apk/release/app-release.apk "release-apks/ThinkingBridge-${{ github.ref_name }}.apk"
+          elif compgen -G 'android/app/build/outputs/apk/release/*.apk' > /dev/null; then
+            RELEASE_APK=$(find android/app/build/outputs/apk/release -maxdepth 1 -name '*.apk' | head -n 1)
+            cp "$RELEASE_APK" "release-apks/ThinkingBridge-${{ github.ref_name }}.apk"
+          fi
+          if [[ "${{ github.ref }}" == refs/tags/v* ]] && [ ! -f "release-apks/ThinkingBridge-${{ github.ref_name }}.apk" ]; then
+            echo "::error::Missing signed release APK ThinkingBridge-${{ github.ref_name }}.apk"
+            exit 1
           fi
 
       - name: Upload Android APKs
@@ -153,4 +160,5 @@ jobs:
             Official Android release. Download the APK below.
 
             Includes major edge refinements, RTL typesetting fixes, and accessibility improvements.
-          files: release-apks/*.apk
+          files: release-apks/ThinkingBridge-${{ github.ref_name }}.apk
+          fail_on_unmatched_files: true

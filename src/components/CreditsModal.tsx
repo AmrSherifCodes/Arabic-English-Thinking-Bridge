@@ -14,9 +14,9 @@ export function CreditsModal({ isOpen, onClose }: CreditsModalProps) {
       aria-modal="true"
       aria-labelledby="credits-modal-title"
       dir="rtl"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-950/80 backdrop-blur-md overflow-y-auto ar"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 pt-safe pb-safe bg-stone-950/80 backdrop-blur-md overflow-y-auto ar"
     >
-      <div className="relative w-full max-w-lg overflow-hidden rounded-3xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-6 sm:p-7 text-stone-900 dark:text-stone-100 shadow-2xl transition-all my-auto max-h-[85vh] flex flex-col">
+      <div className="relative w-full max-w-lg overflow-hidden rounded-3xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-6 sm:p-7 text-stone-900 dark:text-stone-100 shadow-2xl transition-all my-auto max-h-[85dvh] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-stone-200 dark:border-stone-800 pb-3 mb-4 shrink-0">
           <div>
@@ -31,7 +31,7 @@ export function CreditsModal({ isOpen, onClose }: CreditsModalProps) {
             type="button"
             onClick={onClose}
             aria-label="إغلاق"
-            className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200 transition"
+            className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200 transition"
           >
             <X size={18} />
           </button>

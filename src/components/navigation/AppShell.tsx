@@ -6,6 +6,7 @@ import { LanguageFlag } from '../LanguageFlag';
 import { Map, Zap, Award, Trophy, User, Home, Waves, Anchor, Baby } from 'lucide-react';
 import { PrivacyPolicyModal } from '../progression/PrivacyPolicyModal';
 import { StreetDemoModal } from '../StreetDemoModal';
+import { SupportModal } from '../SupportModal';
 import { triggerHapticImpact } from '../../utils/fx';
 import { isYouTubeSubscribed, setYouTubeSubscribed } from '../../utils/youtubeSupporter';
 import { useUiMode } from '../../utils/uiMode';
@@ -108,6 +109,7 @@ export function AppShell({
   onOpenAgeGate,
 }: AppShellProps) {
   const [privacyOpen, setPrivacyOpen] = useState(false);
+  const [supportOpen, setSupportOpen] = useState(false);
   const [streetDemoOpen, setStreetDemoOpen] = useState(false);
   const [uiMode, setUiMode] = useUiMode();
   const [learnerMode, setLearnerMode] = useLearnerMode();
@@ -134,10 +136,16 @@ export function AppShell({
           { id: 'profile' as AppTab, labelAr: 'الملف', labelEn: 'Profile', icon: User },
         ];
 
+  useEffect(() => {
+    if (!tabs.some((tab) => tab.id === activeTab)) {
+      onTabChange('path');
+    }
+  }, [activeTab, isKids, uiMode, onTabChange]);
+
   return (
-    <div className={`min-h-screen bg-[#060E1A] text-slate-100 flex flex-col md:flex-row ${isKids ? 'tb-kids-mode' : ''}`} dir={isArabic ? 'rtl' : 'ltr'}>
+    <div className={`min-h-[100dvh] bg-[#060E1A] text-slate-100 flex flex-col md:flex-row overflow-x-hidden ${isKids ? 'tb-kids-mode' : ''}`} dir={isArabic ? 'rtl' : 'ltr'}>
       {/* Desktop Navigation Sidebar */}
-      <aside className="hidden md:flex flex-col w-64 border-r rtl:border-l rtl:border-r-0 border-cyan-500/20 bg-[#0B1C33] p-4 sticky top-0 h-screen justify-between z-40 shrink-0 shadow-xl">
+      <aside className="hidden md:flex flex-col w-64 border-r rtl:border-l rtl:border-r-0 border-cyan-500/20 bg-[#0B1C33] p-4 sticky top-0 h-[100dvh] justify-between z-40 shrink-0 shadow-xl">
         <div className="space-y-6">
           {/* Logo Branding */}
           <div className="flex items-center justify-between px-2 pt-1">
@@ -220,7 +228,7 @@ export function AppShell({
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top Header HUD Bar */}
-        <header className="sticky top-0 z-30 backdrop-blur-xl bg-[#060E1A]/90 border-b border-cyan-500/20 px-3 sm:px-4 py-2.5">
+        <header className="sticky top-0 z-40 backdrop-blur-md bg-[#06101c]/95 border-b border-cyan-500/20 px-3 sm:px-4 pb-2.5 pt-safe">
           <div className="max-w-4xl mx-auto flex items-center justify-between gap-2">
             {/* Left HUD Controls */}
             <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-none py-0.5">
@@ -276,7 +284,7 @@ export function AppShell({
                     triggerHapticImpact();
                     setLearnerMode('kids');
                   }}
-                  className={`px-2 py-1.5 min-h-[40px] rounded-lg text-[11px] font-black transition cursor-pointer flex items-center gap-1 ${
+                  className={`px-2 py-1.5 min-h-[44px] min-w-[44px] rounded-lg text-[11px] font-black transition cursor-pointer flex items-center justify-center gap-1 ${
                     isKids ? 'bg-pink-500 text-white shadow-md' : 'text-slate-400 hover:text-white'
                   }`}
                   title={isArabic ? 'وضع الأطفال (4-12 سنة)' : 'Kids Mode (Ages 4-12)'}
@@ -291,7 +299,7 @@ export function AppShell({
                     triggerHapticImpact();
                     setLearnerMode('regular');
                   }}
-                  className={`px-2 py-1.5 min-h-[40px] rounded-lg text-[11px] font-black transition cursor-pointer flex items-center gap-1 ${
+                  className={`px-2 py-1.5 min-h-[44px] min-w-[44px] rounded-lg text-[11px] font-black transition cursor-pointer flex items-center justify-center gap-1 ${
                     !isKids ? 'bg-cyan-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
                   }`}
                   title={isArabic ? 'النسخة العادية (13+ سنة)' : 'Regular Mode (Ages 13+)'}
@@ -310,7 +318,7 @@ export function AppShell({
                       triggerHapticImpact();
                       setUiMode('simple');
                     }}
-                    className={`px-2 py-1.5 min-h-[40px] rounded-lg text-[11px] font-black transition cursor-pointer ${
+                    className={`px-2 py-1.5 min-h-[44px] min-w-[44px] rounded-lg text-[11px] font-black transition cursor-pointer flex items-center justify-center ${
                       uiMode === 'simple' ? 'bg-emerald-500 text-slate-950 shadow' : 'text-slate-400 hover:text-white'
                     }`}
                     title={isArabic ? 'الوضع البسيط (للمبتدئين)' : 'Simple Mode'}
@@ -323,7 +331,7 @@ export function AppShell({
                       triggerHapticImpact();
                       setUiMode('pro');
                     }}
-                    className={`px-2 py-1.5 min-h-[40px] rounded-lg text-[11px] font-black transition cursor-pointer ${
+                    className={`px-2 py-1.5 min-h-[44px] min-w-[44px] rounded-lg text-[11px] font-black transition cursor-pointer flex items-center justify-center ${
                       uiMode === 'pro' ? 'bg-amber-500 text-slate-950 shadow' : 'text-slate-400 hover:text-white'
                     }`}
                     title={isArabic ? 'الوضع المتقدم (كل الأدوات)' : 'Pro Mode'}
@@ -372,13 +380,22 @@ export function AppShell({
             <p className="text-[11px] text-cyan-400/70 font-bold">
               {isArabic ? '🌊 تطبيق من الإسكندرية · Made in Alexandria' : '🌊 Built in Alexandria, Egypt'}
             </p>
-            <button
-              type="button"
-              onClick={() => setPrivacyOpen(true)}
-              className="text-xs text-slate-500 hover:text-slate-300 transition-colors cursor-pointer min-h-[44px] px-3 inline-flex items-center justify-center"
-            >
-              {isArabic ? 'الخصوصية والقوانين' : 'Privacy & Legal'}
-            </button>
+            <div className="flex items-center justify-center gap-2 flex-wrap">
+              <button
+                type="button"
+                onClick={() => setSupportOpen(true)}
+                className="text-xs text-amber-300/80 hover:text-amber-200 transition-colors cursor-pointer min-h-[44px] px-3 inline-flex items-center justify-center"
+              >
+                ☕ {isArabic ? 'ادعم التطبيق' : 'Support the app'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setPrivacyOpen(true)}
+                className="text-xs text-slate-500 hover:text-slate-300 transition-colors cursor-pointer min-h-[44px] px-3 inline-flex items-center justify-center"
+              >
+                {isArabic ? 'الخصوصية والقوانين' : 'Privacy & Legal'}
+              </button>
+            </div>
           </footer>
         </main>
       </div>
@@ -386,7 +403,7 @@ export function AppShell({
       {/* Mobile Bottom Navigation Bar */}
       <nav
         aria-label="التنقل الرئيسي · Main navigation"
-        className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#061224]/95 backdrop-blur-2xl border-t border-cyan-500/25 px-2 pt-2 pb-[calc(6px+env(safe-area-inset-bottom))] flex items-center justify-around shadow-[0_-8px_32px_rgba(6,182,212,0.18)]"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#06101c]/95 backdrop-blur-md border-t border-cyan-500/25 px-2 pt-2 pb-safe flex items-center justify-around shadow-[0_-8px_32px_rgba(6,182,212,0.18)]"
       >
         {tabs.map((tab) => {
           const Icon = tab.icon;
@@ -409,13 +426,18 @@ export function AppShell({
               }`}
             >
               <Icon size={21} className={isActive ? 'text-cyan-300 transition-transform scale-110' : 'text-slate-400'} />
-              <span className="text-[10px] mt-1 font-extrabold tracking-tight">{tab.labelAr}</span>
+              <span className="text-[10px] mt-1 font-extrabold tracking-tight leading-tight text-center">{isArabic ? tab.labelAr : tab.labelEn}</span>
             </button>
           );
         })}
       </nav>
 
       <PrivacyPolicyModal isOpen={privacyOpen} onClose={() => setPrivacyOpen(false)} />
+      <SupportModal
+        isOpen={supportOpen}
+        onClose={() => setSupportOpen(false)}
+        isArabic={isArabic}
+      />
       <StreetDemoModal
         isOpen={streetDemoOpen}
         onClose={() => setStreetDemoOpen(false)}

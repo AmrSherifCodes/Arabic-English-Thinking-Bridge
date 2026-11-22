@@ -3,6 +3,7 @@ import { X, Youtube, Key, CheckCircle2, Lock, Sparkles, Heart, ShieldCheck, Arro
 import confetti from 'canvas-confetti';
 import { YOUTUBE_CHANNEL_URL, YOUTUBE_CHANNEL_HANDLE } from '../config/supporterConfig';
 import { recordChannelVisitUnlock, verifyCommunityPasscode } from '../services/supporterGate';
+import { openSafeExternalUrl } from '../utils/safeExternalUrl';
 
 interface SupporterGateModalProps {
   isOpen: boolean;
@@ -62,7 +63,7 @@ export function SupporterGateModal({
   };
 
   const handleOpenChannel = () => {
-    window.open(YOUTUBE_CHANNEL_URL, '_blank', 'noopener,noreferrer');
+    openSafeExternalUrl(YOUTUBE_CHANNEL_URL);
     setVisitedChannel(true);
     setVisitTime(Date.now());
     onToast?.('🔴 جاري فتح القناة... اشترك واضغط زر الفتح بالأسفل!');
@@ -107,7 +108,7 @@ export function SupporterGateModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md animate-in fade-in transition-all"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 pt-safe pb-safe bg-black/85 backdrop-blur-md animate-in fade-in transition-all"
       dir="rtl"
       role="dialog"
       aria-modal="true"
@@ -115,7 +116,7 @@ export function SupporterGateModal({
     >
       <div
         ref={modalRef}
-        className="relative flex max-h-[92vh] w-full max-w-lg flex-col overflow-hidden rounded-3xl border border-amber-500/30 bg-surface text-text shadow-2xl"
+        className="relative flex max-h-[92dvh] w-full max-w-lg flex-col overflow-hidden rounded-3xl border border-amber-500/30 bg-surface text-text shadow-2xl"
       >
         {/* Header Ribbon */}
         <div className="bg-gradient-to-r from-amber-500/20 via-rose-500/15 to-amber-500/20 px-5 py-4 border-b border-amber-500/20 flex items-center justify-between">
@@ -128,7 +129,7 @@ export function SupporterGateModal({
           <button
             type="button"
             onClick={onClose}
-            className="p-2 rounded-2xl text-muted hover:text-text hover:bg-surface-2 transition-colors"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-2xl text-muted hover:text-text hover:bg-surface-2 transition-colors"
             aria-label="إغلاق Modal"
           >
             <X className="w-5 h-5" />
@@ -163,7 +164,7 @@ export function SupporterGateModal({
             <button
               type="button"
               onClick={() => setActiveTab('subscribe')}
-              className={`py-2.5 px-3 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 ${
+              className={`min-h-[44px] py-2.5 px-3 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 ${
                 activeTab === 'subscribe'
                   ? 'bg-rose-600 text-white shadow-md'
                   : 'text-muted hover:text-text'
@@ -175,7 +176,7 @@ export function SupporterGateModal({
             <button
               type="button"
               onClick={() => setActiveTab('passcode')}
-              className={`py-2.5 px-3 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 ${
+              className={`min-h-[44px] py-2.5 px-3 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 ${
                 activeTab === 'passcode'
                   ? 'bg-amber-500 text-stone-950 shadow-md'
                   : 'text-muted hover:text-text'
@@ -274,7 +275,7 @@ export function SupporterGateModal({
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-xl text-muted hover:text-text hover:bg-surface font-bold transition-colors flex items-center gap-1"
+            className="min-h-[44px] px-4 py-2 rounded-xl text-muted hover:text-text hover:bg-surface font-bold transition-colors flex items-center gap-1"
           >
             <ArrowRight className="w-3.5 h-3.5" />
             <span>رجوع للعربي والإنجليزي</span>

@@ -20,9 +20,11 @@ export const StoryEngine: React.FC<StoryEngineProps> = ({ chapter, sourceLang, t
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
 
   const [autoRead, setAutoRead] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('tb.story.autoRead') === 'true';
-    }
+    try {
+      if (typeof window !== 'undefined') {
+        return localStorage.getItem('tb.story.autoRead') === 'true';
+      }
+    } catch {}
     return false;
   });
   const [hasInteracted, setHasInteracted] = useState(false);
@@ -63,7 +65,9 @@ export const StoryEngine: React.FC<StoryEngineProps> = ({ chapter, sourceLang, t
   };
 
   useEffect(() => {
-    localStorage.setItem('tb.story.autoRead', String(autoRead));
+    try {
+      localStorage.setItem('tb.story.autoRead', String(autoRead));
+    } catch {}
   }, [autoRead]);
 
   useEffect(() => {
@@ -129,7 +133,7 @@ export const StoryEngine: React.FC<StoryEngineProps> = ({ chapter, sourceLang, t
   if (!currentScene) return <div>Scene not found.</div>;
 
   return (
-    <div className="min-h-screen bg-[#0A0E13] text-[#EEF2F5] flex flex-col relative overflow-hidden" dir={sourceLang === 'ar' ? 'rtl' : 'ltr'}>
+    <div className="min-h-[100dvh] bg-[#0A0E13] text-[#EEF2F5] flex flex-col relative overflow-hidden pt-safe pb-safe" dir={sourceLang === 'ar' ? 'rtl' : 'ltr'}>
       {/* Background Image */}
       <div
         className="absolute inset-0 bg-cover bg-center opacity-40 transition-all duration-500"

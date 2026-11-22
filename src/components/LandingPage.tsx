@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Capacitor } from '@capacitor/core';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { ArrowRight, Download, Globe, BookOpen, Smartphone, RefreshCw, Apple, Laptop, ExternalLink, Brain, Sparkles, Terminal, Tv, Briefcase, Cpu, ShieldCheck, Zap } from 'lucide-react';
@@ -8,6 +9,7 @@ import { usePwaInstall } from '../hooks/usePWAInstall';
 import { CreatorCard } from './CreatorCard';
 import { LandingPhoneMockup } from './LandingPhoneMockup';
 import { StreetDemoModal } from './StreetDemoModal';
+import { SupportModal } from './SupportModal';
 import { triggerHapticImpact } from '../utils/fx';
 import './LandingPage.css';
 
@@ -30,6 +32,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
   const [showIosGuide, setShowIosGuide] = useState(false);
   const [detectedOs, setDetectedOs] = useState<'android' | 'ios' | 'windows' | 'mac' | 'other'>('other');
   const [streetDemoOpen, setStreetDemoOpen] = useState(false);
+  const [supportOpen, setSupportOpen] = useState(false);
 
   const [isNativeAndroid] = useState(() => {
     const platform = getPlatformInfo();
@@ -319,7 +322,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
               <Smartphone size={32} />
               <div className="mb-4 text-center">
                 <span className="font-bold text-lg block text-[var(--navy)]">Android</span>
-                <span className="text-sm text-[var(--ink-soft)] block">v4.4.1 Stable · 112 MB APK</span>
+                <span className="text-sm text-[var(--ink-soft)] block">v4.4.2 Stable · 112 MB APK</span>
               </div>
               <a
                 href="/app"
@@ -329,36 +332,40 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
                 <ArrowRight size={16} />
                 <span>{t('landing2.launch_app___')}</span>
               </a>
-              <a
-                href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v4.4.1/ThinkingBridge-v4.4.1.apk"
-                download="Thinking-Bridge-v1.0.0-stable.apk"
-                className="btn btn-gold btn-sm w-full mt-1"
-              >
-                <span>{isAr ? 'تحميل APK (v4.4.1 · 112 MB)' : 'Download APK (v4.4.1 · 112 MB)'}</span>
-              </a>
-            </div>
-
-            <div className={`download-card ${detectedOs === 'ios' ? 'highlight' : ''}`}>
-              <Apple size={32} />
-              <div className="mb-4 text-center">
-                <span className="font-bold text-lg block text-[var(--navy)]">iOS / iPhone</span>
-                <span className="text-sm text-[var(--ink-soft)] block">PWA / Web App</span>
-              </div>
-              <button
-                onClick={() => {
-                  if (showIosHint) setShowIosGuide(value => !value);
-                  else if (isInstallable) void triggerInstall();
-                  else onLaunchApp();
-                }}
-                className="btn btn-primary btn-sm w-full mb-2"
-              >
-                <ExternalLink size={16} />
-                <span>{showIosHint ? (t('landing2.install_guide')) : isInstallable ? (t('landing2.install_app')) : (t('landing2.open_web_app'))}</span>
-              </button>
-              {showIosGuide && showIosHint && (
-                <p className="text-xs text-[var(--ink-soft)] mt-2">{t('landing2.in_safari__tap_share__then_cho')}</p>
+              {!Capacitor.isNativePlatform() && (
+                <a
+                  href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v4.4.2/ThinkingBridge-v4.4.2.apk"
+                  download="ThinkingBridge-v4.4.2.apk"
+                  className="btn btn-gold btn-sm w-full mt-1"
+                >
+                  <span>{isAr ? 'تحميل APK (v4.4.2 · 112 MB)' : 'Download APK (v4.4.2 · 112 MB)'}</span>
+                </a>
               )}
             </div>
+
+            {!Capacitor.isNativePlatform() && detectedOs !== 'android' && (
+              <div className={`download-card ${detectedOs === 'ios' ? 'highlight' : ''}`}>
+                <Apple size={32} />
+                <div className="mb-4 text-center">
+                  <span className="font-bold text-lg block text-[var(--navy)]">iOS / iPhone</span>
+                  <span className="text-sm text-[var(--ink-soft)] block">PWA / Web App</span>
+                </div>
+                <button
+                  onClick={() => {
+                    if (showIosHint) setShowIosGuide(value => !value);
+                    else if (isInstallable) void triggerInstall();
+                    else onLaunchApp();
+                  }}
+                  className="btn btn-primary btn-sm w-full mb-2"
+                >
+                  <ExternalLink size={16} />
+                  <span>{showIosHint ? (t('landing2.install_guide')) : isInstallable ? (t('landing2.install_app')) : (t('landing2.open_web_app'))}</span>
+                </button>
+                {showIosGuide && showIosHint && (
+                  <p className="text-xs text-[var(--ink-soft)] mt-2">{t('landing2.in_safari__tap_share__then_cho')}</p>
+                )}
+              </div>
+            )}
 
             <div className={`download-card ${detectedOs === 'windows' ? 'highlight' : ''}`}>
               <Laptop size={32} />
@@ -373,7 +380,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
                 <Globe size={16} />
                 <span>{isInstallable ? (t('landing2.install_pwa')) : (t('landing2.open_web_app'))}</span>
               </button>
-              <a href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v4.4.1/ThinkingBridge-v4.4.1.apk" className="text-xs font-bold text-[var(--nile)] underline text-center w-full block mt-2">
+              <a href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v4.4.2/ThinkingBridge-v4.4.2.apk" className="text-xs font-bold text-[var(--nile)] underline text-center w-full block mt-2">
                 {t('landing2.desktop_releases')}
               </a>
             </div>
@@ -391,7 +398,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
                 <Globe size={16} />
                 <span>{isInstallable ? (t('landing2.install_pwa')) : (t('landing2.open_web_app'))}</span>
               </button>
-              <a href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v4.4.1/ThinkingBridge-v4.4.1.apk" className="text-xs font-bold text-[var(--nile)] underline text-center w-full block mt-2">
+              <a href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v4.4.2/ThinkingBridge-v4.4.2.apk" className="text-xs font-bold text-[var(--nile)] underline text-center w-full block mt-2">
                 {t('landing2.desktop_releases')}
               </a>
             </div>
@@ -582,6 +589,13 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
             >
               💻 {isAr ? 'الكود المصدري (GitHub)' : 'Source Code'}
             </a>
+            <button
+              type="button"
+              onClick={() => setSupportOpen(true)}
+              className="hover:text-amber-300 transition cursor-pointer bg-transparent border-0 p-0 text-xs font-medium min-h-[44px] inline-flex items-center"
+            >
+              ☕ {isAr ? 'ادعم التطبيق' : 'Support the app'}
+            </button>
           </div>
         </div>
       </footer>
@@ -594,6 +608,11 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
           setStreetDemoOpen(false);
           onLaunchApp();
         }}
+        isArabic={isAr}
+      />
+      <SupportModal
+        isOpen={supportOpen}
+        onClose={() => setSupportOpen(false)}
         isArabic={isAr}
       />
     </div>

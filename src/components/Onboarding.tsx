@@ -139,7 +139,11 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
   };
 
   const handleFinish = () => {
-    const dialectChoice = selectedTargetDialect || localStorage.getItem('tb.targetArabicDialect') || 'egyptian';
+    let storedDialect: string | null = null;
+    try {
+      storedDialect = localStorage.getItem('tb.targetArabicDialect');
+    } catch {}
+    const dialectChoice = selectedTargetDialect || storedDialect || 'egyptian';
     const targetArLang = (
       dialectChoice === 'egyptian' ? 'arz' : dialectChoice === 'gulf' ? 'afb' : dialectChoice === 'levantine' ? 'apc' : 'ar'
     ) as any;
@@ -189,7 +193,7 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
   return (
     <div
       dir={isReverse ? 'ltr' : 'rtl'}
-      className={`fixed inset-0 z-50 h-screen w-screen overflow-hidden flex flex-col items-center justify-center bg-[#090D16] text-[#EEF2F5] p-4 select-none ${
+      className={`fixed inset-0 z-50 h-[100dvh] w-screen overflow-y-auto flex flex-col items-center justify-center bg-[#090D16] text-[#EEF2F5] p-4 pt-safe pb-safe select-none ${
         isReverse ? 'font-sans' : 'font-arabic'
       }`}
     >

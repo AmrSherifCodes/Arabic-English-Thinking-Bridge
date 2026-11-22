@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Volume2, X, Sparkles, ArrowRight, CheckCircle2, Zap } from 'lucide-react';
 import { triggerHapticImpact, triggerHapticNotification, confetti } from '../utils/fx';
+import { speakUnified } from '../utils/offlineTts';
 
 interface StreetDemoModalProps {
   isOpen: boolean;
@@ -59,13 +60,11 @@ export function StreetDemoModal({
 
   const handleSpeak = (text: string) => {
     triggerHapticImpact();
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'en-US';
-      utterance.rate = 0.9;
-      window.speechSynthesis.speak(utterance);
-    }
+    void speakUnified({
+      text,
+      lang: 'en-US',
+      rate: 0.9,
+    });
   };
 
   return (

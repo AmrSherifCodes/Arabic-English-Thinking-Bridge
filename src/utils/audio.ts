@@ -2,6 +2,7 @@
  * Audio, Natural Voice Selection, and Speech Recognition Utilities
  */
 import { createVoiPiVoice, resolveTargetLangAndNeuralVoice } from '../hooks/useSpeech';
+import { normalizeTtsLang, speakUnified } from './offlineTts';
 
 let activeSpeakAbortController: AbortController | null = null;
 export let cloudTtsUnavailable = false;
@@ -303,9 +304,16 @@ export function speakWithRate(
 
   const isOffline = typeof navigator !== 'undefined' && navigator.onLine === false;
   const isNativeMobile = typeof window !== 'undefined' && Boolean((window as any)?.Capacitor?.isNativePlatform?.());
+  const normalizedLang = normalizeTtsLang(targetLang, clean);
 
-  if (isOffline || isNativeMobile || cloudTtsUnavailable) {
-    return speakWithNativeSpeechSynthesis(clean, requestedRate, preferredVoiceName, undefined, undefined, targetLang, isOffline);
+  if (isOffline || isNativeMobile || cloudTtsUnavailable || normalizedLang.startsWith('de')) {
+    void speakUnified({
+      text: clean,
+      lang: normalizedLang,
+      rate: requestedRate,
+      preferredVoiceName,
+    });
+    return true;
   }
 
   const isArabic = /[\u0600-\u06FF]/.test(clean);

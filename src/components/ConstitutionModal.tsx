@@ -43,14 +43,14 @@ export function ConstitutionModal({ isOpen, onClose, isArabic = true }: Constitu
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 pt-safe pb-safe bg-black/80 backdrop-blur-md"
       dir={isArabic ? 'rtl' : 'ltr'}
       role="dialog"
       aria-modal="true"
       onClick={onClose}
     >
       <div
-        className="bg-stone-900 border border-stone-700 rounded-3xl w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden text-stone-100"
+        className="bg-stone-900 border border-stone-700 rounded-3xl w-full max-w-2xl max-h-[85dvh] flex flex-col shadow-2xl overflow-hidden text-stone-100"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-4 border-b border-stone-800">

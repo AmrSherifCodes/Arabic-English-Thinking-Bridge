@@ -3,6 +3,7 @@ import { ChevronRight, Star, Flame, Trophy, PlayCircle } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { VOCAB, VocabWord } from './vocab';
 import { soundFX } from '../utils/soundFX';
+import { speakUnified } from '../utils/offlineTts';
 import { TARGET_LANGUAGE_META } from '../data/languages';
 import type { TargetLanguage } from '../types';
 
@@ -213,7 +214,7 @@ const NUMBERS_BY_LANG: Record<string, NumberEntry[]> = {
 };
 
 const LANGUAGE_LOCALES: Record<string, string> = {
-  ar: 'ar-SA',
+  ar: 'ar-EG',
   en: 'en-US',
   de: 'de-DE',
   ja: 'ja-JP',
@@ -230,11 +231,8 @@ const LANGUAGE_LOCALES: Record<string, string> = {
 };
 
 const speak = (text: string, langCode: string) => {
-  if (!('speechSynthesis' in window)) return;
-  window.speechSynthesis.cancel();
-  const ut = new SpeechSynthesisUtterance(text);
-  ut.lang = LANGUAGE_LOCALES[langCode] || (langCode === 'ar' ? 'ar-SA' : 'en-US');
-  window.speechSynthesis.speak(ut);
+  const locale = LANGUAGE_LOCALES[langCode] || (langCode === 'ar' ? 'ar-EG' : 'en-US');
+  void speakUnified({ text, lang: locale, rate: 1.0 });
 };
 
 const getTodayString = () => new Date().toISOString().split('T')[0];
@@ -499,7 +497,7 @@ export const LanguageGame: React.FC<{ onBack: () => void; targetLang?: string; s
 
   if (step === 'AGE_SELECT') {
     return (
-      <div className="min-h-screen bg-[#0A1E3F] text-[#F5F0E6] flex flex-col items-center justify-center p-6 font-arabic rtl" dir="rtl">
+      <div className="min-h-[100dvh] bg-[#0A1E3F] text-[#F5F0E6] flex flex-col items-center justify-center p-6 pt-safe pb-safe font-arabic rtl" dir="rtl">
         <h1 className="text-3xl font-bold mb-10 text-[#F0B84C]">إنت عندك كام سنة؟</h1>
         <div className="flex flex-col gap-4 w-full max-w-sm">
           {['٥-٧ سنين', '٨-٩ سنين', '١٠-١٢ سنة'].map((label, idx) => (
@@ -522,8 +520,8 @@ export const LanguageGame: React.FC<{ onBack: () => void; targetLang?: string; s
 
   if (step === 'DIR_SELECT') {
     return (
-      <div className="min-h-screen bg-[#0A1E3F] text-[#F5F0E6] flex flex-col items-center justify-center p-6 font-arabic rtl" dir="rtl">
-        <button onClick={() => setStep('AGE_SELECT')} className="absolute top-4 right-4 p-2 text-[#A8B2C9]">
+      <div className="min-h-[100dvh] bg-[#0A1E3F] text-[#F5F0E6] flex flex-col items-center justify-center p-6 pt-safe pb-safe font-arabic rtl relative" dir="rtl">
+        <button onClick={() => setStep('AGE_SELECT')} aria-label="رجوع" className="absolute top-4 end-4 min-h-[44px] min-w-[44px] flex items-center justify-center p-2 text-[#A8B2C9]">
           <ChevronRight size={32} />
         </button>
         <h1 className="text-3xl font-bold mb-10 text-[#F0B84C] text-center">إنت عايز تتعلم إيه النهارده؟</h1>
@@ -550,9 +548,9 @@ export const LanguageGame: React.FC<{ onBack: () => void; targetLang?: string; s
     const canDoDaily = state.dailyChallengeLastCompleted !== today;
 
     return (
-      <div className="min-h-screen bg-[#0A1E3F] text-[#F5F0E6] flex flex-col items-center p-6 font-arabic rtl" dir="rtl">
+      <div className="min-h-[100dvh] bg-[#0A1E3F] text-[#F5F0E6] flex flex-col items-center p-6 pt-safe pb-safe font-arabic rtl" dir="rtl">
         <div className="w-full max-w-md flex justify-between items-center mb-8 mt-4">
-          <button onClick={onBack} className="p-2 bg-[#143A6B] rounded-full text-[#A8B2C9]">
+          <button onClick={onBack} aria-label="رجوع" className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 bg-[#143A6B] rounded-full text-[#A8B2C9]">
             <ChevronRight size={24} />
           </button>
           <div className="flex items-center gap-2 bg-[#143A6B] px-4 py-2 rounded-full font-bold text-[#F0B84C]">
@@ -603,9 +601,9 @@ export const LanguageGame: React.FC<{ onBack: () => void; targetLang?: string; s
 
   // PLAYING
   return (
-    <div className="min-h-screen bg-[#0A1E3F] text-[#F5F0E6] flex flex-col p-4 font-arabic rtl" dir="rtl">
+    <div className="min-h-[100dvh] bg-[#0A1E3F] text-[#F5F0E6] flex flex-col p-4 pt-safe pb-safe font-arabic rtl" dir="rtl">
       <div className="flex justify-between items-center mb-6 mt-2">
-        <button onClick={() => setStep('HOME')} className="p-2 bg-[#143A6B] rounded-full text-[#A8B2C9]">
+        <button onClick={() => setStep('HOME')} aria-label="رجوع" className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 bg-[#143A6B] rounded-full text-[#A8B2C9]">
           <ChevronRight size={24} />
         </button>
         {roundTimer !== null && (
@@ -632,7 +630,7 @@ export const LanguageGame: React.FC<{ onBack: () => void; targetLang?: string; s
                   ${state.ageBand === '5-7' && !isDaily ? 'min-h-[140px]' : state.ageBand === '8-9' && !isDaily ? 'min-h-[100px]' : 'min-h-[80px]'}
                   ${isMatched ? 'opacity-0 scale-90 pointer-events-none' : 'opacity-100 scale-100'}
                   ${isSelected ? 'bg-[#1a4a8a] border-[#F0B84C] shadow-[0_0_15px_rgba(240,184,76,0.5)]' : 'bg-[#143A6B] border-[#A8B2C9]/20 hover:border-[#A8B2C9]/50'}
-                  ${isWrongShake ? 'animate-[shake_0.4s_ease-in-out] border-[#E8886B] bg-[#E8886B]/20' : ''}
+                  ${isWrongShake ? 'animate-[tb-shake_0.4s_ease-in-out] border-[#E8886B] bg-[#E8886B]/20' : ''}
                 `}
               >
                 {/* 5-7 shows large emoji and small text */}
@@ -652,15 +650,6 @@ export const LanguageGame: React.FC<{ onBack: () => void; targetLang?: string; s
           })}
         </div>
       </div>
-
-      <style dangerouslySetInnerHTML={{__html: `
-        @keyframes shake {
-          0%, 100% { transform: translateX(0); }
-          25% { transform: translateX(-5px); }
-          50% { transform: translateX(5px); }
-          75% { transform: translateX(-5px); }
-        }
-      `}} />
     </div>
   );
 };

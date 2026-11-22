@@ -56,14 +56,14 @@ export const TeacherView: React.FC<Props> = ({ onBack }) => {
 
   if (!scene) {
     return (
-      <div className="min-h-screen bg-[#0A0E13] text-[#EEF2F5] flex items-center justify-center p-6" dir="rtl">
+      <div className="min-h-[100dvh] bg-[#0A0E13] text-[#EEF2F5] flex items-center justify-center p-6 pt-safe pb-safe" dir="rtl">
         <p className="text-xl">المشهد غير موجود</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0A0E13] text-[#EEF2F5] flex flex-col font-arabic" dir="rtl">
+    <div className="min-h-[100dvh] bg-[#0A0E13] text-[#EEF2F5] flex flex-col pt-safe pb-safe font-arabic" dir="rtl">
       {/* Header */}
       <header className="flex justify-between items-center p-4 md:px-8 border-b border-stone-800 bg-[#121820]">
         <button

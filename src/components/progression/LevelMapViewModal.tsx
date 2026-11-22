@@ -54,12 +54,12 @@ export function LevelMapViewModal({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-lg">
+      <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 pt-safe pb-safe bg-black/85 backdrop-blur-lg">
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 30 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 30 }}
-          className="relative w-full max-w-2xl overflow-hidden bg-[#0B1C33] border border-cyan-500/30 rounded-3xl shadow-2xl flex flex-col max-h-[90vh]"
+          className="relative w-full max-w-2xl overflow-hidden bg-[#0B1C33] border border-cyan-500/30 rounded-3xl shadow-2xl flex flex-col max-h-[90dvh]"
           dir={isArabic ? 'rtl' : 'ltr'}
         >
           {/* Header */}
@@ -78,7 +78,8 @@ export function LevelMapViewModal({
             <div className="flex items-center gap-2">
               <button
                 onClick={onClose}
-                className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-full transition-colors"
+                aria-label={isArabic ? 'إغلاق' : 'Close'}
+                className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-full transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -86,7 +87,7 @@ export function LevelMapViewModal({
           </div>
 
           {/* Vertical Roadmap Scroll Area */}
-          <div className="flex-1 overflow-y-auto p-4 sm:p-6 pb-20 relative">
+          <div className="flex-1 overflow-y-auto px-5 py-5 sm:p-6 pb-20 relative">
             {/* Background connector line */}
             <div className="absolute top-12 bottom-12 left-1/2 w-1.5 -translate-x-1/2 bg-stone-800 z-0 hidden sm:block"></div>
 
@@ -112,7 +113,7 @@ export function LevelMapViewModal({
                     )}
 
                     {/* Circular node with line */}
-                    <div className="relative flex justify-center items-center overflow-visible p-3 my-1">
+                    <div className="relative flex justify-center items-center overflow-visible p-4 my-1">
                       <div
                         className={`w-16 h-16 rounded-full flex items-center justify-center font-black text-2xl border-4 transition-all duration-300 ${
                           isCurrent
@@ -179,10 +180,10 @@ export function LevelMapViewModal({
           </div>
 
           {/* Footer */}
-          <div className="p-4 border-t border-stone-800 bg-stone-950/80 text-center relative z-20">
+          <div className="p-4 pb-safe border-t border-stone-800 bg-stone-950/80 text-center relative z-20">
             <button
               onClick={onClose}
-              className="w-full py-3 text-sm font-bold text-stone-900 bg-amber-400 hover:bg-amber-300 rounded-2xl transition-all shadow-lg shadow-amber-500/20"
+              className="w-full min-h-[48px] py-3 text-sm font-bold text-stone-900 bg-amber-400 hover:bg-amber-300 rounded-2xl transition-all shadow-lg shadow-amber-500/20"
             >
               {isArabic ? 'العودة للمسار' : 'Back to Roadmap'}
             </button>

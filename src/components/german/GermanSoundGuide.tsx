@@ -104,13 +104,13 @@ export function GermanSoundGuide({ isOpen, onClose }: GermanSoundGuideProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-sm animate-in fade-in transition-all"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 pt-safe pb-safe bg-black/80 backdrop-blur-sm animate-in fade-in transition-all"
       dir="rtl"
       role="dialog"
       aria-modal="true"
       aria-labelledby="sound-guide-title"
     >
-      <div className="relative flex max-h-[88vh] w-full max-w-xl flex-col overflow-hidden rounded-3xl border border-amber-500/30 bg-surface text-text shadow-2xl">
+      <div className="relative flex max-h-[88dvh] w-full max-w-xl flex-col overflow-hidden rounded-3xl border border-amber-500/30 bg-surface text-text shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-border bg-surface-2 px-5 py-4">
           <div className="flex items-center gap-2.5">

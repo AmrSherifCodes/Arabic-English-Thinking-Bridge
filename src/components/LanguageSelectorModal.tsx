@@ -94,7 +94,7 @@ export function LanguageSelectorModal({
     if (!isActive) {
       return (
         <span className="mt-1.5 px-2 py-0.5 rounded-full text-[10px] font-black bg-stone-500/15 text-stone-400 border border-stone-500/30">
-          🚧 قريباً
+          🚧 جاري البناء يومياً
         </span>
       );
     }
@@ -107,13 +107,13 @@ export function LanguageSelectorModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-sm transition-opacity animate-in fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 pt-safe pb-safe bg-black/80 backdrop-blur-sm transition-opacity animate-in fade-in"
       dir="rtl"
       role="dialog"
       aria-modal="true"
       aria-labelledby="lang-modal-title"
     >
-      <div className="relative flex max-h-[90vh] w-full max-w-xl flex-col overflow-hidden rounded-3xl border border-border bg-surface text-text shadow-2xl md:max-w-2xl lg:max-w-3xl">
+      <div className="relative flex max-h-[90dvh] w-full max-w-xl flex-col overflow-hidden rounded-3xl border border-border bg-surface text-text shadow-2xl md:max-w-2xl lg:max-w-3xl">
         {/* Header */}
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-surface/95 px-5 sm:px-6 py-4 sm:py-5 backdrop-blur">
           <div className="flex items-center gap-3">
