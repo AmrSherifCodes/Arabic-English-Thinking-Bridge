@@ -2,24 +2,44 @@
   "defaultUrl": "https://tb-eg.vercel.app",
   "presets": {
     "linkedin-en": {
-      "title": "Thinking Bridge v5.0.0 — Free Offline Cognitive Transfer App (14 Languages)",
-      "text": "Just shipped Thinking Bridge v5.0.0 — First Official Stable Release.\n\nBuilt in Alexandria, Egypt for Arabic-speaking STEM students & language learners:\n• 100% Offline-First (PWA + Capacitor Android APK + Desktop)\n• Zero ads, zero paywalls, unlimited free hearts\n• Offline L1 Cognitive Coach + Word-by-Word Diff in Egyptian Arabic & English\n• 14 languages, SM-2 spaced repetition, 356 automated tests + 19 E2E checks\n\nTry it live or grab the v5.0.0 APK: https://tb-eg.vercel.app\nGitHub: https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/tag/v5.0.0\n\n#OpenSource #EdTech #OfflineFirst #PWA #Android"
+      "title": "Thinking Bridge V6 (v6.0.0) — Tuned Like a Six-Cylinder Cognitive Engine",
+      "text": "Just shipped Thinking Bridge V6 (v6.0.0) — The Six-Cylinder Release.\n\nNo cloud bloat, no paywalls, no ads, no infinite loading spinners — just a naturally aspirated 100% offline engine built in Alexandria, Egypt for Arabic-speaking learners.\n\nUnder the hood — all 6 cylinders firing in sync:\n1. Top-5 Languages Track-Verified (EN, DE, FR, ES, TR): 0 gloss/grammar leaks across every dialect including Egyptian Arabic (arz).\n2. O(1) Gloss Lookup Map: Replaced 50k-entry linear scans — full audit dropped from ~66s to <1s.\n3. Smart Dictionary 10/10 Top-1 Precision: Exact match #1 across all 5 languages + clean BCP-47 TTS.\n4. Natural Arabic Copy & 48px Touch Targets: Proper prepositions, RTL arrow mirroring, zero ellipsis truncation.\n5. Honor 400 (DNY-NX9) Hardware-Verified: 0 live CDP/CSP errors, 0 overflow even at 150% font scale, and safeVibrate WebView protection.\n6. Unified Cross-Platform Build: Web PWA + Signed Capacitor Android APK (versionCode 6000) — 365/365 unit tests passing.\n\nWeb App & PWA: https://tb-eg.vercel.app\nV6 Release & Signed APK: https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/tag/v6.0.0\n\n#OpenSource #EdTech #OfflineFirst #Android #PWA #Egypt"
     },
     "linkedin-ar": {
-      "title": "إطلاق النسخة الرسمية v5.0.0 من Thinking Bridge",
-      "text": "تم إطلاق النسخة الرسمية المستقرة الأولى v5.0.0 من تطبيق Thinking Bridge (جسر التفكير)! 🎉🇪🇬\n\nمشروع مجاني 100% ومفتوح المصدر صُمم في الإسكندرية لتدريب العقل العربي على التفكير بالإنجليزية والألمانية و14 لغة بدون ترجمة حرفية.\n• يعمل 100% بدون إنترنت (Web PWA + Android APK + Desktop)\n• بدون إعلانات، بدون اشتراكات، وقلوب لا محدودة (∞)\n• مدرب أخطاء ذكي مجاني بالمصري + مقارنة كلمة بكلمة\n\nجربه الآن: https://tb-eg.vercel.app"
+      "title": "إطلاق فكّر إنجليزي V6 (v6.0.0) — محرك الستة سلندر",
+      "text": "تم إطلاق النسخة الجديدة Thinking Bridge V6 (v6.0.0) — محرك الستة سلندر! 🏎️🇪🇬\n\nفكّر بالإنجليزي والألماني والفرنساوي والإسباني والتركي مباشرة بعقلك العربي — بدون ترجمة حرفية، بدون نت، وبدون إعلانات أو قلوب.\n\nإيه الجديد تحت الكبوت في V6؟\n• فحص شامل لأهم 5 لغات (EN / DE / FR / ES / TR): 0 أخطاء ترجمة أو تسريب قواعد\n• القاموس الذكي 10/10 في المركز الأول لكل الكلمات الأساسية مع نطق سليم\n• محرك بحث O(1) فوري نزّل وقت الفحص من 66 ثانية لأقل من ثانية\n• 365/365 اختبار برمجي ناجح + تجربة حية على Honor 400 بنسبة 0 انحراف حتى مع تكبير الخط 150%\n\nجرّبه الآن أو حمّل ملف الأندرويد APK:\nhttps://tb-eg.vercel.app\nصفحة الإطلاق على GitHub:\nhttps://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/tag/v6.0.0\n\n#مفتوح_المصدر #تعليم #برمجة #أندرويد #الإسكندرية"
     },
     "x-en": {
-      "title": "Thinking Bridge v5.0.0 Official Stable",
-      "text": "Shipped Thinking Bridge v5.0.0 — Duolingo without hearts, ads, or internet.\n14 languages, offline L1 Egyptian Arabic mistake coach + word diff, Android APK + PWA.\n100% free & open source: https://tb-eg.vercel.app"
+      "title": "Thinking Bridge V6 (v6.0.0)",
+      "text": "Thinking Bridge V6 (v6.0.0) just dropped — tuned like a naturally aspirated V6 engine 🏎️\n• Top 5 languages (EN/DE/FR/ES/TR): 0 leaks, 10/10 Top-1 Smart Dict\n• O(1) gloss speedup (66s→<1s) · 365/365 tests\n• 100% offline · 0 ads · ∞ hearts\nhttps://tb-eg.vercel.app"
+    },
+    "x-ar": {
+      "title": "فكّر إنجليزي V6 (v6.0.0)",
+      "text": "انطلاق فكّر إنجليزي V6 (v6.0.0) — محرك الستة سلندر 🏎️🇪🇬\n• 5 لغات موثقة: 0 أخطاء قاموس، 10/10 بحث ذكي\n• سرعة O(1) فورية و365/365 اختبار ناجح\n• مجاني 100% بدون نت أو إعلانات أو قلوب\nhttps://tb-eg.vercel.app"
     },
     "campus-ar": {
-      "title": "جسر التفكير v5.0.0 — تطبيق مجاني بدون نت",
-      "text": "يا جماعة عملت تطبيق مجاني 100% ومفتوح المصدر اسمه Thinking Bridge (جسر التفكير — v5.0.0) لتعليم الإنجليزي والألماني و14 لغة.\nشغال بدون نت جوه المدرجات، بدون إعلانات، وبدون قلوب أو اشتراكات — ولما تغلط بيشرحلك السبب بالمصري ويخليك تصلح الغلطة فوراً.\nجربوه من المتصفح أو حملوا نسخة الأندرويد APK: https://tb-eg.vercel.app"
+      "title": "فكّر إنجليزي V6 (v6.0.0) — مجاني وبدون نت",
+      "text": "يا جماعة نزلنا التحديث الجبار Thinking Bridge V6 (v6.0.0 — نسخة الستة سلندر) 🏎️🔥\n\nتطبيق مصري مجاني 100% ومفتوح المصدر شغال بدون نت جوه المدرجات، بدون إعلانات، وبدون قلوب أو اشتراكات.\n• 5 لغات رئيسية (إنجليزي، ألماني، فرنساوي، إسباني، تركي) مضبوطين بالمللي\n• قاموس ذكي ونطق أوفلاين + مدرب تفكير بيشرح الغلطة بالمصري\n• سريع صاروخ وخالي من أي تقطيع على الموبايل\n\nافتحه من المتصفح أو حمّل الأندرويد APK مجاناً:\nhttps://tb-eg.vercel.app"
     },
     "youtube-ar": {
-      "title": "Thinking Bridge v5.0.0 على قناة @SciAmrSherif",
-      "text": "النسخة الرسمية الأولى v5.0.0 من تطبيق جسر التفكير (Thinking Bridge) متاحة دلوقتي مجاناً وبدون إنترنت! 🔥\n14 لغة + مدرب تفكير بالمصري + مقارنة كلمة بكلمة + قلوب لا محدودة.\nجربه حالاً من هنا: https://tb-eg.vercel.app"
+      "title": "فكّر إنجليزي V6 (v6.0.0) — @SciAmrSherif",
+      "text": "نسخة Thinking Bridge V6 (v6.0.0) وصلت! 🏎️💨\n6 سلندرات شغالين بتناغم تام: 5 لغات موثقة (إنجليزي، ألماني، فرنساوي، إسباني، تركي) + بحث لحظي O(1) + 365 اختبار ناجح + 100% أوفلاين بدون إعلانات أو قلوب!\n\nجرّبه من المتصفح أو حمّل نسخة الأندرويد APK دلوقتي:\nhttps://tb-eg.vercel.app\nملاحظات الإطلاق والـ APK على GitHub:\nhttps://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/tag/v6.0.0"
+    },
+    "facebook-ar": {
+      "title": "تحديث فكّر إنجليزي V6 (v6.0.0) — بدون نت ومجاني 100%",
+      "text": "بعد شغل ومراجعة دقيقة على 365 اختبار وعلى الموبايل الحقيقي، بنعلن عن إطلاق Thinking Bridge V6 (v6.0.0) — نسخة الستة سلندر! 🏎️🇪🇬\n\nلو زهقت من التطبيقات اللي بتوقفك بعد 5 أخطاء أو تطلعلك إعلانات كل دقيقة:\n✅ يعمل 100% بدون إنترنت (تطبيق أندرويد APK + ويب PWA)\n✅ قلوب لا محدودة ومجاني بالكامل بدون أي باقات\n✅ فحص كامل لأهم 5 لغات (إنجليزي، ألماني، فرنساوي، إسباني، تركي) بنسبة 10/10 في القاموس الذكي\n✅ مدرب تفكير ذكي بالمصري يشرحلك تركيب الجملة بدل الحفظ والترجمة الحرفية\n✅ خط واضح ومقروء ومناسب حتى لو مكبّر خط الموبايل 150%\n\nرابط التشغيل والتحميل المباشر:\nhttps://tb-eg.vercel.app\nالكود المصدري مفتوح للجميع (AGPLv3) على GitHub:\nhttps://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/tag/v6.0.0"
+    },
+    "reddit-en": {
+      "title": "Thinking Bridge V6 (v6.0.0) — 100% Offline, Open-Source Arabic→Language Cognitive App (EN/DE/FR/ES/TR)",
+      "text": "Hi everyone! I just shipped Thinking Bridge V6 (v6.0.0) — an open-source, 100% offline-first language-thinking app built in Alexandria, Egypt (inspired by the Language Transfer *Thinking Method*).\n\nWhy 'V6'?\nWe tuned six core subsystems like a six-cylinder engine:\n1. Top-5 languages verified (English, German, French, Spanish, Turkish) across Egyptian & MSA Arabic — 0 gloss or grammar leaks.\n2. Indexed O(1) gloss lookup map replacing linear 50k-entry scans (cut full audit runtime from ~66s to <1s).\n3. Smart Dictionary ranking with 10/10 Top-1 accuracy for everyday core vocabulary + clean BCP-47 offline TTS.\n4. Natural Arabic UX, proper RTL mirroring, and >=48px tap targets.\n5. Live Honor 400 WebView CDP verification across all 5 languages (0 console/CSP errors, 0 overflow at 150% font scale, safeVibrate intervention guard).\n6. 365/365 automated tests passing across PWA and signed Android APK.\n\nZero ads, zero telemetry, unlimited hearts, AGPLv3 code + CC BY-NC-SA 4.0 content.\nLive PWA: https://tb-eg.vercel.app\nRelease & APK: https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/tag/v6.0.0"
+    },
+    "discord-en": {
+      "title": "Thinking Bridge V6 (v6.0.0) — Release Notes",
+      "text": "🏎️ **Thinking Bridge V6 (`v6.0.0`) is LIVE!**\n\nAll 6 cylinders firing in sync — 100% offline, 0 ads, unlimited hearts:\n• **5 Target Languages Verified (`EN`, `DE`, `FR`, `ES`, `TR`)**: `0` gloss/grammar leaks across all Arabic dialects\n• **`O(1)` Gloss Lookup Engine**: Audit runtime cut from `~66s` → `<1s`\n• **Smart Dictionary `10/10` Top-1**: Clean exact matches + BCP-47 TTS\n• **Device-Verified (Honor 400)**: `0` CDP/CSP errors & `0` overflow at `150%` font scale\n• **`365/365` Automated Tests Green**\n\n🌐 Web / PWA: https://tb-eg.vercel.app\n📦 Signed Android APK: https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/tag/v6.0.0"
+    },
+    "telegram-ar": {
+      "title": "فكّر إنجليزي V6 (v6.0.0)",
+      "text": "🏎️ انطلاق التحديث الكبير: فكّر إنجليزي V6 (v6.0.0)\n\n• 5 لغات موثقة بالكامل (الإنجليزي، الألماني، الفرنساوي، الإسباني، التركي) بدون أخطاء ترجمة\n• بحث لحظي O(1) في القاموس الذكي بنسبة 10/10 في النتائج الأولى مع نطق سليم\n• يعمل 100% بدون إنترنت، بدون إعلانات، وقلوب لا محدودة\n• متوافق تماماً مع الهواتف وتكبير الخط 150%\n\n🌐 التشغيل الفوري عبر المتصفح (PWA):\nhttps://tb-eg.vercel.app\n📱 تحميل تطبيق الأندرويد (APK) وملاحظات الإصدار:\nhttps://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/tag/v6.0.0"
     }
   }
 }

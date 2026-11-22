@@ -214,10 +214,10 @@ export function LanguageSelectorModal({
                           <LanguageFlag code={code} size={22} />
                           {isSelected && <Check className="w-4 h-4 text-emerald-400 shrink-0" />}
                         </div>
-                        <span className="font-black text-text text-xs sm:text-sm block truncate w-full">
+                        <span className="font-black text-text text-xs sm:text-sm block w-full break-words">
                           {meta.nameAr}
                         </span>
-                        <span className="text-[10px] text-muted font-semibold block truncate w-full mt-0.5">
+                        <span className="text-[10px] text-muted font-semibold block w-full mt-0.5 break-words">
                           {meta.nameNative} ({meta.nameEn})
                         </span>
                         {renderAccessPill(code)}
@@ -236,19 +236,19 @@ export function LanguageSelectorModal({
                   <button
                     type="button"
                     onClick={handleCopyShareLink}
-                    className="inline-flex items-center gap-1 text-xs text-muted hover:text-text underline cursor-pointer"
+                    className="inline-flex items-center gap-1 min-h-[48px] px-2 text-xs text-muted hover:text-text underline cursor-pointer"
                     title="مشاركة رابط المسار"
                   >
                     <Share2 className="w-3.5 h-3.5" />
                     <span>رابط مشاركة</span>
                   </button>
                 </div>
-                <div className="text-xs font-black text-text flex items-center gap-2 flex-wrap" dir="ltr">
+                <div className="text-xs font-black text-text flex items-center gap-2 flex-wrap" dir="rtl">
                   <div className="flex items-center gap-1.5 bg-surface px-2.5 py-1 rounded-xl border border-border">
                     <LanguageFlag code={selectedSource} size={18} />
                     <span>{selectedSource === 'arz' ? 'العربية' : 'English'}</span>
                   </div>
-                  <ArrowRight size={14} className="text-amber-400 shrink-0" />
+                  <ArrowRight size={14} className="text-amber-400 shrink-0 rotate-180" />
                   <div className="flex items-center gap-1.5 bg-emerald-500/15 text-emerald-300 px-2.5 py-1 rounded-xl border border-emerald-500/30">
                     <LanguageFlag code={selectedTarget} size={18} />
                     <span>{TARGET_LANGUAGE_META[selectedTarget]?.nameAr} ({TARGET_LANGUAGE_META[selectedTarget]?.nameNative})</span>

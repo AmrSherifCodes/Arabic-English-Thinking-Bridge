@@ -2,7 +2,7 @@ import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
-let pkgVersion = 'v5.0.0';
+let pkgVersion = 'v6.0.0';
 try {
   const __dirname = dirname(fileURLToPath(import.meta.url));
   const pkg = JSON.parse(readFileSync(join(__dirname, '../package.json'), 'utf8'));
@@ -10,7 +10,7 @@ try {
     pkgVersion = `v${pkg.version.replace(/^v/, '')}`;
   }
 } catch {
-  pkgVersion = process.env.npm_package_version ? `v${process.env.npm_package_version.replace(/^v/, '')}` : 'v5.0.0';
+  pkgVersion = process.env.npm_package_version ? `v${process.env.npm_package_version.replace(/^v/, '')}` : 'v6.0.0';
 }
 
 export default function handler(req, res) {

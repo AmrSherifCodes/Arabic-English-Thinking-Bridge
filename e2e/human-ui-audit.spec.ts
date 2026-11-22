@@ -183,7 +183,7 @@ for (const vp of viewports) {
   });
 }
 
-test.describe('v5.0.0 Official Stable Self-Scan & Regression Fixes', () => {
+test.describe('v6.0.0 V6 Edition Self-Scan & Regression Fixes', () => {
   test.use({ viewport: { width: 1280, height: 800 } });
 
   test('A. Bright default UI + one-time dismissible YouTube popup with big X button', async ({ page }) => {
@@ -337,7 +337,7 @@ test.describe('v5.0.0 Official Stable Self-Scan & Regression Fixes', () => {
     // 1. Landing /
     await page.goto('/');
     await page.waitForLoadState('domcontentloaded');
-    await expect(page.locator('text=5.0.0').first()).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('text=6.0.0').first()).toBeVisible({ timeout: 10000 });
     await assertNoOverflow();
 
     // 2. Exam /exam

@@ -132,15 +132,20 @@ export function buildFriendShareMessage(customAppUrl?: string): string {
 export const mailLink = (msg: string) =>
   `mailto:?subject=${encodeURIComponent('Thinking English™ feedback')}&body=${encodeURIComponent(msg)}`;
 
+export function safeVibrate(pattern: VibratePattern): void {
+  try {
+    if (typeof navigator === 'undefined' || typeof navigator.vibrate !== 'function') return;
+    const ua = (navigator as Navigator & { userActivation?: { hasBeenActive?: boolean } }).userActivation;
+    if (ua && !ua.hasBeenActive) return;
+    navigator.vibrate(pattern);
+  } catch {}
+}
+
 export async function triggerHapticImpact(style: ImpactStyle = ImpactStyle.Light) {
   try {
     await Haptics.impact({ style });
   } catch {
-    try {
-      if (typeof navigator !== 'undefined' && navigator.vibrate) {
-        navigator.vibrate(style === ImpactStyle.Heavy ? 40 : 15);
-      }
-    } catch {}
+    safeVibrate(style === ImpactStyle.Heavy ? 40 : 15);
   }
 }
 
@@ -148,11 +153,7 @@ export async function triggerHapticNotification(type: NotificationType = Notific
   try {
     await Haptics.notification({ type });
   } catch {
-    try {
-      if (typeof navigator !== 'undefined' && navigator.vibrate) {
-        navigator.vibrate(type === NotificationType.Success ? [20, 40, 20] : [50, 50, 50]);
-      }
-    } catch {}
+    safeVibrate(type === NotificationType.Success ? [20, 40, 20] : [50, 50, 50]);
   }
 }
 

@@ -1,11 +1,22 @@
 import { Phase, SourceLanguage } from '../../types';
 
+function isArabicSource(source: SourceLanguage): boolean {
+  return (
+    source === 'ar' ||
+    source === 'arz' ||
+    source === 'apc' ||
+    source === 'afb' ||
+    source === 'ary' ||
+    String(source).startsWith('ar')
+  );
+}
+
 function sourceThought(source: SourceLanguage, ar: string, en: string): string {
-  return source === 'ar' ? ar : en;
+  return isArabicSource(source) ? ar : en;
 }
 
 export function getFrenchPhases(source: SourceLanguage = 'ar'): Phase[] {
-  const isAr = source === 'ar';
+  const isAr = isArabicSource(source);
 
   return [
     {

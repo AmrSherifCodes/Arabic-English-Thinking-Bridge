@@ -1,10 +1,97 @@
 import { SourceLanguage, TargetLanguage } from '../../types';
+import { normalizeTtsLang } from '../../utils/offlineTts';
 
 export * from './types';
 import { DictWordEntry } from './types';
 import { ARABIC_DICTIONARY } from './arabicDictionary';
 
 const loadedDictionaryCache: Record<string, DictWordEntry[]> = {};
+
+const CORE_TOP5_DICTIONARY_ENTRIES: Record<string, Array<{
+  word: string;
+  arabicTranslation: string;
+  englishTranslation: string;
+  phoneticAr: string;
+  partOfSpeech: string;
+  isCore: boolean;
+}>> = {
+  en: [
+    { word: 'water', arabicTranslation: 'ماء / مية', englishTranslation: 'water', phoneticAr: 'ووتر', partOfSpeech: 'noun', isCore: true },
+    { word: 'book', arabicTranslation: 'كتاب', englishTranslation: 'book', phoneticAr: 'بوك', partOfSpeech: 'noun', isCore: true },
+    { word: 'house', arabicTranslation: 'منزل / بيت', englishTranslation: 'house', phoneticAr: 'هاوس', partOfSpeech: 'noun', isCore: true },
+    { word: 'hello', arabicTranslation: 'مرحباً / أهلاً', englishTranslation: 'hello', phoneticAr: 'هالو', partOfSpeech: 'phrase', isCore: true },
+    { word: 'thank you', arabicTranslation: 'شكراً جزيلاً', englishTranslation: 'thank you', phoneticAr: 'ثانك يو', partOfSpeech: 'phrase', isCore: true },
+    { word: 'friend', arabicTranslation: 'صديق', englishTranslation: 'friend', phoneticAr: 'فريند', partOfSpeech: 'noun', isCore: true },
+    { word: 'time', arabicTranslation: 'وقت', englishTranslation: 'time', phoneticAr: 'تايم', partOfSpeech: 'noun', isCore: true },
+    { word: 'good', arabicTranslation: 'جيد / كويس', englishTranslation: 'good', phoneticAr: 'جود', partOfSpeech: 'adjective', isCore: true },
+    { word: 'eat', arabicTranslation: 'يأكل', englishTranslation: 'eat', phoneticAr: 'إيت', partOfSpeech: 'verb', isCore: true },
+    { word: 'go', arabicTranslation: 'يذهب', englishTranslation: 'go', phoneticAr: 'جو', partOfSpeech: 'verb', isCore: true },
+  ],
+  de: [
+    { word: 'Wasser', arabicTranslation: 'ماء', englishTranslation: 'water', phoneticAr: 'ڤاسر', partOfSpeech: 'noun', isCore: true },
+    { word: 'Buch', arabicTranslation: 'كتاب', englishTranslation: 'book', phoneticAr: 'بوخ', partOfSpeech: 'noun', isCore: true },
+    { word: 'Haus', arabicTranslation: 'منزل / بيت', englishTranslation: 'house', phoneticAr: 'هاوس', partOfSpeech: 'noun', isCore: true },
+    { word: 'Hallo', arabicTranslation: 'مرحباً / أهلاً', englishTranslation: 'hello', phoneticAr: 'هالو', partOfSpeech: 'phrase', isCore: true },
+    { word: 'Danke', arabicTranslation: 'شكراً', englishTranslation: 'thank you', phoneticAr: 'دانكه', partOfSpeech: 'phrase', isCore: true },
+    { word: 'Freund', arabicTranslation: 'صديق', englishTranslation: 'friend', phoneticAr: 'فرويند', partOfSpeech: 'noun', isCore: true },
+    { word: 'Zeit', arabicTranslation: 'وقت', englishTranslation: 'time', phoneticAr: 'تسايت', partOfSpeech: 'noun', isCore: true },
+    { word: 'gut', arabicTranslation: 'جيد', englishTranslation: 'good', phoneticAr: 'جوت', partOfSpeech: 'adjective', isCore: true },
+    { word: 'essen', arabicTranslation: 'يأكل', englishTranslation: 'eat', phoneticAr: 'إيسن', partOfSpeech: 'verb', isCore: true },
+    { word: 'gehen', arabicTranslation: 'يذهب', englishTranslation: 'go', phoneticAr: 'جيهن', partOfSpeech: 'verb', isCore: true },
+  ],
+  fr: [
+    { word: 'eau', arabicTranslation: 'ماء', englishTranslation: 'water', phoneticAr: 'أو', partOfSpeech: 'noun', isCore: true },
+    { word: 'livre', arabicTranslation: 'كتاب', englishTranslation: 'book', phoneticAr: 'ليڤر', partOfSpeech: 'noun', isCore: true },
+    { word: 'maison', arabicTranslation: 'منزل / بيت', englishTranslation: 'house', phoneticAr: 'ميزون', partOfSpeech: 'noun', isCore: true },
+    { word: 'bonjour', arabicTranslation: 'مرحباً / صباح الخير', englishTranslation: 'hello', phoneticAr: 'بونجور', partOfSpeech: 'phrase', isCore: true },
+    { word: 'merci', arabicTranslation: 'شكراً', englishTranslation: 'thank you', phoneticAr: 'ميرسي', partOfSpeech: 'phrase', isCore: true },
+    { word: 'ami', arabicTranslation: 'صديق', englishTranslation: 'friend', phoneticAr: 'أمي', partOfSpeech: 'noun', isCore: true },
+    { word: 'temps', arabicTranslation: 'وقت', englishTranslation: 'time', phoneticAr: 'تون', partOfSpeech: 'noun', isCore: true },
+    { word: 'bon', arabicTranslation: 'جيد', englishTranslation: 'good', phoneticAr: 'بون', partOfSpeech: 'adjective', isCore: true },
+    { word: 'manger', arabicTranslation: 'يأكل', englishTranslation: 'eat', phoneticAr: 'مونجيه', partOfSpeech: 'verb', isCore: true },
+    { word: 'aller', arabicTranslation: 'يذهب', englishTranslation: 'go', phoneticAr: 'أليه', partOfSpeech: 'verb', isCore: true },
+  ],
+  es: [
+    { word: 'agua', arabicTranslation: 'ماء', englishTranslation: 'water', phoneticAr: 'أغوا', partOfSpeech: 'noun', isCore: true },
+    { word: 'libro', arabicTranslation: 'كتاب', englishTranslation: 'book', phoneticAr: 'ليبرو', partOfSpeech: 'noun', isCore: true },
+    { word: 'casa', arabicTranslation: 'منزل / بيت', englishTranslation: 'house', phoneticAr: 'كاسا', partOfSpeech: 'noun', isCore: true },
+    { word: 'hola', arabicTranslation: 'مرحباً / أهلاً', englishTranslation: 'hello', phoneticAr: 'أولا', partOfSpeech: 'phrase', isCore: true },
+    { word: 'gracias', arabicTranslation: 'شكراً', englishTranslation: 'thank you', phoneticAr: 'جراثياس', partOfSpeech: 'phrase', isCore: true },
+    { word: 'amigo', arabicTranslation: 'صديق', englishTranslation: 'friend', phoneticAr: 'أميغو', partOfSpeech: 'noun', isCore: true },
+    { word: 'tiempo', arabicTranslation: 'وقت', englishTranslation: 'time', phoneticAr: 'تييمبو', partOfSpeech: 'noun', isCore: true },
+    { word: 'bueno', arabicTranslation: 'جيد', englishTranslation: 'good', phoneticAr: 'بوينو', partOfSpeech: 'adjective', isCore: true },
+    { word: 'comer', arabicTranslation: 'يأكل', englishTranslation: 'eat', phoneticAr: 'كومير', partOfSpeech: 'verb', isCore: true },
+    { word: 'ir', arabicTranslation: 'يذهب', englishTranslation: 'go', phoneticAr: 'إير', partOfSpeech: 'verb', isCore: true },
+    { word: 'hablar', arabicTranslation: 'يتحدث / يتكلم', englishTranslation: 'speak', phoneticAr: 'أبلار', partOfSpeech: 'verb', isCore: true },
+  ],
+  tr: [
+    { word: 'su', arabicTranslation: 'ماء / مية', englishTranslation: 'water', phoneticAr: 'سو', partOfSpeech: 'noun', isCore: true },
+    { word: 'kitap', arabicTranslation: 'كتاب', englishTranslation: 'book', phoneticAr: 'كيتاب', partOfSpeech: 'noun', isCore: true },
+    { word: 'ev', arabicTranslation: 'منزل / بيت', englishTranslation: 'house', phoneticAr: 'إيڤ', partOfSpeech: 'noun', isCore: true },
+    { word: 'merhaba', arabicTranslation: 'مرحباً / أهلاً', englishTranslation: 'hello', phoneticAr: 'مرحبا', partOfSpeech: 'phrase', isCore: true },
+    { word: 'teşekkür ederim', arabicTranslation: 'شكراً جزيلاً', englishTranslation: 'thank you', phoneticAr: 'تيشكور إيديريم', partOfSpeech: 'phrase', isCore: true },
+    { word: 'arkadaş', arabicTranslation: 'صديق', englishTranslation: 'friend', phoneticAr: 'أركاداش', partOfSpeech: 'noun', isCore: true },
+    { word: 'zaman', arabicTranslation: 'وقت', englishTranslation: 'time', phoneticAr: 'زامان', partOfSpeech: 'noun', isCore: true },
+    { word: 'iyi', arabicTranslation: 'جيد', englishTranslation: 'good', phoneticAr: 'إيي', partOfSpeech: 'adjective', isCore: true },
+    { word: 'yemek', arabicTranslation: 'يأكل / طعام', englishTranslation: 'eat', phoneticAr: 'ييميك', partOfSpeech: 'verb', isCore: true },
+    { word: 'gitmek', arabicTranslation: 'يذهب', englishTranslation: 'go', phoneticAr: 'جيتميك', partOfSpeech: 'verb', isCore: true },
+  ],
+};
+
+function getCoreEntriesForLang(targetLang: string): DictWordEntry[] {
+  const list = CORE_TOP5_DICTIONARY_ENTRIES[targetLang] || [];
+  return list.map((item, idx) =>
+    normalizeDictEntry(
+      {
+        ...item,
+        translation: `${item.arabicTranslation} (${item.englishTranslation})`,
+        arabicWord: item.arabicTranslation,
+      },
+      targetLang,
+      idx
+    )
+  );
+}
 
 // Script & Transliteration Mappings
 const RU_MAP: Record<string, string> = {
@@ -61,6 +148,51 @@ export function derivePhonetic(word: string, lang: string): string {
   if (lang === 'zh') return `Pinyin: ${word}`;
   if (lang === 'ja') return `Kana: ${word}`;
   return `[${word}]`;
+}
+
+export function sanitizeDictionaryTranslation(raw: string): string {
+  if (!raw) return '';
+  const cleaned = raw
+    .replace(/\bverbal noun of\b/gi, 'act/noun')
+    .replace(/\bplural of\b/gi, 'multiple')
+    .replace(/\binflection of\b/gi, 'form')
+    .replace(/\bdiminutive of\b/gi, 'small')
+    .replace(/\balternative (?:form|spelling) of\b/gi, 'variant')
+    .replace(/\bapocopic form of\b/gi, 'short form')
+    .replace(/\bpast participle of\b/gi, 'past form')
+    .replace(/\bpresent participle of\b/gi, 'active form')
+    .replace(/\b(?:first|second|third)-person singular\b/gi, 'conjugated')
+    .replace(/\b(?:feminine|masculine) singular of\b/gi, 'singular')
+    .replace(/;\s*;/g, ';')
+    .replace(/^[;,\s]+|[;,\s]+$/g, '')
+    .trim();
+  return cleaned || 'meaning';
+}
+
+export function suppressRedundantPhonetic(rawPhonetic: string, word: string): string {
+  if (!rawPhonetic || !word) return '';
+  const cleanWord = word.trim();
+  let p = rawPhonetic.trim();
+  const wLower = cleanWord.toLowerCase();
+  const pLower = p.toLowerCase();
+  if (
+    pLower === wLower ||
+    pLower === `[${wLower}]` ||
+    pLower === `(${wLower})` ||
+    pLower === `([${wLower}])`
+  ) {
+    return '';
+  }
+  // Strip trailing "(word)" or "[word]" if already shown next to word
+  const escapedWord = cleanWord.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  p = p
+    .replace(new RegExp(`\\s*\\(${escapedWord}\\)\\s*$`, 'i'), '')
+    .replace(new RegExp(`\\s*\\[${escapedWord}\\]\\s*$`, 'i'), '')
+    .trim();
+  if (!p || p.toLowerCase() === wLower || p.toLowerCase() === `[${wLower}]`) {
+    return '';
+  }
+  return p;
 }
 
 export function derivePartOfSpeech(word: string, translation: string, lang: string): string {
@@ -134,7 +266,7 @@ export function normalizeDictEntry(entry: any, targetLang: string, index: number
     ''
   ).trim();
 
-  const translation = (
+  const rawTranslation = (
     entry.translation ||
     entry.arabicWord ||
     entry.arabicTranslation ||
@@ -144,6 +276,7 @@ export function normalizeDictEntry(entry: any, targetLang: string, index: number
     entry.sourceTerm ||
     ''
   ).trim();
+  const translation = sanitizeDictionaryTranslation(rawTranslation);
 
   let phonetic = (
     entry.phonetic ||
@@ -271,22 +404,27 @@ export const DICTIONARY_LOADERS: Record<string, () => Promise<DictWordEntry[]>> 
 export async function getTargetDictionaryAsync(targetLang: string): Promise<DictWordEntry[]> {
   const match = loadedDictionaryCache[targetLang];
   if (match) return match;
+  const coreEntries = getCoreEntriesForLang(targetLang);
   if (targetLang === 'en' || targetLang === 'ar') {
-    const dict = ARABIC_DICTIONARY.map((e, idx) => normalizeDictEntry(e, targetLang, idx));
+    const dict = [
+      ...coreEntries,
+      ...ARABIC_DICTIONARY.map((e, idx) => normalizeDictEntry(e, targetLang, idx + coreEntries.length)),
+    ];
     loadedDictionaryCache[targetLang] = dict;
     return dict;
   }
   const loader = DICTIONARY_LOADERS[targetLang];
   if (loader) {
     try {
-      const dict = await loader();
+      const loaded = await loader();
+      const dict = [...coreEntries, ...loaded];
       loadedDictionaryCache[targetLang] = dict;
       return dict;
     } catch (err) {
       console.warn(`[DictionaryLoader] Failed to load dictionary for ${targetLang}`, err);
     }
   }
-  return [];
+  return coreEntries;
 }
 
 export function getTargetDictionary(targetLang: string): DictWordEntry[] {
@@ -317,24 +455,125 @@ function extractEntryTranslation(entry: any, sourceLang: string): string {
   );
 }
 
-function scoreDictionaryMatch(word: string, translation: string, clean: string): number {
-  const w = word.toLowerCase().trim();
-  const t = translation.toLowerCase().trim();
-  if (!w && !t) return 0;
-  if (w === clean || t === clean) return 100;
+export function scoreDictionaryMatch(
+  word: string,
+  translation: string,
+  clean: string,
+  entry?: any
+): number {
+  const q = clean.toLowerCase().trim();
+  if (!q) return 0;
+  const w = (word || '').toLowerCase().trim();
+  const wNoArticle = w.replace(/^(der|die|das|el|la|los|las|le|les|un|une)\s+/i, '').trim();
+  const t = (translation || '').toLowerCase().trim();
+  const enT = (entry?.englishTranslation || '').toLowerCase().trim();
+  const arT = (entry?.arabicTranslation || entry?.arabicWord || '').toLowerCase().trim();
+  const isCore = Boolean(entry?.isCore);
 
-  const senses = t
-    .split(/[;,]/)
-    .map((s) => s.replace(/^\([^)]*\)\s*/, '').replace(/^to\s+/, '').trim())
-    .filter(Boolean);
+  if (!w && !t && !enT && !arT) return 0;
 
-  if (senses[0] === clean) return 95;
-  if (senses.includes(clean)) return 85 - Math.min(20, Math.floor(t.length / 20));
-  if (w.startsWith(clean)) return 75;
-  if (senses.some((s) => s.startsWith(clean))) return 65 - Math.min(20, Math.floor(t.length / 20));
-  if (w.includes(clean)) return 50;
-  if (t.includes(clean)) return 30 - Math.min(20, Math.floor(t.length / 15));
+  if (w === q || wNoArticle === q || t === q || enT === q || arT === q) {
+    return isCore ? 110 : 100;
+  }
+
+  const allSenses: string[] = ([t, enT, arT] as string[])
+    .filter(Boolean)
+    .flatMap((str: string) =>
+      str
+        .split(/[;,/|]/)
+        .map((s: string) => s.replace(/\([^)]*\)/g, '').replace(/^to\s+/, '').trim())
+        .filter(Boolean)
+    );
+
+  if (allSenses[0] === q || enT.replace(/^to\s+/, '') === q) {
+    return isCore ? 105 : 95;
+  }
+  if (allSenses.includes(q)) {
+    return (isCore ? 95 : 85) - Math.min(20, Math.floor(t.length / 20));
+  }
+  if (w.startsWith(q) || wNoArticle.startsWith(q)) return isCore ? 80 : 75;
+  if (allSenses.some((s: string) => s.startsWith(q))) {
+    return 65 - Math.min(20, Math.floor(t.length / 20));
+  }
+  if (w.includes(q)) return 50;
+  if (t.includes(q) || enT.includes(q) || arT.includes(q)) {
+    return 30 - Math.min(20, Math.floor(t.length / 15));
+  }
   return 0;
+}
+
+export interface FormattedDictionaryUiEntry {
+  word: string;
+  targetTerm: string;
+  translation: string;
+  phonetic: string;
+  audioText: string;
+  ttsLocale: string;
+}
+
+export function formatDictionaryEntryForUi(
+  entry: any,
+  targetLang: string = 'en'
+): FormattedDictionaryUiEntry {
+  const rawWord = (entry?.word || entry?.term || entry?.germanWord || entry?.arabicWord || '').trim();
+  const rawTranslation = sanitizeDictionaryTranslation(
+    (entry?.translation || entry?.arabicWord || entry?.englishTranslation || '').trim()
+  );
+  const isWordArabic = /[\u0600-\u06FF]/.test(rawWord);
+
+  let targetTerm = rawWord;
+  if (targetLang === 'en' && isWordArabic) {
+    const candidateEn = (entry?.englishTranslation && !/[\u0600-\u06FF]/.test(entry.englishTranslation)
+      ? entry.englishTranslation
+      : rawTranslation
+    )
+      .split(/[;,()]/)[0]
+      .replace(/^to\s+/i, '')
+      .trim();
+    if (candidateEn) {
+      targetTerm = candidateEn;
+    }
+  }
+
+  const rawPhonetic = (
+    entry?.phoneticAr ||
+    entry?.phonetic ||
+    entry?.reading ||
+    entry?.romaji ||
+    ''
+  ).trim();
+  const phonetic = suppressRedundantPhonetic(rawPhonetic, rawWord)
+    ? suppressRedundantPhonetic(rawPhonetic, targetTerm)
+    : '';
+
+  const audioText = (targetTerm || rawWord)
+    .replace(/\s*\([^)]*\)/g, '')
+    .replace(/\s*\[[^\]]*\]/g, '')
+    .trim();
+
+  const ttsLocale = normalizeTtsLang(targetLang, audioText);
+
+  return {
+    word: rawWord,
+    targetTerm,
+    translation: rawTranslation,
+    phonetic,
+    audioText,
+    ttsLocale,
+  };
+}
+
+function entryMatchesSearch(entry: any, clean: string, sourceLang: string): boolean {
+  const word = extractEntryWord(entry).toLowerCase();
+  const translation = extractEntryTranslation(entry, sourceLang).toLowerCase();
+  const enTrans = (entry.englishTranslation || entry.englishCognate || '').toLowerCase();
+  const arTrans = (entry.arabicTranslation || entry.arabicWord || '').toLowerCase();
+  return (
+    word.includes(clean) ||
+    translation.includes(clean) ||
+    enTrans.includes(clean) ||
+    arTrans.includes(clean)
+  );
 }
 
 export async function searchTargetDictionaryAsync(
@@ -347,14 +586,10 @@ export async function searchTargetDictionaryAsync(
   const clean = query.trim().toLowerCase();
 
   return dict
-    .filter((entry) => {
-      const word = extractEntryWord(entry);
-      const translation = extractEntryTranslation(entry, sourceLang);
-      return word.toLowerCase().includes(clean) || translation.toLowerCase().includes(clean);
-    })
+    .filter((entry) => entryMatchesSearch(entry, clean, sourceLang))
     .sort((a, b) => {
-      const scoreA = scoreDictionaryMatch(extractEntryWord(a), extractEntryTranslation(a, sourceLang), clean);
-      const scoreB = scoreDictionaryMatch(extractEntryWord(b), extractEntryTranslation(b, sourceLang), clean);
+      const scoreA = scoreDictionaryMatch(extractEntryWord(a), extractEntryTranslation(a, sourceLang), clean, a);
+      const scoreB = scoreDictionaryMatch(extractEntryWord(b), extractEntryTranslation(b, sourceLang), clean, b);
       return scoreB - scoreA;
     });
 }
@@ -369,14 +604,10 @@ export function searchTargetDictionary(
   const dict = getTargetDictionary(targetLang);
 
   return dict
-    .filter((entry) => {
-      const word = extractEntryWord(entry);
-      const translation = extractEntryTranslation(entry, sourceLang);
-      return word.toLowerCase().includes(clean) || translation.toLowerCase().includes(clean);
-    })
+    .filter((entry) => entryMatchesSearch(entry, clean, sourceLang))
     .sort((a, b) => {
-      const scoreA = scoreDictionaryMatch(extractEntryWord(a), extractEntryTranslation(a, sourceLang), clean);
-      const scoreB = scoreDictionaryMatch(extractEntryWord(b), extractEntryTranslation(b, sourceLang), clean);
+      const scoreA = scoreDictionaryMatch(extractEntryWord(a), extractEntryTranslation(a, sourceLang), clean, a);
+      const scoreB = scoreDictionaryMatch(extractEntryWord(b), extractEntryTranslation(b, sourceLang), clean, b);
       return scoreB - scoreA;
     });
 }

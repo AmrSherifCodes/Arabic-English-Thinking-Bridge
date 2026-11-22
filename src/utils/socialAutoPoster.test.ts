@@ -8,7 +8,7 @@ import {
 } from './socialAutoPoster';
 
 test('truncateForPlatform enforces X and Bluesky length caps while preserving URL', () => {
-  const longText = 'Thinking Bridge v5.0.0 solves Year-1 scientific language shock! '.repeat(10).trim();
+  const longText = 'Thinking Bridge V6 (v6.0.0) solves Year-1 scientific language shock! '.repeat(10).trim();
   const xPost = truncateForPlatform(longText, 'x', DEFAULT_APP_URL);
   assert.ok(xPost.length <= 280, `Expected <= 280 chars for X, got ${xPost.length}`);
   assert.ok(xPost.includes(DEFAULT_APP_URL), 'X post must preserve target URL');

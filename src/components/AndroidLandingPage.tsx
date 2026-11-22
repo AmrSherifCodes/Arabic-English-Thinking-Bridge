@@ -20,7 +20,7 @@ import './android-landing-page.css';
 
 const WEB_APP_URL = '/app';
 const GITHUB_URL = 'https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge';
-const APK_URL = 'https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v5.0.0/ThinkingBridge-v5.0.0.apk';
+const APK_URL = 'https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v6.0.0/ThinkingBridge-v6.0.0.apk';
 const X_URL = 'https://x.com/SciAmrSherif';
 
 const FEATURES = [
@@ -56,7 +56,7 @@ const FEATURES = [
 
 const QUICK_SPECS = [
   { label: 'إصدار الأندرويد', value: 'Android 8.0+' },
-  { label: 'حجم التطبيق', value: '112 MB' },
+  { label: 'حجم التطبيق', value: '106 MB' },
   { label: 'استهلاك البيانات', value: '0 MB' },
   { label: 'التراخيص', value: 'AGPLv3 / CC BY-NC-SA' },
 ];
@@ -143,11 +143,11 @@ export function AndroidLandingPage() {
             <a
               className="android-btn android-btn-secondary"
               href={APK_URL}
-              download="ThinkingBridge-v5.0.0.apk"
+              download="ThinkingBridge-v6.0.0.apk"
               aria-label="تحميل تطبيق الأندرويد المباشر APK"
             >
               <Download size={18} aria-hidden="true" />
-              <span>تحميل تطبيق APK (v5.0.0 Official Stable · 112 MB)</span>
+              <span>تحميل تطبيق APK (V6 · v6.0.0 · 106 MB)</span>
             </a>
           </div>
 

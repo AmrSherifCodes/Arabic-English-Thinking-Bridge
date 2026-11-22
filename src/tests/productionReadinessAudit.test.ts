@@ -10,7 +10,7 @@ import type { UserProfile } from '../types';
 
 const ROOT = process.cwd();
 
-describe('Production Readiness & Human-Use Audit Regressions (v5.0.0 Official Stable)', () => {
+describe('Production Readiness & Human-Use Audit Regressions (v6.0.0 V6 Edition)', () => {
   it('1. Egyptian-dialect users receive valid flashcard keys and card data for German and Turkish decks', () => {
     const egyptianProfile: UserProfile = {
       language: 'arabic',
@@ -65,7 +65,7 @@ describe('Production Readiness & Human-Use Audit Regressions (v5.0.0 Official St
     assert.equal(normalizeTtsLang('tr'), 'tr-TR');
   });
 
-  it('4. All APK download links and manifests align cleanly on v5.0.0/ThinkingBridge-v5.0.0.apk (versionCode 5000)', () => {
+  it('4. All APK download links and manifests align cleanly on v6.0.0/ThinkingBridge-v6.0.0.apk (versionCode 6000)', () => {
     const filesToCheck = [
       'index.html',
       'public/download.html',
@@ -80,18 +80,18 @@ describe('Production Readiness & Human-Use Audit Regressions (v5.0.0 Official St
       for (const match of matches) {
         assert.equal(
           match,
-          'releases/download/v5.0.0/ThinkingBridge-v5.0.0.apk',
+          'releases/download/v6.0.0/ThinkingBridge-v6.0.0.apk',
           `Outdated APK URL "${match}" found in ${relPath}`
         );
       }
     }
 
     const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'));
-    assert.equal(pkg.version, '5.0.0', 'package.json version must be 5.0.0');
+    assert.equal(pkg.version, '6.0.0', 'package.json version must be 6.0.0');
 
     const gradleContent = fs.readFileSync(path.join(ROOT, 'android/app/build.gradle'), 'utf8');
-    assert.ok(gradleContent.includes('versionCode 5000'), 'build.gradle must specify versionCode 5000');
-    assert.ok(gradleContent.includes('versionName "5.0.0"'), 'build.gradle must specify versionName "5.0.0"');
+    assert.ok(gradleContent.includes('versionCode 6000'), 'build.gradle must specify versionCode 6000');
+    assert.ok(gradleContent.includes('versionName "6.0.0"'), 'build.gradle must specify versionName "6.0.0"');
 
     const qrPath = path.join(ROOT, 'public/paypal-qr.png');
     assert.ok(fs.existsSync(qrPath), 'public/paypal-qr.png must exist');

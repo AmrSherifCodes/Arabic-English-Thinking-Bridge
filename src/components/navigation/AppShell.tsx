@@ -64,7 +64,7 @@ function YoutubeSupporterPill({
     <button
       type="button"
       onClick={handleClick}
-      className="px-2.5 py-2 min-h-[44px] rounded-xl text-[11px] font-extrabold flex items-center justify-center gap-1.5 transition shadow-sm shrink-0 cursor-pointer active:scale-95 bg-amber-500/15 text-amber-300 border border-amber-500/35 hover:bg-amber-500/25"
+      className="px-2.5 py-2 min-h-[48px] rounded-xl text-[11px] font-extrabold flex items-center justify-center gap-1.5 transition shadow-sm shrink-0 cursor-pointer active:scale-95 bg-amber-500/15 text-amber-300 border border-amber-500/35 hover:bg-amber-500/25"
       title={isArabic ? 'قناة @sciamrsherif على يوتيوب' : '@sciamrsherif YouTube channel'}
     >
       <span className="truncate">
@@ -228,7 +228,7 @@ export function AppShell({
                 <button
                   type="button"
                   onClick={onOpenLanding}
-                  className="md:hidden flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-black transition active:scale-95 shrink-0 shadow-md shadow-amber-500/20 cursor-pointer"
+                  className="md:hidden flex items-center gap-1.5 px-3 py-2 min-h-[48px] rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-black transition active:scale-95 shrink-0 shadow-md shadow-amber-500/20 cursor-pointer"
                   title={isArabic ? 'العودة للصفحة الرئيسية' : 'Go back to Landing Page'}
                 >
                   <Home size={14} className="text-slate-950 shrink-0" />
@@ -261,7 +261,7 @@ export function AppShell({
                   triggerHapticImpact();
                   onOpenLanguageSelector?.();
                 }}
-                className="flex items-center gap-1.5 px-2.5 py-2 min-h-[44px] rounded-xl bg-[#0B1C33] border border-cyan-500/40 hover:border-cyan-400 text-cyan-300 hover:bg-cyan-500/20 text-xs font-black transition active:scale-95 shrink-0 shadow-sm cursor-pointer"
+                className="flex items-center gap-1.5 px-2.5 py-2 min-h-[48px] rounded-xl bg-[#0B1C33] border border-cyan-500/40 hover:border-cyan-400 text-cyan-300 hover:bg-cyan-500/20 text-xs font-black transition active:scale-95 shrink-0 shadow-sm cursor-pointer"
                 title={isArabic ? 'تغيير لغة التعلم' : 'Change Target Language'}
               >
                 <LanguageFlag code={targetLang} size={18} />
@@ -276,7 +276,7 @@ export function AppShell({
                     triggerHapticImpact();
                     setLearnerMode('kids');
                   }}
-                  className={`px-2 py-1.5 min-h-[44px] min-w-[44px] rounded-lg text-[11px] font-black transition cursor-pointer flex items-center justify-center gap-1 ${
+                  className={`px-2 py-1.5 min-h-[48px] min-w-[48px] rounded-lg text-[11px] font-black transition cursor-pointer flex items-center justify-center gap-1 ${
                     isKids ? 'bg-pink-500 text-white shadow-md' : 'text-slate-400 hover:text-white'
                   }`}
                   title={isArabic ? 'وضع الأطفال (4-12 سنة)' : 'Kids Mode (Ages 4-12)'}
@@ -291,7 +291,7 @@ export function AppShell({
                     triggerHapticImpact();
                     setLearnerMode('regular');
                   }}
-                  className={`px-2 py-1.5 min-h-[44px] min-w-[44px] rounded-lg text-[11px] font-black transition cursor-pointer flex items-center justify-center gap-1 ${
+                  className={`px-2 py-1.5 min-h-[48px] min-w-[48px] rounded-lg text-[11px] font-black transition cursor-pointer flex items-center justify-center gap-1 ${
                     !isKids ? 'bg-cyan-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
                   }`}
                   title={isArabic ? 'النسخة العادية (13+ سنة)' : 'Regular Mode (Ages 13+)'}
@@ -310,7 +310,7 @@ export function AppShell({
                       triggerHapticImpact();
                       setUiMode('simple');
                     }}
-                    className={`px-2 py-1.5 min-h-[44px] min-w-[44px] rounded-lg text-[11px] font-black transition cursor-pointer flex items-center justify-center ${
+                    className={`px-2 py-1.5 min-h-[48px] min-w-[48px] rounded-lg text-[11px] font-black transition cursor-pointer flex items-center justify-center ${
                       uiMode === 'simple' ? 'bg-emerald-500 text-slate-950 shadow' : 'text-slate-400 hover:text-white'
                     }`}
                     title={isArabic ? 'الوضع البسيط (للمبتدئين)' : 'Simple Mode'}
@@ -323,7 +323,7 @@ export function AppShell({
                       triggerHapticImpact();
                       setUiMode('pro');
                     }}
-                    className={`px-2 py-1.5 min-h-[44px] min-w-[44px] rounded-lg text-[11px] font-black transition cursor-pointer flex items-center justify-center ${
+                    className={`px-2 py-1.5 min-h-[48px] min-w-[48px] rounded-lg text-[11px] font-black transition cursor-pointer flex items-center justify-center ${
                       uiMode === 'pro' ? 'bg-amber-500 text-slate-950 shadow' : 'text-slate-400 hover:text-white'
                     }`}
                     title={isArabic ? 'الوضع المتقدم (كل الأدوات)' : 'Pro Mode'}
@@ -336,15 +336,15 @@ export function AppShell({
 
             {/* Right HUD: Streak 🔥, XP 🏆, Shields 🛡️ */}
             <div className="flex items-center gap-1.5 sm:gap-2 text-xs font-black shrink-0">
-              <div className="flex items-center gap-1 text-amber-300 bg-gradient-to-r from-amber-500/15 to-orange-500/15 px-2.5 py-2 min-h-[44px] rounded-xl border border-amber-500/30 shadow-sm">
+              <div className="flex items-center gap-1 text-amber-300 bg-gradient-to-r from-amber-500/15 to-orange-500/15 px-2.5 py-2 min-h-[48px] rounded-xl border border-amber-500/30 shadow-sm">
                 <span>🔥</span>
                 <span>{state?.streak ?? 0}</span>
               </div>
-              <div className="flex items-center gap-1 text-cyan-300 bg-gradient-to-r from-cyan-500/15 to-teal-500/15 px-2.5 py-2 min-h-[44px] rounded-xl border border-cyan-500/30 shadow-sm">
+              <div className="flex items-center gap-1 text-cyan-300 bg-gradient-to-r from-cyan-500/15 to-teal-500/15 px-2.5 py-2 min-h-[48px] rounded-xl border border-cyan-500/30 shadow-sm">
                 <span>🏆</span>
                 <span>{state?.xp ?? 0}</span>
               </div>
-              <div className="flex items-center gap-1 text-slate-300 bg-[#0B1C33] px-2.5 py-2 min-h-[44px] rounded-xl border border-cyan-500/20">
+              <div className="flex items-center gap-1 text-slate-300 bg-[#0B1C33] px-2.5 py-2 min-h-[48px] rounded-xl border border-cyan-500/20">
                 <span>🛡️</span>
                 <span>{state?.streakShields ?? 2}</span>
               </div>
@@ -376,14 +376,14 @@ export function AppShell({
               <button
                 type="button"
                 onClick={() => setSupportOpen(true)}
-                className="text-xs text-amber-300/80 hover:text-amber-200 transition-colors cursor-pointer min-h-[44px] px-3 inline-flex items-center justify-center"
+                className="text-xs text-amber-300/80 hover:text-amber-200 transition-colors cursor-pointer min-h-[48px] px-3 inline-flex items-center justify-center"
               >
                 ☕ {isArabic ? 'ادعم التطبيق' : 'Support the app'}
               </button>
               <button
                 type="button"
                 onClick={() => setPrivacyOpen(true)}
-                className="text-xs text-slate-500 hover:text-slate-300 transition-colors cursor-pointer min-h-[44px] px-3 inline-flex items-center justify-center"
+                className="text-xs text-slate-500 hover:text-slate-300 transition-colors cursor-pointer min-h-[48px] px-3 inline-flex items-center justify-center"
               >
                 {isArabic ? 'الخصوصية والقوانين' : 'Privacy & Legal'}
               </button>
@@ -392,7 +392,7 @@ export function AppShell({
                   type="button"
                   data-testid="appshell-dev-btn"
                   onClick={() => setDevModalOpen(true)}
-                  className="text-xs text-cyan-300 hover:text-cyan-200 transition-colors cursor-pointer min-h-[44px] px-3 inline-flex items-center justify-center rounded-xl border border-cyan-500/30 bg-cyan-500/10 font-bold"
+                  className="text-xs text-cyan-300 hover:text-cyan-200 transition-colors cursor-pointer min-h-[48px] px-3 inline-flex items-center justify-center rounded-xl border border-cyan-500/30 bg-cyan-500/10 font-bold"
                 >
                   🛠️ Dev
                 </button>

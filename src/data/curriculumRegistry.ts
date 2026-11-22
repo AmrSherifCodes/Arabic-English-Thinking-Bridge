@@ -10,14 +10,24 @@ import { getTurkishPhases } from './curriculum/turkishCurriculum';
 import { buildDictionaryPhases, getStaticDictionaryEntries } from './curriculum/dictionaryCurriculum';
 import { getTargetDictionary } from './dictionaries';
 
-export function getCurriculum(source: SourceLanguage = 'ar', target: TargetLanguage = 'en'): Phase[] {
-  if (source === 'ar' && target === 'en') {
-    return PHASES_DATA;
-  }
+function isArabicSourceLang(source: SourceLanguage): boolean {
+  return (
+    source === 'ar' ||
+    source === 'arz' ||
+    source === 'apc' ||
+    source === 'afb' ||
+    source === 'ary' ||
+    String(source).startsWith('ar')
+  );
+}
 
+export function getCurriculum(source: SourceLanguage = 'ar', target: TargetLanguage = 'en'): Phase[] {
+  const isArSource = isArabicSourceLang(source);
   let phases: Phase[] = [];
 
-  if (target === 'de') {
+  if (isArSource && target === 'en') {
+    phases = PHASES_DATA;
+  } else if (target === 'de') {
     phases = getGermanPhases(source);
   } else if (target === 'tr') {
     phases = getTurkishPhases(source);
@@ -80,10 +90,60 @@ export function getCurriculum(source: SourceLanguage = 'ar', target: TargetLangu
     const dictPhases = buildDictionaryPhases(target, entries.length > 0 ? entries : getStaticDictionaryEntries(target), source);
     if (phases.length > 0 && dictPhases.length > 0) {
       const extraLessons = dictPhases.flatMap(p => p.lessons);
-      phases[phases.length - 1].lessons.push(...extraLessons);
+      phases = phases.map((p, idx) =>
+        idx === phases.length - 1 ? { ...p, lessons: [...p.lessons, ...extraLessons] } : p
+      );
     } else {
       phases = dictPhases;
     }
+  }
+
+  if (isArSource && target !== 'ar') {
+    phases = phases.map((phase) => ({
+      ...phase,
+      lessons: phase.lessons.map((lesson) => {
+        const fallbackArClue =
+          (lesson.transferConceptAr && /[\u0600-\u06FF]/.test(lesson.transferConceptAr)
+            ? lesson.transferConceptAr
+            : '') ||
+          (lesson.transferConcept && /[\u0600-\u06FF]/.test(lesson.transferConcept)
+            ? lesson.transferConcept
+            : '') ||
+          'ركّز على ترتيب الجملة المباشر وتجنّب الترجمة الحرفية كلمة بكلمة.';
+
+        return {
+          ...lesson,
+          exercises: lesson.exercises.map((ex) => {
+            const rawArClue =
+              (ex.explanationAr && /[\u0600-\u06FF]/.test(ex.explanationAr) ? ex.explanationAr : '') ||
+              (ex.habitHintAr && /[\u0600-\u06FF]/.test(ex.habitHintAr) ? ex.habitHintAr : '') ||
+              (ex.habitHint && /[\u0600-\u06FF]/.test(ex.habitHint) ? ex.habitHint : '');
+            const cleanArClue = rawArClue || fallbackArClue;
+
+            const normalizedChunks = (ex.breakdownChunks || []).map((chunk) => {
+              const arCandidate =
+                chunk.sourceText && /[\u0600-\u06FF]/.test(chunk.sourceText)
+                  ? chunk.sourceText
+                  : chunk.arabicText;
+              const tgtCandidate = chunk.targetText || chunk.englishText;
+              return {
+                ...chunk,
+                arabicText: arCandidate,
+                targetText: tgtCandidate,
+              };
+            });
+
+            return {
+              ...ex,
+              explanationAr: cleanArClue,
+              habitHintAr: cleanArClue,
+              habitHint: cleanArClue,
+              breakdownChunks: normalizedChunks,
+            };
+          }),
+        };
+      }),
+    }));
   }
 
   return phases;

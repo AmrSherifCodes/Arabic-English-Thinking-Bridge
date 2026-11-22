@@ -106,6 +106,12 @@ function createExercisesForUnit(
         ? candidatePromptEn
         : resolvedPromptAr;
 
+    const targetNameAr = TARGET_LANGUAGE_META[targetLang]?.nameAr || 'الإنجليزية';
+    const rawArClue =
+      (rawItem?.explanationAr && /[\u0600-\u06FF]/.test(rawItem.explanationAr) ? rawItem.explanationAr : '') ||
+      (rawItem?.habitHintAr && /[\u0600-\u06FF]/.test(rawItem.habitHintAr) ? rawItem.habitHintAr : '') ||
+      (rawItem?.habitHint && /[\u0600-\u06FF]/.test(rawItem.habitHint) ? rawItem.habitHint : '');
+
     items.push({
       id: `${unitId}-ex-${i + 1}`,
       type: i % 2 === 0 ? 'structure_builder' : 'translate_thought',
@@ -115,7 +121,7 @@ function createExercisesForUnit(
       acceptableAlternatives: rawItem?.acceptableAlternatives || [targetSentence],
       wordChips: wordChips.length > 0 ? wordChips : [targetSentence],
       breakdownChunks: rawItem?.breakdownChunks || [],
-      explanationAr: rawItem?.habitHintAr || rawItem?.habitHint || `ركز على بناء المعنى والجملة بـ ${targetLang}.`,
+      explanationAr: rawArClue || `ركز على بناء المعنى والجملة باللغة ${targetNameAr}.`,
       explanationEn: `Focus on natural sentence construction for ${unitTitleEn}.`,
       skillAxes: skillAxes.length > 0 ? skillAxes : ['structure', 'vocabulary'],
     });

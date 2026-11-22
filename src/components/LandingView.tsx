@@ -464,7 +464,7 @@ export function LandingView({ onStartWebApp, isArabic = true }: LandingViewProps
               <Smartphone className="mx-auto text-[var(--landing-accent-teal)]" size={28} />
               <div>
                 <span className="font-bold text-sm text-[var(--landing-text)] block">Android</span>
-                <span className="text-[10px] text-[var(--landing-muted)] block">v5.0.0 Official Stable · PWA</span>
+                <span className="text-[10px] text-[var(--landing-muted)] block">V6 (v6.0.0) · PWA</span>
               </div>
               <a
                 href="/app"
@@ -530,7 +530,7 @@ export function LandingView({ onStartWebApp, isArabic = true }: LandingViewProps
                 <Globe size={13} />
                 <span>{isInstallable ? (t('landing2.install_pwa')) : (t('landing2.open_web_app'))}</span>
               </button>
-              <a href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/tag/v5.0.0" className="block text-[10px] font-bold text-[var(--landing-muted)] underline underline-offset-2">
+              <a href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/tag/v6.0.0" className="block text-[10px] font-bold text-[var(--landing-muted)] underline underline-offset-2">
                 {t('landing2.desktop_releases')}
               </a>
             </div>
@@ -549,7 +549,7 @@ export function LandingView({ onStartWebApp, isArabic = true }: LandingViewProps
                 <Globe size={13} />
                 <span>{isInstallable ? (t('landing2.install_pwa')) : (t('landing2.open_web_app'))}</span>
               </button>
-              <a href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/tag/v5.0.0" className="block text-[10px] font-bold text-[var(--landing-muted)] underline underline-offset-2">
+              <a href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/tag/v6.0.0" className="block text-[10px] font-bold text-[var(--landing-muted)] underline underline-offset-2">
                 {t('landing2.desktop_releases')}
               </a>
             </div>

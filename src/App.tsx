@@ -929,7 +929,7 @@ function DictionaryView({ onBack, isArabic, targetLang }: { onBack: () => void; 
     <div className="min-h-[100dvh] bg-[#060E1A] text-slate-100 pb-safe" dir={isArabic ? 'rtl' : 'ltr'}>
       <header className="sticky top-0 z-40 bg-[#06101c]/95 backdrop-blur-md border-b border-cyan-500/20 px-4 sm:px-6 pb-3 pt-safe">
         <div className="max-w-2xl mx-auto flex items-center justify-between gap-2">
-          <button onClick={onBack} className="px-4 py-2 min-h-[44px] rounded-2xl bg-[#0B1C33] border border-cyan-500/40 text-cyan-300 font-black text-xs cursor-pointer shrink-0">
+          <button onClick={onBack} className="px-4 py-2 min-h-[48px] rounded-2xl bg-[#0B1C33] border border-cyan-500/40 text-cyan-300 font-black text-xs cursor-pointer shrink-0">
             ← {isArabic ? 'العودة' : 'Back'}
           </button>
           <h2 className="text-base font-black text-white leading-snug break-words">{isArabic ? '📖 القاموس الذكي التفاعلي' : 'Interactive Smart Dictionary'}</h2>
@@ -957,7 +957,7 @@ function DictionaryView({ onBack, isArabic, targetLang }: { onBack: () => void; 
                 type="button"
                 onClick={() => setQuery('')}
                 aria-label={isArabic ? 'مسح البحث' : 'Clear search'}
-                className="absolute end-1 top-1/2 -translate-y-1/2 min-h-[44px] min-w-[44px] flex items-center justify-center text-slate-400 hover:text-white text-xs"
+                className="absolute end-1 top-1/2 -translate-y-1/2 min-h-[48px] min-w-[48px] flex items-center justify-center text-slate-400 hover:text-white text-xs"
               >
                 ✕
               </button>
@@ -972,21 +972,31 @@ function DictionaryView({ onBack, isArabic, targetLang }: { onBack: () => void; 
           ) : results.length > 0 ? (
             <div className="grid grid-cols-1 gap-3">
               {results.map((entry, idx) => {
-                const word = entry.word || entry.term || entry.germanWord || entry.arabicWord || '';
-                const translation = entry.translation || entry.arabicWord || entry.englishTranslation || '';
-                const rawPhonetic = entry.phoneticAr || entry.reading || entry.romaji || '';
-                const phonetic = rawPhonetic && rawPhonetic !== `[${word}]` && rawPhonetic !== word ? rawPhonetic : '';
-                const isWordArabic = /[\u0600-\u06FF]/.test(word);
+                const rawWord = (entry.word || entry.term || entry.germanWord || entry.arabicWord || '').trim();
+                const translation = (entry.translation || entry.arabicWord || entry.englishTranslation || '').trim();
+                const rawPhonetic = (entry.phoneticAr || entry.phonetic || entry.reading || entry.romaji || '').trim();
+                const wLower = rawWord.toLowerCase();
+                const pLower = rawPhonetic.toLowerCase();
+                const phonetic =
+                  rawPhonetic &&
+                  pLower !== wLower &&
+                  pLower !== `[${wLower}]` &&
+                  pLower !== `(${wLower})` &&
+                  pLower !== `([${wLower}])`
+                    ? rawPhonetic
+                    : '';
+                const isWordArabic = /[\u0600-\u06FF]/.test(rawWord);
                 const audioText =
                   targetLang === 'en' && isWordArabic && translation
-                    ? translation.split(/[;,()]/)[0].replace(/^to\s+/i, '').trim() || word
-                    : word;
+                    ? translation.split(/[;,()]/)[0].replace(/^to\s+/i, '').trim() || rawWord
+                    : rawWord.replace(/\s*\([^)]*\)/g, '').trim();
+                const displayWord = targetLang === 'en' && isWordArabic ? audioText : rawWord;
 
                 return (
                   <div key={idx} className="p-4 rounded-2xl bg-[#0B1C33]/90 border border-cyan-500/20 shadow-md flex items-center justify-between gap-4">
                     <div className="space-y-1 text-start min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-black text-base text-cyan-300 font-sans">{word}</span>
+                        <span className="font-black text-base text-cyan-300 font-sans">{displayWord}</span>
                         {phonetic && <span className="text-xs text-amber-300/80 font-medium">({phonetic})</span>}
                       </div>
                       <p className="text-xs text-slate-200 font-medium leading-relaxed">{translation}</p>

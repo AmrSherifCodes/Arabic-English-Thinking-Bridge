@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Exercise } from '../types';
 import { speakWithRate } from '../utils/audio';
+import { safeVibrate } from '../utils/fx';
 import {
   ArabicLexiconEntry,
   fetchFallbackArabicWordTranslation,
@@ -43,9 +44,7 @@ export const InteractiveArabicSentence = React.memo(function InteractiveArabicSe
   const tokens = String(sentence || '').split(/\s+/).filter(Boolean);
 
   const triggerWordTranslation = (token: string, idx: number) => {
-    try {
-      navigator.vibrate?.(15);
-    } catch {}
+    safeVibrate(15);
 
     setSelectedTokenIndex(idx);
     setSelectedRawWord(token);

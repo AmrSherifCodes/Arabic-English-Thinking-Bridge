@@ -215,7 +215,7 @@ export function PathView({
   const targetNameEn = TARGET_LANGUAGE_META[targetLang]?.nameEn || targetLang;
   const nameForgeBtnLabel = targetLang === 'en'
     ? (isArabic ? 'اكتب اسمك بالإنجليزي (30 ثانية)' : 'Name Forge (30s)')
-    : (isArabic ? `اكتب اسمك بـ${targetNameAr} (30 ثانية)` : `${targetNameEn} Name Forge (30s)`);
+    : (isArabic ? `اكتب اسمك باللغة ${targetNameAr} (30 ثانية)` : `${targetNameEn} Name Forge (30s)`);
 
   if (uiMode === 'simple') {
     return (
@@ -228,7 +228,7 @@ export function PathView({
               <button
                 type="button"
                 onClick={() => setUiMode('simple')}
-                className={`min-h-[44px] px-3 py-1.5 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 ${
+                className={`min-h-[48px] px-3 py-1.5 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 ${
                   uiMode === 'simple'
                     ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20'
                     : 'text-slate-400 hover:text-white'
@@ -240,7 +240,7 @@ export function PathView({
               <button
                 type="button"
                 onClick={() => setUiMode('pro')}
-                className={`min-h-[44px] px-3 py-1.5 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 ${
+                className={`min-h-[48px] px-3 py-1.5 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 ${
                   (uiMode as string) === 'pro'
                     ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20'
                     : 'text-slate-400 hover:text-white'
@@ -255,7 +255,9 @@ export function PathView({
             </span>
           </div>
           <h2 className="text-xl font-black text-white">
-            {hasCompletedAny ? (isArabic ? 'عاش يا بطل! كمّل درسك الجاي 🚀' : 'Keep it up! Continue next lesson 🚀') : (isArabic ? 'أهلاً بيك! جاهز تتعلم أول جملة؟ 🎯' : 'Welcome! Ready for your first sentence? 🎯')}
+            {hasCompletedAny
+              ? (isArabic ? 'عاش يا بطل! كمّل درسك الجاي 🚀' : 'Keep it up! Continue next lesson 🚀')
+              : (isArabic ? `أهلاً بيك! جاهز لأول جملة باللغة ${targetNameAr}؟ 🎯` : `Welcome! Ready for your first ${targetNameEn} sentence? 🎯`)}
           </h2>
           <p className="text-xs text-slate-300 leading-relaxed">
             {isArabic ? 'اضغط الزر الأخضر وهنبدأ سوا خطوة بخطوة — مفيش أي قواعد معقدة أو توتر.' : 'Tap the green button to start step-by-step with zero stress.'}
@@ -285,7 +287,7 @@ export function PathView({
             </button>
             <button
               onClick={() => setNameForgeOpen(true)}
-              className="min-h-[44px] px-4 py-3 rounded-2xl bg-[#0B1C33] border border-cyan-500/40 text-cyan-300 hover:bg-cyan-500/20 font-bold text-xs transition cursor-pointer text-center"
+              className="min-h-[48px] px-4 py-3 rounded-2xl bg-[#0B1C33] border border-cyan-500/40 text-cyan-300 hover:bg-cyan-500/20 font-bold text-xs transition cursor-pointer text-center"
             >
               ✨ {nameForgeBtnLabel}
             </button>
@@ -298,7 +300,7 @@ export function PathView({
               <button
                 onClick={() => setNameForgeOpen(false)}
                 aria-label={isArabic ? 'إغلاق' : 'Close'}
-                className="absolute top-3 end-3 min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-xl bg-stone-800 text-stone-300 hover:text-white z-10 cursor-pointer"
+                className="absolute top-3 end-3 min-h-[48px] min-w-[48px] flex items-center justify-center p-2 rounded-xl bg-stone-800 text-stone-300 hover:text-white z-10 cursor-pointer"
               >
                 ✕
               </button>
@@ -324,18 +326,16 @@ export function PathView({
                 <div
                   key={lesson.id}
                   onClick={() => onSelectLesson(lesson)}
-                  className={`p-4 rounded-2xl border transition flex items-center justify-between cursor-pointer ${
-                    isNext
-                      ? 'bg-gradient-to-r from-emerald-500/20 to-[#0B1C33] border-emerald-400 shadow-lg ring-1 ring-emerald-400/50'
-                      : isCompleted
+                  className={`p-4 rounded-2xl border transition flex items-center justify-between cursor-pointer ${isNext
+                    ? 'bg-gradient-to-r from-emerald-500/20 to-[#0B1C33] border-emerald-400 shadow-lg ring-1 ring-emerald-400/50'
+                    : isCompleted
                       ? 'bg-[#0B1C33]/90 border-emerald-500/40 text-emerald-300'
                       : 'bg-[#0B1C33]/70 border-[#1E3A5F] hover:border-cyan-500/40'
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm ${
-                      isCompleted ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' : isNext ? 'bg-emerald-500 text-slate-950 shadow' : 'bg-slate-800 text-slate-300'
-                    }`}>
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm ${isCompleted ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' : isNext ? 'bg-emerald-500 text-slate-950 shadow' : 'bg-slate-800 text-slate-300'
+                      }`}>
                       {isCompleted ? <CheckCircle size={18} /> : idx + 1}
                     </div>
                     <div>
@@ -365,7 +365,7 @@ export function PathView({
           </span>
           <button
             onClick={() => setLevelMapOpen(true)}
-            className="min-h-[44px] px-2 text-xs font-bold text-cyan-300 hover:underline flex items-center gap-1 cursor-pointer"
+            className="min-h-[48px] px-2 text-xs font-bold text-cyan-300 hover:underline flex items-center gap-1 cursor-pointer"
           >
             <Map size={14} />
             <span>{isArabic ? 'خريطة المستويات' : 'Level Map'}</span>
@@ -401,7 +401,7 @@ export function PathView({
           </button>
           <button
             onClick={() => setNameForgeOpen(true)}
-            className="min-h-[44px] px-4 py-3 rounded-2xl bg-[#0B1C33] border border-cyan-500/40 text-cyan-300 hover:bg-cyan-500/20 font-bold text-xs transition cursor-pointer"
+            className="min-h-[48px] px-4 py-3 rounded-2xl bg-[#0B1C33] border border-cyan-500/40 text-cyan-300 hover:bg-cyan-500/20 font-bold text-xs transition cursor-pointer"
           >
             ✨ {nameForgeBtnLabel}
           </button>
@@ -414,7 +414,7 @@ export function PathView({
             <button
               onClick={() => setNameForgeOpen(false)}
               aria-label={isArabic ? 'إغلاق' : 'Close'}
-              className="absolute top-3 end-3 min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-xl bg-stone-800 text-stone-300 hover:text-white z-10 cursor-pointer"
+              className="absolute top-3 end-3 min-h-[48px] min-w-[48px] flex items-center justify-center p-2 rounded-xl bg-stone-800 text-stone-300 hover:text-white z-10 cursor-pointer"
             >
               ✕
             </button>
@@ -455,7 +455,7 @@ export function PathView({
         <div className="bg-[#061224]/80 rounded-2xl border border-cyan-500/30 overflow-hidden">
           <button
             onClick={() => setStatsExpanded(!statsExpanded)}
-            className="w-full min-h-[44px] p-3 px-4 flex items-center justify-between text-xs font-black text-cyan-300 hover:bg-cyan-500/10 transition cursor-pointer"
+            className="w-full min-h-[48px] p-3 px-4 flex items-center justify-between text-xs font-black text-cyan-300 hover:bg-cyan-500/10 transition cursor-pointer"
           >
             <span>📊 {isArabic ? 'تفاصيل مستواك وخريطة المهارات' : 'Your Level Details & Skill Map'}</span>
             <span>{statsExpanded ? '▴' : '▾'}</span>
@@ -484,13 +484,13 @@ export function PathView({
               <div className="flex items-center justify-end gap-2 pt-2">
                 <button
                   onClick={() => setCanDoOpen(true)}
-                  className="min-h-[44px] px-3 py-1.5 text-xs font-bold text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-xl cursor-pointer"
+                  className="min-h-[48px] px-3 py-1.5 text-xs font-bold text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-xl cursor-pointer"
                 >
                   {isArabic ? 'أقدر أعمل إيه؟ (5/5)' : 'Can-Do Statements'}
                 </button>
                 <button
                   onClick={() => setPlacementOpen(true)}
-                  className="min-h-[44px] px-3 py-1.5 text-xs font-bold text-cyan-300 bg-cyan-500/10 border border-cyan-500/30 rounded-xl cursor-pointer"
+                  className="min-h-[48px] px-3 py-1.5 text-xs font-bold text-cyan-300 bg-cyan-500/10 border border-cyan-500/30 rounded-xl cursor-pointer"
                 >
                   {isArabic ? 'تحديد المستوى' : 'Placement Test'}
                 </button>
@@ -512,7 +512,7 @@ export function PathView({
               onClick={() => {
                 if (isPhaseUnlocked) setSelectedPhaseId(phase.id);
               }}
-              className={`min-h-[44px] max-w-full px-3.5 py-2 rounded-2xl text-xs font-extrabold transition-all flex items-center gap-2 border text-start cursor-pointer ${
+              className={`min-h-[48px] max-w-full px-3.5 py-2 rounded-2xl text-xs font-extrabold transition-all flex items-center gap-2 border text-start cursor-pointer ${
                 isSelected
                   ? 'bg-gradient-to-r from-cyan-500 via-teal-400 to-cyan-500 text-slate-950 border-cyan-300 font-black shadow-lg shadow-cyan-500/30'
                   : 'bg-[#0B1C33] text-slate-300 border-[#1E3A5F] hover:border-cyan-500/40 hover:bg-[#122846]'
@@ -583,28 +583,26 @@ export function PathView({
                               onClick={() => {
                                 if (isUnlocked) onSelectLesson(lesson);
                               }}
-                              className={`p-3.5 rounded-2xl border transition-all relative overflow-hidden ${
-                                isNext
-                                  ? 'bg-gradient-to-r from-cyan-500/20 via-[#0B1C33] to-[#0B1C33] border-cyan-400/80 shadow-lg shadow-cyan-500/15 cursor-pointer ring-1 ring-cyan-400/50'
-                                  : isCompleted
+                              className={`p-3.5 rounded-2xl border transition-all relative overflow-hidden ${isNext
+                                ? 'bg-gradient-to-r from-cyan-500/20 via-[#0B1C33] to-[#0B1C33] border-cyan-400/80 shadow-lg shadow-cyan-500/15 cursor-pointer ring-1 ring-cyan-400/50'
+                                : isCompleted
                                   ? 'bg-[#0B1C33]/90 border-emerald-500/40 text-emerald-300 cursor-pointer'
                                   : isUnlocked
-                                  ? 'bg-[#0B1C33]/70 border-[#1E3A5F] hover:border-cyan-500/40 cursor-pointer'
-                                  : 'bg-[#061224]/40 border-slate-900 opacity-50 cursor-not-allowed'
-                              }`}
+                                    ? 'bg-[#0B1C33]/70 border-[#1E3A5F] hover:border-cyan-500/40 cursor-pointer'
+                                    : 'bg-[#061224]/40 border-slate-900 opacity-50 cursor-not-allowed'
+                                }`}
                             >
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
                                   <div
-                                    className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs ${
-                                      isNext
-                                        ? 'bg-gradient-to-br from-amber-400 to-amber-600 text-slate-950 shadow-md animate-pulse font-black'
-                                        : isCompleted
+                                    className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs ${isNext
+                                      ? 'bg-gradient-to-br from-amber-400 to-amber-600 text-slate-950 shadow-md animate-pulse font-black'
+                                      : isCompleted
                                         ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
                                         : isUnlocked
-                                        ? 'bg-[#122846] text-slate-200 border border-cyan-500/20'
-                                        : 'bg-slate-950 text-slate-600'
-                                    }`}
+                                          ? 'bg-[#122846] text-slate-200 border border-cyan-500/20'
+                                          : 'bg-slate-950 text-slate-600'
+                                      }`}
                                   >
                                     {isCompleted ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : isUnlocked ? <Crown className="w-4 h-4" /> : <LockKeyhole className="w-4 h-4" />}
                                   </div>
@@ -622,7 +620,7 @@ export function PathView({
                                   <button
                                     type="button"
                                     aria-label={isArabic ? `ابدأ ${lesson.titleAr}` : `Start ${lesson.titleEn}`}
-                                    className="min-h-[44px] min-w-[44px] flex items-center justify-center shrink-0 p-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 transition-colors border border-amber-500/30"
+                                    className="min-h-[48px] min-w-[48px] flex items-center justify-center shrink-0 p-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 transition-colors border border-amber-500/30"
                                   >
                                     <Play className="w-3.5 h-3.5 fill-current" />
                                   </button>

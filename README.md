@@ -5,7 +5,7 @@
   <p><i>Built in Alexandria, Egypt with love for learners worldwide.</i></p>
 
   <!-- Badges -->
-  <img src="https://img.shields.io/badge/Release-v5.0.0%20Official%20Stable-gold?style=flat-square" alt="v5.0.0 Official Stable" />
+  <img src="https://img.shields.io/badge/Release-V6%20(v6.0.0)-gold?style=flat-square" alt="Thinking Bridge V6 (v6.0.0)" />
   <img src="https://img.shields.io/badge/Architecture-100%25%20Offline--First-emerald?style=flat-square" alt="Offline First" />
   <img src="https://img.shields.io/badge/Privacy-Zero%20Telemetry-blue?style=flat-square" alt="Zero Telemetry" />
   <img src="https://img.shields.io/badge/React-19-blue?style=flat-square&logo=react" alt="React" />

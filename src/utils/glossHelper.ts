@@ -1177,6 +1177,8 @@ const ARABIC_COMMON_WORD_GLOSSES: Record<string, string> = {
   'أصغر': 'smaller',
   'أسرع': 'faster',
   'أبطأ': 'slower',
+  'الدخول': 'entering / entry',
+  'دخول': 'entering / entry',
 };
 
 const GERMAN_COMMON_WORD_GLOSSES: Record<string, string> = {
@@ -1882,6 +1884,51 @@ for (const glossTable of [
   Object.assign(glossTable, extraKeys);
 }
 
+const dictLookupIndexCache: Record<
+  string,
+  { len: number; wordMap: Map<string, any>; partMap: Map<string, any> }
+> = {};
+
+function getDictLookupMaps(
+  targetLang: string,
+  dict: any[]
+): { wordMap: Map<string, any>; partMap: Map<string, any> } {
+  const cached = dictLookupIndexCache[targetLang];
+  if (cached && cached.len === dict.length) {
+    return { wordMap: cached.wordMap, partMap: cached.partMap };
+  }
+  const wordMap = new Map<string, any>();
+  const partMap = new Map<string, any>();
+  for (const entry of dict) {
+    const entryWord = stripTashkeelAndPunctuation(entry.word || entry.term || entry.germanWord || '');
+    const entryEn = stripTashkeelAndPunctuation(entry.englishTranslation || '');
+    const entryTrans = (entry.translation || entry.arabicWord || '').toLowerCase();
+    if (entryWord && !wordMap.has(entryWord)) {
+      wordMap.set(entryWord, entry);
+    }
+    if (entryEn && !wordMap.has(entryEn)) {
+      wordMap.set(entryEn, entry);
+    }
+    for (const part of entryEn.split(/[\s,;/]+/)) {
+      const p = stripTashkeelAndPunctuation(part);
+      if (p && !partMap.has(p)) partMap.set(p, entry);
+    }
+    for (const part of entryWord.split(/[\s,;/]+/)) {
+      const p = stripTashkeelAndPunctuation(part);
+      if (p && !partMap.has(p)) partMap.set(p, entry);
+    }
+    for (const part of entryTrans.split(/[\s,;/]+/)) {
+      const p = stripTashkeelAndPunctuation(part);
+      if (p && !partMap.has(p)) partMap.set(p, entry);
+    }
+  }
+  dictLookupIndexCache[targetLang] = { len: dict.length, wordMap, partMap };
+  return { wordMap, partMap };
+}
+
+const WIKTIONARY_GLOSS_LEAK_REGEX =
+  /\b(verbal noun of|plural of|inflection of|diminutive of|alternative form of|alternative spelling of|apocopic form of|past participle of|present participle of|first-person singular|second-person singular|third-person singular|feminine singular of|masculine singular of)\b/i;
+
 export function sanitizeGloss(rawGloss: string): string {
   if (!rawGloss) return '';
   let cleaned = rawGloss.trim();
@@ -1890,6 +1937,9 @@ export function sanitizeGloss(rawGloss: string): string {
   }
   if (/name of the/i.test(cleaned)) {
     cleaned = cleaned.replace(/name of the.*/i, '').trim();
+  }
+  if (WIKTIONARY_GLOSS_LEAK_REGEX.test(cleaned)) {
+    return '';
   }
   cleaned = cleaned.replace(/\s*\([^)]*\)/g, '').replace(/\s*\[[^\]]*\]/g, '').trim();
   if (cleaned.includes(',') && (cleaned.length > 20 || cleaned.split(/\s+/).length > 3)) {
@@ -1914,9 +1964,21 @@ export function sanitizeGloss(rawGloss: string): string {
   return cleaned;
 }
 
+function isArabicSourceLanguage(sourceLang: string): boolean {
+  return (
+    sourceLang === 'ar' ||
+    sourceLang === 'arz' ||
+    sourceLang === 'apc' ||
+    sourceLang === 'afb' ||
+    sourceLang === 'ary' ||
+    String(sourceLang).startsWith('ar')
+  );
+}
+
 function isValidGloss(candidate: string, word: string, targetLang: string, sourceLang: string): boolean {
+  if (!candidate || WIKTIONARY_GLOSS_LEAK_REGEX.test(candidate)) return false;
   const sanitized = sanitizeGloss(candidate);
-  if (!sanitized) return false;
+  if (!sanitized || WIKTIONARY_GLOSS_LEAK_REGEX.test(sanitized)) return false;
 
   const cleanWord = stripTashkeelAndPunctuation(word);
   const cleanGloss = stripTashkeelAndPunctuation(sanitized);
@@ -1927,9 +1989,10 @@ function isValidGloss(candidate: string, word: string, targetLang: string, sourc
   }
 
   // 2. Strict language scoping checks
-  if (targetLang === 'de' && sourceLang === 'ar') {
+  if (isArabicSourceLanguage(sourceLang) && targetLang !== 'ar') {
     if (!/[\u0600-\u06FF]/.test(sanitized)) return false;
-    if (cleanWord === 'an' && sanitized.includes('واحد')) return false;
+    if (/[A-Za-z]{3,}/.test(sanitized)) return false;
+    if (targetLang === 'de' && cleanWord === 'an' && sanitized.includes('واحد')) return false;
   }
 
   if (sourceLang === 'en' && targetLang === 'ar') {
@@ -1963,7 +2026,9 @@ export function getGlossForWord(
     if (exactChunk) {
       const candidate = isSourceEnglish
         ? exactChunk.englishText || exactChunk.sourceText || ''
-        : exactChunk.arabicText || exactChunk.sourceText || '';
+        : (exactChunk.sourceText && /[\u0600-\u06FF]/.test(exactChunk.sourceText)
+            ? exactChunk.sourceText
+            : exactChunk.arabicText || exactChunk.sourceText || '');
       if (isValidGloss(candidate, word, targetLang, sourceLang)) {
         return sanitizeGloss(candidate);
       }
@@ -2199,24 +2264,10 @@ export function getGlossForWord(
         if (clean.endsWith('ed') && clean.length > 4) candidateStems.push(clean.slice(0, -2), clean.slice(0, -1));
       }
 
+      const { wordMap, partMap } = getDictLookupMaps(targetLang, dict);
       let matchedEntry: any = null;
       for (const targetQuery of candidateStems) {
-        matchedEntry = dict.find((entry) => {
-          const entryWord = (entry.word || entry.term || entry.germanWord || '').toLowerCase();
-          const entryTrans = (entry.translation || entry.arabicWord || '').toLowerCase();
-          const entryEn = (entry.englishTranslation || '').toLowerCase();
-
-          if (stripTashkeelAndPunctuation(entryWord) === targetQuery || stripTashkeelAndPunctuation(entryEn) === targetQuery) return true;
-
-          const enParts = entryEn.split(/[\s,;/]+/).map(stripTashkeelAndPunctuation);
-          if (enParts.includes(targetQuery)) return true;
-
-          const wordParts = entryWord.split(/[\s,;/]+/).map(stripTashkeelAndPunctuation);
-          if (wordParts.includes(targetQuery)) return true;
-
-          const transParts = entryTrans.split(/[\s,;/]+/).map(stripTashkeelAndPunctuation);
-          return transParts.includes(targetQuery);
-        });
+        matchedEntry = wordMap.get(targetQuery) || partMap.get(targetQuery) || null;
         if (matchedEntry) break;
       }
 
@@ -2228,10 +2279,7 @@ export function getGlossForWord(
         if (clean.endsWith('ان') && clean.length >= 4) arStems.push(clean.slice(0, -2));
 
         for (const stem of arStems) {
-          matchedEntry = dict.find((entry) => {
-            const entryWord = stripTashkeelAndPunctuation(entry.word || entry.term || entry.germanWord || '');
-            return entryWord === stem;
-          });
+          matchedEntry = wordMap.get(stem) || null;
           if (matchedEntry) break;
         }
       }
@@ -2262,7 +2310,9 @@ export function getGlossForWord(
     if (containingChunk) {
       const candidate = isSourceEnglish
         ? containingChunk.englishText || containingChunk.sourceText || ''
-        : containingChunk.arabicText || containingChunk.sourceText || '';
+        : (containingChunk.sourceText && /[\u0600-\u06FF]/.test(containingChunk.sourceText)
+            ? containingChunk.sourceText
+            : containingChunk.arabicText || containingChunk.sourceText || '');
       if (isValidGloss(candidate, word, targetLang, sourceLang)) {
         return sanitizeGloss(candidate);
       }

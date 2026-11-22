@@ -28,15 +28,15 @@ export function LanguagePairBanner({
 
   return (
     <section
-      className={`flex items-center justify-between p-2 sm:p-2.5 px-2.5 sm:px-4 rounded-2xl bg-gradient-to-r from-[#0B1C33] via-[#0E2746] to-[#081527] border border-cyan-500/30 shadow-md text-white ${className}`}
+      className={`flex items-center justify-between gap-2 flex-wrap p-2 sm:p-2.5 px-2.5 sm:px-4 rounded-2xl bg-gradient-to-r from-[#0B1C33] via-[#0E2746] to-[#081527] border border-cyan-500/30 shadow-md text-white ${className}`}
       dir={isArUI ? 'rtl' : 'ltr'}
       aria-label="مسار التعلم النشط"
     >
       {/* Single-row Language Selector Display */}
-      <div className="flex items-center gap-1 sm:gap-2 text-xs font-bold text-white min-w-0">
-        <div className="flex items-center gap-1 min-w-0">
+      <div className="flex items-center gap-1.5 sm:gap-2 text-xs font-bold text-white flex-wrap min-w-0">
+        <div className="flex items-center gap-1 shrink-0">
           <LanguageFlag code={sourceLang} size={16} />
-          <span className="truncate text-slate-200 font-bold">{sourceName}</span>
+          <span className="text-slate-200 font-bold whitespace-nowrap">{sourceName}</span>
         </div>
 
         <ArrowRight size={13} className={`text-amber-400 shrink-0 ${isArUI ? 'rotate-180' : ''}`} />

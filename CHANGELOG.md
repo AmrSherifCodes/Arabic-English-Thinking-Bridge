@@ -1,5 +1,15 @@
 # Changelog
 
+## [6.0.0] - V6 Edition (The Six-Cylinder Release)
+
+### Six Cylinders Tuned & Track-Verified (Web PWA + Capacitor Android + Honor 400)
+- **Cylinder 1 — Top-5 Language Viability Verified (`en`, `de`, `fr`, `es`, `tr`):** Added dedicated multi-language pedagogy and integrity suite (`src/utils/top5Languages.test.ts`), normalized Arabic dialect routing (`ar`, `arz`, `apc`, `afb`, `ary`, `ar-*`) across `curriculumRegistry.ts`, `frenchCurriculum.ts`, and `spanishCurriculum.ts`, and eliminated English/Russian/Chinese leaks in Arabic lesson hints and `cefrHierarchy.ts`.
+- **Cylinder 2 — `O(1)` Gloss Lookup Engine & Zero Wiktionary Leaks:** Replaced linear 50k-entry dictionary scans with an `O(1)` indexed `getDictLookupMaps` cache in `glossHelper.ts` (cutting full curriculum verification from ~66s to `<1s`) and stripped Wiktionary metadata (`diminutive of`, `verbal noun of`, `plural of`, `inflection of`, `alternative form of`) in `dictionaryCurriculum.ts`.
+- **Cylinder 3 — Smart Dictionary 10/10 Top-1 & Clean BCP-47 Audio:** Exported `scoreDictionaryMatch`, `sanitizeDictionaryTranslation`, `suppressRedundantPhonetic`, and `formatDictionaryEntryForUi` in `src/data/dictionaries/index.ts`, suppressed redundant `[word]` phonetics when identical to the headword, and verified clean target-language TTS extraction (`en-US`, `de-DE`, `fr-FR`, `es-ES`, `tr-TR`).
+- **Cylinder 4 — Natural Arabic Grammar, RTL Mirroring & `48px` Touch Targets:** Fixed awkward prefix concatenation in `PathView.tsx` (`باللغة ...`), removed truncating ellipses on `LanguagePairBanner.tsx`, enforced RTL arrow direction (`rotate-180`), and upgraded interactive controls to `min-h-[48px]`.
+- **Cylinder 5 — Track-Tested on Honor 400 (`DNY-NX9`) + `safeVibrate` WebView Hardening:** Passed live 5-language USB WebView CDP sweep (`0` console/page/CSP errors, `0` overflow even at `150%` `font_scale`), added `safeVibrate` checking `navigator.userActivation?.hasBeenActive` (`fx.ts`, `LessonRunner.tsx`, `InteractiveArabicSentence.tsx`), and verified `0` errors in release `logcat`.
+- **Cylinder 6 — Unified V6 (`v6.0.0` / `versionCode 6000`) & All-Socials Launch Kit:** Synchronized `6.0.0` across Web/PWA, Capacitor Android (`ThinkingBridge-v6.0.0.apk`), API health, and Tauri Desktop, and expanded `scripts/social-posts.json` + `socialAutoPoster.ts` with 10 platform-ready V6 launch presets and `docs/releases/V6_RELEASE_NOTES.md`.
+
 ## [5.0.0] - First Official Stable Release
 
 ### Official Stable Release & UX Rescue

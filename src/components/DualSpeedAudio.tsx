@@ -50,7 +50,7 @@ export function DualSpeedAudio({
         type="button"
         onClick={handleNormal}
         title={isArabic ? 'اسمع النطق (1.0x)' : 'Listen (1.0x)'}
-        className={`${btnClassName} min-h-[44px] bg-emerald-700/80 hover:bg-emerald-600 text-emerald-100 border border-emerald-500/50 shadow-md cursor-pointer`}
+        className={`${btnClassName} min-h-[48px] bg-emerald-700/80 hover:bg-emerald-600 text-emerald-100 border border-emerald-500/50 shadow-md cursor-pointer`}
         aria-label={isArabic ? 'اسمع النطق (1.0x)' : 'Listen (1.0x)'}
       >
         <Volume2 size={16} />
@@ -60,7 +60,7 @@ export function DualSpeedAudio({
         type="button"
         onClick={handleSlow}
         title={isArabic ? 'بطيء وواضح (0.75x)' : 'Slow (0.75x)'}
-        className={`${btnClassName} min-h-[44px] text-amber-400 border-amber-500/30 hover:bg-amber-950/40`}
+        className={`${btnClassName} min-h-[48px] text-amber-400 border-amber-500/30 hover:bg-amber-950/40`}
         aria-label={isArabic ? 'بطيء وواضح (0.75x)' : 'Slow (0.75x)'}
       >
         <Turtle size={16} />

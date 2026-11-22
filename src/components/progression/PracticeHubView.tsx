@@ -60,7 +60,7 @@ export function PracticeHubView({
             </span>
             <button
               onClick={() => setUiMode('pro')}
-              className="px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-bold text-xs transition border border-amber-500/40 cursor-pointer"
+              className="min-h-[48px] px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-bold text-xs transition border border-amber-500/40 cursor-pointer"
             >
               ⚡ الوضع المتقدم
             </button>
@@ -114,7 +114,7 @@ export function PracticeHubView({
         <div className="text-center pt-2">
           <button
             onClick={() => setUiMode('pro')}
-            className="text-xs font-bold text-cyan-400 hover:underline cursor-pointer p-2"
+            className="min-h-[48px] inline-flex items-center justify-center text-xs font-bold text-cyan-400 hover:underline cursor-pointer p-2"
           >
             عرض كل أدوات الوضع المتقدم (المحادثة، Corporate، القصة...) ⚡
           </button>

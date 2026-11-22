@@ -34,10 +34,22 @@ export function buildDictionaryPhases(
 ): Phase[] {
   const isArabicSource = source.startsWith('ar') || source === 'arz' || source === 'apc' || source === 'afb' || source === 'ary';
 
-  // Normalize all entries to ensure 100% rich schema
-  const entries = (rawEntries && rawEntries.length > 0 ? rawEntries : getStaticDictionaryEntries(target))
+  // Normalize all entries to ensure 100% rich schema and filter out raw Wiktionary metadata
+  const wiktionaryMetaRegex =
+    /\b(verbal noun of|plural of|inflection of|diminutive of|alternative form of|alternative spelling of|apocopic form of|past participle of|present participle of|first-person singular|second-person singular|third-person singular|feminine singular of|masculine singular of)\b/i;
+
+  const allNormalized = (rawEntries && rawEntries.length > 0 ? rawEntries : getStaticDictionaryEntries(target))
     .map((e, idx) => normalizeDictEntry(e, target, idx))
-    .filter((e) => extractWord(e) && extractTranslation(e));
+    .filter((e) => {
+      const w = extractWord(e);
+      const t = extractTranslation(e);
+      return Boolean(w && t && !wiktionaryMetaRegex.test(t) && !wiktionaryMetaRegex.test(e.cognitiveHint || ''));
+    });
+
+  const arabicPreferred = isArabicSource
+    ? allNormalized.filter((e) => /[\u0600-\u06FF]/.test(extractTranslation(e)))
+    : [];
+  const entries = arabicPreferred.length >= 10 ? arabicPreferred : allNormalized;
 
   const pool = entries.length > 0 ? entries : [
     normalizeDictEntry({ word: 'Hello', translation: 'أهلاً', phonetic: 'Hello', partOfSpeech: 'phrase', cefrLevel: 'A0' }, target, 0),

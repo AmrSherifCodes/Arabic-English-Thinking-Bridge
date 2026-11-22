@@ -15,6 +15,7 @@ import {
   tokenizeTargetSentence,
 } from '../../utils/sentenceBuilderHelper';
 import { soundFX } from '../../utils/soundFX';
+import { safeVibrate } from '../../utils/fx';
 import { updateCognitiveProfile, runLocalTrainingStep, getDifficultyKnob } from '../../utils/OnlineLearningEngine';
 import { getDynamicExerciseOptions } from '../../utils/adaptiveCurriculum';
 import { getGlossForWord } from '../../utils/glossHelper';
@@ -27,7 +28,7 @@ import { NameForge } from '../NameForge';
 import { DualSpeedAudio } from '../DualSpeedAudio';
 import { useUiMode } from '../../utils/uiMode';
 
-function getSmartGrammarClue(exercise: ExerciseItem, isArabic: boolean, targetLang: string = 'en'): string {
+export function getSmartGrammarClue(exercise: ExerciseItem, isArabic: boolean, targetLang: string = 'en'): string {
   const arExplanation = exercise.explanationAr || (exercise as any).hintAr || '';
   if (isArabic && arExplanation && /[\u0600-\u06FF]/.test(arExplanation)) return arExplanation;
   if (!isArabic && exercise.explanationEn) return exercise.explanationEn;
@@ -429,11 +430,7 @@ export function LessonRunner({
       }
     }
 
-    try {
-      if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
-        navigator.vibrate(isMatch ? [30, 40, 50] : [70]);
-      }
-    } catch {}
+    safeVibrate(isMatch ? [30, 40, 50] : [70]);
     setAutoHintPill(null);
     setHintDrawerOpen(false);
     setIsAnswered(true);
@@ -474,7 +471,7 @@ export function LessonRunner({
           <button
             type="button"
             onClick={onClose}
-            className="w-full py-3 min-h-[44px] rounded-2xl bg-primary text-on-primary font-black text-sm cursor-pointer"
+            className="w-full py-3 min-h-[48px] rounded-2xl bg-primary text-on-primary font-black text-sm cursor-pointer"
           >
             {isArabic ? '← العودة للمسار' : '← Back to Path'}
           </button>
@@ -584,7 +581,7 @@ export function LessonRunner({
         <div className="sticky top-0 z-40 px-3 sm:px-4 pb-3 pt-safe border-b border-border flex items-center gap-2 sm:gap-3 bg-[#06101c]/95 backdrop-blur-md shrink-0">
           <button
             onClick={() => setShowExitConfirm(true)}
-            className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl bg-surface-2 text-muted hover:text-text font-bold transition cursor-pointer shrink-0"
+            className="p-2 min-h-[48px] min-w-[48px] flex items-center justify-center rounded-xl bg-surface-2 text-muted hover:text-text font-bold transition cursor-pointer shrink-0"
             aria-label={isArabic ? 'إغلاق الدرس' : 'Close Lesson'}
           >
             <X size={20} />
@@ -620,7 +617,7 @@ export function LessonRunner({
                 if (addedWord) setLastAddedHintWord(addedWord);
                 setHintDrawerOpen(true);
               }}
-              className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl bg-cyan-500/15 border border-cyan-500/40 text-cyan-300 hover:bg-cyan-500/25 text-xs font-bold transition active:scale-95 cursor-pointer"
+              className="p-2 min-h-[48px] min-w-[48px] flex items-center justify-center rounded-xl bg-cyan-500/15 border border-cyan-500/40 text-cyan-300 hover:bg-cyan-500/25 text-xs font-bold transition active:scale-95 cursor-pointer"
               title={isArabic ? 'تلميح ذكي' : 'Smart Hint'}
               aria-label={isArabic ? 'تلميح ذكي' : 'Smart Hint'}
             >
@@ -630,7 +627,7 @@ export function LessonRunner({
             <button
               type="button"
               onClick={handleShuffleExercises}
-              className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20 text-xs font-bold transition active:scale-95 cursor-pointer"
+              className="p-2 min-h-[48px] min-w-[48px] flex items-center justify-center rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20 text-xs font-bold transition active:scale-95 cursor-pointer"
               title={isArabic ? 'إعادة ترتيب التمارين عشوائياً' : 'Randomize exercise order'}
               aria-label={isArabic ? 'إعادة ترتيب التمارين عشوائياً' : 'Randomize exercise order'}
             >
@@ -758,7 +755,7 @@ export function LessonRunner({
                         }}
                         dir={isTargetRtl ? 'rtl' : 'ltr'}
                         style={{ unicodeBidi: 'isolate', touchAction: 'manipulation' }}
-                        className="px-3.5 py-2.5 min-h-[44px] rounded-xl bg-purple-500/20 border border-purple-400 text-purple-200 font-black text-sm flex flex-col items-center justify-center active:scale-95 shadow-sm cursor-pointer"
+                        className="px-3.5 py-2.5 min-h-[48px] rounded-xl bg-purple-500/20 border border-purple-400 text-purple-200 font-black text-sm flex flex-col items-center justify-center active:scale-95 shadow-sm cursor-pointer"
                       >
                         <span>{chip}</span>
                         {showGlosses && gloss && <span className="text-[11px] sm:text-xs font-medium text-purple-300 dark:text-purple-300 opacity-90 mt-0.5 leading-none" dir={!isTargetRtl ? 'rtl' : 'ltr'}>{gloss}</span>}
@@ -772,7 +769,7 @@ export function LessonRunner({
                     data-testid="clear-placed-tiles"
                     onClick={() => setPlacedTileIds([])}
                     aria-label={isArabic ? 'مسح الكلمات المختارة' : 'Clear selected words'}
-                    className="ms-auto px-2.5 py-2 min-h-[44px] rounded-xl bg-slate-800/80 border border-slate-700 text-slate-300 hover:text-white text-xs font-bold flex items-center gap-1 cursor-pointer shrink-0"
+                    className="ms-auto px-2.5 py-2 min-h-[48px] rounded-xl bg-slate-800/80 border border-slate-700 text-slate-300 hover:text-white text-xs font-bold flex items-center gap-1 cursor-pointer shrink-0"
                   >
                     <RotateCcw size={13} />
                     <span>{isArabic ? 'مسح' : 'Clear'}</span>
@@ -986,7 +983,7 @@ export function LessonRunner({
                 type="button"
                 onClick={() => setHintDrawerOpen(false)}
                 aria-label={isArabic ? 'إغلاق المساعد الذكي' : 'Close Smart Assistant'}
-                className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl bg-slate-800 text-slate-200 hover:text-white hover:bg-slate-700 cursor-pointer text-sm font-black shrink-0"
+                className="min-h-[48px] min-w-[48px] flex items-center justify-center rounded-xl bg-slate-800 text-slate-200 hover:text-white hover:bg-slate-700 cursor-pointer text-sm font-black shrink-0"
               >
                 <X size={18} />
               </button>
@@ -1020,7 +1017,7 @@ export function LessonRunner({
                 const nextAdded = triggerAutoHelper();
                 if (nextAdded) setLastAddedHintWord(nextAdded);
               }}
-              className="w-full py-2.5 min-h-[44px] rounded-xl bg-cyan-500 hover:bg-cyan-400 disabled:opacity-45 disabled:cursor-not-allowed text-slate-950 font-black text-xs transition cursor-pointer shadow-md flex items-center justify-center gap-1.5"
+              className="w-full py-2.5 min-h-[48px] rounded-xl bg-cyan-500 hover:bg-cyan-400 disabled:opacity-45 disabled:cursor-not-allowed text-slate-950 font-black text-xs transition cursor-pointer shadow-md flex items-center justify-center gap-1.5"
             >
               <span>{isSentenceSlotsFull ? (isArabic ? '✅ اكتملت كلمات الجملة' : '✅ All words placed') : '➕ ضيف الكلمة الجاية'}</span>
             </button>

@@ -126,7 +126,7 @@ export function DevModeModal({
             </span>
             <div>
               <h2 id="dev-mode-title" className="text-base sm:text-lg font-black text-white">
-                Developer Mode · v5.0.0 Official Stable
+                Developer Mode · V6 (v6.0.0)
               </h2>
               <p className="text-[11px] text-cyan-300 font-mono">
                 All-Socials Auto-Poster + Offline Diagnostics

@@ -1,7 +1,13 @@
 import { Phase, SourceLanguage } from '../../types';
 
 export function getSpanishPhases(source: SourceLanguage): Phase[] {
-  const isAr = source === 'ar';
+  const isAr =
+    source === 'ar' ||
+    source === 'arz' ||
+    source === 'apc' ||
+    source === 'afb' ||
+    source === 'ary' ||
+    String(source).startsWith('ar');
 
   return [
     {
@@ -138,7 +144,7 @@ export function getSpanishPhases(source: SourceLanguage): Phase[] {
                 }
               ],
               habitHint: isAr
-                ? 'coche مذكر despite "car" often feminine in other languages; use el/rojo/rápido.'
+                ? 'كلمة coche مذكرة في الإسبانية؛ لذلك نستخدم معها el و rojo و rápido.'
                 : 'coche is masculine; use el/rojo/rápido.'
             }
           ]
@@ -637,7 +643,7 @@ export function getSpanishPhases(source: SourceLanguage): Phase[] {
                 }
               ],
               habitHint: isAr
-                ? 'indirect (le) + verb + direct object.'
+                ? 'يأتي ضمير المفعول غير المباشر (le) قبل الفعل ثم المفعول المباشر.'
                 : 'indirect (le) + verb + direct object.'
             }
           ]
@@ -767,7 +773,7 @@ export function getSpanishPhases(source: SourceLanguage): Phase[] {
                 }
               ],
               habitHint: isAr
-                ? 'reflexive: me + levanto.'
+                ? 'فعل انعكاسي (reflexive): نضع الضمير me قبل الفعل levanto.'
                 : 'reflexive: me + levanto.'
             },
             {
@@ -797,7 +803,7 @@ export function getSpanishPhases(source: SourceLanguage): Phase[] {
                 }
               ],
               habitHint: isAr
-                ? 'ducharse reflexive: me ducho.'
+                ? 'الفعل ducharse انعكاسي: نضع الضمير me قبل الفعل ducho.'
                 : 'ducharse is reflexive: me ducho.'
             }
           ]
@@ -873,7 +879,7 @@ export function getSpanishPhases(source: SourceLanguage): Phase[] {
                 }
               ],
               habitHint: isAr
-                ? 'Me alegro de que + subjunctive (estés).'
+                ? 'بعد تعبير الشعور Me alegro de que نستخدم صيغة المنصوب (estés).'
                 : 'Me alegro de que + subjunctive (estés).'
             }
           ]
@@ -960,7 +966,7 @@ export function getSpanishPhases(source: SourceLanguage): Phase[] {
                 }
               ],
               habitHint: isAr
-                ? 'hasta que + subjunctive (termines).'
+                ? 'بعد الرابط الزمني hasta que نستخدم صيغة المنصوب للمستقبل (termines).'
                 : 'hasta que + subjunctive (termines).'
             }
           ]
@@ -974,7 +980,7 @@ export function getSpanishPhases(source: SourceLanguage): Phase[] {
           title: 'Conditional & Polite Register',
           titleAr: 'الشرط (conditional) واللغة المهذبة',
           transferConcept: isAr
-            ? 'الشرط (Me gustaría، ¿Podría usted...?) для طلب مهذب: Me gustaría un café، por favor.'
+            ? 'الشرط (Me gustaría، ¿Podría usted...?) للطلب المهذب: Me gustaría un café، por favor.'
             : 'Conditional for polite requests: Me gustaría un café, por favor.',
           transferConceptAr: 'الشرط للطلب المهذب: Me gustaría، ¿Podría usted...?',
           weakSpotTag: 'conditional-polite',
@@ -1058,7 +1064,7 @@ export function getSpanishPhases(source: SourceLanguage): Phase[] {
           title: 'Passive with "se"',
           titleAr: 'المبني للمجهول مع "se"',
           transferConcept: isAr
-            ? 'للوصف impersonal/被动态، استخدم se + فعل: Se habla español (يتحدث الإسبانية).'
+            ? 'للوصف غير الشخصي أو المبني للمجهول، استخدم se + فعل: Se habla español (يتحدث الإسبانية).'
             : 'For impersonal/passive, use se + verb: Se habla español (Spanish is spoken).',
           transferConceptAr: 'se + فعل للوصف impersonal.',
           weakSpotTag: 'passive-se',
@@ -1280,7 +1286,7 @@ export function getSpanishPhases(source: SourceLanguage): Phase[] {
                 }
               ],
               habitHint: isAr
-                ? 'Cordialmente / Atentamente for formal emails.'
+                ? 'نستخدم Cordialmente أو Atentamente في ختام الرسائل الرسمية.'
                 : 'Cordialmente / Atentamente for formal emails.'
             }
           ]

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Thinking Bridge v5.0.0 — Zero-Dependency All-Socials CLI Auto-Poster
+ * Thinking Bridge V6 (v6.0.0) — Zero-Dependency All-Socials CLI Auto-Poster
  * Publishes to X, LinkedIn, Facebook, Telegram, Discord, Bluesky, Mastodon, and Reddit
  * via official APIs using Node 22 built-in fetch, and outputs ready-to-launch intent URLs
  * for WhatsApp, Threads, and YouTube Community.
@@ -252,7 +252,7 @@ const PUBLISHERS = [
         api_type: 'json',
         kind: 'self',
         sr: process.env.SOCIAL_REDDIT_SUBREDDIT,
-        title: title || 'Thinking Bridge v5.0.0 — Free Offline Cognitive Transfer App',
+        title: title || 'Thinking Bridge V6 (v6.0.0) — Free Offline Cognitive Transfer App',
         text: payload,
         url,
       });
@@ -260,7 +260,7 @@ const PUBLISHERS = [
         method: 'POST',
         headers: {
           Authorization: `Bearer ${process.env.SOCIAL_REDDIT_ACCESS_TOKEN}`,
-          'User-Agent': 'ThinkingBridgeAutoPoster/5.0.0',
+          'User-Agent': 'ThinkingBridgeAutoPoster/6.0.0',
         },
         body: params,
       });
@@ -278,7 +278,7 @@ async function main() {
   const postText = opts.text || chosenPreset.text;
   const postTitle = opts.title || chosenPreset.title;
 
-  console.log(`\n=== Thinking Bridge v5.0.0 All-Socials Auto-Poster (${opts.dryRun ? 'DRY-RUN' : 'LIVE'}) ===`);
+  console.log(`\n=== Thinking Bridge V6 (v6.0.0) All-Socials Auto-Poster (${opts.dryRun ? 'DRY-RUN' : 'LIVE'}) ===`);
   console.log(`Preset: ${opts.preset} | Target URL: ${shareUrl}\n`);
 
   let hadFailure = false;
