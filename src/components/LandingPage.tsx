@@ -154,18 +154,18 @@ export function LandingPage({ onLaunchApp, onOpenQuran, isArabic = false }: Land
             </ul>
           </nav>
 
-          <div className="flex items-center gap-1 sm:gap-2.5 shrink-0">
+          <div className="flex items-center gap-2 shrink-0">
             <button
               type="button"
               onClick={() => {
                 triggerHapticImpact();
                 setStreetDemoOpen(true);
               }}
-              aria-label={isAr ? 'عرض الشارع' : 'Street Mode'}
-              className="flex items-center justify-center gap-1.5 px-2.5 sm:px-3 py-1.5 min-h-[48px] min-w-[48px] rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-bold hover:bg-emerald-500/30 transition cursor-pointer whitespace-nowrap shrink-0"
+              aria-label={isAr ? 'تجربة سريعة' : 'Quick Demo'}
+              className="hidden sm:flex items-center justify-center gap-1.5 px-3 py-1.5 min-h-[44px] rounded-2xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-bold hover:bg-emerald-500/30 transition cursor-pointer whitespace-nowrap shrink-0"
             >
               <Zap size={15} className="text-emerald-400 shrink-0" />
-              <span className="hidden min-[460px]:inline">{isAr ? 'عرض الشارع 🚶‍♂️' : 'Street Mode 🚶‍♂️'}</span>
+              <span>{isAr ? 'تجربة سريعة' : 'Quick Demo'}</span>
             </button>
             <button
               type="button"
@@ -174,7 +174,7 @@ export function LandingPage({ onLaunchApp, onOpenQuran, isArabic = false }: Land
                 void i18n.changeLanguage(nextLang);
                 setGuideMode(nextLang === 'en' ? 'english_guided' : 'egyptian_ar');
               }}
-              className="flex items-center justify-center gap-1 px-2 sm:px-3 py-1.5 min-h-[48px] min-w-[48px] rounded-xl border border-[var(--nile)] text-[var(--nile)] text-xs font-bold hover:bg-[var(--nile)] hover:text-[#040D1A] transition whitespace-nowrap shrink-0"
+              className="flex items-center justify-center gap-1 px-2.5 sm:px-3 py-1.5 min-h-[40px] sm:min-h-[44px] min-w-[44px] rounded-2xl border border-[var(--nile)] text-[var(--nile)] text-xs font-bold hover:bg-[var(--nile)] hover:text-[#040D1A] transition whitespace-nowrap shrink-0"
               aria-label={isAr ? 'Switch to English' : 'Switch to Arabic'}
             >
               <Globe size={14} className="shrink-0" />
@@ -184,7 +184,7 @@ export function LandingPage({ onLaunchApp, onOpenQuran, isArabic = false }: Land
             <button
               type="button"
               onClick={handleLaunchApp}
-              className="btn btn-primary btn-sm !px-3 sm:!px-5 !py-2 !min-h-[48px] !text-xs sm:!text-sm whitespace-nowrap shrink-0"
+              className="btn btn-primary btn-sm !px-3.5 sm:!px-5 !py-2 !min-h-[40px] sm:!min-h-[44px] !text-xs sm:!text-sm whitespace-nowrap shrink-0"
             >
               {isAr ? 'ابدأ دلوقتي' : 'Start Now'}
             </button>
@@ -227,65 +227,17 @@ export function LandingPage({ onLaunchApp, onOpenQuran, isArabic = false }: Land
                   : 'Stop translating word-for-word in your head. Grasp the logical structure of English to speak fluently and naturally, straight from Alexandria to the world.'}
               </p>
 
-              <div className="hero-cta flex-wrap">
+              <div className="hero-cta">
                 <button
                   type="button"
                   onClick={handleLaunchApp}
-                  className="btn btn-gold hero-primary-cta"
+                  className="btn btn-gold hero-primary-cta w-full sm:w-auto"
                 >
                   <span>
                     {isAr
-                      ? '▶ ابدأ الرحلة — أول تحدي في 30 ثانية'
-                      : '▶ Start Journey — First Challenge in 30s'}
+                      ? '▶ ابدأ أول درس (30 ثانية)'
+                      : '▶ Start First Lesson (30s)'}
                   </span>
-                </button>
-                {!Capacitor.isNativePlatform() && (
-                  <a
-                    href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v6.0.0/ThinkingBridge-v6.0.0.apk"
-                    download="ThinkingBridge-v6.0.0.apk"
-                    className="btn hero-secondary-cta bg-amber-400/15 text-amber-200 border border-amber-400/40 hover:bg-amber-400/25 transition flex items-center gap-2 cursor-pointer font-bold whitespace-normal text-center"
-                  >
-                    <Download size={18} />
-                    <span>{isAr ? 'تحميل APK للأندرويد (40.5 MB)' : 'Download Android APK (40.5 MB)'}</span>
-                  </a>
-                )}
-                <a
-                  href="/exam"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    if (typeof window !== 'undefined' && window.history) {
-                      window.history.pushState({}, '', '/exam');
-                      window.dispatchEvent(new PopStateEvent('popstate'));
-                    }
-                  }}
-                  className="btn hero-secondary-cta bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 hover:bg-cyan-500/30 transition flex items-center gap-2 cursor-pointer font-bold"
-                >
-                  <span>☕ {isAr ? 'اختبار يا باشا (اعرف مستواك)' : 'Ya Basha CEFR Exam'}</span>
-                </a>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (onOpenQuran) {
-                      onOpenQuran();
-                    } else if (typeof window !== 'undefined' && window.history) {
-                      window.history.pushState({}, '', '/quran');
-                      window.dispatchEvent(new PopStateEvent('popstate'));
-                    }
-                  }}
-                  className="btn hero-secondary-cta bg-emerald-500/15 text-emerald-200 border border-emerald-400/40 hover:bg-emerald-500/25 transition flex items-center gap-2 cursor-pointer font-bold"
-                >
-                  <span>📖 {isAr ? 'ملاذ حفظ القرآن (صدقة جارية)' : 'Quran Hifz Sanctuary'}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    triggerHapticImpact();
-                    setStreetDemoOpen(true);
-                  }}
-                  className="btn hero-secondary-cta bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30 transition flex items-center gap-2 cursor-pointer font-bold"
-                >
-                  <Zap size={18} className="text-emerald-400" />
-                  <span>{isAr ? 'جرب عرض الشارع 🚶‍♂️' : 'Street Presentation 🚶‍♂️'}</span>
                 </button>
               </div>
             </motion.div>
@@ -300,6 +252,61 @@ export function LandingPage({ onLaunchApp, onOpenQuran, isArabic = false }: Land
               <LandingPhoneMockup isArabic={isAr} />
             </motion.div>
           </div>
+        </div>
+      </section>
+
+      {/* ================= QUICK SECONDARY ACCESS (BELOW THE FOLD) ================= */}
+      <section className="py-6 border-y border-cyan-500/15 bg-[#061124]/80" aria-label={isAr ? 'روابط سريعة' : 'Quick Links'}>
+        <div className="el-container flex flex-wrap items-center justify-center gap-3">
+          <a
+            href="/quran"
+            onClick={(e) => {
+              e.preventDefault();
+              if (onOpenQuran) {
+                onOpenQuran();
+              } else if (typeof window !== 'undefined' && window.history) {
+                window.history.pushState({}, '', '/quran');
+                window.dispatchEvent(new PopStateEvent('popstate'));
+              }
+            }}
+            className="btn hero-secondary-cta bg-emerald-500/15 text-emerald-200 border border-emerald-400/40 hover:bg-emerald-500/25 transition flex items-center gap-2 cursor-pointer font-bold text-sm"
+          >
+            <span>📖 {isAr ? 'ملاذ حفظ القرآن (صدقة جارية)' : 'Quran Hifz Sanctuary (Free)'}</span>
+          </a>
+          <a
+            href="/exam"
+            onClick={(e) => {
+              e.preventDefault();
+              if (typeof window !== 'undefined' && window.history) {
+                window.history.pushState({}, '', '/exam');
+                window.dispatchEvent(new PopStateEvent('popstate'));
+              }
+            }}
+            className="btn hero-secondary-cta bg-cyan-500/15 text-cyan-200 border border-cyan-500/40 hover:bg-cyan-500/25 transition flex items-center gap-2 cursor-pointer font-bold text-sm"
+          >
+            <span>🧭 {isAr ? 'اختبار تحديد المستوى' : 'Quick Level Check'}</span>
+          </a>
+          {!Capacitor.isNativePlatform() && (
+            <a
+              href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v6.0.0/ThinkingBridge-v6.0.0.apk"
+              download="ThinkingBridge-v6.0.0.apk"
+              className="btn hero-secondary-cta bg-amber-400/15 text-amber-200 border border-amber-400/40 hover:bg-amber-400/25 transition flex items-center gap-2 cursor-pointer font-bold text-sm"
+            >
+              <Download size={16} />
+              <span>{isAr ? 'تحميل APK للأندرويد' : 'Download Android APK'}</span>
+            </a>
+          )}
+          <button
+            type="button"
+            onClick={() => {
+              triggerHapticImpact();
+              setStreetDemoOpen(true);
+            }}
+            className="btn hero-secondary-cta bg-white/5 text-slate-200 border border-white/20 hover:bg-white/10 transition flex items-center gap-2 cursor-pointer font-bold text-sm"
+          >
+            <Zap size={16} className="text-emerald-400" />
+            <span>{isAr ? 'تجربة سريعة بدون تسجيل' : 'Quick Interactive Demo'}</span>
+          </button>
         </div>
       </section>
 

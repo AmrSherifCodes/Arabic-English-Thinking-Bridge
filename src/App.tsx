@@ -3,7 +3,7 @@ import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { Keyboard, KeyboardResize } from '@capacitor/keyboard';
-import { Download, Map, Gamepad2, BookOpen, User, Palette } from 'lucide-react';
+import { Download, Map, Gamepad2, BookOpen, User, Compass } from 'lucide-react';
 
 import { LandingPage } from './components/LandingPage';
 import { initDevicePerf, PERF_MODE_STORAGE_KEY } from './utils/devicePerf';
@@ -55,7 +55,7 @@ import {
   useGuidePreferences,
 } from './utils/guideMode';
 
-import { CefrStage, ProgressionState, LessonNode } from './progression/types';
+import { CefrLevelId, CefrStage, PhaseId, ProgressionState, LessonNode } from './progression/types';
 import { migrateLegacyStorageToProgression } from './progression/migration';
 import { updateStreakAndShields } from './progression/engine';
 
@@ -93,6 +93,7 @@ const LeagueView = lazy(() => import('./components/progression/LeagueView').then
 const ProfileView = lazy(() => import('./components/progression/ProfileView').then((m) => ({ default: m.ProfileView })));
 const LessonRunner = lazy(() => import('./components/progression/LessonRunner').then((m) => ({ default: m.LessonRunner })));
 const OnboardingPlacementModal = lazy(() => import('./components/progression/OnboardingPlacementModal').then((m) => ({ default: m.OnboardingPlacementModal })));
+const PlacementTestModal = lazy(() => import('./components/progression/PlacementTestModal').then((m) => ({ default: m.PlacementTestModal })));
 const PrivacyPolicyModal = lazy(() => import('./components/progression/PrivacyPolicyModal').then((m) => ({ default: m.PrivacyPolicyModal })));
 const VoicePracticeView = lazy(() => import('./features/voice/VoicePracticeView').then((m) => ({ default: m.VoicePracticeView })));
 const FlashcardsView = lazy(() => import('./features/flashcards/FlashcardsView').then((m) => ({ default: m.FlashcardsView })));
@@ -236,6 +237,7 @@ export default function App() {
 
   const [activeTab, setActiveTab] = useState<'path' | 'arcade' | 'practice' | 'profile'>('path');
   const [shopOpen, setShopOpen] = useState(false);
+  const [placementModalOpen, setPlacementModalOpen] = useState(false);
   const { economy } = useEconomy();
   const [progression, setProgression] = useState<ProgressionState>(() => {
     const hasExistingProgression = hasSavedProgression();
@@ -290,8 +292,15 @@ export default function App() {
     return !hasCompletedUserSetup();
   });
 
-  const { guideMode, learnerTrack, isArabicGuide } = useGuidePreferences();
+  const { guideMode, learnerTrack, isArabicGuide, setGuideMode } = useGuidePreferences();
   const guideBadge = getGuideModeBadge(guideMode);
+  const [quranHighlighted, setQuranHighlighted] = useState<boolean>(() => {
+    try {
+      return typeof window !== 'undefined' && window.localStorage.getItem('tb.quranInterest') === 'true';
+    } catch {
+      return false;
+    }
+  });
 
   const { profile, saveProfile } = useUserProfile();
   const { sourceLang, targetLang, setPair } = useLanguagePair();
@@ -395,9 +404,22 @@ export default function App() {
     syncGuideDocumentDirection(guideMode);
   }, [view.name, guideMode]);
 
-  const handleUserSetupComplete = (mode: GuideMode, track: LearnerTrack) => {
+  const handleUserSetupComplete = (
+    mode: GuideMode,
+    track: LearnerTrack,
+    quranInterested?: boolean,
+    launchPlacement?: boolean
+  ) => {
     setUserSetupOpen(false);
     setShowAgeGate(false);
+    setNewOnboardingOpen(false);
+    setOnboardingOpen(false);
+    try {
+      localStorage.setItem('tb.onboardingComplete', 'true');
+    } catch { }
+    if (typeof quranInterested === 'boolean') {
+      setQuranHighlighted(quranInterested);
+    }
 
     if (track === 'teacher') {
       try {
@@ -409,25 +431,13 @@ export default function App() {
       return;
     }
 
-    const hasStarted = (progression.completedLessonIds?.length || 0) > 0;
-    if (!hasStarted) {
-      if (track === 'starter') {
-        setUiMode('simple');
-      } else if (track === 'school_igcse') {
-        updateProgression((prev) => ({
-          ...prev,
-          currentLevelId: 'A2',
-          currentPhaseId: 'A2.1',
-          currentStage: 'A2',
-          currentUnitId: 'a2-unit-1',
-        }));
-      } else if (track === 'uni_career') {
-        updateProgression((prev) => ({
-          ...prev,
-          currentLevelId: 'B1',
-          currentPhaseId: 'B1.1',
-        }));
-      }
+    if (launchPlacement) {
+      setPlacementModalOpen(true);
+    } else {
+      try {
+        localStorage.setItem('tb.placementDone', 'true');
+      } catch { }
+      setActiveTab('path');
     }
 
     const isAr = mode !== 'english_guided';
@@ -436,17 +446,36 @@ export default function App() {
         ? mode === 'standard_ar'
           ? '✅ تم حفظ تفضيلاتك بنجاح!'
           : '✅ تم تظبيط التطبيق على مقاسك!'
-        : '✅ Your guidance mode & track are ready!'
+        : '✅ Your preferences are ready!'
     );
   };
 
   useEffect(() => {
-    if (view.name === 'shell' && !showAgeGate && !newOnboardingOpen && !onboardingOpen) {
+    const hasCompletedFirstLesson =
+      (progression.completedLessonIds?.length || 0) >= 1 || (progression.xp || 0) >= 50;
+    if (
+      view.name === 'shell' &&
+      hasCompletedFirstLesson &&
+      !userSetupOpen &&
+      !placementModalOpen &&
+      !showAgeGate &&
+      !newOnboardingOpen &&
+      !onboardingOpen
+    ) {
       if (shouldShowSupporterPopup()) {
         setShowSupporterPopup(true);
       }
     }
-  }, [view.name, showAgeGate, newOnboardingOpen, onboardingOpen]);
+  }, [
+    view.name,
+    progression.completedLessonIds?.length,
+    progression.xp,
+    userSetupOpen,
+    placementModalOpen,
+    showAgeGate,
+    newOnboardingOpen,
+    onboardingOpen,
+  ]);
 
   // Save progression state updates
   const updateProgression = (updater: (prev: ProgressionState) => ProgressionState) => {
@@ -537,6 +566,54 @@ export default function App() {
   }, [view, activeLessonNode]);
 
   const goHome = () => setView({ name: 'shell' });
+
+  const handleAdaptivePlacementComplete = async (
+    levelId: CefrLevelId,
+    phaseId: PhaseId,
+    score: number
+  ) => {
+    let autoCompletedIds: string[] = [];
+    try {
+      const { getCefrLevelHierarchy } = await import('./progression/courseData');
+      const hierarchy = getCefrLevelHierarchy(targetLang);
+      const allLessons = hierarchy.flatMap((l) =>
+        l.phases.flatMap((p) => p.modules.flatMap((m) => m.units.flatMap((u) => u.lessons)))
+      );
+      const levelsOrder: CefrLevelId[] = ['A1', 'A2', 'B1', 'B2', 'C1'];
+      const targetLevelIndex = levelsOrder.indexOf(levelId);
+      autoCompletedIds = allLessons
+        .filter((l) => levelsOrder.indexOf((l.levelId || 'A1') as CefrLevelId) < targetLevelIndex)
+        .map((l) => l.id);
+    } catch {
+      autoCompletedIds = [];
+    }
+
+    let placedBand = '';
+    try {
+      placedBand = localStorage.getItem('tb.placementBand') || '';
+    } catch {
+      placedBand = '';
+    }
+    const nextStage: CefrStage = placedBand === 'Pre-A0' ? 'A0' : levelId === 'A1' ? 'A1' : 'A2';
+
+    updateProgression((prev) => ({
+      ...prev,
+      currentLevelId: levelId,
+      currentPhaseId: phaseId,
+      currentStage: nextStage,
+      currentUnitId: `${nextStage.toLowerCase()}-unit-1`,
+      placementResult: { levelId, phaseId, score, dateISO: new Date().toISOString() },
+      completedLessonIds: Array.from(new Set([...prev.completedLessonIds, ...autoCompletedIds])),
+    }));
+
+    setActiveTab('path');
+    showToast(
+      T(
+        `🎯 تم فتح مستواك (${placedBand || levelId}) على الخريطة!`,
+        `🎯 Unlocked your level (${placedBand || levelId}) on the map!`
+      )
+    );
+  };
 
   const handleLessonSessionComplete = async (earnedXp: number, accuracyPercent: number) => {
     let nextStage: CefrStage | undefined;
@@ -657,7 +734,7 @@ export default function App() {
             }}
             dir={isArabic ? 'rtl' : 'ltr'}
           >
-            {/* Slim 48px Sticky Top HUD Bar */}
+            {/* Clean Single-Row 52px Sticky Top HUD Bar (3 items max) */}
             <header
               className="tb-hud-bar sticky top-0 z-40 w-full border-b"
               style={{
@@ -666,105 +743,63 @@ export default function App() {
                 paddingTop: 'env(safe-area-inset-top, 0px)',
               }}
             >
-              <div className="min-h-[48px] max-w-[480px] mx-auto px-2.5 py-1 flex items-center justify-between gap-1.5 flex-wrap">
-                <div className="flex items-center gap-1.5 flex-wrap text-xs font-black">
-                  <span
-                    className="px-2 py-1 rounded-xl border"
-                    style={{
-                      backgroundColor: 'var(--accent)',
-                      color: 'var(--accent-ink)',
-                      borderColor: 'var(--accent)',
-                    }}
-                  >
-                    {progression.currentLevelId || progression.currentStage || 'A1'}
-                  </span>
-                  <span
-                    className="px-2 py-1 rounded-xl border"
-                    style={{
-                      backgroundColor: 'var(--bg)',
-                      borderColor: 'var(--border)',
-                      color: 'var(--ink)',
-                    }}
-                    title={isArabic ? 'عملات الجسر' : 'Bridge Coins'}
-                  >
-                    🪙 {economy.coins}
-                  </span>
-                  <span
-                    className="px-2 py-1 rounded-xl border"
-                    style={{
-                      backgroundColor: 'var(--bg)',
-                      borderColor: 'var(--border)',
-                      color: 'var(--ink)',
-                    }}
-                    title={isArabic ? 'أيام الاستمرار' : 'Streak'}
-                  >
-                    🔥 {progression.streak || 0}
-                  </span>
-                  <span
-                    className="px-2 py-1 rounded-xl border"
-                    style={{
-                      backgroundColor: 'var(--bg)',
-                      borderColor: 'var(--border)',
-                      color: 'var(--ink)',
-                    }}
-                    title={isArabic ? 'دروع السلسلة' : 'Streak Shields'}
-                  >
-                    🛡️ {economy.shields}
-                  </span>
-                </div>
+              <div className="h-[52px] max-w-[480px] mx-auto px-4 flex items-center justify-between gap-2 flex-nowrap">
+                {/* 1. Level / Rank Pill (1-tap 60s Level Test) */}
+                <button
+                  type="button"
+                  onClick={() => setPlacementModalOpen(true)}
+                  aria-label={isArabic ? 'مستواك الحالي — اختبار تحديد المستوى' : 'Current Level — Adaptive Level Test'}
+                  className="h-9 px-3 rounded-2xl border flex items-center gap-1.5 text-xs font-black whitespace-nowrap shrink-0 cursor-pointer transition active:scale-95"
+                  style={{
+                    backgroundColor: 'var(--accent)',
+                    color: 'var(--accent-ink)',
+                    borderColor: 'var(--accent)',
+                  }}
+                >
+                  <span>{progression.currentLevelId || progression.currentStage || 'A1'}</span>
+                  <span className="opacity-80 text-[11px]">· {isArabic ? 'المستوى' : 'Lvl'}</span>
+                </button>
 
-                <div className="flex items-center gap-1.5 shrink-0">
-                  <button
-                    type="button"
-                    onClick={openQuranSanctuary}
-                    aria-label={isArabic ? 'ملاذ حفظ القرآن' : 'Quran Hifz Sanctuary'}
-                    title={isArabic ? 'ملاذ حفظ القرآن — صدقة جارية' : 'Quran Hifz Sanctuary'}
-                    className="min-h-[48px] min-w-[48px] px-2.5 py-1 rounded-xl border flex items-center justify-center gap-1 text-xs font-black cursor-pointer shrink-0 transition active:scale-95"
-                    style={{
-                      backgroundColor: 'var(--bg)',
-                      borderColor: 'var(--border)',
-                      color: 'var(--ink)',
-                    }}
-                  >
-                    <span aria-hidden="true">📖</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setUserSetupOpen(true)}
-                    aria-label={isArabic ? 'تغيير لغة الشرح والمسار' : 'Change Guidance Mode & Track'}
-                    title={isArabic ? guideBadge.fullLabelAr : guideBadge.fullLabelEn}
-                    className="min-h-[48px] px-2.5 py-1 rounded-xl border flex items-center justify-center gap-1 text-xs font-black cursor-pointer shrink-0 transition active:scale-95"
-                    style={{
-                      backgroundColor: 'var(--bg)',
-                      borderColor: 'var(--border)',
-                      color: 'var(--ink)',
-                    }}
-                  >
-                    <span>{guideBadge.icon}</span>
-                    <span>{guideBadge.shortLabel}</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShopOpen(true)}
-                    aria-label={isArabic ? 'متجر الثيمات والإطارات' : 'Theme & Cosmetic Shop'}
-                    className="min-h-[48px] min-w-[48px] px-2.5 py-1 rounded-xl border flex items-center justify-center gap-1 text-xs font-black cursor-pointer shrink-0 transition active:scale-95"
-                    style={{
-                      backgroundColor: 'var(--accent-soft)',
-                      borderColor: 'var(--accent)',
-                      color: 'var(--accent)',
-                    }}
-                  >
-                    <Palette size={16} />
-                    <span className="hidden min-[380px]:inline">{isArabic ? 'المتجر' : 'Shop'}</span>
-                  </button>
-                </div>
+                {/* 2. Coins & Streak Pill (1-tap Theme Shop) */}
+                <button
+                  type="button"
+                  onClick={() => setShopOpen(true)}
+                  aria-label={isArabic ? 'العملات والسلسلة — متجر الثيمات' : 'Coins & Streak — Theme Shop'}
+                  className="h-9 px-3 rounded-2xl border flex items-center gap-2 text-xs font-black whitespace-nowrap shrink-0 cursor-pointer transition active:scale-95"
+                  style={{
+                    backgroundColor: 'var(--bg)',
+                    borderColor: 'var(--border)',
+                    color: 'var(--ink)',
+                  }}
+                >
+                  <span>🪙 {economy.coins}</span>
+                  <span className="opacity-30">|</span>
+                  <span>🔥 {progression.streak || 0}</span>
+                </button>
+
+                {/* 3. Single Clean Settings / Language Icon */}
+                <button
+                  type="button"
+                  onClick={() => setUserSetupOpen(true)}
+                  aria-label={isArabic ? 'تغيير لغة الشرح والإعدادات' : 'Language & Settings'}
+                  title={isArabic ? guideBadge.fullLabelAr : guideBadge.fullLabelEn}
+                  className="h-9 min-w-[44px] px-2.5 rounded-2xl border flex items-center justify-center gap-1 text-xs font-black whitespace-nowrap shrink-0 cursor-pointer transition active:scale-95"
+                  style={{
+                    backgroundColor: 'var(--bg)',
+                    borderColor: 'var(--border)',
+                    color: 'var(--ink)',
+                  }}
+                >
+                  <span aria-hidden="true">{guideBadge.icon}</span>
+                  <span className="text-[11px]">{guideBadge.shortLabel}</span>
+                </button>
               </div>
             </header>
 
             {/* Main Game Column */}
-            <main className="flex-1 w-full max-w-[480px] mx-auto px-3 pt-3 pb-[calc(7rem+env(safe-area-inset-bottom,0px))] overflow-x-clip">
+            <main className="flex-1 w-full max-w-[480px] mx-auto px-4 pt-4 pb-[calc(6.5rem+env(safe-area-inset-bottom,0px))] overflow-x-clip">
               {activeTab === 'path' && (
-                <div className="space-y-3">
+                <div className="space-y-4">
                   <LanguagePairBanner
                     sourceLang={sourceLang}
                     targetLang={targetLang}
@@ -775,24 +810,19 @@ export default function App() {
                   <button
                     type="button"
                     onClick={openQuranSanctuary}
-                    className="w-full min-h-[48px] px-4 py-2.5 rounded-2xl border flex items-center justify-between gap-2 text-start cursor-pointer transition active:scale-[0.99]"
+                    className={`w-full min-h-[44px] px-3.5 py-2.5 rounded-2xl border flex items-center justify-between gap-2 text-start cursor-pointer transition active:scale-[0.99] ${
+                      quranHighlighted ? 'ring-2 ring-emerald-500/50 shadow-md' : ''
+                    }`}
                     style={{
-                      backgroundColor: 'var(--surface)',
-                      borderColor: 'var(--border)',
+                      backgroundColor: quranHighlighted ? 'rgba(16, 185, 129, 0.12)' : 'var(--surface)',
+                      borderColor: quranHighlighted ? '#10B981' : 'var(--border)',
                       color: 'var(--ink)',
                     }}
                   >
-                    <div className="min-w-0">
-                      <span className="text-xs sm:text-sm font-black block">
-                        📖 {isArabic ? 'ملاذ حفظ القرآن · Quran Hifz' : 'Quran Hifz Sanctuary · ملاذ حفظ القرآن'}
-                      </span>
-                      <span className="text-[11px] font-bold block" style={{ color: 'var(--gold)' }}>
-                        {isArabic
-                          ? 'صدقة جارية على جميع أموات المسلمين — مجاني بالكامل مدى الحياة'
-                          : '100% Free Forever Sadaqah Jariyah — Verified Uthmani & Al-Husary'}
-                      </span>
-                    </div>
-                    <span className="text-xs font-black shrink-0" style={{ color: 'var(--accent)' }}>
+                    <span className="text-xs font-black truncate">
+                      📖 {isArabic ? 'ملاذ حفظ القرآن · صدقة جارية' : 'Quran Hifz Sanctuary · Free Forever'}
+                    </span>
+                    <span className="text-xs font-black shrink-0" style={{ color: quranHighlighted ? '#10B981' : 'var(--accent)' }}>
                       {isArabic ? 'دخول ←' : 'Open →'}
                     </span>
                   </button>
@@ -869,7 +899,7 @@ export default function App() {
                         style={{ backgroundColor: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--ink)' }}
                       >
                         <span className="text-base block">☕</span>
-                        <span className="text-xs font-black block">{isArabic ? 'اختبار يا باشا CEFR' : 'Ya Basha CEFR Exam'}</span>
+                        <span className="text-xs font-black block">{isArabic ? 'اختبار تحديد المستوى' : 'Quick Level Check'}</span>
                       </button>
                       <button
                         type="button"
@@ -941,43 +971,88 @@ export default function App() {
               )}
 
               {activeTab === 'profile' && (
-                <ProfileView
-                  state={progression}
-                  profile={profile}
-                  entitlement={entitlement}
-                  onOpenActivateCode={() => setActivateCodeOpen(true)}
-                  onOpenShop={() => setShopOpen(true)}
-                  onOpenTeacherMode={() => {
-                    try {
-                      if (typeof window !== 'undefined' && window.history) {
-                        window.history.pushState({}, '', '/teacher');
-                      }
-                    } catch { }
-                    setView({ name: 'teacher' });
-                  }}
-                  onUpdateState={updateProgression}
-                  onExportData={() => {
-                    showToast(T('تم تصدير البيانات بنجاح', 'Data exported successfully'));
-                  }}
-                  onOpenPreferences={() => setView({ name: 'preferences' })}
-                  onDeleteData={() => {
-                    const preservedEconomy = localStorage.getItem(ECONOMY_STORAGE_KEY);
-                    const preservedTheme = localStorage.getItem(THEME_STORAGE_KEY);
-                    const preservedPerf = localStorage.getItem(PERF_MODE_STORAGE_KEY);
-                    const preservedQuran = localStorage.getItem(QURAN_HIFZ_STORAGE_KEY);
-                    clearLocalLearningDataPreservingEntitlement();
-                    try {
-                      if (preservedEconomy !== null) localStorage.setItem(ECONOMY_STORAGE_KEY, preservedEconomy);
-                      if (preservedTheme !== null) localStorage.setItem(THEME_STORAGE_KEY, preservedTheme);
-                      if (preservedPerf !== null) localStorage.setItem(PERF_MODE_STORAGE_KEY, preservedPerf);
-                      if (preservedQuran !== null) localStorage.setItem(QURAN_HIFZ_STORAGE_KEY, preservedQuran);
-                    } catch { }
-                    window.location.reload();
-                  }}
-                  onOpenPrivacyPolicy={() => setPrivacyOpen(true)}
-                  onToast={(msg: string) => showToast(T(msg, msg))}
-                  isArabic={isArabic}
-                />
+                <div className="space-y-4">
+                  <section
+                    className="tb-card-surface p-4 rounded-[20px] border flex items-center justify-between gap-3"
+                    style={{
+                      backgroundColor: 'var(--surface)',
+                      borderColor: 'var(--border)',
+                      color: 'var(--ink)',
+                    }}
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div
+                        className="w-10 h-10 rounded-2xl border flex items-center justify-center shrink-0"
+                        style={{
+                          backgroundColor: 'var(--accent-soft)',
+                          borderColor: 'var(--accent)',
+                          color: 'var(--accent)',
+                        }}
+                      >
+                        <Compass size={18} />
+                      </div>
+                      <div className="min-w-0">
+                        <h3 className="text-sm font-black leading-tight truncate">
+                          {isArabic ? 'اختبار المستوى التكيفي (60 ثانية)' : '60s Adaptive Level Test'}
+                        </h3>
+                        <p className="text-[11px] font-bold truncate" style={{ color: 'var(--ink-muted)' }}>
+                          {isArabic
+                            ? `المستوى الحالي: ${progression.currentLevelId || 'A1'} · يمكنك إعادة الاختبار في أي وقت`
+                            : `Current Level: ${progression.currentLevelId || 'A1'} · Retake anytime`}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setPlacementModalOpen(true)}
+                      className="min-h-[44px] px-3.5 py-2 rounded-2xl text-xs font-black shrink-0 cursor-pointer transition active:scale-95"
+                      style={{
+                        backgroundColor: 'var(--accent)',
+                        color: 'var(--accent-ink)',
+                      }}
+                    >
+                      {isArabic ? 'اختبر مستواك' : 'Retake'}
+                    </button>
+                  </section>
+
+                  <ProfileView
+                    state={progression}
+                    profile={profile}
+                    entitlement={entitlement}
+                    onOpenActivateCode={() => setActivateCodeOpen(true)}
+                    onOpenShop={() => setShopOpen(true)}
+                    onOpenTeacherMode={() => {
+                      try {
+                        if (typeof window !== 'undefined' && window.history) {
+                          window.history.pushState({}, '', '/teacher');
+                        }
+                      } catch { }
+                      setView({ name: 'teacher' });
+                    }}
+                    onUpdateState={updateProgression}
+                    onExportData={() => {
+                      showToast(T('تم تصدير البيانات بنجاح', 'Data exported successfully'));
+                    }}
+                    onOpenPreferences={() => setView({ name: 'preferences' })}
+                    onDeleteData={() => {
+                      const preservedEconomy = localStorage.getItem(ECONOMY_STORAGE_KEY);
+                      const preservedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+                      const preservedPerf = localStorage.getItem(PERF_MODE_STORAGE_KEY);
+                      const preservedQuran = localStorage.getItem(QURAN_HIFZ_STORAGE_KEY);
+                      clearLocalLearningDataPreservingEntitlement();
+                      try {
+                        if (preservedEconomy !== null) localStorage.setItem(ECONOMY_STORAGE_KEY, preservedEconomy);
+                        if (preservedTheme !== null) localStorage.setItem(THEME_STORAGE_KEY, preservedTheme);
+                        if (preservedPerf !== null) localStorage.setItem(PERF_MODE_STORAGE_KEY, preservedPerf);
+                        if (preservedQuran !== null) localStorage.setItem(QURAN_HIFZ_STORAGE_KEY, preservedQuran);
+                      } catch { }
+                      window.location.reload();
+                    }}
+                    onOpenPrivacyPolicy={() => setPrivacyOpen(true)}
+                    onToast={(msg: string) => showToast(T(msg, msg))}
+                    isArabic={isArabic}
+                  />
+                </div>
               )}
             </main>
 
@@ -1062,6 +1137,7 @@ export default function App() {
             onToast={(msg) => showToast(T(msg, msg))}
             preferredVoice={progress.preferredVoice}
             targetLang={targetLang}
+            isArabic={isArabic}
           />
         )}
 
@@ -1092,7 +1168,12 @@ export default function App() {
             <button onClick={goHome} className="px-4 py-2 min-h-[48px] bg-stone-800 rounded-xl text-sm font-bold self-start cursor-pointer">
               {isArabic ? '← العودة' : '← Back'}
             </button>
-            <PronunciationRecorder targetLang={targetLang} />
+            <PronunciationRecorder
+              targetLang={targetLang}
+              isArabic={isArabic}
+              onBackToLessons={goHome}
+              onToast={(msg) => showToast(T(msg, msg))}
+            />
           </div>
         )}
 
@@ -1246,10 +1327,17 @@ export default function App() {
           onClose={() => setLangSelectorOpen(false)}
           currentSource={sourceLang}
           currentTarget={targetLang}
+          isArabic={isArabic}
           onOpenSupporterGate={() => setSupporterGateOpen(true)}
           onSelectPair={(source, target) => {
             const targetChanged = target !== targetLang;
             setPair(source, target);
+            // Immediately sync live UI language & direction when the learner confirms a course pair
+            if (source.startsWith('ar')) {
+              setGuideMode(guideMode === 'standard_ar' ? 'standard_ar' : 'egyptian_ar');
+            } else {
+              setGuideMode('english_guided');
+            }
             if (targetChanged) {
               // A new target language starts from the beginning of its own path,
               // instead of inheriting the previous language's stage (e.g. A2).
@@ -1321,14 +1409,38 @@ export default function App() {
           onClose={closeAlexandrianModal}
         />
 
-        {/* First-Launch 2-Tap Guidance & Track Selector Modal */}
+        {/* First-Launch Clean 1-Screen Setup Modal */}
         <UserSetupModal
           isOpen={view.name === 'shell' && userSetupOpen}
           initialGuideMode={guideMode}
           initialTrack={learnerTrack}
-          onClose={() => setUserSetupOpen(false)}
+          onClose={() => {
+            setUserSetupOpen(false);
+            setShowAgeGate(false);
+            setNewOnboardingOpen(false);
+            setOnboardingOpen(false);
+            try {
+              localStorage.setItem('tb.onboardingComplete', 'true');
+            } catch { }
+          }}
           onComplete={handleUserSetupComplete}
         />
+
+        {/* 60-Second Adaptive English Placement Test Modal */}
+        {placementModalOpen && (
+          <PlacementTestModal
+            isOpen={placementModalOpen}
+            onClose={() => {
+              setPlacementModalOpen(false);
+              try {
+                localStorage.setItem('tb.placementDone', 'true');
+              } catch { }
+            }}
+            state={progression}
+            onCompletePlacement={handleAdaptivePlacementComplete}
+            isArabic={isArabic}
+          />
+        )}
 
         {/* First-Launch Age Gate / Learner Selector Modal */}
         <AgeGateModal
@@ -1379,8 +1491,8 @@ export default function App() {
           </div>
         )}
 
-        {/* Smart Android APK Download Banner */}
-        {showApkBanner && !Capacitor.isNativePlatform() && (
+        {/* Smart Android APK Download Banner (only after Level 1 completes to keep first-launch clean) */}
+        {showApkBanner && !Capacitor.isNativePlatform() && (progression.completedLessonIds?.length || 0) >= 1 && (
           <div
             className="fixed bottom-0 left-0 right-0 z-[48] p-3.5 pb-safe border-t shadow-[0_-4px_20px_rgba(0,0,0,0.3)] flex flex-wrap items-center justify-between gap-3 animate-in slide-in-from-bottom"
             style={{

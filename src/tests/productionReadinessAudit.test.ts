@@ -113,11 +113,11 @@ describe('Production Readiness & Human-Use Audit Regressions (v6.0.0 V6 Edition)
     }
 
     const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'));
-    assert.equal(pkg.version, '8.0.0', 'package.json version must be 8.0.0');
+    assert.equal(pkg.version, '9.0.0', 'package.json version must be 9.0.0');
 
     const gradleContent = fs.readFileSync(path.join(ROOT, 'android/app/build.gradle'), 'utf8');
-    assert.ok(gradleContent.includes('versionCode 6000'), 'build.gradle must specify versionCode 6000');
-    assert.ok(gradleContent.includes('versionName "6.0.0"'), 'build.gradle must specify versionName "6.0.0"');
+    assert.ok(gradleContent.includes('versionCode 6001'), 'build.gradle must specify versionCode 6001');
+    assert.ok(gradleContent.includes('versionName "9.0.0"'), 'build.gradle must specify versionName "9.0.0"');
 
     const qrPath = path.join(ROOT, 'public/paypal-qr.png');
     assert.ok(fs.existsSync(qrPath), 'public/paypal-qr.png must exist');

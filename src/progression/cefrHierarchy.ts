@@ -75,6 +75,107 @@ function getPoolForLang(targetLang: TargetLanguage) {
   return pool;
 }
 
+const GREETING_UNIT_EXERCISES_EN: ExerciseItem[] = [
+  {
+    id: 'a1.1-u1-greet-1',
+    type: 'structure_builder',
+    promptAr: 'أهلاً، إزيك؟',
+    promptEn: 'أهلاً، إزيك؟ (Ahlan, izzayak?)',
+    targetSentence: 'Hello, how are you?',
+    acceptableAlternatives: ['Hi, how are you?', 'Hello, how are you'],
+    wordChips: ['Hello,', 'how', 'are', 'you?', 'is', 'am'],
+    breakdownChunks: [
+      { arabicText: 'أهلاً', englishText: 'Hello', role: 'modifier', explanation: 'Standard friendly greeting' },
+      { arabicText: 'إزيك؟', englishText: 'how are you?', role: 'modifier', explanation: 'Asking how someone is doing' },
+    ],
+    explanationAr: 'في الإنجليزي بنسلم بـ Hello وبعدها بنسأل عن الحال بـ how are you?',
+    explanationEn: 'Start with "Hello," and follow naturally with "how are you?".',
+    skillAxes: ['vocabulary', 'speaking'],
+  },
+  {
+    id: 'a1.1-u1-greet-2',
+    type: 'translate_thought',
+    promptAr: 'صباح الخير',
+    promptEn: 'صباح الخير (Sabah el-kheir)',
+    targetSentence: 'Good morning',
+    acceptableAlternatives: ['Morning'],
+    wordChips: ['Good', 'morning', 'evening', 'night'],
+    breakdownChunks: [
+      { arabicText: 'الخير', englishText: 'Good', role: 'modifier', explanation: 'Warm wish' },
+      { arabicText: 'صباح', englishText: 'morning', role: 'modifier', explanation: 'Time of day' },
+    ],
+    explanationAr: 'في الإنجليزي الصفة بتيجي الأول: Good قبل morning.',
+    explanationEn: 'Put "Good" before "morning" for a warm morning greeting.',
+    skillAxes: ['vocabulary', 'speaking'],
+  },
+  {
+    id: 'a1.1-u1-greet-3',
+    type: 'structure_builder',
+    promptAr: 'أنا بخير، شكراً',
+    promptEn: 'أنا بخير، شكراً (Ana bekheir, shokran)',
+    targetSentence: 'I am fine, thank you',
+    acceptableAlternatives: ["I'm fine, thank you", 'I am good, thank you', 'I am fine, thanks'],
+    wordChips: ['I', 'am', 'fine,', 'thank', 'you', 'is'],
+    breakdownChunks: [
+      { arabicText: 'أنا', englishText: 'I', role: 'subject', explanation: 'Speaker' },
+      { arabicText: 'أكون', englishText: 'am', role: 'verb', explanation: 'Linking verb needed in English' },
+      { arabicText: 'بخير', englishText: 'fine', role: 'modifier', explanation: 'State' },
+      { arabicText: 'شكراً', englishText: 'thank you', role: 'modifier', explanation: 'Polite thanks' },
+    ],
+    explanationAr: 'في الإنجليزي لازم نضيف am بين I و fine: I am fine.',
+    explanationEn: 'English links "I" and "fine" with "am": I am fine, thank you.',
+    skillAxes: ['structure', 'vocabulary'],
+  },
+  {
+    id: 'a1.1-u1-greet-4',
+    type: 'translate_thought',
+    promptAr: 'تشرفت بمعرفتك',
+    promptEn: 'تشرفت بمعرفتك (Tasharraft bemaareftak)',
+    targetSentence: 'Nice to meet you',
+    acceptableAlternatives: ['Pleased to meet you', 'Good to meet you'],
+    wordChips: ['Nice', 'to', 'meet', 'you', 'see', 'am'],
+    breakdownChunks: [
+      { arabicText: 'سعيد / لطيف', englishText: 'Nice', role: 'modifier', explanation: 'Warm opener' },
+      { arabicText: 'بمعرفتك', englishText: 'to meet you', role: 'verb', explanation: 'Meeting someone new' },
+    ],
+    explanationAr: 'دي العبارة اليومية الأشهر لما تقابل حد لأول مرة: Nice to meet you.',
+    explanationEn: 'The most natural everyday phrase when meeting someone for the first time.',
+    skillAxes: ['vocabulary', 'speaking'],
+  },
+  {
+    id: 'a1.1-u1-greet-5',
+    type: 'structure_builder',
+    promptAr: 'شكراً جزيلاً',
+    promptEn: 'شكراً جزيلاً (Shokran gazeelan)',
+    targetSentence: 'Thank you very much',
+    acceptableAlternatives: ['Thanks a lot', 'Thank you'],
+    wordChips: ['Thank', 'you', 'very', 'much', 'good'],
+    breakdownChunks: [
+      { arabicText: 'شكراً', englishText: 'Thank you', role: 'verb', explanation: 'Gratitude' },
+      { arabicText: 'جزيلاً', englishText: 'very much', role: 'modifier', explanation: 'Extra warmth' },
+    ],
+    explanationAr: 'عبارة شكر يومية سهلة ومباشرة: Thank you very much.',
+    explanationEn: 'A warm, everyday way to say thank you.',
+    skillAxes: ['vocabulary', 'speaking'],
+  },
+  {
+    id: 'a1.1-u1-greet-6',
+    type: 'translate_thought',
+    promptAr: 'مع السلامة، أشوفك بعدين',
+    promptEn: 'مع السلامة، أشوفك بعدين (Maa el-salama)',
+    targetSentence: 'Goodbye, see you later',
+    acceptableAlternatives: ['Bye, see you later', 'See you later', 'Goodbye'],
+    wordChips: ['Goodbye,', 'see', 'you', 'later', 'morning'],
+    breakdownChunks: [
+      { arabicText: 'مع السلامة', englishText: 'Goodbye', role: 'modifier', explanation: 'Farewell' },
+      { arabicText: 'أشوفك بعدين', englishText: 'see you later', role: 'verb', explanation: 'Friendly sign-off' },
+    ],
+    explanationAr: 'للوداع اللطيف بنقول Goodbye وبعدها see you later.',
+    explanationEn: 'A natural, friendly way to say goodbye.',
+    skillAxes: ['vocabulary', 'speaking'],
+  },
+];
+
 function createExercisesForUnit(
   unitId: string,
   unitTitleEn: string,
@@ -83,6 +184,16 @@ function createExercisesForUnit(
   count: number = 5,
   targetLang: TargetLanguage = 'en'
 ): ExerciseItem[] {
+  // Dedicated everyday greetings for A1.1 Unit 1 (never pull unrelated exercises like "ليس لدي وقت كافٍ")
+  if (targetLang === 'en' && unitId.startsWith('a1.1-u1')) {
+    return GREETING_UNIT_EXERCISES_EN.slice(0, Math.min(count, GREETING_UNIT_EXERCISES_EN.length)).map(
+      (item, idx) => ({
+        ...item,
+        id: `${unitId}-ex-${idx + 1}`,
+      })
+    );
+  }
+
   const pool = getPoolForLang(targetLang);
   const fallbackPool = PHASES_DATA.flatMap((p) => p.lessons).flatMap((l) => l.exercises);
 

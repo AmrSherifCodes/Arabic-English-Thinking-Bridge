@@ -222,7 +222,7 @@ export const SOURCE_LANGUAGES: Record<SourceLanguage, LanguageMeta> = {
   hi: {
     code: 'hi',
     nameEn: 'Hindi',
-    nameNative: 'हिन्दी',
+    nameNative: 'Hindi',
     nameAr: 'الهندية',
     flag: '🇮🇳',
     direction: 'ltr',
@@ -379,7 +379,7 @@ export const TARGET_LANGUAGE_META: Record<TargetLanguage, LanguageMeta> = {
   hi: {
     code: 'hi',
     nameEn: 'Hindi',
-    nameNative: 'हिन्दी',
+    nameNative: 'Hindi',
     nameAr: 'الهندية',
     flag: '🇮🇳',
     direction: 'ltr',

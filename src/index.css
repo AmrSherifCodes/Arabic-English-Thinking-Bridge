@@ -1,20 +1,21 @@
+@import "./styles/fonts.css";
 @import "./styles/tokens.css";
 
 /* ============================================================
-   v7.2 Customizable High-Contrast Theme System (WCAG AAA)
+   v8.1 Humane Editorial Warm Paper & Calm Obsidian Theme System
    ============================================================ */
 :root,
 [data-theme="daylight-cyan"] {
-  --bg: #F6F8FA;
-  --surface: #FFFFFF;
-  --ink: #0B1220;
-  --ink-muted: #334155;
-  --accent: #0B5D75;
-  --accent-ink: #FFFFFF;
-  --accent-soft: rgba(11, 93, 117, 0.14);
-  --gold: #D97706;
-  --gold-ink: #0B1220;
-  --border: #CBD5E1;
+  --bg: #F7F4EE;
+  --surface: #FFFDF9;
+  --ink: #1C2026;
+  --ink-muted: #535D69;
+  --accent: #0F6B6E;
+  --accent-ink: #FFFDF9;
+  --accent-soft: rgba(15, 107, 110, 0.11);
+  --gold: #B4690E;
+  --gold-ink: #1C2026;
+  --border: #E5DFD3;
   --text: var(--ink);
   --muted: var(--ink-muted);
   --color-bg: var(--bg);
@@ -25,16 +26,16 @@
 }
 
 [data-theme="midnight-cyan"] {
-  --bg: #0D1117;
-  --surface: #161B22;
-  --ink: #F0F6FC;
-  --ink-muted: #94A3B8;
-  --accent: #22D3EE;
-  --accent-ink: #041019;
-  --accent-soft: rgba(34, 211, 238, 0.16);
-  --gold: #F59E0B;
-  --gold-ink: #0B1220;
-  --border: #2B3544;
+  --bg: #11151B;
+  --surface: #181E27;
+  --ink: #F2EFE9;
+  --ink-muted: #9BA6B2;
+  --accent: #2DD4BF;
+  --accent-ink: #07191A;
+  --accent-soft: rgba(45, 212, 191, 0.14);
+  --gold: #EAB308;
+  --gold-ink: #11151B;
+  --border: #27313F;
   --text: var(--ink);
   --muted: var(--ink-muted);
   --color-bg: var(--bg);
@@ -142,13 +143,14 @@ body {
   touch-action: pan-y;
   -webkit-overflow-scrolling: touch;
   -webkit-tap-highlight-color: transparent;
-  font-family: var(--font), 'Cairo', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: var(--font), 'IBM Plex Sans Arabic', 'Readex Pro', 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   position: relative;
   isolation: isolate;
   min-height: 100dvh;
   background-color: var(--color-bg);
   color: var(--color-text);
-  font-weight: 500;
+  font-weight: 400;
+  line-height: 1.65;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -162,8 +164,8 @@ body {
   overflow-y: visible;
   overscroll-behavior-x: none;
   touch-action: auto;
-  background: #060E18;
-  color: #F8FAFC;
+  background: #0F141B;
+  color: #F4F1EA;
   color-scheme: dark;
 }
 
@@ -177,11 +179,15 @@ body {
 }
 
 .font-arabic {
-  font-family: 'Cairo', 'Tajawal', var(--font), sans-serif !important;
+  font-family: 'IBM Plex Sans Arabic', 'Readex Pro', var(--font), system-ui, sans-serif !important;
 }
 
 .font-sans-en {
-  font-family: 'Inter', 'Outfit', system-ui, -apple-system, sans-serif !important;
+  font-family: 'Plus Jakarta Sans', 'Readex Pro', system-ui, -apple-system, sans-serif !important;
+}
+
+html[dir='rtl'] .font-black {
+  font-weight: 700;
 }
 
 body::before {
@@ -190,17 +196,17 @@ body::before {
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  opacity: 0.35;
+  opacity: 0.06;
   background-image:
-    radial-gradient(circle at 50% -10%, rgba(0, 229, 255, 0.25), transparent 60%),
-    radial-gradient(circle at 85% 35%, rgba(255, 199, 44, 0.12), transparent 50%),
-    radial-gradient(circle at 15% 80%, rgba(14, 116, 144, 0.18), transparent 65%),
-    repeating-linear-gradient(
-      45deg,
-      transparent 0 24px,
-      rgba(0, 229, 255, 0.03) 24px 25px,
-      transparent 25px 48px
-    );
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(15, 107, 110, 0.35), transparent 65%),
+    radial-gradient(ellipse 60% 45% at 85% 90%, rgba(180, 105, 14, 0.2), transparent 65%);
+}
+
+html.dark body::before {
+  opacity: 0.16;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(45, 212, 191, 0.22), transparent 65%),
+    radial-gradient(ellipse 60% 45% at 85% 90%, rgba(234, 179, 8, 0.1), transparent 65%);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -372,38 +378,42 @@ html[dir='rtl'] body { line-height: 1.8; }
    Quran Hifz Sanctuary — Calm Mushaf Theme & Progressive Masking
    ============================================================ */
 .quran-sanctuary {
-  --qs-bg: #FAF7F0;
-  --qs-surface: #FFFFFF;
-  --qs-surface-alt: #F3ECE0;
-  --qs-ink: #1B241E;
-  --qs-ink-muted: #4A594E;
+  --qs-bg: #FAF6EE;
+  --qs-surface: #FFFDF8;
+  --qs-surface-alt: #F2ECE0;
+  --qs-ink: #141D17;
+  --qs-ink-muted: #425146;
   --qs-accent: #14532D;
-  --qs-accent-ink: #FFFFFF;
+  --qs-accent-ink: #FFFDF8;
   --qs-accent-soft: rgba(20, 83, 45, 0.11);
-  --qs-gold: #A16207;
-  --qs-gold-soft: rgba(161, 98, 7, 0.12);
+  --qs-gold: #8C5208;
+  --qs-gold-soft: rgba(154, 91, 10, 0.12);
   --qs-border: #DDD4C3;
   background-color: var(--qs-bg);
   color: var(--qs-ink);
 }
 
 .quran-sanctuary[data-qs-theme="dark"] {
-  --qs-bg: #0E1412;
-  --qs-surface: #15201C;
-  --qs-surface-alt: #1B2924;
-  --qs-ink: #F2EDE2;
-  --qs-ink-muted: #A8B8AE;
+  --qs-bg: #0F1613;
+  --qs-surface: #16221D;
+  --qs-surface-alt: #1D2C26;
+  --qs-ink: #F5F1E6;
+  --qs-ink-muted: #B6C5BC;
   --qs-accent: #34D399;
   --qs-accent-ink: #062116;
   --qs-accent-soft: rgba(52, 211, 153, 0.15);
-  --qs-gold: #D4AF37;
+  --qs-gold: #E2C044;
   --qs-gold-soft: rgba(212, 175, 55, 0.14);
   --qs-border: #24352E;
 }
 
 .quran-uthmani-text {
-  font-family: 'Amiri', 'Scheherazade New', 'Traditional Arabic', serif;
-  line-height: 2.25;
+  font-family: 'Amiri', 'IBM Plex Sans Arabic', 'Readex Pro', 'Scheherazade New', 'Traditional Arabic', 'Noto Naskh Arabic', system-ui, serif;
+  color: var(--qs-ink);
+  -webkit-text-fill-color: currentColor;
+  opacity: 1;
+  visibility: visible;
+  line-height: 2.35;
   letter-spacing: 0;
   font-feature-settings: "kern" 1, "liga" 1;
 }
@@ -411,7 +421,8 @@ html[dir='rtl'] body { line-height: 1.8; }
 .quran-word-faded {
   background-color: var(--qs-accent-soft);
   border: 1px dashed var(--qs-accent);
-  color: transparent;
+  color: transparent !important;
+  -webkit-text-fill-color: transparent !important;
   border-radius: 0.5rem;
   user-select: none;
   text-shadow: none;
@@ -419,6 +430,7 @@ html[dir='rtl'] body { line-height: 1.8; }
 
 .quran-word-faded::selection {
   color: transparent;
+  -webkit-text-fill-color: transparent;
   background: transparent;
 }
 
@@ -426,6 +438,33 @@ html[dir='rtl'] body { line-height: 1.8; }
   filter: none !important;
   box-shadow: none !important;
   color: transparent !important;
+  -webkit-text-fill-color: transparent !important;
   border: 1px dotted var(--qs-accent) !important;
   background-color: var(--qs-surface-alt) !important;
+}
+
+/* Mobile visual rhythm & compact Quran header on 360px-375px screens */
+@media (max-width: 640px) {
+  .quran-sanctuary > header {
+    padding-top: max(env(safe-area-inset-top, 0px), 0.25rem) !important;
+    padding-bottom: 0.25rem !important;
+  }
+
+  .quran-sanctuary > header > div {
+    padding-top: 0.25rem !important;
+    padding-bottom: 0.25rem !important;
+    gap: 0.25rem !important;
+  }
+
+  .quran-sanctuary > header nav {
+    padding-top: 0.125rem !important;
+    padding-bottom: 0.125rem !important;
+    gap: 0.25rem !important;
+  }
+
+  .quran-sanctuary > header button {
+    min-height: 38px !important;
+    padding-top: 0.25rem !important;
+    padding-bottom: 0.25rem !important;
+  }
 }

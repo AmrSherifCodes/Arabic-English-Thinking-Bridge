@@ -1,6 +1,6 @@
 {
-  "version": "8.0.0",
-  "apkUrl": "https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/latest",
-  "notesAr": "إصدار 8.0.0: تسجيل الأعطال محلياً وتقارير بموافقة المستخدم",
-  "notesEn": "v8.0.0 Enterprise: Zero-PII local error buffer & user-approved diagnostics"
+  "version": "9.0.0",
+  "apkUrl": "https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v9.0.0/ThinkingBridge-v9.0.0.apk",
+  "notesAr": "إصدار 9.0.0: اختبار تحديد المستوى الذكي في 60 ثانية، خريطة الرحلة ثلاثية البيئات، وضع Auto-Lite للهواتف الاقتصادية، وحصن حفظ القرآن المجاني مدى الحياة.",
+  "notesEn": "v9.0.0: 60s Adaptive Level Test, 3-Biome Gamified Journey Map, Self-Adapting Auto-Lite Mode, and 100% Free Forever Quran Hifz Sanctuary."
 }

@@ -8,12 +8,13 @@ import {
   Volume2,
   Headphones,
   Crown,
-  Lock,
   Sparkles,
 } from 'lucide-react';
 import { DualSpeedAudio } from '../../components/DualSpeedAudio';
 import { useLanguagePair } from '../../hooks/useLanguagePair';
 import { useEntitlement } from '../../hooks/useEntitlement';
+import { useDailyProTimer } from '../../hooks/useDailyProTimer';
+import { DailyProExpiredCard, DailyProTimerPill } from '../../components/DailyProTimerPill';
 import { speakWithRate } from '../../utils/audio';
 
 const LazyActivateCodeModal = React.lazy(() =>
@@ -120,6 +121,8 @@ const PHRASES_BY_LANG: Record<string, RecorderPhrase[]> = {
 
 interface PronunciationRecorderProps {
   targetLang?: string;
+  isArabic?: boolean;
+  onBackToLessons?: () => void;
   onToast?: (msg: string) => void;
 }
 
@@ -128,6 +131,8 @@ type ActiveABPhase = 'idle' | 'native' | 'user';
 
 export const PronunciationRecorder: React.FC<PronunciationRecorderProps> = ({
   targetLang,
+  isArabic = true,
+  onBackToLessons,
   onToast,
 }) => {
   const { targetLang: pairTarget } = useLanguagePair();
@@ -149,6 +154,12 @@ export const PronunciationRecorder: React.FC<PronunciationRecorderProps> = ({
   const [loopCount, setLoopCount] = useState(0);
   const [activateModalOpen, setActivateModalOpen] = useState(false);
 
+  const isUsingProStudio = isLoopingAB || customSentence.trim().length > 0;
+  const { remainingSeconds, formattedRemaining, hasProAccess, isExpired, showPill } = useDailyProTimer({
+    isPro,
+    active: isUsingProStudio,
+  });
+
   const mediaRecorder = useRef<MediaRecorder | null>(null);
   const activeStream = useRef<MediaStream | null>(null);
   const autoStopTimer = useRef<number | null>(null);
@@ -159,7 +170,7 @@ export const PronunciationRecorder: React.FC<PronunciationRecorderProps> = ({
   const createdBlobUrlsRef = useRef<Set<string>>(new Set());
 
   const activePhrase = phrases[currentIndex] || phrases[0];
-  const activeTargetText = (isPro && customSentence.trim()) ? customSentence.trim() : activePhrase.target;
+  const activeTargetText = (hasProAccess && customSentence.trim()) ? customSentence.trim() : activePhrase.target;
 
   const revokeAllBlobUrls = useCallback(() => {
     createdBlobUrlsRef.current.forEach((url) => {
@@ -313,8 +324,14 @@ export const PronunciationRecorder: React.FC<PronunciationRecorderProps> = ({
     [activeTargetText, audioUrl, stopShadowLoop]
   );
 
+  useEffect(() => {
+    if (isExpired && isLoopingAB) {
+      stopShadowLoop();
+    }
+  }, [isExpired, isLoopingAB, stopShadowLoop]);
+
   const handleToggleABLoop = () => {
-    if (!isPro) {
+    if (!hasProAccess) {
       setActivateModalOpen(true);
       return;
     }
@@ -396,7 +413,7 @@ export const PronunciationRecorder: React.FC<PronunciationRecorderProps> = ({
         return null;
       });
 
-      const maxDurationMs = isPro ? 10000 : 6000;
+      const maxDurationMs = hasProAccess ? 10000 : 6000;
       autoStopTimer.current = window.setTimeout(() => {
         if (mediaRecorder.current?.state === 'recording') {
           stopRecording();
@@ -478,12 +495,12 @@ export const PronunciationRecorder: React.FC<PronunciationRecorderProps> = ({
       {/* Target Phrase Card */}
       <div className="p-4 rounded-2xl bg-stone-950 border border-stone-800 space-y-2">
         <span className="text-[10px] font-black uppercase text-amber-400 block">
-          {isPro && customSentence.trim() ? 'جملتك الخاصة للتدريب (Pro Shadowing):' : 'الجملة المستهدفة:'}
+          {hasProAccess && customSentence.trim() ? 'جملتك الخاصة للتدريب (Pro Shadowing):' : 'الجملة المستهدفة:'}
         </span>
         <h4 className="text-lg font-black text-white break-words" dir="ltr">
           {activeTargetText}
         </h4>
-        {!(isPro && customSentence.trim()) && (
+        {!(hasProAccess && customSentence.trim()) && (
           <>
             <p className="text-sm font-bold text-teal-300">{activePhrase.ar}</p>
             <p className="text-xs text-stone-400 italic">النطق بالعربي: {activePhrase.phonetic}</p>
@@ -541,8 +558,8 @@ export const PronunciationRecorder: React.FC<PronunciationRecorderProps> = ({
         <span className="text-[11px] font-bold text-stone-400">
           {isRecording
             ? '🔴 جاري التسجيل محلياً على جهازك...'
-            : isPro
-            ? 'تسجيل محلي (حتى 10 ثوانٍ) · متاح حلقة A/B غير محدودة'
+            : hasProAccess
+            ? 'تسجيل محلي (حتى 10 ثوانٍ) · متاح حلقة A/B'
             : 'التسجيل الفردي مجاني 100% · محلي على جهازك'}
         </span>
       </div>
@@ -582,12 +599,16 @@ export const PronunciationRecorder: React.FC<PronunciationRecorderProps> = ({
           </div>
           <span
             className={`text-[10px] font-black px-2.5 py-1 rounded-full border whitespace-nowrap ${
-              isPro
+              hasProAccess
                 ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
                 : 'bg-amber-500/15 text-amber-300 border-amber-500/40'
             }`}
           >
-            {isPro ? 'مفتوح (Pro) ✓' : 'ميزة Pro 🔒'}
+            {isPro
+              ? 'مفتوح (Pro) ✓'
+              : hasProAccess
+              ? `⏱ ${formattedRemaining} مجاني`
+              : 'انتهى وقت اليوم'}
           </span>
         </div>
 
@@ -643,13 +664,13 @@ export const PronunciationRecorder: React.FC<PronunciationRecorderProps> = ({
           <button
             type="button"
             onClick={() => {
-              if (!isPro) {
+              if (!hasProAccess) {
                 setActivateModalOpen(true);
                 return;
               }
               playUserRecording();
             }}
-            disabled={isPro && !audioUrl}
+            disabled={hasProAccess && !audioUrl}
             className={`p-3 rounded-xl border text-center transition cursor-pointer flex flex-col items-center gap-1 disabled:opacity-45 ${
               activePhase === 'user'
                 ? 'bg-amber-500/20 border-amber-400 text-amber-200 shadow-lg shadow-amber-500/15'
@@ -664,8 +685,8 @@ export const PronunciationRecorder: React.FC<PronunciationRecorderProps> = ({
           </button>
         </div>
 
-        {/* Custom English Sentence Input (Pro) */}
-        {isPro ? (
+        {/* Custom English Sentence Input (Pro / Daily 15-min Pass) */}
+        {hasProAccess ? (
           <div className="space-y-1.5">
             <label htmlFor="tb-shadow-custom" className="block text-[11px] font-bold text-stone-400">
               جرّب أي جملة إنجليزية مخصصة للـ Shadowing (اختياري):
@@ -682,20 +703,18 @@ export const PronunciationRecorder: React.FC<PronunciationRecorderProps> = ({
           </div>
         ) : null}
 
-        {/* Unlimited A/B Shadowing Loop CTA */}
-        <button
-          type="button"
-          onClick={handleToggleABLoop}
-          className={`w-full min-h-[46px] px-4 py-2.5 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-2 transition cursor-pointer ${
-            isPro
-              ? isLoopingAB
+        {/* Unlimited A/B Shadowing Loop CTA or Warm Daily Expiry Card */}
+        {hasProAccess ? (
+          <button
+            type="button"
+            onClick={handleToggleABLoop}
+            className={`w-full min-h-[46px] px-4 py-2.5 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-2 transition cursor-pointer ${
+              isLoopingAB
                 ? 'bg-rose-500/20 text-rose-200 border border-rose-500/50 hover:bg-rose-500/30'
                 : 'bg-gradient-to-r from-amber-500 to-amber-400 text-stone-950 hover:from-amber-400 hover:to-amber-300 shadow-lg shadow-amber-500/20'
-              : 'bg-amber-500/15 text-amber-200 border border-amber-500/40 hover:bg-amber-500/25'
-          }`}
-        >
-          {isPro ? (
-            isLoopingAB ? (
+            }`}
+          >
+            {isLoopingAB ? (
               <>
                 <Square size={15} className="fill-current" />
                 <span>إيقاف حلقة A/B (الدورة {loopCount + 1})</span>
@@ -705,22 +724,30 @@ export const PronunciationRecorder: React.FC<PronunciationRecorderProps> = ({
                 <Repeat size={16} />
                 <span>تشغيل حلقة A/B تلقائياً ({shadowSpeed}x ← صوتك)</span>
               </>
-            )
-          ) : (
-            <>
-              <Lock size={15} />
-              <span>افتح حلقة A/B Shadowing غير المحدودة (Pro)</span>
-            </>
-          )}
-        </button>
+            )}
+          </button>
+        ) : (
+          <DailyProExpiredCard
+            isArabic={isArabic}
+            onOpenActivateCode={() => setActivateModalOpen(true)}
+            onBackToLessons={onBackToLessons}
+          />
+        )}
       </div>
+
+      <DailyProTimerPill
+        visible={showPill}
+        remainingSeconds={remainingSeconds}
+        isArabic={isArabic}
+        onClick={() => setActivateModalOpen(true)}
+      />
 
       {activateModalOpen && (
         <Suspense fallback={null}>
           <LazyActivateCodeModal
             isOpen={activateModalOpen}
             onClose={() => setActivateModalOpen(false)}
-            isArabic={true}
+            isArabic={isArabic}
             onToast={onToast}
           />
         </Suspense>

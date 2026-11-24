@@ -114,7 +114,7 @@ export function generatePythonLevelSvg({
       <text x="200" y="24" font-size="9" font-weight="700" fill="#94A3B8" text-anchor="middle">${grammarTag}</text>
 
       <rect x="288" y="10" width="100" height="22" rx="11" fill="rgba(201, 162, 39, 0.15)" stroke="rgba(201, 162, 39, 0.3)" stroke-width="0.8" />
-      <text x="338" y="24" font-size="9" font-weight="800" fill="#FACC15" text-anchor="middle">⚡ Local Bridge</text>
+      <text x="338" y="24" font-size="9" font-weight="800" fill="#FACC15" text-anchor="middle">⚡ Offline Ready</text>
 
       <!-- Prompt Footer Bar -->
       <rect x="12" y="176" width="376" height="32" rx="12" fill="rgba(0,0,0,0.72)" stroke="rgba(255, 255, 255, 0.12)" stroke-width="1" />

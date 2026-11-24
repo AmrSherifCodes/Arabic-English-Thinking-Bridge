@@ -122,7 +122,7 @@ export const PHASES_DATA: Phase[] = [
         title: 'Possession: "Have" vs عندي / لدي',
         titleAr: 'الملكية: I have مقابل عندي ولدي',
         transferConcept: 'In Arabic, possession is expressed through a prepositional phrase of location (عندي / معي = "at/with me"). In English, the human is the active grammatical subject performing the verb "to have".',
-        transferConceptAr: 'العربية تعبر عن الملكية بشبه جملة مكانية (عندي / لدي). في الإنجليزية، الشخص نفسه هو الفاعل المباشر الذي يملك الفعل: I have.',
+        transferConceptAr: 'في العربي بنقول "عندي" أو "معايا"، لكن في الإنجليزي بتبدأ بنفسك كفاعل وتقول I have (أنا أملك).',
         weakSpotTag: 'possession-transfer',
         exercises: [
           {

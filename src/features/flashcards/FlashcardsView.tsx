@@ -261,13 +261,12 @@ export function FlashcardsView({
 
   const coreDecks = visibleCoreDecks.map(deck => {
     if (deck.id === 'master-dictionary') {
-      const count = dictionaryEntries.length.toLocaleString();
       return {
         ...deck,
-        name: t(`Personalized Vocabulary (${count} words)`, `مفرداتك الشخصية (${count} كلمة)`),
+        name: t('Everyday Vocabulary Bank', 'بنك الكلمات اليومية'),
         subtitle: t(
-          `${count} words matched to your dialect`,
-          `${count} كلمة مطابقة لهجتك`
+          'Ready-to-practice everyday words matched to your level',
+          'كلمات يومية جاهزة للتدريب حسب مستواك'
         )
       };
     }

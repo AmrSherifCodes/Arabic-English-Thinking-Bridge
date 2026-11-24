@@ -117,7 +117,7 @@ export function DeckListView({
           </div>
           <p className="text-xs opacity-75 mt-0.5 leading-relaxed">{deck.description}</p>
           <div className="text-[11px] opacity-60 mt-1">
-            {deck.author} · {deck.license} · {deck.cards.length} {t('cards', 'بطاقة')}
+            {deck.cards.length} {t('cards', 'بطاقة')}
           </div>
         </div>
 
@@ -133,40 +133,55 @@ export function DeckListView({
                 onSelectDeck(deck.id);
               }
             }}
-            className={`grid grid-cols-3 gap-3 text-right w-28 font-bold text-sm tabular-nums ${
+            className={`grid grid-cols-3 gap-2 text-center min-w-[144px] font-bold text-xs tabular-nums ${
               isDownloaded ? 'cursor-pointer' : ''
             }`}
           >
-            <span
-              className={
-                st.newCount > 0
-                  ? 'text-sky-700 dark:text-sky-400'
-                  : 'text-slate-400 dark:text-slate-600'
-              }
+            <div
+              className="flex flex-col items-center leading-tight"
               title={t('New cards', 'بطاقات جديدة')}
             >
-              {st.newCount}
-            </span>
-            <span
-              className={
-                st.learningCount > 0
-                  ? 'text-red-700 dark:text-red-400'
-                  : 'text-slate-400 dark:text-slate-600'
-              }
-              title={t('Learning cards', 'بطاقات قيد التعلم')}
+              <span
+                className={
+                  st.newCount > 0
+                    ? 'text-sky-700 dark:text-sky-400 text-sm font-black'
+                    : 'text-slate-400 dark:text-slate-500 text-sm font-bold'
+                }
+              >
+                {st.newCount}
+              </span>
+              <span className="text-[10px] opacity-70">{t('New', 'جديد')}</span>
+            </div>
+            <div
+              className="flex flex-col items-center leading-tight"
+              title={t('Learning cards', 'بطاقات للمراجعة')}
             >
-              {st.learningCount}
-            </span>
-            <span
-              className={
-                st.dueCount > 0
-                  ? 'text-emerald-700 dark:text-emerald-400'
-                  : 'text-slate-400 dark:text-slate-600'
-              }
-              title={t('Due cards', 'بطاقات مستحقة')}
+              <span
+                className={
+                  st.learningCount > 0
+                    ? 'text-red-700 dark:text-red-400 text-sm font-black'
+                    : 'text-slate-400 dark:text-slate-500 text-sm font-bold'
+                }
+              >
+                {st.learningCount}
+              </span>
+              <span className="text-[10px] opacity-70">{t('Review', 'مراجعة')}</span>
+            </div>
+            <div
+              className="flex flex-col items-center leading-tight"
+              title={t('Mastered / Due cards', 'بطاقات متقنة')}
             >
-              {st.dueCount}
-            </span>
+              <span
+                className={
+                  st.dueCount > 0
+                    ? 'text-emerald-700 dark:text-emerald-400 text-sm font-black'
+                    : 'text-slate-400 dark:text-slate-500 text-sm font-bold'
+                }
+              >
+                {st.dueCount}
+              </span>
+              <span className="text-[10px] opacity-70">{t('Mastered', 'متقن')}</span>
+            </div>
           </div>
 
           {isDownloaded ? (
@@ -355,8 +370,8 @@ export function DeckListView({
               <div>
                 <span className="text-xs font-semibold opacity-75">
                   {t(
-                    `Prebuilt Master Decks (${targetMeta.nameEn} · CC0 Public Domain)`,
-                    `مجموعات الإتقان الجاهزة (${targetMeta.nameAr} · ملكية عامة CC0)`
+                    `Ready-Made Topic Decks (${targetMeta.nameEn})`,
+                    `مجموعات مواضيع جاهزة (${targetMeta.nameAr})`
                   )}
                 </span>
               </div>
@@ -379,9 +394,8 @@ export function DeckListView({
           <div>
             <div className="flex items-center justify-between px-2 mb-2 text-xs font-semibold opacity-65">
               <span>
-                {t('Starter & Public Domain Community Decks', 'مجموعات البداية والمجتمع المفتوحة')}
+                {t('Starter & Community Decks', 'مجموعات البداية والمجتمع')}
               </span>
-              <span className="text-[11px] font-medium">CC0 1.0 Public Domain</span>
             </div>
 
             <div className="space-y-2.5">{prebuiltDecks.map(renderPrebuiltDeckRow)}</div>

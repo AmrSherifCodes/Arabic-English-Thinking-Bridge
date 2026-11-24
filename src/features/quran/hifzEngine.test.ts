@@ -9,21 +9,25 @@ import {
   FEATURED_SURAH_NUMBERS,
   JUZ_AMMA_RANGE,
   QURAN_HIFZ_STORAGE_KEY,
+  QURAN_RECITERS,
   QuranAyah,
   SURAH_INDEX,
   WIRD_LADDER_DAYS,
   advanceEchoShadowing,
+  buildAyahAudioUrls,
   buildAyahBridgeChain,
   chunkAyahs,
   computeNextWirdSchedule,
   computeWordMask,
   createInitialHifzState,
+  fetchSurahWithCache,
   getDueWirdItems,
   getPinnedSurahs,
   loadHifzState,
   recordWirdReview,
   saveHifzState,
   searchSurahs,
+  toggleBookmark,
   tokenizeAyahWords,
 } from './hifzEngine';
 import { HIFZ_PSYCHOLOGY_TIPS, getTipOfTheDay } from './hifzPsychologyTips';
@@ -261,4 +265,79 @@ test('6. Guardrails — 5 Psychological tips present, zero Web Speech TTS & zero
     assert.equal(content.includes('SupporterGate'), false, `${file} must never include paywalls`);
     assert.equal(content.includes('ProArcade'), false, `${file} must never include Pro locks`);
   }
+});
+
+test('7. Offline 114-Surah Mushaf bundle integrity (6,236 ayahs, Tafsir, Sahih EN & audio URLs)', () => {
+  const quranDataDir = path.resolve(process.cwd(), 'public/data/quran');
+  assert.ok(fs.existsSync(quranDataDir), 'public/data/quran directory must exist');
+
+  let totalAyahs = 0;
+  for (let s = 1; s <= 114; s += 1) {
+    const filePath = path.join(quranDataDir, `${s}.json`);
+    assert.ok(fs.existsSync(filePath), `Missing offline surah file ${s}.json`);
+    const parsed = JSON.parse(fs.readFileSync(filePath, 'utf8')) as {
+      number: number;
+      ayahs: QuranAyah[];
+    };
+    assert.equal(parsed.number, s);
+    assert.ok(Array.isArray(parsed.ayahs) && parsed.ayahs.length > 0, `Surah ${s} must have ayahs`);
+    for (const a of parsed.ayahs) {
+      assert.ok(a.textUthmani.trim().length > 0, `Surah ${s}:${a.numberInSurah} empty Uthmani text`);
+      assert.ok(a.number >= 1 && a.number <= 6236, `Invalid global ayah number ${a.number}`);
+      assert.ok(a.audioUrl && a.audioUrl.startsWith('https://cdn.islamic.network/'));
+    }
+    totalAyahs += parsed.ayahs.length;
+  }
+  assert.equal(totalAyahs, 6236);
+});
+
+test('8. Reciter audio URL builder, bookmarks persistence, and 4-layer offline fetch fallback', async () => {
+  assert.ok(QURAN_RECITERS.length >= 4);
+  for (const reciter of QURAN_RECITERS) {
+    const urls = buildAyahAudioUrls(1, reciter.id);
+    assert.equal(urls.primary, `https://cdn.islamic.network/quran/audio/128/${reciter.id}/1.mp3`);
+    assert.equal(urls.fallback, `https://cdn.islamic.network/quran/audio/64/${reciter.id}/1.mp3`);
+  }
+  assert.deepEqual(buildAyahAudioUrls(0, 'ar.husary'), { primary: null, fallback: null });
+
+  const storage = createMemoryStorage();
+  let state = createInitialHifzState();
+  const res1 = toggleBookmark(state, {
+    surahNumber: 18,
+    ayahNumber: 10,
+    surahNameAr: 'الكهف',
+    surahNameEn: 'Al-Kahf',
+    textUthmani: 'إِذْ أَوَى ٱلْفِتْيَةُ إِلَى ٱلْكَهْفِ',
+  });
+  assert.equal(res1.added, true);
+  state = res1.nextState;
+  saveHifzState(state, storage);
+  const reloaded = loadHifzState(storage);
+  assert.ok(reloaded.bookmarks['18:10']);
+
+  const res2 = toggleBookmark(reloaded, {
+    surahNumber: 18,
+    ayahNumber: 10,
+    surahNameAr: 'الكهف',
+    surahNameEn: 'Al-Kahf',
+    textUthmani: 'إِذْ أَوَى ٱلْفِتْيَةُ إِلَى ٱلْكَهْفِ',
+  });
+  assert.equal(res2.added, false);
+  assert.equal(res2.nextState.bookmarks['18:10'], undefined);
+
+  // Verify bundled local JSON layer resolves even when remote endpoints fail
+  const surah1Raw = fs.readFileSync(path.resolve(process.cwd(), 'public/data/quran/1.json'), 'utf8');
+  const fetched = await fetchSurahWithCache(1, {
+    forceRefresh: true,
+    apiBaseUrl: 'https://invalid.example',
+    fetchImpl: (async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes('data/quran/1.json')) {
+        return new Response(surah1Raw, { status: 200, headers: { 'Content-Type': 'application/json' } });
+      }
+      throw new Error('OFFLINE');
+    }) as typeof fetch,
+  });
+  assert.equal(fetched.data.number, 1);
+  assert.equal(fetched.data.ayahs.length, 7);
 });

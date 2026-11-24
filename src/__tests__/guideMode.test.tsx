@@ -107,7 +107,7 @@ test('3. ArabicPhraseAssist renders Latin phonetic transliteration and tap-to-he
   assert.equal(ARABIC_SCRIPT_RE.test(html), false);
 });
 
-test('4. UserSetupModal renders Step 1 with all 3 guidance modes and 1-tap Skip in English LTR', () => {
+test('4. UserSetupModal renders 1 clean screen with 3 language pills, Quran checkbox, and 2 action buttons in English LTR', () => {
   installMockBrowserEnv();
   const html = renderToStaticMarkup(
     React.createElement(UserSetupModal, {
@@ -119,12 +119,13 @@ test('4. UserSetupModal renders Step 1 with all 3 guidance modes and 1-tap Skip 
     })
   );
   assert.ok(html.includes('dir="ltr"'));
-  assert.ok(html.includes('Step 1 of 2'));
-  assert.ok(html.includes('Everyday Egyptian Arabic'));
-  assert.ok(html.includes('Modern Standard Arabic'));
-  assert.ok(html.includes('English-Guided'));
-  assert.ok(html.includes('Skip'));
-  assert.equal(ARABIC_SCRIPT_RE.test(html), false);
+  assert.ok(html.includes('Welcome to Thinking Bridge'));
+  assert.ok(html.includes('🇪🇬 عربي مصري'));
+  assert.ok(html.includes('📖 فصيح'));
+  assert.ok(html.includes('🌍 English'));
+  assert.ok(html.includes('Quick Level Test (60 seconds)'));
+  assert.ok(html.includes('Start from Level 1 directly'));
+  assert.ok(html.includes('Also interested in memorizing the Quran'));
 });
 
 test('5. Zero-Arabic-Leak sweep: ActivateCodeModal, ChestModal, ThemeShopModal, ProArcadeView, and CreatorCard have zero Arabic in English mode', () => {

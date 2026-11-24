@@ -69,19 +69,19 @@ export function getSceneContextForExercise(
   const combined = (englishTarget + ' ' + promptAr).toLowerCase();
 
   // Detect grammar pattern
-  let grammarTag = 'Cognitive Structure';
+  let grammarTag = 'Everyday Sentence';
   if (/^he is|^she is|^it is|^i am|^we are|^they are|^you are/i.test(englishTarget)) {
-    grammarTag = 'Subject ➔ Copula (is/am/are) ➔ Noun/Adj';
+    grammarTag = 'Linking Verb (am / is / are)';
   } else if (/do you|does he|does she|did you/i.test(englishTarget)) {
-    grammarTag = 'Auxiliary (Do/Does) ➔ Subject ➔ Verb';
+    grammarTag = 'Question Pattern (Do / Does)';
   } else if (/can|could|would|should|must/i.test(englishTarget)) {
-    grammarTag = 'Modal Verb ➔ Action';
+    grammarTag = 'Helping Verb + Action';
   } else if (/if i|if it|if you/i.test(englishTarget)) {
-    grammarTag = 'Conditional Clause (If ➔ Result)';
+    grammarTag = 'If → Result';
   } else if (/turn off|run out|give up|look forward/i.test(englishTarget)) {
-    grammarTag = 'Phrasal Verb Construction';
+    grammarTag = 'Common Action Phrase';
   } else if (/piece of cake|break a leg|break the ice/i.test(englishTarget)) {
-    grammarTag = 'Native Idiom';
+    grammarTag = 'Everyday Expression';
   }
 
   if (/firefighter|fire fighter|firetruck|fire|extinguisher|إطفاء|مطافئ|حريق/i.test(combined)) {
@@ -334,21 +334,21 @@ export function getSceneContextForExercise(
   const levelTitleAr = stage.includes('A0')
     ? 'جسر الكلمات وفعل الربط'
     : stage.includes('A1')
-    ? 'التواصل اليومي المباشر'
-    : stage.includes('A2')
-    ? 'السرد والقصص التراكمية'
-    : stage.includes('B1')
-    ? 'المرونة اللغوية والحوار'
-    : stage.includes('B2')
-    ? 'التحليل والدقة الأكاديمية'
-    : 'الطلاقة الفائقة C1';
+      ? 'التواصل اليومي المباشر'
+      : stage.includes('A2')
+        ? 'السرد والقصص التراكمية'
+        : stage.includes('B1')
+          ? 'المرونة اللغوية والحوار'
+          : stage.includes('B2')
+            ? 'التحليل والدقة الأكاديمية'
+            : 'الطلاقة الفائقة C1';
 
   return {
     mainEmoji: '🧠',
     leftEmoji: '🌉',
     rightEmoji: '⚡',
     categoryTitleAr: levelTitleAr,
-    categoryTitleEn: `CEFR Level ${stage} Structure`,
+    categoryTitleEn: 'Everyday English',
     grammarTag,
     theme: {
       primaryBg: '#0A0E13',

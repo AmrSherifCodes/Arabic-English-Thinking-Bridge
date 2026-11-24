@@ -73,12 +73,6 @@ function getInitialPair(): LanguagePair {
         target = storedTarget;
       } else if (typeof profileTarget === 'string' && isTargetLanguage(profileTarget)) {
         target = profileTarget;
-      } else {
-        // Check old tb.language
-        const legacyLang = window.localStorage.getItem('tb.language');
-        if (legacyLang === 'en') {
-          source = 'en';
-        }
       }
       if (!isValidPair(source, target)) {
         target = SUPPORTED_PAIRS.find((pair) => pair.source === source)?.target || 'en';
@@ -141,13 +135,7 @@ export function useLanguagePair() {
       }
     }
 
-    // Sync i18n & HTML dir
-    const uiLang = isArabicSource(newSource) ? 'ar' : 'en';
-    void i18n.changeLanguage(uiLang);
-    if (typeof document !== 'undefined') {
-      document.documentElement.dir = uiLang === 'ar' ? 'rtl' : 'ltr';
-      document.documentElement.lang = newSource;
-    }
+    // Sync URL and localStorage only; UI language & RTL/LTR direction are governed by guideMode.
   }, []);
 
   const setSourceLang = useCallback((source: SourceLanguage) => {
@@ -161,16 +149,6 @@ export function useLanguagePair() {
   const setPair = useCallback((source: SourceLanguage, target: TargetLanguage) => {
     applyPair(source, target);
   }, [applyPair]);
-
-  // Initial mount sync for direction and i18n
-  useEffect(() => {
-    const uiLang = isArabicSource(pair.source) ? 'ar' : 'en';
-    void i18n.changeLanguage(uiLang);
-    if (typeof document !== 'undefined') {
-      document.documentElement.dir = uiLang === 'ar' ? 'rtl' : 'ltr';
-      document.documentElement.lang = pair.source;
-    }
-  }, [pair.source]);
 
   const pairConfig = useMemo(() => {
     return getPairConfig(pair.source, pair.target);

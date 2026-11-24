@@ -196,6 +196,12 @@ export function PathView({
   );
 
   useEffect(() => {
+    if (state.currentPhaseId) {
+      setSelectedPhaseId(state.currentPhaseId);
+    }
+  }, [state.currentPhaseId]);
+
+  useEffect(() => {
     if (currentLevelNode?.phases && !currentLevelNode.phases.some((p) => p.id === selectedPhaseId)) {
       setSelectedPhaseId(currentLevelNode.phases[0]?.id || 'A1.1');
     }
@@ -403,11 +409,11 @@ export function PathView({
   const nameForgeBtnLabel =
     targetLang === 'en'
       ? isArabic
-        ? 'اكتب اسمك بالإنجليزي (30 ثانية)'
-        : 'Name Forge (30s)'
+        ? 'اكتب اسمك بالإنجليزي'
+        : 'Name Forge'
       : isArabic
-      ? `اكتب اسمك باللغة ${targetNameAr} (30 ثانية)`
-      : `${targetNameEn} Name Forge (30s)`;
+      ? `اكتب اسمك باللغة ${targetNameAr}`
+      : `${targetNameEn} Name Forge`;
 
   return (
     <div
@@ -417,14 +423,14 @@ export function PathView({
     >
       {/* Compact Journey Header Card */}
       <section
-        className="tb-card-surface p-4 rounded-3xl border space-y-3 text-start"
+        className="tb-card-surface p-4 rounded-[20px] border space-y-3.5 text-start"
         style={{
           backgroundColor: 'var(--surface)',
           borderColor: 'var(--border)',
           color: 'var(--ink)',
         }}
       >
-        <div className="flex items-center justify-between gap-2 flex-wrap">
+        <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2.5 min-w-0">
             <div
               className="w-11 h-11 rounded-2xl flex items-center justify-center font-black text-base shrink-0 border"
@@ -452,23 +458,23 @@ export function PathView({
             <button
               type="button"
               onClick={() => setUiMode(uiMode === 'simple' ? 'pro' : 'simple')}
-              className="min-h-[48px] px-3 py-1.5 rounded-xl text-xs font-black border cursor-pointer"
+              className="min-h-[48px] px-3 py-1.5 rounded-2xl text-xs font-black border cursor-pointer"
               style={{
                 backgroundColor: 'var(--bg)',
                 borderColor: 'var(--border)',
                 color: 'var(--ink)',
               }}
             >
-              {uiMode === 'simple' ? (isArabic ? '🟢 بسيط' : '🟢 Simple') : isArabic ? '⚡ متقدم' : '⚡ Pro'}
+              {uiMode === 'simple' ? (isArabic ? 'بسيط' : 'Simple') : isArabic ? 'متقدم' : 'Pro'}
             </button>
             <button
               type="button"
               onClick={() => setLevelMapOpen(true)}
               aria-label={isArabic ? 'خريطة المستويات' : 'Level Map'}
-              className="min-h-[48px] min-w-[48px] px-2.5 py-1.5 rounded-xl text-xs font-black border flex items-center justify-center gap-1 cursor-pointer"
+              className="min-h-[48px] min-w-[48px] px-2.5 py-1.5 rounded-2xl text-xs font-black border flex items-center justify-center cursor-pointer"
               style={{
-                backgroundColor: 'var(--accent-soft)',
-                borderColor: 'var(--accent)',
+                backgroundColor: 'var(--bg)',
+                borderColor: 'var(--border)',
                 color: 'var(--accent)',
               }}
             >
@@ -477,30 +483,16 @@ export function PathView({
           </div>
         </div>
 
-        {/* Free Forever Advantage Strip */}
-        <div className="flex flex-wrap gap-1.5" data-testid="path-advantage-strip">
-          <span
-            className="px-2.5 py-1 rounded-full text-[11px] font-bold border"
-            style={{ backgroundColor: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--ink)' }}
-          >
-            ❤️ {isArabic ? '∞ قلوب مجانية' : '∞ Free Hearts'}
-          </span>
-          <span
-            className="px-2.5 py-1 rounded-full text-[11px] font-bold border"
-            style={{ backgroundColor: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--ink)' }}
-          >
-            ✈️ {isArabic ? '100% بدون إنترنت' : '100% Offline'}
-          </span>
-          <span
-            className="px-2.5 py-1 rounded-full text-[11px] font-bold border"
-            style={{ backgroundColor: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--ink)' }}
-          >
-            🚫 {isArabic ? 'بدون إعلانات' : 'No Ads'}
-          </span>
-          <span
-            className="px-2.5 py-1 rounded-full text-[11px] font-bold border"
-            style={{ backgroundColor: 'var(--accent-soft)', borderColor: 'var(--accent)', color: 'var(--accent)' }}
-          >
+        {/* Clean Single-Line Free Forever Advantage Strip */}
+        <div
+          className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-bold px-1"
+          style={{ color: 'var(--ink-muted)' }}
+          data-testid="path-advantage-strip"
+        >
+          <span>❤️ {isArabic ? '∞ قلوب مجانية' : '∞ Free Hearts'}</span>
+          <span>✈️ {isArabic ? '100% بدون إنترنت' : '100% Offline'}</span>
+          <span>🚫 {isArabic ? 'بدون إعلانات' : 'No Ads'}</span>
+          <span style={{ color: 'var(--accent)' }}>
             {trackMeta.icon} {trackLabel}
           </span>
           {learnerTrack === 'teacher' && onOpenTeacherMode && (
@@ -515,14 +507,14 @@ export function PathView({
           )}
         </div>
 
-        {/* Primary Play CTA + Name Forge */}
-        <div className="flex flex-wrap gap-2">
+        {/* Primary Play CTA + Compact Secondary Actions */}
+        <div className="space-y-2">
           <button
             type="button"
             onClick={() => {
               if (nextLessonToPlay) onSelectLesson(nextLessonToPlay);
             }}
-            className="flex-1 min-h-[48px] px-4 py-2.5 rounded-2xl font-black text-sm flex items-center justify-center gap-2 cursor-pointer transition active:scale-95"
+            className="w-full min-h-[48px] px-4 py-3 rounded-2xl font-black text-sm flex items-center justify-center gap-2 cursor-pointer transition active:scale-[0.99]"
             style={{
               backgroundColor: 'var(--accent)',
               color: 'var(--accent-ink)',
@@ -539,19 +531,36 @@ export function PathView({
                 : 'Start Level 1 Now'}
             </span>
           </button>
-          <button
-            type="button"
-            onClick={() => setNameForgeOpen(true)}
-            className="min-h-[48px] px-3 py-2 rounded-2xl text-xs font-bold border cursor-pointer flex items-center justify-center gap-1.5"
-            style={{
-              backgroundColor: 'var(--bg)',
-              borderColor: 'var(--border)',
-              color: 'var(--ink)',
-            }}
-          >
-            <Sparkles size={14} className="shrink-0" style={{ color: 'var(--gold)' }} />
-            <span className="leading-snug text-center break-words">{nameForgeBtnLabel}</span>
-          </button>
+
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setPlacementOpen(true)}
+              className="min-h-[48px] px-3 py-2 rounded-2xl text-xs font-bold border cursor-pointer flex items-center justify-center gap-1.5"
+              style={{
+                backgroundColor: 'var(--bg)',
+                borderColor: 'var(--border)',
+                color: 'var(--ink)',
+              }}
+            >
+              <span>🎯</span>
+              <span className="truncate">{isArabic ? 'اختبار 60 ثانية' : '60s Level Test'}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setNameForgeOpen(true)}
+              title={nameForgeBtnLabel}
+              className="min-h-[48px] px-3 py-2 rounded-2xl text-xs font-bold border cursor-pointer flex items-center justify-center gap-1.5"
+              style={{
+                backgroundColor: 'var(--bg)',
+                borderColor: 'var(--border)',
+                color: 'var(--ink)',
+              }}
+            >
+              <Sparkles size={14} className="shrink-0" style={{ color: 'var(--gold)' }} />
+              <span className="truncate">{nameForgeBtnLabel}</span>
+            </button>
+          </div>
         </div>
 
         {/* Collapsible Level Skill Radar */}
@@ -630,7 +639,7 @@ export function PathView({
           ============================================================ */}
       <section
         aria-label={isArabic ? 'خريطة الرحلة التفاعلية' : 'Interactive Journey Map'}
-        className="tb-card-surface relative rounded-3xl border px-2 py-4"
+        className="tb-card-surface relative rounded-[20px] border px-2 py-4"
         style={{
           backgroundColor: 'var(--surface)',
           borderColor: 'var(--border)',

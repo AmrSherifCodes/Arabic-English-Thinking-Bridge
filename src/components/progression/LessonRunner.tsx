@@ -177,14 +177,7 @@ export function LessonRunner({
   }, [activeTargetLang]);
 
   const [uiMode] = useUiMode();
-  const [exercises, setExercises] = useState<ExerciseItem[]>(() => {
-    const list = [...lesson.exercises];
-    for (let i = list.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [list[i], list[j]] = [list[j], list[i]];
-    }
-    return list;
-  });
+  const [exercises, setExercises] = useState<ExerciseItem[]>(() => [...lesson.exercises]);
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [placedTileIds, setPlacedTileIds] = useState<string[]>([]);
@@ -701,6 +694,7 @@ export function LessonRunner({
             promptAr={currentExercise.promptAr}
             englishTarget={currentExercise.targetSentence}
             revealTarget={isAnswered}
+            isArabic={isArabic}
             className="max-w-[360px]"
           />
 

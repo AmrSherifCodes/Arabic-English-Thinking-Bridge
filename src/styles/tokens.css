@@ -12,7 +12,7 @@
   --muted: #94A3B8;
   --accent-teal: #00E5FF;
   --secondary-amber: #38BDF8;
-  --font: 'Readex Pro', sans-serif;
+  --font: 'IBM Plex Sans Arabic', 'Readex Pro', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   --radius-sm: 12px;
   --radius-md: 20px;
   --radius-lg: 28px;

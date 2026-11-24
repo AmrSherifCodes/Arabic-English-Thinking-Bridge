@@ -501,8 +501,8 @@ export function ProfileView({
             </h4>
             <p className="text-[11px] leading-snug" style={{ color: 'var(--ink-muted)' }}>
               {isArabic
-                ? 'استعد اشتراكك وعملاتك وتقدمك على هاتف جديد في 10 ثوانٍ.'
-                : 'Restore Pro tier, coins & progress onto a new phone in 10 seconds.'}
+                ? 'استعد تقدمك وعملاتك وباقتك على هاتف جديد في 10 ثوانٍ.'
+                : 'Restore your progress, coins & plan onto a new phone in 10 seconds.'}
             </p>
           </div>
         </div>
@@ -762,8 +762,8 @@ export function ProfileView({
           </h4>
           <p className="text-[11px]" style={{ color: 'var(--ink-muted)' }}>
             {isArabic
-              ? 'اختر لهجة الشرح أو وضع English-Guided (إنجليزي بالكامل + نطق صوتي للعربي)'
-              : 'Switch between Everyday Egyptian, Standard Arabic, or 100% English-Guided (LTR + phonetics)'}
+              ? 'اختر لهجة الشرح أو وضع English-Guided (شرح بالإنجليزي مع نطق صوتي للعربي)'
+              : 'Switch between Everyday Egyptian, Standard Arabic, or English-Guided'}
           </p>
         </div>
       </div>
@@ -786,7 +786,7 @@ export function ProfileView({
                 setGuideMode(opt.id);
                 onToast?.(
                   opt.id === 'english_guided'
-                    ? '🌍 Switched to English-Guided (LTR + Phonetics)'
+                    ? '🌍 Switched to English-Guided'
                     : opt.id === 'standard_ar'
                     ? '📖 تم التبديل إلى العربية الفصحى'
                     : '🇪🇬 تم التبديل إلى المصري البسيط'

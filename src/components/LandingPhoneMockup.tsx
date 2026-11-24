@@ -17,8 +17,8 @@ const DEMO_DRILLS: DemoDrill[] = [
     ar: 'أنا مهندس',
     en: 'I am an engineer',
     chips: ['I', 'am', 'an', 'engineer', 'is', 'a'],
-    explanationAr: 'الكوبولا (am) هي فعل الربط الواصل بين المبتدأ والخبر غير الموجود في الاسمية العربية.',
-    explanationEn: 'The copula (am) links subject and predicate, omitted in Arabic nominal sentences.',
+    explanationAr: 'في الإنجليزي بنحتاج كلمة (am) بين «أنا» والصفة أو الوظيفة: I am an engineer.',
+    explanationEn: 'English uses "am" to link "I" with a job or adjective: I am an engineer.',
   },
   {
     ar: 'هو طالب',
@@ -98,8 +98,8 @@ export function LandingPhoneMockup({ isArabic = true }: { isArabic?: boolean }) 
             <Sparkles size={14} />
             <span>{isArabic ? 'فكّر بالإنجليزي · معاينة حية' : 'Thinking Bridge · Live Demo'}</span>
           </div>
-          <span className="px-2 py-0.5 rounded-full bg-teal-500/10 text-teal-300 font-mono text-[10px] font-bold">
-            A0 - Copula Bridge
+          <span className="px-2 py-0.5 rounded-full bg-teal-500/10 text-teal-300 text-[10px] font-bold">
+            {isArabic ? 'الدرس ١ · بناء الجملة' : 'Lesson 1 · Sentence Builder'}
           </span>
         </div>
 

@@ -81,7 +81,7 @@ export function StreetDemoModal({
             <div className="flex items-center gap-2">
               <span className="p-2 rounded-xl bg-emerald-500/20 text-emerald-400 font-extrabold text-sm flex items-center gap-1.5">
                 <Zap size={18} />
-                <span>{isArabic ? 'وضع عرض الشارع 🚶‍♂️⚡' : 'Street Presentation Mode 🚶‍♂️⚡'}</span>
+                <span>{isArabic ? 'تجربة سريعة تفاعلية ⚡' : 'Quick Interactive Demo ⚡'}</span>
               </span>
             </div>
             <button

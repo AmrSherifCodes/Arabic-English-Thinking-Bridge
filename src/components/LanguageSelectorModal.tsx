@@ -12,6 +12,7 @@ interface LanguageSelectorModalProps {
   onSelectPair: (source: SourceLanguage, target: TargetLanguage) => void;
   onToast?: (msg: string) => void;
   onOpenSupporterGate?: () => void;
+  isArabic?: boolean;
 }
 
 // Canonical home languages (L1) - kept strictly to Arabic & English only.
@@ -55,6 +56,7 @@ export function LanguageSelectorModal({
   currentTarget,
   onSelectPair,
   onToast,
+  isArabic = true,
 }: LanguageSelectorModalProps) {
   const [step, setStep] = useState<1 | 2>(1);
   const [selectedSource, setSelectedSource] = useState<SourceLanguage>(currentSource);
@@ -76,14 +78,18 @@ export function LanguageSelectorModal({
     onClose();
     const targetMeta = TARGET_LANGUAGE_META[selectedTarget];
     const isSourceArabic = selectedSource === 'arz' || selectedSource === 'ar';
-    onToast?.(isSourceArabic ? `🚀 تم تفعيل مسار: ${targetMeta?.nameAr || selectedTarget} بنجاح!` : `🚀 Activated track: ${targetMeta?.nameEn || selectedTarget} successfully!`);
+    onToast?.(
+      isSourceArabic
+        ? `🚀 تم تفعيل مسار: ${targetMeta?.nameAr || selectedTarget} بنجاح!`
+        : `🚀 Activated track: ${targetMeta?.nameEn || selectedTarget} successfully!`
+    );
   };
 
   const handleCopyShareLink = () => {
     if (typeof window === 'undefined') return;
     const shareUrl = `${window.location.origin}/?from=${selectedSource}&to=${selectedTarget}`;
     navigator.clipboard?.writeText(shareUrl).then(() => {
-      onToast?.('🔗 تم نسخ رابط المشاركة المباشر!');
+      onToast?.(isArabic ? '🔗 تم نسخ رابط المشاركة المباشر!' : '🔗 Share link copied!');
     }).catch(() => {
       onToast?.(shareUrl);
     });
@@ -94,13 +100,13 @@ export function LanguageSelectorModal({
     if (!isActive) {
       return (
         <span className="mt-1.5 px-2 py-0.5 rounded-full text-[10px] font-black bg-stone-500/15 text-stone-400 border border-stone-500/30">
-          🚧 جاري البناء يومياً
+          {isArabic ? '🚧 جاري البناء يومياً' : '🚧 Building daily'}
         </span>
       );
     }
     return (
       <span className="mt-1.5 px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-        مجاني 100%
+        {isArabic ? 'مجاني 100%' : '100% Free'}
       </span>
     );
   };
@@ -108,7 +114,7 @@ export function LanguageSelectorModal({
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 pt-safe pb-safe bg-black/80 backdrop-blur-sm transition-opacity animate-in fade-in"
-      dir="rtl"
+      dir={isArabic ? 'rtl' : 'ltr'}
       role="dialog"
       aria-modal="true"
       aria-labelledby="lang-modal-title"
@@ -123,13 +129,21 @@ export function LanguageSelectorModal({
             <div className="text-start">
               <h2 id="lang-modal-title" className="text-base sm:text-lg font-black text-text">
                 {step === 1
-                  ? '١. اختر لغتك الأم (L1)'
-                  : '٢. اختر اللغة التي تريد التفكير بها (L2)'}
+                  ? isArabic
+                    ? '١. اختر لغتك الأم'
+                    : '1. Choose your native language'
+                  : isArabic
+                    ? '٢. اختر اللغة التي تريد تعلمها'
+                    : '2. Choose the language you want to learn'}
               </h2>
               <p className="text-xs text-muted font-bold mt-0.5">
                 {step === 1
-                  ? 'ما هي لغتك الحالية التي تفكر بها تلقائياً؟'
-                  : 'أي لغة تريد بناء بديهتك والتوقف عن ترجمتها في عقلك؟'}
+                  ? isArabic
+                    ? 'ما هي لغتك الحالية التي تفكر بها تلقائياً؟'
+                    : 'Which language do you naturally think in?'
+                  : isArabic
+                    ? 'أي لغة تريد أن تفكر بها مباشرة بدون ترجمة؟'
+                    : 'Which language do you want to think in directly?'}
               </p>
             </div>
           </div>
@@ -137,15 +151,15 @@ export function LanguageSelectorModal({
             type="button"
             onClick={onClose}
             className="min-h-[48px] min-w-[48px] flex items-center justify-center p-2.5 rounded-2xl text-muted hover:text-text hover:bg-surface-2 transition-colors shrink-0 cursor-pointer"
-            aria-label="إغلاق"
+            aria-label={isArabic ? 'إغلاق' : 'Close'}
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Modal Body */}
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-5">
-          {/* STEP 1: Source / Native Language (L1) - Exactly 2 options: Arabic & English */}
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 pb-6 space-y-5">
+          {/* STEP 1: Source / Native Language - Exactly 2 options: Arabic & English */}
           {step === 1 && (
             <div className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-w-md mx-auto">
@@ -176,10 +190,12 @@ export function LanguageSelectorModal({
                         {isSelected && <Check className="w-5 h-5 text-primary shrink-0" />}
                       </div>
                       <span className="font-black text-text text-base sm:text-lg block truncate w-full">
-                        {langKey === 'arz' ? 'العربية' : 'English'}
+                        {langKey === 'arz' ? (isArabic ? 'العربية' : 'Arabic') : 'English'}
                       </span>
                       <span className="text-xs text-muted font-semibold block truncate w-full mt-0.5">
-                        {langKey === 'arz' ? 'العربية (اللغة الأم)' : 'English (Home Language)'}
+                        {langKey === 'arz'
+                          ? isArabic ? 'العربية (اللغة الأم)' : 'Arabic (Native Language)'
+                          : isArabic ? 'الإنجليزية (English)' : 'English (Native Language)'}
                       </span>
                     </button>
                   );
@@ -188,9 +204,9 @@ export function LanguageSelectorModal({
             </div>
           )}
 
-          {/* STEP 2: Target / Learning Goal (L2) - 100% Unlocked */}
+          {/* STEP 2: Target / Learning Goal - 100% Unlocked */}
           {step === 2 && (
-            <div className="space-y-5">
+            <div className="space-y-4 pb-2">
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 sm:gap-3">
                 {SUPPORTED_TARGET_OPTIONS
                   .filter((code) => (code as string) !== (selectedSource as string) && TARGET_LANGUAGE_META[code])
@@ -198,6 +214,11 @@ export function LanguageSelectorModal({
                     const meta = TARGET_LANGUAGE_META[code];
                     const isSelected = selectedTarget === code;
                     const isActive = isChannelActive(selectedSource, code as TargetLanguage);
+                    const primaryLabel = isArabic ? meta.nameAr : meta.nameEn;
+                    const secondaryLabel =
+                      meta.nameNative === meta.nameEn
+                        ? meta.nameEn
+                        : `${meta.nameNative} (${meta.nameEn})`;
                     return (
                       <button
                         key={code}
@@ -215,10 +236,10 @@ export function LanguageSelectorModal({
                           {isSelected && <Check className="w-4 h-4 text-emerald-400 shrink-0" />}
                         </div>
                         <span className="font-black text-text text-xs sm:text-sm block w-full break-words">
-                          {meta.nameAr}
+                          {primaryLabel}
                         </span>
                         <span className="text-[10px] text-muted font-semibold block w-full mt-0.5 break-words">
-                          {meta.nameNative} ({meta.nameEn})
+                          {secondaryLabel}
                         </span>
                         {renderAccessPill(code)}
                       </button>
@@ -227,35 +248,42 @@ export function LanguageSelectorModal({
               </div>
 
               {/* Active Bridge Preview Card */}
-              <div className="p-4 rounded-2xl bg-surface-2 border border-border space-y-3 text-start">
-                <div className="flex items-center justify-between">
+              <div className="p-4 rounded-2xl bg-surface-2 border border-border space-y-2.5 text-start">
+                <div className="flex items-center justify-between gap-2 flex-wrap">
                   <span className="flex items-center gap-1.5 text-xs font-black text-amber-400">
                     <Sparkles className="w-4 h-4" />
-                    <span>المسار التعليمي المحدد:</span>
+                    <span>{isArabic ? 'المسار التعليمي المحدد:' : 'Selected Course:'}</span>
                   </span>
                   <button
                     type="button"
                     onClick={handleCopyShareLink}
-                    className="inline-flex items-center gap-1 min-h-[48px] px-2 text-xs text-muted hover:text-text underline cursor-pointer"
-                    title="مشاركة رابط المسار"
+                    className="inline-flex items-center gap-1 min-h-[40px] px-2 text-xs text-muted hover:text-text underline cursor-pointer"
+                    title={isArabic ? 'مشاركة رابط المسار' : 'Copy course share link'}
                   >
                     <Share2 className="w-3.5 h-3.5" />
-                    <span>رابط مشاركة</span>
+                    <span>{isArabic ? 'رابط مشاركة' : 'Share Link'}</span>
                   </button>
                 </div>
-                <div className="text-xs font-black text-text flex items-center gap-2 flex-wrap" dir="rtl">
+                <div
+                  className="text-xs font-black text-text flex items-center gap-2 flex-wrap"
+                  dir={isArabic ? 'rtl' : 'ltr'}
+                >
                   <div className="flex items-center gap-1.5 bg-surface px-2.5 py-1 rounded-xl border border-border">
                     <LanguageFlag code={selectedSource} size={18} />
-                    <span>{selectedSource === 'arz' ? 'العربية' : 'English'}</span>
+                    <span>{selectedSource === 'arz' ? (isArabic ? 'العربية' : 'Arabic') : 'English'}</span>
                   </div>
-                  <ArrowRight size={14} className="text-amber-400 shrink-0 rotate-180" />
+                  <ArrowRight size={14} className={`text-amber-400 shrink-0 ${isArabic ? 'rotate-180' : ''}`} />
                   <div className="flex items-center gap-1.5 bg-emerald-500/15 text-emerald-300 px-2.5 py-1 rounded-xl border border-emerald-500/30">
                     <LanguageFlag code={selectedTarget} size={18} />
-                    <span>{TARGET_LANGUAGE_META[selectedTarget]?.nameAr} ({TARGET_LANGUAGE_META[selectedTarget]?.nameNative})</span>
+                    <span>
+                      {isArabic
+                        ? `${TARGET_LANGUAGE_META[selectedTarget]?.nameAr} (${TARGET_LANGUAGE_META[selectedTarget]?.nameNative})`
+                        : TARGET_LANGUAGE_META[selectedTarget]?.nameEn}
+                    </span>
                   </div>
                 </div>
                 <p className="text-xs text-muted leading-relaxed">
-                  {activePairConfig.bridgeConceptAr}
+                  {isArabic ? activePairConfig.bridgeConceptAr : activePairConfig.bridgeConceptEn}
                 </p>
               </div>
             </div>
@@ -263,15 +291,15 @@ export function LanguageSelectorModal({
         </div>
 
         {/* Footer Actions */}
-        <div className="flex items-center justify-between gap-3 border-t border-border p-4 sm:p-5 bg-surface-2/50 shrink-0">
+        <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-2.5 border-t border-border p-4 sm:p-5 bg-surface-2/50 shrink-0">
           {step === 2 && (
             <button
               type="button"
               onClick={() => setStep(1)}
-              className="px-4 py-2.5 rounded-xl text-xs font-bold bg-surface border border-border text-text hover:bg-surface-2 transition-colors flex items-center justify-center gap-1.5 min-h-[48px] cursor-pointer shrink-0"
+              className="w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-bold bg-surface border border-border text-text hover:bg-surface-2 transition-colors flex items-center justify-center gap-1.5 min-h-[48px] cursor-pointer shrink-0 whitespace-nowrap"
             >
-              <ArrowRight size={14} />
-              <span>العودة للخطوة ١</span>
+              <ArrowRight size={14} className={isArabic ? '' : 'rotate-180'} />
+              <span>{isArabic ? 'العودة للخطوة ١' : 'Back to Step 1'}</span>
             </button>
           )}
 
@@ -279,17 +307,17 @@ export function LanguageSelectorModal({
             <button
               type="button"
               onClick={() => setStep(2)}
-              className="w-full px-5 py-3 rounded-xl text-xs font-black bg-primary text-on-primary shadow-md hover:opacity-90 transition-all flex items-center justify-center gap-1.5 min-h-[48px] cursor-pointer"
+              className="w-full px-5 py-3 rounded-xl text-xs sm:text-sm font-black bg-primary text-on-primary shadow-md hover:opacity-90 transition-all flex items-center justify-center gap-1.5 min-h-[48px] cursor-pointer whitespace-nowrap"
             >
-              <span>التالي: اختر اللغة الهدف ←</span>
+              <span>{isArabic ? 'التالي: اختر اللغة الهدف ←' : 'Next: Choose Target Language →'}</span>
             </button>
           ) : (
             <button
               type="button"
               onClick={handleApply}
-              className="flex-1 px-5 py-3 rounded-xl text-xs font-black bg-amber-500 hover:bg-amber-400 text-stone-950 shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-1.5 active:scale-95 min-h-[48px] cursor-pointer"
+              className="w-full sm:flex-1 px-5 py-3 rounded-xl text-xs sm:text-sm font-black bg-amber-500 hover:bg-amber-400 text-stone-950 shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-1.5 active:scale-95 min-h-[48px] cursor-pointer whitespace-nowrap"
             >
-              <span>تأكيد وبدء التعلّم 🚀</span>
+              <span>{isArabic ? 'تأكيد وبدء التعلّم 🚀' : 'Confirm & Start Learning 🚀'}</span>
             </button>
           )}
         </div>

@@ -24,6 +24,8 @@ import { consumeDailyApiQuota } from '../../utils/apiQuota';
 import { buildCorporateBridgeOffline } from '../../services/corporateBridgeOffline';
 import { isOnline } from '../../utils/connectivity';
 import { useEntitlement } from '../../hooks/useEntitlement';
+import { useDailyProTimer } from '../../hooks/useDailyProTimer';
+import { DailyProExpiredCard, DailyProTimerPill } from '../../components/DailyProTimerPill';
 import { TargetLanguage } from '../../types';
 import './corporate.css';
 
@@ -71,6 +73,7 @@ interface CorporateBridgeViewProps {
   onToast?: (msg: string) => void;
   preferredVoice?: string;
   targetLang?: TargetLanguage;
+  isArabic?: boolean;
 }
 
 const PRESETS = [
@@ -224,6 +227,7 @@ export function CorporateBridgeView({
   onToast,
   preferredVoice,
   targetLang = 'en',
+  isArabic = true,
 }: CorporateBridgeViewProps) {
   const { isPro } = useEntitlement();
   const [activeTab, setActiveTab] = useState<'translator' | 'pro_track'>('translator');
@@ -237,6 +241,12 @@ export function CorporateBridgeView({
 
   const selectedScenario =
     EGYPTIAN_PRO_SCENARIOS.find((s) => s.id === selectedScenarioId) || EGYPTIAN_PRO_SCENARIOS[0];
+
+  const isUsingProScenario = activeTab === 'pro_track' && !selectedScenario.isFreePreview;
+  const { remainingSeconds, formattedRemaining, hasProAccess, showPill } = useDailyProTimer({
+    isPro,
+    active: isUsingProScenario,
+  });
 
   const { isListening, startListening, stopListening } = useNativeSpeech({
     onSpeechEnd: (transcribed) => {
@@ -329,10 +339,6 @@ export function CorporateBridgeView({
   };
 
   const handleSelectScenario = (scenario: EgyptianProScenario) => {
-    if (!scenario.isFreePreview && !isPro) {
-      setActivateModalOpen(true);
-      return;
-    }
     setSelectedScenarioId(scenario.id);
   };
 
@@ -404,7 +410,11 @@ export function CorporateBridgeView({
                 <span>مسار الثقة المصري: إنترفيو، كول سنتر، واجتماعات</span>
               </span>
               <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
-                {isPro ? 'كل السيناريوهات مفتوحة ✓' : '١ سيناريو مجاني · الباقي Pro'}
+                {isPro
+                  ? 'كل السيناريوهات مفتوحة ✓'
+                  : hasProAccess
+                  ? `⏱ ${formattedRemaining} مجاني لكل السيناريوهات`
+                  : '١ سيناريو مجاني · الباقي Pro'}
               </span>
             </div>
             <p className="text-xs text-stone-300 leading-relaxed">
@@ -415,8 +425,8 @@ export function CorporateBridgeView({
           {/* Scenario Selector Pills */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             {EGYPTIAN_PRO_SCENARIOS.map((scenario) => {
-              const unlocked = scenario.isFreePreview || isPro;
-              const isSelected = selectedScenario.id === scenario.id && unlocked;
+              const unlocked = scenario.isFreePreview || hasProAccess;
+              const isSelected = selectedScenario.id === scenario.id;
 
               return (
                 <button
@@ -443,6 +453,10 @@ export function CorporateBridgeView({
                       <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 whitespace-nowrap">
                         PRO ✓
                       </span>
+                    ) : hasProAccess ? (
+                      <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-200 border border-teal-400/40 whitespace-nowrap">
+                        مجاني 15د ✓
+                      </span>
                     ) : (
                       <span className="inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/35 whitespace-nowrap">
                         <Lock size={10} />
@@ -458,7 +472,14 @@ export function CorporateBridgeView({
             })}
           </div>
 
-          {/* Active Scenario Detail Card */}
+          {/* Active Scenario Detail Card or Warm Daily Expiry Card */}
+          {!selectedScenario.isFreePreview && !hasProAccess ? (
+            <DailyProExpiredCard
+              isArabic={isArabic}
+              onOpenActivateCode={() => setActivateModalOpen(true)}
+              onBackToLessons={onBack}
+            />
+          ) : (
           <div className="p-4 sm:p-5 rounded-3xl bg-stone-900 border border-teal-500/30 space-y-4 text-start">
             <div className="space-y-1">
               <span className="text-[11px] font-black text-teal-400 block">
@@ -579,7 +600,7 @@ export function CorporateBridgeView({
               </div>
             </div>
 
-            {!isPro && (
+            {!hasProAccess && (
               <button
                 type="button"
                 onClick={() => setActivateModalOpen(true)}
@@ -590,6 +611,7 @@ export function CorporateBridgeView({
               </button>
             )}
           </div>
+          )}
         </div>
       ) : (
         <>
@@ -770,12 +792,19 @@ export function CorporateBridgeView({
         </>
       )}
 
+      <DailyProTimerPill
+        visible={showPill}
+        remainingSeconds={remainingSeconds}
+        isArabic={isArabic}
+        onClick={() => setActivateModalOpen(true)}
+      />
+
       {activateModalOpen && (
         <Suspense fallback={null}>
           <LazyActivateCodeModal
             isOpen={activateModalOpen}
             onClose={() => setActivateModalOpen(false)}
-            isArabic={true}
+            isArabic={isArabic}
             onToast={onToast}
           />
         </Suspense>

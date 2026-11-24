@@ -19,6 +19,8 @@ import {
   SteamAchievement,
 } from './achievements';
 import { ArabicPhraseAssist } from '../../components/ArabicPhraseAssist';
+import { useDailyProTimer } from '../../hooks/useDailyProTimer';
+import { DailyProExpiredCard, DailyProTimerPill } from '../../components/DailyProTimerPill';
 
 export interface ProArcadeViewProps {
   isPro: boolean;
@@ -486,7 +488,12 @@ export function ProArcadeView({
   const [bossUnlocked, setBossUnlocked] = useState<SteamAchievement[]>([]);
   const questionStartRef = useRef<number>(Date.now());
 
-  const canPlayRound = isPro || !store.proTeaserUsed;
+  const { remainingSeconds, formattedRemaining, hasProAccess, showPill } = useDailyProTimer({
+    isPro,
+    active: true,
+  });
+
+  const canPlayRound = hasProAccess;
   const currentCombo = Math.min(5, 1 + Math.floor(blitzStreak / 2));
 
   // Blitz 1-second timer
@@ -733,63 +740,22 @@ export function ProArcadeView({
                 ? 'Pro غير محدود'
                 : 'Pro Unlimited'
               : canPlayRound
-              ? isArabic
-                ? 'جولة تجريبية مجانية (1)'
-                : '1 Free Teaser'
+              ? `⏱ ${formattedRemaining} ${isArabic ? 'مجاني' : 'Free'}`
               : isArabic
-              ? 'مقفل (Pro)'
-              : 'Pro Locked'}
+              ? 'انتهى وقت اليوم'
+              : 'Daily Pass Used'}
           </span>
         </div>
       </header>
 
       <main className="max-w-2xl mx-auto p-4 sm:p-6 space-y-5">
-        {/* Teaser Exhausted Paywall */}
+        {/* Warm Daily Expiry Card (at 00:00) */}
         {!canPlayRound && screen === 'lobby' && (
-          <div
-            className="tb-card-surface p-5 rounded-3xl border-2 shadow-xl space-y-4 text-start"
-            style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--gold)', color: 'var(--ink)' }}
-          >
-            <div className="flex items-center gap-2 font-black text-xs" style={{ color: 'var(--gold)' }}>
-              <Crown className="w-4 h-4 shrink-0" />
-              <span>{isArabic ? 'أنهيت جولتك التجريبية المجانية!' : 'You completed your free teaser round!'}</span>
-            </div>
-            <h3 className="text-lg font-black" style={{ color: 'var(--ink)' }}>
-              {isArabic
-                ? 'افتح أركيد Pro غير المحدود + خزانة الجوائز الكاملة'
-                : 'Unlock Unlimited Pro Arcade & Full Trophy Cabinet'}
-            </h3>
-            <div className="grid grid-cols-1 min-[360px]:grid-cols-3 gap-2 text-center">
-              <div className="p-2.5 rounded-2xl border" style={{ backgroundColor: 'var(--bg)', borderColor: 'var(--border)' }}>
-                <span className="text-[11px] block" style={{ color: 'var(--ink-muted)' }}>{isArabic ? 'شهري' : 'Monthly'}</span>
-                <span className="text-sm font-black" style={{ color: 'var(--ink)' }}>{isArabic ? '50 ج.م' : '50 EGP'}</span>
-              </div>
-              <div className="p-2.5 rounded-2xl border" style={{ backgroundColor: 'var(--accent-soft)', borderColor: 'var(--accent)' }}>
-                <span className="text-[11px] font-bold block" style={{ color: 'var(--accent)' }}>{isArabic ? '3 شهور' : '3 Months'}</span>
-                <span className="text-sm font-black" style={{ color: 'var(--ink)' }}>{isArabic ? '120 ج.م' : '120 EGP'}</span>
-              </div>
-              <div className="p-2.5 rounded-2xl border" style={{ backgroundColor: 'var(--bg)', borderColor: 'var(--gold)' }}>
-                <span className="text-[11px] font-bold block" style={{ color: 'var(--gold)' }}>{isArabic ? 'مدى الحياة' : 'Lifetime'}</span>
-                <span className="text-sm font-black" style={{ color: 'var(--ink)' }}>{isArabic ? '299 ج.م' : '299 EGP'}</span>
-              </div>
-            </div>
-            <p className="text-xs font-bold" style={{ color: 'var(--accent)' }}>
-              {isArabic
-                ? '🎓 معاك كود أول حصة مجانية للطلاب (ALAQSA-FREE)؟ فعّله فوراً!'
-                : '🎓 Have a Free First-Session Student Code (ALAQSA-FREE)? Activate it now!'}
-            </p>
-            {onOpenActivateCode && (
-              <button
-                type="button"
-                onClick={onOpenActivateCode}
-                className="w-full min-h-[48px] py-3 px-4 rounded-2xl font-black text-sm inline-flex items-center justify-center gap-2 cursor-pointer shadow-lg"
-                style={{ backgroundColor: 'var(--gold)', color: 'var(--gold-ink)' }}
-              >
-                <KeyRound className="w-4 h-4" />
-                <span>{isArabic ? 'تفعيل كود Pro / الأكاديمية' : 'Activate Pro / Academy Code'}</span>
-              </button>
-            )}
-          </div>
+          <DailyProExpiredCard
+            isArabic={isArabic}
+            onOpenActivateCode={onOpenActivateCode}
+            onBackToLessons={onBack}
+          />
         )}
 
         {/* LOBBY */}
@@ -1027,7 +993,7 @@ export function ProArcadeView({
                 )}
 
                 <div className="flex flex-wrap gap-2.5">
-                  {isPro ? (
+                  {canPlayRound ? (
                     <button
                       type="button"
                       onClick={startBlitz}
@@ -1046,7 +1012,7 @@ export function ProArcadeView({
                         style={{ backgroundColor: 'var(--gold)', color: 'var(--gold-ink)' }}
                       >
                         <KeyRound className="w-4 h-4" />
-                        <span>{isArabic ? 'فعّل Pro للعب بلا حدود (50 ج.م)' : 'Unlock Unlimited Pro (50 EGP)'}</span>
+                        <span>{isArabic ? 'تفعيل النسخة الكاملة (50 ج/شهر)' : 'Unlock Unlimited Pro (50 EGP/mo)'}</span>
                       </button>
                     )
                   )}
@@ -1251,7 +1217,7 @@ export function ProArcadeView({
                 )}
 
                 <div className="flex flex-wrap gap-2.5">
-                  {isPro ? (
+                  {canPlayRound ? (
                     <button
                       type="button"
                       onClick={() => startBossDuel(activeBoss)}
@@ -1270,7 +1236,7 @@ export function ProArcadeView({
                         style={{ backgroundColor: 'var(--gold)', color: 'var(--gold-ink)' }}
                       >
                         <KeyRound className="w-4 h-4" />
-                        <span>{isArabic ? 'افتح Pro للمعارك بلا حدود' : 'Unlock Unlimited Pro Duels'}</span>
+                        <span>{isArabic ? 'تفعيل النسخة الكاملة (50 ج/شهر)' : 'Unlock Unlimited Pro (50 EGP/mo)'}</span>
                       </button>
                     )
                   )}
@@ -1288,6 +1254,13 @@ export function ProArcadeView({
           </div>
         )}
       </main>
+
+      <DailyProTimerPill
+        visible={showPill}
+        remainingSeconds={remainingSeconds}
+        isArabic={isArabic}
+        onClick={onOpenActivateCode}
+      />
     </div>
   );
 }

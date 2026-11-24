@@ -952,6 +952,12 @@ export function parseAlQuranMultiEditionResponse(
 }
 
 function getBundledSurahUrl(surahNumber: number): string {
+  if (typeof window !== 'undefined' && window.location) {
+    const protocol = window.location.protocol;
+    if (protocol === 'http:' || protocol === 'https:') {
+      return `${window.location.origin}/data/quran/${surahNumber}.json`;
+    }
+  }
   if (typeof document !== 'undefined' && typeof document.baseURI === 'string') {
     try {
       return new URL(`data/quran/${surahNumber}.json`, document.baseURI).toString();
