@@ -1,5 +1,5 @@
 // Local Preview Load Test Runner (Simulates 100 concurrent requests against local health handler)
-import healthHandler from '../api/health.js';
+import healthHandler from '../api/health.ts';
 
 async function runPreviewLoadTest() {
   const TOTAL_REQUESTS = 100;

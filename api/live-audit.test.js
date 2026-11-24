@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'fs';
 import path from 'path';
-import healthHandler from './health.js';
+import healthHandler from './health.ts';
 import { agentTools } from './agent.js';
 
 test('1. SEO & Canonical URLs: index.html and public files do not reference amrsherif.localhost.cc', () => {
