@@ -1515,14 +1515,14 @@ export default function App() {
                   {isArabic ? 'حمّل تطبيق فكّر إنجليزي' : 'Download Thinking Bridge App'}
                 </span>
                 <span className="text-[11px] font-bold break-words" style={{ color: 'var(--ink-muted)' }}>
-                  {isArabic ? 'يعمل بدون إنترنت · V6 (40.5 MB APK)' : '100% Offline · V6 (40.5 MB APK)'}
+                  {isArabic ? 'يعمل بدون إنترنت · V9 (42.7 MB APK)' : '100% Offline · V9 (42.7 MB APK)'}
                 </span>
               </div>
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <a
-                href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v6.0.0/ThinkingBridge-v6.0.0.apk"
-                download="ThinkingBridge-v6.0.0.apk"
+                href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v9.0.0/ThinkingBridge-v9.0.0.apk"
+                download="ThinkingBridge-v9.0.0.apk"
                 className="min-h-[48px] px-4 py-2 rounded-xl text-xs font-black shadow-md hover:opacity-90 transition active:scale-95 inline-flex items-center justify-center"
                 style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-ink)' }}
               >

@@ -20,7 +20,7 @@ import './android-landing-page.css';
 
 const WEB_APP_URL = '/app';
 const GITHUB_URL = 'https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge';
-const APK_URL = 'https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v6.0.0/ThinkingBridge-v6.0.0.apk';
+const APK_URL = 'https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v9.0.0/ThinkingBridge-v9.0.0.apk';
 const X_URL = 'https://x.com/SciAmrSherif';
 
 const FEATURES = [
@@ -56,7 +56,7 @@ const FEATURES = [
 
 const QUICK_SPECS = [
   { label: 'إصدار الأندرويد', value: 'Android 8.0+' },
-  { label: 'حجم التطبيق', value: '40.5 MB' },
+  { label: 'حجم التطبيق', value: '42.7 MB' },
   { label: 'استهلاك البيانات', value: '0 MB' },
   { label: 'التراخيص', value: 'AGPLv3 / CC BY-NC-SA' },
 ];
@@ -143,11 +143,11 @@ export function AndroidLandingPage() {
             <a
               className="android-btn android-btn-secondary"
               href={APK_URL}
-              download="ThinkingBridge-v6.0.0.apk"
+              download="ThinkingBridge-v9.0.0.apk"
               aria-label="تحميل تطبيق الأندرويد المباشر APK"
             >
               <Download size={18} aria-hidden="true" />
-              <span>تحميل تطبيق APK (V6 · v6.0.0 · 40.5 MB)</span>
+              <span>تحميل تطبيق APK (V9 · v9.0.0 · 42.7 MB)</span>
             </a>
           </div>
 
@@ -171,7 +171,7 @@ export function AndroidLandingPage() {
             }}
           >
             <a
-              href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/tag/v6.0.0"
+              href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/tag/v9.0.0"
               target="_blank"
               rel="noopener noreferrer"
               style={{
@@ -181,7 +181,7 @@ export function AndroidLandingPage() {
                 textDecoration: 'underline',
               }}
             >
-              صفحة الإصدار الرسمي والتحقق على GitHub (v6.0.0)
+              صفحة الإصدار الرسمي والتحقق على GitHub (v9.0.0)
             </a>
             <code
               dir="ltr"
@@ -195,7 +195,7 @@ export function AndroidLandingPage() {
                 maxWidth: '100%',
               }}
             >
-              SHA-256: 8ad98dde6fb5c3c8f7e65008e4794ae21d663de892473e8ac1eb3f85417c23f6
+              SHA-256: 1c784627ea76bc14adad4f9744621a9e1395c03a8a9386ba12a7c81fc56a91d3
             </code>
           </div>
         </div>

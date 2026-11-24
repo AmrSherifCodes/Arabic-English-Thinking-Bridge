@@ -288,12 +288,12 @@ export function LandingPage({ onLaunchApp, onOpenQuran, isArabic = false }: Land
           </a>
           {!Capacitor.isNativePlatform() && (
             <a
-              href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v6.0.0/ThinkingBridge-v6.0.0.apk"
-              download="ThinkingBridge-v6.0.0.apk"
+              href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v9.0.0/ThinkingBridge-v9.0.0.apk"
+              download="ThinkingBridge-v9.0.0.apk"
               className="btn hero-secondary-cta bg-amber-400/15 text-amber-200 border border-amber-400/40 hover:bg-amber-400/25 transition flex items-center gap-2 cursor-pointer font-bold text-sm"
             >
               <Download size={16} />
-              <span>{isAr ? 'تحميل APK للأندرويد' : 'Download Android APK'}</span>
+              <span>{isAr ? 'تحميل APK للأندرويد (v9.0.0)' : 'Download Android APK (v9.0.0)'}</span>
             </a>
           )}
           <button
@@ -598,7 +598,7 @@ export function LandingPage({ onLaunchApp, onOpenQuran, isArabic = false }: Land
               <Smartphone size={32} />
               <div className="mb-4 text-center">
                 <span className="font-bold text-lg block text-[var(--navy)]">Android</span>
-                <span className="text-sm text-[var(--ink-soft)] block">V6 (v6.0.0) · 40.5 MB APK</span>
+                <span className="text-sm text-[var(--ink-soft)] block">V9 (v9.0.0) · 42.7 MB APK</span>
               </div>
               <a
                 href="/app"
@@ -611,25 +611,25 @@ export function LandingPage({ onLaunchApp, onOpenQuran, isArabic = false }: Land
               {!Capacitor.isNativePlatform() && (
                 <>
                   <a
-                    href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v6.0.0/ThinkingBridge-v6.0.0.apk"
-                    download="ThinkingBridge-v6.0.0.apk"
+                    href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v9.0.0/ThinkingBridge-v9.0.0.apk"
+                    download="ThinkingBridge-v9.0.0.apk"
                     className="btn btn-gold btn-sm w-full mt-1"
                   >
-                    <span>{isAr ? 'تحميل APK (V6 · v6.0.0 · 40.5 MB)' : 'Download APK (V6 · v6.0.0 · 40.5 MB)'}</span>
+                    <span>{isAr ? 'تحميل APK (V9 · v9.0.0 · 42.7 MB)' : 'Download APK (V9 · v9.0.0 · 42.7 MB)'}</span>
                   </a>
                   <a
-                    href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/tag/v6.0.0"
+                    href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/tag/v9.0.0"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-xs font-bold text-[var(--nile)] underline text-center w-full block mt-2"
                   >
-                    {isAr ? 'صفحة الإصدار والتحقق (GitHub v6.0.0)' : 'Release Notes & Verification (GitHub v6.0.0)'}
+                    {isAr ? 'صفحة الإصدار والتحقق (GitHub v9.0.0)' : 'Release Notes & Verification (GitHub v9.0.0)'}
                   </a>
                   <div
                     dir="ltr"
                     className="w-full max-w-full rounded-lg bg-black/10 px-2 py-1.5 text-[10px] font-mono text-[var(--ink-soft)] break-all select-all text-center mt-1"
                   >
-                    SHA-256: 8ad98dde6fb5c3c8f7e65008e4794ae21d663de892473e8ac1eb3f85417c23f6
+                    SHA-256: 1c784627ea76bc14adad4f9744621a9e1395c03a8a9386ba12a7c81fc56a91d3
                   </div>
                 </>
               )}
@@ -672,7 +672,7 @@ export function LandingPage({ onLaunchApp, onOpenQuran, isArabic = false }: Land
                 <Globe size={16} />
                 <span>{isInstallable ? (t('landing2.install_pwa')) : (t('landing2.open_web_app'))}</span>
               </button>
-              <a href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/tag/v6.0.0" target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-[var(--nile)] underline text-center w-full block mt-2">
+              <a href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/tag/v9.0.0" target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-[var(--nile)] underline text-center w-full block mt-2">
                 {t('landing2.desktop_releases')}
               </a>
             </div>
@@ -690,7 +690,7 @@ export function LandingPage({ onLaunchApp, onOpenQuran, isArabic = false }: Land
                 <Globe size={16} />
                 <span>{isInstallable ? (t('landing2.install_pwa')) : (t('landing2.open_web_app'))}</span>
               </button>
-              <a href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/tag/v6.0.0" target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-[var(--nile)] underline text-center w-full block mt-2">
+              <a href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/tag/v9.0.0" target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-[var(--nile)] underline text-center w-full block mt-2">
                 {t('landing2.desktop_releases')}
               </a>
             </div>

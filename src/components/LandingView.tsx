@@ -480,20 +480,20 @@ export function LandingView({ onStartWebApp, isArabic = true }: LandingViewProps
               {!Capacitor.isNativePlatform() && (
                 <>
                   <a
-                    href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v6.0.0/ThinkingBridge-v6.0.0.apk"
-                    download="ThinkingBridge-v6.0.0.apk"
+                    href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v9.0.0/ThinkingBridge-v9.0.0.apk"
+                    download="ThinkingBridge-v9.0.0.apk"
                     className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-[var(--landing-surface)] border border-[var(--landing-accent-teal)]/50 text-[var(--landing-accent-teal)] font-bold text-xs w-full hover:border-[var(--landing-accent-teal)] transition"
                   >
                     <Download size={13} aria-hidden="true" />
-                    <span>{isAr ? 'تحميل APK (V6 · v6.0.0 · 40.5 MB)' : 'Download APK (V6 · v6.0.0 · 40.5 MB)'}</span>
+                    <span>{isAr ? 'تحميل APK (V9 · v9.0.0 · 42.7 MB)' : 'Download APK (V9 · v9.0.0 · 42.7 MB)'}</span>
                   </a>
                   <a
-                    href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/tag/v6.0.0"
+                    href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/tag/v9.0.0"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="block text-[10px] font-bold text-[var(--landing-muted)] underline underline-offset-2"
                   >
-                    {isAr ? 'صفحة الإصدار على GitHub (v6.0.0)' : 'GitHub Release (v6.0.0)'}
+                    {isAr ? 'صفحة الإصدار على GitHub (v9.0.0)' : 'GitHub Release (v9.0.0)'}
                   </a>
                 </>
               )}

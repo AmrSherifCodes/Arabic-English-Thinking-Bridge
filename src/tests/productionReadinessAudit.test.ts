@@ -65,7 +65,7 @@ describe('Production Readiness & Human-Use Audit Regressions (v6.0.0 V6 Edition)
     assert.equal(normalizeTtsLang('tr'), 'tr-TR');
   });
 
-  it('4. All APK download links and manifests align cleanly on v6.0.0/ThinkingBridge-v6.0.0.apk (versionCode 6000)', () => {
+  it('4. All APK download links and manifests align cleanly on v9.0.0/ThinkingBridge-v9.0.0.apk (versionCode 6001)', () => {
     const filesToCheck = [
       'index.html',
       'public/download.html',
@@ -83,7 +83,7 @@ describe('Production Readiness & Human-Use Audit Regressions (v6.0.0 V6 Edition)
       for (const match of matches) {
         assert.equal(
           match,
-          'releases/download/v6.0.0/ThinkingBridge-v6.0.0.apk',
+          'releases/download/v9.0.0/ThinkingBridge-v9.0.0.apk',
           `Outdated APK URL "${match}" found in ${relPath}`
         );
       }
@@ -94,7 +94,7 @@ describe('Production Readiness & Human-Use Audit Regressions (v6.0.0 V6 Edition)
       );
     }
 
-    const verifiedSha256 = '8ad98dde6fb5c3c8f7e65008e4794ae21d663de892473e8ac1eb3f85417c23f6';
+    const verifiedSha256 = '1c784627ea76bc14adad4f9744621a9e1395c03a8a9386ba12a7c81fc56a91d3';
     for (const relPath of [
       'index.html',
       'public/download.html',
@@ -107,8 +107,8 @@ describe('Production Readiness & Human-Use Audit Regressions (v6.0.0 V6 Edition)
         `Expected verified SHA-256 checksum in ${relPath}`
       );
       assert.ok(
-        content.includes('releases/tag/v6.0.0'),
-        `Expected GitHub v6.0.0 release tag link in ${relPath}`
+        content.includes('releases/tag/v9.0.0'),
+        `Expected GitHub v9.0.0 release tag link in ${relPath}`
       );
     }
 
