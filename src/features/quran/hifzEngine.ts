@@ -93,11 +93,68 @@ export interface QuranWirdEntry {
 export type MushafFontSize = 'sm' | 'md' | 'lg';
 export type MushafThemeMode = 'light' | 'dark';
 
+export type QuranReciterId =
+  | 'ar.husary'
+  | 'ar.minshawi'
+  | 'ar.alafasy'
+  | 'ar.abdulbasitmurattal';
+
+export interface QuranReciterMeta {
+  id: QuranReciterId;
+  nameAr: string;
+  nameEn: string;
+  styleAr: string;
+  styleEn: string;
+}
+
+export const QURAN_RECITERS: ReadonlyArray<QuranReciterMeta> = [
+  {
+    id: 'ar.husary',
+    nameAr: 'الشيخ محمود خليل الحصري',
+    nameEn: 'Sheikh Mahmoud Khalil Al-Husary',
+    styleAr: 'معلّم (مرتل)',
+    styleEn: 'Teacher (Murattal)',
+  },
+  {
+    id: 'ar.minshawi',
+    nameAr: 'الشيخ محمد صديق المنشاوي',
+    nameEn: 'Sheikh Muhammad Siddiq Al-Minshawi',
+    styleAr: 'خاشع (مرتل)',
+    styleEn: 'Reverent (Murattal)',
+  },
+  {
+    id: 'ar.alafasy',
+    nameAr: 'الشيخ مشاري راشد العفاسي',
+    nameEn: 'Sheikh Mishary Rashid Alafasy',
+    styleAr: 'واضح وحديث',
+    styleEn: 'Crisp & Clear',
+  },
+  {
+    id: 'ar.abdulbasitmurattal',
+    nameAr: 'الشيخ عبد الباسط عبد الصمد',
+    nameEn: 'Sheikh Abdul Basit Abdus Samad',
+    styleAr: 'مرتل متقن',
+    styleEn: 'Classic Murattal',
+  },
+];
+
+export interface QuranBookmark {
+  key: string;
+  surahNumber: number;
+  ayahNumber: number;
+  surahNameAr: string;
+  surahNameEn: string;
+  excerpt: string;
+  savedAt: number;
+}
+
 export interface QuranHifzStoreState {
   version: 1;
   lastSurahNumber: number;
   fontSize: MushafFontSize;
   mushafTheme: MushafThemeMode;
+  reciterId: QuranReciterId;
+  bookmarks: Record<string, QuranBookmark>;
   wirdEntries: Record<string, QuranWirdEntry>;
 }
 
@@ -473,12 +530,37 @@ export function computeNextWirdSchedule(
   };
 }
 
+export function isValidReciterId(value: unknown): value is QuranReciterId {
+  return (
+    value === 'ar.husary' ||
+    value === 'ar.minshawi' ||
+    value === 'ar.alafasy' ||
+    value === 'ar.abdulbasitmurattal'
+  );
+}
+
+export function buildAyahAudioUrls(
+  globalAyahNumber: number,
+  reciterId: QuranReciterId = 'ar.husary'
+): { primary: string | null; fallback: string | null } {
+  if (!Number.isInteger(globalAyahNumber) || globalAyahNumber < 1 || globalAyahNumber > 6236) {
+    return { primary: null, fallback: null };
+  }
+  const safeReciter: QuranReciterId = isValidReciterId(reciterId) ? reciterId : 'ar.husary';
+  return {
+    primary: `https://cdn.islamic.network/quran/audio/128/${safeReciter}/${globalAyahNumber}.mp3`,
+    fallback: `https://cdn.islamic.network/quran/audio/64/${safeReciter}/${globalAyahNumber}.mp3`,
+  };
+}
+
 export function createInitialHifzState(): QuranHifzStoreState {
   return {
     version: 1,
     lastSurahNumber: 1,
     fontSize: 'md',
     mushafTheme: 'light',
+    reciterId: 'ar.husary',
+    bookmarks: {},
     wirdEntries: {},
   };
 }
@@ -513,12 +595,60 @@ export function loadHifzState(storageOverride?: Storage | null): QuranHifzStoreS
           ? parsed.fontSize
           : 'md',
       mushafTheme: parsed.mushafTheme === 'dark' ? 'dark' : 'light',
+      reciterId: isValidReciterId(parsed.reciterId) ? parsed.reciterId : 'ar.husary',
+      bookmarks:
+        parsed.bookmarks && typeof parsed.bookmarks === 'object' ? parsed.bookmarks : {},
       wirdEntries:
         parsed.wirdEntries && typeof parsed.wirdEntries === 'object' ? parsed.wirdEntries : {},
     };
   } catch {
     return createInitialHifzState();
   }
+}
+
+export function toggleBookmark(
+  state: QuranHifzStoreState,
+  params: {
+    surahNumber: number;
+    ayahNumber: number;
+    surahNameAr: string;
+    surahNameEn: string;
+    textUthmani: string;
+  },
+  nowMs = Date.now()
+): { nextState: QuranHifzStoreState; added: boolean } {
+  const key = `${params.surahNumber}:${params.ayahNumber}`;
+  const currentBookmarks = state.bookmarks || {};
+  if (currentBookmarks[key]) {
+    const rest = { ...currentBookmarks };
+    delete rest[key];
+    return {
+      added: false,
+      nextState: {
+        ...state,
+        bookmarks: rest,
+      },
+    };
+  }
+  const excerpt = tokenizeAyahWords(params.textUthmani).slice(0, 6).join(' ');
+  return {
+    added: true,
+    nextState: {
+      ...state,
+      bookmarks: {
+        ...currentBookmarks,
+        [key]: {
+          key,
+          surahNumber: params.surahNumber,
+          ayahNumber: params.ayahNumber,
+          surahNameAr: params.surahNameAr,
+          surahNameEn: params.surahNameEn,
+          excerpt,
+          savedAt: nowMs,
+        },
+      },
+    },
+  };
 }
 
 export function saveHifzState(
@@ -712,6 +842,126 @@ export async function listCachedSurahNumbers(): Promise<number[]> {
   return Array.from(nums).sort((a, b) => a - b);
 }
 
+interface AlQuranEditionAyahRaw {
+  number?: number;
+  numberInSurah?: number;
+  juz?: number;
+  page?: number;
+  text?: string;
+  audio?: string;
+  audioSecondary?: string[];
+}
+
+interface AlQuranEditionDataRaw {
+  number?: number;
+  name?: string;
+  englishName?: string;
+  englishNameTranslation?: string;
+  revelationType?: string;
+  numberOfAyahs?: number;
+  ayahs?: AlQuranEditionAyahRaw[];
+  edition?: {
+    identifier?: string;
+  };
+}
+
+export function parseAlQuranMultiEditionResponse(
+  payload: unknown,
+  surahNumber: number
+): QuranSurahData | null {
+  if (!payload || typeof payload !== 'object') return null;
+  const typed = payload as { code?: number; data?: AlQuranEditionDataRaw[] };
+  if (typed.code !== 200 || !Array.isArray(typed.data)) return null;
+
+  const editions = new Map<string, AlQuranEditionDataRaw>();
+  for (const item of typed.data) {
+    const id = item?.edition?.identifier;
+    if (typeof id === 'string' && id) {
+      editions.set(id, item);
+    }
+  }
+
+  const uthmani = editions.get('quran-uthmani');
+  if (!uthmani || !Array.isArray(uthmani.ayahs) || uthmani.ayahs.length === 0) {
+    return null;
+  }
+
+  const husaryByAyah = new Map<number, AlQuranEditionAyahRaw>();
+  for (const a of editions.get('ar.husary')?.ayahs ?? []) {
+    if (typeof a.numberInSurah === 'number') husaryByAyah.set(a.numberInSurah, a);
+  }
+
+  const sahihByAyah = new Map<number, string>();
+  for (const a of editions.get('en.sahih')?.ayahs ?? []) {
+    if (typeof a.numberInSurah === 'number' && typeof a.text === 'string') {
+      sahihByAyah.set(a.numberInSurah, a.text.trim());
+    }
+  }
+
+  const muyassarByAyah = new Map<number, string>();
+  for (const a of editions.get('ar.muyassar')?.ayahs ?? []) {
+    if (typeof a.numberInSurah === 'number' && typeof a.text === 'string') {
+      muyassarByAyah.set(a.numberInSurah, a.text.trim());
+    }
+  }
+
+  const translitByAyah = new Map<number, string>();
+  for (const a of editions.get('en.transliteration')?.ayahs ?? []) {
+    if (typeof a.numberInSurah === 'number' && typeof a.text === 'string') {
+      translitByAyah.set(a.numberInSurah, a.text.trim());
+    }
+  }
+
+  const ayahs: QuranAyah[] = uthmani.ayahs.map((ayah, idx) => {
+    const numberInSurah = typeof ayah.numberInSurah === 'number' ? ayah.numberInSurah : idx + 1;
+    const globalNumber = typeof ayah.number === 'number' ? ayah.number : numberInSurah;
+    const husary = husaryByAyah.get(numberInSurah);
+    const defaultUrls = buildAyahAudioUrls(globalNumber, 'ar.husary');
+    const primaryAudio =
+      typeof husary?.audio === 'string' && husary.audio.startsWith('https://')
+        ? husary.audio.trim()
+        : defaultUrls.primary;
+    const secondaryAudio = Array.isArray(husary?.audioSecondary)
+      ? husary.audioSecondary.find((u) => typeof u === 'string' && u.startsWith('https://')) ??
+        defaultUrls.fallback
+      : defaultUrls.fallback;
+
+    return {
+      number: globalNumber,
+      numberInSurah,
+      juz: typeof ayah.juz === 'number' ? ayah.juz : 1,
+      page: typeof ayah.page === 'number' ? ayah.page : 1,
+      textUthmani: typeof ayah.text === 'string' ? ayah.text.trim() : '',
+      audioUrl: primaryAudio,
+      audioFallbackUrl: secondaryAudio && secondaryAudio !== primaryAudio ? secondaryAudio : defaultUrls.fallback,
+      tafsirMuyassar: muyassarByAyah.get(numberInSurah) ?? '',
+      translationEn: sahihByAyah.get(numberInSurah) ?? '',
+      transliterationEn: translitByAyah.get(numberInSurah) ?? '',
+    };
+  });
+
+  return {
+    number: uthmani.number ?? surahNumber,
+    name: uthmani.name ?? '',
+    englishName: uthmani.englishName ?? '',
+    englishNameTranslation: uthmani.englishNameTranslation ?? '',
+    revelationType: uthmani.revelationType ?? 'Meccan',
+    numberOfAyahs: uthmani.numberOfAyahs ?? ayahs.length,
+    ayahs,
+  };
+}
+
+function getBundledSurahUrl(surahNumber: number): string {
+  if (typeof document !== 'undefined' && typeof document.baseURI === 'string') {
+    try {
+      return new URL(`data/quran/${surahNumber}.json`, document.baseURI).toString();
+    } catch {
+      // Fall through
+    }
+  }
+  return `/data/quran/${surahNumber}.json`;
+}
+
 export async function fetchSurahWithCache(
   surahNumber: number,
   options?: {
@@ -724,6 +974,7 @@ export async function fetchSurahWithCache(
     throw new Error('INVALID_SURAH_NUMBER');
   }
 
+  // Layer 1: Local IndexedDB / localStorage cache
   if (!options?.forceRefresh) {
     const cached = await readCachedSurah(surahNumber);
     if (cached) {
@@ -736,27 +987,84 @@ export async function fetchSurahWithCache(
     throw new Error('FETCH_UNAVAILABLE');
   }
 
+  // Layer 2: Bundled 100%-offline local Mushaf JSON (public/data/quran/<n>.json)
+  if (!options?.forceRefresh) {
+    try {
+      const localRes = await fetchFn(getBundledSurahUrl(surahNumber), {
+        method: 'GET',
+        headers: { Accept: 'application/json' },
+      });
+      if (localRes.ok) {
+        const localSurah = (await localRes.json().catch(() => null)) as QuranSurahData | null;
+        if (localSurah && Array.isArray(localSurah.ayahs) && localSurah.ayahs.length > 0) {
+          await writeCachedSurah(localSurah);
+          return { data: localSurah, fromCache: true };
+        }
+      }
+    } catch {
+      // Fall through to remote proxy / direct API
+    }
+  }
+
+  // Layer 3: App Vercel API proxy
   const base = (options?.apiBaseUrl ?? '').replace(/\/+$/, '');
-  const endpoint = `${base}/api/quran/surah?number=${surahNumber}`;
-
-  const response = await fetchFn(endpoint, {
-    method: 'GET',
-    headers: { Accept: 'application/json' },
-  });
-
-  if (!response.ok) {
-    throw new Error(`HTTP_${response.status}`);
+  if (base || typeof window !== 'undefined') {
+    try {
+      const endpoint = `${base}/api/quran/surah?number=${surahNumber}`;
+      const response = await fetchFn(endpoint, {
+        method: 'GET',
+        headers: { Accept: 'application/json' },
+      });
+      if (response.ok) {
+        const json = (await response.json().catch(() => null)) as {
+          ok?: boolean;
+          surah?: QuranSurahData;
+        } | null;
+        if (json?.ok && json.surah && Array.isArray(json.surah.ayahs) && json.surah.ayahs.length > 0) {
+          await writeCachedSurah(json.surah);
+          return { data: json.surah, fromCache: false };
+        }
+      }
+    } catch {
+      // Fall through to direct AlQuran.cloud API
+    }
   }
 
-  const json = (await response.json().catch(() => null)) as {
-    ok?: boolean;
-    surah?: QuranSurahData;
-  } | null;
-
-  if (!json?.ok || !json.surah || !Array.isArray(json.surah.ayahs) || json.surah.ayahs.length === 0) {
-    throw new Error('INVALID_SURAH_PAYLOAD');
+  // Layer 4: Direct AlQuran.cloud multi-edition fallback
+  try {
+    const directUrl = `https://api.alquran.cloud/v1/surah/${surahNumber}/editions/quran-uthmani,ar.husary,en.sahih,ar.muyassar,en.transliteration`;
+    const directRes = await fetchFn(directUrl, {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+    });
+    if (directRes.ok) {
+      const directJson = await directRes.json().catch(() => null);
+      const parsed = parseAlQuranMultiEditionResponse(directJson, surahNumber);
+      if (parsed && parsed.ayahs.length > 0) {
+        await writeCachedSurah(parsed);
+        return { data: parsed, fromCache: false };
+      }
+    }
+  } catch {
+    // Fall through to final local/cache fallback
   }
 
-  await writeCachedSurah(json.surah);
-  return { data: json.surah, fromCache: false };
+  // Last-resort offline fallback even when forceRefresh was true
+  try {
+    const localRes = await fetchFn(getBundledSurahUrl(surahNumber), {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+    });
+    if (localRes.ok) {
+      const localSurah = (await localRes.json().catch(() => null)) as QuranSurahData | null;
+      if (localSurah && Array.isArray(localSurah.ayahs) && localSurah.ayahs.length > 0) {
+        await writeCachedSurah(localSurah);
+        return { data: localSurah, fromCache: true };
+      }
+    }
+  } catch {
+    // Ignore
+  }
+
+  throw new Error('SURAH_UNAVAILABLE');
 }

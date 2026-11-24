@@ -5,6 +5,8 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   ArrowLeft,
   ArrowRight,
+  Bookmark,
+  BookOpen,
   Check,
   ChevronLeft,
   ChevronRight,
@@ -30,13 +32,16 @@ import {
   EchoRepeatCount,
   FadeStage,
   MushafFontSize,
+  QURAN_RECITERS,
   QuranAyah,
   QuranHifzStoreState,
+  QuranReciterId,
   QuranSurahData,
   SurahMeta,
   SURAH_INDEX,
   WirdQuality,
   advanceEchoShadowing,
+  buildAyahAudioUrls,
   buildAyahBridgeChain,
   chunkAyahs,
   computeWordMask,
@@ -49,6 +54,7 @@ import {
   recordWirdReview,
   saveHifzState,
   searchSurahs,
+  toggleBookmark,
   tokenizeAyahWords,
 } from './hifzEngine';
 import { HIFZ_PSYCHOLOGY_TIPS, getTipOfTheDay } from './hifzPsychologyTips';
@@ -59,7 +65,7 @@ interface QuranSanctuaryViewProps {
 }
 
 type SanctuaryTab = 'surahs' | 'studio' | 'wird';
-type StudioDrillMode = 'fade' | 'bridge';
+type StudioDrillMode = 'mushaf' | 'fade' | 'bridge';
 
 const DEDICATION_AR = 'صدقة جارية على جميع أموات المسلمين — مجاني بالكامل مدى الحياة';
 const DEDICATION_EN = 'Sadaqah Jariyah for all deceased Muslims — 100% Free Forever';
@@ -94,6 +100,8 @@ export function QuranSanctuaryView({ onBack, isArabic = true }: QuranSanctuaryVi
   const [chunkIndex, setChunkIndex] = useState(0);
   const [fadeStage, setFadeStage] = useState<FadeStage>(0);
   const [revealedWordKeys, setRevealedWordKeys] = useState<Record<string, boolean>>({});
+  const [selectedMushafAyah, setSelectedMushafAyah] = useState<number>(1);
+  const [mushafContinuousPlaying, setMushafContinuousPlaying] = useState(false);
 
   // Ayah-Bridge Chain controls
   const [bridgeScope, setBridgeScope] = useState<'chunk' | 'surah'>('chunk');
@@ -171,6 +179,7 @@ export function QuranSanctuaryView({ onBack, isArabic = true }: QuranSanctuaryVi
     setEchoPaused(false);
     setEchoSilenceLeft(null);
     setSingleAyahPlaying(null);
+    setMushafContinuousPlaying(false);
   }, []);
 
   // Cleanup on unmount

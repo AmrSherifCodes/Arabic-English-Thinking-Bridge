@@ -97,9 +97,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (typeof res.setHeader === 'function') {
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept');
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
   }
 
   const method = req?.method || 'GET';
+  if (method === 'OPTIONS') {
+    if (typeof res.setHeader === 'function') {
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+    }
+    sendEmpty(res, 204);
+    return;
+  }
+
   if (method !== 'GET' && method !== 'HEAD') {
     if (typeof res.setHeader === 'function') {
       res.setHeader('Allow', 'GET, HEAD');
