@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { CheckCircle2, RotateCcw, Sparkles, Volume2 } from 'lucide-react';
 import { soundFX } from '../utils/soundFX';
+import { speakUnified } from '../utils/offlineTts';
+import { ArabicPhraseAssist } from './ArabicPhraseAssist';
 
 interface DemoDrill {
   ar: string;
@@ -109,13 +111,22 @@ export function LandingPhoneMockup({ isArabic = true }: { isArabic?: boolean }) 
           <div className="flex items-center justify-center gap-2 text-xl font-black text-cyan-300" dir="rtl">
             <span>"{currentDrill.ar}"</span>
             <button
-              onClick={() => soundFX.playChipSelect()}
-              className="p-1 rounded-full bg-cyan-500/10 text-cyan-300 hover:bg-cyan-500/20"
-              aria-label="استمع"
+              type="button"
+              onClick={() => {
+                soundFX.playChipSelect();
+                void speakUnified({ text: currentDrill.ar, lang: 'ar-EG', rate: 0.9 });
+              }}
+              className="p-1.5 rounded-full bg-cyan-500/10 text-cyan-300 hover:bg-cyan-500/20 cursor-pointer"
+              aria-label={isArabic ? 'استمع' : 'Listen'}
             >
               <Volume2 size={16} />
             </button>
           </div>
+          {!isArabic && (
+            <div className="pt-1 flex justify-center">
+              <ArabicPhraseAssist phrase={currentDrill.ar} compact />
+            </div>
+          )}
         </div>
 
         {/* Constructed Target Sentence Slot */}

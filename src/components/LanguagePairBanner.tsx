@@ -7,6 +7,7 @@ import { LanguageFlag } from './LanguageFlag';
 interface LanguagePairBannerProps {
   sourceLang: SourceLanguage;
   targetLang: TargetLanguage;
+  isArabic?: boolean;
   onOpenSelector: () => void;
   onQuickSwitchTarget?: (target: TargetLanguage) => void;
   onToast?: (msg: string) => void;
@@ -16,10 +17,12 @@ interface LanguagePairBannerProps {
 export function LanguagePairBanner({
   sourceLang,
   targetLang,
+  isArabic,
   onOpenSelector,
   className = ''
 }: LanguagePairBannerProps) {
-  const isArUI = sourceLang.startsWith('ar') || sourceLang === 'arz' || sourceLang === 'apc' || sourceLang === 'afb' || sourceLang === 'ary';
+  const defaultIsAr = sourceLang.startsWith('ar') || sourceLang === 'arz' || sourceLang === 'apc' || sourceLang === 'afb' || sourceLang === 'ary';
+  const isArUI = typeof isArabic === 'boolean' ? isArabic : defaultIsAr;
   const sourceMeta = SOURCE_LANGUAGES[sourceLang] || SOURCE_LANGUAGES['arz'];
   const targetMeta = TARGET_LANGUAGE_META[targetLang] || TARGET_LANGUAGE_META['en'];
 
@@ -30,7 +33,7 @@ export function LanguagePairBanner({
     <section
       className={`flex items-center justify-between gap-2 flex-wrap p-2 sm:p-2.5 px-2.5 sm:px-4 rounded-2xl bg-gradient-to-r from-[#0B1C33] via-[#0E2746] to-[#081527] border border-cyan-500/30 shadow-md text-white ${className}`}
       dir={isArUI ? 'rtl' : 'ltr'}
-      aria-label="مسار التعلم النشط"
+      aria-label={isArUI ? 'مسار التعلم النشط' : 'Active learning path'}
     >
       {/* Single-row Language Selector Display */}
       <div className="flex items-center gap-1.5 sm:gap-2 text-xs font-bold text-white flex-wrap min-w-0">

@@ -18,6 +18,7 @@ import {
   recordArcadeResult,
   SteamAchievement,
 } from './achievements';
+import { ArabicPhraseAssist } from '../../components/ArabicPhraseAssist';
 
 export interface ProArcadeViewProps {
   isPro: boolean;
@@ -41,6 +42,7 @@ interface BossQuestion {
   promptAr: string;
   promptEn: string;
   l1TrapHint: string;
+  l1TrapHintEn: string;
   options: [string, string, string];
   correctIndex: 0 | 1 | 2;
   explanationAr: string;
@@ -212,6 +214,7 @@ const LEVEL_BOSSES: readonly BossDefinition[] = [
         promptAr: 'ترجم بالتفكير الإنجليزي: "الجو حر جداً النهاردة في إسكندرية."',
         promptEn: 'Think in English: "The weather is very hot today in Alexandria."',
         l1TrapHint: 'تجنب: The weather very hot today',
+        l1TrapHintEn: 'Avoid: The weather very hot today',
         options: [
           'The weather is very hot today in Alexandria.',
           'The weather very hot today in Alexandria.',
@@ -225,6 +228,7 @@ const LEVEL_BOSSES: readonly BossDefinition[] = [
         promptAr: 'ترجم: "أختي مهندسة ذكية."',
         promptEn: 'Translate: "My sister is a smart engineer."',
         l1TrapHint: 'تجنب نسيان is أو أداة النكرة a',
+        l1TrapHintEn: 'Avoid dropping "is" or the article "a"',
         options: [
           'My sister is a smart engineer.',
           'My sister smart engineer.',
@@ -238,6 +242,7 @@ const LEVEL_BOSSES: readonly BossDefinition[] = [
         promptAr: 'ترجم: "إحنا جاهزين للاجتماع."',
         promptEn: 'Translate: "We are ready for the meeting."',
         l1TrapHint: 'تجنب: We ready for the meeting',
+        l1TrapHintEn: 'Avoid: We ready for the meeting',
         options: [
           'We are ready for the meeting.',
           'We ready to the meeting.',
@@ -251,6 +256,7 @@ const LEVEL_BOSSES: readonly BossDefinition[] = [
         promptAr: 'ترجم: "هو مش مشغول دلوقتي."',
         promptEn: 'Translate: "He is not busy right now."',
         l1TrapHint: 'تجنب: He no busy now',
+        l1TrapHintEn: 'Avoid: He no busy now',
         options: [
           'He is not busy right now.',
           'He no busy right now.',
@@ -264,6 +270,7 @@ const LEVEL_BOSSES: readonly BossDefinition[] = [
         promptAr: 'ترجم: "أنا موافق على الخطة."',
         promptEn: 'Translate: "I agree with the plan."',
         l1TrapHint: 'تجنب: I am agree',
+        l1TrapHintEn: 'Avoid: I am agree',
         options: [
           'I agree with the plan.',
           'I am agree with the plan.',
@@ -289,6 +296,7 @@ const LEVEL_BOSSES: readonly BossDefinition[] = [
         promptAr: 'ترجم: "هي ما سافرتش القاهرة الأسبوع اللي فات."',
         promptEn: 'Translate: "She did not travel to Cairo last week."',
         l1TrapHint: "تجنب: She didn't traveled",
+        l1TrapHintEn: "Avoid: She didn't traveled",
         options: [
           "She didn't travel to Cairo last week.",
           "She didn't traveled to Cairo last week.",
@@ -302,6 +310,7 @@ const LEVEL_BOSSES: readonly BossDefinition[] = [
         promptAr: 'ترجم: "أنا شغال هنا بقالي 3 سنين."',
         promptEn: 'Translate: "I have worked here for 3 years."',
         l1TrapHint: 'تجنب: I am working here since 3 years',
+        l1TrapHintEn: 'Avoid: I am working here since 3 years',
         options: [
           'I have worked here for 3 years.',
           'I work here since 3 years.',
@@ -315,6 +324,7 @@ const LEVEL_BOSSES: readonly BossDefinition[] = [
         promptAr: 'ترجم: "هل شفت الإيميل بتاعي؟"',
         promptEn: 'Translate: "Did you see my email?"',
         l1TrapHint: 'تجنب: Did you saw my email?',
+        l1TrapHintEn: 'Avoid: Did you saw my email?',
         options: [
           'Did you see my email?',
           'Did you saw my email?',
@@ -328,6 +338,7 @@ const LEVEL_BOSSES: readonly BossDefinition[] = [
         promptAr: 'ترجم: "كان بياكل لما التليفون رن."',
         promptEn: 'Translate: "He was eating when the phone rang."',
         l1TrapHint: 'تجنب: He eating when phone ring',
+        l1TrapHintEn: 'Avoid: He eating when phone ring',
         options: [
           'He was eating when the phone rang.',
           'He was eat when the phone ringed.',
@@ -341,6 +352,7 @@ const LEVEL_BOSSES: readonly BossDefinition[] = [
         promptAr: 'ترجم: "عمر ما رحتش لندن قبل كده."',
         promptEn: 'Translate: "I have never been to London before."',
         l1TrapHint: 'تجنب: I never went to London before',
+        l1TrapHintEn: 'Avoid: I never went to London before',
         options: [
           'I have never been to London before.',
           'I am never been to London before.',
@@ -366,6 +378,7 @@ const LEVEL_BOSSES: readonly BossDefinition[] = [
         promptAr: 'صياغة احترافية: "محتاجين نناقش المشكلة دي."',
         promptEn: 'Workplace phrasing: "We need to discuss this issue."',
         l1TrapHint: 'تجنب: discuss about this issue',
+        l1TrapHintEn: 'Avoid: discuss about this issue',
         options: [
           'We need to discuss this issue.',
           'We need to discuss about this issue.',
@@ -379,6 +392,7 @@ const LEVEL_BOSSES: readonly BossDefinition[] = [
         promptAr: 'صياغة احترافية: "أنا مهتم جداً بالوظيفة دي."',
         promptEn: 'Interview phrasing: "I am very interested in this role."',
         l1TrapHint: 'تجنب: I am interesting in',
+        l1TrapHintEn: 'Avoid: I am interesting in',
         options: [
           'I am very interested in this role.',
           'I am very interesting in this role.',
@@ -392,6 +406,7 @@ const LEVEL_BOSSES: readonly BossDefinition[] = [
         promptAr: 'صياغة احترافية: "ده بيعتمد على الميزانية."',
         promptEn: 'Workplace phrasing: "It depends on the budget."',
         l1TrapHint: 'تجنب: It depend of the budget',
+        l1TrapHintEn: 'Avoid: It depend of the budget',
         options: [
           'It depends on the budget.',
           'It is depend on the budget.',
@@ -405,6 +420,7 @@ const LEVEL_BOSSES: readonly BossDefinition[] = [
         promptAr: 'صياغة احترافية: "ممكن تشرح لي الخطوة دي؟"',
         promptEn: 'Workplace phrasing: "Could you explain this step to me?"',
         l1TrapHint: 'تجنب: explain me this step',
+        l1TrapHintEn: 'Avoid: explain me this step',
         options: [
           'Could you explain this step to me?',
           'Could you explain me this step?',
@@ -418,6 +434,7 @@ const LEVEL_BOSSES: readonly BossDefinition[] = [
         promptAr: 'صياغة احترافية: "أنا متطلع للشغل معاكم."',
         promptEn: 'Interview closing: "I look forward to working with you."',
         l1TrapHint: 'تجنب: look forward to work',
+        l1TrapHintEn: 'Avoid: look forward to work',
         options: [
           'I look forward to working with you.',
           'I look forward to work with you.',
@@ -604,10 +621,10 @@ export function ProArcadeView({
         crit: isCrit,
         text: isCrit
           ? isArabic
-            ? `💥 ضربة حرجة CRIT! (-${dmg} HP للزعيم)`
+            ? `💥 ضربة سريعة قوية! (-${dmg} من طاقة الزعيم)`
             : `💥 CRITICAL HIT! (-${dmg} Boss HP)`
           : isArabic
-          ? `⚔️ ضربة دقيقة! (-${dmg} HP للزعيم)`
+          ? `⚔️ ضربة دقيقة! (-${dmg} من طاقة الزعيم)`
           : `⚔️ Solid strike! (-${dmg} Boss HP)`,
       });
 
@@ -643,7 +660,7 @@ export function ProArcadeView({
         ok: false,
         crit: false,
         text: isArabic
-          ? `🛡️ فخ L1! (-34 HP) — ${q.explanationAr}`
+          ? `🛡️ فخ ترجمة حرفية! (-34 طاقة) — ${q.explanationAr}`
           : `🛡️ L1 Trap hit! (-34 HP) — ${q.explanationEn}`,
       });
 
@@ -671,39 +688,45 @@ export function ProArcadeView({
 
   return (
     <div
-      className="min-h-[100dvh] bg-[#060E1A] text-slate-100 pb-safe"
+      className="min-h-[100dvh] w-full max-w-[100vw] overflow-x-clip pb-safe"
+      style={{ backgroundColor: 'var(--bg)', color: 'var(--ink)' }}
       dir={isArabic ? 'rtl' : 'ltr'}
     >
       {/* Top Bar */}
-      <header className="sticky top-0 z-40 bg-[#06101c]/95 backdrop-blur-md border-b border-amber-500/25 px-4 sm:px-6 pb-3 pt-safe">
-        <div className="max-w-2xl mx-auto flex items-center justify-between gap-2">
+      <header
+        className="tb-hud-bar sticky top-0 z-40 border-b px-3 sm:px-6 pb-3 pt-safe"
+        style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+      >
+        <div className="max-w-2xl mx-auto flex flex-wrap items-center justify-between gap-2">
           <button
             type="button"
             onClick={() => {
               if (screen !== 'lobby') setScreen('lobby');
               else onBack();
             }}
-            className="px-3.5 py-2 min-h-[44px] rounded-2xl bg-[#0B1C33] border border-amber-500/40 text-amber-300 font-black text-xs inline-flex items-center gap-1.5 cursor-pointer shrink-0"
+            className="px-3.5 py-2 min-h-[48px] rounded-2xl border font-black text-xs inline-flex items-center gap-1.5 cursor-pointer shrink-0"
+            style={{ backgroundColor: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--ink)' }}
           >
             <ArrowLeft className={`w-4 h-4 ${isArabic ? 'rotate-180' : ''}`} />
             <span>{screen !== 'lobby' ? (isArabic ? 'الأركيد' : 'Arcade') : isArabic ? 'العودة' : 'Back'}</span>
           </button>
 
-          <div className="flex items-center gap-2 min-w-0">
-            <Crown className="w-4 h-4 text-amber-400 shrink-0" />
-            <h2 className="text-sm sm:text-base font-black text-white truncate">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            <Crown className="w-4 h-4 shrink-0" style={{ color: 'var(--gold)' }} />
+            <h2 className="text-sm sm:text-base font-black leading-snug break-words" style={{ color: 'var(--ink)' }}>
               {isArabic ? 'أركيد Pro — قناص الأخطاء والزعماء' : 'Pro Arcade — Blitz & Boss Duels'}
             </h2>
           </div>
 
           <span
-            className={`px-2.5 py-1 rounded-full text-[10px] font-black border shrink-0 ${
+            className="px-2.5 py-1 rounded-full text-[11px] font-black border shrink-0"
+            style={
               isPro
-                ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                ? { backgroundColor: 'var(--accent-soft)', color: 'var(--gold)', borderColor: 'var(--gold)' }
                 : canPlayRound
-                ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
-                : 'bg-rose-500/20 text-rose-300 border-rose-500/40'
-            }`}
+                ? { backgroundColor: 'var(--accent-soft)', color: 'var(--accent)', borderColor: 'var(--accent)' }
+                : { backgroundColor: 'var(--bg)', color: 'var(--ink-muted)', borderColor: 'var(--border)' }
+            }
           >
             {isPro
               ? isArabic
@@ -723,31 +746,34 @@ export function ProArcadeView({
       <main className="max-w-2xl mx-auto p-4 sm:p-6 space-y-5">
         {/* Teaser Exhausted Paywall */}
         {!canPlayRound && screen === 'lobby' && (
-          <div className="p-5 rounded-3xl bg-gradient-to-br from-amber-950/60 via-[#0B1C33] to-stone-950 border-2 border-amber-500/50 shadow-2xl space-y-4 text-start">
-            <div className="flex items-center gap-2 text-amber-300 font-black text-xs">
-              <Crown className="w-4 h-4" />
+          <div
+            className="tb-card-surface p-5 rounded-3xl border-2 shadow-xl space-y-4 text-start"
+            style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--gold)', color: 'var(--ink)' }}
+          >
+            <div className="flex items-center gap-2 font-black text-xs" style={{ color: 'var(--gold)' }}>
+              <Crown className="w-4 h-4 shrink-0" />
               <span>{isArabic ? 'أنهيت جولتك التجريبية المجانية!' : 'You completed your free teaser round!'}</span>
             </div>
-            <h3 className="text-lg font-black text-white">
+            <h3 className="text-lg font-black" style={{ color: 'var(--ink)' }}>
               {isArabic
                 ? 'افتح أركيد Pro غير المحدود + خزانة الجوائز الكاملة'
                 : 'Unlock Unlimited Pro Arcade & Full Trophy Cabinet'}
             </h3>
-            <div className="grid grid-cols-3 gap-2 text-center">
-              <div className="p-2.5 rounded-2xl bg-stone-900/90 border border-stone-800">
-                <span className="text-[10px] text-stone-400 block">{isArabic ? 'شهري' : 'Monthly'}</span>
-                <span className="text-sm font-black text-white">{isArabic ? '50 ج.م' : '50 EGP'}</span>
+            <div className="grid grid-cols-1 min-[360px]:grid-cols-3 gap-2 text-center">
+              <div className="p-2.5 rounded-2xl border" style={{ backgroundColor: 'var(--bg)', borderColor: 'var(--border)' }}>
+                <span className="text-[11px] block" style={{ color: 'var(--ink-muted)' }}>{isArabic ? 'شهري' : 'Monthly'}</span>
+                <span className="text-sm font-black" style={{ color: 'var(--ink)' }}>{isArabic ? '50 ج.م' : '50 EGP'}</span>
               </div>
-              <div className="p-2.5 rounded-2xl bg-teal-950/50 border border-teal-500/40">
-                <span className="text-[10px] text-teal-300 block">{isArabic ? '3 شهور' : '3 Months'}</span>
-                <span className="text-sm font-black text-white">{isArabic ? '120 ج.م' : '120 EGP'}</span>
+              <div className="p-2.5 rounded-2xl border" style={{ backgroundColor: 'var(--accent-soft)', borderColor: 'var(--accent)' }}>
+                <span className="text-[11px] font-bold block" style={{ color: 'var(--accent)' }}>{isArabic ? '3 شهور' : '3 Months'}</span>
+                <span className="text-sm font-black" style={{ color: 'var(--ink)' }}>{isArabic ? '120 ج.م' : '120 EGP'}</span>
               </div>
-              <div className="p-2.5 rounded-2xl bg-amber-950/50 border border-amber-500/50">
-                <span className="text-[10px] text-amber-300 block">{isArabic ? 'مدى الحياة' : 'Lifetime'}</span>
-                <span className="text-sm font-black text-amber-200">{isArabic ? '299 ج.م' : '299 EGP'}</span>
+              <div className="p-2.5 rounded-2xl border" style={{ backgroundColor: 'var(--bg)', borderColor: 'var(--gold)' }}>
+                <span className="text-[11px] font-bold block" style={{ color: 'var(--gold)' }}>{isArabic ? 'مدى الحياة' : 'Lifetime'}</span>
+                <span className="text-sm font-black" style={{ color: 'var(--ink)' }}>{isArabic ? '299 ج.م' : '299 EGP'}</span>
               </div>
             </div>
-            <p className="text-xs text-emerald-300 font-bold">
+            <p className="text-xs font-bold" style={{ color: 'var(--accent)' }}>
               {isArabic
                 ? '🎓 معاك كود أول حصة مجانية للطلاب (ALAQSA-FREE)؟ فعّله فوراً!'
                 : '🎓 Have a Free First-Session Student Code (ALAQSA-FREE)? Activate it now!'}
@@ -756,7 +782,8 @@ export function ProArcadeView({
               <button
                 type="button"
                 onClick={onOpenActivateCode}
-                className="w-full min-h-[48px] py-3 px-4 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-stone-950 font-black text-sm inline-flex items-center justify-center gap-2 cursor-pointer shadow-lg"
+                className="w-full min-h-[48px] py-3 px-4 rounded-2xl font-black text-sm inline-flex items-center justify-center gap-2 cursor-pointer shadow-lg"
+                style={{ backgroundColor: 'var(--gold)', color: 'var(--gold-ink)' }}
               >
                 <KeyRound className="w-4 h-4" />
                 <span>{isArabic ? 'تفعيل كود Pro / الأكاديمية' : 'Activate Pro / Academy Code'}</span>
@@ -769,37 +796,43 @@ export function ProArcadeView({
         {screen === 'lobby' && (
           <div className="space-y-4">
             {/* Score Strip */}
-            <div className="grid grid-cols-3 gap-3 text-center">
-              <div className="p-3 rounded-2xl bg-[#0B1C33] border border-cyan-500/30">
-                <span className="text-[10px] text-stone-400 block">{isArabic ? 'أعلى قناص أخطاء' : 'Blitz Best'}</span>
-                <span className="text-lg font-black text-cyan-300">{store.blitzBestScore}</span>
+            <div className="grid grid-cols-3 gap-2.5 text-center">
+              <div className="p-3 rounded-2xl border" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
+                <span className="text-[11px] block" style={{ color: 'var(--ink-muted)' }}>{isArabic ? 'أعلى قناص أخطاء' : 'Blitz Best'}</span>
+                <span className="text-lg font-black" style={{ color: 'var(--accent)' }}>{store.blitzBestScore}</span>
               </div>
-              <div className="p-3 rounded-2xl bg-[#0B1C33] border border-amber-500/30">
-                <span className="text-[10px] text-stone-400 block">{isArabic ? 'أعلى كومبو' : 'Max Combo'}</span>
-                <span className="text-lg font-black text-amber-300">x{store.blitzMaxCombo}</span>
+              <div className="p-3 rounded-2xl border" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
+                <span className="text-[11px] block" style={{ color: 'var(--ink-muted)' }}>{isArabic ? 'أعلى سلسلة' : 'Max Combo'}</span>
+                <span className="text-lg font-black" style={{ color: 'var(--gold)' }}>x{store.blitzMaxCombo}</span>
               </div>
-              <div className="p-3 rounded-2xl bg-[#0B1C33] border border-purple-500/30">
-                <span className="text-[10px] text-stone-400 block">{isArabic ? 'زعماء مهزومون' : 'Bosses Slain'}</span>
-                <span className="text-lg font-black text-purple-300">{store.bossesDefeated.length} / 3</span>
+              <div className="p-3 rounded-2xl border" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
+                <span className="text-[11px] block" style={{ color: 'var(--ink-muted)' }}>{isArabic ? 'زعماء مهزومون' : 'Bosses Slain'}</span>
+                <span className="text-lg font-black" style={{ color: 'var(--ink)' }}>{store.bossesDefeated.length} / 3</span>
               </div>
             </div>
 
             {/* Mode A Card */}
-            <div className="p-5 rounded-3xl bg-gradient-to-br from-cyan-950/60 via-[#0B1C33] to-stone-950 border border-cyan-500/45 space-y-4 text-start shadow-xl">
-              <div className="flex items-center justify-between gap-2">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black bg-cyan-500/20 text-cyan-200 border border-cyan-400/40">
+            <div
+              className="tb-card-surface p-5 rounded-3xl border space-y-4 text-start shadow-xl"
+              style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--accent)' }}
+            >
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <span
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black border"
+                  style={{ backgroundColor: 'var(--accent-soft)', color: 'var(--accent)', borderColor: 'var(--accent)' }}
+                >
                   <Timer className="w-3.5 h-3.5" />
-                  <span>{isArabic ? 'الوضع A · 60 ثانية' : 'Mode A · 60 Seconds'}</span>
+                  <span>{isArabic ? 'التحدي الأول · 60 ثانية' : 'Mode A · 60 Seconds'}</span>
                 </span>
                 <span className="text-2xl">🎯</span>
               </div>
               <div>
-                <h3 className="text-lg font-black text-white">
-                  {isArabic ? 'قناص الأخطاء (60s L1 Trap Blitz)' : '60-Second L1 Trap Blitz ("قناص الأخطاء")'}
+                <h3 className="text-lg font-black" style={{ color: 'var(--ink)' }}>
+                  {isArabic ? 'قناص الأخطاء (تحدي 60 ثانية)' : '60-Second L1 Trap Blitz'}
                 </h3>
-                <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+                <p className="text-xs mt-1 leading-relaxed" style={{ color: 'var(--ink-muted)' }}>
                   {isArabic
-                    ? 'اصطد أفخاخ الترجمة الحرفية المصرية (مثل I am agree و Open the light) قبل ما الوقت يخلص! ابنِ كومبو x2 → x5 ومعاك 3 دروع 🛡️.'
+                    ? 'اصطد أفخاخ الترجمة الحرفية المصرية (مثل I am agree و Open the light) قبل ما الوقت يخلص! ضاعف نقاطك ومعاك 3 دروع 🛡️.'
                     : 'Snipe real Egyptian-English traps ("I am agree", "He didn\'t went", "Open the light") against a 60s clock. Build x2 → x5 combos with 3 shields 🛡️.'}
                 </p>
               </div>
@@ -807,7 +840,8 @@ export function ProArcadeView({
                 type="button"
                 disabled={!canPlayRound}
                 onClick={startBlitz}
-                className="w-full min-h-[48px] py-3 rounded-2xl bg-gradient-to-r from-cyan-500 to-teal-400 hover:from-cyan-400 hover:to-teal-300 text-stone-950 font-black text-sm inline-flex items-center justify-center gap-2 disabled:opacity-45 cursor-pointer transition"
+                className="w-full min-h-[48px] py-3 rounded-2xl font-black text-sm inline-flex items-center justify-center gap-2 disabled:opacity-45 cursor-pointer transition"
+                style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-ink)' }}
               >
                 <Zap className="w-4 h-4" />
                 <span>
@@ -823,21 +857,27 @@ export function ProArcadeView({
             </div>
 
             {/* Mode B Card */}
-            <div className="p-5 rounded-3xl bg-gradient-to-br from-purple-950/60 via-[#0B1C33] to-stone-950 border border-purple-500/45 space-y-4 text-start shadow-xl">
-              <div className="flex items-center justify-between gap-2">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black bg-purple-500/20 text-purple-200 border border-purple-400/40">
+            <div
+              className="tb-card-surface p-5 rounded-3xl border space-y-4 text-start shadow-xl"
+              style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--gold)' }}
+            >
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <span
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black border"
+                  style={{ backgroundColor: 'var(--bg)', color: 'var(--gold)', borderColor: 'var(--gold)' }}
+                >
                   <Swords className="w-3.5 h-3.5" />
-                  <span>{isArabic ? 'الوضع B · معركة RPG' : 'Mode B · RPG Turn Duel'}</span>
+                  <span>{isArabic ? 'التحدي الثاني · معركة الزعماء' : 'Mode B · RPG Turn Duel'}</span>
                 </span>
                 <span className="text-2xl">🐉</span>
               </div>
               <div>
-                <h3 className="text-lg font-black text-white">
-                  {isArabic ? 'معركة الزعيم (Level Boss Duel)' : 'Level Boss Duel ("معركة الزعيم")'}
+                <h3 className="text-lg font-black" style={{ color: 'var(--ink)' }}>
+                  {isArabic ? 'معركة الزعيم' : 'Level Boss Duel'}
                 </h3>
-                <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+                <p className="text-xs mt-1 leading-relaxed" style={{ color: 'var(--ink-muted)' }}>
                   {isArabic
-                    ? 'واجه زعماء المستويات (A1 / A2 / B1) في مبارزة HP! الإجابة السريعة توجه ضربة حرجة CRIT! وهزيمة الزعيم تفتح كأس الزعيم.'
+                    ? 'واجه زعماء المستويات (A1 / A2 / B1) في تحدي مباشر! الإجابة السريعة توجه ضربة مضاعفة وهزيمة الزعيم تفتح كأس الزعيم.'
                     : 'Battle A1/A2/B1 Level Bosses with animated HP bars. Fast answers land CRIT! strikes; defeating a boss unlocks a Boss Trophy.'}
                 </p>
               </div>
@@ -845,7 +885,8 @@ export function ProArcadeView({
                 type="button"
                 disabled={!canPlayRound}
                 onClick={() => setScreen('boss-select')}
-                className="w-full min-h-[48px] py-3 rounded-2xl bg-gradient-to-r from-purple-500 to-amber-400 hover:from-purple-400 hover:to-amber-300 text-stone-950 font-black text-sm inline-flex items-center justify-center gap-2 disabled:opacity-45 cursor-pointer transition"
+                className="w-full min-h-[48px] py-3 rounded-2xl font-black text-sm inline-flex items-center justify-center gap-2 disabled:opacity-45 cursor-pointer transition"
+                style={{ backgroundColor: 'var(--gold)', color: 'var(--gold-ink)' }}
               >
                 <Swords className="w-4 h-4" />
                 <span>
@@ -866,26 +907,29 @@ export function ProArcadeView({
         {screen === 'blitz' && (
           <div className="space-y-4">
             {/* HUD */}
-            <div className="grid grid-cols-4 gap-2 text-center">
-              <div className="p-2.5 rounded-2xl bg-stone-900 border border-stone-800">
-                <span className="text-[10px] text-stone-400 block">{isArabic ? 'الوقت' : 'Time'}</span>
-                <span className={`text-lg font-black font-mono ${blitzTimeLeft <= 10 ? 'text-rose-400 animate-pulse' : 'text-cyan-300'}`}>
+            <div className="grid grid-cols-2 min-[380px]:grid-cols-4 gap-2 text-center">
+              <div className="p-2.5 rounded-2xl border" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
+                <span className="text-[11px] block" style={{ color: 'var(--ink-muted)' }}>{isArabic ? 'الوقت' : 'Time'}</span>
+                <span
+                  className={`text-lg font-black font-mono ${blitzTimeLeft <= 10 ? 'text-rose-500 animate-pulse' : ''}`}
+                  style={blitzTimeLeft > 10 ? { color: 'var(--accent)' } : undefined}
+                >
                   {blitzTimeLeft}s
                 </span>
               </div>
-              <div className="p-2.5 rounded-2xl bg-stone-900 border border-stone-800">
-                <span className="text-[10px] text-stone-400 block">{isArabic ? 'النقاط' : 'Score'}</span>
-                <span className="text-lg font-black text-amber-300">{blitzScore}</span>
+              <div className="p-2.5 rounded-2xl border" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
+                <span className="text-[11px] block" style={{ color: 'var(--ink-muted)' }}>{isArabic ? 'النقاط' : 'Score'}</span>
+                <span className="text-lg font-black" style={{ color: 'var(--gold)' }}>{blitzScore}</span>
               </div>
-              <div className="p-2.5 rounded-2xl bg-stone-900 border border-stone-800">
-                <span className="text-[10px] text-stone-400 block">{isArabic ? 'كومبو' : 'Combo'}</span>
-                <span className="text-lg font-black text-emerald-300 inline-flex items-center gap-0.5">
+              <div className="p-2.5 rounded-2xl border" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
+                <span className="text-[11px] block" style={{ color: 'var(--ink-muted)' }}>{isArabic ? 'المضاعف' : 'Combo'}</span>
+                <span className="text-lg font-black inline-flex items-center gap-0.5" style={{ color: 'var(--accent)' }}>
                   <Flame className="w-4 h-4" />x{currentCombo}
                 </span>
               </div>
-              <div className="p-2.5 rounded-2xl bg-stone-900 border border-stone-800">
-                <span className="text-[10px] text-stone-400 block">{isArabic ? 'الدروع' : 'Shields'}</span>
-                <span className="text-base font-black text-white">
+              <div className="p-2.5 rounded-2xl border" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
+                <span className="text-[11px] block" style={{ color: 'var(--ink-muted)' }}>{isArabic ? 'الدروع' : 'Shields'}</span>
+                <span className="text-base font-black" style={{ color: 'var(--ink)' }}>
                   {'🛡️'.repeat(Math.max(0, blitzShields)) || '💔'}
                 </span>
               </div>
@@ -895,17 +939,23 @@ export function ProArcadeView({
               (() => {
                 const trap = BLITZ_TRAPS[blitzIndex % BLITZ_TRAPS.length];
                 return (
-                  <div className="p-5 rounded-3xl bg-[#0B1C33] border-2 border-cyan-500/40 space-y-4 shadow-2xl">
+                  <div
+                    className="tb-card-surface p-5 rounded-3xl border-2 space-y-4 shadow-xl"
+                    style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--accent)' }}
+                  >
                     <div className="space-y-1 text-center">
-                      <span className="inline-block px-3 py-1 rounded-full text-[11px] font-black bg-rose-500/20 text-rose-300 border border-rose-500/40">
-                        {isArabic ? '⚠️ فخ ترجمة حرفية (L1 Trap)' : '⚠️ Egyptian-English L1 Trap'}
+                      <span className="inline-block px-3 py-1 rounded-full text-xs font-black bg-rose-500/15 text-rose-500 border border-rose-500/40">
+                        {isArabic ? '⚠️ فخ ترجمة حرفية' : '⚠️ Egyptian-English L1 Trap'}
                       </span>
-                      <p dir="ltr" className="text-xl sm:text-2xl font-black text-rose-200 line-through decoration-rose-500/80 pt-2">
+                      <p dir="ltr" className="text-xl sm:text-2xl font-black text-rose-500 line-through decoration-rose-500/80 pt-2 break-words">
                         {trap.trap}
                       </p>
-                      <p className="text-xs text-amber-300/90 font-bold">
-                        {isArabic ? `الأصل المصري: "${trap.arabicOrigin}"` : `Arabic origin: "${trap.arabicOrigin}"`}
-                      </p>
+                      <div className="flex flex-wrap items-center justify-center gap-1.5 text-xs font-bold" style={{ color: 'var(--gold)' }}>
+                        <span>
+                          {isArabic ? `الأصل المصري: "${trap.arabicOrigin}"` : `Arabic origin: "${trap.arabicOrigin}"`}
+                        </span>
+                        {!isArabic && <ArabicPhraseAssist phrase={trap.arabicOrigin} compact />}
+                      </div>
                     </div>
 
                     <div className="space-y-2.5">
@@ -915,7 +965,12 @@ export function ProArcadeView({
                           type="button"
                           dir="ltr"
                           onClick={() => handleBlitzAnswer(idx)}
-                          className="w-full min-h-[52px] px-4 py-3 rounded-2xl bg-stone-900/95 hover:bg-cyan-500/20 border border-stone-700 hover:border-cyan-400 text-white font-bold text-sm text-left transition active:scale-[0.98] cursor-pointer"
+                          className="w-full min-h-[52px] px-4 py-3 rounded-2xl border font-bold text-sm text-left transition active:scale-[0.98] cursor-pointer"
+                          style={{
+                            backgroundColor: 'var(--bg)',
+                            borderColor: 'var(--border)',
+                            color: 'var(--ink)',
+                          }}
                         >
                           {opt}
                         </button>
@@ -926,8 +981,8 @@ export function ProArcadeView({
                       <div
                         className={`p-3 rounded-2xl text-xs font-bold border ${
                           blitzFeedback.ok
-                            ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-200'
-                            : 'bg-rose-500/15 border-rose-500/40 text-rose-200'
+                            ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-500'
+                            : 'bg-rose-500/15 border-rose-500/40 text-rose-500'
                         }`}
                       >
                         {blitzFeedback.tip}
@@ -937,40 +992,47 @@ export function ProArcadeView({
                 );
               })()
             ) : (
-              <div className="p-6 rounded-3xl bg-gradient-to-br from-[#0B1C33] to-stone-950 border-2 border-amber-500/50 text-center space-y-4 shadow-2xl">
+              <div
+                className="tb-card-surface p-6 rounded-3xl border-2 text-center space-y-4 shadow-xl"
+                style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--gold)' }}
+              >
                 <div className="text-4xl">🏆</div>
-                <h3 className="text-xl font-black text-white">
+                <h3 className="text-xl font-black" style={{ color: 'var(--ink)' }}>
                   {isArabic ? 'انتهت جولة قناص الأخطاء!' : 'L1 Trap Blitz Complete!'}
                 </h3>
                 <div className="grid grid-cols-3 gap-2">
-                  <div className="p-3 rounded-2xl bg-stone-900 border border-stone-800">
-                    <span className="text-[10px] text-stone-400 block">{isArabic ? 'النتيجة' : 'Score'}</span>
-                    <span className="text-lg font-black text-amber-300">{blitzScore}</span>
+                  <div className="p-3 rounded-2xl border" style={{ backgroundColor: 'var(--bg)', borderColor: 'var(--border)' }}>
+                    <span className="text-[11px] block" style={{ color: 'var(--ink-muted)' }}>{isArabic ? 'النتيجة' : 'Score'}</span>
+                    <span className="text-lg font-black" style={{ color: 'var(--gold)' }}>{blitzScore}</span>
                   </div>
-                  <div className="p-3 rounded-2xl bg-stone-900 border border-stone-800">
-                    <span className="text-[10px] text-stone-400 block">{isArabic ? 'أعلى كومبو' : 'Max Combo'}</span>
-                    <span className="text-lg font-black text-cyan-300">x{blitzMaxCombo}</span>
+                  <div className="p-3 rounded-2xl border" style={{ backgroundColor: 'var(--bg)', borderColor: 'var(--border)' }}>
+                    <span className="text-[11px] block" style={{ color: 'var(--ink-muted)' }}>{isArabic ? 'أعلى مضاعف' : 'Max Combo'}</span>
+                    <span className="text-lg font-black" style={{ color: 'var(--accent)' }}>x{blitzMaxCombo}</span>
                   </div>
-                  <div className="p-3 rounded-2xl bg-stone-900 border border-stone-800">
-                    <span className="text-[10px] text-stone-400 block">{isArabic ? 'خبرة XP' : 'XP Earned'}</span>
-                    <span className="text-lg font-black text-emerald-300">+{Math.max(40, Math.round(blitzScore / 5))}</span>
+                  <div className="p-3 rounded-2xl border" style={{ backgroundColor: 'var(--bg)', borderColor: 'var(--border)' }}>
+                    <span className="text-[11px] block" style={{ color: 'var(--ink-muted)' }}>{isArabic ? 'خبرة XP' : 'XP Earned'}</span>
+                    <span className="text-lg font-black" style={{ color: 'var(--ink)' }}>+{Math.max(40, Math.round(blitzScore / 5))}</span>
                   </div>
                 </div>
 
                 {blitzUnlocked.length > 0 && (
-                  <div className="p-3 rounded-2xl bg-amber-500/15 border border-amber-500/40 text-xs font-bold text-amber-200">
+                  <div
+                    className="p-3 rounded-2xl border text-xs font-bold"
+                    style={{ backgroundColor: 'var(--accent-soft)', borderColor: 'var(--gold)', color: 'var(--ink)' }}
+                  >
                     <Trophy className="w-4 h-4 inline me-1" />
                     {isArabic ? 'إنجازات مفتوحة: ' : 'Unlocked: '}
                     {blitzUnlocked.map((a) => (isArabic ? a.titleAr : a.titleEn)).join(' · ')}
                   </div>
                 )}
 
-                <div className="flex gap-2.5">
+                <div className="flex flex-wrap gap-2.5">
                   {isPro ? (
                     <button
                       type="button"
                       onClick={startBlitz}
-                      className="flex-1 min-h-[48px] py-3 rounded-2xl bg-cyan-500 hover:bg-cyan-400 text-stone-950 font-black text-sm inline-flex items-center justify-center gap-2 cursor-pointer"
+                      className="flex-1 min-h-[48px] py-3 px-4 rounded-2xl font-black text-sm inline-flex items-center justify-center gap-2 cursor-pointer"
+                      style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-ink)' }}
                     >
                       <RotateCcw className="w-4 h-4" />
                       <span>{isArabic ? 'العب مرة أخرى' : 'Play Again'}</span>
@@ -980,7 +1042,8 @@ export function ProArcadeView({
                       <button
                         type="button"
                         onClick={onOpenActivateCode}
-                        className="flex-1 min-h-[48px] py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-black text-sm inline-flex items-center justify-center gap-2 cursor-pointer"
+                        className="flex-1 min-h-[48px] py-3 px-4 rounded-2xl font-black text-sm inline-flex items-center justify-center gap-2 cursor-pointer"
+                        style={{ backgroundColor: 'var(--gold)', color: 'var(--gold-ink)' }}
                       >
                         <KeyRound className="w-4 h-4" />
                         <span>{isArabic ? 'فعّل Pro للعب بلا حدود (50 ج.م)' : 'Unlock Unlimited Pro (50 EGP)'}</span>
@@ -990,7 +1053,8 @@ export function ProArcadeView({
                   <button
                     type="button"
                     onClick={() => setScreen('lobby')}
-                    className="min-h-[48px] px-4 py-3 rounded-2xl bg-stone-800 hover:bg-stone-700 text-white font-bold text-sm cursor-pointer"
+                    className="min-h-[48px] px-4 py-3 rounded-2xl border font-bold text-sm cursor-pointer"
+                    style={{ backgroundColor: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--ink)' }}
                   >
                     {isArabic ? 'الأركيد' : 'Lobby'}
                   </button>
@@ -1003,7 +1067,7 @@ export function ProArcadeView({
         {/* MODE B: BOSS SELECT */}
         {screen === 'boss-select' && (
           <div className="space-y-3">
-            <h3 className="text-base font-black text-white text-start">
+            <h3 className="text-base font-black text-start" style={{ color: 'var(--ink)' }}>
               {isArabic ? 'اختر الزعيم للمبارزة ⚔️' : 'Select a Level Boss to Duel ⚔️'}
             </h3>
             {LEVEL_BOSSES.map((boss) => {
@@ -1013,30 +1077,34 @@ export function ProArcadeView({
                   key={boss.id}
                   type="button"
                   onClick={() => startBossDuel(boss)}
-                  className="w-full p-4 rounded-3xl bg-[#0B1C33] border border-purple-500/40 hover:border-amber-400 text-start flex items-center justify-between gap-3 transition cursor-pointer shadow-lg"
+                  className="tb-card-surface w-full min-h-[64px] p-4 rounded-3xl border text-start flex items-center justify-between gap-3 transition cursor-pointer shadow-lg"
+                  style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--ink)' }}
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <span className="text-3xl shrink-0">{boss.icon}</span>
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-purple-500/20 text-purple-200 border border-purple-400/40">
-                          {boss.levelTag} · {boss.maxHp} HP
+                        <span
+                          className="px-2 py-0.5 rounded-full text-[11px] font-black border"
+                          style={{ backgroundColor: 'var(--accent-soft)', color: 'var(--accent)', borderColor: 'var(--accent)' }}
+                        >
+                          {boss.levelTag} · {boss.maxHp} {isArabic ? 'طاقة' : 'HP'}
                         </span>
                         {defeated && (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                          <span className="px-2 py-0.5 rounded-full text-[11px] font-black bg-emerald-500/15 text-emerald-500 border border-emerald-500/40">
                             {isArabic ? '🏆 مهزوم' : '🏆 Defeated'}
                           </span>
                         )}
                       </div>
-                      <h4 className="font-black text-sm text-white mt-1">
+                      <h4 className="font-black text-sm mt-1 break-words" style={{ color: 'var(--ink)' }}>
                         {isArabic ? boss.nameAr : boss.nameEn}
                       </h4>
-                      <p className="text-xs text-stone-400">
+                      <p className="text-xs break-words" style={{ color: 'var(--ink-muted)' }}>
                         {isArabic ? boss.titleAr : boss.titleEn}
                       </p>
                     </div>
                   </div>
-                  <Swords className="w-5 h-5 text-amber-400 shrink-0" />
+                  <Swords className="w-5 h-5 shrink-0" style={{ color: 'var(--gold)' }} />
                 </button>
               );
             })}
@@ -1047,19 +1115,22 @@ export function ProArcadeView({
         {screen === 'boss-duel' && (
           <div className="space-y-4">
             {/* Animated HP Bars */}
-            <div className="p-4 rounded-3xl bg-stone-950 border border-purple-500/40 space-y-3 shadow-xl">
+            <div
+              className="tb-card-surface p-4 rounded-3xl border space-y-3 shadow-xl"
+              style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+            >
               {/* Boss HP */}
               <div className="space-y-1">
-                <div className="flex items-center justify-between text-xs font-black">
-                  <span className="text-rose-300 flex items-center gap-1.5">
+                <div className="flex items-center justify-between gap-2 text-xs font-black">
+                  <span className="text-rose-500 flex items-center gap-1.5 min-w-0">
                     <span>{activeBoss.icon}</span>
-                    <span>{isArabic ? activeBoss.nameAr : activeBoss.nameEn}</span>
+                    <span className="break-words">{isArabic ? activeBoss.nameAr : activeBoss.nameEn}</span>
                   </span>
-                  <span className="font-mono text-rose-300">
-                    {bossHp} / {activeBoss.maxHp} HP
+                  <span className="font-mono text-rose-500 shrink-0">
+                    {bossHp} / {activeBoss.maxHp}
                   </span>
                 </div>
-                <div className="w-full h-3.5 rounded-full bg-stone-900 border border-stone-800 overflow-hidden">
+                <div className="w-full h-3.5 rounded-full border overflow-hidden" style={{ backgroundColor: 'var(--bg)', borderColor: 'var(--border)' }}>
                   <div
                     className="h-full rounded-full bg-gradient-to-r from-rose-600 via-rose-500 to-amber-500 transition-all duration-500"
                     style={{ width: `${Math.round((bossHp / activeBoss.maxHp) * 100)}%` }}
@@ -1069,17 +1140,17 @@ export function ProArcadeView({
 
               {/* Player HP */}
               <div className="space-y-1">
-                <div className="flex items-center justify-between text-xs font-black">
-                  <span className="text-emerald-300 flex items-center gap-1.5">
-                    <Shield className="w-3.5 h-3.5" />
+                <div className="flex items-center justify-between gap-2 text-xs font-black">
+                  <span className="flex items-center gap-1.5" style={{ color: 'var(--accent)' }}>
+                    <Shield className="w-3.5 h-3.5 shrink-0" />
                     <span>{isArabic ? 'درعك (أنت)' : 'Your Shield (You)'}</span>
                   </span>
-                  <span className="font-mono text-emerald-300">{playerHp} / 100 HP</span>
+                  <span className="font-mono shrink-0" style={{ color: 'var(--accent)' }}>{playerHp} / 100</span>
                 </div>
-                <div className="w-full h-3 rounded-full bg-stone-900 border border-stone-800 overflow-hidden">
+                <div className="w-full h-3 rounded-full border overflow-hidden" style={{ backgroundColor: 'var(--bg)', borderColor: 'var(--border)' }}>
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all duration-500"
-                    style={{ width: `${playerHp}%` }}
+                    className="h-full rounded-full transition-all duration-500"
+                    style={{ width: `${playerHp}%`, backgroundColor: 'var(--accent)' }}
                   />
                 </div>
               </div>
@@ -1089,16 +1160,24 @@ export function ProArcadeView({
               (() => {
                 const q = activeBoss.questions[bossQIndex % activeBoss.questions.length];
                 return (
-                  <div className="p-5 rounded-3xl bg-[#0B1C33] border-2 border-purple-500/40 space-y-4 shadow-2xl text-start">
+                  <div
+                    className="tb-card-surface p-5 rounded-3xl border-2 space-y-4 shadow-xl text-start"
+                    style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--accent)' }}
+                  >
                     <div className="space-y-1">
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black bg-amber-500/20 text-amber-300 border border-amber-500/40">
-                        <Sparkles className="w-3 h-3" />
-                        <span>{isArabic ? 'جاوب في أقل من 5 ثواني لضربة CRIT! 💥' : 'Answer under 5s for CRIT! 💥'}</span>
+                      <span
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-black border"
+                        style={{ backgroundColor: 'var(--bg)', color: 'var(--gold)', borderColor: 'var(--gold)' }}
+                      >
+                        <Sparkles className="w-3 h-3 shrink-0" />
+                        <span>{isArabic ? 'جاوب في أقل من 5 ثواني لضربة مضاعفة 💥' : 'Answer under 5s for CRIT! 💥'}</span>
                       </span>
-                      <h4 className="text-base sm:text-lg font-black text-white pt-1">
+                      <h4 className="text-base sm:text-lg font-black pt-1 leading-snug" style={{ color: 'var(--ink)' }}>
                         {isArabic ? q.promptAr : q.promptEn}
                       </h4>
-                      <p className="text-xs text-stone-400">{q.l1TrapHint}</p>
+                      <p className="text-xs" style={{ color: 'var(--ink-muted)' }}>
+                        {isArabic ? q.l1TrapHint : q.l1TrapHintEn}
+                      </p>
                     </div>
 
                     <div className="space-y-2.5">
@@ -1108,7 +1187,12 @@ export function ProArcadeView({
                           type="button"
                           dir="ltr"
                           onClick={() => handleBossAnswer(idx)}
-                          className="w-full min-h-[52px] px-4 py-3 rounded-2xl bg-stone-900/95 hover:bg-purple-500/20 border border-stone-700 hover:border-purple-400 text-white font-bold text-sm text-left transition active:scale-[0.98] cursor-pointer"
+                          className="w-full min-h-[52px] px-4 py-3 rounded-2xl border font-bold text-sm text-left transition active:scale-[0.98] cursor-pointer"
+                          style={{
+                            backgroundColor: 'var(--bg)',
+                            borderColor: 'var(--border)',
+                            color: 'var(--ink)',
+                          }}
                         >
                           {opt}
                         </button>
@@ -1120,9 +1204,9 @@ export function ProArcadeView({
                         className={`p-3 rounded-2xl text-xs font-bold border ${
                           bossFeedback.ok
                             ? bossFeedback.crit
-                              ? 'bg-amber-500/20 border-amber-400/60 text-amber-200'
-                              : 'bg-emerald-500/15 border-emerald-500/40 text-emerald-200'
-                            : 'bg-rose-500/15 border-rose-500/40 text-rose-200'
+                              ? 'bg-amber-500/15 border-amber-500/50 text-amber-500'
+                              : 'bg-emerald-500/15 border-emerald-500/40 text-emerald-500'
+                            : 'bg-rose-500/15 border-rose-500/40 text-rose-500'
                         }`}
                       >
                         {bossFeedback.text}
@@ -1132,9 +1216,12 @@ export function ProArcadeView({
                 );
               })()
             ) : (
-              <div className="p-6 rounded-3xl bg-gradient-to-br from-[#0B1C33] to-stone-950 border-2 border-amber-500/50 text-center space-y-4 shadow-2xl">
+              <div
+                className="tb-card-surface p-6 rounded-3xl border-2 text-center space-y-4 shadow-xl"
+                style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--gold)' }}
+              >
                 <div className="text-5xl">{bossOutcome === 'victory' ? '🏆' : '🛡️'}</div>
-                <h3 className="text-xl font-black text-white">
+                <h3 className="text-xl font-black" style={{ color: 'var(--ink)' }}>
                   {bossOutcome === 'victory'
                     ? isArabic
                       ? `انتصار ساحق! هزمت ${activeBoss.nameAr}!`
@@ -1143,7 +1230,7 @@ export function ProArcadeView({
                     ? 'انكسر درعك! جرّب تاني أقوى.'
                     : 'Your shield broke! Regroup and strike back.'}
                 </h3>
-                <p className="text-xs text-emerald-300 font-bold">
+                <p className="text-xs font-bold" style={{ color: 'var(--accent)' }}>
                   {bossOutcome === 'victory'
                     ? isArabic
                       ? `+${playerHp === 100 ? 260 : 180} XP · تم تسجيل كأس الزعيم في خزانة الجوائز!`
@@ -1154,18 +1241,22 @@ export function ProArcadeView({
                 </p>
 
                 {bossUnlocked.length > 0 && (
-                  <div className="p-3 rounded-2xl bg-amber-500/15 border border-amber-500/40 text-xs font-bold text-amber-200">
+                  <div
+                    className="p-3 rounded-2xl border text-xs font-bold"
+                    style={{ backgroundColor: 'var(--accent-soft)', borderColor: 'var(--gold)', color: 'var(--ink)' }}
+                  >
                     <Trophy className="w-4 h-4 inline me-1" />
                     {bossUnlocked.map((a) => (isArabic ? a.titleAr : a.titleEn)).join(' · ')}
                   </div>
                 )}
 
-                <div className="flex gap-2.5">
+                <div className="flex flex-wrap gap-2.5">
                   {isPro ? (
                     <button
                       type="button"
                       onClick={() => startBossDuel(activeBoss)}
-                      className="flex-1 min-h-[48px] py-3 rounded-2xl bg-purple-500 hover:bg-purple-400 text-stone-950 font-black text-sm inline-flex items-center justify-center gap-2 cursor-pointer"
+                      className="flex-1 min-h-[48px] py-3 px-4 rounded-2xl font-black text-sm inline-flex items-center justify-center gap-2 cursor-pointer"
+                      style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-ink)' }}
                     >
                       <RotateCcw className="w-4 h-4" />
                       <span>{isArabic ? 'مبارزة جديدة' : 'Rematch'}</span>
@@ -1175,7 +1266,8 @@ export function ProArcadeView({
                       <button
                         type="button"
                         onClick={onOpenActivateCode}
-                        className="flex-1 min-h-[48px] py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-black text-sm inline-flex items-center justify-center gap-2 cursor-pointer"
+                        className="flex-1 min-h-[48px] py-3 px-4 rounded-2xl font-black text-sm inline-flex items-center justify-center gap-2 cursor-pointer"
+                        style={{ backgroundColor: 'var(--gold)', color: 'var(--gold-ink)' }}
                       >
                         <KeyRound className="w-4 h-4" />
                         <span>{isArabic ? 'افتح Pro للمعارك بلا حدود' : 'Unlock Unlimited Pro Duels'}</span>
@@ -1185,7 +1277,8 @@ export function ProArcadeView({
                   <button
                     type="button"
                     onClick={() => setScreen('lobby')}
-                    className="min-h-[48px] px-4 py-3 rounded-2xl bg-stone-800 hover:bg-stone-700 text-white font-bold text-sm cursor-pointer"
+                    className="min-h-[48px] px-4 py-3 rounded-2xl border font-bold text-sm cursor-pointer"
+                    style={{ backgroundColor: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--ink)' }}
                   >
                     {isArabic ? 'الأركيد' : 'Lobby'}
                   </button>

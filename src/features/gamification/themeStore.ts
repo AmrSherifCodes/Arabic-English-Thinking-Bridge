@@ -14,8 +14,10 @@ export interface ThemeTokens {
   ink: string;
   inkMuted: string;
   accent: string;
+  accentInk: string;
   accentSoft: string;
   gold: string;
+  goldInk: string;
   border: string;
 }
 
@@ -45,9 +47,11 @@ export const THEME_CATALOG: ThemeDefinition[] = [
       surface: '#FFFFFF',
       ink: '#0B1220',
       inkMuted: '#334155',
-      accent: '#0891B2',
-      accentSoft: 'rgba(8, 145, 178, 0.14)',
+      accent: '#0B5D75',
+      accentInk: '#FFFFFF',
+      accentSoft: 'rgba(11, 93, 117, 0.14)',
       gold: '#D97706',
+      goldInk: '#0B1220',
       border: '#CBD5E1',
     },
   },
@@ -65,8 +69,10 @@ export const THEME_CATALOG: ThemeDefinition[] = [
       ink: '#F0F6FC',
       inkMuted: '#94A3B8',
       accent: '#22D3EE',
+      accentInk: '#041019',
       accentSoft: 'rgba(34, 211, 238, 0.16)',
       gold: '#F59E0B',
+      goldInk: '#0B1220',
       border: '#2B3544',
     },
   },
@@ -82,11 +88,13 @@ export const THEME_CATALOG: ThemeDefinition[] = [
       bg: '#0A0A0A',
       surface: '#141414',
       ink: '#FFFFFF',
-      inkMuted: '#B3B3B3',
+      inkMuted: '#C2C2C2',
       accent: '#FFFFFF',
+      accentInk: '#0A0A0A',
       accentSoft: 'rgba(255, 255, 255, 0.14)',
       gold: '#E5E5E5',
-      border: '#333333',
+      goldInk: '#0A0A0A',
+      border: '#3A3A3A',
     },
   },
   {
@@ -104,8 +112,10 @@ export const THEME_CATALOG: ThemeDefinition[] = [
       ink: '#ECFDF5',
       inkMuted: '#A7F3D0',
       accent: '#10B981',
+      accentInk: '#041A13',
       accentSoft: 'rgba(16, 185, 129, 0.18)',
       gold: '#F59E0B',
+      goldInk: '#0B1220',
       border: '#1F423B',
     },
   },
@@ -152,9 +162,18 @@ export function applyThemeToDocument(themeId: ThemeId): void {
   root.style.setProperty('--ink', def.tokens.ink);
   root.style.setProperty('--ink-muted', def.tokens.inkMuted);
   root.style.setProperty('--accent', def.tokens.accent);
+  root.style.setProperty('--accent-ink', def.tokens.accentInk);
   root.style.setProperty('--accent-soft', def.tokens.accentSoft);
   root.style.setProperty('--gold', def.tokens.gold);
+  root.style.setProperty('--gold-ink', def.tokens.goldInk);
   root.style.setProperty('--border', def.tokens.border);
+  root.style.setProperty('--text', def.tokens.ink);
+  root.style.setProperty('--muted', def.tokens.inkMuted);
+  root.style.setProperty('--color-bg', def.tokens.bg);
+  root.style.setProperty('--color-surface', def.tokens.surface);
+  root.style.setProperty('--color-border', def.tokens.border);
+  root.style.setProperty('--color-text', def.tokens.ink);
+  root.style.setProperty('--color-muted', def.tokens.inkMuted);
 }
 
 export function setActiveTheme(themeId: ThemeId): ThemeId {

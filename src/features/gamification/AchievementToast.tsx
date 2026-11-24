@@ -73,12 +73,12 @@ export function AchievementToast({ isArabic = true }: AchievementToastProps) {
       role="status"
       aria-live="polite"
       dir={isArabic ? 'rtl' : 'ltr'}
-      className="fixed bottom-24 end-3 sm:end-5 z-[70] w-[calc(100vw-1.5rem)] max-w-sm pointer-events-auto animate-in slide-in-from-bottom duration-300"
+      className="fixed top-[calc(3.75rem+env(safe-area-inset-top,0px))] end-3 sm:end-5 z-[55] w-[calc(100vw-1.5rem)] max-w-sm pointer-events-auto animate-in slide-in-from-top duration-300"
     >
       <div
-        className={`relative overflow-hidden rounded-2xl bg-[#0B1220]/95 backdrop-blur-xl border-2 ${style.border} ${style.glow} p-3.5 flex items-center gap-3`}
+        className={`relative overflow-hidden rounded-2xl bg-[#0B1220]/95 backdrop-blur-xl border-2 ${style.border} ${style.glow} p-3 flex items-center gap-2.5`}
       >
-        <div className="w-12 h-12 rounded-2xl bg-stone-900 border border-white/10 flex items-center justify-center text-2xl shrink-0">
+        <div className="w-11 h-11 rounded-2xl bg-stone-900 border border-white/10 flex items-center justify-center text-2xl shrink-0">
           {current.icon}
         </div>
 
@@ -93,12 +93,12 @@ export function AchievementToast({ isArabic = true }: AchievementToastProps) {
             </span>
           </div>
 
-          <p className="text-sm font-black text-white truncate mt-0.5">
+          <p className="text-sm font-black text-white break-words leading-snug mt-0.5">
             {isArabic ? current.titleAr : current.titleEn}
           </p>
 
-          <div className="flex items-center justify-between gap-2 mt-0.5">
-            <p className="text-[11px] text-stone-300 truncate">
+          <div className="flex items-center justify-between gap-2 flex-wrap mt-0.5">
+            <p className="text-[11px] text-stone-200 break-words leading-snug">
               {isArabic ? current.descAr : current.descEn}
             </p>
             <span className="inline-flex items-center gap-0.5 text-[11px] font-black text-emerald-300 shrink-0">
@@ -111,7 +111,7 @@ export function AchievementToast({ isArabic = true }: AchievementToastProps) {
           type="button"
           onClick={() => setQueue((prev) => prev.slice(1))}
           aria-label={isArabic ? 'إغلاق الإشعار' : 'Dismiss'}
-          className="p-1.5 rounded-xl text-stone-400 hover:text-white hover:bg-stone-800 transition cursor-pointer shrink-0 self-start"
+          className="min-h-[48px] min-w-[48px] flex items-center justify-center rounded-xl text-stone-300 hover:text-white hover:bg-stone-800 transition cursor-pointer shrink-0 self-start"
         >
           <X className="w-4 h-4" />
         </button>

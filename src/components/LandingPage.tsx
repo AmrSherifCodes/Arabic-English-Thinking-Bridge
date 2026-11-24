@@ -11,6 +11,7 @@ import { LandingPhoneMockup } from './LandingPhoneMockup';
 import { StreetDemoModal } from './StreetDemoModal';
 import { SupportModal } from './SupportModal';
 import { triggerHapticImpact } from '../utils/fx';
+import { setGuideMode } from '../utils/guideMode';
 import './LandingPage.css';
 
 const LazyActivateCodeModal = React.lazy(() =>
@@ -19,10 +20,11 @@ const LazyActivateCodeModal = React.lazy(() =>
 
 interface LandingPageProps {
   onLaunchApp: () => void;
+  onOpenQuran?: () => void;
   isArabic?: boolean;
 }
 
-export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps) {
+export function LandingPage({ onLaunchApp, onOpenQuran, isArabic = false }: LandingPageProps) {
   const { t, i18n } = useTranslation();
   const lang = i18n.language || 'ar';
   const isAr = lang.startsWith('ar');
@@ -117,8 +119,8 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
           >
             <span className="brand-mark" aria-hidden="true">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 17h18M5 17V9l7-5 7 5v8"/>
-                <path d="M9 17v-4a3 3 0 0 1 6 0v4"/>
+                <path d="M3 17h18M5 17V9l7-5 7 5v8" />
+                <path d="M9 17v-4a3 3 0 0 1 6 0v4" />
               </svg>
             </span>
             <span>{isAr ? 'جسر التفكير' : 'Thinking Bridge'}</span>
@@ -131,6 +133,23 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
               <li><a href="#plans">{isAr ? 'الباقات' : 'Plans'}</a></li>
               <li><a href="#stats">{isAr ? 'الأرقام' : 'Stats'}</a></li>
               <li><a href="#download-section">{isAr ? 'التنزيل' : 'Download'}</a></li>
+              <li>
+                <a
+                  href="/quran"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (onOpenQuran) {
+                      onOpenQuran();
+                    } else if (typeof window !== 'undefined' && window.history) {
+                      window.history.pushState({}, '', '/quran');
+                      window.dispatchEvent(new PopStateEvent('popstate'));
+                    }
+                  }}
+                  className="text-emerald-300 font-bold"
+                >
+                  {isAr ? 'ملاذ حفظ القرآن' : 'Quran Hifz'}
+                </a>
+              </li>
               <li><a href="#subscribe-section" className="text-[var(--gold)] font-bold">{isAr ? 'الاشتراك' : 'Subscribe'}</a></li>
             </ul>
           </nav>
@@ -143,25 +162,29 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
                 setStreetDemoOpen(true);
               }}
               aria-label={isAr ? 'عرض الشارع' : 'Street Mode'}
-              className="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 min-h-[38px] sm:min-h-[40px] rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-xs font-bold hover:bg-emerald-500/30 transition cursor-pointer whitespace-nowrap shrink-0"
+              className="flex items-center justify-center gap-1.5 px-2.5 sm:px-3 py-1.5 min-h-[48px] min-w-[48px] rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-bold hover:bg-emerald-500/30 transition cursor-pointer whitespace-nowrap shrink-0"
             >
               <Zap size={15} className="text-emerald-400 shrink-0" />
               <span className="hidden min-[460px]:inline">{isAr ? 'عرض الشارع 🚶‍♂️' : 'Street Mode 🚶‍♂️'}</span>
             </button>
             <button
               type="button"
-              onClick={() => i18n.changeLanguage(isAr ? 'en' : 'ar')}
-              className="flex items-center gap-1 px-1.5 sm:px-3 py-1.5 min-h-[38px] sm:min-h-[40px] rounded-xl border border-[var(--nile)] text-[var(--nile)] text-xs font-bold hover:bg-[var(--nile)] hover:text-white transition whitespace-nowrap shrink-0"
-              aria-label={t('landing2.switch_to_arabic')}
+              onClick={() => {
+                const nextLang = isAr ? 'en' : 'ar';
+                void i18n.changeLanguage(nextLang);
+                setGuideMode(nextLang === 'en' ? 'english_guided' : 'egyptian_ar');
+              }}
+              className="flex items-center justify-center gap-1 px-2 sm:px-3 py-1.5 min-h-[48px] min-w-[48px] rounded-xl border border-[var(--nile)] text-[var(--nile)] text-xs font-bold hover:bg-[var(--nile)] hover:text-[#040D1A] transition whitespace-nowrap shrink-0"
+              aria-label={isAr ? 'Switch to English' : 'Switch to Arabic'}
             >
               <Globe size={14} className="shrink-0" />
-              <span className="sm:hidden">{isAr ? 'EN' : 'عربي'}</span>
-              <span className="hidden sm:inline">{isAr ? 'English' : 'عربي'}</span>
+              <span className="sm:hidden">{isAr ? 'EN' : 'AR'}</span>
+              <span className="hidden sm:inline">{isAr ? 'English' : 'Arabic'}</span>
             </button>
             <button
               type="button"
               onClick={handleLaunchApp}
-              className="btn btn-primary btn-sm !px-2.5 sm:!px-5 !py-1.5 sm:!py-2 !min-h-[38px] sm:!min-h-[40px] !text-xs sm:!text-sm whitespace-nowrap shrink-0"
+              className="btn btn-primary btn-sm !px-3 sm:!px-5 !py-2 !min-h-[48px] !text-xs sm:!text-sm whitespace-nowrap shrink-0"
             >
               {isAr ? 'ابدأ دلوقتي' : 'Start Now'}
             </button>
@@ -193,8 +216,8 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
               </div>
 
               <h1 className="leading-tight">
-                {isAr ? 'اتعلم إنجليزي' : 'Learn English'}<br/>
-                <span className="accent">{isAr ? 'بعقلك المصري' : 'with your native mind'}</span><br/>
+                {isAr ? 'اتعلم إنجليزي' : 'Learn English'}<br />
+                <span className="accent">{isAr ? 'بعقلك المصري' : 'with your native mind'}</span><br />
                 {isAr ? '— مش بترجمة حرفية' : '— no literal translation'}
               </h1>
 
@@ -242,6 +265,20 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
                 <button
                   type="button"
                   onClick={() => {
+                    if (onOpenQuran) {
+                      onOpenQuran();
+                    } else if (typeof window !== 'undefined' && window.history) {
+                      window.history.pushState({}, '', '/quran');
+                      window.dispatchEvent(new PopStateEvent('popstate'));
+                    }
+                  }}
+                  className="btn hero-secondary-cta bg-emerald-500/15 text-emerald-200 border border-emerald-400/40 hover:bg-emerald-500/25 transition flex items-center gap-2 cursor-pointer font-bold"
+                >
+                  <span>📖 {isAr ? 'ملاذ حفظ القرآن (صدقة جارية)' : 'Quran Hifz Sanctuary'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
                     triggerHapticImpact();
                     setStreetDemoOpen(true);
                   }}
@@ -270,7 +307,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
       <section className="section why" id="why">
         <div className="el-container">
           <span className="eyebrow">{isAr ? 'ليه جسر التفكير؟' : 'Why Thinking Bridge?'}</span>
-          <h2 className="h2">{isAr ? 'مش مجرد كورس إنجليزي.' : 'Not just an English course.'}<br/>{isAr ? 'طريقة تفكير جديدة.' : 'A new way of thinking.'}</h2>
+          <h2 className="h2">{isAr ? 'مش مجرد كورس إنجليزي.' : 'Not just an English course.'}<br />{isAr ? 'طريقة تفكير جديدة.' : 'A new way of thinking.'}</h2>
           <p className="lede">
             {isAr
               ? 'بنشتغل على العقل المصري من جوّه. كل درس مبني على أمثلة من الحياة اليومية، بمنطق عربي واضح.'
@@ -360,7 +397,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
         <div className="el-container">
           <div className="text-start">
             <span className="eyebrow">
-              {isAr ? 'شفافية كاملة · Free Forever vs Pro' : 'Full Transparency · Free Forever vs Pro'}
+              {isAr ? 'شفافية كاملة · المجاني للأبد مقابل Pro' : 'Full Transparency · Free Forever vs Pro'}
             </span>
             <h2 className="h2">
               {isAr
@@ -450,7 +487,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
               </div>
 
               {/* Egypt Pricing Ladder */}
-              <div className="grid grid-cols-3 gap-2 mb-4">
+              <div className="grid grid-cols-1 min-[360px]:grid-cols-3 gap-2 mb-4">
                 <div className="p-2.5 rounded-2xl bg-black/25 border border-white/10 text-center">
                   <span className="text-[11px] font-bold text-slate-300 block">{isAr ? 'شهري' : 'Monthly'}</span>
                   <span className="text-sm sm:text-base font-black text-white block">{isAr ? '50 ج.م' : '50 EGP'}</span>
@@ -712,7 +749,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
                     <h4 className="font-bold text-sm text-white">{isAr ? 'الطرفية التفاعلية' : 'Terminal Mode'}</h4>
                     <p className="text-[11px] text-stone-400 mt-1">{isAr ? 'تدريب الجسور بأوامر سطر الأوامر' : 'CLI structural bridge practice'}</p>
                   </div>
-                  <button onClick={onLaunchApp} className="w-full py-2 rounded-xl bg-green-500 text-stone-950 font-bold text-xs hover:bg-green-400 transition">
+                  <button onClick={onLaunchApp} className="w-full min-h-[48px] py-2 rounded-xl bg-green-500 text-stone-950 font-bold text-xs hover:bg-green-400 transition flex items-center justify-center">
                     {isAr ? 'تشغيل الطرفية ⚡' : 'Launch Terminal ⚡'}
                   </button>
                 </div>
@@ -726,7 +763,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
                     <h4 className="font-bold text-sm text-white">{isAr ? 'وضع البروجيكتور' : 'Classroom Mode'}</h4>
                     <p className="text-[11px] text-stone-400 mt-1">{isAr ? 'رمز QR للطلاب وعرض مكبر للمدرس' : 'Student QR + Big Projector Display'}</p>
                   </div>
-                  <a href="/teacher" className="w-full py-2 rounded-xl bg-indigo-500 text-stone-950 font-bold text-xs text-center block hover:bg-indigo-400 transition">
+                  <a href="/teacher" className="w-full min-h-[48px] py-2 rounded-xl bg-indigo-500 text-stone-950 font-bold text-xs text-center flex items-center justify-center hover:bg-indigo-400 transition">
                     {isAr ? 'فتح وضع المعلم 🏫' : 'Open Teacher Mode 🏫'}
                   </a>
                 </div>
@@ -740,7 +777,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
                     <h4 className="font-bold text-sm text-white">{isAr ? 'مترجم الشركات' : 'Executive Tone'}</h4>
                     <p className="text-[11px] text-stone-400 mt-1">{isAr ? 'تحويل العامية إلى إنجليزي الشركات' : 'Egyptian to Corporate English'}</p>
                   </div>
-                  <button onClick={onLaunchApp} className="w-full py-2 rounded-xl bg-blue-500 text-stone-950 font-bold text-xs hover:bg-blue-400 transition">
+                  <button onClick={onLaunchApp} className="w-full min-h-[48px] py-2 rounded-xl bg-blue-500 text-stone-950 font-bold text-xs hover:bg-blue-400 transition flex items-center justify-center">
                     {isAr ? 'فتح المترجم 💼' : 'Launch Corporate 💼'}
                   </button>
                 </div>
@@ -754,7 +791,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
                     <h4 className="font-bold text-sm text-white">{isAr ? 'معمل العميل المستقل' : 'Autonomous Agent'}</h4>
                     <p className="text-[11px] text-stone-400 mt-1">{isAr ? 'مستكشف التحليل اللغوي المتقدم' : 'Linguistic Tool-Loop Agent'}</p>
                   </div>
-                  <a href="/api/agent" target="_blank" rel="noopener noreferrer" className="w-full py-2 rounded-xl bg-teal-500 text-stone-950 font-bold text-xs text-center block hover:bg-teal-400 transition">
+                  <a href="/api/agent" target="_blank" rel="noopener noreferrer" className="w-full min-h-[48px] py-2 rounded-xl bg-teal-500 text-stone-950 font-bold text-xs text-center flex items-center justify-center hover:bg-teal-400 transition">
                     {isAr ? 'معاينة العميل 🤖' : 'View AI Agent 🤖'}
                   </a>
                 </div>
@@ -784,7 +821,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
               </p>
             </div>
             <div className="p-5 rounded-2xl bg-[#0B1C33] border border-cyan-500/30 space-y-2">
-              <span className="text-lg block font-bold text-white">🔑 {isAr ? 'مفتاحك الخاص (BYOK)' : 'Bring Your Own Key (BYOK)'}</span>
+              <span className="text-lg block font-bold text-white">🔑 {isAr ? 'مفتاحك الخاص (اختياري)' : 'Bring Your Own Key (BYOK)'}</span>
               <p className="text-xs text-slate-300 leading-relaxed">
                 {isAr ? 'ميزات الذكاء الاصطناعي اختيارية ومجانية عبر مفتاحك الخاص بدون أي تكاليف أو تتبع.' : 'Optional AI capabilities use your private Gemini key, stored locally without proxy retention.'}
               </p>
@@ -795,7 +832,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
 
       {/* Creator Card */}
       <div className="bg-[var(--papyrus)] border-y border-[var(--line)] py-12">
-        <CreatorCard />
+        <CreatorCard isArabic={isAr} />
       </div>
 
       {/* ================= FINAL CTA ================= */}
@@ -840,7 +877,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
             <button
               type="button"
               onClick={() => setSupportOpen(true)}
-              className="hover:text-amber-300 transition cursor-pointer bg-transparent border-0 p-0 text-xs font-medium min-h-[44px] inline-flex items-center"
+              className="hover:text-amber-300 transition cursor-pointer bg-transparent border-0 p-0 text-xs font-medium min-h-[48px] inline-flex items-center"
             >
               ☕ {isAr ? 'ادعم التطبيق' : 'Support the app'}
             </button>

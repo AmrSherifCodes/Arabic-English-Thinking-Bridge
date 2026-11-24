@@ -76,14 +76,14 @@ export function ThemeShopModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/75 p-0 sm:p-4 pt-safe pb-safe"
+      className="fixed inset-0 z-[80] flex items-end sm:items-center justify-center bg-black/75 p-0 sm:p-4 pt-safe"
       role="dialog"
       aria-modal="true"
       aria-label={isArabic ? 'متجر الثيمات والإطارات' : 'Themes & Frames Shop'}
       dir={isArabic ? 'rtl' : 'ltr'}
     >
       <div
-        className="w-full max-w-lg max-h-[88dvh] overflow-y-auto rounded-t-3xl sm:rounded-3xl p-5 space-y-4 border shadow-2xl"
+        className="w-full max-w-lg max-h-[88dvh] overflow-y-auto rounded-t-3xl sm:rounded-3xl p-5 pb-safe space-y-4 border shadow-2xl"
         style={{
           backgroundColor: 'var(--surface)',
           color: 'var(--ink)',
@@ -160,7 +160,7 @@ export function ThemeShopModal({
             className="min-h-[48px] px-3 py-2 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 cursor-pointer transition"
             style={
               tab === 'themes'
-                ? { backgroundColor: 'var(--accent)', color: '#FFFFFF' }
+                ? { backgroundColor: 'var(--accent)', color: 'var(--accent-ink)' }
                 : { color: 'var(--ink-muted)' }
             }
           >
@@ -173,7 +173,7 @@ export function ThemeShopModal({
             className="min-h-[48px] px-3 py-2 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 cursor-pointer transition"
             style={
               tab === 'frames'
-                ? { backgroundColor: 'var(--accent)', color: '#FFFFFF' }
+                ? { backgroundColor: 'var(--accent)', color: 'var(--accent-ink)' }
                 : { color: 'var(--ink-muted)' }
             }
           >
@@ -193,7 +193,7 @@ export function ThemeShopModal({
               return (
                 <div
                   key={t.id}
-                  className="p-3.5 rounded-2xl border flex items-center justify-between gap-3 text-start"
+                  className="p-3.5 rounded-2xl border flex flex-wrap items-center justify-between gap-3 text-start"
                   style={{
                     backgroundColor: 'var(--bg)',
                     borderColor: isEquipped ? 'var(--accent)' : 'var(--border)',
@@ -248,7 +248,7 @@ export function ThemeShopModal({
                       isEquipped
                         ? {
                             backgroundColor: 'var(--accent)',
-                            color: '#FFFFFF',
+                            color: 'var(--accent-ink)',
                             borderColor: 'var(--accent)',
                           }
                         : isUnlocked
@@ -259,7 +259,7 @@ export function ThemeShopModal({
                           }
                         : {
                             backgroundColor: 'var(--gold)',
-                            color: '#0B1220',
+                            color: 'var(--gold-ink)',
                             borderColor: 'var(--gold)',
                           }
                     }
@@ -323,7 +323,7 @@ export function ThemeShopModal({
                       isEquipped
                         ? {
                             backgroundColor: 'var(--accent)',
-                            color: '#FFFFFF',
+                            color: 'var(--accent-ink)',
                             borderColor: 'var(--accent)',
                           }
                         : isUnlocked
@@ -334,7 +334,7 @@ export function ThemeShopModal({
                           }
                         : {
                             backgroundColor: 'var(--gold)',
-                            color: '#0B1220',
+                            color: 'var(--gold-ink)',
                             borderColor: 'var(--gold)',
                           }
                     }

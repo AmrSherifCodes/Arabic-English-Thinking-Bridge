@@ -17,7 +17,7 @@
   <meta name="application-name" content="فكّر إنجليزي" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta http-equiv="Content-Security-Policy"
-    content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https://flagcdn.com; media-src 'self' data: blob:; connect-src 'self' capacitor: http://localhost https://localhost https://tb-eg.vercel.app https://arabicenglishthinkingbridge.vercel.app https://generativelanguage.googleapis.com https://api.mymemory.translated.net; frame-src https://www.youtube-nocookie.com https://www.youtube.com; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';" />
+    content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https://flagcdn.com; media-src 'self' data: blob: https://cdn.islamic.network https://cdn.alquran.cloud; connect-src 'self' capacitor: http://localhost https://localhost https://tb-eg.vercel.app https://arabicenglishthinkingbridge.vercel.app https://generativelanguage.googleapis.com https://api.mymemory.translated.net; frame-src https://www.youtube-nocookie.com https://www.youtube.com; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';" />
   <script src="/theme-init.js"></script>
 
   <!-- SEO & Hreflang Tags -->
@@ -70,7 +70,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
-    href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Tajawal:wght@700;800;900&family=Readex+Pro:wght@400;600;700&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Tajawal:wght@700;800;900&family=Readex+Pro:wght@400;600;700&family=Amiri:wght@400;700&display=swap"
     rel="stylesheet" />
 
   <style>
@@ -105,11 +105,16 @@
         font-family: var(--font-body);
         background-color: var(--sand-light);
         color: var(--ink);
+        overflow-x: clip;
+        max-width: 100vw;
+        overscroll-behavior-x: none;
         -webkit-tap-highlight-color: transparent;
       }
 
       body {
-        overflow-x: hidden;
+        overflow-x: clip;
+        max-width: 100vw;
+        overscroll-behavior-x: none;
         line-height: 1.6;
         background-color: var(--sand-light);
         background-image: radial-gradient(rgba(11, 61, 92, 0.03) 1px, transparent 0);

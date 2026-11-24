@@ -188,22 +188,21 @@ export function UpdateBanner({ isArabic = true }: UpdateBannerProps) {
       role="status"
       aria-live="polite"
       dir={isArabic ? 'rtl' : 'ltr'}
-      className="fixed bottom-[76px] inset-x-3 z-50 flex justify-center pointer-events-none"
-      style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+      className="fixed bottom-[calc(4.75rem+env(safe-area-inset-bottom,0px))] inset-x-3 z-[45] flex justify-center pointer-events-none"
     >
       <div
-        className="pointer-events-auto w-full max-w-[460px] rounded-2xl border px-3.5 py-2.5 shadow-2xl flex items-center justify-between gap-2.5"
+        className="pointer-events-auto w-full max-w-[460px] rounded-2xl border px-3.5 py-2.5 shadow-2xl flex flex-wrap items-center justify-between gap-2.5"
         style={{
           backgroundColor: 'var(--surface)',
           borderColor: 'var(--accent)',
           color: 'var(--ink)',
         }}
       >
-        <div className="min-w-0 text-start">
-          <p className="text-xs font-black leading-snug" style={{ color: 'var(--ink)' }}>
+        <div className="min-w-0 flex-1 text-start">
+          <p className="text-xs font-black leading-snug break-words" style={{ color: 'var(--ink)' }}>
             {isArabic ? '✨ تحديث جديد جاهز' : '✨ New version ready'}
           </p>
-          <p className="text-[11px] leading-snug truncate" style={{ color: 'var(--ink-muted)' }}>
+          <p className="text-[11px] leading-snug break-words" style={{ color: 'var(--ink-muted)' }}>
             {subtitle}
           </p>
         </div>
@@ -212,10 +211,10 @@ export function UpdateBanner({ isArabic = true }: UpdateBannerProps) {
           <button
             type="button"
             onClick={isNativeUpdate ? handleOpenApkUpdate : handleApplyPwaUpdate}
-            className="min-h-[44px] px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5 cursor-pointer transition active:scale-95"
+            className="min-h-[48px] px-3.5 py-2 rounded-xl text-xs font-black flex items-center gap-1.5 cursor-pointer transition active:scale-95"
             style={{
               backgroundColor: 'var(--accent)',
-              color: '#FFFFFF',
+              color: 'var(--accent-ink)',
             }}
           >
             {isNativeUpdate ? <Download size={14} /> : <RefreshCw size={14} />}
@@ -225,14 +224,14 @@ export function UpdateBanner({ isArabic = true }: UpdateBannerProps) {
             type="button"
             onClick={() => setDismissed(true)}
             aria-label={isArabic ? 'إغلاق' : 'Dismiss'}
-            className="min-h-[44px] min-w-[40px] flex items-center justify-center rounded-xl border cursor-pointer"
+            className="min-h-[48px] min-w-[48px] flex items-center justify-center rounded-xl border cursor-pointer"
             style={{
               backgroundColor: 'var(--bg)',
               borderColor: 'var(--border)',
               color: 'var(--ink-muted)',
             }}
           >
-            <X size={15} />
+            <X size={16} />
           </button>
         </div>
       </div>

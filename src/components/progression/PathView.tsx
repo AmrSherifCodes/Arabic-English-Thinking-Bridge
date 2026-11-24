@@ -23,6 +23,7 @@ import { PlacementTestModal } from './PlacementTestModal';
 import { CapstoneRunnerModal } from './CapstoneRunnerModal';
 import { NameForge } from '../NameForge';
 import { useUiMode } from '../../utils/uiMode';
+import { GuideMode, LearnerTrack, getLearnerTrackMeta } from '../../utils/guideMode';
 import { ChestTier, StarRating, useEconomy } from '../../features/gamification/economy';
 import { ChestModal } from '../../features/gamification/ChestModal';
 import { JourneyBiomeBackdrop } from './JourneyBiomeBackdrop';
@@ -58,6 +59,8 @@ interface PathViewProps {
   onOpenTeacherMode?: () => void;
   onOpenExam?: () => void;
   isArabic?: boolean;
+  learnerTrack?: LearnerTrack;
+  guideMode?: GuideMode;
   progress?: UserProgress;
   flashcardDeckIds?: string[];
   onOpenLanguageSelector?: () => void;
@@ -133,10 +136,19 @@ export function PathView({
   targetLang,
   onSelectLesson,
   onUpdateState,
+  onOpenTeacherMode,
   isArabic = true,
+  learnerTrack = 'starter',
+  guideMode = 'egyptian_ar',
   isPro = false,
   onToast,
 }: PathViewProps) {
+  const trackMeta = getLearnerTrackMeta(learnerTrack);
+  const trackLabel = isArabic
+    ? guideMode === 'standard_ar'
+      ? trackMeta.labelMsa
+      : trackMeta.labelEg
+    : trackMeta.labelEn;
   const [uiMode, setUiMode] = useUiMode();
   const { economy } = useEconomy();
   const [dictionaryVersion, setDictionaryVersion] = useState(0);
@@ -418,7 +430,7 @@ export function PathView({
               className="w-11 h-11 rounded-2xl flex items-center justify-center font-black text-base shrink-0 border"
               style={{
                 backgroundColor: 'var(--accent)',
-                color: '#FFFFFF',
+                color: 'var(--accent-ink)',
                 borderColor: 'var(--accent)',
               }}
             >
@@ -485,6 +497,22 @@ export function PathView({
           >
             🚫 {isArabic ? 'بدون إعلانات' : 'No Ads'}
           </span>
+          <span
+            className="px-2.5 py-1 rounded-full text-[11px] font-bold border"
+            style={{ backgroundColor: 'var(--accent-soft)', borderColor: 'var(--accent)', color: 'var(--accent)' }}
+          >
+            {trackMeta.icon} {trackLabel}
+          </span>
+          {learnerTrack === 'teacher' && onOpenTeacherMode && (
+            <button
+              type="button"
+              onClick={onOpenTeacherMode}
+              className="px-2.5 py-1 rounded-full text-[11px] font-black border cursor-pointer"
+              style={{ backgroundColor: 'var(--gold)', borderColor: 'var(--gold)', color: 'var(--gold-ink)' }}
+            >
+              {isArabic ? 'افتح وضع المعلم 🏫' : 'Open Teacher Mode 🏫'}
+            </button>
+          )}
         </div>
 
         {/* Primary Play CTA + Name Forge */}
@@ -497,7 +525,7 @@ export function PathView({
             className="flex-1 min-h-[48px] px-4 py-2.5 rounded-2xl font-black text-sm flex items-center justify-center gap-2 cursor-pointer transition active:scale-95"
             style={{
               backgroundColor: 'var(--accent)',
-              color: '#FFFFFF',
+              color: 'var(--accent-ink)',
             }}
           >
             <Play size={16} className="fill-current shrink-0" />
@@ -514,15 +542,15 @@ export function PathView({
           <button
             type="button"
             onClick={() => setNameForgeOpen(true)}
-            className="min-h-[48px] px-3 py-2 rounded-2xl text-xs font-bold border cursor-pointer flex items-center gap-1"
+            className="min-h-[48px] px-3 py-2 rounded-2xl text-xs font-bold border cursor-pointer flex items-center justify-center gap-1.5"
             style={{
               backgroundColor: 'var(--bg)',
               borderColor: 'var(--border)',
               color: 'var(--ink)',
             }}
           >
-            <Sparkles size={14} style={{ color: 'var(--gold)' }} />
-            <span className="truncate max-w-[140px]">{nameForgeBtnLabel}</span>
+            <Sparkles size={14} className="shrink-0" style={{ color: 'var(--gold)' }} />
+            <span className="leading-snug text-center break-words">{nameForgeBtnLabel}</span>
           </button>
         </div>
 
@@ -580,7 +608,7 @@ export function PathView({
                   isSelected
                     ? {
                         backgroundColor: 'var(--accent)',
-                        color: '#FFFFFF',
+                        color: 'var(--accent-ink)',
                         borderColor: 'var(--accent)',
                       }
                     : {
@@ -633,7 +661,7 @@ export function PathView({
               type="button"
               onClick={dismissCoach}
               aria-label={isArabic ? 'إخفاء التلميح' : 'Dismiss tip'}
-              className="min-h-[36px] min-w-[36px] flex items-center justify-center rounded-xl cursor-pointer shrink-0"
+              className="min-h-[48px] min-w-[48px] flex items-center justify-center rounded-xl cursor-pointer shrink-0"
               style={{ color: 'var(--ink-muted)' }}
             >
               <X size={16} />
@@ -749,7 +777,7 @@ export function PathView({
                         : item.unlocked
                         ? 'var(--gold)'
                         : 'var(--border)',
-                      color: item.unlocked && !item.opened ? '#0B1220' : 'var(--ink-muted)',
+                      color: item.unlocked && !item.opened ? 'var(--gold-ink)' : 'var(--ink-muted)',
                       opacity: item.opened ? 0.65 : 1,
                     }}
                   >
@@ -758,7 +786,7 @@ export function PathView({
                     </span>
                   </button>
                   <span
-                    className="mt-1 px-2 py-0.5 rounded-full text-[10px] font-black border whitespace-nowrap"
+                    className="mt-1 px-2 py-0.5 rounded-full text-[10px] font-black border text-center max-w-[136px] break-words leading-snug"
                     style={{
                       backgroundColor: 'var(--surface)',
                       borderColor: item.unlocked && !item.opened ? 'var(--gold)' : 'var(--border)',
@@ -796,7 +824,7 @@ export function PathView({
                     className="mb-1 px-2.5 py-0.5 rounded-full text-[10px] font-black whitespace-nowrap border"
                     style={{
                       backgroundColor: 'var(--accent)',
-                      color: '#FFFFFF',
+                      color: 'var(--accent-ink)',
                       borderColor: 'var(--accent)',
                     }}
                   >
@@ -810,7 +838,7 @@ export function PathView({
                     className="mb-0.5 px-2 py-0.5 rounded-full text-[10px] font-black whitespace-nowrap border"
                     style={{
                       backgroundColor: 'var(--gold)',
-                      color: '#0B1220',
+                      color: 'var(--gold-ink)',
                       borderColor: 'var(--gold)',
                     }}
                   >
@@ -847,7 +875,7 @@ export function PathView({
                       : item.isBoss
                       ? 'var(--gold)'
                       : 'var(--border)',
-                    color: isActive ? '#FFFFFF' : 'var(--ink)',
+                    color: isActive ? 'var(--accent-ink)' : 'var(--ink)',
                   }}
                 >
                   {isActive && (
@@ -858,7 +886,7 @@ export function PathView({
                     />
                   )}
                   <span className="text-lg leading-none">
-                    {item.isBoss ? '⚔️' : isCompleted ? <CheckCircle size={22} style={{ color: 'var(--accent)' }} /> : item.index}
+                    {item.isBoss ? '⚔️' : isCompleted ? <CheckCircle size={22} style={{ color: isActive ? 'var(--accent-ink)' : 'var(--accent)' }} /> : item.index}
                   </span>
                   <span className="text-[10px] font-black leading-none mt-0.5">
                     {isArabic ? `م${item.index}` : `L${item.index}`}
@@ -867,14 +895,14 @@ export function PathView({
 
                 {/* Lesson Title Pill */}
                 <div
-                  className="mt-1 px-2.5 py-0.5 rounded-xl border text-[11px] font-bold text-center max-w-[140px] leading-tight"
+                  className="mt-1 px-2.5 py-0.5 rounded-xl border text-[11px] font-bold text-center max-w-[144px] leading-snug"
                   style={{
                     backgroundColor: 'var(--surface)',
                     borderColor: isActive ? 'var(--accent)' : 'var(--border)',
                     color: 'var(--ink)',
                   }}
                 >
-                  <span className="line-clamp-2">
+                  <span className="break-words">
                     {isArabic ? item.lesson.titleAr : item.lesson.titleEn}
                   </span>
                 </div>
@@ -887,8 +915,8 @@ export function PathView({
       {/* NameForge Modal */}
       {nameForgeOpen && (
         <div
-          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 pt-safe pb-safe"
-          dir="rtl"
+          className="fixed inset-0 z-[80] bg-black/80 flex items-center justify-center p-4 pt-safe pb-safe"
+          dir={isArabic ? 'rtl' : 'ltr'}
         >
           <div className="relative w-full max-w-lg">
             <button

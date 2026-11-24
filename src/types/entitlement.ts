@@ -41,12 +41,14 @@ export interface CohortStudentSummary {
 
 export const ENTITLEMENT_STORAGE_KEY = 'tb.entitlement.v1';
 export const DEVICE_ID_STORAGE_KEY = 'tb.deviceId.v1';
+export const QURAN_HIFZ_STORAGE_KEY = 'tb.quranHifz.v1';
 export const INSTAPAY_HANDLE = 'amrsherifabdelaal1@instapay';
 export const ENTITLEMENT_UPDATED_EVENT = 'tb:entitlement-updated';
 
 export const PRESERVED_STORAGE_KEYS: ReadonlySet<string> = new Set([
   ENTITLEMENT_STORAGE_KEY,
   DEVICE_ID_STORAGE_KEY,
+  QURAN_HIFZ_STORAGE_KEY,
 ]);
 
 export const DEFAULT_FREE_ENTITLEMENT: EntitlementState = {

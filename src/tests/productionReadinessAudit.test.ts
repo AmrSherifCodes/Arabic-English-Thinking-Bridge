@@ -113,7 +113,7 @@ describe('Production Readiness & Human-Use Audit Regressions (v6.0.0 V6 Edition)
     }
 
     const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'));
-    assert.equal(pkg.version, '7.2.1', 'package.json version must be 7.2.1');
+    assert.equal(pkg.version, '8.0.0', 'package.json version must be 8.0.0');
 
     const gradleContent = fs.readFileSync(path.join(ROOT, 'android/app/build.gradle'), 'utf8');
     assert.ok(gradleContent.includes('versionCode 6000'), 'build.gradle must specify versionCode 6000');

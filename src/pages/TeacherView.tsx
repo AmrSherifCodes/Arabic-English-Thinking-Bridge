@@ -160,26 +160,34 @@ export const TeacherView: React.FC<Props> = ({ onBack }) => {
 
   return (
     <div
-      className="min-h-[100dvh] bg-[#0A0E13] text-[#EEF2F5] flex flex-col pt-safe pb-safe font-arabic print:bg-white print:text-black"
+      className="min-h-[100dvh] w-full max-w-[100vw] overflow-x-clip flex flex-col pb-safe font-arabic print:bg-white print:text-black"
+      style={{ backgroundColor: 'var(--bg)', color: 'var(--ink)' }}
       dir="rtl"
     >
       {/* Header (hidden when printing parent card) */}
-      <header className="flex flex-wrap justify-between items-center gap-3 p-4 md:px-8 border-b border-stone-800 bg-[#121820] print:hidden">
+      <header
+        className="tb-hud-bar sticky top-0 z-40 flex flex-wrap justify-between items-center gap-3 p-4 md:px-8 pt-safe border-b print:hidden"
+        style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+      >
         <button
           type="button"
           onClick={onBack}
-          className="flex items-center gap-2 px-4 py-2 bg-stone-800 hover:bg-stone-700 text-stone-200 font-bold rounded-xl transition-colors text-sm"
+          className="min-h-[48px] flex items-center gap-2 px-4 py-2 border font-bold rounded-xl transition-colors text-sm cursor-pointer"
+          style={{ backgroundColor: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--ink)' }}
         >
           <X className="w-4 h-4" />
           <span>إغلاق</span>
         </button>
 
-        <div className="flex items-center gap-3">
-          <h1 className="text-base md:text-xl font-black text-amber-400 flex items-center gap-2">
+        <div className="flex items-center gap-3 flex-wrap">
+          <h1 className="text-base md:text-xl font-black flex items-center gap-2" style={{ color: 'var(--gold)' }}>
             <span>🏫</span>
-            <span>لوحة المعلّم والأكاديمية · Teacher Hub</span>
+            <span>لوحة المعلّم والأكاديمية</span>
           </h1>
-          <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-500/15 text-teal-300 border border-teal-500/35 font-mono text-xs font-bold">
+          <span
+            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full border font-mono text-xs font-bold"
+            style={{ backgroundColor: 'var(--accent-soft)', color: 'var(--accent)', borderColor: 'var(--accent)' }}
+          >
             <ShieldCheck className="w-3.5 h-3.5" />
             {cohortCode}
           </span>
@@ -189,11 +197,12 @@ export const TeacherView: React.FC<Props> = ({ onBack }) => {
           <button
             type="button"
             onClick={() => setActiveTab('cohort')}
-            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl font-bold text-xs sm:text-sm transition-colors ${
+            className="min-h-[48px] flex items-center gap-1.5 px-4 py-2 rounded-xl border font-bold text-xs sm:text-sm transition-colors cursor-pointer"
+            style={
               activeTab === 'cohort'
-                ? 'bg-amber-500 text-[#0A0E13]'
-                : 'bg-stone-800 text-stone-300 hover:bg-stone-700'
-            }`}
+                ? { backgroundColor: 'var(--accent)', color: 'var(--accent-ink)', borderColor: 'var(--accent)' }
+                : { backgroundColor: 'var(--bg)', color: 'var(--ink)', borderColor: 'var(--border)' }
+            }
           >
             <Users className="w-4 h-4" />
             <span>المجموعة</span>
@@ -201,11 +210,12 @@ export const TeacherView: React.FC<Props> = ({ onBack }) => {
           <button
             type="button"
             onClick={() => setActiveTab('projector')}
-            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl font-bold text-xs sm:text-sm transition-colors ${
+            className="min-h-[48px] flex items-center gap-1.5 px-4 py-2 rounded-xl border font-bold text-xs sm:text-sm transition-colors cursor-pointer"
+            style={
               activeTab === 'projector'
-                ? 'bg-amber-500 text-[#0A0E13]'
-                : 'bg-stone-800 text-stone-300 hover:bg-stone-700'
-            }`}
+                ? { backgroundColor: 'var(--accent)', color: 'var(--accent-ink)', borderColor: 'var(--accent)' }
+                : { backgroundColor: 'var(--bg)', color: 'var(--ink)', borderColor: 'var(--border)' }
+            }
           >
             <Presentation className="w-4 h-4" />
             <span>السبورة</span>
@@ -215,7 +225,12 @@ export const TeacherView: React.FC<Props> = ({ onBack }) => {
 
       {/* Toast Notification */}
       {toast && (
-        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-teal-600 text-white px-6 py-2.5 rounded-full font-bold shadow-2xl border border-teal-400 text-sm print:hidden">
+        <div
+          role="status"
+          aria-live="polite"
+          className="fixed top-[calc(4.5rem+env(safe-area-inset-top,0px))] left-1/2 -translate-x-1/2 z-[90] px-6 py-2.5 rounded-full font-bold shadow-2xl border text-sm print:hidden pointer-events-none"
+          style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-ink)', borderColor: 'var(--accent)' }}
+        >
           {toast}
         </div>
       )}
@@ -224,33 +239,45 @@ export const TeacherView: React.FC<Props> = ({ onBack }) => {
       {activeTab === 'cohort' && (
         <main className="flex-1 max-w-7xl mx-auto w-full p-4 md:p-8 space-y-6 print:hidden">
           {/* Cohort Status Banner */}
-          <section className="bg-[#121820] border border-stone-800 rounded-3xl p-5 md:p-6 flex flex-wrap items-center justify-between gap-4">
-            <div className="space-y-1">
+          <section
+            className="tb-card-surface border rounded-3xl p-5 md:p-6 flex flex-wrap items-center justify-between gap-4"
+            style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+          >
+            <div className="space-y-1 min-w-0">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="px-3 py-1 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/35 font-mono text-xs font-black">
-                  COHORT: {cohortCode}
+                <span
+                  className="px-3 py-1 rounded-full border font-mono text-xs font-black"
+                  style={{ backgroundColor: 'var(--bg)', color: 'var(--gold)', borderColor: 'var(--gold)' }}
+                >
+                  كود المجموعة: {cohortCode}
                 </span>
                 {isAcademyTeacher ? (
-                  <span className="px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-xs font-bold">
-                    حساب معلّم مفعّل · Verified Teacher
+                  <span
+                    className="px-2.5 py-1 rounded-full border text-xs font-bold"
+                    style={{ backgroundColor: 'var(--accent-soft)', color: 'var(--accent)', borderColor: 'var(--accent)' }}
+                  >
+                    حساب معلّم مفعّل
                   </span>
                 ) : (
-                  <span className="px-2.5 py-1 rounded-full bg-sky-500/15 text-sky-300 border border-sky-500/30 text-xs font-bold">
-                    وضع المعاينة الأوفلاين · Offline Demo Preview
+                  <span
+                    className="px-2.5 py-1 rounded-full border text-xs font-bold"
+                    style={{ backgroundColor: 'var(--accent-soft)', color: 'var(--accent)', borderColor: 'var(--accent)' }}
+                  >
+                    وضع المعاينة (بدون إنترنت)
                   </span>
                 )}
               </div>
-              <h2 className="text-xl md:text-2xl font-black text-white">
+              <h2 className="text-xl md:text-2xl font-black break-words" style={{ color: 'var(--ink)' }}>
                 {cohortLabel || 'لوحة متابعة طلاب المجموعة'}
               </h2>
-              <p className="text-xs md:text-sm text-stone-400">
+              <p className="text-xs md:text-sm leading-relaxed" style={{ color: 'var(--ink-muted)' }}>
                 {isDemoMode
                   ? isAcademyTeacher
                     ? 'لم يقم أي طالب بالمزامنة بعد — يتم عرض بيانات تجريبية جاهزة للمعاينة وتجربة تقارير أولياء الأمور.'
                     : 'معاينة فورية لمدير المركز والمعلّمين. فعّل كود المعلّم (مثل ALAQSA-TEACH-01) لربط طلاب مجموعتك الحقيقيين.'
                   : `متصل بمجموعة ${cohortCode} — يعرض التقدم الأسبوعي المرسل اختيارياً من أجهزة الطلاب.`}
               </p>
-              {rosterError && <p className="text-xs text-amber-300 pt-1">{rosterError}</p>}
+              {rosterError && <p className="text-xs font-bold pt-1" style={{ color: 'var(--gold)' }}>{rosterError}</p>}
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
@@ -258,7 +285,8 @@ export const TeacherView: React.FC<Props> = ({ onBack }) => {
                 <button
                   type="button"
                   onClick={() => setForceDemoPreview((prev) => !prev)}
-                  className="px-4 py-2.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs font-bold border border-stone-700 transition-colors"
+                  className="min-h-[48px] px-4 py-2.5 rounded-xl border text-xs font-bold transition-colors cursor-pointer"
+                  style={{ backgroundColor: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--ink)' }}
                 >
                   {forceDemoPreview ? 'عرض الطلاب الحقيقيين' : 'معاينة بيانات تجريبية'}
                 </button>
@@ -268,7 +296,8 @@ export const TeacherView: React.FC<Props> = ({ onBack }) => {
                   type="button"
                   onClick={loadRoster}
                   disabled={isLoadingRoster}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 disabled:opacity-50 text-white text-xs sm:text-sm font-bold transition-colors"
+                  className="min-h-[48px] flex items-center gap-2 px-4 py-2.5 rounded-xl disabled:opacity-50 text-xs sm:text-sm font-black transition-colors cursor-pointer"
+                  style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-ink)' }}
                 >
                   <RefreshCw className={`w-4 h-4 ${isLoadingRoster ? 'animate-spin' : ''}`} />
                   <span>{isLoadingRoster ? 'جاري التحديث...' : 'تحديث القائمة'}</span>
@@ -279,47 +308,47 @@ export const TeacherView: React.FC<Props> = ({ onBack }) => {
 
           {/* KPI Strip */}
           <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-[#121820] border border-stone-800 rounded-2xl p-4 space-y-1">
-              <div className="flex items-center justify-between text-stone-400 text-xs font-bold">
+            <div className="tb-card-surface border rounded-2xl p-4 space-y-1" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
+              <div className="flex items-center justify-between text-xs font-bold" style={{ color: 'var(--ink-muted)' }}>
                 <span>الطلاب المسجلون</span>
-                <Users className="w-4 h-4 text-teal-400" />
+                <Users className="w-4 h-4 shrink-0" style={{ color: 'var(--accent)' }} />
               </div>
-              <p className="text-3xl font-black font-mono text-white">{cohortStats.count}</p>
-              <p className="text-[11px] text-stone-500">Enrolled Students</p>
+              <p className="text-3xl font-black font-mono" style={{ color: 'var(--ink)' }}>{cohortStats.count}</p>
+              <p className="text-xs" style={{ color: 'var(--ink-muted)' }}>إجمالي طلاب المجموعة</p>
             </div>
 
-            <div className="bg-[#121820] border border-stone-800 rounded-2xl p-4 space-y-1">
-              <div className="flex items-center justify-between text-stone-400 text-xs font-bold">
+            <div className="tb-card-surface border rounded-2xl p-4 space-y-1" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
+              <div className="flex items-center justify-between text-xs font-bold" style={{ color: 'var(--ink-muted)' }}>
                 <span>متوسط نقاط الأسبوع</span>
-                <Trophy className="w-4 h-4 text-amber-400" />
+                <Trophy className="w-4 h-4 shrink-0" style={{ color: 'var(--gold)' }} />
               </div>
-              <p className="text-3xl font-black font-mono text-white">
+              <p className="text-3xl font-black font-mono" style={{ color: 'var(--ink)' }}>
                 {cohortStats.avgWeeklyXp}
               </p>
-              <p className="text-[11px] text-stone-500">Avg Weekly XP</p>
+              <p className="text-xs" style={{ color: 'var(--ink-muted)' }}>نقطة أسبوعياً</p>
             </div>
 
-            <div className="bg-[#121820] border border-stone-800 rounded-2xl p-4 space-y-1">
-              <div className="flex items-center justify-between text-stone-400 text-xs font-bold">
+            <div className="tb-card-surface border rounded-2xl p-4 space-y-1" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
+              <div className="flex items-center justify-between text-xs font-bold" style={{ color: 'var(--ink-muted)' }}>
                 <span>متوسط الاستمرارية</span>
-                <Flame className="w-4 h-4 text-orange-400" />
+                <Flame className="w-4 h-4 text-orange-500 shrink-0" />
               </div>
-              <p className="text-3xl font-black font-mono text-white">
+              <p className="text-3xl font-black font-mono" style={{ color: 'var(--ink)' }}>
                 {cohortStats.avgStreak}
               </p>
-              <p className="text-[11px] text-stone-500">Avg Streak (Days)</p>
+              <p className="text-xs" style={{ color: 'var(--ink-muted)' }}>أيام متتالية</p>
             </div>
 
-            <div className="bg-[#121820] border border-stone-800 rounded-2xl p-4 space-y-1">
-              <div className="flex items-center justify-between text-stone-400 text-xs font-bold">
+            <div className="tb-card-surface border rounded-2xl p-4 space-y-1" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
+              <div className="flex items-center justify-between text-xs font-bold" style={{ color: 'var(--ink-muted)' }}>
                 <span>نجم الأسبوع</span>
-                <Sparkles className="w-4 h-4 text-emerald-400" />
+                <Sparkles className="w-4 h-4 shrink-0" style={{ color: 'var(--accent)' }} />
               </div>
-              <p className="text-base font-black text-emerald-300 truncate pt-1">
+              <p className="text-base font-black break-words pt-1" style={{ color: 'var(--accent)' }}>
                 {cohortStats.topStudent?.displayName || '—'}
               </p>
-              <p className="text-[11px] text-stone-500 font-mono">
-                {cohortStats.topStudent ? `${cohortStats.topStudent.weeklyXp} XP` : 'No data'}
+              <p className="text-xs font-mono" style={{ color: 'var(--ink-muted)' }}>
+                {cohortStats.topStudent ? `${cohortStats.topStudent.weeklyXp} XP` : 'لا توجد بيانات'}
               </p>
             </div>
           </section>
@@ -327,47 +356,63 @@ export const TeacherView: React.FC<Props> = ({ onBack }) => {
           {/* Main Dashboard Grid: Enrolled Students + Recurring L1 Mistakes */}
           <div className="grid lg:grid-cols-[1.6fr_1fr] gap-6 items-start">
             {/* Enrolled Students List */}
-            <section className="bg-[#121820] border border-stone-800 rounded-3xl overflow-hidden">
-              <div className="px-5 py-4 border-b border-stone-800 flex items-center justify-between gap-3">
+            <section
+              className="tb-card-surface border rounded-3xl overflow-hidden"
+              style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+            >
+              <div
+                className="px-5 py-4 border-b flex flex-wrap items-center justify-between gap-3"
+                style={{ borderColor: 'var(--border)' }}
+              >
                 <div>
-                  <h3 className="text-base font-black text-white">
-                    قائمة طلاب المجموعة · Cohort Roster
+                  <h3 className="text-base font-black" style={{ color: 'var(--ink)' }}>
+                    قائمة طلاب المجموعة
                   </h3>
-                  <p className="text-xs text-stone-400">
+                  <p className="text-xs" style={{ color: 'var(--ink-muted)' }}>
                     اضغط «تقرير ولي الأمر» لطباعة أو نسخ ملخص واتساب جاهز
                   </p>
                 </div>
-                <span className="text-xs font-mono text-stone-400">
-                  {displayedStudents.length} students
+                <span className="text-xs font-bold" style={{ color: 'var(--ink-muted)' }}>
+                  {displayedStudents.length} طالب
                 </span>
               </div>
 
-              <div className="divide-y divide-stone-800/80">
+              <div className="divide-y" style={{ borderColor: 'var(--border)' }}>
                 {displayedStudents.map((student, idx) => (
                   <div
                     key={student.deviceId}
-                    className="p-4 md:px-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-[#171F2A] transition-colors"
+                    className="p-4 md:px-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors"
+                    style={{ borderColor: 'var(--border)' }}
                   >
                     <div className="space-y-2 min-w-0">
                       <div className="flex items-center gap-2.5">
-                        <span className="w-7 h-7 rounded-full bg-stone-800 text-amber-400 font-mono text-xs font-black flex items-center justify-center shrink-0">
+                        <span
+                          className="w-7 h-7 rounded-full border font-mono text-xs font-black flex items-center justify-center shrink-0"
+                          style={{ backgroundColor: 'var(--bg)', borderColor: 'var(--gold)', color: 'var(--gold)' }}
+                        >
                           {idx + 1}
                         </span>
-                        <p className="font-bold text-white text-sm md:text-base truncate">
+                        <p className="font-bold text-sm md:text-base break-words" style={{ color: 'var(--ink)' }}>
                           {student.displayName}
                         </p>
                       </div>
 
-                      <div className="flex flex-wrap items-center gap-3 text-xs text-stone-300">
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-300 font-mono font-bold">
+                      <div className="flex flex-wrap items-center gap-2.5 text-xs">
+                        <span
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border font-mono font-bold"
+                          style={{ backgroundColor: 'var(--bg)', borderColor: 'var(--gold)', color: 'var(--gold)' }}
+                        >
                           <Trophy className="w-3.5 h-3.5" />
                           {student.weeklyXp} XP / أسبوع
                         </span>
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-orange-500/10 text-orange-300 font-mono font-bold">
-                          <Flame className="w-3.5 h-3.5" />
+                        <span
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border font-mono font-bold"
+                          style={{ backgroundColor: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--ink)' }}
+                        >
+                          <Flame className="w-3.5 h-3.5 text-orange-500" />
                           {student.streakDays} يوم
                         </span>
-                        <span className="text-stone-400 font-mono">
+                        <span className="font-mono font-bold" style={{ color: 'var(--ink-muted)' }}>
                           {student.completedLessons} درس
                         </span>
                       </div>
@@ -377,7 +422,7 @@ export const TeacherView: React.FC<Props> = ({ onBack }) => {
                           {student.topL1Mistakes.slice(0, 3).map((tag) => (
                             <span
                               key={tag}
-                              className="px-2 py-0.5 rounded-md bg-rose-500/10 border border-rose-500/25 text-rose-300 text-[11px]"
+                              className="px-2 py-0.5 rounded-md bg-rose-500/10 border border-rose-500/35 text-rose-500 text-xs font-bold"
                             >
                               {formatL1MistakeTag(tag).ar}
                             </span>
@@ -389,7 +434,12 @@ export const TeacherView: React.FC<Props> = ({ onBack }) => {
                     <button
                       type="button"
                       onClick={() => setSelectedStudent(student)}
-                      className="shrink-0 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-teal-500/15 hover:bg-teal-500/25 text-teal-300 border border-teal-500/35 font-bold text-xs transition-colors"
+                      className="min-h-[48px] shrink-0 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border font-bold text-xs transition-colors cursor-pointer"
+                      style={{
+                        backgroundColor: 'var(--accent-soft)',
+                        borderColor: 'var(--accent)',
+                        color: 'var(--accent)',
+                      }}
                     >
                       <FileText className="w-4 h-4" />
                       <span>تقرير ولي الأمر</span>
@@ -400,15 +450,18 @@ export const TeacherView: React.FC<Props> = ({ onBack }) => {
             </section>
 
             {/* Top Recurring L1 Mistakes Across Cohort */}
-            <aside className="bg-[#121820] border border-stone-800 rounded-3xl p-5 space-y-4">
+            <aside
+              className="tb-card-surface border rounded-3xl p-5 space-y-4"
+              style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+            >
               <div className="flex items-start gap-2.5">
-                <AlertTriangle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
+                <AlertTriangle className="w-5 h-5 text-rose-500 shrink-0 mt-0.5" />
                 <div>
-                  <h3 className="text-base font-black text-white">
+                  <h3 className="text-base font-black" style={{ color: 'var(--ink)' }}>
                     أكثر أخطاء التفكير العربي تكراراً
                   </h3>
-                  <p className="text-xs text-stone-400" dir="ltr">
-                    Top Recurring L1 Interference Patterns
+                  <p className="text-xs" style={{ color: 'var(--ink-muted)' }}>
+                    أبرز الأنماط التي تحتاج مراجعة في الحصة
                   </p>
                 </div>
               </div>
@@ -424,18 +477,16 @@ export const TeacherView: React.FC<Props> = ({ onBack }) => {
                     return (
                       <div
                         key={tag}
-                        className="p-3.5 rounded-2xl bg-[#0A0E13] border border-stone-800 space-y-2"
+                        className="p-3.5 rounded-2xl border space-y-2"
+                        style={{ backgroundColor: 'var(--bg)', borderColor: 'var(--border)' }}
                       >
                         <div className="flex items-center justify-between gap-2">
-                          <span className="text-sm font-bold text-stone-100">{label.ar}</span>
-                          <span className="text-xs font-mono font-bold text-rose-300 shrink-0">
+                          <span className="text-sm font-bold break-words" style={{ color: 'var(--ink)' }}>{label.ar}</span>
+                          <span className="text-xs font-mono font-bold text-rose-500 shrink-0">
                             {studentCount}/{cohortStats.count}
                           </span>
                         </div>
-                        <p className="text-[11px] text-stone-400 font-mono" dir="ltr">
-                          {label.en}
-                        </p>
-                        <div className="h-2 rounded-full bg-stone-800 overflow-hidden">
+                        <div className="h-2 rounded-full overflow-hidden border" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
                           <div
                             className="h-full bg-gradient-to-l from-rose-500 to-amber-500 rounded-full"
                             style={{ width: `${Math.min(100, pct)}%` }}
@@ -446,10 +497,10 @@ export const TeacherView: React.FC<Props> = ({ onBack }) => {
                   })}
                 </div>
               ) : (
-                <p className="text-sm text-stone-400">لا توجد أخطاء مسجلة بعد.</p>
+                <p className="text-sm" style={{ color: 'var(--ink-muted)' }}>لا توجد أخطاء مسجلة بعد.</p>
               )}
 
-              <div className="pt-2 border-t border-stone-800 text-xs text-stone-400 leading-relaxed">
+              <div className="pt-2 border-t text-xs leading-relaxed" style={{ borderColor: 'var(--border)', color: 'var(--ink-muted)' }}>
                 💡 استخدم هذه الأنماط لاختيار تمرين الإحماء في أول ٥ دقائق من الحصة القادمة.
               </div>
             </aside>
@@ -468,18 +519,22 @@ export const TeacherView: React.FC<Props> = ({ onBack }) => {
             <main className="flex-1 grid md:grid-cols-[1fr_auto] gap-6 p-4 md:p-8 max-w-7xl mx-auto w-full items-start print:hidden">
               {/* Primary Projector Section */}
               <section className="space-y-6 flex flex-col">
-                <div className="flex items-center justify-between">
-                  <span className="px-5 py-2 bg-gradient-to-r from-teal-600 to-teal-800 text-white font-bold rounded-t-xl text-base border-t border-x border-teal-500/50 shadow-md">
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <span
+                    className="px-5 py-2 font-bold rounded-t-xl text-base border-t border-x shadow-md"
+                    style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-ink)', borderColor: 'var(--accent)' }}
+                  >
                     {scene.characterName[targetLang] || scene.characterName['en']}
                   </span>
-                  <span className="text-xs font-mono text-stone-400">
+                  <span className="text-xs font-mono font-bold" style={{ color: 'var(--ink-muted)' }}>
                     المشهد {currentIndex + 1} من {sceneKeys.length}
                   </span>
                 </div>
 
                 <div
-                  className="bg-black/50 rounded-3xl rounded-tr-none p-8 md:p-12 min-h-[45vh] flex flex-col items-center justify-center relative overflow-hidden border-2 border-stone-800 shadow-2xl"
+                  className="bg-black/50 rounded-3xl rounded-tr-none p-8 md:p-12 min-h-[45vh] flex flex-col items-center justify-center relative overflow-hidden border-2 shadow-2xl"
                   style={{
+                    borderColor: 'var(--border)',
                     backgroundImage: `url(${scene.imageUrl})`,
                     backgroundSize: 'cover',
                     backgroundPosition: 'center',
@@ -496,20 +551,20 @@ export const TeacherView: React.FC<Props> = ({ onBack }) => {
                         {scene.text[targetLang] || scene.text['en']}
                       </p>
                       <p
-                        className="text-xl md:text-3xl font-bold leading-relaxed text-amber-300/90 drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]"
+                        className="text-xl md:text-3xl font-bold leading-relaxed text-amber-300 drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]"
                         dir="rtl"
                       >
                         {scene.text[sourceLang]}
                       </p>
                     </div>
                   ) : (
-                    <div className="text-center relative z-10 bg-black/70 px-8 py-6 rounded-2xl backdrop-blur-md border border-stone-700/50 shadow-xl">
-                      <EyeOff className="w-12 h-12 text-stone-400 mx-auto mb-3 opacity-60" />
-                      <p className="text-xl md:text-2xl text-stone-300 font-bold">
-                        اضغط "اكشف" لعرض النص للتلاميذ
+                    <div className="text-center relative z-10 bg-black/75 px-8 py-6 rounded-2xl backdrop-blur-md border border-stone-700 shadow-xl">
+                      <EyeOff className="w-12 h-12 text-stone-300 mx-auto mb-3 opacity-80" />
+                      <p className="text-xl md:text-2xl text-white font-bold">
+                        اضغط «اكشف النص» لعرض الجملة للطلاب
                       </p>
-                      <p className="text-xs text-stone-500 mt-1 font-mono">
-                        Dialogue hidden for presentation mode
+                      <p className="text-xs text-stone-300 mt-1">
+                        النص مخفي مؤقتاً لوضع العرض على السبورة
                       </p>
                     </div>
                   )}
@@ -520,17 +575,19 @@ export const TeacherView: React.FC<Props> = ({ onBack }) => {
                   <button
                     type="button"
                     onClick={() => setRevealed(!revealed)}
-                    className="py-4 px-6 text-lg bg-amber-500 hover:bg-amber-400 text-[#0A0E13] font-black rounded-2xl transition-all shadow-lg flex items-center justify-center gap-2"
+                    className="min-h-[52px] py-4 px-6 text-lg font-black rounded-2xl transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer"
+                    style={{ backgroundColor: 'var(--gold)', color: 'var(--gold-ink)' }}
                   >
                     {revealed ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                    <span>{revealed ? 'اخفاء النص' : 'اكشف النص'}</span>
+                    <span>{revealed ? 'إخفاء النص' : 'اكشف النص'}</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={goPrev}
                     disabled={currentIndex <= 0}
-                    className="py-4 px-6 bg-stone-800 hover:bg-stone-700 text-stone-200 font-bold rounded-2xl transition-colors disabled:opacity-40 flex items-center justify-center gap-2"
+                    className="min-h-[52px] py-4 px-6 border font-bold rounded-2xl transition-colors disabled:opacity-40 flex items-center justify-center gap-2 cursor-pointer"
+                    style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--ink)' }}
                   >
                     <ChevronRight className="w-5 h-5" />
                     <span>المشهد السابق</span>
@@ -540,7 +597,8 @@ export const TeacherView: React.FC<Props> = ({ onBack }) => {
                     type="button"
                     onClick={goNext}
                     disabled={currentIndex >= sceneKeys.length - 1}
-                    className="py-4 px-6 bg-stone-800 hover:bg-stone-700 text-stone-200 font-bold rounded-2xl transition-colors disabled:opacity-40 flex items-center justify-center gap-2"
+                    className="min-h-[52px] py-4 px-6 border font-bold rounded-2xl transition-colors disabled:opacity-40 flex items-center justify-center gap-2 cursor-pointer"
+                    style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--ink)' }}
                   >
                     <span>المشهد التالي</span>
                     <ChevronLeft className="w-5 h-5" />
@@ -549,10 +607,13 @@ export const TeacherView: React.FC<Props> = ({ onBack }) => {
               </section>
 
               {/* Classroom QR Sidebar */}
-              <aside className="bg-[#141A22] border border-stone-800 p-6 rounded-3xl flex flex-col items-center justify-start gap-4 shadow-xl">
+              <aside
+                className="tb-card-surface border p-6 rounded-3xl flex flex-col items-center justify-start gap-4 shadow-xl"
+                style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+              >
                 <div className="text-center">
-                  <h2 className="text-lg font-bold text-amber-400 mb-1">رمز المتابعة الفورية</h2>
-                  <p className="text-xs text-stone-400">Scan to follow lesson live</p>
+                  <h2 className="text-lg font-bold mb-1" style={{ color: 'var(--gold)' }}>رمز المتابعة الفورية</h2>
+                  <p className="text-xs" style={{ color: 'var(--ink-muted)' }}>امسح الرمز لمتابعة الدرس مباشرة</p>
                 </div>
 
                 <TeacherQRCode url={shareUrl} size={240} />
@@ -561,12 +622,13 @@ export const TeacherView: React.FC<Props> = ({ onBack }) => {
                   <button
                     type="button"
                     onClick={handleCopy}
-                    className="w-full py-2.5 px-4 bg-stone-800 hover:bg-stone-700 text-stone-300 rounded-xl text-xs font-mono font-bold transition-colors border border-stone-700 flex items-center justify-center gap-2"
+                    className="w-full min-h-[48px] py-2.5 px-4 rounded-xl text-xs font-bold transition-colors border flex items-center justify-center gap-2 cursor-pointer"
+                    style={{ backgroundColor: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--ink)' }}
                   >
                     <Copy className="w-3.5 h-3.5" />
                     <span>نسخ رابط المشهد</span>
                   </button>
-                  <p className="text-[11px] text-stone-500 leading-tight">
+                  <p className="text-xs leading-snug" style={{ color: 'var(--ink-muted)' }}>
                     يعمل بدون إنترنت بعد التحميل الأول لدى الطلاب.
                   </p>
                 </div>

@@ -114,14 +114,14 @@ export function ChestModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 pt-safe pb-safe"
+      className="fixed inset-0 z-[80] flex items-center justify-center bg-black/75 p-4 pt-safe pb-safe"
       role="dialog"
       aria-modal="true"
       aria-label={isArabic ? meta.nameAr : meta.nameEn}
       dir={isArabic ? 'rtl' : 'ltr'}
     >
       <div
-        className="relative w-full max-w-sm rounded-3xl p-6 text-center shadow-2xl border"
+        className="relative w-full max-w-sm max-h-[90dvh] overflow-y-auto rounded-3xl p-6 text-center shadow-2xl border"
         style={{
           backgroundColor: 'var(--surface)',
           color: 'var(--ink)',
@@ -244,7 +244,7 @@ export function ChestModal({
               className="w-full min-h-[48px] px-5 py-3 rounded-2xl font-black text-sm cursor-pointer transition active:scale-95"
               style={{
                 backgroundColor: 'var(--gold)',
-                color: '#0B1220',
+                color: 'var(--gold-ink)',
               }}
             >
               {isArabic ? '🎁 افتح الصندوق الآن' : '🎁 Tap to Open Chest'}
@@ -261,7 +261,7 @@ export function ChestModal({
               className="w-full min-h-[48px] px-5 py-3 rounded-2xl font-black text-sm cursor-pointer"
               style={{
                 backgroundColor: 'var(--accent)',
-                color: '#FFFFFF',
+                color: 'var(--accent-ink)',
               }}
             >
               {isArabic ? 'العودة للخريطة' : 'Back to Map'}
@@ -345,7 +345,7 @@ export function ChestModal({
               className="w-full min-h-[48px] px-5 py-3 rounded-2xl font-black text-sm cursor-pointer transition active:scale-95"
               style={{
                 backgroundColor: 'var(--accent)',
-                color: '#FFFFFF',
+                color: 'var(--accent-ink)',
               }}
             >
               {isArabic ? 'استلام والعودة للخريطة ✓' : 'Claim & Return to Map ✓'}

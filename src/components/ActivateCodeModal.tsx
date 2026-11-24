@@ -113,30 +113,62 @@ export function ActivateCodeModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 pt-safe pb-safe bg-black/85 backdrop-blur-md animate-in fade-in"
+      className="fixed inset-0 z-[80] flex items-center justify-center p-3 sm:p-6 pt-safe pb-safe bg-black/80 backdrop-blur-md animate-in fade-in"
       dir={isArabic ? 'rtl' : 'ltr'}
       role="dialog"
       aria-modal="true"
       aria-labelledby="activate-code-modal-title"
     >
-      <div className="relative flex max-h-[92dvh] w-full max-w-lg flex-col overflow-hidden rounded-3xl border border-amber-500/30 bg-[#0A0E13] text-[#EEF2F5] shadow-2xl">
+      <div
+        className="tb-card-surface relative flex max-h-[92dvh] w-full max-w-lg flex-col overflow-hidden rounded-3xl border shadow-2xl"
+        style={{
+          backgroundColor: 'var(--surface)',
+          color: 'var(--ink)',
+          borderColor: 'var(--border)',
+        }}
+      >
         {/* Header */}
-        <div className="bg-gradient-to-r from-amber-500/15 via-teal-500/15 to-amber-500/15 px-5 py-4 border-b border-amber-500/20 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-amber-500/20 text-amber-300 border border-amber-500/40">
-              {isPro ? <Crown className="w-3.5 h-3.5" /> : <Sparkles className="w-3.5 h-3.5" />}
+        <div
+          className="px-4 sm:px-5 py-3.5 border-b flex items-center justify-between gap-2"
+          style={{
+            backgroundColor: 'var(--bg)',
+            borderColor: 'var(--border)',
+          }}
+        >
+          <div className="flex items-center gap-1.5 flex-wrap min-w-0">
+            <span
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black border"
+              style={{
+                backgroundColor: 'var(--accent-soft)',
+                color: 'var(--accent)',
+                borderColor: 'var(--accent)',
+              }}
+            >
+              {isPro ? <Crown className="w-3.5 h-3.5 shrink-0" /> : <Sparkles className="w-3.5 h-3.5 shrink-0" />}
               <span>{getTierBadgeLabel(entitlement.tier, isArabic)}</span>
             </span>
             {entitlement.cohortCode && (
               <span
                 dir="ltr"
-                className="px-2.5 py-1 rounded-full text-[11px] font-mono font-bold bg-teal-500/20 text-teal-300 border border-teal-500/30 truncate"
+                className="px-2.5 py-1 rounded-full text-[11px] font-mono font-bold border break-all"
+                style={{
+                  backgroundColor: 'var(--surface)',
+                  color: 'var(--ink)',
+                  borderColor: 'var(--border)',
+                }}
               >
                 {entitlement.cohortCode}
               </span>
             )}
             {isPro && (
-              <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 whitespace-nowrap">
+              <span
+                className="px-2.5 py-1 rounded-full text-[11px] font-bold border whitespace-nowrap"
+                style={{
+                  backgroundColor: 'var(--accent-soft)',
+                  color: 'var(--ink)',
+                  borderColor: 'var(--accent)',
+                }}
+              >
                 {remainingDays !== null
                   ? isArabic
                     ? `متبقي ${remainingDays} يوم`
@@ -150,7 +182,12 @@ export function ActivateCodeModal({
           <button
             type="button"
             onClick={onClose}
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-2xl text-stone-400 hover:text-white hover:bg-stone-800 transition-colors cursor-pointer"
+            className="min-h-[48px] min-w-[48px] flex items-center justify-center p-2 rounded-2xl border transition-colors cursor-pointer shrink-0"
+            style={{
+              backgroundColor: 'var(--surface)',
+              borderColor: 'var(--border)',
+              color: 'var(--ink-muted)',
+            }}
             aria-label={isArabic ? 'إغلاق' : 'Close'}
           >
             <X className="w-5 h-5" />
@@ -158,18 +195,19 @@ export function ActivateCodeModal({
         </div>
 
         {/* Body */}
-        <div className="overflow-y-auto p-5 sm:p-6 space-y-5 text-start">
+        <div className="overflow-y-auto p-4 sm:p-6 space-y-5 text-start">
           <div>
             <h2
               id="activate-code-modal-title"
-              className="text-xl font-black text-white leading-tight flex items-center gap-2"
+              className="text-xl font-black leading-tight flex items-center gap-2"
+              style={{ color: 'var(--ink)' }}
             >
-              <KeyRound className="w-5 h-5 text-amber-400 shrink-0" />
+              <KeyRound className="w-5 h-5 shrink-0" style={{ color: 'var(--gold)' }} />
               <span>
                 {isArabic ? 'تفعيل كود Pro أو الأكاديمية' : 'Activate Pro / Academy Code'}
               </span>
             </h2>
-            <p className="text-xs sm:text-sm text-stone-400 font-medium mt-1">
+            <p className="text-xs sm:text-sm font-medium mt-1 leading-relaxed" style={{ color: 'var(--ink-muted)' }}>
               {isArabic
                 ? 'ادفع بسهولة عبر InstaPay أو كاش في السنتر وادخل كود التفعيل لفتح الميزات المتقدمة فوراً.'
                 : 'Pay via InstaPay or cash at your partner center, then enter your single-use voucher code.'}
@@ -179,47 +217,63 @@ export function ActivateCodeModal({
           {/* Egypt Pricing Ladder + Free First-Session Student Code Badge */}
           <div className="space-y-2.5">
             <div className="flex items-center justify-between gap-2 flex-wrap">
-              <span className="text-xs font-black text-amber-300">
+              <span className="text-xs font-black" style={{ color: 'var(--ink)' }}>
                 {isArabic ? 'باقات مصر (بدون فيزا أو دولار):' : 'Egypt Pricing Ladder (EGP · Zero Foreign Cards):'}
               </span>
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+              <span
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-black border"
+                style={{
+                  backgroundColor: 'var(--accent-soft)',
+                  color: 'var(--accent)',
+                  borderColor: 'var(--accent)',
+                }}
+              >
                 <GraduationCap className="w-3.5 h-3.5 shrink-0" />
                 <span>
                   {isArabic ? 'كود مجاني لأول حصة للطلاب (ALAQSA-FREE)' : 'Free First-Session Student Code (ALAQSA-FREE)'}
                 </span>
               </span>
             </div>
-            <div className="grid grid-cols-3 gap-2">
-              <div className="p-2.5 rounded-2xl bg-stone-900/90 border border-stone-800 text-center space-y-0.5">
-                <span className="text-[10px] font-bold text-stone-400 block">
+            <div className="grid grid-cols-1 min-[360px]:grid-cols-3 gap-2">
+              <div
+                className="p-2.5 rounded-2xl border text-center space-y-0.5"
+                style={{ backgroundColor: 'var(--bg)', borderColor: 'var(--border)' }}
+              >
+                <span className="text-[11px] font-bold block" style={{ color: 'var(--ink-muted)' }}>
                   {isArabic ? 'شهري (30 يوم)' : 'Monthly (30d)'}
                 </span>
-                <span className="text-base font-black text-white block">
+                <span className="text-base font-black block" style={{ color: 'var(--ink)' }}>
                   {isArabic ? '50 ج.م' : '50 EGP'}
                 </span>
-                <span className="text-[10px] text-teal-300 font-semibold block">
+                <span className="text-[11px] font-bold block" style={{ color: 'var(--accent)' }}>
                   {isArabic ? '/ شهر' : '/ month'}
                 </span>
               </div>
-              <div className="p-2.5 rounded-2xl bg-teal-950/50 border border-teal-500/40 text-center space-y-0.5">
-                <span className="text-[10px] font-bold text-teal-300 block">
+              <div
+                className="p-2.5 rounded-2xl border-2 text-center space-y-0.5"
+                style={{ backgroundColor: 'var(--accent-soft)', borderColor: 'var(--accent)' }}
+              >
+                <span className="text-[11px] font-bold block" style={{ color: 'var(--accent)' }}>
                   {isArabic ? 'الموسم (90 يوم)' : '3-Month Season'}
                 </span>
-                <span className="text-base font-black text-white block">
+                <span className="text-base font-black block" style={{ color: 'var(--ink)' }}>
                   {isArabic ? '120 ج.م' : '120 EGP'}
                 </span>
-                <span className="text-[10px] text-emerald-300 font-semibold block">
+                <span className="text-[11px] font-bold block" style={{ color: 'var(--ink)' }}>
                   {isArabic ? 'وفّر 20%' : 'Save 20%'}
                 </span>
               </div>
-              <div className="p-2.5 rounded-2xl bg-amber-950/40 border border-amber-500/50 text-center space-y-0.5">
-                <span className="text-[10px] font-black text-amber-300 block">
+              <div
+                className="p-2.5 rounded-2xl border-2 text-center space-y-0.5"
+                style={{ backgroundColor: 'var(--bg)', borderColor: 'var(--gold)' }}
+              >
+                <span className="text-[11px] font-black block" style={{ color: 'var(--gold)' }}>
                   {isArabic ? 'مؤسّس مدى الحياة' : 'Founding Lifetime'}
                 </span>
-                <span className="text-base font-black text-amber-200 block">
+                <span className="text-base font-black block" style={{ color: 'var(--ink)' }}>
                   {isArabic ? '299 ج.م' : '299 EGP'}
                 </span>
-                <span className="text-[10px] text-amber-300/90 font-semibold block">
+                <span className="text-[11px] font-semibold block" style={{ color: 'var(--ink-muted)' }}>
                   {isArabic ? 'مرة واحدة ♾️' : 'One-time ♾️'}
                 </span>
               </div>
@@ -227,9 +281,13 @@ export function ActivateCodeModal({
           </div>
 
           {/* Code Redemption Form */}
-          <form onSubmit={handleSubmit} className="space-y-3 p-4 rounded-2xl bg-stone-900/90 border border-stone-800">
+          <form
+            onSubmit={handleSubmit}
+            className="space-y-3 p-4 rounded-2xl border"
+            style={{ backgroundColor: 'var(--bg)', borderColor: 'var(--border)' }}
+          >
             <div className="space-y-1.5">
-              <label htmlFor="tb-voucher-code" className="block text-xs font-bold text-stone-200">
+              <label htmlFor="tb-voucher-code" className="block text-xs font-bold" style={{ color: 'var(--ink)' }}>
                 {isArabic ? 'كود التفعيل (شهري / موسم / مدى الحياة / كود الطلاب):' : 'Activation code (Monthly / Season / Lifetime / Student):'}
               </label>
               <input
@@ -241,12 +299,17 @@ export function ActivateCodeModal({
                 autoComplete="off"
                 spellCheck={false}
                 dir="ltr"
-                className="w-full px-4 py-3 rounded-xl border border-stone-700 bg-[#0A0E13] text-white placeholder:text-stone-500 text-sm font-mono font-bold uppercase tracking-wider focus:outline-none focus:border-amber-400"
+                className="w-full min-h-[48px] px-4 py-3 rounded-xl border text-sm font-mono font-bold uppercase tracking-wider focus:outline-none"
+                style={{
+                  backgroundColor: 'var(--surface)',
+                  borderColor: 'var(--border)',
+                  color: 'var(--ink)',
+                }}
               />
             </div>
 
             <div className="space-y-1.5">
-              <label htmlFor="tb-student-name" className="block text-xs font-bold text-stone-300">
+              <label htmlFor="tb-student-name" className="block text-xs font-bold" style={{ color: 'var(--ink-muted)' }}>
                 {isArabic ? 'الاسم (اختياري — لطلاب الأكاديمية):' : 'Student name (optional — for Academy cohorts):'}
               </label>
               <input
@@ -256,18 +319,23 @@ export function ActivateCodeModal({
                 onChange={(e) => setDisplayName(e.target.value)}
                 placeholder={isArabic ? 'مثال: أحمد محمد' : 'e.g. Ahmed Mohamed'}
                 maxLength={64}
-                className="w-full px-4 py-2.5 rounded-xl border border-stone-700/80 bg-[#0A0E13] text-white placeholder:text-stone-500 text-sm focus:outline-none focus:border-teal-400"
+                className="w-full min-h-[48px] px-4 py-2.5 rounded-xl border text-sm focus:outline-none"
+                style={{
+                  backgroundColor: 'var(--surface)',
+                  borderColor: 'var(--border)',
+                  color: 'var(--ink)',
+                }}
               />
             </div>
 
             {errorMsg && (
-              <p role="alert" className="text-xs font-bold text-rose-400 bg-rose-500/10 border border-rose-500/30 rounded-xl px-3 py-2">
+              <p role="alert" className="text-xs font-bold text-rose-500 bg-rose-500/10 border border-rose-500/40 rounded-xl px-3 py-2">
                 ⚠️ {errorMsg}
               </p>
             )}
 
             {successMsg && (
-              <p role="status" className="text-xs font-bold text-emerald-300 bg-emerald-500/10 border border-emerald-500/30 rounded-xl px-3 py-2">
+              <p role="status" className="text-xs font-bold text-emerald-500 bg-emerald-500/10 border border-emerald-500/40 rounded-xl px-3 py-2">
                 {successMsg}
               </p>
             )}
@@ -275,7 +343,11 @@ export function ActivateCodeModal({
             <button
               type="submit"
               disabled={isRedeeming || !code.trim()}
-              className="w-full min-h-[48px] py-3 px-4 rounded-xl font-black text-sm bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-stone-950 shadow-lg shadow-amber-500/20 disabled:opacity-50 transition-all cursor-pointer"
+              className="w-full min-h-[48px] py-3 px-4 rounded-xl font-black text-sm shadow-lg disabled:opacity-50 transition-all cursor-pointer"
+              style={{
+                backgroundColor: 'var(--gold)',
+                color: 'var(--gold-ink)',
+              }}
             >
               {isRedeeming
                 ? isArabic
@@ -288,8 +360,11 @@ export function ActivateCodeModal({
           </form>
 
           {/* Egypt-Friendly InstaPay & Local Center Payment Box */}
-          <div className="p-4 rounded-2xl bg-gradient-to-br from-teal-950/60 to-stone-900 border border-teal-500/30 space-y-3">
-            <div className="flex items-center gap-2 text-xs font-black text-teal-300">
+          <div
+            className="p-4 rounded-2xl border space-y-3"
+            style={{ backgroundColor: 'var(--bg)', borderColor: 'var(--accent)' }}
+          >
+            <div className="flex items-center gap-2 text-xs font-black" style={{ color: 'var(--accent)' }}>
               <Landmark className="w-4 h-4 shrink-0" />
               <span>
                 {isArabic
@@ -298,26 +373,34 @@ export function ActivateCodeModal({
               </span>
             </div>
 
-            <div className="flex items-center justify-between gap-2 p-3 rounded-xl bg-[#0A0E13] border border-teal-500/30">
-              <div className="min-w-0">
-                <span className="text-[10px] uppercase font-bold text-stone-400 block">
-                  InstaPay Address
+            <div
+              className="flex flex-wrap items-center justify-between gap-2 p-3 rounded-xl border"
+              style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+            >
+              <div className="min-w-0 flex-1">
+                <span className="text-[11px] font-bold block" style={{ color: 'var(--ink-muted)' }}>
+                  {isArabic ? 'عنوان إنستاباي (InstaPay)' : 'InstaPay Address'}
                 </span>
-                <span dir="ltr" className="text-xs sm:text-sm font-mono font-black text-teal-300 block truncate">
+                <span dir="ltr" className="text-xs sm:text-sm font-mono font-black block break-all" style={{ color: 'var(--accent)' }}>
                   {INSTAPAY_HANDLE}
                 </span>
               </div>
               <button
                 type="button"
                 onClick={handleCopyInstaPay}
-                className="min-h-[40px] px-3 py-2 rounded-xl bg-teal-500/20 hover:bg-teal-500/30 text-teal-200 border border-teal-500/40 text-xs font-bold flex items-center gap-1.5 shrink-0 cursor-pointer transition"
+                className="min-h-[48px] px-3.5 py-2 rounded-xl border text-xs font-black flex items-center gap-1.5 shrink-0 cursor-pointer transition"
+                style={{
+                  backgroundColor: 'var(--accent-soft)',
+                  borderColor: 'var(--accent)',
+                  color: 'var(--accent)',
+                }}
               >
-                {copiedInstaPay ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                {copiedInstaPay ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                 <span>{copiedInstaPay ? (isArabic ? 'تم النسخ' : 'Copied') : isArabic ? 'نسخ' : 'Copy'}</span>
               </button>
             </div>
 
-            <ol className="text-xs text-stone-300 space-y-1.5 list-decimal list-inside leading-relaxed">
+            <ol className="text-xs space-y-1.5 list-decimal list-inside leading-relaxed" style={{ color: 'var(--ink)' }}>
               <li>
                 {isArabic
                   ? 'حوّل عبر InstaPay على العنوان أعلاه أو ادفع كاش في السنتر الشريك (مثل سنتر الأقصى التعليمي).'
@@ -335,7 +418,7 @@ export function ActivateCodeModal({
               </li>
             </ol>
 
-            <div className="flex items-center gap-2 pt-1 text-[11px] text-amber-300/90 font-bold">
+            <div className="flex items-center gap-2 pt-1 text-xs font-bold" style={{ color: 'var(--gold)' }}>
               <GraduationCap className="w-4 h-4 shrink-0" />
               <span>
                 {isArabic
@@ -347,8 +430,11 @@ export function ActivateCodeModal({
         </div>
 
         {/* Footer Guarantee */}
-        <div className="border-t border-stone-800 px-5 py-3.5 bg-stone-950/80 flex items-center justify-between gap-2 text-xs">
-          <span className="flex items-center gap-1.5 text-emerald-400 font-bold">
+        <div
+          className="border-t px-4 sm:px-5 py-3.5 flex items-center justify-between gap-2 text-xs"
+          style={{ backgroundColor: 'var(--bg)', borderColor: 'var(--border)' }}
+        >
+          <span className="flex items-center gap-1.5 font-bold" style={{ color: 'var(--accent)' }}>
             <ShieldCheck className="w-4 h-4 shrink-0" />
             <span>
               {isArabic
