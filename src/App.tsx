@@ -98,6 +98,8 @@ const HackerTerminal = lazy(() => import('./components/story/HackerTerminal').th
 const StoryEngineLoader = lazy(() => import('./components/story/StoryEngineLoader').then((m) => ({ default: m.StoryEngineLoader })));
 const TeacherView = lazy(() => import('./pages/TeacherView').then((m) => ({ default: m.TeacherView })));
 const ExamPage = lazy(() => import('./features/exam/ExamPage').then((m) => ({ default: m.ExamPage })));
+const AdminConsoleView = lazy(() => import('./pages/AdminConsoleView').then((m) => ({ default: m.AdminConsoleView })));
+const CertificateVerifyView = lazy(() => import('./pages/CertificateVerifyView').then((m) => ({ default: m.CertificateVerifyView })));
 
 type View =
   | { name: 'shell' }
@@ -110,6 +112,8 @@ type View =
   | { name: 'clarifying' }
   | { name: 'preferences' }
   | { name: 'admin' }
+  | { name: 'admin-console' }
+  | { name: 'verify'; code?: string }
   | { name: 'maintenance' }
   | { name: 'pronunciation' }
   | { name: 'studio' }
@@ -142,6 +146,11 @@ export default function App() {
         if (path === '/android') return { name: 'android' };
         if (path === '/language-game') return { name: 'language-game' };
         if (path === '/teacher') return { name: 'teacher' };
+        if (path === '/admin') return { name: 'admin-console' };
+        if (path === '/verify' || path.startsWith('/verify/')) {
+          const code = window.location.pathname.replace(/^\/verify\/?/i, '').trim();
+          return { name: 'verify', code: code || undefined };
+        }
         if (urlParams.get('admin') === 'true') return { name: 'studio' };
         if (urlParams.get('app') === 'true' || path === '/app') {
           return { name: 'shell' };
@@ -326,6 +335,11 @@ export default function App() {
         else if (path === '/android') setView({ name: 'android' });
         else if (path === '/language-game') setView({ name: 'language-game' });
         else if (path === '/teacher') setView({ name: 'teacher' });
+        else if (path === '/admin') setView({ name: 'admin-console' });
+        else if (path === '/verify' || path.startsWith('/verify/')) {
+          const code = window.location.pathname.replace(/^\/verify\/?/i, '').trim();
+          setView({ name: 'verify', code: code || undefined });
+        }
         else if (urlParams.get('admin') === 'true') setView({ name: 'studio' });
         else if (urlParams.get('app') === 'true' || path === '/app' || Capacitor.isNativePlatform()) {
           setView({ name: 'shell' });
@@ -498,6 +512,26 @@ export default function App() {
       <ErrorBoundary>
         <Suspense fallback={<main className="android-landing min-h-[100dvh]" aria-busy="true">Loading Thinking Bridge…</main>}>
           <AndroidLandingPage />
+        </Suspense>
+      </ErrorBoundary>
+    );
+  }
+
+  if (view.name === 'admin-console') {
+    return (
+      <ErrorBoundary>
+        <Suspense fallback={<main className="min-h-[100dvh] bg-[#0A0E13] text-[#EEF2F5] flex items-center justify-center" aria-busy="true">Loading Admin Console…</main>}>
+          <AdminConsoleView onBack={openLanding} isArabic={isArabic} />
+        </Suspense>
+      </ErrorBoundary>
+    );
+  }
+
+  if (view.name === 'verify') {
+    return (
+      <ErrorBoundary>
+        <Suspense fallback={<main className="min-h-[100dvh] bg-[#0A0E13] text-[#EEF2F5] flex items-center justify-center" aria-busy="true">Loading Certificate Verification…</main>}>
+          <CertificateVerifyView initialCode={view.code} onBack={openLanding} isArabic={isArabic} />
         </Suspense>
       </ErrorBoundary>
     );

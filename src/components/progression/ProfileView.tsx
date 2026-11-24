@@ -1,14 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ProgressionState } from '../../progression/types';
 import { UserProfile } from '../../types';
-import { Shield, Download, Upload, Trash2, Settings, Brain, KeyRound, Crown, Gauge, Palette } from 'lucide-react';
+import { Shield, Download, Upload, Trash2, Settings, Brain, KeyRound, Crown, Gauge, Palette, Cloud, RefreshCw, Copy, Check } from 'lucide-react';
 import { GlobalTutorBrain } from '../../utils/OnlineLearningEngine';
 import { useUiMode } from '../../utils/uiMode';
-import { EntitlementState } from '../../types/entitlement';
-import { hasProAccess } from '../../services/entitlementService';
+import { EntitlementState, EntitlementTier } from '../../types/entitlement';
+import { getOrCreateDeviceId, hasProAccess, saveCachedEntitlement } from '../../services/entitlementService';
 import { TrophyCabinet } from '../../features/gamification/TrophyCabinet';
 import { PerfModeSetting, usePerfMode } from '../../utils/devicePerf';
-import { AVATAR_FRAME_MAP, useEconomy } from '../../features/gamification/economy';
+import { AVATAR_FRAME_MAP, EconomyState, loadEconomyState, saveEconomyState, useEconomy } from '../../features/gamification/economy';
+import { loadUserProgress, saveUserProgress } from '../../utils/storage';
 
 const categoryLabelsAr: Record<string, string> = {
   copula: 'الرابط الخفي (copula)',
@@ -184,6 +185,316 @@ export function ProfileView({
       ? isArabic ? 'معلم أكاديمية' : 'Academy Teacher'
       : isArabic ? 'مجاني للأبد' : 'Free Forever';
 
+  const isProUnlocked = entitlement ? hasProAccess(entitlement) : false;
+  const [backupTab, setBackupTab] = useState<'backup' | 'restore'>('backup');
+  const [backupPin, setBackupPin] = useState('');
+  const [recoveryCodeInput, setRecoveryCodeInput] = useState('');
+  const [savedRecoveryCode, setSavedRecoveryCode] = useState<string | null>(null);
+  const [backupBusy, setBackupBusy] = useState(false);
+  const [backupFeedback, setBackupFeedback] = useState<string | null>(null);
+  const [copiedRecovery, setCopiedRecovery] = useState(false);
+
+  const handleCloudSync = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!/^\d{4}$/.test(backupPin.trim())) {
+      setBackupFeedback(isArabic ? 'أدخل رمز PIN من 4 أرقام.' : 'Enter a 4-digit numeric PIN.');
+      return;
+    }
+    setBackupBusy(true);
+    setBackupFeedback(null);
+    try {
+      const deviceId = getOrCreateDeviceId();
+      const payload = {
+        version: '8.0.0',
+        savedAt: new Date().toISOString(),
+        economy: loadEconomyState(),
+        progression: state,
+        userProgress: loadUserProgress(),
+      };
+      const res = await fetch('/api/backup/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          deviceId,
+          pin: backupPin.trim(),
+          recoveryCode: recoveryCodeInput.trim().toUpperCase() || savedRecoveryCode || undefined,
+          payload,
+        }),
+      });
+      const data = (await res.json().catch(() => null)) as {
+        ok?: boolean;
+        recoveryCode?: string;
+        error?: string;
+      } | null;
+
+      if (!res.ok || !data?.ok || !data.recoveryCode) {
+        const msg =
+          data?.error === 'PRO_REQUIRED'
+            ? isArabic
+              ? 'النسخ السحابي متاح لمشتركي Pro والأكاديمية فقط.'
+              : 'Cloud Backup is available for Pro & Academy members.'
+            : data?.error === 'RATE_LIMITED'
+            ? isArabic
+              ? 'محاولات كثيرة. انتظر قليلاً وحاول مرة أخرى.'
+              : 'Too many attempts. Please wait a bit.'
+            : isArabic
+            ? 'تعذر الحفظ السحابي حالياً. تأكد من الاتصال بالإنترنت.'
+            : 'Unable to sync backup right now. Check connection.';
+        setBackupFeedback(msg);
+        return;
+      }
+
+      setSavedRecoveryCode(data.recoveryCode);
+      setBackupPin('');
+      const okMsg = isArabic
+        ? `✅ تم حفظ النسخة السحابية! كود الاستعادة: ${data.recoveryCode}`
+        : `✅ Cloud backup saved! Recovery code: ${data.recoveryCode}`;
+      setBackupFeedback(okMsg);
+      onToast?.(okMsg);
+    } catch {
+      setBackupFeedback(isArabic ? 'لا يوجد اتصال بالإنترنت.' : 'No internet connection.');
+    } finally {
+      setBackupBusy(false);
+    }
+  };
+
+  const handleCloudRestore = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const code = recoveryCodeInput.trim().toUpperCase();
+    if (!/^[A-Z0-9]{6,16}$/.test(code) || !/^\d{4}$/.test(backupPin.trim())) {
+      setBackupFeedback(
+        isArabic
+          ? 'أدخل كود الاستعادة (6 أحرف/أرقام) ورمز PIN من 4 أرقام.'
+          : 'Enter your 6-character Recovery Code and 4-digit PIN.'
+      );
+      return;
+    }
+    setBackupBusy(true);
+    setBackupFeedback(null);
+    try {
+      const newDeviceId = getOrCreateDeviceId();
+      const res = await fetch('/api/backup/restore', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          recoveryCode: code,
+          pin: backupPin.trim(),
+          newDeviceId,
+        }),
+      });
+      const data = (await res.json().catch(() => null)) as {
+        ok?: boolean;
+        entitlement?: Partial<EntitlementState> | null;
+        payload?: {
+          economy?: EconomyState;
+          progression?: ProgressionState;
+          userProgress?: ReturnType<typeof loadUserProgress>;
+        };
+        error?: string;
+      } | null;
+
+      if (!res.ok || !data?.ok) {
+        setBackupFeedback(
+          data?.error === 'RATE_LIMITED'
+            ? isArabic
+              ? 'محاولات كثيرة جداً. انتظر 15 دقيقة.'
+              : 'Too many attempts. Please wait 15 minutes.'
+            : isArabic
+            ? 'كود الاستعادة أو رمز PIN غير صحيح.'
+            : 'Invalid recovery code or PIN.'
+        );
+        return;
+      }
+
+      if (data.entitlement?.tier) {
+        saveCachedEntitlement({
+          tier: data.entitlement.tier as EntitlementTier,
+          cohortCode: data.entitlement.cohortCode ?? null,
+          label: data.entitlement.label ?? null,
+          activatedAt: data.entitlement.activatedAt ?? new Date().toISOString(),
+          expiresAt: data.entitlement.expiresAt ?? null,
+          lastSyncedAt: new Date().toISOString(),
+          source: 'server',
+        });
+      }
+      if (data.payload?.economy) {
+        saveEconomyState(data.payload.economy);
+      }
+      if (data.payload?.progression) {
+        try {
+          localStorage.setItem('tb.progressionState', JSON.stringify(data.payload.progression));
+        } catch {
+          // Ignore storage quota errors
+        }
+      }
+      if (data.payload?.userProgress) {
+        saveUserProgress(data.payload.userProgress);
+      }
+
+      onToast?.(
+        isArabic
+          ? '✅ تم استعادة باقتك وعملاتك وتقدمك بنجاح! جاري التحديث...'
+          : '✅ Pro tier, coins & progress restored! Reloading...'
+      );
+      window.setTimeout(() => window.location.reload(), 600);
+    } catch {
+      setBackupFeedback(isArabic ? 'تعذر الاتصال بالخادم.' : 'Unable to reach server.');
+    } finally {
+      setBackupBusy(false);
+    }
+  };
+
+  const cloudBackupCard = (
+    <div className="p-4 rounded-3xl bg-stone-900 border border-cyan-500/30 space-y-3 shadow-xl text-start">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <div className="flex items-center gap-2">
+          <div className="p-2 rounded-xl bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
+            <Cloud size={16} />
+          </div>
+          <div>
+            <h4 className="text-xs sm:text-sm font-black text-white">
+              {isArabic ? 'نسخ احتياطي للهاتف / Cloud Phone Backup' : 'Cloud Phone Backup / نسخ احتياطي للهاتف'}
+            </h4>
+            <p className="text-[11px] text-stone-400">
+              {isArabic
+                ? 'استعد اشتراكك وعملاتك وتقدمك على هاتف جديد في 10 ثوانٍ.'
+                : 'Restore Pro tier, coins & progress onto a new phone in 10 seconds.'}
+            </p>
+          </div>
+        </div>
+        <div className="flex rounded-xl bg-stone-950 p-0.5 border border-stone-800 text-[11px] font-black">
+          <button
+            type="button"
+            onClick={() => {
+              setBackupTab('backup');
+              setBackupFeedback(null);
+            }}
+            className={`px-2.5 py-1.5 rounded-lg cursor-pointer transition ${
+              backupTab === 'backup' ? 'bg-cyan-500 text-stone-950' : 'text-stone-400'
+            }`}
+          >
+            {isArabic ? 'حفظ' : 'Backup'}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setBackupTab('restore');
+              setBackupFeedback(null);
+            }}
+            className={`px-2.5 py-1.5 rounded-lg cursor-pointer transition ${
+              backupTab === 'restore' ? 'bg-cyan-500 text-stone-950' : 'text-stone-400'
+            }`}
+          >
+            {isArabic ? 'استعادة' : 'Restore'}
+          </button>
+        </div>
+      </div>
+
+      {backupTab === 'backup' ? (
+        isProUnlocked ? (
+          <form onSubmit={handleCloudSync} className="space-y-2.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <input
+                type="password"
+                inputMode="numeric"
+                maxLength={4}
+                value={backupPin}
+                onChange={(e) => setBackupPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                placeholder={isArabic ? 'رمز PIN من 4 أرقام' : '4-digit PIN'}
+                dir="ltr"
+                className="px-3 py-2.5 rounded-xl bg-stone-950 border border-stone-700 text-xs font-mono text-white"
+              />
+              <button
+                type="submit"
+                disabled={backupBusy || backupPin.length !== 4}
+                className="px-4 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-stone-950 text-xs font-black flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <RefreshCw size={13} className={backupBusy ? 'animate-spin' : ''} />
+                {isArabic ? 'حفظ النسخة السحابية' : 'Sync Cloud Backup'}
+              </button>
+            </div>
+            {savedRecoveryCode && (
+              <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between gap-2 text-xs">
+                <span className="text-emerald-200">
+                  {isArabic ? 'كود الاستعادة:' : 'Recovery Code:'}{' '}
+                  <strong className="font-mono text-emerald-300" dir="ltr">
+                    {savedRecoveryCode}
+                  </strong>
+                </span>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(savedRecoveryCode);
+                      setCopiedRecovery(true);
+                      window.setTimeout(() => setCopiedRecovery(false), 1800);
+                    } catch {}
+                  }}
+                  className="px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 font-bold flex items-center gap-1 cursor-pointer"
+                >
+                  {copiedRecovery ? <Check size={12} /> : <Copy size={12} />}
+                  {isArabic ? 'نسخ' : 'Copy'}
+                </button>
+              </div>
+            )}
+          </form>
+        ) : (
+          <div className="p-3 rounded-2xl bg-stone-950 border border-stone-800 flex items-center justify-between gap-2 flex-wrap text-xs">
+            <span className="text-stone-300">
+              {isArabic
+                ? 'النسخ السحابي التلقائي متاح لمشتركي Pro والأكاديمية.'
+                : 'Cloud phone backup is unlocked with Pro or Academy.'}
+            </span>
+            {onOpenActivateCode && (
+              <button
+                type="button"
+                onClick={onOpenActivateCode}
+                className="px-3 py-1.5 rounded-xl bg-amber-500 text-stone-950 font-black cursor-pointer"
+              >
+                {isArabic ? 'تفعيل كود' : 'Activate Code'}
+              </button>
+            )}
+          </div>
+        )
+      ) : (
+        <form onSubmit={handleCloudRestore} className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <input
+            type="text"
+            maxLength={16}
+            value={recoveryCodeInput}
+            onChange={(e) => setRecoveryCodeInput(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
+            placeholder={isArabic ? 'كود الاستعادة (6 أحرف)' : '6-char Code'}
+            dir="ltr"
+            className="px-3 py-2.5 rounded-xl bg-stone-950 border border-stone-700 text-xs font-mono text-white"
+          />
+          <input
+            type="password"
+            inputMode="numeric"
+            maxLength={4}
+            value={backupPin}
+            onChange={(e) => setBackupPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+            placeholder={isArabic ? 'رمز PIN (4 أرقام)' : '4-digit PIN'}
+            dir="ltr"
+            className="px-3 py-2.5 rounded-xl bg-stone-950 border border-stone-700 text-xs font-mono text-white"
+          />
+          <button
+            type="submit"
+            disabled={backupBusy || recoveryCodeInput.length < 6 || backupPin.length !== 4}
+            className="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-stone-950 text-xs font-black cursor-pointer"
+          >
+            {backupBusy
+              ? isArabic ? 'جاري الاستعادة...' : 'Restoring...'
+              : isArabic ? 'استعادة الهاتف' : 'Restore Phone'}
+          </button>
+        </form>
+      )}
+
+      {backupFeedback && (
+        <p className="text-[11px] font-bold text-cyan-300">{backupFeedback}</p>
+      )}
+    </div>
+  );
+
   const perfControlCard = (
     <div
       className="tb-card-surface p-4 rounded-3xl border space-y-3 text-start"
@@ -305,6 +616,8 @@ export function ProfileView({
 
         {perfControlCard}
 
+        {cloudBackupCard}
+
         {/* Backup & Restore */}
         <div className="p-5 rounded-3xl bg-stone-900 border border-stone-800 space-y-3 shadow-xl text-start">
           <h4 className="text-sm font-black text-white">{isArabic ? 'حفظ واستعادة تقدمك' : 'Save & Restore Progress'}</h4>
@@ -414,6 +727,8 @@ export function ProfileView({
       />
 
       <BrainActivityMatrixCard isArabic={isArabic} />
+
+      {cloudBackupCard}
 
       <div className="p-5 rounded-3xl bg-stone-900 border border-stone-800 space-y-3 shadow-xl text-start">
         <h4 className="text-sm font-black text-white">{isArabic ? 'إدارة البيانات والخصوصية' : 'Data & Privacy'}</h4>
