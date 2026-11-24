@@ -1,21 +1,26 @@
 (function () {
   try {
-    var saved = localStorage.getItem('tb.theme') || 'dark';
+    var savedV1 = localStorage.getItem('tb.theme.v1');
+    var savedLegacy = localStorage.getItem('tb.theme');
     var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
     document.documentElement.classList.remove('dark', 'light', 'theme-emerald', 'theme-sapphire');
 
-    if (saved === 'light' || (!saved && !prefersDark)) {
-      document.documentElement.classList.add('light');
-      document.documentElement.style.colorScheme = 'light';
-    } else if (saved === 'emerald') {
-      document.documentElement.classList.add('dark', 'theme-emerald');
-      document.documentElement.style.colorScheme = 'dark';
-    } else if (saved === 'sapphire') {
-      document.documentElement.classList.add('dark', 'theme-sapphire');
-      document.documentElement.style.colorScheme = 'dark';
-    } else {
+    if (savedV1 === 'midnight-cyan' || savedV1 === 'noir-mono' || savedV1 === 'royal-emerald') {
+      document.documentElement.setAttribute('data-theme', savedV1);
       document.documentElement.classList.add('dark');
       document.documentElement.style.colorScheme = 'dark';
+    } else if (savedV1 === 'daylight-cyan' || !savedV1) {
+      if (!savedV1 && (savedLegacy === 'dark' || savedLegacy === 'emerald' || savedLegacy === 'sapphire')) {
+        document.documentElement.classList.add('dark');
+        if (savedLegacy === 'emerald') document.documentElement.classList.add('theme-emerald');
+        if (savedLegacy === 'sapphire') document.documentElement.classList.add('theme-sapphire');
+        document.documentElement.style.colorScheme = 'dark';
+      } else {
+        document.documentElement.setAttribute('data-theme', 'daylight-cyan');
+        document.documentElement.classList.add('light');
+        document.documentElement.style.colorScheme = 'light';
+        void prefersDark;
+      }
     }
   } catch (e) {}
 

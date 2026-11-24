@@ -111,7 +111,7 @@ export function PracticeHubView({
                 <h3 className="font-black text-base text-white">القاموس الناطق</h3>
                 <p className="text-xs text-slate-300">بحث سريع في الكلمات مع الصوت والمعنى.</p>
               </div>
-              <span className="text-xl">←</span>
+              <span className="text-xl text-cyan-300 font-bold">←</span>
             </button>
           )}
 
@@ -125,7 +125,7 @@ export function PracticeHubView({
                 <h3 className="font-black text-base text-white">تمرين النطق البسيط</h3>
                 <p className="text-xs text-slate-300">سجّل صوتك وقارن نطقك محلياً.</p>
               </div>
-              <span className="text-xl">←</span>
+              <span className="text-xl text-cyan-300 font-bold">←</span>
             </button>
           )}
 
@@ -138,14 +138,14 @@ export function PracticeHubView({
               <h3 className="font-black text-base text-white">بطاقات المراجعة السريعة</h3>
               <p className="text-xs text-slate-300">راجع الكلمات وحافظ على الذاكرة.</p>
             </div>
-            <span className="text-xl">←</span>
+            <span className="text-xl text-cyan-300 font-bold">←</span>
           </button>
         </div>
 
         <div className="text-center pt-2">
           <button
             onClick={() => setUiMode('pro')}
-            className="min-h-[48px] inline-flex items-center justify-center text-xs font-bold text-cyan-400 hover:underline cursor-pointer p-2"
+            className="min-h-[48px] inline-flex items-center justify-center text-xs font-bold text-[var(--accent)] hover:underline cursor-pointer p-2"
           >
             عرض كل أدوات الوضع المتقدم (المحادثة، Corporate، القصة...) ⚡
           </button>

@@ -113,7 +113,7 @@ export function ActivateCodeModal({
 
   return (
     <div
-      className="fixed inset-0 z-[80] flex items-center justify-center p-3 sm:p-6 pt-safe pb-safe bg-black/80 backdrop-blur-md animate-in fade-in"
+      className="fixed inset-0 z-[200] flex items-center justify-center p-3 sm:p-6 pt-safe pb-safe bg-black/80 backdrop-blur-md animate-in fade-in"
       dir={isArabic ? 'rtl' : 'ltr'}
       role="dialog"
       aria-modal="true"

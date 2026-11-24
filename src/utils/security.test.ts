@@ -121,7 +121,7 @@ test('5. production build emits non-empty dictionary chunks in dist/assets', () 
   assert.ok(totalBytes > 20 * 1024 * 1024, `Expected > 20 MB of dict chunks, got ${(totalBytes / 1024 / 1024).toFixed(1)} MB`);
 });
 
-test('6. index.html meta CSP equals vercel.json Content-Security-Policy header value byte-for-byte', () => {
+test('6. index.html meta CSP matches vercel.json CSP header (excluding header-only frame-ancestors)', () => {
   const vercelPath = path.join(ROOT_DIR, 'vercel.json');
   assert.ok(fs.existsSync(vercelPath), 'vercel.json must exist');
   const vercelConfig = JSON.parse(fs.readFileSync(vercelPath, 'utf8'));
@@ -129,7 +129,12 @@ test('6. index.html meta CSP equals vercel.json Content-Security-Policy header v
   assert.ok(globalHeaderRule, 'vercel.json must have global /(.*) header rule');
   const cspHeader = globalHeaderRule.headers?.find((h: any) => h.key === 'Content-Security-Policy');
   assert.ok(cspHeader, 'vercel.json must have Content-Security-Policy header');
-  const vercelCspValue = cspHeader.value;
+  const vercelCspValue: string = cspHeader.value;
+
+  assert.ok(
+    vercelCspValue.includes("frame-ancestors 'none';"),
+    'vercel.json HTTP CSP header must enforce frame-ancestors none'
+  );
 
   const indexPath = path.join(ROOT_DIR, 'index.html');
   const indexHtml = fs.readFileSync(indexPath, 'utf8');
@@ -137,10 +142,16 @@ test('6. index.html meta CSP equals vercel.json Content-Security-Policy header v
   assert.ok(metaCspMatch, 'index.html must contain a <meta http-equiv="Content-Security-Policy"> tag');
   const indexMetaCspValue = metaCspMatch[1];
 
+  assert.ok(
+    !indexMetaCspValue.includes('frame-ancestors'),
+    'index.html meta CSP must not contain header-only frame-ancestors directive'
+  );
+
+  const expectedMetaCsp = vercelCspValue.replace(/\s*frame-ancestors\s+'none';/i, '').trim();
   assert.equal(
     indexMetaCspValue,
-    vercelCspValue,
-    'index.html meta CSP content must match vercel.json Content-Security-Policy header byte-for-byte'
+    expectedMetaCsp,
+    'index.html meta CSP content must match vercel.json Content-Security-Policy header (minus frame-ancestors)'
   );
 });
 

@@ -121,7 +121,10 @@ export function UserSetupModal({
     setStep(1);
     setSelectedGuide(initialGuideMode);
     setSelectedTrack(initialTrack);
-  }, [isOpen, initialGuideMode, initialTrack]);
+    // Reset only when modal opens; changing guideMode inside Step 1 updates initialGuideMode via parent
+    // and must not snap the user back from Step 2 to Step 1.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -164,7 +167,7 @@ export function UserSetupModal({
 
   return (
     <div
-      className="fixed inset-0 z-[95] flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm p-0 sm:p-4 pt-safe"
+      className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm p-0 sm:p-4 pt-safe"
       role="dialog"
       aria-modal="true"
       aria-labelledby="user-setup-modal-title"
@@ -265,7 +268,7 @@ export function UserSetupModal({
                   >
                     <div className="flex items-start gap-3 min-w-0">
                       <span className="text-2xl shrink-0 leading-none mt-0.5">{opt.icon}</span>
-                      <div className="min-w-0">
+                      <div className="min-w-0" dir={showEn ? 'ltr' : undefined}>
                         <span className="text-sm font-black block leading-snug">
                           {showEn ? opt.titleEn : opt.titleAr}
                         </span>

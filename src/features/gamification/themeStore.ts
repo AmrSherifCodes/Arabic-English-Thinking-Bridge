@@ -154,10 +154,12 @@ export function applyThemeToDocument(themeId: ThemeId): void {
   const root = document.documentElement;
 
   root.setAttribute('data-theme', def.id);
+  root.classList.toggle('dark', def.isDark);
   root.classList.toggle('light', !def.isDark);
   root.style.colorScheme = def.isDark ? 'dark' : 'light';
 
   root.style.setProperty('--bg', def.tokens.bg);
+  root.style.setProperty('--fg', def.tokens.ink);
   root.style.setProperty('--surface', def.tokens.surface);
   root.style.setProperty('--ink', def.tokens.ink);
   root.style.setProperty('--ink-muted', def.tokens.inkMuted);

@@ -270,7 +270,7 @@ export function Onboarding({ initialProfile, onComplete, onCancel }: OnboardingP
                       <h1 className="text-2xl sm:text-3xl font-black text-white leading-snug">
                         من أين <span className="text-teal-400">تبدأ رحلتك؟</span> 🌐
                       </h1>
-                      <p className="text-xs sm:text-sm text-stone-300 mt-1">
+                      <p dir="ltr" className="text-xs sm:text-sm text-stone-300 mt-1 text-start">
                         Where do you want to start? Choose your path:
                       </p>
                     </div>

@@ -76,7 +76,7 @@ export function ThemeShopModal({
 
   return (
     <div
-      className="fixed inset-0 z-[80] flex items-end sm:items-center justify-center bg-black/75 p-0 sm:p-4 pt-safe"
+      className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/75 p-0 sm:p-4 pt-safe"
       role="dialog"
       aria-modal="true"
       aria-label={isArabic ? 'متجر الثيمات والإطارات' : 'Themes & Frames Shop'}

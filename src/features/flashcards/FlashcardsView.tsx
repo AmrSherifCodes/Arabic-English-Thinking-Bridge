@@ -291,10 +291,21 @@ export function FlashcardsView({
         t('Review', 'مراجعة');
 
   return (
-    <div className="px-3 sm:px-5 md:px-6 pt-safe pb-safe min-h-[100dvh] bg-[var(--bg,#0b0d10)] text-[var(--fg,#e9ecf1)]">
+    <div className="px-3 sm:px-5 md:px-6 pt-safe pb-safe min-h-[100dvh] bg-[var(--bg)] text-[var(--ink)]">
       <div className="max-w-4xl mx-auto w-full">
       
-        <button onClick={onBack} style={{ minHeight: 48, padding: '8px 16px', borderRadius: 8, background: '#ffffff1a', color: 'inherit', border: 0, cursor: 'pointer', marginBottom: 16 }}>
+        <button
+          type="button"
+          onClick={onBack}
+          className="inline-flex items-center gap-1.5 font-bold text-sm rounded-xl border transition cursor-pointer mb-4"
+          style={{
+            minHeight: 48,
+            padding: '8px 16px',
+            backgroundColor: 'var(--surface)',
+            borderColor: 'var(--border)',
+            color: 'var(--ink)',
+          }}
+        >
         {t('← Back to Menu', '→ العودة للقائمة')}
       </button>
 
