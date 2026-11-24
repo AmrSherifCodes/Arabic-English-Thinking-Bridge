@@ -3,10 +3,20 @@ import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { Keyboard, KeyboardResize } from '@capacitor/keyboard';
-import { Download } from 'lucide-react';
+import { Download, Map, Gamepad2, BookOpen, User, Palette } from 'lucide-react';
 
-import { AppTab } from './components/navigation/AppShell';
 import { LandingPage } from './components/LandingPage';
+import { initDevicePerf, PERF_MODE_STORAGE_KEY } from './utils/devicePerf';
+import { initTheme, THEME_STORAGE_KEY } from './features/gamification/themeStore';
+import {
+  ECONOMY_STORAGE_KEY,
+  awardArcadeWinCoins,
+  awardDailyStreakCoins,
+  awardLevelCompletion,
+  useEconomy,
+} from './features/gamification/economy';
+import { ThemeShopModal } from './features/gamification/ThemeShopModal';
+import { UpdateBanner } from './components/UpdateBanner';
 import { PwaInstallBanner } from './components/PwaInstallBanner';
 import { useUserProfile } from './hooks/useUserProfile';
 import { loadUserProgress, saveUserProgress } from './utils/storage';
@@ -20,7 +30,11 @@ import { ErwinChargeModal } from './components/ErwinChargeModal';
 import { AlexandrianEasterEggModal } from './components/AlexandrianEasterEggModal';
 import { MutahEasterEggModal } from './components/MutahEasterEggModal';
 import { SupporterGateModal } from './components/SupporterGateModal';
+import { ActivateCodeModal } from './components/ActivateCodeModal';
+import { AchievementToast } from './features/gamification/AchievementToast';
 import { YouTubeSupporterPopup } from './components/YouTubeSupporterPopup';
+import { useEntitlement } from './hooks/useEntitlement';
+import { clearLocalLearningDataPreservingEntitlement } from './services/entitlementService';
 import { TARGET_LANGUAGE_META } from './data/languages';
 import { DualSpeedAudio } from './components/DualSpeedAudio';
 import { useAmrClickEasterEgg } from './utils/easterEgg';
@@ -57,7 +71,6 @@ function hasSavedProgression(): boolean {
 }
 
 // Lazy loading heavy view components for instant Landing Page loading & code-splitting
-const AppShell = lazy(() => import('./components/navigation/AppShell').then((m) => ({ default: m.AppShell })));
 const OnboardingFlow = lazy(() => import('./components/Onboarding/OnboardingFlow').then((m) => ({ default: m.OnboardingFlow })));
 const Onboarding = lazy(() => import('./components/Onboarding').then((m) => ({ default: m.Onboarding })));
 const AndroidLandingPage = lazy(() => import('./components/AndroidLandingPage').then((m) => ({ default: m.AndroidLandingPage })));
@@ -150,7 +163,13 @@ export default function App() {
         }
         window.scrollTo(0, 0);
       }
+      localStorage.setItem('tb.onboardingComplete', 'true');
     } catch {}
+    // Drop first-time learners straight onto Node 1 of the winding map
+    setShowAgeGate(false);
+    setNewOnboardingOpen(false);
+    setOnboardingOpen(false);
+    setActiveTab('path');
     setView({ name: 'shell' });
   };
 
@@ -179,7 +198,9 @@ export default function App() {
     closeAlexandrianModal,
   } = useAmrClickEasterEgg();
 
-  const [activeTab, setActiveTab] = useState<AppTab>('path');
+  const [activeTab, setActiveTab] = useState<'path' | 'arcade' | 'practice' | 'profile'>('path');
+  const [shopOpen, setShopOpen] = useState(false);
+  const { economy } = useEconomy();
   const [progression, setProgression] = useState<ProgressionState>(() => {
     const hasExistingProgression = hasSavedProgression();
     const migrated = migrateLegacyStorageToProgression();
@@ -191,6 +212,8 @@ export default function App() {
 
   const [activeLessonNode, setActiveLessonNode] = useState<LessonNode | null>(null);
   const [supporterGateOpen, setSupporterGateOpen] = useState(false);
+  const [activateCodeOpen, setActivateCodeOpen] = useState(false);
+  const { entitlement, isPro } = useEntitlement();
   const [showSupporterPopup, setShowSupporterPopup] = useState(false);
   const [newOnboardingOpen, setNewOnboardingOpen] = useState<boolean>(() => {
     if (typeof window !== 'undefined' && window.location.search.includes('admin=true')) {
@@ -267,6 +290,9 @@ export default function App() {
         : [];
 
   useEffect(() => {
+    initDevicePerf();
+    initTheme();
+    awardDailyStreakCoins(isPro);
     initYouTubeSupporter();
     syncUiModeClass();
     syncLearnerModeClass();
@@ -411,11 +437,16 @@ export default function App() {
 
   const goHome = () => setView({ name: 'shell' });
 
-  const handleLessonSessionComplete = async (earnedXp: number, _accuracyPercent: number) => {
+  const handleLessonSessionComplete = async (earnedXp: number, accuracyPercent: number) => {
     let nextStage: CefrStage | undefined;
+    let coinsEarned = 0;
+    let starsEarned = 1;
     if (activeLessonNode) {
       const { getNextStageAfterLessonCompletion } = await import('./progression/courseData');
       nextStage = getNextStageAfterLessonCompletion(progression, activeLessonNode.id);
+      const economyResult = awardLevelCompletion(activeLessonNode.id, accuracyPercent, { isPro });
+      coinsEarned = economyResult.coinsEarned;
+      starsEarned = economyResult.starsEarned;
     }
 
     const stageCompleted = Boolean(nextStage);
@@ -438,9 +469,18 @@ export default function App() {
           : stateWithStreak.lessonCrowns,
       };
     });
-    showToast(stageCompleted && nextStage
-      ? T(`🔓 فتحت المرحلة ${nextStage}! +${earnedXp} XP`, `🔓 ${nextStage} unlocked! +${earnedXp} XP`)
-      : T(`🎉 +${earnedXp} XP! درس مكتمل بنجاح`, `🎉 +${earnedXp} XP! Lesson Mastered!`));
+    const starText = '⭐'.repeat(starsEarned);
+    showToast(
+      stageCompleted && nextStage
+        ? T(
+            `🔓 فتحت المرحلة ${nextStage}! +${earnedXp} XP · +${coinsEarned} 🪙 ${starText}`,
+            `🔓 ${nextStage} unlocked! +${earnedXp} XP · +${coinsEarned} 🪙 ${starText}`
+          )
+        : T(
+            `🎉 +${earnedXp} XP · +${coinsEarned} 🪙 (${starText})`,
+            `🎉 +${earnedXp} XP · +${coinsEarned} 🪙 (${starText})`
+          )
+    );
   };
 
   if (view.name === 'landing') {
@@ -482,37 +522,208 @@ export default function App() {
             </main>
           }
         >
-      {/* 1. Primary App Shell (Home / Path / Practice / Quests / League / Profile) */}
+      {/* 1. Primary One-Thumb Mobile Game HUD (Map / Arcade / Practice / Profile) */}
       {view.name === 'shell' && (
-        <AppShell
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          state={progression}
-          targetLang={targetLang}
-          isArabic={isArabic}
-          onOpenLanding={openLanding}
-          onOpenLanguageSelector={() => setLangSelectorOpen(true)}
-          onOpenAgeGate={() => setShowAgeGate(true)}
-          onOpenSupporterPopup={() => setShowSupporterPopup(true)}
+        <div
+          className="min-h-[100dvh] w-full max-w-[100vw] overflow-x-clip flex flex-col"
+          style={{
+            backgroundColor: 'var(--bg)',
+            color: 'var(--ink)',
+          }}
+          dir={isArabic ? 'rtl' : 'ltr'}
         >
-          {activeTab === 'path' && (
-            <div className="space-y-3">
-              <LanguagePairBanner
-                sourceLang={sourceLang}
-                targetLang={targetLang}
-                onOpenSelector={() => setLangSelectorOpen(true)}
-              />
+          {/* Slim 48px Sticky Top HUD Bar */}
+          <header
+            className="tb-hud-bar sticky top-0 z-40 w-full border-b"
+            style={{
+              backgroundColor: 'var(--surface)',
+              borderColor: 'var(--border)',
+              paddingTop: 'env(safe-area-inset-top, 0px)',
+            }}
+          >
+            <div className="min-h-[48px] max-w-[480px] mx-auto px-2.5 py-1 flex items-center justify-between gap-1.5 flex-wrap">
+              <div className="flex items-center gap-1.5 flex-wrap text-xs font-black">
+                <span
+                  className="px-2 py-1 rounded-xl border"
+                  style={{
+                    backgroundColor: 'var(--accent)',
+                    color: '#FFFFFF',
+                    borderColor: 'var(--accent)',
+                  }}
+                >
+                  {progression.currentLevelId || progression.currentStage || 'A1'}
+                </span>
+                <span
+                  className="px-2 py-1 rounded-xl border"
+                  style={{
+                    backgroundColor: 'var(--bg)',
+                    borderColor: 'var(--border)',
+                    color: 'var(--ink)',
+                  }}
+                  title={isArabic ? 'عملات الجسر' : 'Bridge Coins'}
+                >
+                  🪙 {economy.coins}
+                </span>
+                <span
+                  className="px-2 py-1 rounded-xl border"
+                  style={{
+                    backgroundColor: 'var(--bg)',
+                    borderColor: 'var(--border)',
+                    color: 'var(--ink)',
+                  }}
+                  title={isArabic ? 'أيام الاستمرار' : 'Streak'}
+                >
+                  🔥 {progression.streak || 0}
+                </span>
+                <span
+                  className="px-2 py-1 rounded-xl border"
+                  style={{
+                    backgroundColor: 'var(--bg)',
+                    borderColor: 'var(--border)',
+                    color: 'var(--ink)',
+                  }}
+                  title={isArabic ? 'دروع السلسلة' : 'Streak Shields'}
+                >
+                  🛡️ {economy.shields}
+                </span>
+              </div>
 
-              <PathView
-                state={progression}
-                targetLang={targetLang}
-                onSelectLesson={(lesson) => {
-                  setActiveLessonNode(lesson);
+              <button
+                type="button"
+                onClick={() => setShopOpen(true)}
+                aria-label={isArabic ? 'متجر الثيمات والإطارات' : 'Theme & Cosmetic Shop'}
+                className="min-h-[48px] min-w-[48px] px-2.5 py-1 rounded-xl border flex items-center justify-center gap-1 text-xs font-black cursor-pointer shrink-0 transition active:scale-95"
+                style={{
+                  backgroundColor: 'var(--accent-soft)',
+                  borderColor: 'var(--accent)',
+                  color: 'var(--accent)',
                 }}
-                onSelectUnitCheckpoint={() => {}}
-                onUpdateState={updateProgression}
+              >
+                <Palette size={16} />
+                <span className="hidden min-[380px]:inline">{isArabic ? 'المتجر' : 'Shop'}</span>
+              </button>
+            </div>
+          </header>
+
+          {/* Main Game Column */}
+          <main className="flex-1 w-full max-w-[480px] mx-auto px-3 pt-3 pb-28 overflow-x-clip">
+            {activeTab === 'path' && (
+              <div className="space-y-3">
+                <LanguagePairBanner
+                  sourceLang={sourceLang}
+                  targetLang={targetLang}
+                  onOpenSelector={() => setLangSelectorOpen(true)}
+                />
+
+                <PathView
+                  state={progression}
+                  targetLang={targetLang}
+                  onSelectLesson={(lesson) => {
+                    setActiveLessonNode(lesson);
+                  }}
+                  onSelectUnitCheckpoint={() => {}}
+                  onUpdateState={updateProgression}
+                  onOpenVoice={() => setView({ name: 'voice' })}
+                  onOpenFlashcards={(deckId) => setView({ name: 'flashcards', deckId })}
+                  onOpenCorporate={() => setView({ name: 'corporate' })}
+                  onOpenClarifying={() => setView({ name: 'clarifying' })}
+                  onOpenMaintenance={() => setView({ name: 'maintenance' })}
+                  onOpenPronunciation={() => setView({ name: 'pronunciation' })}
+                  onOpenStory={() => setView({ name: 'story', chapterId: 'chapter-1-cairo-airport' })}
+                  onOpenHackerTerminal={() => setView({ name: 'hacker-terminal' })}
+                  onOpenTeacherMode={() => setView({ name: 'teacher' })}
+                  onOpenExam={() => setView({ name: 'exam' })}
+                  isArabic={isArabic}
+                  progress={progress}
+                  flashcardDeckIds={stageFlashcardDecks}
+                  onOpenLanguageSelector={() => setLangSelectorOpen(true)}
+                  isPro={isPro}
+                  onToast={(msg) => showToast(T(msg, msg))}
+                />
+              </div>
+            )}
+
+            {activeTab === 'arcade' && (
+              <div className="space-y-4">
+                <section
+                  className="tb-card-surface p-4 rounded-3xl border space-y-3 text-start"
+                  style={{
+                    backgroundColor: 'var(--surface)',
+                    borderColor: 'var(--border)',
+                    color: 'var(--ink)',
+                  }}
+                >
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <h2 className="text-base font-black" style={{ color: 'var(--ink)' }}>
+                      🎮 {isArabic ? 'الأركيد والتحديات السريعة' : 'Arcade & Quick Challenges'}
+                    </h2>
+                    <span
+                      className="px-2.5 py-0.5 rounded-full text-[11px] font-black border"
+                      style={{
+                        backgroundColor: 'var(--accent-soft)',
+                        borderColor: 'var(--accent)',
+                        color: 'var(--accent)',
+                      }}
+                    >
+                      {isPro ? '2× 🪙 Pro' : '+40 🪙'}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('practice')}
+                      className="min-h-[56px] p-3 rounded-2xl border text-start cursor-pointer transition active:scale-95"
+                      style={{ backgroundColor: 'var(--bg)', borderColor: 'var(--gold)', color: 'var(--ink)' }}
+                    >
+                      <span className="text-base block">⚔️</span>
+                      <span className="text-xs font-black block">{isArabic ? 'أركيد Pro والزعماء' : 'Pro Arcade & Bosses'}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setView({ name: 'exam' })}
+                      className="min-h-[56px] p-3 rounded-2xl border text-start cursor-pointer transition active:scale-95"
+                      style={{ backgroundColor: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--ink)' }}
+                    >
+                      <span className="text-base block">☕</span>
+                      <span className="text-xs font-black block">{isArabic ? 'اختبار يا باشا CEFR' : 'Ya Basha CEFR Exam'}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setView({ name: 'story', chapterId: 'chapter-1-cairo-airport' })}
+                      className="min-h-[56px] p-3 rounded-2xl border text-start cursor-pointer transition active:scale-95"
+                      style={{ backgroundColor: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--ink)' }}
+                    >
+                      <span className="text-base block">✈️</span>
+                      <span className="text-xs font-black block">{isArabic ? 'القصة التفاعلية' : 'Interactive Story'}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setView({ name: 'language-game' })}
+                      className="min-h-[56px] p-3 rounded-2xl border text-start cursor-pointer transition active:scale-95"
+                      style={{ backgroundColor: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--ink)' }}
+                    >
+                      <span className="text-base block">🕹️</span>
+                      <span className="text-xs font-black block">{isArabic ? 'لعبة الجسر السريعة' : 'Bridge Speed Game'}</span>
+                    </button>
+                  </div>
+                </section>
+
+                <QuestsView state={progression} isArabic={isArabic} />
+                <LeagueView
+                  state={progression}
+                  onToggleOptOut={() => {
+                    updateProgression((p) => ({ ...p, leagueOptOut: !p.leagueOptOut }));
+                  }}
+                  isArabic={isArabic}
+                />
+              </div>
+            )}
+
+            {activeTab === 'practice' && (
+              <PracticeHubView
+                state={progression}
                 onOpenVoice={() => setView({ name: 'voice' })}
-                onOpenFlashcards={(deckId) => setView({ name: 'flashcards', deckId })}
+                onOpenFlashcards={() => setView({ name: 'flashcards' })}
                 onOpenCorporate={() => setView({ name: 'corporate' })}
                 onOpenClarifying={() => setView({ name: 'clarifying' })}
                 onOpenMaintenance={() => setView({ name: 'maintenance' })}
@@ -521,69 +732,107 @@ export default function App() {
                 onOpenHackerTerminal={() => setView({ name: 'hacker-terminal' })}
                 onOpenTeacherMode={() => setView({ name: 'teacher' })}
                 onOpenExam={() => setView({ name: 'exam' })}
+                onOpenDictionary={() => setView({ name: 'dictionary' })}
+                onOpenActivateCode={() => setActivateCodeOpen(true)}
+                onXpEarned={(earned) => {
+                  updateProgression((prev) => ({
+                    ...prev,
+                    xp: (prev.xp || 0) + earned,
+                    weeklyXp: (prev.weeklyXp || 0) + earned,
+                  }));
+                  if (earned > 0) {
+                    const coinRes = awardArcadeWinCoins(isPro);
+                    showToast(
+                      T(
+                        `🪙 +${coinRes.coinsEarned} عملة جسر · +${earned} XP`,
+                        `🪙 +${coinRes.coinsEarned} Bridge Coins · +${earned} XP`
+                      )
+                    );
+                  }
+                }}
+                onNavigateToCoursePath={() => setActiveTab('path')}
+                targetLang={targetLang}
                 isArabic={isArabic}
-                progress={progress}
-                flashcardDeckIds={stageFlashcardDecks}
-                onOpenLanguageSelector={() => setLangSelectorOpen(true)}
               />
+            )}
+
+            {activeTab === 'profile' && (
+              <ProfileView
+                state={progression}
+                profile={profile}
+                entitlement={entitlement}
+                onOpenActivateCode={() => setActivateCodeOpen(true)}
+                onOpenShop={() => setShopOpen(true)}
+                onUpdateState={updateProgression}
+                onExportData={() => {
+                  showToast(T('تم تصدير البيانات بنجاح', 'Data exported successfully'));
+                }}
+                onOpenPreferences={() => setView({ name: 'preferences' })}
+                onDeleteData={() => {
+                  const preservedEconomy = localStorage.getItem(ECONOMY_STORAGE_KEY);
+                  const preservedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+                  const preservedPerf = localStorage.getItem(PERF_MODE_STORAGE_KEY);
+                  clearLocalLearningDataPreservingEntitlement();
+                  try {
+                    if (preservedEconomy !== null) localStorage.setItem(ECONOMY_STORAGE_KEY, preservedEconomy);
+                    if (preservedTheme !== null) localStorage.setItem(THEME_STORAGE_KEY, preservedTheme);
+                    if (preservedPerf !== null) localStorage.setItem(PERF_MODE_STORAGE_KEY, preservedPerf);
+                  } catch {}
+                  window.location.reload();
+                }}
+                onOpenPrivacyPolicy={() => setPrivacyOpen(true)}
+                onToast={(msg: string) => showToast(T(msg, msg))}
+                isArabic={isArabic}
+              />
+            )}
+          </main>
+
+          {/* Sticky Bottom 4-Tab One-Thumb Dock */}
+          <nav
+            aria-label={isArabic ? 'التنقل الرئيسي' : 'Main Navigation'}
+            className="tb-hud-bar fixed bottom-0 inset-x-0 z-40 border-t"
+            style={{
+              backgroundColor: 'var(--surface)',
+              borderColor: 'var(--border)',
+              paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+            }}
+          >
+            <div className="max-w-[480px] mx-auto grid grid-cols-4 gap-1 px-2 py-1.5">
+              {(
+                [
+                  { id: 'path', ar: 'الخريطة', en: 'Map', Icon: Map },
+                  { id: 'arcade', ar: 'الأركيد', en: 'Arcade', Icon: Gamepad2 },
+                  { id: 'practice', ar: 'التدريب', en: 'Practice', Icon: BookOpen },
+                  { id: 'profile', ar: 'ملفي', en: 'Profile', Icon: User },
+                ] as const
+              ).map(({ id, ar, en, Icon }) => {
+                const isSelected = activeTab === id;
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => setActiveTab(id)}
+                    aria-current={isSelected ? 'page' : undefined}
+                    className="min-h-[48px] px-1 py-1.5 rounded-2xl flex flex-col items-center justify-center gap-0.5 text-[11px] font-black leading-tight text-center cursor-pointer transition"
+                    style={
+                      isSelected
+                        ? {
+                            backgroundColor: 'var(--accent-soft)',
+                            color: 'var(--accent)',
+                          }
+                        : {
+                            color: 'var(--ink-muted)',
+                          }
+                    }
+                  >
+                    <Icon size={18} className="shrink-0" />
+                    <span className="break-words">{isArabic ? ar : en}</span>
+                  </button>
+                );
+              })}
             </div>
-          )}
-
-          {activeTab === 'practice' && (
-            <PracticeHubView
-              state={progression}
-              onOpenVoice={() => setView({ name: 'voice' })}
-              onOpenFlashcards={() => setView({ name: 'flashcards' })}
-              onOpenCorporate={() => setView({ name: 'corporate' })}
-              onOpenClarifying={() => setView({ name: 'clarifying' })}
-              onOpenMaintenance={() => setView({ name: 'maintenance' })}
-              onOpenPronunciation={() => setView({ name: 'pronunciation' })}
-              onOpenStory={() => setView({ name: 'story', chapterId: 'chapter-1-cairo-airport' })}
-              onOpenHackerTerminal={() => setView({ name: 'hacker-terminal' })}
-              onOpenTeacherMode={() => setView({ name: 'teacher' })}
-              onOpenExam={() => setView({ name: 'exam' })}
-              onOpenDictionary={() => setView({ name: 'dictionary' })}
-              onNavigateToCoursePath={() => setActiveTab('path')}
-              targetLang={targetLang}
-              isArabic={isArabic}
-            />
-          )}
-
-          {activeTab === 'quests' && (
-            <QuestsView state={progression} isArabic={isArabic} />
-          )}
-
-          {activeTab === 'league' && (
-            <LeagueView
-              state={progression}
-              onToggleOptOut={() => {
-                updateProgression((p) => ({ ...p, leagueOptOut: !p.leagueOptOut }));
-              }}
-              isArabic={isArabic}
-            />
-          )}
-
-          {activeTab === 'profile' && (
-            <ProfileView
-              state={progression}
-              profile={profile}
-              onUpdateState={updateProgression}
-              onExportData={() => {
-                showToast(T('تم تصدير البيانات بنجاح', 'Data exported successfully'));
-              }}
-              onOpenPreferences={() => setView({ name: 'preferences' })}
-              onDeleteData={() => {
-                try {
-                  localStorage.clear();
-                } catch {}
-                window.location.reload();
-              }}
-              onOpenPrivacyPolicy={() => setPrivacyOpen(true)}
-              onToast={(msg: string) => showToast(T(msg, msg))}
-              isArabic={isArabic}
-            />
-          )}
-        </AppShell>
+          </nav>
+        </div>
       )}
 
       {/* 2. Specialized Route Overlays */}
@@ -830,8 +1079,20 @@ export default function App() {
         onUnlocked={() => {
           showToast(T('🎉 تم فتح الألماني وكل اللغات بنجاح! أهلاً بك في عائلة جسر التفكير.', '🎉 All languages unlocked! Welcome to the family.'));
         }}
+        onOpenActivateCode={() => {
+          setSupporterGateOpen(false);
+          setActivateCodeOpen(true);
+        }}
         onToast={(msg) => showToast(T(msg, msg))}
         targetLanguageName={TARGET_LANGUAGE_META[targetLang]?.nameAr || 'الألماني'}
+      />
+
+      {/* Pro / Academy Voucher Code Activation Modal */}
+      <ActivateCodeModal
+        isOpen={activateCodeOpen}
+        onClose={() => setActivateCodeOpen(false)}
+        isArabic={isArabic}
+        onToast={(msg) => showToast(T(msg, msg))}
       />
 
       {/* Privacy Policy Modal */}
@@ -879,6 +1140,21 @@ export default function App() {
         onToast={(msg) => showToast(T(msg, msg))}
         profile={profile}
       />
+
+      {/* Theme & Cosmetic Shop Modal */}
+      <ThemeShopModal
+        isOpen={shopOpen}
+        onClose={() => setShopOpen(false)}
+        isPro={isPro}
+        isArabic={isArabic}
+        onToast={(msg) => showToast(T(msg, msg))}
+      />
+
+      {/* Non-blocking PWA & Capacitor Android Auto-Update Banner */}
+      <UpdateBanner isArabic={isArabic} />
+
+      {/* Steam-style Achievement Unlock Toast */}
+      <AchievementToast isArabic={isArabic} />
 
       {/* Floating Toast Notification */}
       {toastMsg && (

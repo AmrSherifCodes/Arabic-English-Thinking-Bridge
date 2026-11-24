@@ -1,4 +1,4 @@
-# Constitution — Thinking Bridge & Thinking English™ v1.1.0
+# Constitution — Thinking Bridge & Thinking English™ v1.2.0
 
 > **Motto:** 100% open source · Easy to follow · Low maintenance · High quality · Good feedback
 > listening · Always replying to the highest useful comment
@@ -18,7 +18,7 @@
 ### Article 1 — Core Principles
 
 1. **Offline-First by Design**: Every core feature—from flashcards, CEFR progression paths, SRS SM-2 scheduling, and phonetic transliteration to offline voice recognition—must function 100% offline without requiring active internet connectivity.
-2. **Zero Tracking & Absolute Privacy**: No analytics, telemetry, user accounts, or third-party tracking scripts shall ever be introduced. All user progress, custom decks, and settings remain local on the user's device.
+2. **Zero Tracking & Absolute Privacy (v1.2.0 Amendment)**: No analytics, telemetry, mandatory user accounts, or third-party tracking scripts shall ever be introduced. The core `ar -> en` learning loop (lessons, Name Forge, 3D Anki, Sentence Builder, and DualSpeedAudio) stays 100% free and offline forever, with all core learning progress stored locally on the user's device. Optional Pro add-ons and opt-in Academy cohort progress sync may unlock via single-use voucher codes validated through a same-origin API proxy and cached locally for offline use.
 3. **Single-File & Component Simplicity**: Core architecture maintains minimal dependency overhead, fast bundling, and instant sub-second loading across Web, PWA, Android, and Desktop platforms.
 4. **Accessible & Inclusive by Default**: The UI strictly supports high-contrast dark/light themes, RTL/LTR dynamic direction, age-tailored font sizing, and full keyboard navigation with ARIA accessibility.
 5. **Additive, Non-Disruptive Easter Eggs**: Hidden features and easter eggs (such as the 8-click poem and the 99-click Captain Erwin video checkpoint) must remain strictly additive, non-blocking, and per-session without disrupting core learning.
@@ -26,7 +26,7 @@
 
 ### Article 2 — Technical Constraints
 
-1. **Zero Runtime Tracking Dependencies**: External analytics libraries, telemetry trackers, or paywall gates are strictly prohibited.
+1. **Zero Runtime Tracking Dependencies (v1.2.0 Amendment)**: External analytics libraries, telemetry trackers, and paywalls on the core `ar -> en` learning loop are strictly prohibited. Optional Pro and Academy voucher unlocks must use a same-origin API proxy with strict RLS and offline local caching without gating free core features.
 2. **Service Worker PWA Integrity**: Service worker configurations must enforce `autoUpdate`, `skipWaiting: true`, `clientsClaim: true`, and `cleanupOutdatedCaches: true` to prevent stale caching.
 3. **Strict Content Security Policy (CSP)**: `script-src 'self'` without `unsafe-inline` scripts in HTML; `object-src 'none'`; `frame-ancestors 'none'`.
 4. **Offline Asset Safety**: External video or heavy media assets must be embedded via lightweight non-blocking embeds or lazy fallbacks without inflating the offline app bundle.

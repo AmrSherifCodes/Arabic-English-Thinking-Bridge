@@ -42,6 +42,15 @@
       ]
     },
     {
+      "source": "/api/entitlements/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        }
+      ]
+    },
+    {
       "source": "/api/feedback",
       "headers": [
         {

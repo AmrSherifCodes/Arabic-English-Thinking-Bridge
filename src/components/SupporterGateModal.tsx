@@ -9,6 +9,7 @@ interface SupporterGateModalProps {
   isOpen: boolean;
   onClose: () => void;
   onUnlocked: () => void;
+  onOpenActivateCode?: () => void;
   onToast?: (msg: string) => void;
   targetLanguageName?: string;
 }
@@ -17,6 +18,7 @@ export function SupporterGateModal({
   isOpen,
   onClose,
   onUnlocked,
+  onOpenActivateCode,
   onToast,
   targetLanguageName = 'الألماني'
 }: SupporterGateModalProps) {
@@ -272,14 +274,26 @@ export function SupporterGateModal({
             <ShieldCheck className="w-4 h-4" />
             <span>عربي ↔ إنجليزي مجاني ومفتوح دايماً بدون أي شروط</span>
           </span>
-          <button
-            type="button"
-            onClick={onClose}
-            className="min-h-[44px] px-4 py-2 rounded-xl text-muted hover:text-text hover:bg-surface font-bold transition-colors flex items-center gap-1"
-          >
-            <ArrowRight className="w-3.5 h-3.5" />
-            <span>رجوع للعربي والإنجليزي</span>
-          </button>
+          <div className="flex items-center gap-2">
+            {onOpenActivateCode && (
+              <button
+                type="button"
+                onClick={onOpenActivateCode}
+                className="min-h-[44px] px-3.5 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 font-bold transition-colors flex items-center gap-1.5 cursor-pointer"
+              >
+                <Key className="w-3.5 h-3.5" />
+                <span>تفعيل كود Pro / أكاديمية</span>
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={onClose}
+              className="min-h-[44px] px-4 py-2 rounded-xl text-muted hover:text-text hover:bg-surface font-bold transition-colors flex items-center gap-1"
+            >
+              <ArrowRight className="w-3.5 h-3.5" />
+              <span>رجوع للعربي والإنجليزي</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>

@@ -1,12 +1,67 @@
 @import "./styles/tokens.css";
 
+/* ============================================================
+   v7.2 Customizable High-Contrast Theme System (WCAG AAA)
+   ============================================================ */
+:root,
+[data-theme="daylight-cyan"] {
+  --bg: #F6F8FA;
+  --surface: #FFFFFF;
+  --ink: #0B1220;
+  --ink-muted: #334155;
+  --accent: #0891B2;
+  --accent-soft: rgba(8, 145, 178, 0.14);
+  --gold: #D97706;
+  --border: #CBD5E1;
+}
+
+[data-theme="midnight-cyan"] {
+  --bg: #0D1117;
+  --surface: #161B22;
+  --ink: #F0F6FC;
+  --ink-muted: #94A3B8;
+  --accent: #22D3EE;
+  --accent-soft: rgba(34, 211, 238, 0.16);
+  --gold: #F59E0B;
+  --border: #2B3544;
+}
+
+[data-theme="noir-mono"] {
+  --bg: #0A0A0A;
+  --surface: #141414;
+  --ink: #FFFFFF;
+  --ink-muted: #B3B3B3;
+  --accent: #FFFFFF;
+  --accent-soft: rgba(255, 255, 255, 0.14);
+  --gold: #E5E5E5;
+  --border: #333333;
+}
+
+[data-theme="royal-emerald"] {
+  --bg: #071312;
+  --surface: #0F221F;
+  --ink: #ECFDF5;
+  --ink-muted: #A7F3D0;
+  --accent: #10B981;
+  --accent-soft: rgba(16, 185, 129, 0.18);
+  --gold: #F59E0B;
+  --border: #1F423B;
+}
+
 html {
-  color-scheme: dark;
+  color-scheme: light;
   width: 100%;
+  max-width: 100vw;
   overflow-x: clip;
   overscroll-behavior-y: none;
   -webkit-tap-highlight-color: transparent;
   font-size: calc(100% * var(--font-scale, 1));
+}
+
+html[data-theme="midnight-cyan"],
+html[data-theme="noir-mono"],
+html[data-theme="royal-emerald"] {
+  color-scheme: dark;
 }
 
 html.light {
@@ -187,10 +242,88 @@ body::before {
   position: sticky;
   top: 0;
   z-index: 40;
-  background-color: rgba(6, 16, 28, 0.95);
+  background-color: var(--surface);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   padding-top: max(env(safe-area-inset-top, 0px), 0.75rem);
 }
 
 html[dir='rtl'] body { line-height: 1.8; }
+
+/* ============================================================
+   v7.2 Chest & Map Pure-CSS Micro-Animations
+   ============================================================ */
+@keyframes tb-chest-shake {
+  0%, 100% { transform: translateX(0) rotate(0deg); }
+  20% { transform: translateX(-6px) rotate(-5deg); }
+  40% { transform: translateX(6px) rotate(5deg); }
+  60% { transform: translateX(-5px) rotate(-4deg); }
+  80% { transform: translateX(5px) rotate(4deg); }
+}
+
+@keyframes tb-chest-pop {
+  0% { transform: scale(0.88); }
+  60% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+@keyframes tb-node-ring {
+  0%, 100% { transform: scale(1); opacity: 0.75; }
+  50% { transform: scale(1.16); opacity: 0.25; }
+}
+
+.tb-chest-shaking {
+  animation: tb-chest-shake 0.42s ease-in-out;
+}
+
+.tb-chest-revealed {
+  animation: tb-chest-pop 0.32s ease-out;
+}
+
+.tb-active-node-glow {
+  box-shadow: 0 0 0 6px var(--accent-soft), 0 8px 24px rgba(8, 145, 178, 0.32);
+}
+
+.tb-active-node-pulse {
+  animation: tb-node-ring 2.2s ease-in-out infinite;
+}
+
+/* ============================================================
+   v7.2 Auto-Adaptive Lite Performance Mode ([data-perf="lite"])
+   Disables backdrop-filter, glow shadows, and keyframe animations
+   for instant 60 FPS on low-end / older Android devices.
+   ============================================================ */
+[data-perf="lite"] *,
+[data-perf="lite"] *::before,
+[data-perf="lite"] *::after {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  animation: none !important;
+  transition-duration: 0.01ms !important;
+}
+
+[data-perf="lite"] body::before {
+  display: none !important;
+}
+
+[data-perf="lite"] .tb-active-node-glow {
+  box-shadow: none !important;
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+[data-perf="lite"] .tb-card-surface,
+[data-perf="lite"] .tb-hud-bar {
+  border-width: 1px !important;
+  border-color: var(--border) !important;
+}
+
+[data-perf="lite"] .tb-biome-svg {
+  display: none !important;
+}
+
+[data-perf="lite"] .tb-biome-backdrop {
+  background: var(--surface) !important;
+}

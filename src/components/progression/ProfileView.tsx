@@ -1,11 +1,14 @@
-import React, { useState, useRef } from 'react';
+import React from 'react';
 import { ProgressionState } from '../../progression/types';
-import { SkillRadar } from './SkillRadar';
 import { UserProfile } from '../../types';
-import { TARGET_LANGUAGE_META } from '../../data/languages';
-import { Shield, Download, Upload, Trash2, Settings, HelpCircle, Moon, Sun, Lock, Share2, CheckCircle2, Brain } from 'lucide-react';
+import { Shield, Download, Upload, Trash2, Settings, Brain, KeyRound, Crown, Gauge, Palette } from 'lucide-react';
 import { GlobalTutorBrain } from '../../utils/OnlineLearningEngine';
 import { useUiMode } from '../../utils/uiMode';
+import { EntitlementState } from '../../types/entitlement';
+import { hasProAccess } from '../../services/entitlementService';
+import { TrophyCabinet } from '../../features/gamification/TrophyCabinet';
+import { PerfModeSetting, usePerfMode } from '../../utils/devicePerf';
+import { AVATAR_FRAME_MAP, useEconomy } from '../../features/gamification/economy';
 
 const categoryLabelsAr: Record<string, string> = {
   copula: 'الرابط الخفي (copula)',
@@ -140,6 +143,9 @@ export function BrainActivityMatrixCard({ isArabic = true }: { isArabic?: boolea
 interface ProfileViewProps {
   state: ProgressionState;
   profile?: UserProfile | null;
+  entitlement?: EntitlementState;
+  onOpenActivateCode?: () => void;
+  onOpenShop?: () => void;
   onUpdateState?: (updater: (prev: ProgressionState) => ProgressionState) => void;
   onExportData?: () => void;
   onDeleteData?: () => void;
@@ -154,6 +160,9 @@ interface ProfileViewProps {
 export function ProfileView({
   state,
   profile,
+  entitlement,
+  onOpenActivateCode,
+  onOpenShop,
   onOpenPreferences,
   onExportData,
   onDeleteData,
@@ -162,6 +171,102 @@ export function ProfileView({
   isArabic = true,
 }: ProfileViewProps) {
   const [uiMode, setUiMode] = useUiMode();
+  const { setting: perfSetting, resolved: resolvedPerf, setPerfMode } = usePerfMode();
+  const { economy } = useEconomy();
+  const activeFrame = AVATAR_FRAME_MAP[economy.equippedFrame] || AVATAR_FRAME_MAP.classic;
+  const activeTier = entitlement?.tier || 'free';
+  const tierLabel =
+    activeTier === 'pro'
+      ? isArabic ? 'باقة Pro مفعّلة' : 'Pro Active'
+      : activeTier === 'academy_student'
+      ? isArabic ? 'طالب أكاديمية' : 'Academy Student'
+      : activeTier === 'academy_teacher'
+      ? isArabic ? 'معلم أكاديمية' : 'Academy Teacher'
+      : isArabic ? 'مجاني للأبد' : 'Free Forever';
+
+  const perfControlCard = (
+    <div
+      className="tb-card-surface p-4 rounded-3xl border space-y-3 text-start"
+      style={{
+        backgroundColor: 'var(--surface)',
+        borderColor: 'var(--border)',
+        color: 'var(--ink)',
+      }}
+    >
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <div className="flex items-center gap-2">
+          <Gauge size={18} style={{ color: 'var(--accent)' }} />
+          <div>
+            <h4 className="text-sm font-black" style={{ color: 'var(--ink)' }}>
+              {isArabic ? 'الوضع الخفيف للأجهزة الضعيفة / Lite Mode' : 'Lite Mode for Low-End Devices'}
+            </h4>
+            <p className="text-[11px]" style={{ color: 'var(--ink-muted)' }}>
+              {isArabic
+                ? `الأداء الحالي: ${resolvedPerf === 'lite' ? 'خفيف (60 FPS سلس)' : 'كامل (تأثيرات بصرية)'}`
+                : `Active engine: ${resolvedPerf === 'lite' ? 'Lite (Flat 60 FPS)' : 'Rich (Visual FX)'}`}
+            </p>
+          </div>
+        </div>
+        {onOpenShop && (
+          <button
+            type="button"
+            onClick={onOpenShop}
+            className="min-h-[48px] px-3.5 py-2 rounded-xl text-xs font-black flex items-center gap-1.5 border cursor-pointer"
+            style={{
+              backgroundColor: 'var(--accent-soft)',
+              borderColor: 'var(--accent)',
+              color: 'var(--accent)',
+            }}
+          >
+            <Palette size={15} />
+            <span>{isArabic ? `متجر الثيمات (🪙 ${economy.coins})` : `Theme Shop (🪙 ${economy.coins})`}</span>
+          </button>
+        )}
+      </div>
+
+      <div className="grid grid-cols-3 gap-2">
+        {(
+          [
+            { id: 'auto', ar: 'تلقائي', en: 'Auto' },
+            { id: 'lite', ar: 'خفيف ⚡', en: 'Lite ⚡' },
+            { id: 'rich', ar: 'كامل ✨', en: 'Rich ✨' },
+          ] as Array<{ id: PerfModeSetting; ar: string; en: string }>
+        ).map((opt) => {
+          const selected = perfSetting === opt.id;
+          return (
+            <button
+              key={opt.id}
+              type="button"
+              onClick={() => {
+                setPerfMode(opt.id);
+                onToast?.(
+                  isArabic
+                    ? `تم ضبط وضع الأداء: ${opt.ar}`
+                    : `Performance mode set to: ${opt.en}`
+                );
+              }}
+              className="min-h-[48px] px-2.5 py-2 rounded-xl text-xs font-black border cursor-pointer transition"
+              style={
+                selected
+                  ? {
+                      backgroundColor: 'var(--accent)',
+                      color: '#FFFFFF',
+                      borderColor: 'var(--accent)',
+                    }
+                  : {
+                      backgroundColor: 'var(--bg)',
+                      color: 'var(--ink)',
+                      borderColor: 'var(--border)',
+                    }
+              }
+            >
+              {isArabic ? opt.ar : opt.en}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
 
   if (uiMode === 'simple') {
     return (
@@ -186,9 +291,9 @@ export function ProfileView({
               <span className="text-[10px] text-stone-400 block">{isArabic ? 'أيام الاستمرار' : 'Streak Days'}</span>
             </div>
             <div className="p-3 rounded-2xl bg-stone-900 border border-stone-800 text-center">
-              <span className="text-xl block">⭐</span>
-              <span className="text-lg font-black text-cyan-300">{state?.xp || 0}</span>
-              <span className="text-[10px] text-stone-400 block">{isArabic ? 'مجموع النقاط' : 'Total XP'}</span>
+              <span className="text-xl block">🪙</span>
+              <span className="text-lg font-black text-amber-300">{economy.coins}</span>
+              <span className="text-[10px] text-stone-400 block">{isArabic ? 'عملات الجسر' : 'Bridge Coins'}</span>
             </div>
             <div className="p-3 rounded-2xl bg-stone-900 border border-stone-800 text-center">
               <span className="text-xl block">✅</span>
@@ -197,6 +302,8 @@ export function ProfileView({
             </div>
           </div>
         </div>
+
+        {perfControlCard}
 
         {/* Backup & Restore */}
         <div className="p-5 rounded-3xl bg-stone-900 border border-stone-800 space-y-3 shadow-xl text-start">
@@ -212,6 +319,11 @@ export function ProfileView({
                 <Shield size={14} /> {isArabic ? 'عن التطبيق والخصوصية' : 'About & Privacy'}
               </button>
             )}
+            {onOpenActivateCode && (
+              <button onClick={onOpenActivateCode} className="px-4 py-2 min-h-[48px] rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs font-bold flex items-center gap-2 cursor-pointer">
+                <KeyRound size={14} /> {isArabic ? 'تفعيل كود Pro / أكاديمية' : 'Activate Pro / Academy Code'}
+              </button>
+            )}
             <button onClick={() => setUiMode('pro')} className="px-4 py-2 min-h-[48px] rounded-xl bg-cyan-500/20 text-cyan-300 text-xs font-bold cursor-pointer border border-cyan-500/30">
               ⚡ {isArabic ? 'عرض كل أدوات الوضع المتقدم' : 'Show All Pro Tools'}
             </button>
@@ -224,10 +336,22 @@ export function ProfileView({
   return (
     <div className="space-y-6 max-w-md md:max-w-2xl lg:max-w-3xl mx-auto pb-32 sm:pb-36" dir={isArabic ? 'rtl' : 'ltr'}>
       <div className="p-5 rounded-3xl bg-stone-900 border border-stone-800 space-y-4 shadow-xl text-start">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-black text-white">{isArabic ? 'الملف الشخصي والإعدادات' : 'Profile & Settings'}</h3>
-            <p className="text-xs text-stone-400">{isArabic ? 'إدارة بياناتك والخصوصية محلية 100%' : '100% local-first data & privacy'}</p>
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <div className="flex items-center gap-3">
+            <div
+              className="w-12 h-12 rounded-full flex items-center justify-center text-xl shrink-0"
+              style={{
+                border: `3px solid ${activeFrame.ringColor}`,
+                backgroundColor: activeFrame.accentBg,
+              }}
+              aria-label={isArabic ? activeFrame.nameAr : activeFrame.nameEn}
+            >
+              {activeFrame.badge}
+            </div>
+            <div>
+              <h3 className="text-lg font-black text-white">{isArabic ? 'الملف الشخصي والإعدادات' : 'Profile & Settings'}</h3>
+              <p className="text-xs text-stone-400">{isArabic ? 'إدارة بياناتك والخصوصية محلية 100%' : '100% local-first data & privacy'}</p>
+            </div>
           </div>
           {onOpenPreferences && (
             <button
@@ -239,7 +363,55 @@ export function ProfileView({
             </button>
           )}
         </div>
+
+        {/* Plan & Voucher Activation Strip */}
+        <div className="p-3.5 rounded-2xl bg-stone-950/90 border border-amber-500/25 flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="p-2 rounded-xl bg-amber-500/15 text-amber-300 border border-amber-500/30 shrink-0">
+              <Crown size={16} />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-xs font-black text-white">{tierLabel}</span>
+                {entitlement?.cohortCode && (
+                  <span dir="ltr" className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-teal-500/20 text-teal-300 border border-teal-500/30">
+                    {entitlement.cohortCode}
+                  </span>
+                )}
+              </div>
+              <p className="text-[11px] text-stone-400">
+                {activeTier === 'free'
+                  ? isArabic
+                    ? 'معاك كود InstaPay أو أكاديمية؟ فعّله هنا.'
+                    : 'Have an InstaPay or Academy voucher? Activate it here.'
+                  : isArabic
+                  ? 'مفعّل ومحفوظ للعمل بدون إنترنت على هذا الجهاز.'
+                  : 'Active and cached for 100% offline use on this device.'}
+              </p>
+            </div>
+          </div>
+          {onOpenActivateCode && (
+            <button
+              onClick={onOpenActivateCode}
+              className="px-3.5 py-2 min-h-[44px] rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 text-xs font-black flex items-center gap-1.5 transition cursor-pointer shrink-0"
+            >
+              <KeyRound size={14} />
+              <span>{isArabic ? 'تفعيل كود Pro / أكاديمية' : 'Activate Pro / Academy Code'}</span>
+            </button>
+          )}
+        </div>
       </div>
+
+      {perfControlCard}
+
+      <TrophyCabinet
+        state={state}
+        playerName={profile?.name || state.anonymousAlias || (isArabic ? 'بطل جسر التفكير' : 'Learner')}
+        isPro={entitlement ? hasProAccess(entitlement) : false}
+        isArabic={isArabic}
+        onOpenActivateCode={onOpenActivateCode}
+        onToast={onToast}
+      />
 
       <BrainActivityMatrixCard isArabic={isArabic} />
 
@@ -314,14 +486,14 @@ export function ProfileView({
           {onDeleteData && (
             <button
               onClick={() => {
-                if (window.confirm(isArabic ? 'هل تريد حقاً مسح كل البيانات محلياً؟' : 'Are you sure you want to clear all local data?')) {
+                if (window.confirm(isArabic ? 'هل تريد مسح تقدم التعلم محلياً؟ (سيتم الاحتفاظ بأي كود Pro أو أكاديمية مفعّل على جهازك).' : 'Clear local learning progress? (Any activated Pro/Academy license on this device will be preserved).')) {
                   onDeleteData();
                 }
               }}
               className="px-4 py-2.5 min-h-[48px] rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-500/30 text-xs font-bold flex items-center gap-2 transition cursor-pointer"
             >
               <Trash2 size={14} />
-              <span>{isArabic ? 'مسح البيانات محلياً' : 'Clear Local Data'}</span>
+              <span>{isArabic ? 'مسح تقدم التعلم محلياً' : 'Clear Learning Data'}</span>
             </button>
           )}
         </div>

@@ -1,13 +1,18 @@
-import React, { useState } from 'react';
+import React, { Suspense, lazy, useState } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { ProgressionState } from '../../progression/types';
 import { getDueSrsQueue } from '../../progression/srs';
-import { MessageSquare, Layers, Briefcase, Zap, HelpCircle, Sparkles } from 'lucide-react';
+import { MessageSquare, Layers, Briefcase, Zap, HelpCircle, Sparkles, Swords, Crown } from 'lucide-react';
 import { buildCourseStructure } from '../../progression/courseData';
 import { FeatureUnlockDefinition } from '../../progression/featureUnlocks';
 import { FeatureUnlockModal } from './FeatureUnlockModal';
 import { TargetLanguage } from '../../types';
 import { useUiMode } from '../../utils/uiMode';
+import { useEntitlement } from '../../hooks/useEntitlement';
+
+const LazyProArcadeView = lazy(() =>
+  import('../../features/gamification/ProArcadeView').then((m) => ({ default: m.ProArcadeView }))
+);
 
 interface PracticeHubViewProps {
   state: ProgressionState;
@@ -22,6 +27,8 @@ interface PracticeHubViewProps {
   onOpenTeacherMode?: () => void;
   onOpenExam?: () => void;
   onOpenDictionary?: () => void;
+  onOpenActivateCode?: () => void;
+  onXpEarned?: (xp: number) => void;
   onNavigateToCoursePath?: () => void;
   targetLang?: TargetLanguage;
   isArabic?: boolean;
@@ -40,15 +47,39 @@ export function PracticeHubView({
   onOpenTeacherMode,
   onOpenExam,
   onOpenDictionary,
+  onOpenActivateCode,
+  onXpEarned,
   onNavigateToCoursePath,
   targetLang = 'en',
   isArabic = true,
 }: PracticeHubViewProps) {
   const dueItems = getDueSrsQueue(state.srsItems, state.dailyCardsCap);
   const isNative = Capacitor.isNativePlatform();
+  const { isPro } = useEntitlement();
 
   const [selectedLockedFeature, setSelectedLockedFeature] = useState<FeatureUnlockDefinition | null>(null);
+  const [proArcadeOpen, setProArcadeOpen] = useState(false);
   const [uiMode, setUiMode] = useUiMode();
+
+  if (proArcadeOpen) {
+    return (
+      <Suspense
+        fallback={
+          <div className="min-h-[60dvh] flex items-center justify-center text-amber-300 font-bold text-sm">
+            {isArabic ? 'جاري تحميل أركيد Pro...' : 'Loading Pro Arcade...'}
+          </div>
+        }
+      >
+        <LazyProArcadeView
+          isPro={isPro}
+          isArabic={isArabic}
+          onBack={() => setProArcadeOpen(false)}
+          onOpenActivateCode={onOpenActivateCode}
+          onXpEarned={onXpEarned}
+        />
+      </Suspense>
+    );
+  }
 
   if (uiMode === 'simple') {
     return (
@@ -151,6 +182,35 @@ export function PracticeHubView({
             : 'Interactive features unlock progressively as you advance through checkpoints'}
         </p>
       </div>
+
+      {/* Pro Arcade: 60s L1 Trap Blitz & Level Boss Duel */}
+      <button
+        type="button"
+        onClick={() => setProArcadeOpen(true)}
+        className="w-full p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-amber-950/80 via-purple-950/60 to-cyan-950/70 border-2 border-amber-500/60 hover:border-amber-400 transition text-start shadow-2xl flex items-center justify-between gap-3 group cursor-pointer"
+      >
+        <div className="space-y-1 min-w-0">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-500/20 text-amber-300 border border-amber-500/40">
+              <Crown size={12} />
+              <span>{isPro ? (isArabic ? 'Pro مفتوح' : 'Pro Unlocked') : isArabic ? 'جولة تجريبية مجانية' : '1 Free Teaser'}</span>
+            </span>
+            <span className="text-[11px] font-bold text-cyan-300">
+              {isArabic ? 'قناص الأخطاء (60ث) + معركة الزعيم RPG' : '60s L1 Trap Blitz + RPG Boss Duel'}
+            </span>
+          </div>
+          <h3 className="font-black text-base text-white group-hover:text-amber-300 transition-colors flex items-center gap-1.5">
+            <Swords size={16} className="text-amber-400 shrink-0" />
+            <span>{isArabic ? 'أركيد Pro التفاعلي — تحدّي الأخطاء والزعماء' : 'Pro Arcade — Blitz & Level Boss Duels'}</span>
+          </h3>
+          <p className="text-xs text-stone-300">
+            {isArabic
+              ? 'كومبو x2 → x5، دروع 🛡️، ضربات CRIT!، وجوائز Steam في خزانة ملفك.'
+              : 'x2 → x5 combos, 3 shields 🛡️, fast CRIT! strikes, and Steam-style Boss Trophies.'}
+          </p>
+        </div>
+        <span className="text-3xl shrink-0 group-hover:scale-110 transition-transform">🎮</span>
+      </button>
 
       {/* Story Engine & Hacker Terminal Quick Launch */}
       <div className="flex gap-4">
@@ -298,7 +358,7 @@ export function PracticeHubView({
           <Layers className="text-amber-400 shrink-0" size={28} />
         </button>
 
-        {/* Mode 3: Corporate Bridge Translator */}
+        {/* Mode 3: Corporate Bridge & Egyptian Pro Track */}
         <button
           onClick={() => handleFeatureClick('corporate', onOpenCorporate)}
           className="btn-shiny p-4 rounded-3xl transition text-start shadow-md flex items-center justify-between bg-stone-900 border border-blue-500/40 hover:border-blue-400 cursor-pointer"
@@ -306,13 +366,13 @@ export function PracticeHubView({
           <div className="space-y-1">
             <div className="flex items-center gap-1.5 text-blue-400 font-bold text-xs">
               <Briefcase size={14} />
-              <span>{isArabic ? 'ميزة خاصة · Corporate' : 'Executive Phrasing'}</span>
+              <span>{isArabic ? 'Corporate · إنترفيو وكول سنتر' : 'Interview & Call-Center Track'}</span>
             </div>
             <h3 className="font-black text-sm text-white">
-              {isArabic ? 'من البلدي إلى Corporate' : 'Egyptian to Corporate English'}
+              {isArabic ? 'من البلدي لـ Corporate + مسار الثقة' : 'Corporate, Interview & Call-Center'}
             </h3>
             <p className="text-xs text-stone-400">
-              {isArabic ? 'تحويل الأفكار العامية إلى صياغة احترافية' : 'Transform raw thoughts into workplace English'}
+              {isArabic ? 'صياغة احترافية + سيناريوهات إنترفيو وكول سنتر مع تنبيهات L1' : 'Workplace phrasing + Egyptian interview & call-center coaching'}
             </p>
           </div>
           <Briefcase className="text-blue-400 shrink-0" size={28} />
@@ -348,7 +408,7 @@ export function PracticeHubView({
           </button>
         )}
 
-        {/* Mode 5: Local Pronunciation Recorder */}
+        {/* Mode 5: Pro Voice Shadowing Studio & Local Recorder */}
         {onOpenPronunciation && (
           <button
             onClick={() => handleFeatureClick('pronunciation', onOpenPronunciation)}
@@ -357,13 +417,13 @@ export function PracticeHubView({
             <div className="space-y-1">
               <div className="flex items-center gap-1.5 text-purple-400 font-bold text-xs">
                 <Zap size={14} />
-                <span>{isArabic ? 'بدون إنترنت · Offline' : 'Local Only'}</span>
+                <span>{isArabic ? 'محلّي 100% · A/B Shadowing' : 'Local Only · A/B Shadowing'}</span>
               </div>
               <h3 className="font-black text-sm text-white">
-                {isArabic ? 'مُسجّل النطق المحلّي' : 'Local Pronunciation Recorder'}
+                {isArabic ? 'استوديو النطق و Shadowing' : 'Voice Shadowing Studio'}
               </h3>
               <p className="text-xs text-stone-400">
-                {isArabic ? 'سجّل صوتك واستمع إليه محلياً بدون إرساله لأي خادم' : 'Record and check your voice on-device'}
+                {isArabic ? 'سجّل صوتك وقارنه بالصوت الأصلي (1.0x / 0.75x) بدون رفع أي ملفات' : 'Record & A/B compare against 1.0x / 0.75x native audio locally'}
               </p>
             </div>
             <span className="text-2xl">🎙️</span>

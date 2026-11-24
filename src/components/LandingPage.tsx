@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, Suspense } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import { ArrowRight, Download, Globe, BookOpen, Smartphone, RefreshCw, Apple, Laptop, ExternalLink, Brain, Sparkles, Terminal, Tv, Briefcase, Cpu, ShieldCheck, Zap } from 'lucide-react';
+import { ArrowRight, Download, Globe, BookOpen, Smartphone, RefreshCw, Apple, Laptop, ExternalLink, Brain, Sparkles, Terminal, Tv, Briefcase, Cpu, ShieldCheck, Zap, Check, Crown, GraduationCap, KeyRound } from 'lucide-react';
 import { getPlatformInfo, storageAdapter } from '../platform/adapter';
 import { API_BASE_URL } from '../utils/api';
 import { usePwaInstall } from '../hooks/usePWAInstall';
@@ -12,6 +12,10 @@ import { StreetDemoModal } from './StreetDemoModal';
 import { SupportModal } from './SupportModal';
 import { triggerHapticImpact } from '../utils/fx';
 import './LandingPage.css';
+
+const LazyActivateCodeModal = React.lazy(() =>
+  import('./ActivateCodeModal').then((m) => ({ default: m.ActivateCodeModal }))
+);
 
 interface LandingPageProps {
   onLaunchApp: () => void;
@@ -33,6 +37,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
   const [detectedOs, setDetectedOs] = useState<'android' | 'ios' | 'windows' | 'mac' | 'other'>('other');
   const [streetDemoOpen, setStreetDemoOpen] = useState(false);
   const [supportOpen, setSupportOpen] = useState(false);
+  const [activateOpen, setActivateOpen] = useState(false);
 
   const [isNativeAndroid] = useState(() => {
     const platform = getPlatformInfo();
@@ -123,6 +128,7 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
             <ul className="nav-links">
               <li><a href="#why">{isAr ? 'المميزات' : 'Features'}</a></li>
               <li><a href="#how">{isAr ? 'إزاي بنشتغل' : 'How it works'}</a></li>
+              <li><a href="#plans">{isAr ? 'الباقات' : 'Plans'}</a></li>
               <li><a href="#stats">{isAr ? 'الأرقام' : 'Stats'}</a></li>
               <li><a href="#download-section">{isAr ? 'التنزيل' : 'Download'}</a></li>
               <li><a href="#subscribe-section" className="text-[var(--gold)] font-bold">{isAr ? 'الاشتراك' : 'Subscribe'}</a></li>
@@ -199,15 +205,22 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
               </p>
 
               <div className="hero-cta flex-wrap">
-                <button onClick={handleLaunchApp} className="btn btn-gold">
-                  {isAr ? 'ابدأ رحلتك مجاناً' : 'Start your journey for free'}
-                  <ArrowRight size={18} className={isAr ? 'rotate-180' : ''} />
+                <button
+                  type="button"
+                  onClick={handleLaunchApp}
+                  className="btn btn-gold hero-primary-cta"
+                >
+                  <span>
+                    {isAr
+                      ? '▶ ابدأ الرحلة — أول تحدي في 30 ثانية'
+                      : '▶ Start Journey — First Challenge in 30s'}
+                  </span>
                 </button>
                 {!Capacitor.isNativePlatform() && (
                   <a
                     href="https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v6.0.0/ThinkingBridge-v6.0.0.apk"
                     download="ThinkingBridge-v6.0.0.apk"
-                    className="btn bg-amber-400/15 text-amber-200 border border-amber-400/40 hover:bg-amber-400/25 transition flex items-center gap-2 cursor-pointer font-bold whitespace-normal text-center"
+                    className="btn hero-secondary-cta bg-amber-400/15 text-amber-200 border border-amber-400/40 hover:bg-amber-400/25 transition flex items-center gap-2 cursor-pointer font-bold whitespace-normal text-center"
                   >
                     <Download size={18} />
                     <span>{isAr ? 'تحميل APK للأندرويد (40.5 MB)' : 'Download Android APK (40.5 MB)'}</span>
@@ -222,16 +235,17 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
                       window.dispatchEvent(new PopStateEvent('popstate'));
                     }
                   }}
-                  className="btn bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 hover:bg-cyan-500/30 transition flex items-center gap-2 cursor-pointer font-bold"
+                  className="btn hero-secondary-cta bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 hover:bg-cyan-500/30 transition flex items-center gap-2 cursor-pointer font-bold"
                 >
                   <span>☕ {isAr ? 'اختبار يا باشا (اعرف مستواك)' : 'Ya Basha CEFR Exam'}</span>
                 </a>
                 <button
+                  type="button"
                   onClick={() => {
                     triggerHapticImpact();
                     setStreetDemoOpen(true);
                   }}
-                  className="btn bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30 transition flex items-center gap-2 cursor-pointer font-bold"
+                  className="btn hero-secondary-cta bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30 transition flex items-center gap-2 cursor-pointer font-bold"
                 >
                   <Zap size={18} className="text-emerald-400" />
                   <span>{isAr ? 'جرب عرض الشارع 🚶‍♂️' : 'Street Presentation 🚶‍♂️'}</span>
@@ -337,6 +351,192 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
               <div className="stat-value">0</div>
               <div className="stat-label">{t('landing2.cost')}</div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ================= FREE FOREVER VS PRO / ACADEMY ================= */}
+      <section className="section plans-section" id="plans">
+        <div className="el-container">
+          <div className="text-start">
+            <span className="eyebrow">
+              {isAr ? 'شفافية كاملة · Free Forever vs Pro' : 'Full Transparency · Free Forever vs Pro'}
+            </span>
+            <h2 className="h2">
+              {isAr
+                ? 'المسار الأساسي مجاني للأبد — وباقة Pro للطموحين والسناتر'
+                : 'Core Learning Free Forever — Pro & Academy for Fast-Track Mastery'}
+            </h2>
+            <p className="lede">
+              {isAr
+                ? 'التعليم الأساسي حق للجميع بدون قيود. وباقة Pro والأكاديميات (مثل سنتر الأقصى والسناتر الشريكة) بتضيف أدوات احترافية متقدمة بدفع محلي عبر InstaPay أو كاش في السنتر.'
+                : 'Core Arabic-to-English fluency is free forever with zero ads. Pro & Academy (Al-Aqsa & partner centers) unlock advanced voice shadowing, career tracks, and cohort tools with local Egyptian payment.'}
+            </p>
+          </div>
+
+          <div className="plans-grid">
+            {/* Free Forever Card */}
+            <article className="plan-card plan-card--free text-start">
+              <div className="plan-card__head">
+                <span className="plan-badge plan-badge--free">
+                  <ShieldCheck size={15} />
+                  <span>{isAr ? 'مجاني للأبد' : 'Free Forever'}</span>
+                </span>
+                <div className="plan-price">
+                  <span className="plan-price__amount">0</span>
+                  <span className="plan-price__unit">{isAr ? 'ج.م / للأبد' : 'EGP / Forever'}</span>
+                </div>
+              </div>
+
+              <h3 className="plan-card__title">
+                {isAr ? 'المسار الأساسي الكامل (عربي ← إنجليزي)' : 'Complete Core Thinking Bridge'}
+              </h3>
+              <p className="plan-card__desc">
+                {isAr
+                  ? 'كل ما تحتاجه لتتعلم التفكير بالإنجليزي بدون إنترنت وبدون إعلانات أو بطاقة بنكية.'
+                  : 'Everything you need to internalize English structure offline, with zero ads or credit cards.'}
+              </p>
+
+              <ul className="plan-list">
+                <li>
+                  <Check size={16} className="plan-check plan-check--free" />
+                  <span>{isAr ? 'الـ 27 درس تفاعلي + 4,090 بطاقة مراجعة ذكية (SM-2)' : 'All 27 interactive lessons + 4,090 SM-2 flashcards'}</span>
+                </li>
+                <li>
+                  <Check size={16} className="plan-check plan-check--free" />
+                  <span>{isAr ? 'القاموس الناطق + اختبار يا باشا (CEFR) + القصة التفاعلية' : 'Talking dictionary + Ya Basha CEFR exam + Story Engine'}</span>
+                </li>
+                <li>
+                  <Check size={16} className="plan-check plan-check--free" />
+                  <span>{isAr ? 'تسجيل نطق فردي محلي + معاينة مجانية لمسار الإنترفيو' : 'Local single-take voice recorder + 1 free interview scenario'}</span>
+                </li>
+                <li>
+                  <Check size={16} className="plan-check plan-check--free" />
+                  <span>{isAr ? 'يعمل 100% أوفلاين بدون تتبع أو سيرفرات إجبارية' : '100% offline-first architecture with zero tracking'}</span>
+                </li>
+              </ul>
+
+              <button
+                type="button"
+                onClick={handleLaunchApp}
+                className="btn btn-primary w-full mt-auto"
+              >
+                <span>{isAr ? 'ابدأ مجاناً الآن' : 'Start Free Forever'}</span>
+                <ArrowRight size={17} className={isAr ? 'rotate-180' : ''} />
+              </button>
+            </article>
+
+            {/* Pro / Academy Card */}
+            <article className="plan-card plan-card--pro text-start">
+              <div className="plan-card__head">
+                <span className="plan-badge plan-badge--pro">
+                  <Crown size={15} />
+                  <span>{isAr ? 'Pro / أكاديمية الأقصى والسناتر' : 'Pro / Academy (Al-Aqsa & Centers)'}</span>
+                </span>
+                <div className="plan-price">
+                  <span className="plan-price__amount">50</span>
+                  <span className="plan-price__unit">{isAr ? 'ج.م / شهر' : 'EGP / month'}</span>
+                </div>
+              </div>
+
+              {/* Free First-Session Student Code Badge */}
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-black bg-emerald-500/15 text-emerald-300 border border-emerald-500/40 mb-3">
+                <GraduationCap size={14} />
+                <span>
+                  {isAr
+                    ? '🎓 كود مجاني لأول حصة للطلاب (ALAQSA-FREE) · بدون بطاقة بنكية'
+                    : '🎓 Free First-Session Student Code (ALAQSA-FREE) · Zero Cards'}
+                </span>
+              </div>
+
+              {/* Egypt Pricing Ladder */}
+              <div className="grid grid-cols-3 gap-2 mb-4">
+                <div className="p-2.5 rounded-2xl bg-black/25 border border-white/10 text-center">
+                  <span className="text-[11px] font-bold text-slate-300 block">{isAr ? 'شهري' : 'Monthly'}</span>
+                  <span className="text-sm sm:text-base font-black text-white block">{isAr ? '50 ج.م' : '50 EGP'}</span>
+                  <span className="text-[10px] text-teal-300 block">{isAr ? '30 يوم' : '30 days'}</span>
+                </div>
+                <div className="p-2.5 rounded-2xl bg-teal-500/15 border border-teal-400/40 text-center">
+                  <span className="text-[11px] font-bold text-teal-200 block">{isAr ? '3 شهور' : '3 Months'}</span>
+                  <span className="text-sm sm:text-base font-black text-white block">{isAr ? '120 ج.م' : '120 EGP'}</span>
+                  <span className="text-[10px] text-emerald-300 block">{isAr ? 'وفّر 20%' : 'Save 20%'}</span>
+                </div>
+                <div className="p-2.5 rounded-2xl bg-amber-500/15 border border-amber-400/50 text-center">
+                  <span className="text-[11px] font-black text-amber-200 block">{isAr ? 'مدى الحياة' : 'Founding Lifetime'}</span>
+                  <span className="text-sm sm:text-base font-black text-amber-300 block">{isAr ? '299 ج.م' : '299 EGP'}</span>
+                  <span className="text-[10px] text-amber-200/90 block">{isAr ? 'مرة واحدة ♾️' : 'One-time ♾️'}</span>
+                </div>
+              </div>
+
+              <h3 className="plan-card__title">
+                {isAr ? 'أركيد Pro (قناص الأخطاء + الزعماء) + خزانة الجوائز + استوديو النطق' : 'Pro Arcade (Blitz & Boss Duels), Full Trophy Cabinet & Voice Studio'}
+              </h3>
+              <p className="plan-card__desc">
+                {isAr
+                  ? 'ادفع بسهولة عبر InstaPay أو كاش في سنتر الأقصى والسناتر الشريكة — بدون فيزا أو دولار.'
+                  : 'Pay locally via InstaPay or cash at Al-Aqsa & partner centers — zero foreign cards or USD.'}
+              </p>
+
+              <ul className="plan-list">
+                <li>
+                  <Check size={16} className="plan-check plan-check--pro" />
+                  <span>
+                    {isAr
+                      ? 'أركيد Pro غير المحدود: تحدي قناص الأخطاء (60 ثانية) + معركة الزعماء بنظام RPG'
+                      : 'Unlimited Pro Arcade: 60s L1 Trap Blitz + RPG Level Boss Duels'}
+                  </span>
+                </li>
+                <li>
+                  <Check size={16} className="plan-check plan-check--pro" />
+                  <span>
+                    {isAr
+                      ? 'خزانة الجوائز الكاملة (16+ إنجاز على طريقة Steam) + دروع حماية السلسلة + بطاقة مشاركة واتساب'
+                      : 'Full Steam-style Trophy Cabinet (16+ Rare/Epic/Legendary badges) + streak shields'}
+                  </span>
+                </li>
+                <li>
+                  <Check size={16} className="plan-check plan-check--pro" />
+                  <span>
+                    {isAr
+                      ? 'استوديو Shadowing الصوتي (1.0x / 0.75x) + مسار الإنترفيو والكول سنتر المصري'
+                      : 'Pro Voice Shadowing Studio (1.0x / 0.75x) + Egyptian Interview & Call-Center Track'}
+                  </span>
+                </li>
+                <li>
+                  <Check size={16} className="plan-check plan-check--pro" />
+                  <span>
+                    {isAr
+                      ? 'أكواد السناتر والأكاديميات (مثل سنتر الأقصى) + لوحة متابعة للمعلم — يعمل 100% أوفلاين'
+                      : 'Academy center codes (Al-Aqsa & partners) + Teacher dashboard — 100% offline afterwards'}
+                  </span>
+                </li>
+              </ul>
+
+              <div className="flex flex-col sm:flex-row gap-2.5 mt-auto">
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerHapticImpact();
+                    setActivateOpen(true);
+                  }}
+                  className="btn plan-btn-pro flex-1"
+                >
+                  <KeyRound size={17} />
+                  <span>{isAr ? 'تفعيل كود Pro / الأكاديمية' : 'Activate Pro / Academy Code'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerHapticImpact();
+                    setActivateOpen(true);
+                  }}
+                  className="btn plan-btn-center"
+                >
+                  <GraduationCap size={17} />
+                  <span>{isAr ? 'تفاصيل السناتر' : 'Center Info'}</span>
+                </button>
+              </div>
+            </article>
           </div>
         </div>
       </section>
@@ -663,6 +863,15 @@ export function LandingPage({ onLaunchApp, isArabic = false }: LandingPageProps)
         onClose={() => setSupportOpen(false)}
         isArabic={isAr}
       />
+      {activateOpen && (
+        <Suspense fallback={null}>
+          <LazyActivateCodeModal
+            isOpen={activateOpen}
+            onClose={() => setActivateOpen(false)}
+            isArabic={isAr}
+          />
+        </Suspense>
+      )}
     </div>
   );
 }
