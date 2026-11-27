@@ -108,6 +108,7 @@ export default function App() {
     setActiveLessonNode,
     goHome,
     launchApp,
+    openQuran,
     openLanding,
     modals,
   } = useAppNavigation();
@@ -623,6 +624,7 @@ export default function App() {
             modals.setLaunchGateOpen(false);
             if (!hasCompletedUserSetup()) modals.setUserSetupOpen(true);
           }}
+          onSelectQuran={openQuran}
           onClose={hasSeenLaunchGate() ? () => modals.setLaunchGateOpen(false) : undefined}
         />
       )}

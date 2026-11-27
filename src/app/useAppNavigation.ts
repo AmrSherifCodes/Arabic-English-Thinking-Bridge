@@ -30,7 +30,8 @@ export type AppView =
   | { name: 'story'; chapterId: string }
   | { name: 'hacker-terminal' }
   | { name: 'exam' }
-  | { name: 'dictionary' };
+  | { name: 'dictionary' }
+  | { name: 'quran' };
 
 export function normalizePath(pathname: string): string {
   return pathname.toLowerCase().replace(/\/+$/, '') || '/';
@@ -42,6 +43,7 @@ function resolveViewFromLocation(): AppView {
       const path = normalizePath(window.location.pathname);
       const urlParams = new URLSearchParams(window.location.search);
 
+      if (path === '/quran') return { name: 'quran' };
       if (path === '/exam') return { name: 'exam' };
       if (path === '/android') return { name: 'android' };
       if (path === '/language-game') return { name: 'language-game' };
@@ -153,6 +155,21 @@ export function useAppNavigation() {
     setView({ name: 'shell' });
   }, []);
 
+  const openQuran = useCallback(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        if (window.history && normalizePath(window.location.pathname) !== '/quran') {
+          window.history.pushState({}, '', '/quran');
+        }
+        window.scrollTo(0, 0);
+      }
+    } catch {
+      // Ignore history errors
+    }
+    setLaunchGateOpen(false);
+    setView({ name: 'quran' });
+  }, []);
+
   const openLanding = useCallback(() => {
     try {
       if (typeof window !== 'undefined') {
@@ -178,6 +195,7 @@ export function useAppNavigation() {
     setActiveLessonNode,
     goHome,
     launchApp,
+    openQuran,
     openLanding,
     modals: {
       shopOpen,

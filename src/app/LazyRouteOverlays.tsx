@@ -34,6 +34,7 @@ const LiveTranslatorModal = lazy(() => import('../components/LiveTranslatorModal
 const TravelScenariosModal = lazy(() => import('../components/TravelScenariosModal').then((m) => ({ default: m.TravelScenariosModal })));
 const TravelSprintModal = lazy(() => import('../components/TravelSprintModal').then((m) => ({ default: m.TravelSprintModal })));
 const WordBankModal = lazy(() => import('../components/WordBankModal').then((m) => ({ default: m.WordBankModal })));
+const QuranSanctuaryView = lazy(() => import('../features/quran/QuranSanctuaryView').then((m) => ({ default: m.QuranSanctuaryView })));
 
 /** Lightweight Midnight Navy inline skeleton — never a full-screen dark splash blocker */
 export function InlineFallback() {
@@ -244,6 +245,29 @@ export function LazyRouteOverlays({
       {view.name === 'teacher' && <TeacherView onBack={goHome} />}
       {view.name === 'exam' && <ExamPage onBack={goHome} />}
       {view.name === 'dictionary' && <DictionaryView onBack={goHome} isArabic={isArabic} targetLang={targetLang} />}
+      {view.name === 'quran' && (
+        <QuranSanctuaryView
+          isArabic={isArabic}
+          onBack={() => {
+            try {
+              if (typeof window !== 'undefined' && window.history) {
+                window.history.pushState({}, '', '/app');
+              }
+            } catch {}
+            setView({ name: 'shell' });
+            modals.setLaunchGateOpen(true);
+          }}
+          onSwitchToLanguages={() => {
+            try {
+              if (typeof window !== 'undefined' && window.history) {
+                window.history.pushState({}, '', '/app');
+              }
+            } catch {}
+            modals.setLaunchGateOpen(false);
+            setView({ name: 'shell' });
+          }}
+        />
+      )}
 
       {activeLessonNode && (
         <LessonRunner

@@ -1,19 +1,13 @@
 // Copyright (c) 2026 Amr Sherif Abdelaal. All rights reserved.
 // Licensed under GNU AGPLv3 (AGPL-3.0-or-later).
 
-import React, { useEffect, useState } from 'react';
-import { Capacitor } from '@capacitor/core';
-import { Globe, Volume2, ExternalLink, ArrowRight, ArrowLeft, Smartphone } from 'lucide-react';
+import React, { useEffect } from 'react';
+import { Globe, Volume2, ArrowRight, ArrowLeft } from 'lucide-react';
 import { AmrGuide } from './AmrGuide';
 import { speakUnified } from '../utils/offlineTts';
 import { unlockAudio } from '../utils/audio';
 
 export const LAUNCH_GATE_SEEN_KEY = 'tb.launchGateSeen.v1';
-
-const QURAN_DEEP_LINK = 'quranhifz://open';
-const QURAN_ANDROID_INTENT =
-  'intent://open#Intent;scheme=quranhifz;package=com.amrsherif.quranhifz;S.browser_fallback_url=https%3A%2F%2Fquranhifz.vercel.app;end';
-const QURAN_STANDALONE_WEB_URL = 'https://quranhifz.vercel.app';
 
 export function hasSeenLaunchGate(): boolean {
   try {
@@ -70,17 +64,16 @@ function OpenMushafIcon({ size = 44 }: { size?: number }) {
 export interface LaunchGateScreenProps {
   isArabic?: boolean;
   onSelectLanguages: () => void;
+  onSelectQuran: () => void;
   onClose?: () => void;
 }
 
 export const LaunchGateScreen: React.FC<LaunchGateScreenProps> = ({
   isArabic = true,
   onSelectLanguages,
+  onSelectQuran,
   onClose,
 }) => {
-  const [quranSheetOpen, setQuranSheetOpen] = useState(false);
-  const [launchStatus, setLaunchStatus] = useState<string | null>(null);
-
   const greetingText = isArabic
     ? 'أهلاً بك! اختر طريقك بضغطة واحدة.'
     : 'Welcome! Pick where to begin in one tap.';
@@ -112,29 +105,9 @@ export const LaunchGateScreen: React.FC<LaunchGateScreenProps> = ({
     onSelectLanguages();
   };
 
-  const handleDeepLinkQuran = () => {
-    setLaunchStatus(
-      isArabic
-        ? 'جاري فتح تطبيق القرآن الكريم المستقل...'
-        : 'Opening standalone Quran Hifz Sanctuary app...'
-    );
-    try {
-      const isAndroid =
-        Capacitor.getPlatform() === 'android' ||
-        /android/i.test(navigator.userAgent || '');
-      const targetUri = isAndroid ? QURAN_ANDROID_INTENT : QURAN_DEEP_LINK;
-      window.location.href = targetUri;
-    } catch {
-      window.open(QURAN_STANDALONE_WEB_URL, '_blank', 'noopener,noreferrer');
-    }
-  };
-
-  const handleOpenQuranWeb = () => {
-    try {
-      window.open(QURAN_STANDALONE_WEB_URL, '_blank', 'noopener,noreferrer');
-    } catch {
-      window.location.href = QURAN_STANDALONE_WEB_URL;
-    }
+  const handleOpenQuran = () => {
+    markLaunchGateSeen();
+    onSelectQuran();
   };
 
   return (
@@ -232,20 +205,16 @@ export const LaunchGateScreen: React.FC<LaunchGateScreenProps> = ({
           </button>
         </div>
 
-        {/* Card 2: Warm Gold 3D — Quran Hifz (Standalone Launcher) */}
+        {/* Card 2: Warm Gold 3D — Quran Hifz Sanctuary (Direct In-App Route /quran) */}
         <div
           role="button"
           tabIndex={0}
           data-testid="launch-gate-quran"
-          onClick={() => {
-            setLaunchStatus(null);
-            setQuranSheetOpen(true);
-          }}
+          onClick={handleOpenQuran}
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') {
               e.preventDefault();
-              setLaunchStatus(null);
-              setQuranSheetOpen(true);
+              handleOpenQuran();
             }
           }}
           className="flex-1 min-h-[150px] max-h-[36dvh] w-full rounded-[28px] p-5 sm:p-6 flex items-center justify-between gap-4 cursor-pointer tb-btn-3d tb-btn-gold border-2 border-[#FCD34D]"
@@ -259,7 +228,7 @@ export const LaunchGateScreen: React.FC<LaunchGateScreenProps> = ({
                 {isArabic ? 'القرآن الكريم' : 'Quran Hifz'}
               </div>
               <div className="text-sm sm:text-base font-bold text-[#0B1120]/80 mt-1">
-                {isArabic ? 'تطبيق مستقل لحفظ القرآن' : 'Standalone Quran Hifz App'}
+                {isArabic ? 'ملاذ حفظ القرآن · بدون إنترنت' : 'Quran Hifz Sanctuary · Offline'}
               </div>
             </div>
           </div>
@@ -272,8 +241,8 @@ export const LaunchGateScreen: React.FC<LaunchGateScreenProps> = ({
               e.stopPropagation();
               speakPrompt(
                 isArabic
-                  ? 'القرآن الكريم. يفتح تطبيق حفظ القرآن المستقل.'
-                  : 'Quran Hifz. Opens the standalone Quran Hifz Sanctuary app.',
+                  ? 'القرآن الكريم. اضغط هنا لفتح ملاذ حفظ القرآن.'
+                  : 'Quran Hifz. Tap here to open Quran Hifz Sanctuary.',
                 isArabic ? 'ar' : 'en'
               );
             }}
@@ -290,79 +259,6 @@ export const LaunchGateScreen: React.FC<LaunchGateScreenProps> = ({
           {isArabic ? 'مجاني 100% · يعمل بدون إنترنت' : '100% Free · Works Offline'}
         </p>
       </footer>
-
-      {/* Standalone Quran Hifz Launcher Sheet (Zero Quran files inside this APK) */}
-      {quranSheetOpen && (
-        <div
-          data-testid="quran-launcher-sheet"
-          className="fixed inset-0 z-[230] bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4"
-          onClick={() => setQuranSheetOpen(false)}
-        >
-          <div
-            className="w-full max-w-md rounded-t-3xl sm:rounded-3xl border-2 border-[#F59E0B]/50 p-5 sm:p-6 pb-safe space-y-5 shadow-2xl tb-pop-bounce"
-            style={{ backgroundColor: '#131C31', color: '#F8FAFC' }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Top Anchor: Single Large Back Button */}
-            <div className="flex items-center justify-between gap-2">
-              <button
-                type="button"
-                onClick={() => setQuranSheetOpen(false)}
-                className="min-h-[52px] px-4 rounded-2xl border-2 border-slate-500/40 bg-[#1B2742] text-[#F8FAFC] font-black text-sm flex items-center gap-1.5 cursor-pointer active:scale-95"
-              >
-                {isArabic ? <ArrowRight size={18} /> : <ArrowLeft size={18} />}
-                <span>{isArabic ? 'رجوع' : 'Back'}</span>
-              </button>
-              <span className="px-3 py-1 rounded-full text-xs font-black bg-[#F59E0B]/20 text-[#FBBF24] border border-[#F59E0B]/40">
-                {isArabic ? 'تطبيق مستقل' : 'Standalone App'}
-              </span>
-            </div>
-
-            {/* Center Stage */}
-            <div className="text-center space-y-3 py-2">
-              <div className="w-20 h-20 mx-auto rounded-3xl bg-[#F59E0B]/20 border-2 border-[#F59E0B] text-[#FBBF24] flex items-center justify-center">
-                <OpenMushafIcon size={44} />
-              </div>
-              <h2 className="text-xl font-black text-[#F8FAFC]">
-                {isArabic ? 'ملاذ حفظ القرآن الكريم' : 'Quran Hifz Sanctuary'}
-              </h2>
-              <p className="text-sm font-medium text-[#CBD5E1] leading-relaxed">
-                {isArabic
-                  ? 'تطبيق القرآن الكريم مستقل تماماً للحفاظ على خفة المساحة وسرعة الجهاز.'
-                  : 'Quran Hifz Sanctuary is a dedicated standalone app to keep Thinking Bridge ultra-lightweight.'}
-              </p>
-              {launchStatus && (
-                <p className="text-xs font-black text-[#10B981] bg-[#10B981]/15 border border-[#10B981]/40 rounded-xl px-3 py-2">
-                  {launchStatus}
-                </p>
-              )}
-            </div>
-
-            {/* Bottom Thumb Zone */}
-            <div className="space-y-3">
-              <button
-                type="button"
-                data-testid="quran-deep-link-btn"
-                onClick={handleDeepLinkQuran}
-                className="w-full min-h-[60px] px-5 py-3.5 rounded-2xl font-black text-base flex items-center justify-center gap-2.5 cursor-pointer tb-btn-3d tb-btn-gold"
-              >
-                <Smartphone size={22} />
-                <span>{isArabic ? 'افتح تطبيق القرآن الآن' : 'Open Quran Hifz App'}</span>
-              </button>
-
-              <button
-                type="button"
-                data-testid="quran-web-link-btn"
-                onClick={handleOpenQuranWeb}
-                className="w-full min-h-[56px] px-5 py-3 rounded-2xl border-2 border-slate-500/40 bg-[#0B1120] text-[#F8FAFC] font-black text-sm flex items-center justify-center gap-2 cursor-pointer active:scale-95 transition"
-              >
-                <ExternalLink size={18} className="text-[#FBBF24]" />
-                <span>{isArabic ? 'تحميل أو فتح النسخة المستقلة' : 'Download / Open Standalone Web'}</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

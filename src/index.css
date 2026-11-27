@@ -474,3 +474,60 @@ html[dir='rtl'] body { line-height: 1.8; }
 [data-perf="lite"] .tb-biome-backdrop {
   background: var(--surface) !important;
 }
+
+/* ============================================================
+   Quran Hifz Sanctuary — Unified Midnight Navy + Warm Gold + Soft Emerald
+   WCAG >= 4.5:1 Contrast for Kids & Adults
+   ============================================================ */
+.quran-sanctuary {
+  --qs-bg: #0B1120;
+  --qs-surface: #131C31;
+  --qs-surface-alt: #1B2742;
+  --qs-border: rgba(148, 163, 184, 0.24);
+  --qs-ink: #F8FAFC;
+  --qs-ink-muted: #CBD5E1;
+  --qs-accent: #10B981;
+  --qs-accent-ink: #0B1120;
+  --qs-accent-soft: rgba(16, 185, 129, 0.16);
+  --qs-gold: #F59E0B;
+  --qs-gold-ink: #0B1120;
+  --qs-gold-soft: rgba(245, 158, 11, 0.16);
+  --quran-scale: 1;
+  background-color: var(--qs-bg);
+  color: var(--qs-ink);
+}
+
+.quran-sanctuary[data-qs-theme="light"] {
+  --qs-bg: #FAF6EC;
+  --qs-surface: #FFFDF8;
+  --qs-surface-alt: #F3EBD8;
+  --qs-border: rgba(120, 96, 54, 0.24);
+  --qs-ink: #141D17;
+  --qs-ink-muted: #475569;
+  --qs-accent: #047857;
+  --qs-accent-ink: #FFFFFF;
+  --qs-accent-soft: rgba(4, 120, 87, 0.12);
+  --qs-gold: #B45309;
+  --qs-gold-ink: #FFFFFF;
+  --qs-gold-soft: rgba(180, 83, 9, 0.14);
+}
+
+.quran-uthmani-text {
+  font-family: 'Amiri', 'Scheherazade New', 'Traditional Arabic', 'Readex Pro', serif;
+  font-size: calc(1.55rem * var(--quran-scale, 1));
+  line-height: 2.35;
+  letter-spacing: 0;
+  word-spacing: 0.08em;
+}
+
+.quran-word-faded {
+  color: transparent !important;
+  background-color: rgba(245, 158, 11, 0.16);
+  border: 1.5px dashed rgba(245, 158, 11, 0.65);
+  user-select: none;
+}
+
+.quran-sanctuary[data-qs-theme="light"] .quran-word-faded {
+  background-color: rgba(180, 83, 9, 0.12);
+  border: 1.5px dashed rgba(180, 83, 9, 0.55);
+}
