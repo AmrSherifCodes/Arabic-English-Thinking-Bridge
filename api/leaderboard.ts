@@ -5,6 +5,26 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 const rateBucket = new Map<string, { count: number; resetAt: number }>();
 
+const ALLOWED_CORS_ORIGINS = new Set([
+  'https://tb-eg.vercel.app',
+  'https://tb-amr.vercel.app',
+  'https://fekr-eg.vercel.app',
+  'https://thinkingbridge.vercel.app',
+  'https://arabicenglishthinkingbridge.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'capacitor://localhost',
+  'https://localhost',
+]);
+
+function isAllowedOrigin(origin: string | undefined): origin is string {
+  if (!origin) return false;
+  if (ALLOWED_CORS_ORIGINS.has(origin)) return true;
+  if (/^https?:\/\/localhost(:\d+)?$/i.test(origin)) return true;
+  if (/^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin)) return true;
+  return false;
+}
+
 function checkRateLimit(ip: string, limit = 20, windowMs = 60_000): boolean {
   const now = Date.now();
   const entry = rateBucket.get(ip);
@@ -65,6 +85,19 @@ async function callSupabaseRpc(rpcName: string, body: Record<string, unknown>) {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  const origin = typeof req.headers.origin === 'string' ? req.headers.origin : undefined;
+  if (isAllowedOrigin(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Vary', 'Origin');
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    res.setHeader('Cache-Control', 'no-store');
+    return res.status(204).end();
+  }
+
   const ip = String(req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown').split(',')[0].trim();
 
   if (req.method === 'GET') {

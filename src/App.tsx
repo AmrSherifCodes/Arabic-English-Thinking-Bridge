@@ -45,6 +45,7 @@ import {
   markTravelDayCompleted,
 } from './utils/travelSprintProgress';
 import { recordDailySelfBattleXp } from './utils/dailySelfBattle';
+import { getSavedLeaderboardDisplayName, syncLeaderboardXp } from './features/gamification/flexTitles';
 import { useWordBank } from './utils/wordBank';
 import {
   GuideMode,
@@ -311,7 +312,17 @@ export default function App() {
       coinsEarned = economyResult.coinsEarned;
       starsEarned = economyResult.starsEarned;
     }
-    if (earnedXp > 0) recordDailySelfBattleXp(earnedXp);
+    if (earnedXp > 0) {
+      recordDailySelfBattleXp(earnedXp);
+      if (!progression.leagueOptOut && !progression.isUnder13) {
+        void syncLeaderboardXp({
+          displayName: getSavedLeaderboardDisplayName(progression.anonymousAlias),
+          xpDelta: earnedXp,
+          streak: progression.streak || 0,
+          hidden: false,
+        });
+      }
+    }
     if (activeLessonNode?.id.startsWith('travel-sprint-day-')) {
       const dayNum = Number(activeLessonNode.id.replace('travel-sprint-day-', ''));
       if (Number.isFinite(dayNum) && dayNum >= 1 && dayNum <= 21) {
@@ -463,7 +474,17 @@ export default function App() {
                     onOpenTravelScenarios={() => modals.setTravelScenariosOpen(true)}
                     travelReadinessPct={travelReadinessPct}
                     onXpEarned={(earned) => {
-                      if (earned > 0) recordDailySelfBattleXp(earned);
+                      if (earned > 0) {
+                        recordDailySelfBattleXp(earned);
+                        if (!progression.leagueOptOut && !progression.isUnder13) {
+                          void syncLeaderboardXp({
+                            displayName: getSavedLeaderboardDisplayName(progression.anonymousAlias),
+                            xpDelta: earned,
+                            streak: progression.streak || 0,
+                            hidden: false,
+                          });
+                        }
+                      }
                       updateProgression((prev) => ({ ...prev, xp: (prev.xp || 0) + earned, weeklyXp: (prev.weeklyXp || 0) + earned }));
                       if (earned > 0) {
                         const coinRes = awardArcadeWinCoins(true);
@@ -544,7 +565,17 @@ export default function App() {
           }
         }}
         onScenarioXpEarned={(earned) => {
-          if (earned > 0) recordDailySelfBattleXp(earned);
+          if (earned > 0) {
+            recordDailySelfBattleXp(earned);
+            if (!progression.leagueOptOut && !progression.isUnder13) {
+              void syncLeaderboardXp({
+                displayName: getSavedLeaderboardDisplayName(progression.anonymousAlias),
+                xpDelta: earned,
+                streak: progression.streak || 0,
+                hidden: false,
+              });
+            }
+          }
           updateProgression((prev) => ({ ...prev, xp: (prev.xp || 0) + earned, weeklyXp: (prev.weeklyXp || 0) + earned }));
         }}
         onToast={(ar, en) => showToast(T(ar, en))}

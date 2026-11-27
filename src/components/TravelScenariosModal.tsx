@@ -30,7 +30,6 @@ import {
 import { listenOnceForSpeech, stopActiveSpeechListening } from '../native/travelSpeech';
 import { speakUnified } from '../utils/offlineTts';
 import { unlockWordInBank, playPentatonicChime, playSoftRetryTone } from '../utils/wordBank';
-import { recordDailySelfBattleXp } from '../utils/dailySelfBattle';
 
 interface TravelScenariosModalProps {
   isOpen: boolean;
@@ -181,7 +180,6 @@ export const TravelScenariosModal: React.FC<TravelScenariosModalProps> = ({
     const totalXp = 50 + voiceBonusXp;
     const updatedCompleted = markTravelScenarioCompleted(activeScenario.id);
     setCompletedIds(updatedCompleted);
-    recordDailySelfBattleXp(totalXp);
     onXpEarned?.(totalXp);
     playPentatonicChime(6);
     setIsCompleted(true);

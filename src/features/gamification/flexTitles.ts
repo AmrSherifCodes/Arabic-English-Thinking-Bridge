@@ -5,6 +5,8 @@ import { Capacitor } from '@capacitor/core';
 import { Share } from '@capacitor/share';
 import { loadGamificationStore } from './achievements';
 import { ProgressionState } from '../../progression/types';
+import { API_BASE_URL } from '../../utils/api';
+import { sanitizeDisplayText } from '../../utils/sanitize';
 
 export interface FlexTitle {
   id: 'quick_reflex' | 'word_sniper' | 'bridge_legend';
@@ -26,7 +28,8 @@ export interface FlexStats {
 
 export const FLEX_STATS_KEY = 'tb.flexStats.v10';
 export const FLEX_STATS_EVENT = 'tb:flex-stats-updated';
-export const LEADERBOARD_CACHE_KEY = 'tb.leaderboardCache.v10';
+export const LEADERBOARD_CACHE_KEY = 'tb.leaderboardCache.v10_2';
+export const PLAYER_NAME_STORAGE_KEY = 'tb.scoreboardDisplayName.v10_2';
 const LEADERBOARD_USER_ID_KEY = 'tb.leaderboardUserId.v10';
 
 export const FLEX_TITLES: readonly FlexTitle[] = [
@@ -179,8 +182,22 @@ export function getOrCreateLeaderboardUserId(): string {
   }
 }
 
+export function getSavedLeaderboardDisplayName(fallbackAlias?: string): string {
+  try {
+    const stored = localStorage.getItem(PLAYER_NAME_STORAGE_KEY);
+    if (stored && stored.trim()) {
+      const cleaned = sanitizeDisplayText(stored, 28);
+      if (cleaned) return cleaned;
+    }
+  } catch {
+    // Ignore storage errors
+  }
+  const fallback = sanitizeDisplayText(fallbackAlias || '', 28);
+  return fallback || 'Learner';
+}
+
 /**
- * Non-blocking instant XP sync to /api/leaderboard (gracefully no-ops offline).
+ * Non-blocking instant XP / profile sync to /api/leaderboard (gracefully no-ops offline).
  */
 export async function syncLeaderboardXp(params: {
   displayName: string;
@@ -188,8 +205,13 @@ export async function syncLeaderboardXp(params: {
   streak: number;
   hidden?: boolean;
   country?: string;
+  forceSync?: boolean;
 }): Promise<boolean> {
-  if (params.hidden || params.xpDelta <= 0) return false;
+  const isHidden = Boolean(params.hidden);
+  const delta = Math.max(0, Math.min(150, Math.floor(Number(params.xpDelta) || 0)));
+  if (!params.forceSync && !isHidden && delta <= 0) return false;
+  if (!params.forceSync && isHidden) return false;
+
   try {
     localStorage.removeItem(LEADERBOARD_CACHE_KEY);
   } catch {
@@ -197,19 +219,22 @@ export async function syncLeaderboardXp(params: {
   }
 
   try {
-    const res = await fetch('/api/leaderboard', {
+    const endpoint = `${API_BASE_URL}/api/leaderboard`;
+    const res = await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         userId: getOrCreateLeaderboardUserId(),
-        displayName: params.displayName || 'Learner',
+        displayName: sanitizeDisplayText(params.displayName, 28) || 'Learner',
         country: params.country || 'EG',
-        xpDelta: Math.min(150, Math.max(1, Math.round(params.xpDelta))),
-        streak: Math.max(0, Math.round(params.streak || 0)),
-        hidden: Boolean(params.hidden),
+        xpDelta: delta,
+        streak: Math.max(0, Math.floor(Number(params.streak) || 0)),
+        hidden: isHidden,
       }),
     });
-    return res.ok;
+    if (!res.ok) return false;
+    const data = (await res.json().catch(() => null)) as { ok?: boolean } | null;
+    return Boolean(data?.ok);
   } catch {
     return false;
   }

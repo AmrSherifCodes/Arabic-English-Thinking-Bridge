@@ -23,12 +23,16 @@ import { sanitizeDisplayText } from '../../utils/sanitize';
 import {
   FLEX_TITLES,
   FLEX_STATS_EVENT,
+  LEADERBOARD_CACHE_KEY,
+  PLAYER_NAME_STORAGE_KEY,
   equipFlexTitle,
   getActiveFlexTitle,
   getUnlockedFlexTitles,
   loadFlexStats,
   shareFlexCard,
+  syncLeaderboardXp,
 } from '../../features/gamification/flexTitles';
+import { API_BASE_URL } from '../../utils/api';
 import { loadGamificationStore } from '../../features/gamification/achievements';
 import { getDailySelfBattleSnapshot } from '../../utils/dailySelfBattle';
 import { useWordBank } from '../../utils/wordBank';
@@ -58,8 +62,6 @@ interface ScoreboardRow {
   isUser: boolean;
 }
 
-const LEADERBOARD_CACHE_KEY = 'tb.leaderboardCache.v10_2';
-const PLAYER_NAME_STORAGE_KEY = 'tb.scoreboardDisplayName.v10_2';
 const CACHE_TTL_MS = 8 * 60 * 1000; // 8-minute client cache to stay inside Supabase free tier
 
 function getRankTierBadge(rankNumber: number, isArabic: boolean) {
@@ -115,7 +117,7 @@ export function LeagueView({ state, onToggleOptOut, onUpdateAlias, isArabic = tr
     try {
       const stored = localStorage.getItem(PLAYER_NAME_STORAGE_KEY);
       if (stored && stored.trim()) return sanitizeDisplayText(stored, 28);
-    } catch {}
+    } catch { }
     return sanitizeDisplayText(state.anonymousAlias || '', 28);
   });
   const [nameDraft, setNameDraft] = useState<string>(savedName);
@@ -127,49 +129,73 @@ export function LeagueView({ state, onToggleOptOut, onUpdateAlias, isArabic = tr
     return () => window.removeEventListener(FLEX_STATS_EVENT, refresh);
   }, []);
 
-  useEffect(() => {
+  const fetchLeaderboard = React.useCallback(async (bypassCache = false) => {
     if (state.leagueOptOut || state.isUnder13) return;
-    let active = true;
 
-    try {
-      const cachedRaw = localStorage.getItem(LEADERBOARD_CACHE_KEY);
-      if (cachedRaw) {
-        const cached = JSON.parse(cachedRaw) as { fetchedAt: number; entries: GlobalEntry[] };
-        if (Date.now() - cached.fetchedAt < CACHE_TTL_MS && Array.isArray(cached.entries)) {
-          setGlobalEntries(cached.entries);
-          return;
+    if (!bypassCache) {
+      try {
+        const cachedRaw = localStorage.getItem(LEADERBOARD_CACHE_KEY);
+        if (cachedRaw) {
+          const cached = JSON.parse(cachedRaw) as { fetchedAt: number; entries: GlobalEntry[] };
+          if (Date.now() - cached.fetchedAt < CACHE_TTL_MS && Array.isArray(cached.entries)) {
+            setGlobalEntries(cached.entries);
+            return;
+          }
         }
-      }
-    } catch { }
+      } catch { }
+    }
 
     setLoading(true);
-    fetch('/api/leaderboard', { cache: 'default' })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (!active || !data?.ok || !Array.isArray(data.entries)) return;
-        setGlobalEntries(data.entries);
+    try {
+      const url = bypassCache
+        ? `${API_BASE_URL}/api/leaderboard?t=${Date.now()}`
+        : `${API_BASE_URL}/api/leaderboard`;
+      const r = await fetch(url, { cache: bypassCache ? 'no-store' : 'default' });
+      const data = r.ok ? await r.json().catch(() => null) : null;
+      if (!data?.ok || !Array.isArray(data.entries)) return;
+      setGlobalEntries(data.entries);
+      if (!data.offlineFallback) {
         try {
           localStorage.setItem(
             LEADERBOARD_CACHE_KEY,
             JSON.stringify({ fetchedAt: Date.now(), entries: data.entries })
           );
         } catch { }
-      })
-      .catch(() => { })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-
-    return () => {
-      active = false;
-    };
+      }
+    } catch {
+      // Offline fallback rivals render automatically
+    } finally {
+      setLoading(false);
+    }
   }, [state.leagueOptOut, state.isUnder13]);
+
+  useEffect(() => {
+    void fetchLeaderboard(false);
+  }, [fetchLeaderboard]);
 
   const userAlias = sanitizeDisplayText(savedName || state.anonymousAlias || (isArabic ? 'بطل الجسر' : 'Bridge Hero'), 28);
   const unlockedTitles = getUnlockedFlexTitles(state, flexStats);
   const activeTitle = getActiveFlexTitle(state, flexStats);
   const blitzBest = loadGamificationStore().blitzBestScore;
   const selfBattle = useMemo(() => getDailySelfBattleSnapshot(), [state.xp, wordBankCount]);
+
+  const handleTogglePrivacy = () => {
+    const nextHidden = !state.leagueOptOut;
+    onToggleOptOut();
+    if (!state.isUnder13) {
+      void syncLeaderboardXp({
+        displayName: userAlias,
+        xpDelta: 0,
+        streak: state.streak || 0,
+        hidden: nextHidden,
+        forceSync: true,
+      }).then(() => {
+        if (!nextHidden) {
+          void fetchLeaderboard(true);
+        }
+      });
+    }
+  };
 
   const handleSaveName = (e: React.FormEvent) => {
     e.preventDefault();
@@ -179,10 +205,22 @@ export function LeagueView({ state, onToggleOptOut, onUpdateAlias, isArabic = tr
     setNameDraft(cleaned);
     try {
       localStorage.setItem(PLAYER_NAME_STORAGE_KEY, cleaned);
-    } catch {}
+    } catch { }
     onUpdateAlias?.(cleaned);
     setNameSavedPulse(true);
     window.setTimeout(() => setNameSavedPulse(false), 1800);
+
+    if (!state.leagueOptOut && !state.isUnder13) {
+      void syncLeaderboardXp({
+        displayName: cleaned,
+        xpDelta: 0,
+        streak: state.streak || 0,
+        hidden: false,
+        forceSync: true,
+      }).then((synced) => {
+        if (synced) void fetchLeaderboard(true);
+      });
+    }
   };
 
   const rows: ScoreboardRow[] = useMemo(() => {
@@ -198,6 +236,20 @@ export function LeagueView({ state, onToggleOptOut, onUpdateAlias, isArabic = tr
     };
 
     if (globalEntries.length > 0) {
+      const normalizedAlias = userAlias.toLowerCase();
+      let bestMatchIdx = -1;
+      let bestXpDiff = Number.POSITIVE_INFINITY;
+      globalEntries.slice(0, 100).forEach((e, i) => {
+        const entryName = sanitizeDisplayText(e.display_name, 28).toLowerCase();
+        if (entryName === normalizedAlias) {
+          const diff = Math.abs((Number(e.xp) || 0) - (state.xp || 0));
+          if (diff < bestXpDiff) {
+            bestXpDiff = diff;
+            bestMatchIdx = i;
+          }
+        }
+      });
+
       const mapped = globalEntries.slice(0, 100).map((e, i) => ({
         id: `global-${i}`,
         name: sanitizeDisplayText(e.display_name, 28) || 'Learner',
@@ -206,9 +258,9 @@ export function LeagueView({ state, onToggleOptOut, onUpdateAlias, isArabic = tr
         streak: Number(e.streak) || 0,
         titleAr: i < 10 ? 'أسطورة الجسر 👑' : i < 50 ? 'قناص اللغات 🎯' : 'سريع البديهة ⚡',
         titleEn: i < 10 ? 'Bridge Legend 👑' : i < 50 ? 'Language Sniper 🎯' : 'Quick Reflex ⚡',
-        isUser: sanitizeDisplayText(e.display_name, 28).toLowerCase() === userAlias.toLowerCase(),
+        isUser: i === bestMatchIdx,
       }));
-      if (!mapped.some((m) => m.isUser) && !state.leagueOptOut) {
+      if (bestMatchIdx === -1 && !state.leagueOptOut) {
         mapped.push(userRow);
       }
       return mapped.sort((a, b) => b.xp - a.xp).slice(0, 100);
@@ -268,21 +320,40 @@ export function LeagueView({ state, onToggleOptOut, onUpdateAlias, isArabic = tr
                 : 'Name-Only Top 10 / 50 / 100 + 100% Offline Daily Self-Battle'}
             </p>
           </div>
-          <button
-            type="button"
-            data-testid="toggle-anonymous-btn"
-            onClick={onToggleOptOut}
-            aria-label={isArabic ? 'إخفاء / إظهار اسمي' : 'Anonymous / Hide Me'}
-            className="min-h-[42px] px-3 py-1.5 rounded-xl border text-[11px] font-black flex items-center gap-1.5 cursor-pointer shrink-0"
-            style={{
-              backgroundColor: state.leagueOptOut ? 'rgba(245, 158, 11, 0.18)' : '#0B1120',
-              borderColor: state.leagueOptOut ? '#F59E0B' : 'var(--border)',
-              color: state.leagueOptOut ? '#FBBF24' : '#CBD5E1',
-            }}
-          >
-            <EyeOff size={14} />
-            <span>{state.leagueOptOut ? (isArabic ? 'مخفي' : 'Hidden') : (isArabic ? 'إخفاء' : 'Hide Me')}</span>
-          </button>
+          <div className="flex items-center gap-1.5 shrink-0">
+            {!state.leagueOptOut && !state.isUnder13 && (
+              <button
+                type="button"
+                data-testid="refresh-leaderboard-btn"
+                onClick={() => void fetchLeaderboard(true)}
+                disabled={loading}
+                aria-label={isArabic ? 'تحديث لوحة الصدارة' : 'Refresh leaderboard'}
+                className="min-h-[42px] min-w-[42px] px-2.5 py-1.5 rounded-xl border text-[11px] font-black flex items-center justify-center cursor-pointer shrink-0 disabled:opacity-50"
+                style={{
+                  backgroundColor: '#0B1120',
+                  borderColor: 'var(--border)',
+                  color: '#22D3EE',
+                }}
+              >
+                <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+              </button>
+            )}
+            <button
+              type="button"
+              data-testid="toggle-anonymous-btn"
+              onClick={handleTogglePrivacy}
+              aria-label={isArabic ? 'إخفاء / إظهار اسمي' : 'Anonymous / Hide Me'}
+              className="min-h-[42px] px-3 py-1.5 rounded-xl border text-[11px] font-black flex items-center gap-1.5 cursor-pointer shrink-0"
+              style={{
+                backgroundColor: state.leagueOptOut ? 'rgba(245, 158, 11, 0.18)' : '#0B1120',
+                borderColor: state.leagueOptOut ? '#F59E0B' : 'var(--border)',
+                color: state.leagueOptOut ? '#FBBF24' : '#CBD5E1',
+              }}
+            >
+              <EyeOff size={14} />
+              <span>{state.leagueOptOut ? (isArabic ? 'مخفي' : 'Hidden') : (isArabic ? 'إخفاء' : 'Hide Me')}</span>
+            </button>
+          </div>
         </div>
 
         {/* 2-Tab Switcher */}
@@ -370,7 +441,7 @@ export function LeagueView({ state, onToggleOptOut, onUpdateAlias, isArabic = tr
               {!state.isUnder13 && (
                 <button
                   type="button"
-                  onClick={onToggleOptOut}
+                  onClick={handleTogglePrivacy}
                   className="px-5 py-2.5 min-h-[46px] rounded-2xl font-black text-xs cursor-pointer tb-btn-3d tb-btn-emerald"
                 >
                   {isArabic ? 'إظهار اسمي في أفضل 100' : 'Show Me on Top 100'}
@@ -550,9 +621,8 @@ export function LeagueView({ state, onToggleOptOut, onUpdateAlias, isArabic = tr
                       if (!isUnlocked) return;
                       setFlexStats(equipFlexTitle(title.id));
                     }}
-                    className={`p-2.5 rounded-2xl border text-center transition flex flex-col items-center justify-center gap-1 min-h-[68px] ${
-                      isUnlocked ? 'cursor-pointer active:scale-95' : 'opacity-50 cursor-not-allowed'
-                    }`}
+                    className={`p-2.5 rounded-2xl border text-center transition flex flex-col items-center justify-center gap-1 min-h-[68px] ${isUnlocked ? 'cursor-pointer active:scale-95' : 'opacity-50 cursor-not-allowed'
+                      }`}
                     style={{
                       backgroundColor: isEquipped ? 'rgba(34, 211, 238, 0.14)' : '#0B1120',
                       borderColor: isEquipped ? title.accentColor : 'var(--border)',

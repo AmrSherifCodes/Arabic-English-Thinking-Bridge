@@ -8,6 +8,7 @@ import { Flame, RotateCcw, Share2, Trophy, X, Zap } from 'lucide-react';
 import { AmrGuide } from '../../components/AmrGuide';
 import { loadGamificationStore, recordArcadeResult } from './achievements';
 import {
+  getSavedLeaderboardDisplayName,
   recordFlexEvent,
   shareFlexCard,
   syncLeaderboardXp,
@@ -268,7 +269,7 @@ export function LightningBlitzModal({
       onXpEarned?.(earnedXp);
 
       void syncLeaderboardXp({
-        displayName: userAlias,
+        displayName: getSavedLeaderboardDisplayName(userAlias),
         xpDelta: earnedXp,
         streak,
         hidden: leagueOptOut,
