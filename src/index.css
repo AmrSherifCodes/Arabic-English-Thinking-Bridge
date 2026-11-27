@@ -2,91 +2,69 @@
 @import "./styles/tokens.css";
 
 /* ============================================================
-   v8.1 Humane Editorial Warm Paper & Calm Obsidian Theme System
+   V10 Unified Deep Navy & AMOLED Obsidian Theme System
    ============================================================ */
 :root,
-[data-theme="daylight-cyan"] {
-  --bg: #F7F4EE;
-  --surface: #FFFDF9;
-  --ink: #1C2026;
-  --ink-muted: #535D69;
-  --accent: #0F6B6E;
-  --accent-ink: #FFFDF9;
-  --accent-soft: rgba(15, 107, 110, 0.11);
-  --gold: #B4690E;
-  --gold-ink: #1C2026;
-  --border: #E5DFD3;
-  --text: var(--ink);
-  --muted: var(--ink-muted);
-  --color-bg: var(--bg);
-  --color-surface: var(--surface);
-  --color-border: var(--border);
-  --color-text: var(--ink);
-  --color-muted: var(--ink-muted);
-}
-
-[data-theme="midnight-cyan"] {
-  --bg: #11151B;
-  --surface: #181E27;
-  --ink: #F2EFE9;
-  --ink-muted: #9BA6B2;
-  --accent: #2DD4BF;
-  --accent-ink: #07191A;
-  --accent-soft: rgba(45, 212, 191, 0.14);
-  --gold: #EAB308;
-  --gold-ink: #11151B;
-  --border: #27313F;
-  --text: var(--ink);
-  --muted: var(--ink-muted);
-  --color-bg: var(--bg);
-  --color-surface: var(--surface);
-  --color-border: var(--border);
-  --color-text: var(--ink);
-  --color-muted: var(--ink-muted);
-}
-
-[data-theme="noir-mono"] {
-  --bg: #0A0A0A;
-  --surface: #141414;
-  --ink: #FFFFFF;
-  --ink-muted: #C2C2C2;
-  --accent: #FFFFFF;
-  --accent-ink: #0A0A0A;
-  --accent-soft: rgba(255, 255, 255, 0.14);
-  --gold: #E5E5E5;
-  --gold-ink: #0A0A0A;
-  --border: #3A3A3A;
-  --text: var(--ink);
-  --muted: var(--ink-muted);
-  --color-bg: var(--bg);
-  --color-surface: var(--surface);
-  --color-border: var(--border);
-  --color-text: var(--ink);
-  --color-muted: var(--ink-muted);
-}
-
+[data-theme="midnight-navy"],
+[data-theme="daylight-cyan"],
+[data-theme="midnight-cyan"],
 [data-theme="royal-emerald"] {
-  --bg: #071312;
-  --surface: #0F221F;
-  --ink: #ECFDF5;
-  --ink-muted: #A7F3D0;
+  --bg: #0B1120;
+  --surface: #131C31;
+  --surface-2: #1B2742;
+  --ink: #F8FAFC;
+  --ink-muted: #CBD5E1;
   --accent: #10B981;
-  --accent-ink: #041A13;
-  --accent-soft: rgba(16, 185, 129, 0.18);
+  --accent-lip: #059669;
+  --accent-ink: #0B1120;
+  --accent-soft: rgba(16, 185, 129, 0.16);
+  --fever: #22D3EE;
+  --fever-soft: rgba(34, 211, 238, 0.16);
   --gold: #F59E0B;
-  --gold-ink: #0B1220;
-  --border: #1F423B;
+  --gold-glow: #FBBF24;
+  --gold-ink: #0B1120;
+  --gold-soft: rgba(245, 158, 11, 0.16);
+  --border: rgba(148, 163, 184, 0.16);
   --text: var(--ink);
   --muted: var(--ink-muted);
   --color-bg: var(--bg);
   --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border: var(--border);
+  --color-text: var(--ink);
+  --color-muted: var(--ink-muted);
+}
+
+[data-theme="amoled-obsidian"],
+[data-theme="noir-mono"] {
+  --bg: #05070B;
+  --surface: #0F141E;
+  --surface-2: #172030;
+  --ink: #F8FAFC;
+  --ink-muted: #CBD5E1;
+  --accent: #10B981;
+  --accent-lip: #059669;
+  --accent-ink: #05070B;
+  --accent-soft: rgba(16, 185, 129, 0.16);
+  --fever: #22D3EE;
+  --fever-soft: rgba(34, 211, 238, 0.16);
+  --gold: #F59E0B;
+  --gold-glow: #FBBF24;
+  --gold-ink: #05070B;
+  --gold-soft: rgba(245, 158, 11, 0.16);
+  --border: rgba(148, 163, 184, 0.16);
+  --text: var(--ink);
+  --muted: var(--ink-muted);
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
   --color-border: var(--border);
   --color-text: var(--ink);
   --color-muted: var(--ink-muted);
 }
 
 html {
-  color-scheme: light;
+  color-scheme: dark;
   width: 100%;
   max-width: 100vw;
   overflow-x: clip;
@@ -94,16 +72,29 @@ html {
   overscroll-behavior-y: none;
   -webkit-tap-highlight-color: transparent;
   font-size: calc(100% * var(--font-scale, 1));
+  background-color: var(--bg);
+  color: var(--ink);
 }
 
-html[data-theme="midnight-cyan"],
-html[data-theme="noir-mono"],
-html[data-theme="royal-emerald"] {
-  color-scheme: dark;
+/* UI Complexity Modes: Easy / Elder (بسيط), Standard (عادي), Technical / Pro (متقدم) */
+html[data-ui-mode="easy"],
+html.ui-mode-easy {
+  --font-scale: 1.28;
 }
 
-html.light {
-  color-scheme: light;
+html.tb-simple-mode button,
+html.tb-simple-mode [role="button"] {
+  min-height: 56px;
+}
+
+html[data-ui-mode="standard"],
+html.ui-mode-standard {
+  --font-scale: 1;
+}
+
+html[data-ui-mode="pro"],
+html.ui-mode-pro {
+  --font-scale: 0.96;
 }
 
 *,
@@ -147,8 +138,8 @@ body {
   position: relative;
   isolation: isolate;
   min-height: 100dvh;
-  background-color: var(--color-bg);
-  color: var(--color-text);
+  background-color: var(--bg);
+  color: var(--ink);
   font-weight: 400;
   line-height: 1.65;
   -webkit-font-smoothing: antialiased;
@@ -164,8 +155,8 @@ body {
   overflow-y: visible;
   overscroll-behavior-x: none;
   touch-action: auto;
-  background: #0F141B;
-  color: #F4F1EA;
+  background: var(--bg);
+  color: var(--ink);
   color-scheme: dark;
 }
 
@@ -174,7 +165,7 @@ body {
 }
 
 .landing-shell :focus-visible {
-  outline: 3px solid var(--accent-teal);
+  outline: 3px solid var(--fever);
   outline-offset: 3px;
 }
 
@@ -196,17 +187,10 @@ body::before {
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  opacity: 0.06;
+  opacity: 0.14;
   background-image:
-    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(15, 107, 110, 0.35), transparent 65%),
-    radial-gradient(ellipse 60% 45% at 85% 90%, rgba(180, 105, 14, 0.2), transparent 65%);
-}
-
-html.dark body::before {
-  opacity: 0.16;
-  background-image:
-    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(45, 212, 191, 0.22), transparent 65%),
-    radial-gradient(ellipse 60% 45% at 85% 90%, rgba(234, 179, 8, 0.1), transparent 65%);
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(16, 185, 129, 0.22), transparent 65%),
+    radial-gradient(ellipse 60% 45% at 85% 90%, rgba(34, 211, 238, 0.12), transparent 65%);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -218,11 +202,80 @@ html.dark body::before {
   }
 }
 
-/* Selected Word Chip Styling - Faint Purple */
+/* Selected Word Chip Styling — Electric Cyan (Zero Purple) */
 .chip-selected {
-  background-color: rgba(168, 85, 247, 0.2) !important;
-  border: 1px solid rgba(192, 132, 252, 0.8) !important;
-  color: rgba(233, 213, 255, 1) !important;
+  background-color: rgba(34, 211, 238, 0.18) !important;
+  border: 1px solid rgba(34, 211, 238, 0.85) !important;
+  color: #F8FAFC !important;
+}
+
+/* Chunky 3D Pushable Thumb-Zone Button Physics */
+.tb-btn-3d {
+  border-bottom-width: 4px;
+  transition: transform 0.1s cubic-bezier(0.34, 1.56, 0.64, 1), border-bottom-width 0.1s ease, filter 0.15s ease;
+}
+
+.tb-btn-3d:active:not(:disabled) {
+  transform: translateY(3px);
+  border-bottom-width: 1px;
+}
+
+.tb-btn-emerald {
+  background-color: #10B981;
+  border-color: #059669;
+  color: #0B1120;
+}
+
+.tb-btn-gold {
+  background-color: #F59E0B;
+  border-color: #D97706;
+  color: #0B1120;
+  box-shadow: 0 0 22px rgba(251, 191, 36, 0.28);
+}
+
+.tb-btn-emerald:disabled,
+.tb-btn-gold:disabled {
+  background-color: #1B2742;
+  border-color: rgba(148, 163, 184, 0.3);
+  color: rgba(203, 213, 225, 0.55);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.tb-btn-surface {
+  background-color: var(--surface-2);
+  border-color: rgba(148, 163, 184, 0.28);
+  color: #F8FAFC;
+}
+
+/* Bouncy New-Word Pop-Up & Mascot Transitions */
+@keyframes tb-pop-bounce {
+  0% { transform: scale(0.84) translateY(14px); opacity: 0; }
+  65% { transform: scale(1.04) translateY(-3px); opacity: 1; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+@keyframes tb-fly-badge {
+  0% { transform: scale(1) translateY(0); opacity: 1; }
+  100% { transform: scale(0.6) translateY(-44px); opacity: 0; }
+}
+
+@keyframes tb-mascot-spring {
+  0% { transform: scale(0.92) translateY(4px); opacity: 0.7; }
+  60% { transform: scale(1.03) translateY(-2px); opacity: 1; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+.tb-pop-bounce {
+  animation: tb-pop-bounce 0.36s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.tb-fly-badge {
+  animation: tb-fly-badge 0.55s ease-out forwards;
+}
+
+.tb-mascot-spring {
+  animation: tb-mascot-spring 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
 /* Shiny Glossy Buttons Effect */
@@ -236,6 +289,38 @@ html.dark body::before {
   25% { transform: translateX(-5px); }
   50% { transform: translateX(5px); }
   75% { transform: translateX(-5px); }
+}
+
+@keyframes tb-fever-cyan-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 2px rgba(34, 211, 238, 0.72), 0 0 26px rgba(34, 211, 238, 0.32);
+  }
+  50% {
+    box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.95), 0 0 38px rgba(34, 211, 238, 0.55);
+  }
+}
+
+@keyframes tb-fever-gold-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.8), 0 0 28px rgba(245, 158, 11, 0.36);
+  }
+  50% {
+    box-shadow: 0 0 0 3px rgba(251, 191, 36, 1), 0 0 42px rgba(245, 158, 11, 0.62);
+  }
+}
+
+.tb-fever-cyan {
+  border-color: rgba(34, 211, 238, 0.85) !important;
+  animation: tb-fever-cyan-pulse 1.8s ease-in-out infinite;
+}
+
+.tb-fever-gold {
+  border-color: rgba(251, 191, 36, 0.92) !important;
+  animation: tb-fever-gold-pulse 1.5s ease-in-out infinite;
+}
+
+.tb-boss-hit {
+  animation: tb-shake 0.34s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
 }
 
 .btn-shiny {
@@ -256,7 +341,7 @@ html.dark body::before {
     background: linear-gradient(
       90deg,
       transparent 0%,
-      rgba(255, 255, 255, 0.35) 50%,
+      rgba(255, 255, 255, 0.28) 50%,
       transparent 100%
     );
     transform: translateX(-150%) skewX(-25deg);
@@ -266,7 +351,7 @@ html.dark body::before {
 }
 
 .btn-shiny:hover {
-  box-shadow: 0 0 25px rgba(45, 212, 191, 0.45);
+  box-shadow: 0 0 24px rgba(16, 185, 129, 0.4);
 }
 
 @layer utilities {
@@ -296,9 +381,7 @@ html.dark body::before {
 
 html[dir='rtl'] body { line-height: 1.8; }
 
-/* ============================================================
-   v7.2 Chest & Map Pure-CSS Micro-Animations
-   ============================================================ */
+/* Chest & Map Pure-CSS Micro-Animations */
 @keyframes tb-chest-shake {
   0%, 100% { transform: translateX(0) rotate(0deg); }
   20% { transform: translateX(-6px) rotate(-5deg); }
@@ -327,18 +410,36 @@ html[dir='rtl'] body { line-height: 1.8; }
 }
 
 .tb-active-node-glow {
-  box-shadow: 0 0 0 6px var(--accent-soft), 0 8px 24px rgba(8, 145, 178, 0.32);
+  box-shadow: 0 0 0 6px var(--accent-soft), 0 8px 24px rgba(16, 185, 129, 0.34);
 }
 
 .tb-active-node-pulse {
   animation: tb-node-ring 2.2s ease-in-out infinite;
 }
 
-/* ============================================================
-   v7.2 Auto-Adaptive Lite Performance Mode ([data-perf="lite"])
-   Disables backdrop-filter, glow shadows, and keyframe animations
-   for instant 60 FPS on low-end / older Android devices.
-   ============================================================ */
+/* Anticipatory Breathing Pulse (Kids & Elderly Zero-Guessing Guide) */
+@keyframes anticipatePulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.58), 0 0 20px rgba(16, 185, 129, 0.28);
+  }
+  50% {
+    box-shadow: 0 0 0 11px rgba(16, 185, 129, 0), 0 0 30px rgba(16, 185, 129, 0.52);
+  }
+}
+
+.animate-anticipate {
+  animation: anticipatePulse 2.4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-anticipate {
+    animation: none !important;
+    outline: 3px solid #10B981;
+    outline-offset: 3px;
+  }
+}
+
+/* Auto-Adaptive Lite Performance Mode ([data-perf="lite"]) */
 [data-perf="lite"] *,
 [data-perf="lite"] *::before,
 [data-perf="lite"] *::after {
@@ -372,99 +473,4 @@ html[dir='rtl'] body { line-height: 1.8; }
 
 [data-perf="lite"] .tb-biome-backdrop {
   background: var(--surface) !important;
-}
-
-/* ============================================================
-   Quran Hifz Sanctuary — Calm Mushaf Theme & Progressive Masking
-   ============================================================ */
-.quran-sanctuary {
-  --qs-bg: #FAF6EE;
-  --qs-surface: #FFFDF8;
-  --qs-surface-alt: #F2ECE0;
-  --qs-ink: #141D17;
-  --qs-ink-muted: #425146;
-  --qs-accent: #14532D;
-  --qs-accent-ink: #FFFDF8;
-  --qs-accent-soft: rgba(20, 83, 45, 0.11);
-  --qs-gold: #8C5208;
-  --qs-gold-soft: rgba(154, 91, 10, 0.12);
-  --qs-border: #DDD4C3;
-  background-color: var(--qs-bg);
-  color: var(--qs-ink);
-}
-
-.quran-sanctuary[data-qs-theme="dark"] {
-  --qs-bg: #0F1613;
-  --qs-surface: #16221D;
-  --qs-surface-alt: #1D2C26;
-  --qs-ink: #F5F1E6;
-  --qs-ink-muted: #B6C5BC;
-  --qs-accent: #34D399;
-  --qs-accent-ink: #062116;
-  --qs-accent-soft: rgba(52, 211, 153, 0.15);
-  --qs-gold: #E2C044;
-  --qs-gold-soft: rgba(212, 175, 55, 0.14);
-  --qs-border: #24352E;
-}
-
-.quran-uthmani-text {
-  font-family: 'Amiri', 'IBM Plex Sans Arabic', 'Readex Pro', 'Scheherazade New', 'Traditional Arabic', 'Noto Naskh Arabic', system-ui, serif;
-  color: var(--qs-ink);
-  -webkit-text-fill-color: currentColor;
-  opacity: 1;
-  visibility: visible;
-  line-height: 2.35;
-  letter-spacing: 0;
-  font-feature-settings: "kern" 1, "liga" 1;
-}
-
-.quran-word-faded {
-  background-color: var(--qs-accent-soft);
-  border: 1px dashed var(--qs-accent);
-  color: transparent !important;
-  -webkit-text-fill-color: transparent !important;
-  border-radius: 0.5rem;
-  user-select: none;
-  text-shadow: none;
-}
-
-.quran-word-faded::selection {
-  color: transparent;
-  -webkit-text-fill-color: transparent;
-  background: transparent;
-}
-
-[data-perf="lite"] .quran-word-faded {
-  filter: none !important;
-  box-shadow: none !important;
-  color: transparent !important;
-  -webkit-text-fill-color: transparent !important;
-  border: 1px dotted var(--qs-accent) !important;
-  background-color: var(--qs-surface-alt) !important;
-}
-
-/* Mobile visual rhythm & compact Quran header on 360px-375px screens */
-@media (max-width: 640px) {
-  .quran-sanctuary > header {
-    padding-top: max(env(safe-area-inset-top, 0px), 0.25rem) !important;
-    padding-bottom: 0.25rem !important;
-  }
-
-  .quran-sanctuary > header > div {
-    padding-top: 0.25rem !important;
-    padding-bottom: 0.25rem !important;
-    gap: 0.25rem !important;
-  }
-
-  .quran-sanctuary > header nav {
-    padding-top: 0.125rem !important;
-    padding-bottom: 0.125rem !important;
-    gap: 0.25rem !important;
-  }
-
-  .quran-sanctuary > header button {
-    min-height: 38px !important;
-    padding-top: 0.25rem !important;
-    padding-bottom: 0.25rem !important;
-  }
 }

@@ -45,7 +45,7 @@ export function AgeGateModal({
     soundFX.playChipSelect();
     const text = type === 'kids'
       ? (isArabic ? 'أهلاً بك في عالم الأطفال السريع والممتع!' : 'Welcome to the fun kids learning adventure!')
-      : (isArabic ? 'أهلاً بك في فكّر إنجليزي! التفكير المباشر بدون ترجمة.' : 'Welcome to Thinking Bridge! Think directly in English.');
+      : (isArabic ? 'أهلاً بك في جسر التفكير! التفكير المباشر بدون ترجمة.' : 'Welcome to Thinking Bridge! Think directly in English.');
     void speakUnified({
       text,
       lang: isArabic ? 'ar-EG' : 'en-US',
@@ -76,7 +76,7 @@ export function AgeGateModal({
               <span>{isArabic ? 'اختر وضع التعلم المناسب لك' : 'Choose Your Learner Mode'}</span>
             </div>
             <h2 className="text-xl sm:text-3xl font-black text-white tracking-tight">
-              {isArabic ? 'مرحباً بك في "فكّر إنجليزي" ⚓' : 'Welcome to Thinking Bridge ⚓'}
+              {isArabic ? 'مرحباً بك في "جسر التفكير" ⚓' : 'Welcome to Thinking Bridge ⚓'}
             </h2>
             <p className="text-xs sm:text-sm text-slate-300 max-w-lg mx-auto font-bold leading-relaxed">
               {isArabic

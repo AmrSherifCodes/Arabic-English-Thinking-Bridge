@@ -19,8 +19,29 @@ import { getCurriculum } from '../data/curriculumRegistry';
 import { TARGET_LANGUAGE_META } from '../data/languages';
 import { getTargetDictionary } from '../data/dictionaries';
 
+type B2C1Getter = typeof import('../data/b2c1FlagshipModules').getCuratedB2C1Exercises;
+let cachedB2C1Getter: B2C1Getter | null = null;
+let b2c1LoadPromise: Promise<B2C1Getter | null> | null = null;
+
+/**
+ * Dynamically loads curated B2/C1 Flagship exercises only when a learner opens B2/C1.
+ * Keeps initial cold-boot JS parse lean on 2–3 GB RAM Android phones.
+ */
+export function preloadB2C1FlagshipModules(): Promise<boolean> {
+  if (cachedB2C1Getter) return Promise.resolve(true);
+  if (!b2c1LoadPromise) {
+    b2c1LoadPromise = import('../data/b2c1FlagshipModules')
+      .then((mod) => {
+        cachedB2C1Getter = mod.getCuratedB2C1Exercises;
+        return cachedB2C1Getter;
+      })
+      .catch(() => null);
+  }
+  return b2c1LoadPromise.then((fn) => Boolean(fn));
+}
+
 function dictLoadedKey(targetLang: TargetLanguage): string {
-  return `${targetLang}:${getTargetDictionary(targetLang).length > 0 ? '1' : '0'}`;
+  return `${targetLang}:${getTargetDictionary(targetLang).length > 0 ? '1' : '0'}:${cachedB2C1Getter ? '1' : '0'}`;
 }
 
 /**
@@ -194,6 +215,20 @@ function createExercisesForUnit(
     );
   }
 
+  // Dedicated curated B2 (Native Fluency & Nuance) and C1 (Sophisticated Native Mastery) modules for Top-5 Flagship + EN->AR
+  if (unitId.startsWith('b2') || unitId.startsWith('c1') || unitId.startsWith('capstone-B2') || unitId.startsWith('capstone-C1')) {
+    const inferredLevel: CefrLevelId = unitId.toLowerCase().includes('c1') ? 'C1' : 'B2';
+    if (cachedB2C1Getter) {
+      const curated = cachedB2C1Getter(targetLang, inferredLevel, unitId, count);
+      if (curated && curated.length > 0) {
+        return curated;
+      }
+    } else {
+      // Trigger background dynamic import so subsequent renders receive full curated B2/C1 items
+      void preloadB2C1FlagshipModules();
+    }
+  }
+
   const pool = getPoolForLang(targetLang);
   const fallbackPool = PHASES_DATA.flatMap((p) => p.lessons).flatMap((l) => l.exercises);
 
@@ -261,6 +296,7 @@ function createLessonsForUnit(
 ): LessonNode[] {
   const lessons: LessonNode[] = [];
   for (let i = 1; i <= count; i++) {
+    const isC1LegendBoss = levelId === 'C1' && i === count;
     lessons.push({
       id: `${unitId}-l${i}`,
       unitId,
@@ -270,11 +306,12 @@ function createLessonsForUnit(
       moduleId,
       skills,
       estimatedMinutes: Math.round(levelId === 'A1' ? 5 : levelId === 'A2' ? 7 : levelId === 'B1' ? 9 : levelId === 'B2' ? 11 : 12),
-      titleAr: `${unitTitleAr} — الدرس ${i}`,
-      titleEn: `${unitTitleEn} — Lesson ${i}`,
+      titleAr: isC1LegendBoss ? `⚔️ بوابة الأسطورة C1 — ${unitTitleAr}` : `${unitTitleAr} — الدرس ${i}`,
+      titleEn: isC1LegendBoss ? `⚔️ C1 Legend Boss Gate — ${unitTitleEn}` : `${unitTitleEn} — Lesson ${i}`,
       descriptionAr: `تطبيق عملي وتدريبات متدرجة على ${unitTitleAr}`,
       descriptionEn: `Interactive practice and step-by-step exercises for ${unitTitleEn}`,
-      icon: skills.includes('grammar') ? 'Layers' : skills.includes('listening') ? 'Headphones' : skills.includes('pronunciation') ? 'Mic' : 'BookOpen',
+      icon: isC1LegendBoss ? 'Crown' : skills.includes('grammar') ? 'Layers' : skills.includes('listening') ? 'Headphones' : skills.includes('pronunciation') ? 'Mic' : 'BookOpen',
+      isBossGate: isC1LegendBoss,
       exercises: createExercisesForUnit(`${unitId}-l${i}`, unitTitleEn, unitTitleAr, skills, 6, targetLang),
       canDoIds: [`${levelId.toLowerCase()}-cd-${(i % 5) + 1}`],
     });

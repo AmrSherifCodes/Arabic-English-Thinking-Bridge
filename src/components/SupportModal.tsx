@@ -113,7 +113,7 @@ export function SupportModal({ isOpen, onClose, isArabic = true }: SupportModalP
         <div className="space-y-2.5 text-xs sm:text-sm text-slate-300 leading-relaxed break-words">
           <p>
             {isArabic
-              ? 'فكّر إنجليزي مجاني 100% ومفتوح المصدر لكل الناس — من غير اشتراكات، ولا إعلانات، ولا أي درس أو ميزة مقفولة. وهيفضل كده على طول 💚'
+              ? 'جسر التفكير مجاني 100% ومفتوح المصدر لكل الناس — من غير اشتراكات، ولا إعلانات، ولا أي درس أو ميزة مقفولة. وهيفضل كده على طول 💚'
               : 'Thinking Bridge is 100% free and open-source for everyone — no subscriptions, no ads, no locked lessons or features. Forever.'}
           </p>
           <p>

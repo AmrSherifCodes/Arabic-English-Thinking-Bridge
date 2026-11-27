@@ -1,8 +1,23 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { LessonNode, ExerciseItem } from '../../progression/types';
-import { CheckCircle2, XCircle, ArrowRight, Zap, Timer, Sparkles, Brain, Shuffle, X, Eye, EyeOff, Volume2, RotateCcw } from 'lucide-react';
+import {
+  CheckCircle2,
+  XCircle,
+  ArrowRight,
+  Zap,
+  Timer,
+  Brain,
+  Shuffle,
+  X,
+  Eye,
+  EyeOff,
+  Volume2,
+  RotateCcw,
+  Swords,
+  Trophy,
+} from 'lucide-react';
 import { computeNextHintWord } from '../../utils/habitPsychology';
 import {
   WordBankTile,
@@ -23,10 +38,36 @@ import { checkAnswerMatch, diagnoseL1TransferHint } from '../../utils/transferLo
 import { speakWithRate } from '../../utils/audio';
 import { useLanguagePair } from '../../hooks/useLanguagePair';
 import { getTargetDictionaryAsync } from '../../data/dictionaries';
-import { LevelVisualIllustration } from './LevelVisualIllustration';
 import { NameForge } from '../NameForge';
 import { DualSpeedAudio } from '../DualSpeedAudio';
 import { useUiMode } from '../../utils/uiMode';
+import { AmrGuide } from '../AmrGuide';
+import { NewWordPopup } from '../NewWordPopup';
+import { MascotMood } from '../../constants/mascotMap';
+import {
+  loadWordBank,
+  normalizeWordKey,
+  playComboChime,
+  playPentatonicChime,
+  playSoftRetryTone,
+  unlockWordInBank,
+} from '../../utils/wordBank';
+import {
+  detectL1WeaknessFromAnswer,
+  getTargetedL1MicroDrill,
+  loadAdaptiveProfile,
+  recordExerciseOutcome,
+  saveAdaptiveProfile,
+  type SkillDimension,
+} from '../../engine/orAdaptiveEngine';
+import { recordFlexEvent } from '../../features/gamification/flexTitles';
+
+function normalizeChipDisplay(word: string): string {
+  const stripped = word.trim().replace(/[.,!?;:]+$/g, '');
+  if (!stripped) return word.trim();
+  if (/^I('|’)?(m|ll|ve|d)?$/.test(stripped)) return stripped;
+  return stripped.toLowerCase();
+}
 
 function getGermanGenderClass(word: string, targetLang: string): string {
   if (targetLang !== 'de') return '';
@@ -106,28 +147,6 @@ export function getSmartGrammarClue(exercise: ExerciseItem, isArabic: boolean, t
     : 'Order the sentence natively: Subject first ← then Verb ← then remaining meaning.';
 }
 
-function getNextHintWord(targetSentence: string, currentWordsStr: string) {
-  const targetWords = (targetSentence || '').replace(/[.,?!]/g, '').split(/\s+/).filter(Boolean);
-  const currentWords = (currentWordsStr || '').replace(/[.,?!]/g, '').split(/\s+/).filter(Boolean);
-
-  for (let i = 0; i < targetWords.length; i++) {
-    if (i >= currentWords.length || currentWords[i].toLowerCase() !== targetWords[i].toLowerCase()) {
-      return {
-        nextWord: targetWords[i],
-        position: i + 1,
-        total: targetWords.length,
-        allMatched: false,
-      };
-    }
-  }
-  return {
-    nextWord: null,
-    position: targetWords.length,
-    total: targetWords.length,
-    allMatched: true,
-  };
-}
-
 function buildWordBankForExercise(exercise: ExerciseItem, idx: number): WordBankTile[] {
   const rawOptions =
     exercise.options && exercise.options.length > 0
@@ -143,7 +162,7 @@ function buildWordBankForExercise(exercise: ExerciseItem, idx: number): WordBank
     difficulty
   );
 
-  const options = ensureRequiredWordBankTokens(dynamicChips, exercise.targetSentence);
+  const options = ensureRequiredWordBankTokens(dynamicChips, exercise.targetSentence).map(normalizeChipDisplay);
   for (let index = options.length - 1; index > 0; index -= 1) {
     const swapIndex = Math.floor(Math.random() * (index + 1));
     [options[index], options[swapIndex]] = [options[swapIndex], options[index]];
@@ -177,8 +196,12 @@ export function LessonRunner({
   }, [activeTargetLang]);
 
   const [uiMode] = useUiMode();
-  const [exercises, setExercises] = useState<ExerciseItem[]>(() => [...lesson.exercises]);
+  const isArcadeJuicy = uiMode !== 'simple';
+  const isBossGate = Boolean(
+    lesson.isBossGate || /boss|الزعيم|checkpoint/i.test(`${lesson.id} ${lesson.titleAr} ${lesson.titleEn}`)
+  );
 
+  const [exercises, setExercises] = useState<ExerciseItem[]>(() => [...lesson.exercises]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [placedTileIds, setPlacedTileIds] = useState<string[]>([]);
   const [wordBankTiles, setWordBankTiles] = useState<WordBankTile[]>([]);
@@ -200,6 +223,7 @@ export function LessonRunner({
     setAutoHintPill(isArabic ? '🔀 تم خلط التمارين بنجاح!' : '🔀 Exercises shuffled!');
     soundFX.playChipSelect();
   };
+
   const [userInput, setUserInput] = useState('');
   const [isAnswered, setIsAnswered] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
@@ -210,7 +234,7 @@ export function LessonRunner({
 
   // Hint Drawer & Stage State
   const [hintDrawerOpen, setHintDrawerOpen] = useState(false);
-  const [hintStage, setHintStage] = useState<1 | 2 | 3>(1);
+  const [, setHintStage] = useState<1 | 2 | 3>(1);
   const [lastAddedHintWord, setLastAddedHintWord] = useState<string | null>(null);
 
   // Variable-Ratio Rewards & Streak Micro-Celebrations State
@@ -218,6 +242,44 @@ export function LessonRunner({
   const [sessionXpEarned, setSessionXpEarned] = useState(0);
   const [lastExerciseXp, setLastExerciseXp] = useState(10);
   const [isCriticalHit, setIsCriticalHit] = useState(false);
+
+  // Arcade Game Juice & Boss Gate HP State (Standard/Pro only — Easy Mode stays calm)
+  const runnerFrameRef = useRef<HTMLDivElement>(null);
+  const popIdRef = useRef(0);
+  const [floatingPops, setFloatingPops] = useState<
+    Array<{ id: number; text: string; x: number; y: number; tone: 'xp' | 'combo' | 'speed' | 'crit' | 'boss' }>
+  >([]);
+  const [speedBonusFlash, setSpeedBonusFlash] = useState(false);
+  const [tileTapChain, setTileTapChain] = useState(0);
+  const [bossHp, setBossHp] = useState(100);
+  const [bossHitFlash, setBossHitFlash] = useState(false);
+
+  const spawnFloatingPop = useCallback(
+    (
+      text: string,
+      tone: 'xp' | 'combo' | 'speed' | 'crit' | 'boss',
+      originEl?: HTMLElement | null
+    ) => {
+      if (!isArcadeJuicy) return;
+      const frame = runnerFrameRef.current;
+      let x = 50;
+      let y = 30;
+      if (frame && originEl) {
+        const fRect = frame.getBoundingClientRect();
+        const oRect = originEl.getBoundingClientRect();
+        if (fRect.width > 0 && fRect.height > 0) {
+          x = Math.min(82, Math.max(18, ((oRect.left + oRect.width / 2 - fRect.left) / fRect.width) * 100));
+          y = Math.min(78, Math.max(16, ((oRect.top - fRect.top) / fRect.height) * 100));
+        }
+      }
+      const id = ++popIdRef.current;
+      setFloatingPops((prev) => [...prev.slice(-2), { id, text, x, y, tone }]);
+      window.setTimeout(() => {
+        setFloatingPops((prev) => prev.filter((p) => p.id !== id));
+      }, 900);
+    },
+    [isArcadeJuicy]
+  );
 
   // Automaticity Timer & Mastery Loop Tracking (Zero Heart Paywall)
   const exerciseStartTimeRef = useRef<number>(Date.now());
@@ -231,13 +293,19 @@ export function LessonRunner({
   const [autoHintPill, setAutoHintPill] = useState<string | null>(null);
   const [showNameForge, setShowNameForge] = useState(lesson.stage === 'Pre-A0');
   const [inputMode, setInputMode] = useState<'tiles' | 'keyboard'>('tiles');
+  const [pendingNewWord, setPendingNewWord] = useState<{
+    word: string;
+    translationAr: string;
+    egyptianHook?: string;
+  } | null>(null);
+  const [milestoneBanner, setMilestoneBanner] = useState<number | null>(null);
+  const shownWordKeysRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     setHintDrawerOpen(false);
     setHintStage(1);
   }, [currentIndex]);
 
-  // Desktop Keyboard Shortcuts (Enter to Check / Next, Backspace to undo last placed tile)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (showSummary || showExitConfirm) return;
@@ -281,57 +349,101 @@ export function LessonRunner({
     if (!currentExercise) return;
     setWordBankTiles(buildWordBankForExercise(currentExercise, currentIndex));
     setPlacedTileIds([]);
+
+    if (!currentExercise.id.endsWith('__retry')) {
+      const tokens = tokenizeTargetSentence(currentExercise.targetSentence || '').map(normalizeChipDisplay);
+      const bankKeys = new Set(loadWordBank().map((w) => w.id));
+      const candidate = tokens.find((tok) => {
+        const key = normalizeWordKey(tok, activeTargetLang);
+        return tok.length >= 3 && !bankKeys.has(key) && !shownWordKeysRef.current.has(key);
+      });
+      if (candidate) {
+        const key = normalizeWordKey(candidate, activeTargetLang);
+        shownWordKeysRef.current.add(key);
+        const gloss =
+          getGlossForWord(candidate, currentExercise.breakdownChunks || [], activeTargetLang, activeSourceLang) ||
+          currentExercise.promptAr;
+        setPendingNewWord({
+          word: candidate,
+          translationAr: gloss,
+          egyptianHook: getSmartGrammarClue(currentExercise, isArabic, activeTargetLang),
+        });
+      } else {
+        setPendingNewWord(null);
+      }
+    }
   }, [currentExercise?.id, currentIndex]);
 
   useEffect(() => {
     exerciseStartTimeRef.current = Date.now();
+    setTileTapChain(0);
+    setSpeedBonusFlash(false);
   }, [currentIndex]);
+
+  useEffect(() => {
+    if (!pendingNewWord) {
+      exerciseStartTimeRef.current = Date.now();
+    }
+  }, [pendingNewWord]);
+
+  useEffect(() => {
+    if (showSummary && isBossGate) {
+      recordFlexEvent({ bossGateCleared: true });
+      if (isArcadeJuicy) {
+        try {
+          confetti({
+            particleCount: 110,
+            spread: 85,
+            origin: { y: 0.55 },
+            colors: ['#F59E0B', '#22D3EE', '#10B981'],
+          });
+        } catch { }
+      }
+    }
+  }, [showSummary, isBossGate, isArcadeJuicy]);
 
   const currentTargetTokens = tokenizeTargetSentence(currentExercise?.targetSentence || '');
   const isSentenceSlotsFull = inputMode === 'tiles' && placedTileIds.length >= currentTargetTokens.length;
 
-  const triggerAutoHelper = useCallback((customPillMessage?: string): string | null => {
-    if (isAnswered || showSummary || !currentExercise) return null;
+  const triggerAutoHelper = useCallback(
+    (customPillMessage?: string): string | null => {
+      if (isAnswered || showSummary || !currentExercise) return null;
 
-    const targetSentence = currentExercise.targetSentence || '';
-    const targetTokens = tokenizeTargetSentence(targetSentence);
+      const targetSentence = currentExercise.targetSentence || '';
+      const targetTokens = tokenizeTargetSentence(targetSentence);
 
-    if (inputMode === 'tiles') {
-      if (placedTileIds.length >= targetTokens.length) {
-        return null;
-      }
+      if (inputMode === 'tiles') {
+        if (placedTileIds.length >= targetTokens.length) {
+          return null;
+        }
 
-      const nextTile = selectNextHintTile(targetSentence, placedTileIds, wordBankTiles);
-      if (!nextTile) {
-        return null;
-      }
+        const nextTile = selectNextHintTile(targetSentence, placedTileIds, wordBankTiles);
+        if (!nextTile) {
+          return null;
+        }
 
-      setPlacedTileIds((prev) => appendPlacedTileId(prev, nextTile.id, targetTokens.length));
-      setAutoHintPill(
-        customPillMessage ?? (
-          isArabic
-            ? `💡 أضفنا الكلمة: "${nextTile.word}"`
-            : `💡 Added word: "${nextTile.word}"`
-        )
-      );
-      return nextTile.word;
-    } else {
-      const { nextWord } = computeNextHintWord(targetSentence, userInput);
-      if (nextWord) {
-        const updatedInput = userInput ? `${userInput} ${nextWord}` : nextWord;
-        setUserInput(updatedInput);
+        setPlacedTileIds((prev) => appendPlacedTileId(prev, nextTile.id, targetTokens.length));
         setAutoHintPill(
-          customPillMessage ?? (
-            isArabic
-              ? `💡 أضفنا الكلمة: "${nextWord}"`
-              : `💡 Added word: "${nextWord}"`
-          )
+          customPillMessage ??
+          (isArabic ? `💡 أضفنا الكلمة: "${nextTile.word}"` : `💡 Added word: "${nextTile.word}"`)
         );
-        return nextWord;
+        return nextTile.word;
+      } else {
+        const { nextWord } = computeNextHintWord(targetSentence, userInput);
+        if (nextWord) {
+          const updatedInput = userInput ? `${userInput} ${nextWord}` : nextWord;
+          setUserInput(updatedInput);
+          setAutoHintPill(
+            customPillMessage ??
+            (isArabic ? `💡 أضفنا الكلمة: "${nextWord}"` : `💡 Added word: "${nextWord}"`)
+          );
+          return nextWord;
+        }
       }
-    }
-    return null;
-  }, [isAnswered, showSummary, currentExercise, placedTileIds, wordBankTiles, userInput, isArabic, inputMode]);
+      return null;
+    },
+    [isAnswered, showSummary, currentExercise, placedTileIds, wordBankTiles, userInput, isArabic, inputMode]
+  );
 
   // Automatic 30-second Idle Guard
   useEffect(() => {
@@ -355,7 +467,8 @@ export function LessonRunner({
   const handleCheckAnswer = () => {
     if (isAnswered || !currentExercise) return;
 
-    const rawTimeSpentMs = Math.max(1000, Date.now() - exerciseStartTimeRef.current);
+    const rawElapsed = Date.now() - exerciseStartTimeRef.current;
+    const rawTimeSpentMs = Math.max(1000, rawElapsed);
     const timeSpentMs = Math.min(30000, rawTimeSpentMs);
     setResponseTimesMs((prev) => [...prev, timeSpentMs]);
 
@@ -391,6 +504,40 @@ export function LessonRunner({
     updateCognitiveProfile(timeSpentMs, isMatch, category);
     runLocalTrainingStep('answer_exercise', isMatch, category, timeSpentMs);
 
+    try {
+      const detectedPattern = !isMatch
+        ? detectL1WeaknessFromAnswer(userSentence, currentExercise.targetSentence)
+        : null;
+      const skillDim: SkillDimension = currentExercise.type === 'listening_pick'
+        ? 'listening'
+        : detectedPattern
+          ? 'l1_transfer'
+          : currentExercise.skillAxes?.includes('vocabulary')
+            ? 'vocab'
+            : 'syntax';
+
+      const prevOr = loadAdaptiveProfile();
+      const nextOr = recordExerciseOutcome(prevOr, {
+        itemId: currentExercise.id,
+        skill: skillDim,
+        correct: isMatch,
+        latencyMs: timeSpentMs,
+        l1Pattern: detectedPattern || undefined,
+      });
+      saveAdaptiveProfile(nextOr);
+
+      if (detectedPattern && !queuedRetryIdsRef.current.has(`l1-${detectedPattern}`)) {
+        queuedRetryIdsRef.current.add(`l1-${detectedPattern}`);
+        const microDrill = getTargetedL1MicroDrill(detectedPattern);
+        setExercises((prev) => {
+          const insertAt = Math.min(prev.length, currentIndex + 1);
+          return [...prev.slice(0, insertAt), microDrill, ...prev.slice(insertAt)];
+        });
+      }
+    } catch {
+      // Non-blocking OR telemetry update
+    }
+
     setIsCorrect(isMatch);
 
     if (isMatch) {
@@ -406,39 +553,69 @@ export function LessonRunner({
         awardedXp = 15;
       }
 
+      const earnedSpeedBonus = isArcadeJuicy && rawElapsed <= 3000;
+      if (earnedSpeedBonus) {
+        awardedXp += 5;
+        setSpeedBonusFlash(true);
+        recordFlexEvent({ speedBonusDelta: 1 });
+        window.setTimeout(() => setSpeedBonusFlash(false), 1800);
+      }
+
       setLastExerciseXp(awardedXp);
       setIsCriticalHit(critical);
       setSessionXpEarned((prev) => prev + awardedXp);
 
       const nextStreak = sessionStreak + 1;
       setSessionStreak(nextStreak);
+      if (nextStreak >= 3) {
+        recordFlexEvent({ comboReached: nextStreak });
+      }
+
+      if (isBossGate && isArcadeJuicy) {
+        const isLastExercise = currentIndex + 1 >= exercises.length;
+        setBossHp((prev) => (isLastExercise ? 0 : Math.max(0, prev - 20)));
+        setBossHitFlash(true);
+        window.setTimeout(() => setBossHitFlash(false), 600);
+        spawnFloatingPop('-20 HP 💥', 'boss');
+      } else if (isArcadeJuicy) {
+        if (earnedSpeedBonus) {
+          spawnFloatingPop(isArabic ? '⚡ سريع! +5 XP' : '⚡ Fast! +5 XP', 'speed');
+        } else if (nextStreak >= 3) {
+          spawnFloatingPop(`+${awardedXp} XP · 🔥 x${nextStreak}`, 'combo');
+        } else {
+          spawnFloatingPop(critical ? `💥 +${awardedXp} XP` : `+${awardedXp} XP`, critical ? 'crit' : 'xp');
+        }
+      }
 
       soundFX.playComboChord(correctAnswersCount + 1);
+      playComboChime(nextStreak);
       if ((correctAnswersCount + 1) % 5 === 0) {
         soundFX.playFanfare();
       }
       speakWithRate(currentExercise.targetSentence, 1.0, undefined, activeTargetLang);
 
-      if (nextStreak % 3 === 0 || critical) {
+      if (isArcadeJuicy && (nextStreak % 3 === 0 || critical)) {
         confetti({
           particleCount: critical ? 120 : 60,
           spread: critical ? 100 : 70,
           origin: { y: 0.6 },
-          colors: critical ? ['#FFD700', '#FF4500', '#00E676'] : undefined,
+          colors: critical ? ['#F59E0B', '#22D3EE', '#10B981'] : undefined,
         });
       }
     } else {
       soundFX.playError();
+      playSoftRetryTone();
       setSessionStreak(0);
       setIsCriticalHit(false);
       setLastExerciseXp(0);
+      setSpeedBonusFlash(false);
       if (!currentExercise.id.endsWith('__retry') && !queuedRetryIdsRef.current.has(currentExercise.id)) {
         queuedRetryIdsRef.current.add(currentExercise.id);
         setExercises((prev) => [...prev, { ...currentExercise, id: `${currentExercise.id}__retry` }]);
       }
     }
 
-    safeVibrate(isMatch ? [30, 40, 50] : [70]);
+    safeVibrate(isMatch ? (isArcadeJuicy ? 10 : [20]) : [40]);
     setAutoHintPill(null);
     setHintDrawerOpen(false);
     setIsAnswered(true);
@@ -510,19 +687,46 @@ export function LessonRunner({
       automaticityTierEn = '💡 Good speed, keep practicing!';
     }
 
-    const earnedXp = sessionXpEarned + (accuracy > 80 ? 20 : 0);
+    const bossBonusXp = isBossGate ? 50 : 0;
+    const earnedXp = sessionXpEarned + (accuracy > 80 ? 20 : 0) + bossBonusXp;
 
     return (
       <div className="fixed inset-0 z-50 bg-bg/90 backdrop-blur-xl flex items-center justify-center p-2 pt-safe pb-safe sm:p-6" dir={isArabic ? 'rtl' : 'ltr'}>
-        <div className="w-full h-full sm:h-auto sm:max-h-[88dvh] sm:max-w-[520px] md:max-w-xl sm:rounded-3xl bg-bg border border-border shadow-2xl flex flex-col items-center justify-center p-6 text-center">
-          <div className="space-y-6 w-full max-w-sm">
-            <div className="w-20 h-20 rounded-3xl bg-primary/20 border border-primary/40 text-primary flex items-center justify-center text-4xl mx-auto shadow-2xl">
-              🏆
+        <div
+          className={`w-full h-full sm:h-auto sm:max-h-[88dvh] sm:max-w-[520px] md:max-w-xl sm:rounded-3xl bg-bg border shadow-2xl flex flex-col items-center justify-center p-6 text-center ${isBossGate ? 'border-[#F59E0B]/70 tb-fever-gold' : 'border-border'
+            }`}
+        >
+          <div className="space-y-5 w-full max-w-sm">
+            <div className="flex justify-center">
+              <AmrGuide mood={isBossGate ? 'cheer' : 'proud'} isArabic={isArabic} size={112} />
             </div>
+
+            {isBossGate && (
+              <div
+                data-testid="boss-milestone-chest"
+                className="p-3.5 rounded-2xl border-2 border-[#F59E0B] bg-[#F59E0B]/15 space-y-1 tb-pop-bounce"
+              >
+                <div className="flex items-center justify-center gap-2 text-sm font-black text-[#FBBF24]">
+                  <Trophy size={18} />
+                  <span>
+                    {isArabic ? '🎁 صندوق الزعيم المفتوح · ترقية مستوى!' : '🎁 Boss Milestone Chest · Rank Up!'}
+                  </span>
+                </div>
+                <p className="text-xs font-bold text-[#F8FAFC]">
+                  {isArabic ? 'هزمت بوابة الزعيم! +50 XP مكافأة زعيم 🏆' : 'Boss Gate conquered! +50 XP Boss Bonus 🏆'}
+                </p>
+              </div>
+            )}
 
             <div className="space-y-1">
               <h2 className="text-2xl font-black text-text">
-                {isArabic ? 'درس مكتمل بنجاح! 🎉' : 'Lesson Completed! 🎉'}
+                {isBossGate
+                  ? isArabic
+                    ? 'انتصار على الزعيم! 👑'
+                    : 'Boss Defeated! 👑'
+                  : isArabic
+                    ? 'درس مكتمل بنجاح! 🎉'
+                    : 'Lesson Completed! 🎉'}
               </h2>
               <p className="text-xs text-muted">
                 {isArabic ? lesson.titleAr : lesson.titleEn}
@@ -581,98 +785,223 @@ export function LessonRunner({
   }
 
   const progressPercent = Math.round(((currentIndex + 1) / exercises.length) * 100);
+  const isFever = isArcadeJuicy && sessionStreak >= 3;
+  const isGoldFever = isArcadeJuicy && sessionStreak >= 5;
+  const feverHypeLine = isGoldFever
+    ? isArabic
+      ? 'وحش اللغات! 👑'
+      : 'Language Beast! 👑'
+    : sessionStreak === 4
+      ? isArabic
+        ? 'إيه السرعة دي! ⚡'
+        : 'Pure Speed! ⚡'
+      : isArabic
+        ? 'عاش يا بطل! 🔥'
+        : 'Hero Mode! 🔥';
 
   return (
     <div className="fixed inset-0 z-50 bg-bg/90 backdrop-blur-xl flex items-center justify-center p-0 sm:p-4 md:p-6" dir={isArabic ? 'rtl' : 'ltr'}>
-      <div className="w-full h-full flex flex-col sm:h-auto sm:max-h-[88dvh] sm:max-w-xl md:max-w-2xl lg:max-w-4xl sm:rounded-3xl bg-bg border border-border shadow-2xl overflow-hidden relative">
-        {/* Top Header Progress Bar */}
-        <div className="sticky top-0 z-40 px-3 sm:px-4 pb-3 pt-safe border-b border-border flex items-center gap-2 sm:gap-3 bg-[#06101c]/95 backdrop-blur-md shrink-0">
+      <div
+        ref={runnerFrameRef}
+        className={`w-full h-full flex flex-col sm:h-auto sm:max-h-[88dvh] sm:max-w-xl md:max-w-2xl lg:max-w-4xl sm:rounded-3xl bg-bg border-2 shadow-2xl overflow-hidden relative transition-all duration-300 ${isGoldFever
+          ? 'tb-fever-gold'
+          : isFever
+            ? 'tb-fever-cyan'
+            : 'border-border'
+          }`}
+      >
+        {/* Floating XP / Combo / Speed / Boss Hit Pop Particles (Standard/Pro only) */}
+        {isArcadeJuicy && (
+          <div className="pointer-events-none absolute inset-0 z-50 overflow-hidden" aria-hidden="true">
+            <AnimatePresence>
+              {floatingPops.map((pop) => (
+                <motion.div
+                  key={pop.id}
+                  initial={{ y: 0, scale: 0.72, opacity: 0 }}
+                  animate={{ y: -56, scale: 1.06, opacity: 1 }}
+                  exit={{ y: -86, scale: 0.9, opacity: 0 }}
+                  transition={{ type: 'spring', stiffness: 420, damping: 24 }}
+                  style={{ left: `${pop.x}%`, top: `${pop.y}%` }}
+                  className={`absolute -translate-x-1/2 px-3 py-1 rounded-full border text-xs font-black whitespace-nowrap shadow-xl ${pop.tone === 'boss'
+                    ? 'bg-rose-500/90 border-amber-300 text-white'
+                    : pop.tone === 'speed'
+                      ? 'bg-cyan-500/90 border-cyan-200 text-[#0B1120]'
+                      : pop.tone === 'crit'
+                        ? 'bg-amber-400/95 border-amber-200 text-[#0B1120]'
+                        : pop.tone === 'combo'
+                          ? 'bg-[#0B1120]/95 border-[#22D3EE] text-[#22D3EE]'
+                          : 'bg-emerald-500/95 border-emerald-200 text-[#0B1120]'
+                    }`}
+                >
+                  {pop.text}
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        )}
+
+        {/* Top Header Progress Bar (un-squeezed on narrow screens & Fever Mode) */}
+        <div className="sticky top-0 z-40 px-3 sm:px-4 pb-2.5 pt-safe border-b border-border flex items-center gap-2 bg-[#06101c]/95 backdrop-blur-md shrink-0 overflow-hidden">
           <button
             onClick={() => setShowExitConfirm(true)}
-            className="p-2 min-h-[48px] min-w-[48px] flex items-center justify-center rounded-xl bg-surface-2 text-muted hover:text-text font-bold transition cursor-pointer shrink-0"
-            aria-label={isArabic ? 'إغلاق الدرس' : 'Close Lesson'}
+            className="px-3 py-2 min-h-[46px] min-w-[46px] flex items-center justify-center gap-1 rounded-2xl bg-[#1B2742] border border-slate-500/40 text-[#F8FAFC] hover:text-white font-black text-xs sm:text-sm transition cursor-pointer shrink-0 whitespace-nowrap"
+            aria-label={isArabic ? 'رجوع' : 'Back'}
           >
-            <X size={20} />
+            <span>{isArabic ? '→ رجوع' : '← Back'}</span>
           </button>
-          <div className="flex-1 min-w-[32px] bg-surface-2 h-3 rounded-full overflow-hidden border border-border">
+          <div className="flex-1 min-w-[36px] bg-surface-2 h-3 rounded-full overflow-hidden border border-border">
             <div
               className="bg-success h-full transition-all duration-300"
               style={{ width: `${progressPercent}%` }}
             />
           </div>
-          <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
-            <span
-              data-testid="unlimited-hearts-badge"
-              className="px-2 py-1 rounded-full bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-black flex items-center gap-1 whitespace-nowrap"
-              title={isArabic ? 'قلوب لا محدودة مجاناً — أخطئ وتعلم بحرية' : 'Unlimited free hearts — zero paywalls'}
-            >
-              <span>❤️</span>
-              <span>∞</span>
-              <span className="hidden sm:inline">{isArabic ? 'مجاناً' : 'Free'}</span>
-            </span>
-            {sessionStreak >= 2 && (
-              <span
-                data-testid="combo-flame"
-                className="px-2 py-1 rounded-full bg-amber-500/20 border border-amber-400/40 text-amber-300 text-xs font-black whitespace-nowrap"
+          {uiMode !== 'simple' && (
+            <div className="flex items-center gap-1.5 shrink-0 flex-nowrap">
+              {/* Auto-hide ❤️ ∞ when Fever Mode (x2/x3/x5) activates so header NEVER squeezes */}
+              {sessionStreak < 2 ? (
+                <span
+                  data-testid="unlimited-hearts-badge"
+                  className="px-2 py-1 rounded-full bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-black flex items-center gap-1 whitespace-nowrap"
+                  title={isArabic ? 'قلوب لا محدودة مجاناً — أخطئ وتعلم بحرية' : 'Unlimited free hearts — zero paywalls'}
+                >
+                  <span>❤️</span>
+                  <span>∞</span>
+                  <span className="hidden sm:inline">{isArabic ? 'مجاناً' : 'Free'}</span>
+                </span>
+              ) : (
+                <span
+                  data-testid="combo-flame"
+                  className={`px-2 py-1 rounded-full border text-xs font-black whitespace-nowrap ${
+                    isGoldFever
+                      ? 'bg-amber-400/25 border-amber-400 text-amber-200'
+                      : 'bg-cyan-500/20 border-cyan-400/60 text-cyan-200'
+                  }`}
+                >
+                  🔥 x{sessionStreak >= 5 ? 5 : sessionStreak >= 3 ? 3 : 2}
+                </span>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  const addedWord = triggerAutoHelper();
+                  if (addedWord) setLastAddedHintWord(addedWord);
+                  setHintDrawerOpen(true);
+                }}
+                className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl bg-cyan-500/15 border border-cyan-500/40 text-cyan-300 hover:bg-cyan-500/25 text-xs font-bold transition active:scale-95 cursor-pointer"
+                title={isArabic ? 'تلميح ذكي' : 'Smart Hint'}
+                aria-label={isArabic ? 'تلميح ذكي' : 'Smart Hint'}
               >
-                🔥 x{sessionStreak}
-              </span>
-            )}
-            <button
-              type="button"
-              onClick={() => {
-                const addedWord = triggerAutoHelper();
-                if (addedWord) setLastAddedHintWord(addedWord);
-                setHintDrawerOpen(true);
-              }}
-              className="p-2 min-h-[48px] min-w-[48px] flex items-center justify-center rounded-xl bg-cyan-500/15 border border-cyan-500/40 text-cyan-300 hover:bg-cyan-500/25 text-xs font-bold transition active:scale-95 cursor-pointer"
-              title={isArabic ? 'تلميح ذكي' : 'Smart Hint'}
-              aria-label={isArabic ? 'تلميح ذكي' : 'Smart Hint'}
-            >
-              <Brain size={16} className="text-cyan-400 shrink-0" />
-              <span className="hidden sm:inline ms-1.5">{uiMode === 'simple' ? (isArabic ? 'ساعدني' : 'Help') : (isArabic ? 'تلميح' : 'Hint')}</span>
-            </button>
-            <button
-              type="button"
-              onClick={handleShuffleExercises}
-              className="p-2 min-h-[48px] min-w-[48px] flex items-center justify-center rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20 text-xs font-bold transition active:scale-95 cursor-pointer"
-              title={isArabic ? 'إعادة ترتيب التمارين عشوائياً' : 'Randomize exercise order'}
-              aria-label={isArabic ? 'إعادة ترتيب التمارين عشوائياً' : 'Randomize exercise order'}
-            >
-              <Shuffle size={16} />
-            </button>
-            <div className="flex items-center gap-1 text-xs font-black text-muted whitespace-nowrap" dir="ltr">
-              <Timer size={14} className="text-primary shrink-0" />
-              <span>{currentIndex + 1}/{exercises.length}</span>
+                <Brain size={16} className="text-cyan-400 shrink-0" />
+                <span className="hidden sm:inline ms-1.5">{isArabic ? 'تلميح' : 'Hint'}</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleShuffleExercises}
+                className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20 text-xs font-bold transition active:scale-95 cursor-pointer"
+                title={isArabic ? 'إعادة ترتيب التمارين عشوائياً' : 'Randomize exercise order'}
+                aria-label={isArabic ? 'إعادة ترتيب التمارين عشوائياً' : 'Randomize exercise order'}
+              >
+                <Shuffle size={16} />
+              </button>
             </div>
-          </div>
+          )}
         </div>
+
+        {/* Visual Boss HP Bar (⚔️ بوابة الزعيم) — Standard/Pro only */}
+        {isBossGate && isArcadeJuicy && (
+          <div
+            data-testid="boss-hp-bar"
+            className={`px-4 py-2 border-b flex items-center gap-3 shrink-0 transition-colors ${bossHitFlash ? 'tb-boss-hit bg-rose-950/50' : ''}`}
+            style={{
+              backgroundColor: bossHitFlash ? undefined : 'rgba(127, 29, 29, 0.24)',
+              borderColor: 'rgba(245, 158, 11, 0.4)',
+            }}
+          >
+            <div className="flex items-center gap-1.5 shrink-0">
+              <Swords size={15} className="text-[#F59E0B]" />
+              <span className="text-xs font-black text-[#FBBF24] whitespace-nowrap">
+                {isArabic ? '⚔️ بوابة الزعيم' : '⚔️ Boss Gate'}
+              </span>
+            </div>
+            <div className="flex-1 h-3 rounded-full overflow-hidden bg-[#0B1120] border border-rose-500/40">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-rose-600 via-rose-500 to-amber-400 transition-all duration-300"
+                style={{ width: `${bossHp}%` }}
+              />
+            </div>
+            <span className="text-xs font-black font-mono text-rose-300 tabular-nums whitespace-nowrap">
+              {bossHp} HP
+            </span>
+          </div>
+        )}
+
+        {/* Electric Cyan / Gold Combo Fever Meter (hidden in Easy Mode) */}
+        {uiMode !== 'simple' && (() => {
+          const multiplier = sessionStreak >= 5 ? 5 : sessionStreak >= 3 ? 3 : sessionStreak >= 2 ? 2 : 1;
+          const feverPct = Math.min(100, (sessionStreak / 5) * 100);
+          return (
+            <div
+              className="px-4 py-1.5 border-b flex items-center gap-2.5 shrink-0"
+              style={{
+                backgroundColor: 'var(--surface)',
+                borderColor: isFever ? (isGoldFever ? 'rgba(251,191,36,0.5)' : 'rgba(34,211,238,0.5)') : 'var(--border)',
+              }}
+            >
+              <span className={`text-[11px] font-black whitespace-nowrap ${isGoldFever ? 'text-[#FBBF24]' : 'text-[#22D3EE]'}`}>
+                {multiplier > 1 ? `🔥 FEVER x${multiplier}` : isArabic ? '⚡ شريط الكومبو' : '⚡ Combo Fever'}
+              </span>
+              <div className="flex-1 h-2 rounded-full overflow-hidden bg-[#0B1120] border border-slate-500/25">
+                <div
+                  className="h-full rounded-full transition-all duration-300"
+                  style={{
+                    width: `${Math.max(feverPct, sessionStreak > 0 ? 20 : 0)}%`,
+                    backgroundColor: isGoldFever ? '#F59E0B' : '#22D3EE',
+                  }}
+                />
+              </div>
+              {speedBonusFlash ? (
+                <span
+                  data-testid="speed-bonus-badge"
+                  className="px-2 py-0.5 rounded-full bg-cyan-400 text-[#0B1120] text-[10px] font-black whitespace-nowrap tb-pop-bounce"
+                >
+                  {isArabic ? '⚡ سريع! +5 XP' : '⚡ Fast! +5 XP'}
+                </span>
+              ) : (
+                <span
+                  data-testid="lesson-step-counter"
+                  className="inline-flex items-center gap-1 text-[11px] font-black text-[#F8FAFC] tabular-nums whitespace-nowrap px-2 py-0.5 rounded-lg bg-[#0B1120] border border-slate-600/40"
+                  dir="ltr"
+                >
+                  <Timer size={12} className="text-[#22D3EE] shrink-0" />
+                  <span>{currentIndex + 1}/{exercises.length}</span>
+                </span>
+              )}
+            </div>
+          );
+        })()}
 
         {/* Exercise Body */}
         <motion.div
           key={`${lesson.id}-${currentExercise.id}-${currentIndex}`}
-          animate={isAnswered && isCorrect
-            ? { scale: [1, 1.02, 1], boxShadow: '0 0 20px rgba(16, 185, 129, 0.4)' }
-            : { scale: 1, boxShadow: '0 0 0 rgba(16, 185, 129, 0)' }}
+          animate={
+            isAnswered && isCorrect
+              ? { scale: [1, 1.02, 1], boxShadow: '0 0 20px rgba(16, 185, 129, 0.4)' }
+              : { scale: 1, boxShadow: '0 0 0 rgba(16, 185, 129, 0)' }
+          }
           transition={{ duration: 0.4 }}
-          className={`flex-1 min-h-0 p-4 sm:p-6 overflow-y-auto space-y-6 relative transition-all duration-300 ${
-            isAnswered && isCorrect ? 'ring-4 ring-success/50 rounded-2xl' : ''
-          }`}
+          className={`flex-1 min-h-0 p-3.5 sm:p-5 overflow-y-auto space-y-3.5 relative transition-all duration-300 ${pendingNewWord && !isAnswered ? 'flex flex-col justify-center' : ''
+            } ${isAnswered && isCorrect ? 'ring-4 ring-success/50 rounded-2xl' : ''}`}
         >
-          {isAnswered && isCorrect && (
+          {isAnswered && isCorrect && !isArcadeJuicy && (
             <motion.div
               key={`xp-${currentIndex}`}
               initial={{ y: 0, opacity: 1 }}
               animate={{ y: -50, opacity: 0 }}
               transition={{ duration: 0.9, ease: 'easeOut' }}
               aria-live="polite"
-              className={`pointer-events-none absolute end-5 top-6 z-10 rounded-full border px-3 py-1 text-sm font-black shadow-lg ${
-                isCriticalHit
-                  ? 'bg-amber-500/30 border-amber-400 text-amber-300 animate-bounce'
-                  : 'bg-success/20 border-success/40 text-success'
-              }`}
+              className="pointer-events-none absolute end-5 top-6 z-10 rounded-full border px-3 py-1 text-sm font-black shadow-lg bg-success/20 border-success/40 text-success"
             >
-              {isCriticalHit ? '💥 +50 XP CRITICAL HIT!' : `+${lastExerciseXp} XP`}
+              +{lastExerciseXp} XP
             </motion.div>
           )}
 
@@ -687,297 +1016,406 @@ export function LessonRunner({
             </div>
           )}
 
-          {/* Always-visible unclipped scene card; reveals target only after answered */}
-          <LevelVisualIllustration
-            stage={lesson.stage || 'A0'}
-            levelNumber={currentIndex + 1}
-            promptAr={currentExercise.promptAr}
-            englishTarget={currentExercise.targetSentence}
-            revealTarget={isAnswered}
-            isArabic={isArabic}
-            className="max-w-[360px]"
-          />
-
-          {/* Source Thought Prompt */}
-          <div className="p-4 rounded-3xl bg-surface border border-border space-y-2 flex items-center justify-between gap-2">
-            <div>
-              <span className="text-[10px] font-black uppercase tracking-wider text-success block">
-                {isArabic ? 'عَبّر عن الفكرة بترتيب اللغة المستهدفة:' : 'Express the thought in the target language:'}
-              </span>
-              <h2 className="text-lg font-black text-text" dir={!isArabic ? 'ltr' : 'auto'}>
-                "{isArabic ? currentExercise.promptAr : (currentExercise.promptEn || currentExercise.promptAr)}"
-              </h2>
-            </div>
-            <div className="flex items-center gap-1.5 shrink-0">
-              {inputMode === 'tiles' && (
-                <button
-                  type="button"
-                  onClick={() => setShowGlosses((v) => !v)}
-                  className="px-2.5 py-1.5 min-h-[48px] min-w-[48px] justify-center rounded-xl bg-surface-2 text-text text-xs font-bold border border-border flex items-center gap-1 cursor-pointer"
-                  title={showGlosses ? (isArabic ? 'إخفاء المعاني' : 'Hide Glosses') : (isArabic ? 'إظهار المعاني' : 'Show Glosses')}
-                >
-                  {showGlosses ? <EyeOff size={14} /> : <Eye size={14} />}
-                  <span className="hidden sm:inline">{showGlosses ? (isArabic ? 'إخفاء المعاني' : 'Hide Glosses') : (isArabic ? 'إظهار المعاني' : 'Show Glosses')}</span>
-                </button>
-              )}
+          {/* Milestone Reward Chest Celebration (every 5 mastered words) */}
+          {milestoneBanner !== null && (
+            <div className="p-3.5 rounded-2xl border-2 border-[#F59E0B] bg-[#F59E0B]/15 flex items-center justify-between gap-3 tb-pop-bounce">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <AmrGuide mood="cheer" isArabic={isArabic} size={52} />
+                <div className="text-start min-w-0">
+                  <div className="text-xs font-black text-[#FBBF24]">
+                    {isArabic ? `🎁 صندوق مكافأة! وصلت لـ ${milestoneBanner} كلمات!` : `🎁 Milestone Chest! ${milestoneBanner} Words Mastered!`}
+                  </div>
+                  <div className="text-[11px] font-bold text-[#F8FAFC]">+25 XP Bonus</div>
+                </div>
+              </div>
               <button
                 type="button"
-                data-testid="toggle-input-mode"
-                onClick={() => setInputMode((m) => (m === 'tiles' ? 'keyboard' : 'tiles'))}
-                className="px-3 py-1.5 min-h-[48px] rounded-xl bg-surface-2 text-text text-xs font-bold border border-border shrink-0 cursor-pointer"
+                onClick={() => setMilestoneBanner(null)}
+                className="px-4 py-2 min-h-[48px] rounded-xl bg-[#F59E0B] text-[#0B1120] text-xs font-black cursor-pointer shrink-0"
               >
-                {inputMode === 'tiles' ? (isArabic ? '⌨️ كيبورد' : 'Keyboard') : (isArabic ? '🧩 كلمات' : 'Word Tiles')}
+                {isArabic ? 'رائع!' : 'Claim!'}
               </button>
             </div>
-          </div>
+          )}
 
-          <div className="flex justify-center">
-            <DualSpeedAudio text={currentExercise.targetSentence} showLabels={true} targetLang={activeTargetLang} isArabic={isArabic} />
-          </div>
+          {/* Bouncy Warm Amber-Gold New-Word Pop-Up (exclusive stage — zero competing buttons) */}
+          {pendingNewWord && !isAnswered ? (
+            <NewWordPopup
+              word={pendingNewWord.word}
+              translationAr={pendingNewWord.translationAr}
+              egyptianHook={pendingNewWord.egyptianHook}
+              isArabic={isArabic}
+              onCollect={() => {
+                const res = unlockWordInBank({
+                  word: pendingNewWord.word,
+                  translationAr: pendingNewWord.translationAr,
+                  egyptianHook: pendingNewWord.egyptianHook,
+                  targetLang: activeTargetLang,
+                });
+                setSessionXpEarned((xp) => xp + 10 + (res.milestoneReached ? 25 : 0));
+                if (res.milestoneReached) {
+                  setMilestoneBanner(res.totalUnlocked);
+                }
+                setPendingNewWord(null);
+              }}
+            />
+          ) : (
+            <>
+              {/* Top Visual Stage: Reacting 2D Guide Avatar + Full-Width Clean Prompt Card */}
+              <div className="p-3.5 rounded-3xl border space-y-2.5" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
+                {uiMode !== 'simple' && (
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[11px] font-black uppercase tracking-wider text-[#10B981]">
+                      {isArabic ? 'عَبّر عن الفكرة بالإنجليزي:' : 'Express the thought in English:'}
+                    </span>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      {inputMode === 'tiles' && (
+                        <button
+                          type="button"
+                          onClick={() => setShowGlosses((v) => !v)}
+                          className="px-2.5 py-1.5 min-h-[48px] min-w-[48px] justify-center rounded-xl bg-surface-2 text-[#F8FAFC] text-xs font-bold border border-border flex items-center gap-1 cursor-pointer"
+                          title={showGlosses ? (isArabic ? 'إخفاء المعاني' : 'Hide Glosses') : (isArabic ? 'إظهار المعاني' : 'Show Glosses')}
+                          aria-label={showGlosses ? (isArabic ? 'إخفاء المعاني' : 'Hide Glosses') : (isArabic ? 'إظهار المعاني' : 'Show Glosses')}
+                        >
+                          {showGlosses ? <EyeOff size={16} /> : <Eye size={16} />}
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        data-testid="toggle-input-mode"
+                        onClick={() => setInputMode((m) => (m === 'tiles' ? 'keyboard' : 'tiles'))}
+                        className="px-3 py-1.5 min-h-[48px] rounded-xl bg-surface-2 text-[#F8FAFC] text-xs font-bold border border-border shrink-0 cursor-pointer"
+                      >
+                        {inputMode === 'tiles' ? (isArabic ? '⌨️ كيبورد' : 'Keyboard') : (isArabic ? '🧩 كلمات' : 'Word Tiles')}
+                      </button>
+                    </div>
+                  </div>
+                )}
+                <div className="flex items-center gap-3 min-w-0">
+                  <AmrGuide
+                    mood={((): MascotMood => {
+                      if (isAnswered) return isCorrect ? (sessionStreak >= 5 ? 'cheer' : sessionStreak >= 2 ? 'celebrate' : 'proud') : 'encourage';
+                      if (isGoldFever) return 'cheer';
+                      if (isFever) return 'celebrate';
+                      if (hintDrawerOpen) return 'thinking';
+                      return 'study';
+                    })()}
+                    isArabic={isArabic}
+                    size={uiMode === 'simple' ? 58 : 56}
+                  />
+                  <div className="min-w-0 flex-1 text-start">
+                    {isFever && (
+                      <span
+                        data-testid="fever-hype-line"
+                        className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-black mb-1 tb-pop-bounce ${isGoldFever
+                          ? 'bg-[#F59E0B]/20 border border-[#F59E0B]/60 text-[#FBBF24]'
+                          : 'bg-[#22D3EE]/20 border border-[#22D3EE]/60 text-[#22D3EE]'
+                          }`}
+                      >
+                        {feverHypeLine}
+                      </span>
+                    )}
+                    {uiMode === 'simple' && (
+                      <span className="text-xs font-black text-[#10B981] block mb-0.5">
+                        {isArabic ? 'رتّب الجملة بالإنجليزي:' : 'Build in English:'}
+                      </span>
+                    )}
+                    <h2 className="text-lg sm:text-xl font-black text-[#F8FAFC] leading-snug break-words" dir={!isArabic ? 'ltr' : 'auto'}>
+                      {isArabic ? currentExercise.promptAr : (currentExercise.promptEn || currentExercise.promptAr)}
+                    </h2>
+                  </div>
+                </div>
+              </div>
 
-          {/* Structure Builder / Word Chips Mode */}
-          {inputMode === 'tiles' && (
-            <div className="space-y-4">
-              {/* Selected Chips Slot */}
-              <div
-                dir={isTargetRtl ? 'rtl' : 'ltr'}
-                style={{ direction: isTargetRtl ? 'rtl' : 'ltr', textAlign: isTargetRtl ? 'right' : 'left', justifyContent: isTargetRtl ? 'flex-end' : 'flex-start' }}
-                className="p-4 rounded-2xl bg-surface-2 border border-border min-h-[72px] flex flex-wrap flex-row items-center gap-2"
-              >
-                {placedTileIds.length === 0 ? (
-                  <span className={`text-xs text-muted font-bold w-full ${isArabic ? 'text-right' : 'text-left'}`} dir={isArabic ? 'rtl' : 'ltr'}>
-                    {isArabic ? 'اضغط الكلمات أدناه للترتيب الصحيح' : 'Tap words below to arrange'}
-                  </span>
-                ) : (
-                  placedTileIds.map((tileId) => {
-                    const tile = wordBankTiles.find((t) => t.id === tileId);
-                    const chip = tile?.word || '';
+              <DualSpeedAudio
+                text={currentExercise.targetSentence}
+                showLabels={true}
+                targetLang={activeTargetLang}
+                isArabic={isArabic}
+                autoPlayInEasyMode={true}
+              />
+
+              {/* Structure Builder / Word Chips Mode */}
+              {inputMode === 'tiles' && (
+                <div className="space-y-4">
+                  <div
+                    dir={isTargetRtl ? 'rtl' : 'ltr'}
+                    style={{ direction: isTargetRtl ? 'rtl' : 'ltr', textAlign: isTargetRtl ? 'right' : 'left', justifyContent: isTargetRtl ? 'flex-end' : 'flex-start' }}
+                    className="p-4 rounded-2xl bg-surface-2 border border-border min-h-[72px] flex flex-wrap flex-row items-center gap-2"
+                  >
+                    {placedTileIds.length === 0 ? (
+                      <span className={`text-xs text-muted font-bold w-full ${isArabic ? 'text-right' : 'text-left'}`} dir={isArabic ? 'rtl' : 'ltr'}>
+                        {isArabic ? 'اضغط الكلمات أدناه للترتيب الصحيح' : 'Tap words below to arrange'}
+                      </span>
+                    ) : (
+                      placedTileIds.map((tileId) => {
+                        const tile = wordBankTiles.find((t) => t.id === tileId);
+                        const chip = tile?.word || '';
+                        const gloss = getGlossForWord(chip, currentExercise.breakdownChunks || [], activeTargetLang, activeSourceLang);
+                        const deGenderClass = activeTargetLang === 'de' ? getGermanGenderClass(chip, activeTargetLang) : '';
+                        return (
+                          <button
+                            key={tileId}
+                            onClick={() => {
+                              if (!isAnswered) {
+                                speakWithRate(chip, 1.0, undefined, activeTargetLang);
+                                setPlacedTileIds((prev) => prev.filter((id) => id !== tileId));
+                              }
+                            }}
+                            dir={isTargetRtl ? 'rtl' : 'ltr'}
+                            style={{ unicodeBidi: 'isolate', touchAction: 'manipulation' }}
+                            className={`${uiMode === 'simple' ? 'px-4 py-2.5 min-h-[56px] text-base' : 'px-3.5 py-2 min-h-[50px] text-sm'} rounded-2xl font-black flex flex-col items-center justify-center cursor-pointer tb-btn-3d ${deGenderClass ? deGenderClass : 'bg-[#22D3EE]/20 border border-[#22D3EE] text-[#F8FAFC]'
+                              }`}
+                          >
+                            <span>{chip}</span>
+                            {showGlosses && gloss && <span className="text-[11px] sm:text-xs font-bold text-[#CBD5E1] mt-0.5 leading-none" dir={!isTargetRtl ? 'rtl' : 'ltr'}>{gloss}</span>}
+                          </button>
+                        );
+                      })
+                    )}
+                    {placedTileIds.length > 0 && !isAnswered && (
+                      <button
+                        type="button"
+                        data-testid="clear-placed-tiles"
+                        onClick={() => setPlacedTileIds([])}
+                        aria-label={isArabic ? 'مسح الكلمات المختارة' : 'Clear selected words'}
+                        className="ms-auto px-2.5 py-2 min-h-[48px] rounded-xl bg-slate-800/80 border border-slate-700 text-slate-300 hover:text-white text-xs font-bold flex items-center gap-1 cursor-pointer shrink-0"
+                      >
+                        <RotateCcw size={13} />
+                        <span>{isArabic ? 'مسح' : 'Clear'}</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Text Input Mode */}
+              {inputMode === 'keyboard' && (
+                <div className="space-y-2">
+                  <textarea
+                    value={userInput}
+                    onChange={(e) => setUserInput(e.target.value)}
+                    disabled={isAnswered}
+                    dir={isTargetRtl ? 'rtl' : 'ltr'}
+                    placeholder={isArabic ? 'اكتب الجملة باللغة المستهدفة هنا...' : 'Type the sentence in the target language...'}
+                    className="w-full p-4 rounded-2xl bg-surface-2 border border-border text-text text-base font-bold placeholder:text-muted focus:outline-none focus:border-success min-h-[100px] resize-none"
+                  />
+                </div>
+              )}
+
+              {/* Rule Explanation "WHY" Feedback Card + Word-by-Word Diff + Interactive Sentence Map */}
+              {isAnswered && (
+                <div
+                  ref={(el) => {
+                    if (el && typeof el.scrollIntoView === 'function') {
+                      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }
+                  }}
+                  className={`p-4 rounded-2xl border text-start pb-3 space-y-3 ${isCorrect
+                    ? 'bg-success/15 border-success text-text'
+                    : 'bg-amber-500/12 border-amber-400/50 text-text'
+                    }`}
+                  dir={isArabic ? 'rtl' : 'ltr'}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 font-black text-sm">
+                      {isCorrect ? (
+                        <>
+                          <CheckCircle2 className="text-success shrink-0" size={20} />
+                          <span>
+                            {isFever
+                              ? feverHypeLine
+                              : isArabic
+                                ? 'إجابة ممتازة وبناء صحيح! 🎉'
+                                : 'Great Job! Perfect Structure! 🎉'}
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <XCircle className="text-amber-400 shrink-0" size={20} />
+                          <span>
+                            {isArcadeJuicy
+                              ? isArabic
+                                ? 'قريبة جداً! جرّب تاني 😉'
+                                : 'So close! Try again 😉'
+                              : isArabic
+                                ? 'إجابة تحتاج تعديل بسيط'
+                                : 'Needs adjustment'}
+                          </span>
+                        </>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => speakWithRate(currentExercise.targetSentence, 1.0, undefined, activeTargetLang)}
+                      className="px-3 py-2 min-h-[48px] min-w-[48px] rounded-xl bg-surface-2 border border-border text-text hover:bg-surface text-xs font-black flex items-center justify-center gap-1.5 cursor-pointer shrink-0"
+                      aria-label={isArabic ? 'استمع للجملة الصحيحة' : 'Listen to target sentence'}
+                    >
+                      <Volume2 size={14} className="text-cyan-400" />
+                      <span>{isArabic ? 'اسمع' : 'Listen'}</span>
+                    </button>
+                  </div>
+
+                  <p className="text-xs sm:text-sm font-semibold text-text-soft leading-normal sm:leading-relaxed pb-0.5" dir={isArabic ? 'rtl' : 'ltr'}>
+                    <strong>{isArabic ? 'الجملة الصحيحة:' : 'Target:'}</strong>{' '}
+                    <span dir="ltr" className="font-bold text-text inline-block pb-0.5">{currentExercise.targetSentence}</span>
+                  </p>
+
+                  {!isCorrect && (() => {
+                    const diffTokens = computeSentenceDiff(lastSubmittedAnswer, currentExercise.targetSentence);
+                    const l1Hint = diagnoseL1TransferHint(lastSubmittedAnswer, currentExercise.targetSentence, activeTargetLang, isArabic);
+                    return (
+                      <div className="space-y-2.5 border-t border-border/50 pt-2.5">
+                        {diffTokens.length > 0 && (
+                          <div className="space-y-1.5" data-testid="mistake-diff">
+                            <span className="text-[11px] font-black text-amber-300 block">
+                              {isArabic ? '🔍 مقارنة كلمة بكلمة:' : '🔍 Word-by-word diff:'}
+                            </span>
+                            <div className="flex flex-wrap gap-1.5" dir={isTargetRtl ? 'rtl' : 'ltr'}>
+                              {diffTokens.map((tok, idx) => (
+                                <span
+                                  key={`${tok.word}-${idx}`}
+                                  className={`px-2.5 py-1 rounded-lg border text-xs font-bold inline-flex items-center gap-1 ${tok.status === 'match'
+                                    ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'
+                                    : 'bg-amber-500/20 border-amber-400/60 text-amber-200'
+                                    }`}
+                                >
+                                  {tok.status === 'wrong' && tok.userWord && (
+                                    <span className="line-through text-rose-300 opacity-90">{tok.userWord}</span>
+                                  )}
+                                  <span>{tok.word}</span>
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {l1Hint && (
+                          <div
+                            data-testid="l1-diagnosis"
+                            className="p-2.5 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-xs text-cyan-100 leading-relaxed"
+                          >
+                            🧠 <strong>{isArabic ? 'مدرب التفكير (مجاناً):' : 'Free L1 Coach:'}</strong> {l1Hint}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
+
+                  {/* Interactive Tap-to-Hear Sentence Map */}
+                  {(() => {
+                    const mapTokens = tokenizeTargetSentence(currentExercise.targetSentence);
+                    if (mapTokens.length === 0) return null;
+                    return (
+                      <div className="space-y-1.5 border-t border-border/50 pt-2.5" data-testid="sentence-map">
+                        <span className="text-[11px] font-black text-cyan-300 block">
+                          🧩 {isArabic ? 'خريطة الجملة (اضغط أي كلمة للنطق):' : 'Sentence Map (tap any word to hear):'}
+                        </span>
+                        <div className="flex flex-wrap gap-1.5" dir={isTargetRtl ? 'rtl' : 'ltr'}>
+                          {mapTokens.map((tok, idx) => {
+                            const gloss = getGlossForWord(tok, currentExercise.breakdownChunks || [], activeTargetLang, activeSourceLang);
+                            return (
+                              <button
+                                key={`${tok}-${idx}`}
+                                type="button"
+                                onClick={() => speakWithRate(tok, 1.0, undefined, activeTargetLang)}
+                                className="px-3 py-2 min-h-[48px] min-w-[48px] rounded-xl bg-surface-2 border border-border hover:border-cyan-400/60 text-text text-xs font-bold flex flex-col items-center justify-center cursor-pointer active:scale-95 transition"
+                              >
+                                <span>{tok}</span>
+                                {gloss && (
+                                  <span className="text-[10px] font-medium text-muted leading-none mt-0.5" dir={!isTargetRtl ? 'rtl' : 'ltr'}>
+                                    {gloss}
+                                  </span>
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {(() => {
+                    const arHasArabic = /[\u0600-\u06FF]/.test(currentExercise.explanationAr || '');
+                    const displayExplanation = isArabic
+                      ? arHasArabic
+                        ? currentExercise.explanationAr
+                        : getSmartGrammarClue(currentExercise, true, activeTargetLang)
+                      : currentExercise.explanationEn ||
+                      (arHasArabic ? '' : currentExercise.explanationAr) ||
+                      getSmartGrammarClue(currentExercise, false, activeTargetLang);
+                    if (!displayExplanation) return null;
+                    return (
+                      <p className="text-xs text-muted border-t border-border/50 pt-2 pb-1 leading-relaxed" dir={isArabic ? 'rtl' : 'ltr'}>
+                        💡 <strong>{isArabic ? 'سبب القاعدة:' : 'Rule Explanation:'}</strong>{' '}
+                        {displayExplanation}
+                      </p>
+                    );
+                  })()}
+                </div>
+              )}
+
+              {/* Available Word Chips Bank */}
+              {inputMode === 'tiles' && (
+                <div className="flex flex-wrap gap-2 justify-center pt-1" dir={isTargetRtl ? 'rtl' : 'ltr'}>
+                  {wordBankTiles.map((tile) => {
+                    const chip = tile.word;
+                    const isSelected = placedTileIds.includes(tile.id);
                     const gloss = getGlossForWord(chip, currentExercise.breakdownChunks || [], activeTargetLang, activeSourceLang);
                     const deGenderClass = activeTargetLang === 'de' ? getGermanGenderClass(chip, activeTargetLang) : '';
                     return (
                       <button
-                        key={tileId}
-                        onClick={() => {
-                          if (!isAnswered) {
-                            speakWithRate(chip, 1.0, undefined, activeTargetLang);
-                            setPlacedTileIds((prev) => prev.filter((id) => id !== tileId));
+                        key={tile.id}
+                        disabled={isSelected || isAnswered}
+                        data-testid="word-chip"
+                        data-word={chip}
+                        onClick={(e) => {
+                          if (isArcadeJuicy) {
+                            const expectedWord = currentTargetTokens[placedTileIds.length];
+                            const isRightTap =
+                              Boolean(expectedWord) &&
+                              normalizeAnswerForComparison(chip, isJapaneseExercise) ===
+                              normalizeAnswerForComparison(expectedWord, isJapaneseExercise);
+                            if (isRightTap) {
+                              const nextChain = tileTapChain + 1;
+                              setTileTapChain(nextChain);
+                              playPentatonicChime(nextChain - 1);
+                              const displayStreak = Math.max(sessionStreak, nextChain >= 3 ? nextChain : 0);
+                              spawnFloatingPop(
+                                displayStreak >= 3 ? `+15 XP · 🔥 x${displayStreak}` : '+15 XP',
+                                displayStreak >= 3 ? 'combo' : 'xp',
+                                e.currentTarget
+                              );
+                            } else {
+                              setTileTapChain(0);
+                              soundFX.playChipSelect();
+                              safeVibrate(10);
+                            }
+                          } else {
+                            soundFX.playChipSelect();
                           }
+                          speakWithRate(chip, 1.0, undefined, activeTargetLang);
+                          setPlacedTileIds((prev) =>
+                            prev.includes(tile.id) ? prev : [...prev, tile.id]
+                          );
                         }}
                         dir={isTargetRtl ? 'rtl' : 'ltr'}
                         style={{ unicodeBidi: 'isolate', touchAction: 'manipulation' }}
-                        className={`px-3.5 py-2.5 min-h-[48px] rounded-xl font-black text-sm flex flex-col items-center justify-center active:scale-95 shadow-sm cursor-pointer ${
-                          deGenderClass ? deGenderClass : 'bg-purple-500/20 border border-purple-400 text-purple-200'
-                        }`}
+                        className={`${uiMode === 'simple' ? 'px-5 py-3 min-h-[58px] text-base' : 'px-4 py-2.5 min-h-[52px] text-sm'} rounded-2xl font-black flex flex-col items-center justify-center transition cursor-pointer tb-btn-3d ${isSelected
+                          ? 'opacity-30 bg-[#131C31] border border-slate-500/20 text-[#CBD5E1] cursor-not-allowed'
+                          : deGenderClass
+                            ? `${deGenderClass} hover:opacity-90`
+                            : 'tb-btn-surface hover:border-[#10B981]/60'
+                          }`}
                       >
                         <span>{chip}</span>
-                        {showGlosses && gloss && <span className="text-[11px] sm:text-xs font-medium text-purple-300 dark:text-purple-300 opacity-90 mt-0.5 leading-none" dir={!isTargetRtl ? 'rtl' : 'ltr'}>{gloss}</span>}
+                        {showGlosses && gloss && <span className="text-[11px] sm:text-xs font-bold text-[#CBD5E1] mt-0.5 leading-none" dir={!isTargetRtl ? 'rtl' : 'ltr'}>{gloss}</span>}
                       </button>
                     );
-                  })
-                )}
-                {placedTileIds.length > 0 && !isAnswered && (
-                  <button
-                    type="button"
-                    data-testid="clear-placed-tiles"
-                    onClick={() => setPlacedTileIds([])}
-                    aria-label={isArabic ? 'مسح الكلمات المختارة' : 'Clear selected words'}
-                    className="ms-auto px-2.5 py-2 min-h-[48px] rounded-xl bg-slate-800/80 border border-slate-700 text-slate-300 hover:text-white text-xs font-bold flex items-center gap-1 cursor-pointer shrink-0"
-                  >
-                    <RotateCcw size={13} />
-                    <span>{isArabic ? 'مسح' : 'Clear'}</span>
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Text Input Mode */}
-          {inputMode === 'keyboard' && (
-            <div className="space-y-2">
-              <textarea
-                value={userInput}
-                onChange={(e) => setUserInput(e.target.value)}
-                disabled={isAnswered}
-                dir={isTargetRtl ? 'rtl' : 'ltr'}
-                placeholder={isArabic ? 'اكتب الجملة باللغة المستهدفة هنا...' : 'Type the sentence in the target language...'}
-                className="w-full p-4 rounded-2xl bg-surface-2 border border-border text-text text-base font-bold placeholder:text-muted focus:outline-none focus:border-success min-h-[100px] resize-none"
-              />
-            </div>
-          )}
-
-          {/* Rule Explanation "WHY" Feedback Card + Word-by-Word Diff + Interactive Sentence Map */}
-          {isAnswered && (
-            <div
-              ref={(el) => {
-                if (el && typeof el.scrollIntoView === 'function') {
-                  el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                }
-              }}
-              className={`p-4 rounded-2xl border text-start pb-3 space-y-3 ${
-                isCorrect
-                  ? 'bg-success/15 border-success text-text'
-                  : 'bg-danger/15 border-danger text-text'
-              }`}
-              dir={isArabic ? 'rtl' : 'ltr'}
-            >
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2 font-black text-sm">
-                  {isCorrect ? (
-                    <>
-                      <CheckCircle2 className="text-success shrink-0" size={20} />
-                      <span>{isArabic ? 'إجابة ممتازة وبناء صحيح! 🎉' : 'Great Job! Perfect Structure! 🎉'}</span>
-                    </>
-                  ) : (
-                    <>
-                      <XCircle className="text-danger shrink-0" size={20} />
-                      <span>{isArabic ? 'إجابة تحتاج تعديل بسيط' : 'Needs adjustment'}</span>
-                    </>
-                  )}
+                  })}
                 </div>
-                <button
-                  type="button"
-                  onClick={() => speakWithRate(currentExercise.targetSentence, 1.0, undefined, activeTargetLang)}
-                  className="px-3 py-2 min-h-[48px] min-w-[48px] rounded-xl bg-surface-2 border border-border text-text hover:bg-surface text-xs font-black flex items-center justify-center gap-1.5 cursor-pointer shrink-0"
-                  aria-label={isArabic ? 'استمع للجملة الصحيحة' : 'Listen to target sentence'}
-                >
-                  <Volume2 size={14} className="text-cyan-400" />
-                  <span>{isArabic ? 'اسمع' : 'Listen'}</span>
-                </button>
-              </div>
-
-              <p className="text-xs sm:text-sm font-semibold text-text-soft leading-normal sm:leading-relaxed pb-0.5" dir={isArabic ? 'rtl' : 'ltr'}>
-                <strong>{isArabic ? 'الجملة الصحيحة:' : 'Target:'}</strong>{' '}
-                <span dir="ltr" className="font-bold text-text inline-block pb-0.5">{currentExercise.targetSentence}</span>
-              </p>
-
-              {!isCorrect && (() => {
-                const diffTokens = computeSentenceDiff(lastSubmittedAnswer, currentExercise.targetSentence);
-                const l1Hint = diagnoseL1TransferHint(lastSubmittedAnswer, currentExercise.targetSentence, activeTargetLang, isArabic);
-                return (
-                  <div className="space-y-2.5 border-t border-border/50 pt-2.5">
-                    {diffTokens.length > 0 && (
-                      <div className="space-y-1.5" data-testid="mistake-diff">
-                        <span className="text-[11px] font-black text-amber-300 block">
-                          {isArabic ? '🔍 مقارنة كلمة بكلمة:' : '🔍 Word-by-word diff:'}
-                        </span>
-                        <div className="flex flex-wrap gap-1.5" dir={isTargetRtl ? 'rtl' : 'ltr'}>
-                          {diffTokens.map((tok, idx) => (
-                            <span
-                              key={`${tok.word}-${idx}`}
-                              className={`px-2.5 py-1 rounded-lg border text-xs font-bold inline-flex items-center gap-1 ${
-                                tok.status === 'match'
-                                  ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'
-                                  : 'bg-amber-500/20 border-amber-400/60 text-amber-200'
-                              }`}
-                            >
-                              {tok.status === 'wrong' && tok.userWord && (
-                                <span className="line-through text-rose-300 opacity-90">{tok.userWord}</span>
-                              )}
-                              <span>{tok.word}</span>
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {l1Hint && (
-                      <div
-                        data-testid="l1-diagnosis"
-                        className="p-2.5 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-xs text-cyan-100 leading-relaxed"
-                      >
-                        🧠 <strong>{isArabic ? 'مدرب التفكير (مجاناً):' : 'Free L1 Coach:'}</strong> {l1Hint}
-                      </div>
-                    )}
-                  </div>
-                );
-              })()}
-
-              {/* Interactive Tap-to-Hear Sentence Map */}
-              {(() => {
-                const mapTokens = tokenizeTargetSentence(currentExercise.targetSentence);
-                if (mapTokens.length === 0) return null;
-                return (
-                  <div className="space-y-1.5 border-t border-border/50 pt-2.5" data-testid="sentence-map">
-                    <span className="text-[11px] font-black text-cyan-300 block">
-                      🧩 {isArabic ? 'خريطة الجملة (اضغط أي كلمة للنطق):' : 'Sentence Map (tap any word to hear):'}
-                    </span>
-                    <div className="flex flex-wrap gap-1.5" dir={isTargetRtl ? 'rtl' : 'ltr'}>
-                      {mapTokens.map((tok, idx) => {
-                        const gloss = getGlossForWord(tok, currentExercise.breakdownChunks || [], activeTargetLang, activeSourceLang);
-                        return (
-                          <button
-                            key={`${tok}-${idx}`}
-                            type="button"
-                            onClick={() => speakWithRate(tok, 1.0, undefined, activeTargetLang)}
-                            className="px-3 py-2 min-h-[48px] min-w-[48px] rounded-xl bg-surface-2 border border-border hover:border-cyan-400/60 text-text text-xs font-bold flex flex-col items-center justify-center cursor-pointer active:scale-95 transition"
-                          >
-                            <span>{tok}</span>
-                            {gloss && (
-                              <span className="text-[10px] font-medium text-muted leading-none mt-0.5" dir={!isTargetRtl ? 'rtl' : 'ltr'}>
-                                {gloss}
-                              </span>
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })()}
-
-              {(() => {
-                const arHasArabic = /[\u0600-\u06FF]/.test(currentExercise.explanationAr || '');
-                const displayExplanation = isArabic
-                  ? (arHasArabic ? currentExercise.explanationAr : getSmartGrammarClue(currentExercise, true, activeTargetLang))
-                  : (currentExercise.explanationEn || (arHasArabic ? '' : currentExercise.explanationAr) || getSmartGrammarClue(currentExercise, false, activeTargetLang));
-                if (!displayExplanation) return null;
-                return (
-                  <p className="text-xs text-muted border-t border-border/50 pt-2 pb-1 leading-relaxed" dir={isArabic ? 'rtl' : 'ltr'}>
-                    💡 <strong>{isArabic ? 'سبب القاعدة:' : 'Rule Explanation:'}</strong>{' '}
-                    {displayExplanation}
-                  </p>
-                );
-              })()}
-            </div>
-          )}
-
-          {/* Available Word Chips Bank */}
-          {inputMode === 'tiles' && (
-            <div className="flex flex-wrap gap-2 justify-center pt-1" dir={isTargetRtl ? 'rtl' : 'ltr'}>
-              {wordBankTiles.map((tile) => {
-                const chip = tile.word;
-                const isSelected = placedTileIds.includes(tile.id);
-                const gloss = getGlossForWord(chip, currentExercise.breakdownChunks || [], activeTargetLang, activeSourceLang);
-                const deGenderClass = activeTargetLang === 'de' ? getGermanGenderClass(chip, activeTargetLang) : '';
-                return (
-                  <button
-                    key={tile.id}
-                    disabled={isSelected || isAnswered}
-                    data-testid="word-chip"
-                    data-word={chip}
-                    onClick={() => {
-                      soundFX.playChipSelect();
-                      speakWithRate(chip, 1.0, undefined, activeTargetLang);
-                      setPlacedTileIds((prev) =>
-                        prev.includes(tile.id) ? prev : [...prev, tile.id]
-                      );
-                    }}
-                    dir={isTargetRtl ? 'rtl' : 'ltr'}
-                    style={{ unicodeBidi: 'isolate', touchAction: 'manipulation' }}
-                    className={`px-4 py-2.5 min-h-[48px] rounded-xl font-bold text-sm flex flex-col items-center justify-center transition cursor-pointer ${
-                      isSelected
-                        ? 'opacity-30 bg-surface border border-border text-muted cursor-not-allowed'
-                        : deGenderClass
-                        ? `${deGenderClass} hover:opacity-90 active:scale-95`
-                        : 'bg-surface border border-border text-text hover:bg-surface-2 active:scale-95 shadow-sm'
-                    }`}
-                  >
-                    <span>{chip}</span>
-                    {showGlosses && gloss && <span className="text-[11px] sm:text-xs font-medium text-slate-300 dark:text-slate-300 opacity-85 mt-0.5 leading-none" dir={!isTargetRtl ? 'rtl' : 'ltr'}>{gloss}</span>}
-                  </button>
-                );
-              })}
-            </div>
+              )}
+            </>
           )}
         </motion.div>
 
@@ -1039,32 +1477,40 @@ export function LessonRunner({
           </div>
         )}
 
-        {/* Sticky Bottom Action Bar (60px Height, High Contrast) */}
-        <div className="sticky bottom-0 bg-stone-950 p-4 border-t border-stone-800 z-10 shrink-0 pb-safe">
-          {!isAnswered ? (
-            <button
-              onClick={handleCheckAnswer}
-              disabled={
-                inputMode === 'tiles'
-                  ? selectedChips.length === 0
-                  : !userInput.trim()
-              }
-              aria-label={isArabic ? 'تحقق من البناء' : 'Check Structure'}
-              className="w-full min-h-[60px] py-4 rounded-2xl bg-amber-400 hover:bg-amber-300 text-stone-950 font-black text-lg transition disabled:opacity-70 disabled:bg-slate-700 disabled:text-slate-200 disabled:border-slate-500 disabled:cursor-not-allowed shadow-2xl active:scale-[0.99] border-2 border-amber-300 focus-visible:ring-4 focus-visible:ring-amber-300 flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <span>{isArabic ? 'تحقق من البناء 🚀' : 'Check Structure 🚀'}</span>
-            </button>
-          ) : (
-            <button
-              onClick={handleNextExercise}
-              aria-label={isArabic ? 'السؤال التالي' : 'Next Question'}
-              className="w-full min-h-[60px] py-4 rounded-2xl bg-emerald-400 hover:bg-emerald-300 text-stone-950 font-black text-lg transition shadow-2xl active:scale-[0.99] border-2 border-emerald-300 focus-visible:ring-4 focus-visible:ring-emerald-300 flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <span>{isArabic ? 'السؤال التالي' : 'Next Question'}</span>
-              <ArrowRight size={22} className={isArabic ? 'rotate-180' : ''} />
-            </button>
-          )}
-        </div>
+        {/* Sticky Bottom Thumb-Zone Action Bar */}
+        {!(pendingNewWord && !isAnswered) && (
+          <div
+            className="sticky bottom-0 p-3.5 sm:p-4 border-t z-10 shrink-0 pb-safe"
+            style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+          >
+            {!isAnswered ? (
+              <button
+                onClick={handleCheckAnswer}
+                disabled={
+                  inputMode === 'tiles'
+                    ? selectedChips.length === 0
+                    : !userInput.trim()
+                }
+                aria-label={isArabic ? 'تحقق من البناء' : 'Check Structure'}
+                className={`w-full min-h-[60px] py-3.5 rounded-2xl font-black text-base sm:text-lg flex items-center justify-center gap-2 cursor-pointer tb-btn-3d tb-btn-emerald ${(inputMode === 'tiles' ? selectedChips.length > 0 : Boolean(userInput.trim()))
+                  ? 'animate-anticipate'
+                  : ''
+                  }`}
+              >
+                <span>{isArabic ? 'تحقق 🚀' : 'Check 🚀'}</span>
+              </button>
+            ) : (
+              <button
+                onClick={handleNextExercise}
+                aria-label={isArabic ? 'التالي' : 'Next'}
+                className="w-full min-h-[60px] py-3.5 rounded-2xl font-black text-base sm:text-lg flex items-center justify-center gap-2 cursor-pointer tb-btn-3d tb-btn-emerald animate-anticipate"
+              >
+                <span>{isArabic ? 'التالي' : 'Next'}</span>
+                <ArrowRight size={22} className={isArabic ? 'rotate-180' : ''} />
+              </button>
+            )}
+          </div>
+        )}
 
         {showExitConfirm && (
           <div className="absolute inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">

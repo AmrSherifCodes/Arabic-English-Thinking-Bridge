@@ -87,7 +87,7 @@ const STOPS = [
     ageBand: '30+' as AgeBand,
     emoji: '🏛',
     labelAr: 'محترف وأسرة',
-    labelEn: 'Pro / Parent',
+    labelEn: 'Adult / Parent',
     hintEn: 'Career + travel',
     fontScale: 1.05,
     audio: 'Tap-to-hear',

@@ -56,6 +56,11 @@ artifacts/
 audit/
 scripts/capture.js
 capture_screenshots.mjs
+/*.png
+ui.xml
+_archive/
+cdp_*.mjs
+verify-*.mjs
 
 
 # Android signing (Nitron) - never commit

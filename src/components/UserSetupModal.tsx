@@ -2,7 +2,7 @@
 // Licensed under GNU AGPLv3 (AGPL-3.0-or-later).
 
 import React, { useEffect, useState } from 'react';
-import { Check, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import {
   GuideMode,
   LearnerTrack,
@@ -10,6 +10,8 @@ import {
   markUserSetupCompleted,
   saveGuidePreferences,
 } from '../utils/guideMode';
+import { UiMode, useUiMode } from '../utils/uiMode';
+import { AmrGuide } from './AmrGuide';
 
 interface UserSetupModalProps {
   isOpen: boolean;
@@ -19,7 +21,6 @@ interface UserSetupModalProps {
   onComplete: (
     guideMode: GuideMode,
     learnerTrack: LearnerTrack,
-    quranInterested?: boolean,
     launchPlacement?: boolean
   ) => void;
 }
@@ -28,9 +29,21 @@ const LANGUAGE_PILLS: ReadonlyArray<{
   id: GuideMode;
   label: string;
 }> = [
-  { id: 'egyptian_ar', label: '🇪🇬 عربي مصري' },
-  { id: 'standard_ar', label: '📖 فصيح' },
-  { id: 'english_guided', label: '🌍 English' },
+  { id: 'egyptian_ar', label: '🇪🇬 مصري' },
+  { id: 'standard_ar', label: '🌍 فصحى' },
+  { id: 'english_guided', label: '🇬🇧 English' },
+];
+
+const UI_MODES: ReadonlyArray<{
+  id: UiMode;
+  ar: string;
+  en: string;
+  descAr: string;
+  descEn: string;
+}> = [
+  { id: 'simple', ar: 'بسيط', en: 'Easy', descAr: 'أزرار كبيرة وخط واضح', descEn: 'Big buttons & clear audio' },
+  { id: 'standard', ar: 'عادي', en: 'Standard', descAr: 'متوازن وسريع للموبايل', descEn: 'Balanced mobile UI' },
+  { id: 'pro', ar: 'متقدم', en: 'Pro', descAr: 'قواعد ومراجعة ذكية', descEn: 'Grammar & smart review' },
 ];
 
 export function UserSetupModal({
@@ -41,18 +54,11 @@ export function UserSetupModal({
   onComplete,
 }: UserSetupModalProps) {
   const [selectedGuide, setSelectedGuide] = useState<GuideMode>(initialGuideMode);
-  const [quranInterested, setQuranInterested] = useState<boolean>(() => {
-    try {
-      return typeof window !== 'undefined' && window.localStorage.getItem('tb.quranInterest') === 'true';
-    } catch {
-      return false;
-    }
-  });
+  const [uiMode, setUiMode] = useUiMode();
 
   useEffect(() => {
     if (!isOpen) return;
     setSelectedGuide(initialGuideMode);
-    // Sync only when modal opens; switching language pills updates live.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
@@ -80,85 +86,77 @@ export function UserSetupModal({
 
   const handlePickGuide = (mode: GuideMode) => {
     setSelectedGuide(mode);
-    // Update UI language & direction live
     saveGuidePreferences({ guideMode: mode });
   };
 
   const handleFinish = (launchPlacement: boolean) => {
-    try {
-      if (typeof window !== 'undefined' && window.localStorage) {
-        window.localStorage.setItem('tb.quranInterest', quranInterested ? 'true' : 'false');
-      }
-    } catch {
-      // Ignore storage errors
-    }
     saveGuidePreferences({
       guideMode: selectedGuide,
       learnerTrack: initialTrack || 'starter',
       setupCompleted: true,
     });
-    onComplete(selectedGuide, initialTrack || 'starter', quranInterested, launchPlacement);
+    onComplete(selectedGuide, initialTrack || 'starter', launchPlacement);
   };
 
   return (
     <div
-      className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-sm p-0 sm:p-4 pt-safe"
+      className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm p-0 sm:p-4 pt-safe"
       role="dialog"
       aria-modal="true"
       aria-labelledby="user-setup-modal-title"
       dir={isAr ? 'rtl' : 'ltr'}
     >
       <div
-        className="w-full max-w-md max-h-[92dvh] overflow-y-auto rounded-t-3xl sm:rounded-3xl p-6 pb-safe border shadow-2xl space-y-6"
+        className="w-full max-w-md max-h-[92dvh] overflow-y-auto rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 pb-safe border shadow-2xl space-y-5 tb-pop-bounce"
         style={{
           backgroundColor: 'var(--surface)',
           color: 'var(--ink)',
           borderColor: 'var(--border)',
         }}
       >
-        {/* Clean Header */}
-        <div className="flex items-start justify-between gap-3">
-          <div className="space-y-1 text-start">
-            <h2
-              id="user-setup-modal-title"
-              className="text-xl font-black leading-snug"
-              style={{ color: 'var(--ink)' }}
-            >
-              {isAr
-                ? isMsa
-                  ? 'أهلاً بك في جسر التفكير'
-                  : 'أهلاً بيك في فكّر إنجليزي'
-                : 'Welcome to Thinking Bridge'}
-            </h2>
-            <p className="text-xs leading-relaxed" style={{ color: 'var(--ink-muted)' }}>
-              {isAr
-                ? isMsa
-                  ? 'اختر لغة الشرح ثم ابدأ فوراً — مجاناً وبدون إنترنت.'
-                  : 'اختار لغة الشرح وابدأ فوراً — مجاني وشغّال بدون نت.'
-                : 'Pick your guide language and jump straight in — free & offline.'}
-            </p>
+        {/* Welcome Header with 2D Guide Avatar */}
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <AmrGuide mood="welcome" isArabic={isAr} size={68} />
+            <div className="space-y-0.5 text-start min-w-0">
+              <h2
+                id="user-setup-modal-title"
+                className="text-lg sm:text-xl font-black leading-snug text-[#F8FAFC]"
+              >
+                {isAr
+                  ? isMsa
+                    ? 'أهلاً بك في جسر التفكير'
+                    : 'أهلاً بيك في جسر التفكير'
+                  : 'Welcome to Thinking Bridge'}
+              </h2>
+              <p className="text-xs font-medium text-[#CBD5E1] leading-snug">
+                {isAr
+                  ? 'مجاني 100% ويعمل بدون إنترنت — ظبّط واجهتك في ثانية.'
+                  : '100% free & offline — tailor your experience in 1 tap.'}
+              </p>
+            </div>
           </div>
           <button
             type="button"
             onClick={handleClose}
             aria-label={isAr ? 'إغلاق' : 'Close'}
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-2xl border cursor-pointer shrink-0 transition active:scale-95"
+            className={`${uiMode === 'simple' ? 'min-h-[56px] min-w-[56px]' : 'min-h-[48px] min-w-[48px]'} flex items-center justify-center rounded-2xl border cursor-pointer shrink-0 transition active:scale-95`}
             style={{
               backgroundColor: 'var(--bg)',
               borderColor: 'var(--border)',
-              color: 'var(--ink-muted)',
+              color: '#CBD5E1',
             }}
           >
-            <X size={18} />
+            <X size={20} />
           </button>
         </div>
 
-        {/* 1. Compact 3-Pill Live Language Selector */}
+        {/* Question 1: Guide Language / Dialect (3 uniform single-line buttons) */}
         <div className="space-y-2 text-start">
-          <span className="text-xs font-bold block" style={{ color: 'var(--ink-muted)' }}>
-            {isAr ? (isMsa ? 'لغة الشرح' : 'لغة الشرح') : 'Guide Language'}
+          <span className="text-xs font-bold block text-[#CBD5E1]">
+            {isAr ? '١. أسلوب الشرح المفضل' : '1. Preferred Guide Style'}
           </span>
-          <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label={isAr ? 'لغة الشرح' : 'Guide Language'}>
+          <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label={isAr ? 'أسلوب الشرح' : 'Guide Style'}>
             {LANGUAGE_PILLS.map((pill) => {
               const active = selectedGuide === pill.id;
               return (
@@ -168,11 +166,11 @@ export function UserSetupModal({
                   role="radio"
                   aria-checked={active}
                   onClick={() => handlePickGuide(pill.id)}
-                  className="min-h-[48px] px-2 py-2.5 rounded-2xl border-2 text-xs font-black text-center cursor-pointer transition active:scale-[0.97] leading-tight"
+                  className={`${uiMode === 'simple' ? 'min-h-[56px]' : 'min-h-[48px]'} px-1.5 py-2 rounded-2xl border-2 text-xs font-black text-center flex items-center justify-center cursor-pointer transition active:scale-[0.97] min-w-0`}
                   style={{
-                    backgroundColor: active ? 'var(--accent-soft)' : 'var(--bg)',
-                    borderColor: active ? 'var(--accent)' : 'var(--border)',
-                    color: active ? 'var(--accent)' : 'var(--ink)',
+                    backgroundColor: active ? 'rgba(16, 185, 129, 0.18)' : 'var(--bg)',
+                    borderColor: active ? '#10B981' : 'var(--border)',
+                    color: active ? '#10B981' : '#F8FAFC',
                   }}
                 >
                   {pill.label}
@@ -182,70 +180,63 @@ export function UserSetupModal({
           </div>
         </div>
 
-        {/* 2. Quiet Optional 1-Tap Quran Hifz Checkbox */}
-        <button
-          type="button"
-          role="checkbox"
-          aria-checked={quranInterested}
-          onClick={() => setQuranInterested((v) => !v)}
-          className="w-full min-h-[48px] px-3.5 py-3 rounded-2xl border text-start flex items-center gap-3 cursor-pointer transition"
-          style={{
-            backgroundColor: quranInterested ? 'rgba(16, 185, 129, 0.10)' : 'var(--bg)',
-            borderColor: quranInterested ? '#10B981' : 'var(--border)',
-            color: 'var(--ink)',
-          }}
-        >
-          <span
-            className="w-5 h-5 rounded-md border flex items-center justify-center shrink-0 transition"
-            style={{
-              backgroundColor: quranInterested ? '#10B981' : 'transparent',
-              borderColor: quranInterested ? '#10B981' : 'var(--border)',
-              color: '#ffffff',
-            }}
-          >
-            {quranInterested && <Check size={14} strokeWidth={3} />}
+        {/* Question 2: UI Complexity Mode (Easy / Standard / Pro) */}
+        <div className="space-y-2 text-start">
+          <span className="text-xs font-bold block text-[#CBD5E1]">
+            {isAr ? '٢. شكل الواجهة المناسب ليك' : '2. Choose UI Complexity'}
           </span>
-          <span className="text-xs font-bold leading-snug">
-            {isAr
-              ? '📖 مهتم أيضاً بحفظ القرآن الكريم (مجاني — صدقة جارية)'
-              : '📖 Also interested in memorizing the Quran (Free Forever)'}
-          </span>
-        </button>
+          <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label={isAr ? 'شكل الواجهة' : 'UI Mode'}>
+            {UI_MODES.map((m) => {
+              const active = uiMode === m.id;
+              return (
+                <button
+                  key={m.id}
+                  type="button"
+                  role="radio"
+                  aria-checked={active}
+                  onClick={() => setUiMode(m.id)}
+                  className={`${uiMode === 'simple' ? 'min-h-[76px]' : 'min-h-[68px]'} p-2.5 rounded-2xl border-2 text-center flex flex-col items-center justify-center gap-0.5 cursor-pointer transition active:scale-[0.97]`}
+                  style={{
+                    backgroundColor: active ? 'rgba(34, 211, 238, 0.16)' : 'var(--bg)',
+                    borderColor: active ? '#22D3EE' : 'var(--border)',
+                    color: '#F8FAFC',
+                  }}
+                >
+                  <span className="text-xs font-black">{isAr ? m.ar : m.en}</span>
+                  <span className="text-xs font-medium text-[#CBD5E1] leading-tight">
+                    {isAr ? m.descAr : m.descEn}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
-        {/* 3. Two Clear Full-Width Action Buttons */}
+        {/* Two Clear Thumb-Zone Actions */}
         <div className="space-y-2.5 pt-1">
           <button
             type="button"
-            onClick={() => handleFinish(true)}
-            data-testid="setup-start-placement"
-            className="w-full min-h-[52px] px-5 py-3 rounded-2xl font-black text-sm shadow-lg cursor-pointer transition active:scale-[0.98] flex items-center justify-center gap-2"
-            style={{
-              backgroundColor: 'var(--accent)',
-              color: 'var(--accent-ink)',
-            }}
+            onClick={() => handleFinish(false)}
+            data-testid="setup-start-level1"
+            className="w-full min-h-[58px] px-5 py-3 rounded-2xl font-black text-sm cursor-pointer flex items-center justify-center gap-2 tb-btn-3d tb-btn-emerald"
           >
             <span>
-              {isAr
-                ? '⚡ اختبار مستوى سريع (60 ثانية)'
-                : '⚡ Quick Level Test (60 seconds)'}
+              {isAr ? '🚀 ابدأ أول درس الآن' : '🚀 Start First Lesson Now'}
             </span>
           </button>
 
           <button
             type="button"
-            onClick={() => handleFinish(false)}
-            data-testid="setup-start-level1"
-            className="w-full min-h-[52px] px-5 py-3 rounded-2xl border font-black text-sm cursor-pointer transition active:scale-[0.98] flex items-center justify-center gap-2"
+            onClick={() => handleFinish(true)}
+            data-testid="setup-start-placement"
+            className={`w-full ${uiMode === 'simple' ? 'min-h-[56px]' : 'min-h-[50px]'} px-5 py-2.5 rounded-2xl border font-bold text-xs cursor-pointer transition active:scale-[0.98] flex items-center justify-center gap-2 text-[#F8FAFC]`}
             style={{
               backgroundColor: 'var(--bg)',
               borderColor: 'var(--border)',
-              color: 'var(--ink)',
             }}
           >
             <span>
-              {isAr
-                ? '🌱 ابدأ من المستوى 1 مباشرة'
-                : '🌱 Start from Level 1 directly'}
+              {isAr ? '⚡ أو حدّد مستواك في 60 ثانية' : '⚡ Or take the 60s Placement Test'}
             </span>
           </button>
         </div>

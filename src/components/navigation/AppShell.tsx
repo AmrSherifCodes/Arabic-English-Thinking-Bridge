@@ -150,7 +150,7 @@ export function AppShell({
               <div className="text-start">
                 <div className="flex items-center gap-1">
                   <h1 className="font-black text-sm text-white">
-                    {isKids ? (isArabic ? 'فكّر إنجليزي 🎈' : 'Thinking English 🎈') : (isArabic ? 'فكّر إنجليزي' : 'Thinking English')}
+                    {isKids ? (isArabic ? 'جسر التفكير 🎈' : 'Thinking English 🎈') : (isArabic ? 'جسر التفكير' : 'Thinking English')}
                   </h1>
                   <span className="text-[10px] text-cyan-400 font-bold">🌊</span>
                 </div>

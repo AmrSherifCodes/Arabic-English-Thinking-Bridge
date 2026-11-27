@@ -72,7 +72,7 @@ export function YouTubeSupporterPopup({
 
         <div className="space-y-2">
           <h2 id="yt-supporter-popup-title" className="text-lg sm:text-xl font-black text-amber-300 leading-snug">
-            {isArabic ? 'فكّر إنجليزي مجاني 100% للأبد ☀️' : 'Thinking Bridge is 100% Free Forever ☀️'}
+            {isArabic ? 'جسر التفكير مجاني 100% للأبد ☀️' : 'Thinking Bridge is 100% Free Forever ☀️'}
           </h2>
           <p className="text-sm sm:text-base font-bold text-slate-100 leading-relaxed">
             {isArabic

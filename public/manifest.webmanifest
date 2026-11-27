@@ -1,16 +1,16 @@
 {
   "id": "/",
-  "name": "Thinking Bridge · فكّر إنجليزي",
-  "short_name": "فكّر إنجليزي",
-  "description": "Learn English through the structure of Arabic. Offline-first cognitive language bridge.",
+  "name": "Thinking Bridge · جسر التفكير",
+  "short_name": "جسر التفكير",
+  "description": "Learn English through the structure of Arabic. 100% free, offline-first cognitive language bridge.",
   "lang": "ar",
   "dir": "rtl",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "theme_color": "#0A0E13",
-  "background_color": "#0A0E13",
+  "theme_color": "#0B1120",
+  "background_color": "#0B1120",
   "categories": ["education"],
   "icons": [
     {

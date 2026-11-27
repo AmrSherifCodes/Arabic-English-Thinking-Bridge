@@ -122,6 +122,48 @@ export function runBootFrameProbe(durationMs = 800): void {
   window.requestAnimationFrame(step);
 }
 
+export function isLitePerfMode(): boolean {
+  return resolvePerfMode() === 'lite';
+}
+
+/**
+ * Hardware-aware confetti dispatcher for low-RAM Android devices (deviceMemory <= 3)
+ * and users with `prefers-reduced-motion: reduce`.
+ * Dynamically imports `canvas-confetti` only when actually needed.
+ */
+export async function fireSafeConfetti(options?: {
+  particleCount?: number;
+  spread?: number;
+  origin?: { x?: number; y?: number };
+  colors?: string[];
+}): Promise<void> {
+  if (typeof window === 'undefined') return;
+  try {
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+      return;
+    }
+  } catch {
+    // Ignore matchMedia errors
+  }
+
+  const lite = isLitePerfMode();
+  const baseCount = options?.particleCount ?? 50;
+  const particleCount = lite ? Math.min(14, Math.max(8, Math.round(baseCount * 0.25))) : baseCount;
+
+  try {
+    const { default: confetti } = await import('canvas-confetti');
+    confetti({
+      spread: options?.spread ?? (lite ? 45 : 70),
+      origin: options?.origin ?? { y: 0.65 },
+      colors: options?.colors,
+      particleCount,
+      disableForReducedMotion: true,
+    });
+  } catch {
+    // Non-critical celebratory visual
+  }
+}
+
 export function initDevicePerf(): ResolvedPerfMode {
   const setting = getSavedPerfSetting();
   const resolved = resolvePerfMode(setting);

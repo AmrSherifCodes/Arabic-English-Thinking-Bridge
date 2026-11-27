@@ -222,7 +222,7 @@ export function ProfileView({
   const activeTier = entitlement?.tier || 'free';
   const tierLabel =
     activeTier === 'pro'
-      ? isArabic ? 'باقة Pro مفعّلة' : 'Pro Active'
+      ? isArabic ? 'مجاني 100% للأبد' : '100% Free Forever'
       : activeTier === 'academy_student'
         ? isArabic ? 'طالب أكاديمية' : 'Academy Student'
         : activeTier === 'academy_teacher'
@@ -768,13 +768,13 @@ export function ProfileView({
         </div>
       </div>
 
-      {/* 3-Mode Guidance Selector */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+      {/* 3-Mode Guidance Selector (uniform single-line buttons) */}
+      <div className="grid grid-cols-3 gap-2">
         {(
           [
-            { id: 'egyptian_ar', icon: '🇪🇬', ar: 'مصري بسيط', en: 'Egyptian Arabic' },
-            { id: 'standard_ar', icon: '📖', ar: 'عربي فصيح', en: 'Standard Arabic' },
-            { id: 'english_guided', icon: '🌍', ar: 'English-Guided', en: 'English-Guided' },
+            { id: 'egyptian_ar', icon: '🇪🇬', ar: 'مصري', en: 'Egyptian' },
+            { id: 'standard_ar', icon: '📖', ar: 'فصحى', en: 'Standard' },
+            { id: 'english_guided', icon: '🇬🇧', ar: 'English', en: 'English' },
           ] as Array<{ id: GuideMode; icon: string; ar: string; en: string }>
         ).map((opt) => {
           const selected = guideMode === opt.id;
@@ -786,13 +786,13 @@ export function ProfileView({
                 setGuideMode(opt.id);
                 onToast?.(
                   opt.id === 'english_guided'
-                    ? '🌍 Switched to English-Guided'
+                    ? '🇬🇧 Switched to English'
                     : opt.id === 'standard_ar'
                     ? '📖 تم التبديل إلى العربية الفصحى'
-                    : '🇪🇬 تم التبديل إلى المصري البسيط'
+                    : '🇪🇬 تم التبديل إلى المصري'
                 );
               }}
-              className="min-h-[48px] px-3 py-2 rounded-xl text-xs font-black border cursor-pointer transition flex items-center justify-center gap-1.5"
+              className="h-12 px-2 rounded-xl text-xs font-black border cursor-pointer transition flex items-center justify-center gap-1 whitespace-nowrap"
               style={
                 selected
                   ? {
@@ -802,7 +802,7 @@ export function ProfileView({
                     }
                   : {
                       backgroundColor: 'var(--bg)',
-                      color: 'var(--ink)',
+                      color: '#F8FAFC',
                       borderColor: 'var(--border)',
                     }
               }
@@ -812,6 +812,42 @@ export function ProfileView({
             </button>
           );
         })}
+      </div>
+
+      {/* Consolidated Single UI Complexity Mode Selector (بسيط / عادي / متقدم) */}
+      <div className="space-y-1.5 pt-1">
+        <span className="text-[11px] font-bold block text-[#CBD5E1]">
+          {isArabic ? 'وضع الواجهة (بسيط / عادي / متقدم):' : 'UI Complexity Mode:'}
+        </span>
+        <div className="grid grid-cols-3 gap-2">
+          {(
+            [
+              { id: 'simple', ar: 'بسيط', en: 'Easy' },
+              { id: 'standard', ar: 'عادي', en: 'Standard' },
+              { id: 'pro', ar: 'متقدم', en: 'Pro' },
+            ] as const
+          ).map((modeOpt) => {
+            const active = uiMode === modeOpt.id;
+            return (
+              <button
+                key={modeOpt.id}
+                type="button"
+                onClick={() => {
+                  setUiMode(modeOpt.id);
+                  onToast?.(isArabic ? `✅ تم تفعيل الوضع: ${modeOpt.ar}` : `✅ UI Mode: ${modeOpt.en}`);
+                }}
+                className="h-11 px-2 rounded-xl text-xs font-black border cursor-pointer transition whitespace-nowrap"
+                style={
+                  active
+                    ? { backgroundColor: '#22D3EE', color: '#0B1120', borderColor: '#22D3EE' }
+                    : { backgroundColor: 'var(--bg)', color: '#F8FAFC', borderColor: 'var(--border)' }
+                }
+              >
+                {isArabic ? modeOpt.ar : modeOpt.en}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* 4-Track Learner Role Selector */}
@@ -871,91 +907,63 @@ export function ProfileView({
 
   if (uiMode === 'simple') {
     return (
-      <div className="space-y-6 max-w-md md:max-w-2xl lg:max-w-3xl mx-auto pb-32 sm:pb-36 overflow-x-clip" dir={isArabic ? 'rtl' : 'ltr'}>
+      <div className="space-y-5 w-full pb-12 overflow-x-clip" dir={isArabic ? 'rtl' : 'ltr'}>
         <div
-          className="tb-card-surface p-5 rounded-3xl border-2 shadow-xl text-start space-y-4"
+          className="tb-card-surface p-5 rounded-3xl border shadow-xl text-start space-y-4"
           style={{
             backgroundColor: 'var(--surface)',
-            borderColor: 'var(--accent)',
-            color: 'var(--ink)',
+            borderColor: 'var(--border)',
+            color: '#F8FAFC',
           }}
         >
           <div className="flex items-center justify-between gap-2 flex-wrap">
-            <span
-              className="px-3 py-1 rounded-full text-xs font-black border"
-              style={{
-                backgroundColor: 'var(--accent-soft)',
-                color: 'var(--accent)',
-                borderColor: 'var(--accent)',
-              }}
-            >
-              🟢 {isArabic ? 'الوضع البسيط' : 'Simple Mode'}
-            </span>
-            <button
-              type="button"
-              onClick={() => setUiMode('pro')}
-              className="min-h-[48px] px-3.5 py-2 rounded-xl font-bold text-xs transition border cursor-pointer"
-              style={{
-                backgroundColor: 'var(--bg)',
-                borderColor: 'var(--gold)',
-                color: 'var(--ink)',
-              }}
-            >
-              ⚡ {isArabic ? 'التبديل للوضع المتقدم' : 'Switch to Pro Mode'}
-            </button>
+            <h3 className="text-lg font-black text-[#F8FAFC]">{isArabic ? 'حسابي وإنجازاتك' : 'Account & Progress'}</h3>
+            {onOpenPreferences && (
+              <button
+                type="button"
+                onClick={onOpenPreferences}
+                className="px-3.5 py-2 min-h-[44px] rounded-xl border text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                style={{ backgroundColor: 'var(--accent-soft)', borderColor: 'var(--accent)', color: 'var(--accent)' }}
+              >
+                <Settings size={14} />
+                <span>{isArabic ? 'الإعدادات' : 'Settings'}</span>
+              </button>
+            )}
           </div>
-          <h3 className="text-xl font-black" style={{ color: 'var(--ink)' }}>{isArabic ? 'حسابي وإنجازاتك' : 'Account & Progress'}</h3>
-          <div className="grid grid-cols-1 min-[340px]:grid-cols-3 gap-3">
-            <div
-              className="p-3 rounded-2xl border text-center"
-              style={{ backgroundColor: 'var(--bg)', borderColor: 'var(--border)' }}
-            >
+          <div className="grid grid-cols-3 gap-2.5">
+            <div className="p-3 rounded-2xl border text-center" style={{ backgroundColor: 'var(--bg)', borderColor: 'var(--border)' }}>
               <span className="text-xl block">🔥</span>
-              <span className="text-lg font-black" style={{ color: 'var(--gold)' }}>{state?.streak || 0}</span>
-              <span className="text-[11px] font-bold block" style={{ color: 'var(--ink-muted)' }}>{isArabic ? 'أيام الاستمرار' : 'Streak Days'}</span>
+              <span className="text-lg font-black text-[#FBBF24]">{state?.streak || 0}</span>
+              <span className="text-[11px] font-bold block text-[#CBD5E1]">{isArabic ? 'السلسلة' : 'Streak'}</span>
             </div>
-            <div
-              className="p-3 rounded-2xl border text-center"
-              style={{ backgroundColor: 'var(--bg)', borderColor: 'var(--border)' }}
-            >
+            <div className="p-3 rounded-2xl border text-center" style={{ backgroundColor: 'var(--bg)', borderColor: 'var(--border)' }}>
               <span className="text-xl block">🪙</span>
-              <span className="text-lg font-black" style={{ color: 'var(--gold)' }}>{economy.coins}</span>
-              <span className="text-[11px] font-bold block" style={{ color: 'var(--ink-muted)' }}>{isArabic ? 'عملات الجسر' : 'Bridge Coins'}</span>
+              <span className="text-lg font-black text-[#FBBF24]">{economy.coins}</span>
+              <span className="text-[11px] font-bold block text-[#CBD5E1]">{isArabic ? 'العملات' : 'Coins'}</span>
             </div>
-            <div
-              className="p-3 rounded-2xl border text-center"
-              style={{ backgroundColor: 'var(--bg)', borderColor: 'var(--border)' }}
-            >
+            <div className="p-3 rounded-2xl border text-center" style={{ backgroundColor: 'var(--bg)', borderColor: 'var(--border)' }}>
               <span className="text-xl block">✅</span>
-              <span className="text-lg font-black" style={{ color: 'var(--accent)' }}>{state?.completedLessonIds?.length || 0}</span>
-              <span className="text-[11px] font-bold block" style={{ color: 'var(--ink-muted)' }}>{isArabic ? 'دروس مكتملة' : 'Completed Lessons'}</span>
+              <span className="text-lg font-black text-[#10B981]">{state?.completedLessonIds?.length || 0}</span>
+              <span className="text-[11px] font-bold block text-[#CBD5E1]">{isArabic ? 'الدروس' : 'Lessons'}</span>
             </div>
           </div>
         </div>
 
         {guidePreferenceCard}
 
-        {perfControlCard}
-
-        {cloudBackupCard}
-
-        {/* Backup & Restore */}
+        {/* Consolidated Backup & Sync Card */}
         <div
           className="tb-card-surface p-5 rounded-3xl border space-y-3 shadow-xl text-start"
-          style={{
-            backgroundColor: 'var(--surface)',
-            borderColor: 'var(--border)',
-            color: 'var(--ink)',
-          }}
+          style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)', color: '#F8FAFC' }}
         >
-          <h4 className="text-sm font-black" style={{ color: 'var(--ink)' }}>{isArabic ? 'حفظ واستعادة تقدمك' : 'Save & Restore Progress'}</h4>
+          <h4 className="text-sm font-black text-[#F8FAFC]">{isArabic ? 'النسخ الاحتياطي والخصوصية' : 'Backup & Sync'}</h4>
           <div className="flex flex-wrap gap-2.5">
             {onExportData && (
               <button
                 type="button"
                 onClick={onExportData}
-                className="px-4 py-2 min-h-[48px] rounded-xl border text-xs font-bold flex items-center gap-2 cursor-pointer"
-                style={{ backgroundColor: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--ink)' }}
+                className="px-4 py-2 min-h-[46px] rounded-xl border text-xs font-bold flex items-center gap-2 cursor-pointer text-[#F8FAFC]"
+                style={{ backgroundColor: 'var(--bg)', borderColor: 'var(--border)' }}
               >
                 <Download size={14} /> {isArabic ? 'حفظ نسخة من تقدمك' : 'Export Progress'}
               </button>
@@ -964,39 +972,12 @@ export function ProfileView({
               <button
                 type="button"
                 onClick={onOpenPrivacyPolicy}
-                className="px-4 py-2 min-h-[48px] rounded-xl border text-xs font-bold flex items-center gap-2 cursor-pointer"
-                style={{ backgroundColor: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--ink)' }}
+                className="px-4 py-2 min-h-[46px] rounded-xl border text-xs font-bold flex items-center gap-2 cursor-pointer text-[#F8FAFC]"
+                style={{ backgroundColor: 'var(--bg)', borderColor: 'var(--border)' }}
               >
                 <Shield size={14} /> {isArabic ? 'عن التطبيق والخصوصية' : 'About & Privacy'}
               </button>
             )}
-            {onOpenActivateCode && (
-              <button
-                type="button"
-                onClick={onOpenActivateCode}
-                className="px-4 py-2 min-h-[48px] rounded-xl border text-xs font-black flex items-center gap-2 cursor-pointer"
-                style={{ backgroundColor: 'var(--gold)', borderColor: 'var(--gold)', color: 'var(--gold-ink)' }}
-              >
-                <KeyRound size={14} /> {isArabic ? 'تفعيل كود Pro / أكاديمية' : 'Activate Pro / Academy Code'}
-              </button>
-            )}
-            <button
-              type="button"
-              onClick={() => setUiMode('pro')}
-              className="px-4 py-2 min-h-[48px] rounded-xl border text-xs font-bold cursor-pointer"
-              style={{ backgroundColor: 'var(--accent-soft)', borderColor: 'var(--accent)', color: 'var(--accent)' }}
-            >
-              ⚡ {isArabic ? 'عرض كل أدوات الوضع المتقدم' : 'Show All Pro Tools'}
-            </button>
-            <button
-              type="button"
-              onClick={() => setDiagConfirmOpen((prev) => !prev)}
-              className="px-4 py-2 min-h-[48px] rounded-xl border text-xs font-bold flex items-center gap-2 cursor-pointer"
-              style={{ backgroundColor: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--ink)' }}
-            >
-              <Bug size={14} />
-              <span>{isArabic ? 'إرسال سجل الأعطال للمطور' : 'Send Diagnostic Log to Dev'}</span>
-            </button>
           </div>
           {diagnosticConfirmBox}
         </div>
@@ -1044,53 +1025,26 @@ export function ProfileView({
           )}
         </div>
 
-        {/* Plan & Voucher Activation Strip */}
+        {/* 100% Free V10 Status Strip (Zero Paywalls) */}
         <div
           className="p-3.5 rounded-2xl border flex items-center justify-between gap-3 flex-wrap"
-          style={{ backgroundColor: 'var(--bg)', borderColor: 'var(--border)' }}
+          style={{ backgroundColor: 'var(--bg)', borderColor: 'rgba(16, 185, 129, 0.35)' }}
         >
           <div className="flex items-center gap-2.5 min-w-0">
-            <div
-              className="p-2 rounded-xl border shrink-0"
-              style={{ backgroundColor: 'var(--accent-soft)', color: 'var(--gold)', borderColor: 'var(--gold)' }}
-            >
+            <div className="p-2 rounded-xl border shrink-0 bg-[#10B981]/15 text-[#10B981] border-[#10B981]/40">
               <Crown size={16} />
             </div>
             <div className="min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-xs font-black" style={{ color: 'var(--ink)' }}>{tierLabel}</span>
-                {entitlement?.cohortCode && (
-                  <span
-                    dir="ltr"
-                    className="px-2 py-0.5 rounded-full text-[11px] font-mono font-bold border"
-                    style={{ backgroundColor: 'var(--accent-soft)', color: 'var(--accent)', borderColor: 'var(--accent)' }}
-                  >
-                    {entitlement.cohortCode}
-                  </span>
-                )}
-              </div>
-              <p className="text-xs leading-snug" style={{ color: 'var(--ink-muted)' }}>
-                {activeTier === 'free'
-                  ? isArabic
-                    ? 'معاك كود InstaPay أو أكاديمية؟ فعّله هنا.'
-                    : 'Have an InstaPay or Academy voucher? Activate it here.'
-                  : isArabic
-                    ? 'مفعّل ومحفوظ للعمل بدون إنترنت على هذا الجهاز.'
-                    : 'Active and cached for 100% offline use on this device.'}
+              <span className="text-xs font-black text-[#F8FAFC] block">
+                {isArabic ? 'جسر التفكير V10 · مجاني 100% للأبد' : 'Thinking Bridge V10 · 100% Free Forever'}
+              </span>
+              <p className="text-xs leading-snug text-[#CBD5E1]">
+                {isArabic
+                  ? 'كل الدروس، الأركيد، وبنك الكلمات مفتوحة بالكامل بدون اشتراكات أو إعلانات.'
+                  : 'All lessons, arcade modes, and Word Bank unlocked with zero ads or paywalls.'}
               </p>
             </div>
           </div>
-          {onOpenActivateCode && (
-            <button
-              type="button"
-              onClick={onOpenActivateCode}
-              className="px-4 py-2 min-h-[48px] rounded-xl text-xs font-black flex items-center gap-1.5 transition cursor-pointer shrink-0"
-              style={{ backgroundColor: 'var(--gold)', color: 'var(--gold-ink)' }}
-            >
-              <KeyRound size={14} />
-              <span>{isArabic ? 'تفعيل كود Pro / أكاديمية' : 'Activate Pro / Academy Code'}</span>
-            </button>
-          )}
         </div>
       </div>
 

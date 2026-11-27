@@ -12,6 +12,7 @@ import { consumeDailyApiQuota } from '../../utils/apiQuota';
 import { getUserGeminiKey, setUserGeminiKey } from '../../services/geminiLexicon';
 import { AgeTrackSlider } from '../../components/AgeTrack';
 import { SupportModal } from '../../components/SupportModal';
+import { useThemeStore } from '../gamification/themeStore';
 import type { HighSchoolTrack } from './usePreferences';
 import './preferences.css';
 
@@ -25,7 +26,10 @@ interface PreferencesViewProps {
   onOpenReview?: () => void;
   sourceLang?: SourceLanguage;
   targetLang?: TargetLanguage;
+  isArabic?: boolean;
   onOpenLanguageSelector?: () => void;
+  onOpenLaunchGate?: () => void;
+  onOpenHome?: () => void;
 }
 
 export function PreferencesView({
@@ -38,57 +42,34 @@ export function PreferencesView({
   onOpenReview,
   sourceLang = 'ar',
   targetLang = 'en',
+  isArabic: propIsArabic,
   onOpenLanguageSelector,
+  onOpenLaunchGate,
+  onOpenHome,
 }: PreferencesViewProps) {
   const [showGuide, setShowGuide] = useState(false);
   const [supportOpen, setSupportOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { values, set, schema } = usePreferences();
-  const isArabic = profile?.language === 'arabic';
+  const isArabic = propIsArabic ?? (profile?.language !== 'english');
 
-  type ThemeChoice = 'dark' | 'emerald' | 'sapphire' | 'light';
+  const { themeId, selectTheme } = useThemeStore();
 
-  const [theme, setTheme] = useState<ThemeChoice>(() => {
-    try {
-      if (typeof localStorage !== 'undefined') {
-        const saved = localStorage.getItem('tb.theme');
-        if (saved === 'dark' || saved === 'emerald' || saved === 'sapphire' || saved === 'light') {
-          return saved;
-        }
-      }
-    } catch {}
-    return 'dark';
-  });
-
-  const [customGeminiKey, setCustomGeminiKey] = useState<string>(() => {
-    return getUserGeminiKey();
-  });
-
+  const [customGeminiKey, setCustomGeminiKey] = useState<string>(() => getUserGeminiKey());
   const [isTestingKey, setIsTestingKey] = useState(false);
   const [testResult, setTestResult] = useState<{ status: 'success' | 'error'; msg: string } | null>(null);
 
-  const handleThemeChange = (newTheme: ThemeChoice) => {
-    setTheme(newTheme);
-    try {
-      if (typeof localStorage !== 'undefined') {
-        localStorage.setItem('tb.theme', newTheme);
-      }
-    } catch {}
-    document.documentElement.classList.remove('dark', 'light', 'theme-emerald', 'theme-sapphire');
-    if (newTheme === 'light') {
-      document.documentElement.classList.add('light');
-      document.documentElement.style.colorScheme = 'light';
-    } else if (newTheme === 'emerald') {
-      document.documentElement.classList.add('dark', 'theme-emerald');
-      document.documentElement.style.colorScheme = 'dark';
-    } else if (newTheme === 'sapphire') {
-      document.documentElement.classList.add('dark', 'theme-sapphire');
-      document.documentElement.style.colorScheme = 'dark';
-    } else {
-      document.documentElement.classList.add('dark');
-      document.documentElement.style.colorScheme = 'dark';
-    }
-    onToast?.(isArabic ? `🎨 تم تغيير المظهر بنجاح!` : `Theme updated successfully!`);
+  const handleThemeChange = (newTheme: 'midnight-navy' | 'amoled-obsidian') => {
+    selectTheme(newTheme);
+    onToast?.(
+      isArabic
+        ? newTheme === 'amoled-obsidian'
+          ? '🌑 تم تفعيل الوضع الداكن AMOLED Obsidian'
+          : '🌌 تم تفعيل الوضع الداكن Midnight Navy'
+        : newTheme === 'amoled-obsidian'
+          ? '🌑 Switched to AMOLED Obsidian'
+          : '🌌 Switched to Midnight Navy'
+    );
   };
 
   const handleSaveGeminiKey = (val: string) => {
@@ -295,13 +276,13 @@ export function PreferencesView({
 
   return (
     <div className="pref-page" dir={isArabic ? 'rtl' : 'ltr'}>
-      <header className="pref-header sticky top-0 z-40 bg-[#06101c]/95 backdrop-blur-md pt-safe">
+      <header className="pref-header sticky top-0 z-40 bg-[#131C31]/95 backdrop-blur-md pt-safe border-b border-slate-400/15">
         <button
           onClick={onBack}
-          className="pref-header__back-btn"
+          className="pref-header__back-btn min-h-[52px] px-4 font-black text-sm flex items-center justify-center gap-1 whitespace-nowrap shrink-0"
           aria-label={isArabic ? 'رجوع' : 'Back'}
         >
-          ←
+          <span>{isArabic ? '→ رجوع' : '← Back'}</span>
         </button>
 
         <div className="pref-header__title-group">
@@ -317,7 +298,7 @@ export function PreferencesView({
 
         <button
           onClick={() => setShowGuide(true)}
-          className="pref-header__guide-btn"
+          className="pref-header__guide-btn min-h-[48px] min-w-[48px]"
           aria-label={isArabic ? 'دليل الإعدادات' : 'Preferences Guide'}
         >
           ❓
@@ -325,6 +306,28 @@ export function PreferencesView({
       </header>
 
       <div className="pref-content space-y-6">
+        {/* Launch Gate Shortcut (Languages vs. Quran Sanctuary) */}
+        {onOpenLaunchGate && (
+          <section className="p-4 rounded-3xl bg-surface border border-border shadow-md flex items-center justify-between gap-3">
+            <div>
+              <span className="text-[10px] font-black uppercase tracking-wider text-[#FBBF24] block">
+                {isArabic ? 'بوابة البداية السريعة' : '2-Icon Launch Gate'}
+              </span>
+              <h3 className="text-sm font-black text-text mt-0.5">
+                {isArabic ? 'تعلم اللغات / القرآن الكريم' : 'Learn Languages / Quran Hifz'}
+              </h3>
+            </div>
+            <button
+              type="button"
+              data-testid="preferences-open-launch-gate"
+              onClick={onOpenLaunchGate}
+              className="min-h-[52px] px-4 py-2 rounded-2xl tb-btn-3d tb-btn-gold font-black text-xs shrink-0 cursor-pointer"
+            >
+              {isArabic ? 'فتح البوابة 🚪' : 'Open Gate 🚪'}
+            </button>
+          </section>
+        )}
+
         {/* Language Bridge Banner */}
         {onOpenLanguageSelector && (
           <section className="p-4 rounded-3xl bg-surface border border-border shadow-md flex items-center justify-between gap-3">
@@ -339,7 +342,7 @@ export function PreferencesView({
             <button
               type="button"
               onClick={onOpenLanguageSelector}
-              className="px-4 py-2 rounded-xl bg-surface-2 border border-border text-text font-bold text-xs hover:border-success transition active:scale-95 shrink-0"
+              className="min-h-[48px] px-4 py-2 rounded-xl bg-surface-2 border border-border text-text font-bold text-xs hover:border-success transition active:scale-95 shrink-0 cursor-pointer"
             >
               {isArabic ? 'تغيير اللغات 🌐' : 'Switch Languages 🌐'}
             </button>
@@ -377,39 +380,25 @@ export function PreferencesView({
               <div className="grid grid-cols-2 sm:flex sm:items-center gap-1.5">
                 <button
                   type="button"
-                  onClick={() => handleThemeChange('dark')}
-                  className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer ${
-                    theme === 'dark' ? 'bg-teal-500 text-slate-950 shadow-sm' : 'text-stone-300 hover:bg-surface'
+                  onClick={() => handleThemeChange('midnight-navy')}
+                  className={`min-h-[48px] px-3 py-2 rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                    themeId === 'midnight-navy'
+                      ? 'bg-[#10B981] text-[#0B1120] shadow-sm'
+                      : 'bg-[#1B2742] text-[#CBD5E1] hover:text-white'
                   }`}
                 >
-                  🌙 {isArabic ? 'داكن' : 'Dark'}
+                  🌌 {isArabic ? 'كحلي منتصف الليل' : 'Midnight Navy'}
                 </button>
                 <button
                   type="button"
-                  onClick={() => handleThemeChange('emerald')}
-                  className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer ${
-                    theme === 'emerald' ? 'bg-emerald-500 text-slate-950 shadow-sm' : 'text-stone-300 hover:bg-surface'
+                  onClick={() => handleThemeChange('amoled-obsidian')}
+                  className={`min-h-[48px] px-3 py-2 rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                    themeId === 'amoled-obsidian'
+                      ? 'bg-[#10B981] text-[#0B1120] shadow-sm'
+                      : 'bg-[#1B2742] text-[#CBD5E1] hover:text-white'
                   }`}
                 >
-                  🌿 {isArabic ? 'زيتوني' : 'Olive'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleThemeChange('sapphire')}
-                  className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer ${
-                    theme === 'sapphire' ? 'bg-sky-400 text-slate-950 shadow-sm' : 'text-stone-300 hover:bg-surface'
-                  }`}
-                >
-                  🌊 {isArabic ? 'ياقوتي' : 'Sapphire'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleThemeChange('light')}
-                  className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer ${
-                    theme === 'light' ? 'bg-teal-600 text-white shadow-sm' : 'text-stone-300 hover:bg-surface'
-                  }`}
-                >
-                  ☀️ {isArabic ? 'فاتح' : 'Light'}
+                  🌑 {isArabic ? 'أوبسيديان OLED' : 'AMOLED Obsidian'}
                 </button>
               </div>
             </div>
@@ -442,7 +431,7 @@ export function PreferencesView({
                   <button
                     type="button"
                     onClick={() => handleSaveGeminiKey(customGeminiKey)}
-                    className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-primary text-on-primary font-black text-xs transition active:scale-95 shadow-md"
+                    className="flex-1 sm:flex-none min-h-[48px] px-4 py-2.5 rounded-xl bg-primary text-on-primary font-black text-xs transition active:scale-95 shadow-md cursor-pointer"
                   >
                     {isArabic ? 'حفظ' : 'Save'}
                   </button>
@@ -450,7 +439,7 @@ export function PreferencesView({
                     type="button"
                     disabled={isTestingKey || !customGeminiKey.trim()}
                     onClick={handleTestKey}
-                    className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-surface border border-border hover:border-success text-text font-bold text-xs transition active:scale-95 disabled:opacity-40 flex items-center justify-center gap-1.5"
+                    className="flex-1 sm:flex-none min-h-[48px] px-4 py-2.5 rounded-xl bg-surface border border-border hover:border-success text-text font-bold text-xs transition active:scale-95 disabled:opacity-40 flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     {isTestingKey ? (
                       <Loader2 size={14} className="animate-spin text-primary" />
@@ -479,66 +468,6 @@ export function PreferencesView({
               )}
             </div>
 
-            {/* Discord Webhook Live Integration Card */}
-            <div className="p-4 rounded-2xl bg-surface-2 border border-border space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="font-bold text-sm text-text flex items-center gap-1.5">
-                  <span>💬</span>
-                  <span>{isArabic ? 'رابط Discord Webhook المباشر' : 'Discord Webhook Integration'}</span>
-                </span>
-                <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-success/20 text-success">
-                  {discordWebhookUrl.trim() ? (isArabic ? '🟢 متصل' : '🟢 Linked') : (isArabic ? 'غير متصل' : 'Unlinked')}
-                </span>
-              </div>
-              <p className="text-xs text-muted leading-relaxed">
-                {isArabic
-                  ? 'اربط سيرفر Discord الخاص بك لاستلام ملاحظات المستخدمين، الاشتراكات الجديدة، والمراجعات مباشرة على قناتك.'
-                  : 'Link your Discord server to receive user feedback notes, subscriptions, and reviews live in your channel.'}
-              </p>
-              <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 pt-1">
-                <input
-                  type="url"
-                  value={discordWebhookUrl}
-                  onChange={(e) => {
-                    setDiscordWebhookUrl(e.target.value);
-                    handleSaveWebhook(e.target.value);
-                  }}
-                  placeholder="https://discord.com/api/webhooks/..."
-                  className="flex-1 p-2.5 rounded-xl bg-surface border border-border text-text text-sm font-mono focus:outline-none focus:border-success w-full"
-                />
-                <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
-                  <button
-                    type="button"
-                    disabled={isTestingWebhook || !discordWebhookUrl.trim()}
-                    onClick={handleTestWebhook}
-                    className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-primary text-on-primary font-black text-xs transition active:scale-95 disabled:opacity-40 flex items-center justify-center gap-1.5 shadow-md"
-                  >
-                    {isTestingWebhook ? (
-                      <Loader2 size={14} className="animate-spin text-white" />
-                    ) : (
-                      <span>{isArabic ? 'اختبار الربط 💬' : 'Test Webhook 💬'}</span>
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              {webhookResult && (
-                <div
-                  className={`p-3 rounded-xl border text-xs font-bold flex items-center gap-2 ${
-                    webhookResult.status === 'success'
-                      ? 'bg-success/20 border-success text-success'
-                      : 'bg-danger/20 border-danger text-danger'
-                  }`}
-                >
-                  {webhookResult.status === 'success' ? (
-                    <CheckCircle2 size={16} className="shrink-0" />
-                  ) : (
-                    <XCircle size={16} className="shrink-0" />
-                  )}
-                  <span>{webhookResult.msg}</span>
-                </div>
-              )}
-            </div>
           </div>
         </section>
 
@@ -700,31 +629,24 @@ export function PreferencesView({
           </section>
         )}
 
-        {/* Voluntary InstaPay Support Card */}
+        {/* 100% Free Forever Note */}
         <section
-          className="p-4 rounded-3xl bg-surface-2 border border-amber-500/30 space-y-3"
-          aria-labelledby="pref-support-title"
+          className="p-4 rounded-3xl bg-surface-2 border border-[#10B981]/30 space-y-2"
+          aria-labelledby="pref-free-title"
         >
           <div className="flex items-center justify-between gap-2">
-            <h3 id="pref-support-title" className="font-bold text-sm text-text">
-              ☕ {isArabic ? 'ادعم التطبيق' : 'Support the app'}
+            <h3 id="pref-free-title" className="font-bold text-sm text-text">
+              ✨ {isArabic ? 'مجاني 100% للأبد' : '100% Free Forever'}
             </h3>
             <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-success/20 text-success shrink-0">
-              {isArabic ? 'اختياري 100%' : '100% optional'}
+              {isArabic ? 'بدون اشتراكات' : 'Zero Paywalls'}
             </span>
           </div>
           <p className="text-xs text-muted leading-relaxed">
             {isArabic
-              ? 'التطبيق مجاني ومفتوح المصدر لكل الناس ومفيش أي حاجة مقفولة. لو حابب تساعده يكمّل، تقدر تدعم عبر InstaPay أو PayPal.'
-              : 'The app is free and open-source for everyone with nothing locked. If you would like to help keep it going, you can support via InstaPay or PayPal.'}
+              ? 'جميع الدروس والأركيد وبنك الكلمات والقاموس الناطق مفتوحة بالكامل مجاناً بدون إعلانات وبدون إنترنت.'
+              : 'Every lesson, arcade mode, word bank, and talking dictionary is 100% free, ad-free, and offline-ready.'}
           </p>
-          <button
-            type="button"
-            onClick={() => setSupportOpen(true)}
-            className="w-full min-h-[44px] rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-300 font-black text-xs hover:bg-amber-500/25 active:scale-95 transition cursor-pointer touch-manipulation"
-          >
-            {isArabic ? '☕ ادعم استمرار التطبيق' : '☕ Support the app'}
-          </button>
         </section>
 
         {/* Creator & Socials Card */}
@@ -749,16 +671,30 @@ export function PreferencesView({
               ? 'صممت هذا التطبيق مجاناً وبدون أي تتبّع لمساعدة كل عربي على التفكير بالإنجليزية كالمتحدث الأصلي وكسر حواجز الترجمة الحرفية.'
               : 'Designed to help every Arabic speaker bridge the cognitive gap into natural English thinking, 100% free and ad-free.'}
           </p>
-          <div className="pref-creator-card__socials">
+          <div className="pref-creator-card__socials flex flex-wrap gap-2">
             <a
-              href="https://www.youtube.com/@SciAmrSherif?sub_confirmation=1"
+              href="https://youtube.com/@sciamrsherif"
               target="_blank"
               rel="noopener noreferrer"
+              data-testid="preferences-youtube-link"
               className="pref-creator-card__link pref-creator-card__link--yt"
             >
               <Youtube className="w-4 h-4 fill-current" />
-              <span>YouTube @SciAmrSherif</span>
+              <span>
+                {isArabic
+                  ? 'شاهد الشروحات على يوتيوب (@sciamrsherif)'
+                  : 'Watch Tutorials on YouTube (@sciamrsherif)'}
+              </span>
             </a>
+            {onOpenHome && (
+              <button
+                type="button"
+                onClick={onOpenHome}
+                className="min-h-[44px] px-4 py-2 rounded-xl border border-slate-600/50 bg-[#0B1120] text-[#22D3EE] text-xs font-black cursor-pointer"
+              >
+                {isArabic ? '🏠 الصفحة الرئيسية / حول التطبيق' : '🏠 About / Home Screen'}
+              </button>
+            )}
           </div>
           <p className="text-[11px] text-muted pt-3 mt-3 border-t border-border font-semibold">
             {isArabic

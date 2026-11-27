@@ -3,56 +3,66 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  /* Design Tokens - Alexandrian Mediterranean Theme (عروس البحر المتوسط) */
-  --bg: #030A16;
-  --surface: #0A192F;
-  --surface-2: #102A4C;
-  --border: #1E3E66;
+  /* V10 Unified Design Tokens — Midnight Navy (Default) */
+  --bg: #0B1120;
+  --surface: #131C31;
+  --surface-2: #1B2742;
+  --border: rgba(148, 163, 184, 0.16);
   --text: #F8FAFC;
-  --muted: #94A3B8;
-  --accent-teal: #00E5FF;
-  --secondary-amber: #38BDF8;
+  --ink: #F8FAFC;
+  --muted: #CBD5E1;
+  --ink-muted: #CBD5E1;
+
+  /* Original Semantic Accents (NOT Duolingo Purple) */
+  --accent: #10B981;
+  --accent-lip: #059669;
+  --accent-ink: #0B1120;
+  --accent-soft: rgba(16, 185, 129, 0.16);
+  --accent-teal: #22D3EE;
+  --fever: #22D3EE;
+  --fever-soft: rgba(34, 211, 238, 0.16);
+  --gold: #F59E0B;
+  --gold-glow: #FBBF24;
+  --gold-ink: #0B1120;
+  --gold-soft: rgba(245, 158, 11, 0.16);
+  --secondary-amber: #F59E0B;
+
   --font: 'IBM Plex Sans Arabic', 'Readex Pro', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   --radius-sm: 12px;
   --radius-md: 20px;
   --radius-lg: 28px;
   --max-width: 1200px;
 
-  /* Alexandrian Ocean & Sunset Gold Dark Theme Default Tokens */
   --color-bg: var(--bg);
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
   --color-border: var(--border);
   --color-text: var(--text);
-  --color-text-soft: #E2E8F0;
+  --color-text-soft: #CBD5E1;
   --color-muted: var(--muted);
-  --color-primary: var(--accent-teal);
-  --color-on-primary: #030A16;
+  --color-primary: var(--accent);
+  --color-on-primary: var(--accent-ink);
   --color-success: #10B981;
   --color-danger: #EF4444;
 }
 
-/* Light Theme Tokens */
-html.light {
-  --bg: #F0F7FF;
-  --surface: #FFFFFF;
-  --surface-2: #E2EEFC;
-  --border: #B8D4F0;
-  --text: #0B1D3A;
-  --muted: #475569;
-  --accent-teal: #0088A8;
-  --secondary-amber: #D97706;
+/* 2nd Dark Theme — AMOLED Obsidian */
+html[data-theme="amoled-obsidian"] {
+  --bg: #05070B;
+  --surface: #0F141E;
+  --surface-2: #172030;
+  --border: rgba(148, 163, 184, 0.16);
+  --text: #F8FAFC;
+  --ink: #F8FAFC;
+  --muted: #CBD5E1;
+  --ink-muted: #CBD5E1;
   --color-bg: var(--bg);
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
   --color-border: var(--border);
   --color-text: var(--text);
-  --color-text-soft: #1E293B;
+  --color-text-soft: #CBD5E1;
   --color-muted: var(--muted);
-  --color-primary: var(--accent-teal);
-  --color-on-primary: #FFFFFF;
-  --color-success: #059669;
-  --color-danger: #DC2626;
 }
 
 @theme {

@@ -1,7 +1,8 @@
-import React from 'react';
-import { Volume2, Turtle } from 'lucide-react';
+import React, { useEffect } from 'react';
+import { Volume2 } from 'lucide-react';
 import { unlockAudio } from '../utils/audio';
 import { speakUnified } from '../utils/offlineTts';
+import { useUiMode } from '../utils/uiMode';
 
 interface DualSpeedAudioProps {
   text: string;
@@ -11,24 +12,44 @@ interface DualSpeedAudioProps {
   btnClassName?: string;
   showLabels?: boolean;
   isArabic?: boolean;
+  autoPlayInEasyMode?: boolean;
 }
 
 export function DualSpeedAudio({
   text,
   preferredVoice,
   targetLang,
-  className = 'flex flex-wrap justify-center gap-2 mt-3',
-  btnClassName = 'px-4 py-2 rounded-xl bg-stone-800/80 hover:bg-stone-700 text-stone-200 border border-stone-700 transition-colors flex items-center gap-2 text-xs font-bold active:translate-y-1',
+  className = 'grid grid-cols-2 gap-2 w-full max-w-md mx-auto',
+  btnClassName = 'px-3 py-2 rounded-2xl bg-[#1B2742] hover:bg-[#233254] text-[#F8FAFC] border border-slate-400/20 transition-colors flex items-center justify-center gap-1.5 text-xs font-bold active:translate-y-0.5 whitespace-nowrap',
   showLabels = true,
   isArabic = true,
+  autoPlayInEasyMode = false,
 }: DualSpeedAudioProps) {
+  const [uiMode] = useUiMode();
+  const isSimple = uiMode === 'simple';
+  const normalRate = isSimple ? 0.85 : 1.0;
+  const slowRate = isSimple ? 0.65 : 0.75;
+
+  useEffect(() => {
+    if (!autoPlayInEasyMode || !isSimple || !text.trim()) return;
+    const timer = window.setTimeout(() => {
+      void speakUnified({
+        text,
+        lang: targetLang,
+        rate: normalRate,
+        preferredVoiceName: preferredVoice,
+      });
+    }, 280);
+    return () => window.clearTimeout(timer);
+  }, [autoPlayInEasyMode, isSimple, text, targetLang, normalRate, preferredVoice]);
+
   const handleNormal = (e: React.MouseEvent) => {
     e.stopPropagation();
     unlockAudio();
     void speakUnified({
       text,
       lang: targetLang,
-      rate: 1.0,
+      rate: normalRate,
       preferredVoiceName: preferredVoice,
     });
   };
@@ -39,7 +60,7 @@ export function DualSpeedAudio({
     void speakUnified({
       text,
       lang: targetLang,
-      rate: 0.75,
+      rate: slowRate,
       preferredVoiceName: preferredVoice,
     });
   };
@@ -49,22 +70,22 @@ export function DualSpeedAudio({
       <button
         type="button"
         onClick={handleNormal}
-        title={isArabic ? 'اسمع النطق (1.0x)' : 'Listen (1.0x)'}
-        className={`${btnClassName} min-h-[48px] bg-emerald-700/80 hover:bg-emerald-600 text-emerald-100 border border-emerald-500/50 shadow-md cursor-pointer`}
-        aria-label={isArabic ? 'اسمع النطق (1.0x)' : 'Listen (1.0x)'}
+        title={isArabic ? `اسمع النطق (${normalRate}x)` : `Listen (${normalRate}x)`}
+        className={`${btnClassName} ${isSimple ? 'min-h-[56px] px-4 text-sm font-black' : 'min-h-[48px]'} bg-[#10B981]/20 hover:bg-[#10B981]/30 text-[#F8FAFC] border border-[#10B981]/50 cursor-pointer`}
+        aria-label={isArabic ? `اسمع النطق (${normalRate}x)` : `Listen (${normalRate}x)`}
       >
-        <Volume2 size={16} />
-        {showLabels && <span>{isArabic ? 'اسمع (1.0x)' : 'Listen (1.0x)'}</span>}
+        <Volume2 size={isSimple ? 20 : 16} className="text-[#10B981] shrink-0" />
+        {showLabels && <span>{isArabic ? `اسمع (${normalRate}x)` : `Listen (${normalRate}x)`}</span>}
       </button>
       <button
         type="button"
         onClick={handleSlow}
-        title={isArabic ? 'بطيء وواضح (0.75x)' : 'Slow (0.75x)'}
-        className={`${btnClassName} min-h-[48px] text-amber-400 border-amber-500/30 hover:bg-amber-950/40`}
-        aria-label={isArabic ? 'بطيء وواضح (0.75x)' : 'Slow (0.75x)'}
+        title={isArabic ? `بطيء وواضح (${slowRate}x)` : `Slow (${slowRate}x)`}
+        className={`${btnClassName} ${isSimple ? 'min-h-[56px] px-4 text-sm font-black' : 'min-h-[48px]'} text-[#FBBF24] border-[#F59E0B]/40 bg-[#F59E0B]/15 hover:bg-[#F59E0B]/25 cursor-pointer`}
+        aria-label={isArabic ? `بطيء وواضح (${slowRate}x)` : `Slow (${slowRate}x)`}
       >
-        <Turtle size={16} />
-        {showLabels && <span>{isArabic ? 'بالراحة (0.75x)' : 'Slow (0.75x)'}</span>}
+        <span aria-hidden="true" className="text-sm leading-none">🐢</span>
+        <span>{showLabels ? (isArabic ? `بطيء (${slowRate}x)` : `Slow (${slowRate}x)`) : `${slowRate}x`}</span>
       </button>
     </div>
   );

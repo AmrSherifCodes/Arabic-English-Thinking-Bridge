@@ -363,17 +363,13 @@ body:has(.egyptian-landing) {
   }
 
   .egyptian-landing .hero h1 .accent {
-    background: linear-gradient(180deg, #FFFFFF 0%, #38BDF8 55%, #00E5FF 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    color: transparent;
+    color: #22D3EE !important;
+    -webkit-text-fill-color: #22D3EE !important;
+    background: none !important;
+    -webkit-background-clip: border-box !important;
+    background-clip: border-box !important;
     font-weight: 900;
     display: inline-block;
-    text-shadow: none !important;
-    filter: none !important;
-    -webkit-filter: none !important;
-    isolation: isolate;
   }
 
   .egyptian-landing .hero p {
@@ -584,13 +580,11 @@ body:has(.egyptian-landing) {
     font-family: var(--font-display);
     font-size: clamp(2.4rem, 5vw, 3.6rem);
     font-weight: 900;
-    background: linear-gradient(135deg, #38BDF8 0%, #00E5FF 50%, #34D399 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+    color: #22D3EE !important;
+    -webkit-text-fill-color: #22D3EE !important;
+    background: none !important;
     line-height: 1;
     margin-bottom: 10px;
-    filter: drop-shadow(0 0 16px rgba(0, 229, 255, 0.35));
   }
 
   .egyptian-landing .stat-label {

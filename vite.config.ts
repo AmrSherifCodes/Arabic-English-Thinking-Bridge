@@ -3,7 +3,6 @@ import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
-import { viteStaticCopy } from 'vite-plugin-static-copy';
 
 const BASE = process.env.CAPACITOR_BUILD === 'true' ? './' : (process.env.VITE_BASE ?? '/');
 
@@ -43,31 +42,24 @@ export default defineConfig(async ({ command, mode }) => {
       react(),
       ...devPlugins,
       tailwindcss(),
-      viteStaticCopy({
-        targets: [
-          {
-            src: 'node_modules/pyodide/*.{js,mjs,wasm,json,zip,whl}',
-            dest: 'pyodide',
-          },
-        ],
-      }),
       VitePWA({
         registerType: 'autoUpdate',
         injectRegister: false,
+        includeManifestIcons: false,
         includeAssets: ['favicon.ico', 'apple-touch-icon-180x180.png'],
         manifest: {
           id: BASE,
-          name: 'Thinking Bridge · فكّر إنجليزي',
-          short_name: 'فكّر إنجليزي',
-          description: 'Learn English through the structure of Arabic. Offline-first cognitive language bridge.',
+          name: 'Thinking Bridge · جسر التفكير',
+          short_name: 'جسر التفكير',
+          description: 'Learn English through the structure of Arabic. 100% free, offline-first cognitive language bridge.',
           lang: 'ar',
           dir: 'rtl',
           start_url: '/',
           scope: '/',
           display: 'standalone',
           orientation: 'portrait',
-          theme_color: '#0A0E13',
-          background_color: '#0A0E13',
+          theme_color: '#0B1120',
+          background_color: '#0B1120',
           categories: ['education'],
           icons: [
             { src: 'pwa-64x64.png', sizes: '64x64', type: 'image/png' },
@@ -91,7 +83,6 @@ export default defineConfig(async ({ command, mode }) => {
                 'apple-touch-icon-180x180.png',
                 'pwa-64x64.png',
                 'pwa-192x192.png',
-                'pwa-512x512.png',
                 'maskable-icon-512x512.png',
               ]);
               const coreAssetRe = /^assets\/(index|react-vendor|rolldown-runtime|icons-vendor)-.*\.(js|css)$/;

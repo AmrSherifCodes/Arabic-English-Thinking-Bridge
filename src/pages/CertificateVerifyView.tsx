@@ -176,7 +176,7 @@ export function CertificateVerifyView({
                 </div>
                 <div>
                   <p className="text-xs font-bold uppercase tracking-wider text-teal-300 print:text-stone-700">
-                    Thinking Bridge · فكّر إنجليزي
+                    Thinking Bridge · جسر التفكير
                   </p>
                   <h2 className="text-lg sm:text-xl font-black text-white print:text-black">
                     {isArabic ? 'شهادة إتمام موثّقة' : 'Certificate of Completion'}

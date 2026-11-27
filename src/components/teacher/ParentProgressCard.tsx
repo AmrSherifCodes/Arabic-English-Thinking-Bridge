@@ -27,7 +27,7 @@ export function buildParentWhatsAppSummary(
       : '• أداء متوازن — لا توجد أخطاء متكررة هذا الأسبوع (Balanced performance)';
 
   return [
-    `📘 *تقرير التقدم الأسبوعي — فكّر إنجليزي (Thinking Bridge)*`,
+    `📘 *تقرير التقدم الأسبوعي — جسر التفكير (Thinking Bridge)*`,
     `🏫 ${centerName} | كود المجموعة: ${student.cohortCode}`,
     `👤 الطالب: *${student.displayName}*`,
     ``,
@@ -39,7 +39,7 @@ export function buildParentWhatsAppSummary(
     `🎯 *نقاط التركيز للأسبوع القادم (Focus Areas):*`,
     mistakeLines,
     ``,
-    `✨ استمروا في تشجيع الطالب على ١٠ دقائق تدريب يومياً بدون إنترنت على تطبيق فكّر إنجليزي.`,
+    `✨ استمروا في تشجيع الطالب على ١٠ دقائق تدريب يومياً بدون إنترنت على تطبيق جسر التفكير.`,
     `Keep encouraging 10 minutes of daily offline practice on Thinking Bridge!`,
   ].join('\n');
 }
@@ -123,7 +123,7 @@ export const ParentProgressCard: React.FC<ParentProgressCardProps> = ({
           <div className="flex flex-wrap items-start justify-between gap-4 border-b border-stone-800 pb-5 print:border-stone-300">
             <div>
               <p className="text-xs font-bold uppercase tracking-wider text-teal-400 print:text-teal-700">
-                فكّر إنجليزي · Thinking Bridge v7
+                جسر التفكير · Thinking Bridge v7
               </p>
               <h2 className="text-2xl font-black mt-1 text-white print:text-black">
                 تقرير التقدم الأسبوعي
@@ -235,7 +235,7 @@ export const ParentProgressCard: React.FC<ParentProgressCardProps> = ({
           {/* Bilingual Parent Encouragement Footer */}
           <div className="rounded-2xl bg-teal-500/10 border border-teal-500/25 p-4 space-y-1.5 print:bg-stone-50 print:border-stone-300">
             <p className="text-sm font-bold text-teal-200 print:text-black">
-              توصية المعلّم لولي الأمر: ١٠ دقائق تدريب يومي بدون إنترنت على تطبيق «فكّر إنجليزي» تبني ثقة حقيقية في التحدث.
+              توصية المعلّم لولي الأمر: ١٠ دقائق تدريب يومي بدون إنترنت على تطبيق «جسر التفكير» تبني ثقة حقيقية في التحدث.
             </p>
             <p className="text-xs text-stone-300 print:text-stone-700" dir="ltr">
               Teacher Note: 10 minutes of daily offline practice on Thinking Bridge builds lasting English fluency without literal translation.

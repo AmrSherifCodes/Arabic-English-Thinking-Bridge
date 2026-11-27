@@ -34,7 +34,7 @@ export function PrivacyPolicyModal({ isOpen, onClose, isArabic = true }: Privacy
         <div className="space-y-3 text-xs text-stone-300 leading-relaxed font-medium">
           <p className="font-bold text-white">
             {isArabic
-              ? 'تطبيق فكّر إنجليزي مصمم بالكامل بمبدأ الخصوصية أولاً (Privacy by Default). لا نجمع أي بيانات شخصية حساسة.'
+              ? 'تطبيق جسر التفكير مصمم بالكامل بمبدأ الخصوصية أولاً (Privacy by Default). لا نجمع أي بيانات شخصية حساسة.'
               : 'Thinking Bridge is strictly Privacy-by-Default. We do not track or sell personal data.'}
           </p>
 

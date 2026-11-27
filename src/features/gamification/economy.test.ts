@@ -119,31 +119,18 @@ describe('v7.2 Gamification Economy (Coins, Stars, Chests, Themes)', () => {
     assert.equal(secondOpen.state.shields, shieldsAfterFirst);
   });
 
-  it('handles theme and avatar frame unlocks, insufficient balance, and free Pro royal-emerald', () => {
-    // Insufficient coins for midnight-cyan (150)
-    const denied = purchaseThemeUnlock('midnight-cyan', false);
-    assert.equal(denied.ok, false);
-    assert.equal(denied.reason, 'insufficient_coins');
+  it('handles 100% free V10 theme switches and avatar frame unlocks with coins', () => {
+    // Both V10 dark themes (Midnight Navy & AMOLED Obsidian) are 100% free
+    const amoled = purchaseThemeUnlock('amoled-obsidian', false);
+    assert.equal(amoled.ok, true);
+    assert.equal(localStorage.getItem(THEME_STORAGE_KEY), 'amoled-obsidian');
 
-    // Royal emerald is free for Pro users even at 0 coins
-    const proEmerald = purchaseThemeUnlock('royal-emerald', true);
-    assert.equal(proEmerald.ok, true);
-    assert.ok(proEmerald.state.unlockedThemes.includes('royal-emerald'));
-    assert.equal(localStorage.getItem(THEME_STORAGE_KEY), 'royal-emerald');
-
-    // Earn coins via golden chest (180 coins) and unlock midnight-cyan (150 coins)
+    // Earn coins via golden chest (180 coins) and buy nile-gold frame (100 coins)
     openMilestoneChest('chest-a1-9-golden', 'golden', false);
-    const bought = purchaseThemeUnlock('midnight-cyan', false);
-    assert.equal(bought.ok, true);
-    assert.equal(bought.state.coins, 30);
-    assert.ok(bought.state.unlockedThemes.includes('midnight-cyan'));
-
-    // Earn 120 more coins and buy nile-gold frame (100 coins)
-    openMilestoneChest('chest-a1-3-wooden-2', 'wooden', true);
     const frameRes = purchaseAvatarFrame('nile-gold');
     assert.equal(frameRes.ok, true);
     assert.equal(frameRes.state.equippedFrame, 'nile-gold');
-    assert.equal(frameRes.state.coins, 50);
+    assert.equal(frameRes.state.coins, 80);
 
     // Persisted cleanly in tb.economy.v1
     const raw = localStorage.getItem(ECONOMY_STORAGE_KEY);

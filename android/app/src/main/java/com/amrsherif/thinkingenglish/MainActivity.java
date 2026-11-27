@@ -15,13 +15,14 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         registerPlugin(OfflineSTTPlugin.class);
+        registerPlugin(LocalTranslatorPlugin.class);
         super.onCreate(savedInstanceState);
 
         WebView.setWebContentsDebuggingEnabled(BuildConfig.DEBUG);
 
         View contentView = findViewById(android.R.id.content);
         if (contentView != null) {
-            contentView.setBackgroundColor(Color.parseColor("#06101c"));
+            contentView.setBackgroundColor(Color.parseColor("#0B1120"));
             ViewCompat.setOnApplyWindowInsetsListener(contentView, (v, windowInsets) -> {
                 Insets insets = windowInsets.getInsets(
                     WindowInsetsCompat.Type.systemBars()

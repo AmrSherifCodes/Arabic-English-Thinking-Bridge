@@ -6,7 +6,7 @@ import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
 import { RefreshCw, Download, X } from 'lucide-react';
 
-export const CURRENT_APP_VERSION = '7.2.1';
+export const CURRENT_APP_VERSION = '10.0.0';
 const REMOTE_VERSION_URL = 'https://tb-eg.vercel.app/version.json';
 
 interface RemoteVersionPayload {

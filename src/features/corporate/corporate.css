@@ -6,7 +6,7 @@
   margin: 0 auto;
   padding: 16px 20px 48px;
   background: var(--bg-primary, #0c0a09);
-  color: var(--text-primary, #f5f5f4);
+  color: var(--text-primary, #F8FAFC);
   font-family: inherit;
 }
 
@@ -74,7 +74,7 @@
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 14px;
   padding: 14px;
-  color: #f5f5f4;
+  color: #F8FAFC;
   font-size: 15px;
   line-height: 1.5;
   resize: vertical;
@@ -309,7 +309,7 @@
 .corporate__tone-english {
   font-size: 15px;
   font-weight: 600;
-  color: #fafaf9;
+  color: #F8FAFC;
   line-height: 1.5;
   margin: 0 0 10px;
   user-select: all;

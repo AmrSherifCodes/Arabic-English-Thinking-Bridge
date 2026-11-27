@@ -148,8 +148,8 @@ export const STEAM_ACHIEVEMENTS: readonly SteamAchievement[] = [
     rarity: 'Rare',
     titleAr: 'حامل درع السلسلة',
     titleEn: 'Shield Bearer',
-    descAr: 'فعّل باقة Pro واحصل على دروع حماية السلسلة.',
-    descEn: 'Activate Pro and equip Streak-Freeze Shields.',
+    descAr: 'احصل على دروع حماية السلسلة المجانية لحماية تقدمك اليومي.',
+    descEn: 'Equip free Streak-Freeze Shields to protect your daily streak.',
     icon: '🔰',
     xpReward: 200,
     proOnly: true,
@@ -225,8 +225,8 @@ export const STEAM_ACHIEVEMENTS: readonly SteamAchievement[] = [
     rarity: 'Legendary',
     titleAr: 'قاهر كل الزعماء',
     titleEn: 'Grand Boss Slayer',
-    descAr: 'اهزم جميع زعماء المستويات الثلاثة في أركيد Pro.',
-    descEn: 'Defeat all 3 Level Bosses in Pro Arcade.',
+    descAr: 'اهزم جميع زعماء المستويات الثلاثة في الأركيد التفاعلي.',
+    descEn: 'Defeat all 3 Level Bosses in the Interactive Arcade.',
     icon: '👑',
     xpReward: 750,
     proOnly: true,
@@ -533,7 +533,7 @@ export function buildTrophyShareText(params: {
   const { playerName, rank, unlockedCount, totalCount, streak, blitzBestScore, isArabic } = params;
   if (isArabic) {
     return [
-      `🏆 بطاقة إنجازات فكّر إنجليزي (Thinking Bridge)`,
+      `🏆 بطاقة إنجازات جسر التفكير (Thinking Bridge)`,
       `👤 المتعلم: ${playerName}`,
       `🎖️ الرتبة: المستوى ${rank.level} — ${rank.titleAr}`,
       `⭐ نقاط الخبرة: ${rank.totalXp.toLocaleString()} XP`,

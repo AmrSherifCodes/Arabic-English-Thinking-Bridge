@@ -1,7 +1,7 @@
 // Copyright (c) 2026 Amr Sherif Abdelaal. All rights reserved.
 // Licensed under GNU AGPLv3 (AGPL-3.0-or-later).
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import {
   ProgressionState,
   LessonNode,
@@ -13,20 +13,30 @@ import {
   calculateLevelSkillNodes,
 } from '../../progression/courseData';
 import { getTargetDictionary, getTargetDictionaryAsync } from '../../data/dictionaries';
-import { Map, CheckCircle, Play, Sparkles, X } from 'lucide-react';
+import { Map, CheckCircle, Play, Sparkles, X, Volume2, BookmarkCheck, SlidersHorizontal, FastForward } from 'lucide-react';
 import { TargetLanguage, UserProgress } from '../../types';
 import { TARGET_LANGUAGE_META } from '../../data/languages';
 import { SkillRadar } from './SkillRadar';
 import { CanDoPanelModal } from './CanDoPanelModal';
 import { LevelMapViewModal } from './LevelMapViewModal';
-import { PlacementTestModal } from './PlacementTestModal';
+const PlacementTestModal = lazy(() =>
+  import('./PlacementTestModal').then((m) => ({ default: m.PlacementTestModal }))
+);
 import { CapstoneRunnerModal } from './CapstoneRunnerModal';
 import { NameForge } from '../NameForge';
+import { AmrGuide } from '../AmrGuide';
 import { useUiMode } from '../../utils/uiMode';
 import { GuideMode, LearnerTrack, getLearnerTrackMeta } from '../../utils/guideMode';
 import { ChestTier, StarRating, useEconomy } from '../../features/gamification/economy';
 import { ChestModal } from '../../features/gamification/ChestModal';
 import { JourneyBiomeBackdrop } from './JourneyBiomeBackdrop';
+import { speakUnified } from '../../utils/offlineTts';
+import { unlockAudio } from '../../utils/audio';
+import {
+  calibrateCurriculumGraph,
+  loadAdaptiveProfile,
+  mapLessonsToCurriculumNodes,
+} from '../../engine/orAdaptiveEngine';
 
 const langNamesAr: Record<string, string> = {
   en: 'الإنجليزية',
@@ -64,30 +74,36 @@ interface PathViewProps {
   progress?: UserProgress;
   flashcardDeckIds?: string[];
   onOpenLanguageSelector?: () => void;
+  onOpenWordBank?: () => void;
+  onOpenModeSettings?: () => void;
+  onOpenPreferences?: () => void;
+  onOpenTravelSprint?: () => void;
+  travelReadinessPct?: number;
+  wordBankCount?: number;
   isPro?: boolean;
   onToast?: (msg: string) => void;
 }
 
 type MapItem =
   | {
-      kind: 'lesson';
-      id: string;
-      index: number; // 1-based lesson number
-      lesson: LessonNode;
-      isBoss: boolean;
-      xPct: number;
-      yPx: number;
-    }
+    kind: 'lesson';
+    id: string;
+    index: number; // 1-based lesson number
+    lesson: LessonNode;
+    isBoss: boolean;
+    xPct: number;
+    yPx: number;
+  }
   | {
-      kind: 'chest';
-      id: string;
-      tier: ChestTier;
-      unlockAfterLessonIndex: number;
-      unlocked: boolean;
-      opened: boolean;
-      xPct: number;
-      yPx: number;
-    };
+    kind: 'chest';
+    id: string;
+    tier: ChestTier;
+    unlockAfterLessonIndex: number;
+    unlocked: boolean;
+    opened: boolean;
+    xPct: number;
+    yPx: number;
+  };
 
 // S-curve horizontal pattern (in % of viewBox width 360) alternating center -> right -> center -> left
 const S_CURVE_X_PCT = [50, 74, 50, 26];
@@ -137,6 +153,12 @@ export function PathView({
   onSelectLesson,
   onUpdateState,
   onOpenTeacherMode,
+  onOpenWordBank,
+  onOpenModeSettings,
+  onOpenPreferences,
+  onOpenTravelSprint,
+  travelReadinessPct = 0,
+  wordBankCount = 0,
   isArabic = true,
   learnerTrack = 'starter',
   guideMode = 'egyptian_ar',
@@ -249,14 +271,34 @@ export function PathView({
   const levelProgressPct =
     allLevelLessons.length > 0 ? Math.round((completedLevelCount / allLevelLessons.length) * 100) : 0;
 
-  const nextLessonToPlay = useMemo(
-    () =>
+  // OR Adaptive Curriculum Calibration (DAG + ZPD + mastered_via_placement)
+  const orCalibration = useMemo(() => {
+    const adaptive = loadAdaptiveProfile();
+    const nodes = mapLessonsToCurriculumNodes(roadLessons, activeLevelId);
+    const calibrated = calibrateCurriculumGraph(adaptive.theta, nodes, state.completedLessonIds || []);
+    const masteredSet = new Set([
+      ...calibrated.masteredViaPlacementIds,
+      ...(adaptive.masteredViaPlacementIds || []),
+    ]);
+    return {
+      ...calibrated,
+      masteredSet,
+      statusById: new globalThis.Map(calibrated.nodes.map((n) => [n.id, n.status])),
+    };
+  }, [roadLessons, activeLevelId, state.completedLessonIds, state.placementResult]);
+
+  const nextLessonToPlay = useMemo(() => {
+    if (orCalibration.activeNodeId) {
+      const zpdLesson = roadLessons.find((l) => l.id === orCalibration.activeNodeId);
+      if (zpdLesson) return zpdLesson;
+    }
+    return (
       roadLessons.find((l) => !state.completedLessonIds?.includes(l.id)) ||
       allLevelLessons.find((l) => !state.completedLessonIds?.includes(l.id)) ||
       roadLessons[0] ||
-      allLevelLessons[0],
-    [roadLessons, allLevelLessons, state.completedLessonIds]
-  );
+      allLevelLessons[0]
+    );
+  }, [orCalibration.activeNodeId, roadLessons, allLevelLessons, state.completedLessonIds]);
 
   const hasCompletedAny = (state.completedLessonIds?.length || 0) > 0;
 
@@ -409,11 +451,119 @@ export function PathView({
   const nameForgeBtnLabel =
     targetLang === 'en'
       ? isArabic
-        ? 'اكتب اسمك بالإنجليزي'
+        ? 'اسمك بالإنجليزي'
         : 'Name Forge'
       : isArabic
-      ? `اكتب اسمك باللغة ${targetNameAr}`
-      : `${targetNameEn} Name Forge`;
+        ? `اسمك باللغة ${targetNameAr}`
+        : `${targetNameEn} Name Forge`;
+
+  // ============================================================
+  // TRUE KIDS / ELDERLY EASY MODE HOME (uiMode === 'simple')
+  // Zero XP noise, zero secondary tabs, zero dense badges.
+  // Only: Active Lesson Giant Card + Giant Word Bank + Giant Change Mode
+  // ============================================================
+  if (uiMode === 'simple') {
+    const activeTitle = nextLessonToPlay
+      ? isArabic
+        ? nextLessonToPlay.titleAr
+        : nextLessonToPlay.titleEn
+      : isArabic
+        ? 'الدرس الأول'
+        : 'First Lesson';
+
+    const speakEasyPrompt = () => {
+      unlockAudio();
+      const text = isArabic
+        ? `اضغط على الزر الأخضر الكبير للبدء في ${activeTitle}`
+        : `Tap the big green button to start ${activeTitle}`;
+      void speakUnified({ text, lang: isArabic ? 'ar-EG' : 'en-US', rate: 0.85 });
+    };
+
+    return (
+      <div
+        data-testid="easy-mode-home"
+        className="w-full max-w-md mx-auto min-h-[calc(100dvh-2rem)] flex flex-col justify-between gap-4 py-2"
+        dir={isArabic ? 'rtl' : 'ltr'}
+      >
+        {/* Center Stage: Giant Glowing Active Lesson Card */}
+        <section className="flex-1 flex flex-col justify-center p-5 rounded-[28px] border-2 border-[#10B981]/60 bg-[#131C31] shadow-2xl space-y-5 text-center">
+          <div className="flex items-center justify-between gap-3">
+            <AmrGuide mood="welcome" isArabic={isArabic} size={84} />
+            <button
+              type="button"
+              data-testid="easy-home-audio-btn"
+              onClick={speakEasyPrompt}
+              aria-label={isArabic ? 'استمع للإرشاد' : 'Listen to guide'}
+              className="min-h-[60px] min-w-[60px] rounded-2xl bg-[#10B981]/20 border-2 border-[#10B981] text-[#10B981] flex items-center justify-center cursor-pointer active:scale-95 shrink-0"
+            >
+              <Volume2 size={30} />
+            </button>
+          </div>
+
+          <div className="space-y-1.5 text-start">
+            <span className="inline-block px-3 py-1 rounded-full text-xs font-black bg-[#10B981]/20 text-[#10B981]">
+              {isArabic ? 'الدرس الجاهز لك الآن' : 'Ready For You Now'}
+            </span>
+            <h1 className="text-2xl font-black text-[#F8FAFC] leading-snug">
+              {activeTitle}
+            </h1>
+          </div>
+
+          <button
+            type="button"
+            data-testid="easy-home-start-lesson"
+            onClick={() => {
+              if (nextLessonToPlay) onSelectLesson(nextLessonToPlay);
+            }}
+            className="w-full min-h-[68px] px-5 py-4 rounded-2xl font-black text-xl flex items-center justify-center gap-3 cursor-pointer tb-btn-3d tb-btn-emerald animate-anticipate"
+          >
+            <Play size={26} className="fill-current shrink-0" />
+            <span>{isArabic ? 'اضغط هنا للبدء' : 'Tap Here to Start'}</span>
+          </button>
+        </section>
+
+        {/* Bottom Giant 2-Button Thumb Stack: Word Bank + Change Mode */}
+        <div className="space-y-3 shrink-0">
+          <button
+            type="button"
+            data-testid="easy-home-wordbank"
+            onClick={() => onOpenWordBank?.()}
+            className="w-full min-h-[62px] px-5 py-3.5 rounded-2xl border-2 border-[#F59E0B]/50 bg-[#131C31] text-[#F8FAFC] font-black text-lg flex items-center justify-between gap-3 cursor-pointer tb-btn-3d"
+          >
+            <span className="flex items-center gap-3">
+              <BookmarkCheck size={26} className="text-[#FBBF24] shrink-0" />
+              <span>{isArabic ? 'بنك الكلمات' : 'Word Bank'}</span>
+            </span>
+            <span className="px-3 py-1 rounded-full text-sm font-black bg-[#F59E0B]/20 text-[#FBBF24]">
+              {wordBankCount}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            data-testid="easy-home-change-mode"
+            onClick={() => (onOpenModeSettings ? onOpenModeSettings() : onOpenPreferences?.())}
+            className="w-full min-h-[62px] px-5 py-3.5 rounded-2xl border-2 border-slate-500/40 bg-[#1B2742] text-[#F8FAFC] font-black text-lg flex items-center justify-center gap-3 cursor-pointer tb-btn-3d"
+          >
+            <SlidersHorizontal size={24} className="text-[#22D3EE] shrink-0" />
+            <span>{isArabic ? 'تغيير الوضع / الإعدادات' : 'Change Mode / Settings'}</span>
+          </button>
+        </div>
+
+        {placementOpen && (
+          <Suspense fallback={null}>
+            <PlacementTestModal
+              isOpen={placementOpen}
+              onClose={() => setPlacementOpen(false)}
+              state={state}
+              onCompletePlacement={handleCompletePlacement}
+              isArabic={isArabic}
+            />
+          </Suspense>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div
@@ -457,7 +607,7 @@ export function PathView({
           <div className="flex items-center gap-1.5 shrink-0">
             <button
               type="button"
-              onClick={() => setUiMode(uiMode === 'simple' ? 'pro' : 'simple')}
+              onClick={() => setUiMode('simple')}
               className="min-h-[48px] px-3 py-1.5 rounded-2xl text-xs font-black border cursor-pointer"
               style={{
                 backgroundColor: 'var(--bg)',
@@ -465,7 +615,7 @@ export function PathView({
                 color: 'var(--ink)',
               }}
             >
-              {uiMode === 'simple' ? (isArabic ? 'بسيط' : 'Simple') : isArabic ? 'متقدم' : 'Pro'}
+              {isArabic ? 'بسيط' : 'Easy'}
             </button>
             <button
               type="button"
@@ -527,8 +677,8 @@ export function PathView({
                   ? 'كمّل التحدي التالي'
                   : 'Continue Next Challenge'
                 : isArabic
-                ? 'ابدأ المرحلة 1 الآن'
-                : 'Start Level 1 Now'}
+                  ? 'ابدأ المرحلة 1 الآن'
+                  : 'Start Level 1 Now'}
             </span>
           </button>
 
@@ -561,10 +711,37 @@ export function PathView({
               <span className="truncate">{nameForgeBtnLabel}</span>
             </button>
           </div>
+
+          {onOpenTravelSprint && (
+            <button
+              type="button"
+              data-testid="path-travel-sprint-btn"
+              onClick={onOpenTravelSprint}
+              className="w-full min-h-[54px] px-4 py-2.5 rounded-2xl border-2 flex items-center justify-between gap-2 text-start cursor-pointer transition active:scale-[0.99]"
+              style={{
+                background: 'linear-gradient(135deg, rgba(34, 211, 238, 0.16), rgba(16, 185, 129, 0.14))',
+                borderColor: 'rgba(34, 211, 238, 0.55)',
+                color: '#F8FAFC',
+              }}
+            >
+              <div className="min-w-0">
+                <div className="text-xs font-black text-[#F8FAFC] flex items-center gap-1.5">
+                  <span>✈️</span>
+                  <span>{isArabic ? 'تحدي السفر في 21 يوم' : '21-Day Travel Abroad Sprint'}</span>
+                </div>
+                <div className="text-[11px] font-bold text-[#22D3EE]">
+                  {isArabic ? `جاهزيتك للسفر: ${travelReadinessPct}% ✈️` : `Travel Readiness: ${travelReadinessPct}% ✈️`}
+                </div>
+              </div>
+              <span className="px-2.5 py-1 rounded-xl bg-[#22D3EE] text-[#0B1120] text-[11px] font-black shrink-0">
+                {isArabic ? 'ابدأ' : 'Go'}
+              </span>
+            </button>
+          )}
         </div>
 
         {/* Collapsible Level Skill Radar */}
-        {uiMode !== 'simple' && (
+        {uiMode === 'pro' && (
           <div className="rounded-2xl border overflow-hidden" style={{ borderColor: 'var(--border)' }}>
             <button
               type="button"
@@ -602,32 +779,34 @@ export function PathView({
         )}
       </section>
 
-      {/* Phase Selector Pills */}
+      {/* Phase Selector Pills (single horizontal strip so Journey Map Node 1 stays above the fold) */}
       {currentLevelNode.phases.length > 1 && (
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-nowrap items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
           {currentLevelNode.phases.map((phase) => {
             const isSelected = phase.id === selectedPhaseId;
+            const rawTitle = isArabic ? phase.titleAr : phase.titleEn;
+            const displayTitle = rawTitle.startsWith(phase.id) ? rawTitle : `${phase.id} · ${rawTitle}`;
             return (
               <button
                 key={phase.id}
                 type="button"
                 onClick={() => setSelectedPhaseId(phase.id)}
-                className="min-h-[48px] px-3.5 py-2 rounded-2xl text-xs font-black border cursor-pointer transition"
+                className="min-h-[48px] px-3.5 py-2 rounded-2xl text-xs font-black border cursor-pointer transition whitespace-nowrap shrink-0"
                 style={
                   isSelected
                     ? {
-                        backgroundColor: 'var(--accent)',
-                        color: 'var(--accent-ink)',
-                        borderColor: 'var(--accent)',
-                      }
+                      backgroundColor: 'var(--accent)',
+                      color: 'var(--accent-ink)',
+                      borderColor: 'var(--accent)',
+                    }
                     : {
-                        backgroundColor: 'var(--surface)',
-                        color: 'var(--ink)',
-                        borderColor: 'var(--border)',
-                      }
+                      backgroundColor: 'var(--surface)',
+                      color: 'var(--ink)',
+                      borderColor: 'var(--border)',
+                    }
                 }
               >
-                {phase.id} · {isArabic ? phase.titleAr : phase.titleEn}
+                {displayTitle}
               </button>
             );
           })}
@@ -733,16 +912,16 @@ export function PathView({
                     ? 'صندوق خشبي'
                     : 'Wooden Chest'
                   : item.tier === 'silver'
-                  ? isArabic
-                    ? 'صندوق فضي'
-                    : 'Silver Chest'
-                  : item.tier === 'golden'
-                  ? isArabic
-                    ? 'صندوق ذهبي'
-                    : 'Golden Chest'
-                  : isArabic
-                  ? 'صندوق التاج'
-                  : 'Crown Chest';
+                    ? isArabic
+                      ? 'صندوق فضي'
+                      : 'Silver Chest'
+                    : item.tier === 'golden'
+                      ? isArabic
+                        ? 'صندوق ذهبي'
+                        : 'Golden Chest'
+                      : isArabic
+                        ? 'صندوق التاج'
+                        : 'Crown Chest';
 
               return (
                 <div
@@ -772,20 +951,19 @@ export function PathView({
                       setActiveChest({ id: item.id, tier: item.tier });
                     }}
                     aria-label={tierLabel}
-                    className={`relative min-h-[60px] min-w-[60px] w-[62px] h-[62px] rounded-2xl border-2 flex flex-col items-center justify-center cursor-pointer transition active:scale-95 ${
-                      item.unlocked && !item.opened ? 'tb-active-node-glow' : ''
-                    }`}
+                    className={`relative min-h-[60px] min-w-[60px] w-[62px] h-[62px] rounded-2xl border-2 flex flex-col items-center justify-center cursor-pointer transition active:scale-95 ${item.unlocked && !item.opened ? 'tb-active-node-glow' : ''
+                      }`}
                     style={{
                       backgroundColor: item.opened
                         ? 'var(--bg)'
                         : item.unlocked
-                        ? 'var(--gold)'
-                        : 'var(--surface)',
+                          ? 'var(--gold)'
+                          : 'var(--surface)',
                       borderColor: item.opened
                         ? 'var(--border)'
                         : item.unlocked
-                        ? 'var(--gold)'
-                        : 'var(--border)',
+                          ? 'var(--gold)'
+                          : 'var(--border)',
                       color: item.unlocked && !item.opened ? 'var(--gold-ink)' : 'var(--ink-muted)',
                       opacity: item.opened ? 0.65 : 1,
                     }}
@@ -810,10 +988,16 @@ export function PathView({
 
             // Lesson Node
             const isCompleted = state.completedLessonIds.includes(item.lesson.id);
+            const isMasteredViaPlacement =
+              !isCompleted && orCalibration.masteredSet.has(item.lesson.id);
             const isActive = nextLessonToPlay?.id === item.lesson.id;
+            const calibratedStatus = orCalibration.statusById.get(item.lesson.id);
+            const isUnstartedFuture =
+              calibratedStatus === 'locked' ||
+              (!isCompleted && !isMasteredViaPlacement && !isActive && item.index > 1);
             const recordedStars = economy.levelStars[item.lesson.id] || 0;
             const displayStars: StarRating = (
-              recordedStars > 0 ? recordedStars : isCompleted ? 1 : 0
+              recordedStars > 0 ? recordedStars : isCompleted || isMasteredViaPlacement ? 1 : 0
             ) as StarRating;
 
             return (
@@ -841,8 +1025,24 @@ export function PathView({
                   </div>
                 )}
 
+                {/* Golden Fast-Forward Placement Badge */}
+                {isMasteredViaPlacement && !isActive && (
+                  <div
+                    data-testid={`node-fastforward-${item.index}`}
+                    className="mb-1 px-2.5 py-0.5 rounded-full text-[10px] font-black whitespace-nowrap border flex items-center gap-1"
+                    style={{
+                      backgroundColor: 'rgba(245, 158, 11, 0.2)',
+                      color: '#FBBF24',
+                      borderColor: '#F59E0B',
+                    }}
+                  >
+                    <FastForward size={11} />
+                    <span>{isArabic ? 'تم التجاوز' : 'Fast-Forwarded'}</span>
+                  </div>
+                )}
+
                 {/* Boss Gate Marker */}
-                {item.isBoss && !isActive && (
+                {item.isBoss && !isActive && !isMasteredViaPlacement && (
                   <div
                     className="mb-0.5 px-2 py-0.5 rounded-full text-[10px] font-black whitespace-nowrap border"
                     style={{
@@ -861,29 +1061,31 @@ export function PathView({
                 {/* Circular Level Node Button (min 64x64 touch target, overflow: visible) */}
                 <button
                   type="button"
-                  onClick={() => onSelectLesson(item.lesson)}
-                  aria-label={`${isArabic ? 'المرحلة' : 'Level'} ${item.index}: ${
-                    isArabic ? item.lesson.titleAr : item.lesson.titleEn
-                  }`}
-                  className={`relative min-h-[64px] min-w-[64px] w-[66px] h-[66px] rounded-full border-[3px] flex flex-col items-center justify-center font-black cursor-pointer transition active:scale-95 ${
-                    isActive ? 'tb-active-node-glow' : ''
-                  }`}
+                  onClick={() => onSelectLesson({ ...item.lesson, isBossGate: item.isBoss })}
+                  aria-label={`${isArabic ? 'المرحلة' : 'Level'} ${item.index}: ${isArabic ? item.lesson.titleAr : item.lesson.titleEn
+                    }`}
+                  className={`relative min-h-[64px] min-w-[64px] w-[66px] h-[66px] rounded-full border-[3px] flex flex-col items-center justify-center font-black cursor-pointer transition active:scale-95 ${isActive ? 'tb-active-node-glow animate-anticipate' : ''
+                    }`}
                   style={{
                     overflow: 'visible',
                     backgroundColor: isActive
                       ? 'var(--accent)'
-                      : isCompleted
-                      ? 'var(--surface)'
-                      : item.isBoss
-                      ? 'var(--surface)'
-                      : 'var(--bg)',
+                      : isMasteredViaPlacement
+                        ? 'rgba(245, 158, 11, 0.18)'
+                        : isCompleted
+                          ? 'var(--surface)'
+                          : item.isBoss
+                            ? 'var(--surface)'
+                            : 'var(--bg)',
                     borderColor: isActive
                       ? 'var(--accent)'
-                      : isCompleted
-                      ? 'var(--accent)'
-                      : item.isBoss
-                      ? 'var(--gold)'
-                      : 'var(--border)',
+                      : isMasteredViaPlacement
+                        ? 'var(--gold)'
+                        : isCompleted
+                          ? 'var(--accent)'
+                          : item.isBoss
+                            ? 'var(--gold)'
+                            : 'var(--border)',
                     color: isActive ? 'var(--accent-ink)' : 'var(--ink)',
                   }}
                 >
@@ -895,7 +1097,7 @@ export function PathView({
                     />
                   )}
                   <span className="text-lg leading-none">
-                    {item.isBoss ? '⚔️' : isCompleted ? <CheckCircle size={22} style={{ color: isActive ? 'var(--accent-ink)' : 'var(--accent)' }} /> : item.index}
+                    {item.isBoss ? '⚔️' : isMasteredViaPlacement ? <CheckCircle size={22} style={{ color: '#FBBF24' }} /> : isCompleted ? <CheckCircle size={22} style={{ color: isActive ? 'var(--accent-ink)' : 'var(--accent)' }} /> : isUnstartedFuture ? '🔒' : item.index}
                   </span>
                   <span className="text-[10px] font-black leading-none mt-0.5">
                     {isArabic ? `م${item.index}` : `L${item.index}`}
@@ -992,13 +1194,17 @@ export function PathView({
         isArabic={isArabic}
       />
 
-      <PlacementTestModal
-        isOpen={placementOpen}
-        onClose={() => setPlacementOpen(false)}
-        state={state}
-        onCompletePlacement={handleCompletePlacement}
-        isArabic={isArabic}
-      />
+      {placementOpen && (
+        <Suspense fallback={null}>
+          <PlacementTestModal
+            isOpen={placementOpen}
+            onClose={() => setPlacementOpen(false)}
+            state={state}
+            onCompletePlacement={handleCompletePlacement}
+            isArabic={isArabic}
+          />
+        </Suspense>
+      )}
 
       {capstoneModalTarget && (
         <CapstoneRunnerModal

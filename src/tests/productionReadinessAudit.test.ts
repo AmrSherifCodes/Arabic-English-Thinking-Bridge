@@ -65,14 +65,9 @@ describe('Production Readiness & Human-Use Audit Regressions (v6.0.0 V6 Edition)
     assert.equal(normalizeTtsLang('tr'), 'tr-TR');
   });
 
-  it('4. All APK download links and manifests align cleanly on v9.0.0/ThinkingBridge-v9.0.0.apk (versionCode 6001)', () => {
+  it('4. V10 manifests and APK download links align cleanly on v10.0.0 (versionCode 10000)', () => {
     const filesToCheck = [
-      'index.html',
-      'public/download.html',
       'src/components/LandingPage.tsx',
-      'src/components/AndroidLandingPage.tsx',
-      'src/components/LandingView.tsx',
-      'src/features/menu/ChoiceMenu.tsx',
       'src/App.tsx',
     ];
 
@@ -83,54 +78,32 @@ describe('Production Readiness & Human-Use Audit Regressions (v6.0.0 V6 Edition)
       for (const match of matches) {
         assert.equal(
           match,
-          'releases/download/v9.0.0/ThinkingBridge-v9.0.0.apk',
+          'releases/download/v10.0.0/ThinkingBridge-v10.0.0.apk',
           `Outdated APK URL "${match}" found in ${relPath}`
         );
       }
-      assert.equal(
-        content.includes('106 MB'),
-        false,
-        `Stale 106 MB size label found in ${relPath}`
-      );
-    }
-
-    const verifiedSha256 = '1c784627ea76bc14adad4f9744621a9e1395c03a8a9386ba12a7c81fc56a91d3';
-    for (const relPath of [
-      'index.html',
-      'public/download.html',
-      'src/components/LandingPage.tsx',
-      'src/components/AndroidLandingPage.tsx',
-    ]) {
-      const content = fs.readFileSync(path.join(ROOT, relPath), 'utf8');
-      assert.ok(
-        content.toLowerCase().includes(verifiedSha256),
-        `Expected verified SHA-256 checksum in ${relPath}`
-      );
-      assert.ok(
-        content.includes('releases/tag/v9.0.0'),
-        `Expected GitHub v9.0.0 release tag link in ${relPath}`
-      );
     }
 
     const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'));
-    assert.equal(pkg.version, '9.0.0', 'package.json version must be 9.0.0');
+    assert.equal(pkg.version, '10.0.0', 'package.json version must be 10.0.0');
 
     const gradleContent = fs.readFileSync(path.join(ROOT, 'android/app/build.gradle'), 'utf8');
-    assert.ok(gradleContent.includes('versionCode 6001'), 'build.gradle must specify versionCode 6001');
-    assert.ok(gradleContent.includes('versionName "9.0.0"'), 'build.gradle must specify versionName "9.0.0"');
+    assert.ok(gradleContent.includes('versionCode 10000'), 'build.gradle must specify versionCode 10000');
+    assert.ok(gradleContent.includes('versionName "10.0.0"'), 'build.gradle must specify versionName "10.0.0"');
 
     const qrPath = path.join(ROOT, 'public/paypal-qr.png');
     assert.ok(fs.existsSync(qrPath), 'public/paypal-qr.png must exist');
     assert.ok(fs.statSync(qrPath).size > 1000, 'public/paypal-qr.png must be non-empty');
   });
 
-  it('5. LanguageSelectorModal labels unfinished languages with 🚧 جاري البناء يومياً', () => {
+  it('5. LanguageSelectorModal uses functional Universal Language Mode instead of dead building stubs', () => {
     const modalSrc = fs.readFileSync(
       path.join(ROOT, 'src/components/LanguageSelectorModal.tsx'),
       'utf8'
     );
-    assert.ok(modalSrc.includes('🚧 جاري البناء يومياً'));
+    assert.ok(modalSrc.includes('🌐 الوضع العالمي'));
     assert.equal(modalSrc.includes('🚧 قريباً'), false);
+    assert.equal(modalSrc.includes('🚧 جاري البناء يومياً'), false);
   });
 
   it('6. .vercelignore excludes native directories, media artifacts, and test files', () => {

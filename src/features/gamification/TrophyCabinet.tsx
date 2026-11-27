@@ -179,13 +179,9 @@ export function TrophyCabinet({
                 : `Steam-Style Trophy Cabinet (${unlockedCount} / ${STEAM_ACHIEVEMENTS.length})`}
             </h4>
             <p className="text-[11px] text-stone-400">
-              {isPro
-                ? isArabic
-                  ? 'كل الإنجازات النادرة والملحمية والأسطورية مفتوحة لك!'
-                  : 'Full Trophy Cabinet unlocked with Rare, Epic & Legendary badges.'
-                : isArabic
-                ? 'أول 4 إنجازات مجانية للجميع — باقة Pro تفتح الخزانة الكاملة ودروع السلسلة.'
-                : 'First 4 starter achievements are free — Pro unlocks all 18 badges & streak shields.'}
+              {isArabic
+                ? 'كل الإنجازات الـ 18 ودروع السلسلة مفتوحة 100% مجاناً للجميع!'
+                : 'All 18 achievements & streak shields are 100% free and unlocked for everyone!'}
             </p>
           </div>
         </div>

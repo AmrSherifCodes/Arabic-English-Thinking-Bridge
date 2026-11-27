@@ -46,7 +46,7 @@ export function CreditsModal({ isOpen, onClose }: CreditsModalProps) {
               <span>صُنع بكل إخلاص في الإسكندرية، مصر</span>
             </p>
             <p className="text-stone-600 dark:text-stone-300">
-              تطبيق <strong>فكّر إنجليزي (Thinking English)</strong> تم بناؤه وتطويره بواسطة <strong>عمرو شريف (Amr Sherif)</strong> — مجاني 100% وخالٍ تماماً من أي إعلانات أو اشتراكات.
+              تطبيق <strong>جسر التفكير (Thinking English)</strong> تم بناؤه وتطويره بواسطة <strong>عمرو شريف (Amr Sherif)</strong> — مجاني 100% وخالٍ تماماً من أي إعلانات أو اشتراكات.
             </p>
           </div>
 

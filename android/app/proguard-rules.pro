@@ -15,5 +15,9 @@
 # App Native Classes & Local Plugins
 -keep class com.amrsherif.thinkingenglish.** { *; }
 
+# Google ML Kit On-Device Translation
+-keep class com.google.mlkit.** { *; }
+-dontwarn com.google.mlkit.**
+
 -dontwarn java.awt.**
 -dontwarn com.google.errorprone.annotations.**

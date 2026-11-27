@@ -82,7 +82,8 @@ export function useEntitlement() {
     cohortCode: entitlement.cohortCode,
     expiresAt: entitlement.expiresAt,
     remainingDays: getRemainingEntitlementDays(entitlement),
-    isPro: hasProAccess(entitlement),
+    // V10 is 100% Free Forever — zero paywalls, zero Pro lockups
+    isPro: true,
     isAcademyStudent: entitlement.tier === 'academy_student',
     isAcademyTeacher: hasAcademyTeacherAccess(entitlement),
     isRedeeming,

@@ -44,7 +44,7 @@ export const SOCIAL_PRESETS: SocialPreset[] = [
   {
     id: 'linkedin-ar',
     label: 'LinkedIn AR',
-    title: 'إطلاق فكّر إنجليزي V6 (v6.0.0) — محرك الستة سلندر',
+    title: 'إطلاق جسر التفكير V6 (v6.0.0) — محرك الستة سلندر',
     url: DEFAULT_APP_URL,
     text:
       'تم إطلاق النسخة الجديدة Thinking Bridge V6 (v6.0.0) — محرك الستة سلندر! 🏎️🇪🇬\n\n' +
@@ -75,10 +75,10 @@ export const SOCIAL_PRESETS: SocialPreset[] = [
   {
     id: 'x-ar',
     label: 'X / Bsky AR',
-    title: 'فكّر إنجليزي V6 (v6.0.0)',
+    title: 'جسر التفكير V6 (v6.0.0)',
     url: DEFAULT_APP_URL,
     text:
-      'انطلاق فكّر إنجليزي V6 (v6.0.0) — محرك الستة سلندر 🏎️🇪🇬\n' +
+      'انطلاق جسر التفكير V6 (v6.0.0) — محرك الستة سلندر 🏎️🇪🇬\n' +
       '• 5 لغات موثقة: 0 أخطاء قاموس، 10/10 بحث ذكي\n' +
       '• سرعة O(1) فورية و365/365 اختبار ناجح\n' +
       '• مجاني 100% بدون نت أو إعلانات أو قلوب\n' +
@@ -87,7 +87,7 @@ export const SOCIAL_PRESETS: SocialPreset[] = [
   {
     id: 'campus-ar',
     label: 'WhatsApp Campus',
-    title: 'فكّر إنجليزي V6 (v6.0.0) — مجاني وبدون نت',
+    title: 'جسر التفكير V6 (v6.0.0) — مجاني وبدون نت',
     url: DEFAULT_APP_URL,
     text:
       'يا جماعة نزلنا التحديث الجبار Thinking Bridge V6 (v6.0.0 — نسخة الستة سلندر) 🏎️🔥\n\n' +
@@ -101,7 +101,7 @@ export const SOCIAL_PRESETS: SocialPreset[] = [
   {
     id: 'youtube-ar',
     label: 'YouTube AR',
-    title: 'فكّر إنجليزي V6 (v6.0.0) — @SciAmrSherif',
+    title: 'جسر التفكير V6 (v6.0.0) — @SciAmrSherif',
     url: DEFAULT_APP_URL,
     text:
       'نسخة Thinking Bridge V6 (v6.0.0) وصلت! 🏎️💨\n' +
@@ -114,7 +114,7 @@ export const SOCIAL_PRESETS: SocialPreset[] = [
   {
     id: 'facebook-ar',
     label: 'Facebook AR',
-    title: 'تحديث فكّر إنجليزي V6 (v6.0.0) — بدون نت ومجاني 100%',
+    title: 'تحديث جسر التفكير V6 (v6.0.0) — بدون نت ومجاني 100%',
     url: DEFAULT_APP_URL,
     text:
       'بعد شغل ومراجعة دقيقة على 365 اختبار وعلى الموبايل الحقيقي، بنعلن عن إطلاق Thinking Bridge V6 (v6.0.0) — نسخة الستة سلندر! 🏎️🇪🇬\n\n' +
@@ -167,10 +167,10 @@ export const SOCIAL_PRESETS: SocialPreset[] = [
   {
     id: 'telegram-ar',
     label: 'Telegram AR',
-    title: 'فكّر إنجليزي V6 (v6.0.0)',
+    title: 'جسر التفكير V6 (v6.0.0)',
     url: DEFAULT_APP_URL,
     text:
-      '🏎️ انطلاق التحديث الكبير: فكّر إنجليزي V6 (v6.0.0)\n\n' +
+      '🏎️ انطلاق التحديث الكبير: جسر التفكير V6 (v6.0.0)\n\n' +
       '• 5 لغات موثقة بالكامل (الإنجليزي، الألماني، الفرنساوي، الإسباني، التركي) بدون أخطاء ترجمة\n' +
       '• بحث لحظي O(1) في القاموس الذكي بنسبة 10/10 في النتائج الأولى مع نطق سليم\n' +
       '• يعمل 100% بدون إنترنت، بدون إعلانات، وقلوب لا محدودة\n' +

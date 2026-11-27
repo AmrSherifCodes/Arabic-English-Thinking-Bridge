@@ -66,23 +66,13 @@ export function LanguageFlag({ code, size = 20, className = '', showCodePill = f
   if (cleanCode === 'he') {
     return (
       <span className={`inline-flex items-center gap-1.5 shrink-0 select-none ${className}`}>
-        <svg
-          width={Math.round(size * 1.35)}
-          height={size}
-          viewBox="0 0 900 600"
-          className="rounded-sm object-cover shadow-sm shrink-0 border border-stone-700/50"
-          aria-label="Palestinian flag"
+        <span
+          className="inline-flex items-center justify-center rounded-md font-black text-[11px] tracking-wider bg-[#1B2742] text-[#22D3EE] border border-[#22D3EE]/50 shadow-sm"
+          style={{ minWidth: Math.round(size * 1.35), height: size }}
+          aria-label="Hebrew (HE)"
         >
-          <rect width="900" height="200" fill="#000000" />
-          <rect y="200" width="900" height="200" fill="#FFFFFF" />
-          <rect y="400" width="900" height="200" fill="#007A3D" />
-          <polygon points="0,0 0,600 450,300" fill="#CE1126" />
-        </svg>
-        {showCodePill && (
-          <span className="text-[10px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider bg-emerald-800 text-white">
-            HE
-          </span>
-        )}
+          HE
+        </span>
       </span>
     );
   }

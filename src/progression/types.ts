@@ -66,6 +66,7 @@ export interface LessonNode {
   skills?: SkillBranch[];
   estimatedMinutes?: number;
   canDoIds?: string[];
+  isBossGate?: boolean;
 }
 
 export interface UnitNode {

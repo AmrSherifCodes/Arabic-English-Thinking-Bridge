@@ -23,5 +23,5 @@
     "allowImportingTsExtensions": true,
     "noEmit": true
   },
-  "exclude": ["dist", "src-tauri", "trailer-tutor"]
+  "exclude": ["dist", "android", "public", "src-tauri", "trailer-tutor", "_archive"]
 }

@@ -27,6 +27,11 @@ interface PracticeHubViewProps {
   onOpenTeacherMode?: () => void;
   onOpenExam?: () => void;
   onOpenDictionary?: () => void;
+  onOpenLightningBlitz?: () => void;
+  onOpenTravelSprint?: () => void;
+  onOpenLiveTranslator?: () => void;
+  onOpenTravelScenarios?: () => void;
+  travelReadinessPct?: number;
   onOpenActivateCode?: () => void;
   onXpEarned?: (xp: number) => void;
   onNavigateToCoursePath?: () => void;
@@ -47,6 +52,11 @@ export function PracticeHubView({
   onOpenTeacherMode,
   onOpenExam,
   onOpenDictionary,
+  onOpenLightningBlitz,
+  onOpenTravelSprint,
+  onOpenLiveTranslator,
+  onOpenTravelScenarios,
+  travelReadinessPct = 0,
   onOpenActivateCode,
   onXpEarned,
   onNavigateToCoursePath,
@@ -66,7 +76,7 @@ export function PracticeHubView({
       <Suspense
         fallback={
           <div className="min-h-[60dvh] flex items-center justify-center text-amber-300 font-bold text-sm">
-            {isArabic ? 'جاري تحميل أركيد Pro...' : 'Loading Pro Arcade...'}
+            {isArabic ? 'جاري تحميل الأركيد التفاعلي...' : 'Loading Interactive Arcade...'}
           </div>
         }
       >
@@ -183,25 +193,172 @@ export function PracticeHubView({
         </p>
       </div>
 
-      {/* Pro Arcade: 60s L1 Trap Blitz & Level Boss Duel */}
+      {/* Prominent 1-Tap Face-to-Face Real-Time Local Translator & Stranger Roleplay (v10.3) */}
+      {(onOpenLiveTranslator || onOpenTravelScenarios) && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {onOpenLiveTranslator && (
+            <button
+              type="button"
+              data-testid="launch-live-translator-practice"
+              onClick={onOpenLiveTranslator}
+              className="w-full min-h-[76px] p-4 rounded-3xl border-2 transition text-start shadow-xl flex items-center justify-between gap-3 cursor-pointer tb-btn-3d active:scale-[0.99]"
+              style={{
+                background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.22), rgba(16, 185, 129, 0.16))',
+                borderColor: '#F59E0B',
+              }}
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <span className="text-3xl shrink-0">🎙️</span>
+                <div className="min-w-0">
+                  <h3 className="font-black text-sm sm:text-base text-[#F8FAFC] leading-snug">
+                    {isArabic ? 'مترجم السفر الفوري — بدون إنترنت' : 'Live Travel Translator — Offline'}
+                  </h3>
+                  <p className="text-[11px] text-[#CBD5E1] leading-snug">
+                    {isArabic
+                      ? 'اتكلم عربي ← يترجم وينطق فوراً للأجنبي مع قلب الشاشة 180°'
+                      : 'Face-to-face on-device ML Kit translation + 180° flip'}
+                  </p>
+                </div>
+              </div>
+              <span className="px-2.5 py-1.5 rounded-xl bg-[#F59E0B] text-[#0B1120] font-black text-xs shrink-0">
+                {isArabic ? 'ترجم' : 'LIVE'}
+              </span>
+            </button>
+          )}
+
+          {onOpenTravelScenarios && (
+            <button
+              type="button"
+              data-testid="launch-travel-scenarios-practice"
+              onClick={onOpenTravelScenarios}
+              className="w-full min-h-[76px] p-4 rounded-3xl border-2 transition text-start shadow-xl flex items-center justify-between gap-3 cursor-pointer tb-btn-3d active:scale-[0.99]"
+              style={{
+                background: 'linear-gradient(135deg, rgba(34, 211, 238, 0.18), rgba(16, 185, 129, 0.2))',
+                borderColor: '#22D3EE',
+              }}
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <span className="text-3xl shrink-0">🎭</span>
+                <div className="min-w-0">
+                  <h3 className="font-black text-sm sm:text-base text-[#F8FAFC] leading-snug">
+                    {isArabic ? 'محاكي التحدث مع أجنبي ✈️🎭' : 'Talk to a Stranger Abroad ✈️🎭'}
+                  </h3>
+                  <p className="text-[11px] text-[#CBD5E1] leading-snug">
+                    {isArabic
+                      ? '8 مواقف سفر حقيقية بالصوت والأزرار (مطار، تاكسي، فندق، مطعم...)'
+                      : '8 branching voice + tap roleplays across EN, DE, ES, IT, FR & AR'}
+                  </p>
+                </div>
+              </div>
+              <span className="px-2.5 py-1.5 rounded-xl bg-[#22D3EE] text-[#0B1120] font-black text-xs shrink-0">
+                {isArabic ? 'تدرّب' : 'PLAY'}
+              </span>
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Prominent 1-Tap 21-Day Travel Abroad Sprint */}
+      {onOpenTravelSprint && (
+        <button
+          type="button"
+          data-testid="launch-travel-sprint-practice"
+          onClick={onOpenTravelSprint}
+          className="w-full min-h-[68px] p-4 rounded-3xl border-2 transition text-start shadow-xl flex items-center justify-between gap-3 cursor-pointer tb-btn-3d active:scale-[0.99]"
+          style={{
+            background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(34, 211, 238, 0.16))',
+            borderColor: '#10B981',
+          }}
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="text-3xl shrink-0">✈️</span>
+            <div className="min-w-0">
+              <h3 className="font-black text-base text-[#F8FAFC]">
+                {isArabic ? 'تحدي السفر في 21 يوم ✈️' : '21-Day Travel Abroad Sprint ✈️'}
+              </h3>
+              <p className="text-xs text-[#CBD5E1]">
+                {isArabic
+                  ? `جاهزيتك للسفر: ${travelReadinessPct}% · 15 دقيقة يومياً (Anki + حوارات سفر)`
+                  : `Travel Readiness: ${travelReadinessPct}% · 15 min/day (Anki + Native Roleplay)`}
+              </p>
+            </div>
+          </div>
+          <span className="px-3 py-1.5 rounded-xl bg-[#10B981] text-[#0B1120] font-black text-xs shrink-0">
+            {isArabic ? 'افتح' : 'OPEN'}
+          </span>
+        </button>
+      )}
+
+      {/* Prominent 1-Tap 60-Second Lightning Blitz (Standard/Pro only) */}
+      {onOpenLightningBlitz && (
+        <button
+          type="button"
+          data-testid="launch-lightning-blitz-practice"
+          onClick={onOpenLightningBlitz}
+          className="w-full min-h-[68px] p-4 rounded-3xl border-2 transition text-start shadow-xl flex items-center justify-between gap-3 cursor-pointer tb-btn-3d active:scale-[0.99]"
+          style={{
+            background: 'linear-gradient(135deg, rgba(34, 211, 238, 0.2), rgba(245, 158, 11, 0.14))',
+            borderColor: '#22D3EE',
+          }}
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="text-3xl shrink-0">⚡</span>
+            <div className="min-w-0">
+              <h3 className="font-black text-base text-[#F8FAFC]">
+                {isArabic ? 'تحدي الـ 60 ثانية ⚡ (Lightning Blitz)' : '60-Second Lightning Blitz ⚡'}
+              </h3>
+              <p className="text-xs text-[#CBD5E1]">
+                {isArabic ? 'جولات سريعة بـ 4 أزرار · مضاعف كومبو x2 → x5 · مزامنة فورية للمتصدرين' : 'Rapid-fire 4-button pad · x2 → x5 combo · instant Leaderboard XP'}
+              </p>
+            </div>
+          </div>
+          <span className="px-3 py-1.5 rounded-xl bg-[#22D3EE] text-[#0B1120] font-black text-xs shrink-0">
+            {isArabic ? 'ابدأ!' : 'GO!'}
+          </span>
+        </button>
+      )}
+
+      {/* Talking Dictionary Quick Launch (Always visible at top) */}
+      {onOpenDictionary && (
+        <button
+          type="button"
+          onClick={onOpenDictionary}
+          className="w-full min-h-[64px] p-4 rounded-3xl bg-[#131C31] border-2 border-[#22D3EE]/50 hover:border-[#22D3EE] transition text-start shadow-xl flex items-center justify-between gap-3 cursor-pointer active:scale-[0.99]"
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="text-3xl shrink-0">📖</span>
+            <div className="min-w-0">
+              <h3 className="font-black text-base text-[#F8FAFC]">
+                {isArabic ? 'القاموس الناطق (بدون إنترنت)' : 'Talking Dictionary (Offline)'}
+              </h3>
+              <p className="text-xs text-[#CBD5E1]">
+                {isArabic ? 'ابحث عن أي كلمة واسمع نطقها عادي وبطيء فوراً.' : 'Search any word with instant normal & slow audio.'}
+              </p>
+            </div>
+          </div>
+          <span className="text-lg font-black text-[#22D3EE] shrink-0">{isArabic ? '←' : '→'}</span>
+        </button>
+      )}
+
+      {/* Interactive Arcade: 60s L1 Trap Blitz & Level Boss Duel */}
       <button
         type="button"
         onClick={() => setProArcadeOpen(true)}
-        className="w-full p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-amber-950/80 via-purple-950/60 to-cyan-950/70 border-2 border-amber-500/60 hover:border-amber-400 transition text-start shadow-2xl flex items-center justify-between gap-3 group cursor-pointer"
+        className="w-full p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-[#131C31] via-[#1B2742] to-[#0B1120] border-2 border-amber-500/60 hover:border-amber-400 transition text-start shadow-2xl flex items-center justify-between gap-3 group cursor-pointer"
       >
         <div className="space-y-1 min-w-0">
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-500/20 text-amber-300 border border-amber-500/40">
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/40">
               <Crown size={12} />
-              <span>{isPro ? (isArabic ? 'Pro مفتوح' : 'Pro Unlocked') : isArabic ? 'جولة تجريبية مجانية' : '1 Free Teaser'}</span>
+              <span>{isArabic ? 'مجاني 100%' : '100% Free'}</span>
             </span>
             <span className="text-[11px] font-bold text-cyan-300">
-              {isArabic ? 'قناص الأخطاء (60ث) + معركة الزعيم RPG' : '60s L1 Trap Blitz + RPG Boss Duel'}
+              {isArabic ? 'قناص الأخطاء (60ث) + معركة الزعيم' : '60s L1 Trap Blitz + Boss Duel'}
             </span>
           </div>
           <h3 className="font-black text-base text-white group-hover:text-amber-300 transition-colors flex items-center gap-1.5">
             <Swords size={16} className="text-amber-400 shrink-0" />
-            <span>{isArabic ? 'أركيد Pro التفاعلي — تحدّي الأخطاء والزعماء' : 'Pro Arcade — Blitz & Level Boss Duels'}</span>
+            <span>{isArabic ? 'الأركيد التفاعلي — تحدّي الأخطاء والزعماء' : 'Interactive Arcade — Blitz & Boss Duels'}</span>
           </h3>
           <p className="text-xs text-stone-300">
             {isArabic

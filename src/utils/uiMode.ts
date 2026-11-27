@@ -1,38 +1,48 @@
 /**
- * App-wide UI Mode utility for Simple Mode (🟢 بسيط) vs Pro Mode (⚡ متقدم)
+ * App-wide UI Complexity Mode utility:
+ * - 'simple' (بسيط / Easy & Elder): 56px+ oversized buttons, 1.25x typography, auto-read audio, max 2 primary actions
+ * - 'standard' (عادي / Standard): Balanced modern mobile UI (default)
+ * - 'pro' (متقدم / Technical Pro): Compact density, grammar transfer notes, Anki review intervals
  */
 
 import { useState, useEffect } from 'react';
 
-export type UiMode = 'simple' | 'pro';
+export type UiMode = 'simple' | 'standard' | 'pro';
 
 export const UI_MODE_STORAGE_KEY = 'tb.ui_mode';
 export const UI_MODE_CHANGE_EVENT = 'tb:ui-mode-changed';
 
-let _inMemoryMode: UiMode = 'simple';
+let _inMemoryMode: UiMode = 'standard';
+
+export function isValidUiMode(val: unknown): val is UiMode {
+  return val === 'simple' || val === 'standard' || val === 'pro';
+}
 
 export function getUiMode(): UiMode {
   try {
     if (typeof window !== 'undefined' && window.localStorage) {
       const val = window.localStorage.getItem(UI_MODE_STORAGE_KEY);
-      if (val === 'simple' || val === 'pro') return val;
+      if (isValidUiMode(val)) return val;
     }
   } catch {}
   return _inMemoryMode;
 }
 
 export function setUiMode(mode: UiMode): void {
-  _inMemoryMode = mode;
+  const safeMode: UiMode = isValidUiMode(mode) ? mode : 'standard';
+  _inMemoryMode = safeMode;
   try {
     if (typeof window !== 'undefined' && window.localStorage) {
-      window.localStorage.setItem(UI_MODE_STORAGE_KEY, mode);
+      window.localStorage.setItem(UI_MODE_STORAGE_KEY, safeMode);
+      window.localStorage.setItem('tb.uiMode', safeMode === 'simple' ? 'easy' : safeMode);
     }
     if (typeof document !== 'undefined' && document.documentElement) {
-      document.documentElement.classList.toggle('tb-simple-mode', mode === 'simple');
+      document.documentElement.classList.toggle('tb-simple-mode', safeMode === 'simple');
+      document.documentElement.setAttribute('data-ui-mode', safeMode === 'simple' ? 'easy' : safeMode);
     }
     if (typeof window !== 'undefined' && window.dispatchEvent) {
       window.dispatchEvent(
-        new CustomEvent(UI_MODE_CHANGE_EVENT, { detail: mode })
+        new CustomEvent(UI_MODE_CHANGE_EVENT, { detail: safeMode })
       );
     }
   } catch (err) {
@@ -45,10 +55,11 @@ export function syncUiModeClass(): UiMode {
     const mode = getUiMode();
     if (typeof document !== 'undefined' && document.documentElement) {
       document.documentElement.classList.toggle('tb-simple-mode', mode === 'simple');
+      document.documentElement.setAttribute('data-ui-mode', mode === 'simple' ? 'easy' : mode);
     }
     return mode;
   } catch {
-    return 'simple';
+    return 'standard';
   }
 }
 
@@ -58,13 +69,13 @@ export function useUiMode(): [UiMode, (mode: UiMode) => void] {
   useEffect(() => {
     const handler = (e: Event) => {
       const detail = (e as CustomEvent).detail;
-      if (detail === 'simple' || detail === 'pro') {
+      if (isValidUiMode(detail)) {
         setModeState(detail);
       }
     };
     const storageHandler = (e: StorageEvent) => {
-      if (e.key === UI_MODE_STORAGE_KEY && (e.newValue === 'simple' || e.newValue === 'pro')) {
-        setModeState(e.newValue as UiMode);
+      if (e.key === UI_MODE_STORAGE_KEY && isValidUiMode(e.newValue)) {
+        setModeState(e.newValue);
       }
     };
 

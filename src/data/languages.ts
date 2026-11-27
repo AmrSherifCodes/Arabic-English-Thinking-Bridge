@@ -517,7 +517,7 @@ const CURATED_SUPPORTED_PAIRS: LanguagePairConfig[] = [
     id: 'ar-en',
     source: 'ar',
     target: 'en',
-    titleAr: 'فكّر إنجليزي · Thinking English',
+    titleAr: 'جسر التفكير · Thinking English',
     titleEn: 'Think English · From Arabic',
     taglineAr: 'جسر التحول الذهني من العربية إلى الإنجليزية',
     taglineEn: 'The cognitive transfer bridge from Arabic to English',

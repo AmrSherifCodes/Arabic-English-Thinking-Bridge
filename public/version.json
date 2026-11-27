@@ -1,6 +1,6 @@
 {
-  "version": "9.0.0",
-  "apkUrl": "https://github.com/AmrSherifCodes/Arabic-English-Thinking-Bridge/releases/download/v9.0.0/ThinkingBridge-v9.0.0.apk",
-  "notesAr": "إصدار 9.0.0: اختبار تحديد المستوى الذكي في 60 ثانية، خريطة الرحلة ثلاثية البيئات، وضع Auto-Lite للهواتف الاقتصادية، وحصن حفظ القرآن المجاني مدى الحياة.",
-  "notesEn": "v9.0.0: 60s Adaptive Level Test, 3-Biome Gamified Journey Map, Self-Adapting Auto-Lite Mode, and 100% Free Forever Quran Hifz Sanctuary."
+  "version": "10.0.0",
+  "releaseDate": "2026-11-26",
+  "notesAr": "v10.0.0: بوابة البداية السريعة، تحديد المستوى التكيفي الذكي، الوضع البسيط 56px+، بنك الكلمات الشخصي، ومجاني 100% بدون إنترنت.",
+  "notesEn": "v10.0.0: 2-Icon Launch Gate, Adaptive OR Placement Engine, Easy Mode 56px+ Thumb UI, Personal Word Bank, and 100% Free Forever Offline-First."
 }

@@ -721,7 +721,7 @@ export function ProArcadeView({
           <div className="flex items-center gap-2 min-w-0 flex-1">
             <Crown className="w-4 h-4 shrink-0" style={{ color: 'var(--gold)' }} />
             <h2 className="text-sm sm:text-base font-black leading-snug break-words" style={{ color: 'var(--ink)' }}>
-              {isArabic ? 'أركيد Pro — قناص الأخطاء والزعماء' : 'Pro Arcade — Blitz & Boss Duels'}
+              {isArabic ? 'الأركيد التفاعلي — قناص الأخطاء والزعماء' : 'Interactive Arcade — Blitz & Boss Duels'}
             </h2>
           </div>
 
@@ -735,15 +735,7 @@ export function ProArcadeView({
                 : { backgroundColor: 'var(--bg)', color: 'var(--ink-muted)', borderColor: 'var(--border)' }
             }
           >
-            {isPro
-              ? isArabic
-                ? 'Pro غير محدود'
-                : 'Pro Unlimited'
-              : canPlayRound
-              ? `⏱ ${formattedRemaining} ${isArabic ? 'مجاني' : 'Free'}`
-              : isArabic
-              ? 'انتهى وقت اليوم'
-              : 'Daily Pass Used'}
+            {isArabic ? 'مجاني 100%' : '100% Free'}
           </span>
         </div>
       </header>
@@ -811,13 +803,9 @@ export function ProArcadeView({
               >
                 <Zap className="w-4 h-4" />
                 <span>
-                  {canPlayRound
-                    ? isArabic
-                      ? 'ابدأ تحدي قناص الأخطاء (60ث) ⚡'
-                      : 'Start 60s L1 Trap Blitz ⚡'
-                    : isArabic
-                    ? 'افتح بباقة Pro للعب بلا حدود'
-                    : 'Unlock with Pro to Play'}
+                  {isArabic
+                    ? 'ابدأ تحدي قناص الأخطاء (60ث) ⚡'
+                    : 'Start 60s L1 Trap Blitz ⚡'}
                 </span>
               </button>
             </div>
@@ -856,13 +844,9 @@ export function ProArcadeView({
               >
                 <Swords className="w-4 h-4" />
                 <span>
-                  {canPlayRound
-                    ? isArabic
-                      ? 'اختر الزعيم وابدأ المعركة ⚔️'
-                      : 'Choose Your Boss & Duel ⚔️'
-                    : isArabic
-                    ? 'افتح بباقة Pro للعب بلا حدود'
-                    : 'Unlock with Pro to Play'}
+                  {isArabic
+                    ? 'اختر الزعيم وابدأ المعركة ⚔️'
+                    : 'Choose Your Boss & Duel ⚔️'}
                 </span>
               </button>
             </div>
