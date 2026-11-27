@@ -27,42 +27,62 @@ function sanitizeName(raw: unknown): string {
 }
 
 async function callSupabaseRpc(rpcName: string, body: Record<string, unknown>) {
-  const supabaseUrl = process.env.SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const supabaseUrl = (
+    process.env.SUPABASE_URL ||
+    process.env.NEXT_PUBLIC_SUPABASE_URL ||
+    process.env.VITE_SUPABASE_URL ||
+    ''
+  ).trim();
+  const serviceKey = (
+    process.env.SUPABASE_SERVICE_ROLE_KEY ||
+    process.env.SUPABASE_SECRET_KEY ||
+    ''
+  ).trim();
   if (!supabaseUrl || !serviceKey) {
     return { ok: false, configured: false, error: 'SUPABASE_NOT_CONFIGURED' };
   }
 
-  const res = await fetch(`${supabaseUrl.replace(/\/+$/, '')}/rest/v1/rpc/${rpcName}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      apikey: serviceKey,
-      Authorization: `Bearer ${serviceKey}`,
-    },
-    body: JSON.stringify(body),
-  });
+  try {
+    const res = await fetch(`${supabaseUrl.replace(/\/+$/, '')}/rest/v1/rpc/${rpcName}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: serviceKey,
+        Authorization: `Bearer ${serviceKey}`,
+      },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(8000),
+    });
 
-  const data = await res.json().catch(() => null);
-  if (!res.ok) {
-    return { ok: false, configured: true, error: data?.message || 'RPC_FAILED' };
+    const data = await res.json().catch(() => null);
+    if (!res.ok) {
+      return { ok: false, configured: true, error: data?.message || 'RPC_FAILED' };
+    }
+    return data;
+  } catch {
+    return { ok: false, configured: true, error: 'RPC_NETWORK_ERROR' };
   }
-  return data;
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const ip = String(req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown').split(',')[0].trim();
 
   if (req.method === 'GET') {
-    res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
-    const result = await callSupabaseRpc('get_top_leaderboard', { p_limit: 100 });
+    const result = await callSupabaseRpc('get_top_leaderboard', { p_limit: 50 });
     if (!result?.ok) {
+      res.setHeader('Cache-Control', 'no-store');
       return res.status(200).json({ ok: true, offlineFallback: true, entries: [] });
     }
-    return res.status(200).json({ ok: true, entries: result.entries || [] });
+    res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
+    return res.status(200).json({
+      ok: true,
+      offlineFallback: false,
+      entries: Array.isArray(result.entries) ? result.entries : [],
+    });
   }
 
   if (req.method === 'POST') {
+    res.setHeader('Cache-Control', 'no-store');
     if (!checkRateLimit(ip, 15, 60_000)) {
       return res.status(429).json({ ok: false, error: 'RATE_LIMITED' });
     }
@@ -71,8 +91,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const userId = String(body.userId || '').trim();
     const displayName = sanitizeName(body.displayName);
     const country = String(body.country || 'EG').toUpperCase().slice(0, 2);
-    const xpDelta = Math.max(0, Math.min(150, Number(body.xpDelta) || 0));
-    const streak = Math.max(0, Math.min(3650, Number(body.streak) || 0));
+    const xpDelta = Math.max(0, Math.min(150, Math.floor(Number(body.xpDelta) || 0)));
+    const streak = Math.max(0, Math.min(3650, Math.floor(Number(body.streak) || 0)));
     const hidden = Boolean(body.hidden);
 
     if (userId.length < 8 || userId.length > 128) {
