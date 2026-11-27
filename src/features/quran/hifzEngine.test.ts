@@ -14,9 +14,12 @@ import {
   SURAH_INDEX,
   WIRD_LADDER_DAYS,
   advanceEchoShadowing,
+  buildAyahAudioFallbackChain,
   buildAyahAudioUrls,
   buildAyahBridgeChain,
+  buildEveryAyahUrl,
   chunkAyahs,
+  clampFontScale,
   computeNextWirdSchedule,
   computeWordMask,
   createInitialHifzState,
@@ -340,4 +343,37 @@ test('8. Reciter audio URL builder, bookmarks persistence, and 4-layer offline f
   });
   assert.equal(fetched.data.number, 1);
   assert.equal(fetched.data.ayahs.length, 7);
+});
+
+test('9. Foolproof audio fallback chain (EveryAyah + Islamic Network), fontScale clamping, and lastAyahNumber resume', () => {
+  assert.equal(
+    buildEveryAyahUrl(1, 1, 'ar.husary'),
+    'https://everyayah.com/data/Husary_128kbps/001001.mp3'
+  );
+  assert.equal(
+    buildEveryAyahUrl(114, 6, 'ar.alafasy'),
+    'https://everyayah.com/data/Alafasy_128kbps/114006.mp3'
+  );
+  assert.equal(buildEveryAyahUrl(0, 1, 'ar.husary'), null);
+  assert.equal(buildEveryAyahUrl(115, 1, 'ar.husary'), null);
+
+  const chain = buildAyahAudioFallbackChain(1, makeSyntheticAyah(1, 'بِسْمِ اللَّهِ'), 'ar.husary');
+  assert.ok(chain.length >= 3, 'Expected at least 3 independent audio mirrors');
+  assert.ok(chain[0].startsWith('https://cdn.islamic.network/quran/audio/128/'));
+  assert.ok(chain.some((u) => u.startsWith('https://everyayah.com/data/Husary_128kbps/001001.mp3')));
+  assert.ok(chain.some((u) => u.startsWith('https://cdn.islamic.network/quran/audio/64/')));
+
+  assert.equal(clampFontScale(0.5), 1.0);
+  assert.equal(clampFontScale(1.5), 1.5);
+  assert.equal(clampFontScale(3.2), 1.8);
+  assert.equal(clampFontScale(Number.NaN), 1.0);
+
+  const storage = createMemoryStorage();
+  const state = createInitialHifzState();
+  saveHifzState({ ...state, lastSurahNumber: 2, lastAyahNumber: 45, fontScale: 1.5 }, storage);
+  const reloaded = loadHifzState(storage);
+  assert.equal(reloaded.lastSurahNumber, 2);
+  assert.equal(reloaded.lastAyahNumber, 45);
+  assert.equal(reloaded.fontScale, 1.5);
+  assert.equal(reloaded.mushafTheme, 'dark');
 });

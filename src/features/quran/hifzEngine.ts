@@ -152,6 +152,7 @@ export interface QuranBookmark {
 export interface QuranHifzStoreState {
   version: 1;
   lastSurahNumber: number;
+  lastAyahNumber: number;
   fontSize: MushafFontSize;
   fontScale: number;
   mushafTheme: MushafThemeMode;
@@ -555,6 +556,58 @@ export function buildAyahAudioUrls(
   };
 }
 
+const EVERY_AYAH_RECITER_FOLDERS: Record<QuranReciterId, string> = {
+  'ar.husary': 'Husary_128kbps',
+  'ar.minshawi': 'Minshawy_Murattal_128kbps',
+  'ar.alafasy': 'Alafasy_128kbps',
+  'ar.abdulbasitmurattal': 'Abdul_Basit_Murattal_192kbps',
+};
+
+export function buildEveryAyahUrl(
+  surahNumber: number,
+  ayahNumberInSurah: number,
+  reciterId: QuranReciterId = 'ar.husary'
+): string | null {
+  if (
+    !Number.isInteger(surahNumber) ||
+    surahNumber < 1 ||
+    surahNumber > 114 ||
+    !Number.isInteger(ayahNumberInSurah) ||
+    ayahNumberInSurah < 1 ||
+    ayahNumberInSurah > 286
+  ) {
+    return null;
+  }
+  const safeReciter: QuranReciterId = isValidReciterId(reciterId) ? reciterId : 'ar.husary';
+  const folder = EVERY_AYAH_RECITER_FOLDERS[safeReciter];
+  const sss = String(surahNumber).padStart(3, '0');
+  const aaa = String(ayahNumberInSurah).padStart(3, '0');
+  return `https://everyayah.com/data/${folder}/${sss}${aaa}.mp3`;
+}
+
+export function buildAyahAudioFallbackChain(
+  surahNumber: number,
+  ayah: Pick<QuranAyah, 'number' | 'numberInSurah' | 'audioUrl' | 'audioFallbackUrl'>,
+  reciterId: QuranReciterId = 'ar.husary'
+): string[] {
+  const urls: string[] = [];
+  const pushUnique = (u: string | null | undefined) => {
+    if (typeof u === 'string' && u.startsWith('https://') && !urls.includes(u)) {
+      urls.push(u);
+    }
+  };
+
+  const built = buildAyahAudioUrls(ayah.number, reciterId);
+  pushUnique(built.primary);
+  pushUnique(buildEveryAyahUrl(surahNumber, ayah.numberInSurah, reciterId));
+  pushUnique(built.fallback);
+  if (reciterId === 'ar.husary') {
+    pushUnique(ayah.audioUrl);
+    pushUnique(ayah.audioFallbackUrl);
+  }
+  return urls;
+}
+
 export function clampFontScale(value: unknown): number {
   const num = typeof value === 'number' && Number.isFinite(value) ? value : 1.0;
   return Math.max(1.0, Math.min(1.8, Math.round(num * 100) / 100));
@@ -564,6 +617,7 @@ export function createInitialHifzState(): QuranHifzStoreState {
   return {
     version: 1,
     lastSurahNumber: 1,
+    lastAyahNumber: 1,
     fontSize: 'md',
     fontScale: 1.0,
     mushafTheme: 'dark',
@@ -597,6 +651,12 @@ export function loadHifzState(storageOverride?: Storage | null): QuranHifzStoreS
         parsed.lastSurahNumber >= 1 &&
         parsed.lastSurahNumber <= 114
           ? parsed.lastSurahNumber
+          : 1,
+      lastAyahNumber:
+        typeof parsed.lastAyahNumber === 'number' &&
+        parsed.lastAyahNumber >= 1 &&
+        parsed.lastAyahNumber <= 286
+          ? Math.floor(parsed.lastAyahNumber)
           : 1,
       fontSize:
         parsed.fontSize === 'sm' || parsed.fontSize === 'md' || parsed.fontSize === 'lg'

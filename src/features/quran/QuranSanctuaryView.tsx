@@ -47,7 +47,7 @@ import {
   SURAH_INDEX,
   WirdQuality,
   advanceEchoShadowing,
-  buildAyahAudioUrls,
+  buildAyahAudioFallbackChain,
   buildAyahBridgeChain,
   chunkAyahs,
   computeWordMask,
@@ -137,6 +137,7 @@ export function QuranSanctuaryView({
   const [echoAyahIdx, setEchoAyahIdx] = useState(0);
   const [echoRepeatIdx, setEchoRepeatIdx] = useState(0);
   const [echoSilenceLeft, setEchoSilenceLeft] = useState<number | null>(null);
+  const [audioLoading, setAudioLoading] = useState(false);
   const [audioError, setAudioError] = useState<string | null>(null);
   const [singleAyahPlaying, setSingleAyahPlaying] = useState<number | null>(null);
 
@@ -148,8 +149,15 @@ export function QuranSanctuaryView({
   });
   const [wirdBannerMsg, setWirdBannerMsg] = useState<string | null>(null);
 
-  // Refs for managed audio & timers
+  // Refs for managed audio, race-condition guard & auto-scroll
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const playSessionIdRef = useRef<number>(0);
+  const pendingEchoResumeRef = useRef<{
+    nextAyahIndex: number;
+    nextRepeatIndex: number;
+    chunkAyahsList: QuranAyah[];
+  } | null>(null);
+  const ayahCardRefs = useRef<Record<number, HTMLElement | null>>({});
   const playbackSpeedRef = useRef<PlaybackSpeed>(1.0);
   const revealTimersRef = useRef<Record<string, number>>({});
   const echoPauseTimerRef = useRef<number | null>(null);
@@ -200,7 +208,7 @@ export function QuranSanctuaryView({
     setRevealedWordKeys({});
   }, []);
 
-  const stopAllAudio = useCallback(() => {
+  const clearEchoTimers = useCallback(() => {
     if (echoPauseTimerRef.current !== null) {
       window.clearTimeout(echoPauseTimerRef.current);
       echoPauseTimerRef.current = null;
@@ -209,20 +217,30 @@ export function QuranSanctuaryView({
       window.clearInterval(echoCountdownRef.current);
       echoCountdownRef.current = null;
     }
+    setEchoSilenceLeft(null);
+  }, []);
+
+  const stopAllAudio = useCallback(() => {
+    playSessionIdRef.current += 1;
+    pendingEchoResumeRef.current = null;
+    clearEchoTimers();
     echoBridgeQueueRef.current = [];
     if (audioRef.current) {
       audioRef.current.onended = null;
       audioRef.current.onerror = null;
+      audioRef.current.onwaiting = null;
+      audioRef.current.onplaying = null;
+      audioRef.current.oncanplay = null;
       audioRef.current.pause();
       audioRef.current.removeAttribute('src');
       audioRef.current.load();
     }
+    setAudioLoading(false);
     setEchoActive(false);
     setEchoPaused(false);
-    setEchoSilenceLeft(null);
     setSingleAyahPlaying(null);
     setMushafContinuousPlaying(false);
-  }, []);
+  }, [clearEchoTimers]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -278,8 +296,14 @@ export function QuranSanctuaryView({
   );
 
   useEffect(() => {
-    void loadSurah(selectedSurahNumber);
-    // Initial load for saved Surah only
+    const savedAyah = hifzState.lastAyahNumber || 1;
+    void loadSurah(selectedSurahNumber).then(() => {
+      if (savedAyah > 1) {
+        setSelectedMushafAyah(savedAyah);
+        setChunkIndex(Math.max(0, Math.floor((savedAyah - 1) / chunkSize)));
+      }
+    });
+    // Initial load for saved Surah & last Ayah position only
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -313,73 +337,154 @@ export function QuranSanctuaryView({
   const filteredSurahs = useMemo(() => searchSurahs(searchQuery), [searchQuery]);
   const cachedSet = useMemo(() => new Set(cachedSurahNumbers), [cachedSurahNumbers]);
 
-  const playAudioUrl = useCallback(
-    (primaryUrl: string | null, fallbackUrl: string | null, onFinished: () => void) => {
-      if (!primaryUrl && !fallbackUrl) {
+  const playAudioChain = useCallback(
+    (urls: string[], onFinished: () => void, ayahNumberForScroll?: number) => {
+      if (urls.length === 0) {
         setAudioError(
           isArabic
-            ? 'رابط تلاوة الشيخ الحصري غير متوفر لهذه الآية حالياً.'
-            : 'Al-Husary audio URL is unavailable for this Ayah.'
+            ? 'رابط التلاوة غير متوفر لهذه الآية حالياً.'
+            : 'Recitation audio URL is unavailable for this Ayah.'
         );
         stopAllAudio();
         return;
       }
 
+      if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+        setAudioError(
+          isArabic
+            ? 'أنت بدون إنترنت — النص العثماني والتفسير يعملان بالكامل، والتلاوة الصوتية تحتاج اتصالاً بالإنترنت.'
+            : 'You are offline — Uthmani text & Tafsir work 100% offline; audio streaming needs internet.'
+        );
+        stopAllAudio();
+        return;
+      }
+
+      if (ayahNumberForScroll && ayahCardRefs.current[ayahNumberForScroll]) {
+        try {
+          ayahCardRefs.current[ayahNumberForScroll]?.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center',
+          });
+        } catch {
+          // Ignore scroll errors
+        }
+      }
+
+      const sessionId = ++playSessionIdRef.current;
+
       if (!audioRef.current) {
         audioRef.current = new Audio();
+        audioRef.current.preload = 'auto';
       }
       const audio = audioRef.current;
-      let triedFallback = false;
+      let urlIdx = 0;
 
-      const startSrc = primaryUrl || fallbackUrl!;
       setAudioError(null);
+      setAudioLoading(true);
 
-      audio.onended = () => {
-        onFinished();
+      const updateMediaSession = () => {
+        try {
+          if ('mediaSession' in navigator && typeof MediaMetadata !== 'undefined') {
+            const meta = getSurahMeta(selectedSurahNumber);
+            const rec = QURAN_RECITERS.find((r) => r.id === hifzState.reciterId) || QURAN_RECITERS[0];
+            navigator.mediaSession.metadata = new MediaMetadata({
+              title: meta ? `سورة ${meta.nameAr} · ${meta.nameEn}` : 'القرآن الكريم',
+              artist: isArabic ? rec.nameAr : rec.nameEn,
+              album: 'ملاذ حفظ القرآن · Thinking Bridge',
+            });
+          }
+        } catch {
+          // Ignore mediaSession errors on unsupported WebViews
+        }
       };
-      audio.onerror = () => {
-        if (!triedFallback && fallbackUrl && audio.src !== fallbackUrl) {
-          triedFallback = true;
-          audio.src = fallbackUrl;
-          void audio.play().catch(() => {
-            setAudioError(
-              isArabic
-                ? 'تعذّر تشغيل تلاوة الشيخ الحصري. تأكد من الاتصال بالإنترنت.'
-                : 'Unable to play Al-Husary audio. Please check your connection.'
-            );
-            stopAllAudio();
-          });
+
+      const tryCurrentUrl = () => {
+        if (sessionId !== playSessionIdRef.current) return;
+        const src = urls[urlIdx];
+        if (!src) {
+          setAudioLoading(false);
+          setAudioError(
+            isArabic
+              ? 'تعذّر تشغيل التلاوة حالياً. تأكد من الاتصال بالإنترنت واضغط تشغيل مرة أخرى.'
+              : 'Unable to play recitation right now. Check your connection and tap Play again.'
+          );
+          stopAllAudio();
           return;
         }
-        setAudioError(
-          isArabic
-            ? 'تعذّر تشغيل تلاوة الشيخ الحصري. تأكد من الاتصال بالإنترنت.'
-            : 'Unable to play Al-Husary audio. Please check your connection.'
-        );
-        stopAllAudio();
+
+        audio.onwaiting = () => {
+          if (sessionId === playSessionIdRef.current) setAudioLoading(true);
+        };
+        audio.oncanplay = () => {
+          if (sessionId === playSessionIdRef.current) setAudioLoading(false);
+        };
+        audio.onplaying = () => {
+          if (sessionId === playSessionIdRef.current) {
+            setAudioLoading(false);
+            updateMediaSession();
+          }
+        };
+        audio.onended = () => {
+          if (sessionId !== playSessionIdRef.current) return;
+          setAudioLoading(false);
+          onFinished();
+        };
+        audio.onerror = () => {
+          if (sessionId !== playSessionIdRef.current) return;
+          urlIdx += 1;
+          if (urlIdx < urls.length) {
+            tryCurrentUrl();
+            return;
+          }
+          setAudioLoading(false);
+          setAudioError(
+            isArabic
+              ? 'تعذّر تشغيل التلاوة من الخادم. تأكد من الاتصال بالإنترنت وحاول مجدداً.'
+              : 'Unable to stream recitation. Please check your internet connection and retry.'
+          );
+          stopAllAudio();
+        };
+
+        audio.src = src;
+        audio.playbackRate = playbackSpeedRef.current;
+        void audio.play().catch((err) => {
+          if (sessionId !== playSessionIdRef.current) return;
+          const errName = err && typeof err === 'object' && 'name' in err ? String((err as { name: unknown }).name) : '';
+          if (errName === 'NotAllowedError') {
+            setAudioLoading(false);
+            setAudioError(
+              isArabic
+                ? 'اضغط على زر التشغيل مرة أخرى للسماح بالصوت.'
+                : 'Tap Play once more to allow audio playback.'
+            );
+            stopAllAudio();
+            return;
+          }
+          urlIdx += 1;
+          if (urlIdx < urls.length) {
+            tryCurrentUrl();
+          } else {
+            setAudioLoading(false);
+            setAudioError(
+              isArabic
+                ? 'تعذّر تشغيل التلاوة. تأكد من الاتصال بالإنترنت وحاول مجدداً.'
+                : 'Unable to play recitation. Please check your connection and retry.'
+            );
+            stopAllAudio();
+          }
+        });
       };
 
-      audio.src = startSrc;
-      audio.playbackRate = playbackSpeedRef.current;
-      void audio.play().catch(() => {
-        setAudioError(
-          isArabic
-            ? 'اضغط مرة أخرى لتشغيل الصوت في متصفحك.'
-            : 'Tap play again to start audio playback.'
-        );
-        stopAllAudio();
-      });
+      tryCurrentUrl();
     },
-    [isArabic, stopAllAudio]
+    [hifzState.reciterId, isArabic, selectedSurahNumber, stopAllAudio]
   );
 
-  const getAyahAudioForSelectedReciter = useCallback(
-    (ayah: QuranAyah): { primary: string | null; fallback: string | null } => {
-      const built = buildAyahAudioUrls(ayah.number, hifzState.reciterId);
-      if (built.primary) return built;
-      return { primary: ayah.audioUrl, fallback: ayah.audioFallbackUrl };
+  const getAyahAudioChain = useCallback(
+    (ayah: QuranAyah): string[] => {
+      return buildAyahAudioFallbackChain(selectedSurahNumber, ayah, hifzState.reciterId);
     },
-    [hifzState.reciterId]
+    [hifzState.reciterId, selectedSurahNumber]
   );
 
   const runEchoStep = useCallback(
@@ -390,6 +495,7 @@ export function QuranSanctuaryView({
         return;
       }
 
+      pendingEchoResumeRef.current = null;
       setEchoActive(true);
       setEchoPaused(false);
       setEchoSilenceLeft(null);
@@ -397,66 +503,88 @@ export function QuranSanctuaryView({
       setEchoRepeatIdx(repeatIdx);
       setSingleAyahPlaying(null);
 
-      const { primary, fallback } = getAyahAudioForSelectedReciter(targetAyah);
-      playAudioUrl(primary, fallback, () => {
-        const step = advanceEchoShadowing(
-          ayahIdx,
-          repeatIdx,
-          chunkAyahsList.length,
-          repeatCount,
-          pauseSeconds
-        );
+      const urls = getAyahAudioChain(targetAyah);
+      playAudioChain(
+        urls,
+        () => {
+          const stepSessionId = playSessionIdRef.current;
+          const step = advanceEchoShadowing(
+            ayahIdx,
+            repeatIdx,
+            chunkAyahsList.length,
+            repeatCount,
+            pauseSeconds
+          );
 
-        if (step.action === 'complete') {
+          if (step.action === 'complete') {
+            if (step.pauseMs > 0) {
+              let secs = Math.ceil(step.pauseMs / 1000);
+              setEchoSilenceLeft(secs);
+              echoCountdownRef.current = window.setInterval(() => {
+                if (stepSessionId !== playSessionIdRef.current) return;
+                secs -= 1;
+                setEchoSilenceLeft(secs > 0 ? secs : null);
+              }, 1000);
+              echoPauseTimerRef.current = window.setTimeout(() => {
+                if (stepSessionId !== playSessionIdRef.current) return;
+                stopAllAudio();
+              }, step.pauseMs);
+            } else {
+              stopAllAudio();
+            }
+            return;
+          }
+
           if (step.pauseMs > 0) {
+            pendingEchoResumeRef.current = {
+              nextAyahIndex: step.nextAyahIndex,
+              nextRepeatIndex: step.nextRepeatIndex,
+              chunkAyahsList,
+            };
             let secs = Math.ceil(step.pauseMs / 1000);
             setEchoSilenceLeft(secs);
             echoCountdownRef.current = window.setInterval(() => {
+              if (stepSessionId !== playSessionIdRef.current) return;
               secs -= 1;
               setEchoSilenceLeft(secs > 0 ? secs : null);
             }, 1000);
             echoPauseTimerRef.current = window.setTimeout(() => {
-              stopAllAudio();
+              if (stepSessionId !== playSessionIdRef.current) return;
+              clearEchoTimers();
+              runEchoStep(step.nextAyahIndex, step.nextRepeatIndex, chunkAyahsList);
             }, step.pauseMs);
           } else {
-            stopAllAudio();
-          }
-          return;
-        }
-
-        if (step.pauseMs > 0) {
-          let secs = Math.ceil(step.pauseMs / 1000);
-          setEchoSilenceLeft(secs);
-          echoCountdownRef.current = window.setInterval(() => {
-            secs -= 1;
-            setEchoSilenceLeft(secs > 0 ? secs : null);
-          }, 1000);
-          echoPauseTimerRef.current = window.setTimeout(() => {
-            if (echoCountdownRef.current !== null) {
-              window.clearInterval(echoCountdownRef.current);
-              echoCountdownRef.current = null;
-            }
-            setEchoSilenceLeft(null);
             runEchoStep(step.nextAyahIndex, step.nextRepeatIndex, chunkAyahsList);
-          }, step.pauseMs);
-        } else {
-          runEchoStep(step.nextAyahIndex, step.nextRepeatIndex, chunkAyahsList);
-        }
-      });
+          }
+        },
+        targetAyah.numberInSurah
+      );
     },
-    [getAyahAudioForSelectedReciter, pauseSeconds, playAudioUrl, repeatCount, stopAllAudio]
+    [clearEchoTimers, getAyahAudioChain, pauseSeconds, playAudioChain, repeatCount, stopAllAudio]
   );
 
   const handleToggleEchoPlay = () => {
     if (!activeChunk || activeChunk.ayahs.length === 0) return;
 
-    if (echoActive && audioRef.current) {
+    if (echoActive) {
       if (echoPaused) {
         setEchoPaused(false);
-        void audioRef.current.play().catch(() => {});
+        if (pendingEchoResumeRef.current) {
+          const pending = pendingEchoResumeRef.current;
+          pendingEchoResumeRef.current = null;
+          runEchoStep(pending.nextAyahIndex, pending.nextRepeatIndex, pending.chunkAyahsList);
+          return;
+        }
+        if (audioRef.current) {
+          audioRef.current.playbackRate = playbackSpeedRef.current;
+          void audioRef.current.play().catch(() => {});
+        }
       } else {
         setEchoPaused(true);
-        audioRef.current.pause();
+        clearEchoTimers();
+        if (audioRef.current) {
+          audioRef.current.pause();
+        }
       }
       return;
     }
@@ -467,10 +595,14 @@ export function QuranSanctuaryView({
   const handlePlaySingleAyah = (ayah: QuranAyah) => {
     stopAllAudio();
     setSingleAyahPlaying(ayah.numberInSurah);
-    const { primary, fallback } = getAyahAudioForSelectedReciter(ayah);
-    playAudioUrl(primary, fallback, () => {
-      setSingleAyahPlaying(null);
-    });
+    updateHifzState((prev) => ({ ...prev, lastAyahNumber: ayah.numberInSurah }));
+    playAudioChain(
+      getAyahAudioChain(ayah),
+      () => {
+        setSingleAyahPlaying(null);
+      },
+      ayah.numberInSurah
+    );
   };
 
   const handlePlayMushafFrom = useCallback(
@@ -491,19 +623,23 @@ export function QuranSanctuaryView({
         setMushafContinuousPlaying(true);
         setSelectedMushafAyah(ayah.numberInSurah);
         setSingleAyahPlaying(ayah.numberInSurah);
-        const { primary, fallback } = getAyahAudioForSelectedReciter(ayah);
-        playAudioUrl(primary, fallback, () => {
-          if (idx + 1 < surahData.ayahs.length) {
-            playAt(idx + 1);
-          } else {
-            stopAllAudio();
-          }
-        });
+        updateHifzState((prev) => ({ ...prev, lastAyahNumber: ayah.numberInSurah }));
+        playAudioChain(
+          getAyahAudioChain(ayah),
+          () => {
+            if (idx + 1 < surahData.ayahs.length) {
+              playAt(idx + 1);
+            } else {
+              stopAllAudio();
+            }
+          },
+          ayah.numberInSurah
+        );
       };
 
       playAt(startIdx);
     },
-    [getAyahAudioForSelectedReciter, playAudioUrl, stopAllAudio, surahData]
+    [getAyahAudioChain, playAudioChain, stopAllAudio, surahData, updateHifzState]
   );
 
   const handleToggleAyahBookmark = (ayah: QuranAyah) => {
@@ -530,7 +666,7 @@ export function QuranSanctuaryView({
 
     const playNextInPair = (url: string, ayahNum: number) => {
       setSingleAyahPlaying(ayahNum);
-      playAudioUrl(url, null, () => {
+      playAudioChain([url], () => {
         const nextUrl = echoBridgeQueueRef.current.shift();
         if (nextUrl) {
           playNextInPair(nextUrl, link.toAyahNumber);
@@ -749,17 +885,18 @@ export function QuranSanctuaryView({
                   onClick={handleDecreaseFontScale}
                   disabled={currentFontScale <= FONT_SCALE_STEPS[0] + 0.01}
                   aria-label={isArabic ? 'تصغير الخط' : 'Decrease font size'}
-                  className="min-h-[44px] min-w-[44px] px-2 rounded-xl text-xs font-black cursor-pointer disabled:opacity-40 transition active:scale-95"
+                  className="min-h-[48px] min-w-[48px] px-2 rounded-xl text-xs font-black cursor-pointer disabled:opacity-40 transition active:scale-95"
                   style={{ color: 'var(--qs-ink)' }}
                 >
                   A-
                 </button>
                 <span
+                  dir="ltr"
                   data-testid="quran-font-scale-label"
-                  className="px-1 text-[11px] font-black tabular-nums select-none"
+                  className="px-1.5 text-xs font-black tabular-nums select-none"
                   style={{ color: 'var(--qs-gold)' }}
                 >
-                  {Math.round(currentFontScale * 100)}%
+                  {`${Math.round(currentFontScale * 100)}%`}
                 </span>
                 <button
                   type="button"
@@ -767,7 +904,7 @@ export function QuranSanctuaryView({
                   onClick={handleIncreaseFontScale}
                   disabled={currentFontScale >= FONT_SCALE_STEPS[FONT_SCALE_STEPS.length - 1] - 0.01}
                   aria-label={isArabic ? 'تكبير الخط' : 'Increase font size'}
-                  className="min-h-[44px] min-w-[44px] px-2 rounded-xl text-xs font-black cursor-pointer disabled:opacity-40 transition active:scale-95"
+                  className="min-h-[48px] min-w-[48px] px-2 rounded-xl text-xs font-black cursor-pointer disabled:opacity-40 transition active:scale-95"
                   style={{ color: 'var(--qs-ink)' }}
                 >
                   A+
@@ -1062,11 +1199,24 @@ export function QuranSanctuaryView({
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <h2 className="text-base sm:text-lg font-black leading-snug" style={{ color: ayahInkColor }}>
-                      {currentSurahMeta
-                        ? `${currentSurahMeta.number}. سورة ${currentSurahMeta.nameAr} · ${currentSurahMeta.nameEn}`
-                        : surahData?.name || ''}
-                    </h2>
+                    <button
+                      type="button"
+                      data-testid="quran-surah-picker-btn"
+                      onClick={() => setActiveTab('surahs')}
+                      className="min-h-[44px] px-3 py-1 rounded-2xl border text-start inline-flex items-center gap-1.5 cursor-pointer transition active:scale-95"
+                      style={{
+                        backgroundColor: 'var(--qs-surface-alt)',
+                        borderColor: 'var(--qs-gold)',
+                        color: ayahInkColor,
+                      }}
+                    >
+                      <span className="text-sm sm:text-base font-black leading-snug">
+                        {currentSurahMeta
+                          ? `${currentSurahMeta.number}. سورة ${currentSurahMeta.nameAr}`
+                          : surahData?.name || ''}
+                      </span>
+                      <ChevronDown size={16} style={{ color: 'var(--qs-gold)' }} />
+                    </button>
                     {loadedFromCache && (
                       <span
                         className="px-2 py-0.5 rounded-full text-[10px] font-bold border"
@@ -1692,11 +1842,13 @@ export function QuranSanctuaryView({
                     <div
                       dir="rtl"
                       lang="ar"
-                      className={`quran-uthmani-text ${FONT_SIZE_CLASSES[hifzState.fontSize]} text-justify leading-[2.4] p-4 sm:p-6 rounded-2xl border`}
+                      className={`quran-uthmani-text ${FONT_SIZE_CLASSES[hifzState.fontSize]} text-justify leading-[2.4] p-4 sm:p-6 rounded-2xl border break-words`}
                       style={{
                         backgroundColor: 'var(--qs-bg)',
                         borderColor: 'var(--qs-border)',
                         color: ayahInkColor,
+                        fontSize: `${(1.55 * currentFontScale).toFixed(3)}rem`,
+                        lineHeight: 2.35,
                         opacity: 1,
                         visibility: 'visible',
                       }}
@@ -1866,6 +2018,49 @@ export function QuranSanctuaryView({
                       )}
                     </div>
 
+                    {/* Inline Hifz Masking Helper Strip (Zero Friction for Kids & Adults) */}
+                    {isMaskingActive && (
+                      <div
+                        data-testid="quran-mask-helper"
+                        className="p-3 rounded-2xl border flex items-center justify-between gap-2 flex-wrap"
+                        style={{
+                          backgroundColor: 'var(--qs-gold-soft)',
+                          borderColor: 'var(--qs-gold)',
+                        }}
+                      >
+                        <p className="text-xs font-black" style={{ color: 'var(--qs-gold)' }}>
+                          {isArabic
+                            ? '👆 اضغط على أي كلمة مخفية لتتذكرها (تظهر ثانيتين)'
+                            : '👆 Tap any hidden word to peek for 2 seconds'}
+                        </p>
+                        <div className="flex items-center gap-1">
+                          {([30, 70, 100, 0] as const).map((st) => (
+                            <button
+                              key={st}
+                              type="button"
+                              onClick={() => setFadeStage(st)}
+                              className="min-h-[38px] px-2.5 py-1 rounded-xl border text-[11px] font-black cursor-pointer"
+                              style={
+                                fadeStage === st
+                                  ? {
+                                      backgroundColor: 'var(--qs-gold)',
+                                      borderColor: 'var(--qs-gold)',
+                                      color: '#0B1120',
+                                    }
+                                  : {
+                                      backgroundColor: 'var(--qs-surface)',
+                                      borderColor: 'var(--qs-border)',
+                                      color: 'var(--qs-ink)',
+                                    }
+                              }
+                            >
+                              {st === 0 ? (isArabic ? 'إظهار' : 'Show') : `${st}%`}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     {/* Ayah Cards */}
                     <div className="space-y-4">
                       {activeChunk.ayahs.map((ayah) => {
@@ -1890,7 +2085,10 @@ export function QuranSanctuaryView({
                         return (
                           <article
                             key={ayah.numberInSurah}
-                            className="p-4 sm:p-5 rounded-2xl border space-y-3"
+                            ref={(el) => {
+                              ayahCardRefs.current[ayah.numberInSurah] = el;
+                            }}
+                            className="p-4 sm:p-5 rounded-2xl border space-y-3 overflow-x-clip"
                             style={{
                               backgroundColor: isCurrentlyPlaying
                                 ? 'var(--qs-accent-soft)'
@@ -1957,9 +2155,11 @@ export function QuranSanctuaryView({
                             <div
                               dir="rtl"
                               lang="ar"
-                              className={`quran-uthmani-text ${FONT_SIZE_CLASSES[hifzState.fontSize]} flex flex-wrap items-center gap-x-2 gap-y-2 text-right`}
+                              className={`quran-uthmani-text ${FONT_SIZE_CLASSES[hifzState.fontSize]} flex flex-wrap items-center gap-x-2 gap-y-2 text-right break-words`}
                               style={{
                                 color: ayahInkColor,
+                                fontSize: `${(1.55 * currentFontScale).toFixed(3)}rem`,
+                                lineHeight: 2.35,
                                 opacity: 1,
                                 visibility: 'visible',
                               }}
@@ -2246,9 +2446,14 @@ export function QuranSanctuaryView({
                     disabled={safeChunkIndex <= 0}
                     onClick={() => {
                       stopAllAudio();
-                      setChunkIndex((idx) => Math.max(0, idx - 1));
+                      const nextIdx = Math.max(0, safeChunkIndex - 1);
+                      setChunkIndex(nextIdx);
+                      const nextChunk = chunks[nextIdx];
+                      if (nextChunk) {
+                        updateHifzState((prev) => ({ ...prev, lastAyahNumber: nextChunk.startAyah }));
+                      }
                     }}
-                    className="min-h-[48px] px-4 py-2 rounded-2xl border text-xs sm:text-sm font-black inline-flex items-center gap-1.5 cursor-pointer disabled:opacity-40"
+                    className="min-h-[52px] px-4 py-2 rounded-2xl border text-xs sm:text-sm font-black inline-flex items-center gap-1.5 cursor-pointer disabled:opacity-40"
                     style={{
                       backgroundColor: 'var(--qs-surface)',
                       borderColor: 'var(--qs-border)',
@@ -2259,7 +2464,7 @@ export function QuranSanctuaryView({
                     <span>{isArabic ? 'المقطع السابق' : 'Previous'}</span>
                   </button>
 
-                  <span className="text-xs font-black" style={{ color: 'var(--qs-ink-muted)' }}>
+                  <span className="text-xs font-black tabular-nums" style={{ color: 'var(--qs-ink-muted)' }}>
                     {safeChunkIndex + 1} / {chunks.length}
                   </span>
 
@@ -2268,9 +2473,14 @@ export function QuranSanctuaryView({
                     disabled={safeChunkIndex >= chunks.length - 1}
                     onClick={() => {
                       stopAllAudio();
-                      setChunkIndex((idx) => Math.min(chunks.length - 1, idx + 1));
+                      const nextIdx = Math.min(chunks.length - 1, safeChunkIndex + 1);
+                      setChunkIndex(nextIdx);
+                      const nextChunk = chunks[nextIdx];
+                      if (nextChunk) {
+                        updateHifzState((prev) => ({ ...prev, lastAyahNumber: nextChunk.startAyah }));
+                      }
                     }}
-                    className="min-h-[48px] px-4 py-2 rounded-2xl border text-xs sm:text-sm font-black inline-flex items-center gap-1.5 cursor-pointer disabled:opacity-40"
+                    className="min-h-[52px] px-4 py-2 rounded-2xl border text-xs sm:text-sm font-black inline-flex items-center gap-1.5 cursor-pointer disabled:opacity-40"
                     style={{
                       backgroundColor: 'var(--qs-surface)',
                       borderColor: 'var(--qs-border)',
@@ -2588,15 +2798,25 @@ export function QuranSanctuaryView({
                 color: '#0B1120',
               }}
             >
-              {isAnyAudioPlaying ? <Pause size={22} /> : <Play size={22} />}
+              {audioLoading ? (
+                <RefreshCw size={22} className="animate-spin" />
+              ) : isAnyAudioPlaying ? (
+                <Pause size={22} />
+              ) : (
+                <Play size={22} />
+              )}
               <span className="truncate">
-                {isAnyAudioPlaying
+                {audioLoading
                   ? isArabic
-                    ? 'إيقاف'
-                    : 'Pause'
-                  : isArabic
-                    ? 'تشغيل'
-                    : 'Play'}
+                    ? 'جاري...'
+                    : 'Loading'
+                  : isAnyAudioPlaying
+                    ? isArabic
+                      ? 'إيقاف'
+                      : 'Pause'
+                    : isArabic
+                      ? 'تشغيل'
+                      : 'Play'}
               </span>
             </button>
 
