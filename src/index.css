@@ -476,22 +476,22 @@ html[dir='rtl'] body { line-height: 1.8; }
 }
 
 /* ============================================================
-   Quran Hifz Sanctuary — Unified Midnight Navy + Warm Gold + Soft Emerald
-   WCAG >= 4.5:1 Contrast for Kids & Adults
+   Quran Hifz Sanctuary — Mushaf-First Midnight Navy & Warm Parchment
    ============================================================ */
 .quran-sanctuary {
-  --qs-bg: #0B1120;
-  --qs-surface: #131C31;
-  --qs-surface-alt: #1B2742;
-  --qs-border: rgba(148, 163, 184, 0.24);
+  --qs-bg: #0A101D;
+  --qs-surface: #111A2E;
+  --qs-surface-alt: #18233C;
+  --qs-border: rgba(148, 163, 184, 0.2);
   --qs-ink: #F8FAFC;
-  --qs-ink-muted: #CBD5E1;
+  --qs-ink-muted: #94A3B8;
   --qs-accent: #10B981;
-  --qs-accent-ink: #0B1120;
-  --qs-accent-soft: rgba(16, 185, 129, 0.16);
+  --qs-accent-ink: #071318;
+  --qs-accent-soft: rgba(16, 185, 129, 0.14);
   --qs-gold: #F59E0B;
-  --qs-gold-ink: #0B1120;
-  --qs-gold-soft: rgba(245, 158, 11, 0.16);
+  --qs-gold-ink: #0A101D;
+  --qs-gold-soft: rgba(245, 158, 11, 0.14);
+  --qs-ayah-active: rgba(245, 158, 11, 0.11);
   --quran-scale: 1;
   background-color: var(--qs-bg);
   color: var(--qs-ink);
@@ -499,35 +499,84 @@ html[dir='rtl'] body { line-height: 1.8; }
 
 .quran-sanctuary[data-qs-theme="light"] {
   --qs-bg: #FAF6EC;
-  --qs-surface: #FFFDF8;
-  --qs-surface-alt: #F3EBD8;
-  --qs-border: rgba(120, 96, 54, 0.24);
-  --qs-ink: #141D17;
-  --qs-ink-muted: #475569;
+  --qs-surface: #FFFDF7;
+  --qs-surface-alt: #F3EAD6;
+  --qs-border: rgba(120, 96, 54, 0.22);
+  --qs-ink: #161E18;
+  --qs-ink-muted: #57534E;
   --qs-accent: #047857;
   --qs-accent-ink: #FFFFFF;
-  --qs-accent-soft: rgba(4, 120, 87, 0.12);
+  --qs-accent-soft: rgba(4, 120, 87, 0.11);
   --qs-gold: #B45309;
   --qs-gold-ink: #FFFFFF;
-  --qs-gold-soft: rgba(180, 83, 9, 0.14);
+  --qs-gold-soft: rgba(180, 83, 9, 0.12);
+  --qs-ayah-active: rgba(180, 83, 9, 0.09);
 }
 
 .quran-uthmani-text {
   font-family: 'Amiri', 'Scheherazade New', 'Traditional Arabic', 'Readex Pro', serif;
-  font-size: calc(1.55rem * var(--quran-scale, 1));
-  line-height: 2.35;
+  font-size: calc(1.52rem * var(--quran-scale, 1));
+  line-height: 2.18;
   letter-spacing: 0;
-  word-spacing: 0.08em;
+  word-spacing: 0.06em;
+}
+
+.quran-bismillah {
+  font-family: 'Amiri', 'Scheherazade New', 'Traditional Arabic', serif;
+  font-size: calc(1.38rem * var(--quran-scale, 1));
+  line-height: 1.75;
+}
+
+.quran-surah-ornament {
+  position: relative;
+  background: linear-gradient(135deg, var(--qs-gold-soft), var(--qs-accent-soft));
+  border: 1.5px solid var(--qs-gold);
+  box-shadow: inset 0 0 0 2px var(--qs-bg), inset 0 0 0 3px var(--qs-border);
+}
+
+.quran-ayah-row {
+  border-bottom: 1px solid var(--qs-border);
+  transition: background-color 180ms ease, border-color 180ms ease;
+}
+
+.quran-ayah-row[data-active="true"] {
+  background-color: var(--qs-ayah-active);
+  box-shadow: inset -3px 0 0 var(--qs-gold);
+}
+
+.quran-ayah-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.75em;
+  height: 1.75em;
+  padding: 0 0.25em;
+  margin-inline-start: 0.35em;
+  border-radius: 9999px;
+  border: 1.5px solid var(--qs-gold);
+  background-color: var(--qs-gold-soft);
+  color: var(--qs-gold);
+  font-family: 'Readex Pro', 'Amiri', sans-serif;
+  font-size: 0.56em;
+  font-weight: 800;
+  line-height: 1;
+  vertical-align: middle;
 }
 
 .quran-word-faded {
   color: transparent !important;
   background-color: rgba(245, 158, 11, 0.16);
   border: 1.5px dashed rgba(245, 158, 11, 0.65);
+  border-radius: 0.45rem;
   user-select: none;
 }
 
 .quran-sanctuary[data-qs-theme="light"] .quran-word-faded {
   background-color: rgba(180, 83, 9, 0.12);
   border: 1.5px dashed rgba(180, 83, 9, 0.55);
+}
+
+.quran-sheet-backdrop {
+  background-color: rgba(2, 6, 23, 0.62);
+  backdrop-filter: blur(4px);
 }

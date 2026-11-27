@@ -97,8 +97,7 @@ export type MushafThemeMode = 'light' | 'dark';
 export type QuranReciterId =
   | 'ar.husary'
   | 'ar.minshawi'
-  | 'ar.alafasy'
-  | 'ar.abdulbasitmurattal';
+  | 'ar.alafasy';
 
 export interface QuranReciterMeta {
   id: QuranReciterId;
@@ -111,31 +110,24 @@ export interface QuranReciterMeta {
 export const QURAN_RECITERS: ReadonlyArray<QuranReciterMeta> = [
   {
     id: 'ar.husary',
-    nameAr: 'الشيخ محمود خليل الحصري',
-    nameEn: 'Sheikh Mahmoud Khalil Al-Husary',
-    styleAr: 'معلّم (مرتل)',
-    styleEn: 'Teacher (Murattal)',
+    nameAr: 'الشيخ محمود خليل الحصري (المعلم)',
+    nameEn: 'Sheikh Mahmoud Khalil Al-Husary (Teacher)',
+    styleAr: 'معلّم · مرتّل واضح',
+    styleEn: 'Teacher · Clear Murattal',
   },
   {
     id: 'ar.minshawi',
     nameAr: 'الشيخ محمد صديق المنشاوي',
     nameEn: 'Sheikh Muhammad Siddiq Al-Minshawi',
-    styleAr: 'خاشع (مرتل)',
-    styleEn: 'Reverent (Murattal)',
+    styleAr: 'خاشع · مرتّل',
+    styleEn: 'Reverent · Murattal',
   },
   {
     id: 'ar.alafasy',
     nameAr: 'الشيخ مشاري راشد العفاسي',
     nameEn: 'Sheikh Mishary Rashid Alafasy',
-    styleAr: 'واضح وحديث',
+    styleAr: 'نقي وحديث',
     styleEn: 'Crisp & Clear',
-  },
-  {
-    id: 'ar.abdulbasitmurattal',
-    nameAr: 'الشيخ عبد الباسط عبد الصمد',
-    nameEn: 'Sheikh Abdul Basit Abdus Samad',
-    styleAr: 'مرتل متقن',
-    styleEn: 'Classic Murattal',
   },
 ];
 
@@ -301,13 +293,70 @@ export function getPinnedSurahs(): { featured: SurahMeta[]; juzAmma: SurahMeta[]
   return { featured, juzAmma };
 }
 
+export interface JuzMeta {
+  juz: number;
+  startSurah: number;
+  startAyah: number;
+  surahNameAr: string;
+  surahNameEn: string;
+}
+
+export const JUZ_INDEX: ReadonlyArray<JuzMeta> = [
+  { juz: 1, startSurah: 1, startAyah: 1, surahNameAr: 'الفاتحة', surahNameEn: 'Al-Fatihah' },
+  { juz: 2, startSurah: 2, startAyah: 142, surahNameAr: 'البقرة', surahNameEn: 'Al-Baqarah' },
+  { juz: 3, startSurah: 2, startAyah: 253, surahNameAr: 'البقرة', surahNameEn: 'Al-Baqarah' },
+  { juz: 4, startSurah: 3, startAyah: 93, surahNameAr: 'آل عمران', surahNameEn: "Ali 'Imran" },
+  { juz: 5, startSurah: 4, startAyah: 24, surahNameAr: 'النساء', surahNameEn: 'An-Nisa' },
+  { juz: 6, startSurah: 4, startAyah: 148, surahNameAr: 'النساء', surahNameEn: 'An-Nisa' },
+  { juz: 7, startSurah: 5, startAyah: 82, surahNameAr: 'المائدة', surahNameEn: "Al-Ma'idah" },
+  { juz: 8, startSurah: 6, startAyah: 111, surahNameAr: 'الأنعام', surahNameEn: "Al-An'am" },
+  { juz: 9, startSurah: 7, startAyah: 88, surahNameAr: 'الأعراف', surahNameEn: "Al-A'raf" },
+  { juz: 10, startSurah: 8, startAyah: 41, surahNameAr: 'الأنفال', surahNameEn: 'Al-Anfal' },
+  { juz: 11, startSurah: 9, startAyah: 93, surahNameAr: 'التوبة', surahNameEn: 'At-Tawbah' },
+  { juz: 12, startSurah: 11, startAyah: 6, surahNameAr: 'هود', surahNameEn: 'Hud' },
+  { juz: 13, startSurah: 12, startAyah: 53, surahNameAr: 'يوسف', surahNameEn: 'Yusuf' },
+  { juz: 14, startSurah: 15, startAyah: 1, surahNameAr: 'الحجر', surahNameEn: 'Al-Hijr' },
+  { juz: 15, startSurah: 17, startAyah: 1, surahNameAr: 'الإسراء', surahNameEn: 'Al-Isra' },
+  { juz: 16, startSurah: 18, startAyah: 75, surahNameAr: 'الكهف', surahNameEn: 'Al-Kahf' },
+  { juz: 17, startSurah: 21, startAyah: 1, surahNameAr: 'الأنبياء', surahNameEn: 'Al-Anbya' },
+  { juz: 18, startSurah: 23, startAyah: 1, surahNameAr: 'المؤمنون', surahNameEn: "Al-Mu'minun" },
+  { juz: 19, startSurah: 25, startAyah: 21, surahNameAr: 'الفرقان', surahNameEn: 'Al-Furqan' },
+  { juz: 20, startSurah: 27, startAyah: 56, surahNameAr: 'النمل', surahNameEn: 'An-Naml' },
+  { juz: 21, startSurah: 29, startAyah: 46, surahNameAr: 'العنكبوت', surahNameEn: "Al-'Ankabut" },
+  { juz: 22, startSurah: 33, startAyah: 31, surahNameAr: 'الأحزاب', surahNameEn: 'Al-Ahzab' },
+  { juz: 23, startSurah: 36, startAyah: 28, surahNameAr: 'يس', surahNameEn: 'Ya-Sin' },
+  { juz: 24, startSurah: 39, startAyah: 32, surahNameAr: 'الزمر', surahNameEn: 'Az-Zumar' },
+  { juz: 25, startSurah: 41, startAyah: 47, surahNameAr: 'فصلت', surahNameEn: 'Fussilat' },
+  { juz: 26, startSurah: 46, startAyah: 1, surahNameAr: 'الأحقاف', surahNameEn: 'Al-Ahqaf' },
+  { juz: 27, startSurah: 51, startAyah: 31, surahNameAr: 'الذاريات', surahNameEn: 'Adh-Dhariyat' },
+  { juz: 28, startSurah: 58, startAyah: 1, surahNameAr: 'المجادلة', surahNameEn: 'Al-Mujadila' },
+  { juz: 29, startSurah: 67, startAyah: 1, surahNameAr: 'الملك', surahNameEn: 'Al-Mulk' },
+  { juz: 30, startSurah: 78, startAyah: 1, surahNameAr: 'النبأ', surahNameEn: 'An-Naba' },
+];
+
+export function stripBismillahPrefix(
+  surahNumber: number,
+  ayahNumberInSurah: number,
+  textUthmani: string
+): string {
+  if (!textUthmani || surahNumber === 1 || surahNumber === 9 || ayahNumberInSurah !== 1) {
+    return textUthmani;
+  }
+  const stripped = textUthmani
+    .replace(/^بِسْمِ\s+ٱللَّهِ\s+ٱلرَّحْمَٰنِ\s+ٱلرَّحِيمِ\s*/u, '')
+    .trim();
+  return stripped.length > 0 ? stripped : textUthmani;
+}
+
 export function normalizeArabicSearch(input: string): string {
   return input
     .trim()
-    .replace(/[\u064B-\u065F\u0670\u0640]/g, '')
+    .replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED\u0640]/g, '')
     .replace(/[أإآٱ]/g, 'ا')
     .replace(/ة/g, 'ه')
     .replace(/ى/g, 'ي')
+    .replace(/\s+/g, ' ')
+    .trim()
     .toLowerCase();
 }
 
@@ -534,12 +583,7 @@ export function computeNextWirdSchedule(
 }
 
 export function isValidReciterId(value: unknown): value is QuranReciterId {
-  return (
-    value === 'ar.husary' ||
-    value === 'ar.minshawi' ||
-    value === 'ar.alafasy' ||
-    value === 'ar.abdulbasitmurattal'
-  );
+  return value === 'ar.husary' || value === 'ar.minshawi' || value === 'ar.alafasy';
 }
 
 export function buildAyahAudioUrls(
@@ -560,7 +604,6 @@ const EVERY_AYAH_RECITER_FOLDERS: Record<QuranReciterId, string> = {
   'ar.husary': 'Husary_128kbps',
   'ar.minshawi': 'Minshawy_Murattal_128kbps',
   'ar.alafasy': 'Alafasy_128kbps',
-  'ar.abdulbasitmurattal': 'Abdul_Basit_Murattal_192kbps',
 };
 
 export function buildEveryAyahUrl(
@@ -1142,4 +1185,113 @@ export async function fetchSurahWithCache(
   }
 
   throw new Error('SURAH_UNAVAILABLE');
+}
+
+export interface QuranVerseSearchHit {
+  surahNumber: number;
+  surahNameAr: string;
+  surahNameEn: string;
+  ayahNumber: number;
+  textUthmani: string;
+}
+
+interface IndexedSearchVerse {
+  surahNumber: number;
+  ayahNumber: number;
+  textUthmani: string;
+  normalized: string;
+}
+
+let verseSearchCorpusPromise: Promise<IndexedSearchVerse[]> | null = null;
+let verseSearchCorpusCache: IndexedSearchVerse[] | null = null;
+
+export function resetVerseSearchCorpusCache(): void {
+  verseSearchCorpusPromise = null;
+  verseSearchCorpusCache = null;
+}
+
+async function loadVerseSearchCorpus(fetchImpl?: typeof fetch): Promise<IndexedSearchVerse[]> {
+  if (verseSearchCorpusCache) return verseSearchCorpusCache;
+  if (verseSearchCorpusPromise && !fetchImpl) return verseSearchCorpusPromise;
+
+  const fetchFn = fetchImpl ?? (typeof fetch !== 'undefined' ? fetch : null);
+  if (!fetchFn) return [];
+
+  const loader = (async () => {
+    const entries: IndexedSearchVerse[] = [];
+    const batchSize = 12;
+    for (let start = 1; start <= 114; start += batchSize) {
+      const end = Math.min(114, start + batchSize - 1);
+      const batchNums: number[] = [];
+      for (let s = start; s <= end; s += 1) batchNums.push(s);
+
+      const results = await Promise.all(
+        batchNums.map(async (surahNum) => {
+          try {
+            const res = await fetchFn(getBundledSurahUrl(surahNum), {
+              method: 'GET',
+              headers: { Accept: 'application/json' },
+            });
+            if (!res.ok) return null;
+            const parsed = (await res.json().catch(() => null)) as QuranSurahData | null;
+            return parsed && Array.isArray(parsed.ayahs) ? parsed : null;
+          } catch {
+            return null;
+          }
+        })
+      );
+
+      for (const surah of results) {
+        if (!surah) continue;
+        for (const ayah of surah.ayahs) {
+          const cleanText = stripBismillahPrefix(surah.number, ayah.numberInSurah, ayah.textUthmani);
+          entries.push({
+            surahNumber: surah.number,
+            ayahNumber: ayah.numberInSurah,
+            textUthmani: cleanText,
+            normalized: normalizeArabicSearch(cleanText),
+          });
+        }
+      }
+    }
+
+    if (entries.length > 0 && !fetchImpl) {
+      verseSearchCorpusCache = entries;
+    }
+    return entries;
+  })();
+
+  if (!fetchImpl) {
+    verseSearchCorpusPromise = loader;
+  }
+  return loader;
+}
+
+export async function searchQuranVersesOffline(
+  query: string,
+  options?: { limit?: number; fetchImpl?: typeof fetch }
+): Promise<QuranVerseSearchHit[]> {
+  const normalizedQuery = normalizeArabicSearch(query);
+  if (normalizedQuery.length < 2) return [];
+  if (/^\d+$/.test(normalizedQuery)) return [];
+
+  const limit = options?.limit ?? 30;
+  const corpus = await loadVerseSearchCorpus(options?.fetchImpl);
+  const hits: QuranVerseSearchHit[] = [];
+
+  for (const item of corpus) {
+    if (item.normalized.includes(normalizedQuery)) {
+      const meta = getSurahMeta(item.surahNumber);
+      hits.push({
+        surahNumber: item.surahNumber,
+        surahNameAr: meta?.nameAr ?? String(item.surahNumber),
+        surahNameEn: meta?.nameEn ?? `Surah ${item.surahNumber}`,
+        ayahNumber: item.ayahNumber,
+        textUthmani: item.textUthmani,
+      });
+      if (hits.length >= limit) break;
+    }
+  }
+
+  return hits;
 }

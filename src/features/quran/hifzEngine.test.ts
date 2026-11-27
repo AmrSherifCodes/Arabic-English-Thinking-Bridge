@@ -8,6 +8,7 @@ import path from 'node:path';
 import {
   FEATURED_SURAH_NUMBERS,
   JUZ_AMMA_RANGE,
+  JUZ_INDEX,
   QURAN_HIFZ_STORAGE_KEY,
   QURAN_RECITERS,
   QuranAyah,
@@ -26,10 +27,15 @@ import {
   fetchSurahWithCache,
   getDueWirdItems,
   getPinnedSurahs,
+  isValidReciterId,
   loadHifzState,
+  normalizeArabicSearch,
   recordWirdReview,
+  resetVerseSearchCorpusCache,
   saveHifzState,
+  searchQuranVersesOffline,
   searchSurahs,
+  stripBismillahPrefix,
   toggleBookmark,
   tokenizeAyahWords,
 } from './hifzEngine';
@@ -294,8 +300,13 @@ test('7. Offline 114-Surah Mushaf bundle integrity (6,236 ayahs, Tafsir, Sahih E
   assert.equal(totalAyahs, 6236);
 });
 
-test('8. Reciter audio URL builder, bookmarks persistence, and 4-layer offline fetch fallback', async () => {
-  assert.ok(QURAN_RECITERS.length >= 4);
+test('8. Reciter audio URL builder (3 verified reciters), bookmarks persistence, and 4-layer offline fetch fallback', async () => {
+  assert.equal(QURAN_RECITERS.length, 3);
+  assert.deepEqual(
+    QURAN_RECITERS.map((r) => r.id),
+    ['ar.husary', 'ar.minshawi', 'ar.alafasy']
+  );
+  assert.equal(isValidReciterId('ar.abdulbasitmurattal'), false);
   for (const reciter of QURAN_RECITERS) {
     const urls = buildAyahAudioUrls(1, reciter.id);
     assert.equal(urls.primary, `https://cdn.islamic.network/quran/audio/128/${reciter.id}/1.mp3`);
@@ -376,4 +387,50 @@ test('9. Foolproof audio fallback chain (EveryAyah + Islamic Network), fontScale
   assert.equal(reloaded.lastAyahNumber, 45);
   assert.equal(reloaded.fontScale, 1.5);
   assert.equal(reloaded.mushafTheme, 'dark');
+});
+
+test('10. 30 Juz index, Bismillah prefix stripping, and diacritic-insensitive offline verse search', async () => {
+  assert.equal(JUZ_INDEX.length, 30);
+  assert.equal(JUZ_INDEX[0].startSurah, 1);
+  assert.equal(JUZ_INDEX[28].startSurah, 67);
+  assert.equal(JUZ_INDEX[29].startSurah, 78);
+
+  const qalamRaw = JSON.parse(
+    fs.readFileSync(path.resolve(process.cwd(), 'public/data/quran/68.json'), 'utf8')
+  ) as { ayahs: QuranAyah[] };
+  const stripped = stripBismillahPrefix(68, 1, qalamRaw.ayahs[0].textUthmani);
+  assert.equal(stripped.startsWith('بِسْمِ'), false);
+  assert.equal(normalizeArabicSearch(stripped).includes('ن والقلم'), true);
+
+  // Al-Fatihah Ayah 1 keeps Bismillah intact
+  const fatihahRaw = JSON.parse(
+    fs.readFileSync(path.resolve(process.cwd(), 'public/data/quran/1.json'), 'utf8')
+  ) as { ayahs: QuranAyah[] };
+  assert.equal(
+    stripBismillahPrefix(1, 1, fatihahRaw.ayahs[0].textUthmani),
+    fatihahRaw.ayahs[0].textUthmani
+  );
+
+  resetVerseSearchCorpusCache();
+  const quranDataDir = path.resolve(process.cwd(), 'public/data/quran');
+  const localFetch = (async (input: RequestInfo | URL) => {
+    const match = String(input).match(/(\d+)\.json$/);
+    if (match) {
+      const content = fs.readFileSync(path.join(quranDataDir, `${match[1]}.json`), 'utf8');
+      return new Response(content, { status: 200, headers: { 'Content-Type': 'application/json' } });
+    }
+    return new Response('', { status: 404 });
+  }) as typeof fetch;
+
+  const qalamHits = await searchQuranVersesOffline('ن والقلم', { fetchImpl: localFetch });
+  assert.equal(qalamHits.some((h) => h.surahNumber === 68 && h.ayahNumber === 1), true);
+
+  const hamdHits = await searchQuranVersesOffline('الحمد لله', { fetchImpl: localFetch });
+  assert.equal(hamdHits.some((h) => h.surahNumber === 1 && h.ayahNumber === 2), true);
+
+  // Legacy removed reciter falls back safely to ar.husary
+  const legacyStorage = createMemoryStorage({
+    [QURAN_HIFZ_STORAGE_KEY]: JSON.stringify({ reciterId: 'ar.abdulbasitmurattal' }),
+  });
+  assert.equal(loadHifzState(legacyStorage).reciterId, 'ar.husary');
 });
